@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="nodebox-core" default="core-default" basedir="..">
+    <description>Builds and tests the NodeBox core.</description>
+
+    <target name="core-properties">
+        <property name="application.name" value="NodeBox"/>
+        <property name="module.dir" value="core"/>
+        <property name="src.dir" value="${module.dir}/src"/>
+        <property name="test.dir" value="${module.dir}/test"/>
+        <property name="lib.dir" value="${module.dir}/lib"/>
+        <property name="build.dir" value="${module.dir}/build"/>
+        <property name="build.prod.dir" location="${build.dir}/prod"/>
+        <property name="build.test.dir" location="${build.dir}/test"/>
+        <property name="dist.dir" value="${module.dir}/dist"/>
+
+        <!-- Determine the platform family: windows, mac or linux. -->
+        <condition property="platform.windows" value="true">
+            <or>
+                <equals arg1="${os.name}" arg2="Windows XP"/>
+            </or>
+        </condition>
+        <condition property="platform.mac" value="true">
+            <equals arg1="${os.name}" arg2="Mac OS X"/>
+        </condition>
+        <condition property="platform.unix" value="true">
+            <equals arg1="${os.name}" arg2="Linux"/>
+        </condition>
+        <condition property="platform" value="mac">
+            <isset property="platform.mac"/>
+        </condition>
+        <condition property="platform" value="windows">
+            <isset property="platform.windows"/>
+        </condition>
+        <condition property="platform" value="linux">
+            <isset property="platform.linux"/>
+        </condition>
+        <property name="platform.dir" location="${module.dir}/platform/${platform}"/>
+        <property name="platform.src.dir" location="${platform.dir}/src"/>
+        <property name="platform.lib.dir" location="${platform.dir}/lib"/>
+        <property name="platform.res.dir" location="${platform.dir}/res"/>
+
+        <path id="project.classpath">
+            <pathelement location="${build.prod.dir}"/>
+            <pathelement location="${build.test.dir}"/>
+            <pathelement location="${platform.lib.dir}"/>
+            <fileset dir="${lib.dir}">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+    </target>
+
+    <target name="core-init" depends="core-properties">
+        <mkdir dir="${build.prod.dir}"/>
+        <mkdir dir="${build.test.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+    </target>
+
+    <target name="core-compile" depends="core-init">
+        <javac destdir="${build.prod.dir}" source="1.5">
+            <src path="${src.dir}"/>
+            <src path="${platform.src.dir}"/>
+            <classpath refid="project.classpath"/>
+        </javac>
+    </target>
+
+    <target name="core-compile-tests" depends="core-compile">
+        <javac srcdir="${test.dir}" destdir="${build.test.dir}" source="1.5">
+            <classpath refid="project.classpath"/>
+        </javac>
+    </target>
+
+    <target name="core-test" depends="core-compile-tests">
+        <junit haltonfailure="true">
+            <classpath refid="project.classpath"/>
+            <formatter type="brief" usefile="false"/>
+            <batchtest>
+                <fileset dir="${build.test.dir}" includes="**/*Test.class"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="core-jar" depends="core-compile">
+        <mkdir dir="${dist.dir}/lib"/>
+        <jar jarfile="${dist.dir}/lib/nodebox-core.jar" basedir="${build.prod.dir}"/>
+    </target>
+
+    <target name="core-dist-win" depends="core-jar">
+    </target>
+
+    <target name="core-clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+
+    <target name="core-default" depends="core-test" description="Tests the core module."/>
+
+</project>
