@@ -19,6 +19,8 @@
 
 package net.nodebox.util;
 
+import java.util.List;
+
 public class StringUtils {
 
     public static String humanizeName(String name) {
@@ -31,5 +33,17 @@ public class StringUtils {
             sb.append(" ");
         }
         return sb.toString().trim();
+    }
+
+    public static String join(List items, String separator) {
+        StringBuilder sb = new StringBuilder();
+        for (int i=0;i<items.size();i++) {
+            boolean lastItem = i == items.size() - 1;
+            sb.append(items.get(i));
+            if (!lastItem) {
+                sb.append(separator);
+            }
+        }
+        return sb.toString();
     }
 }

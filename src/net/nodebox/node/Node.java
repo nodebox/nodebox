@@ -18,81 +18,64 @@
  */
 package net.nodebox.node;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import net.nodebox.util.StringUtils;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Frederik
- */
-public class Node {
+public class Node extends Observable {
 
-    public static final String LOG_NODE = "node";
-    private double x, y;
-    private String name;
+    private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
+    private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
+
     private Network network;
-    private HashMap<String, Parameter> parameters = new HashMap<String, Parameter>();
-    private Parameter outputParameter;
-    private ArrayList<Connection> downstreams = new ArrayList<Connection>();
-    // TODO: add exception
-    boolean dirty = true;
+    private String name;
+    private double x, y;
+    private boolean dirty = true;
+    private int minimumInputs;
+    private int maximumInputs;
+    private HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
+    private List<Parameter> parameters = new ArrayList<Parameter>();
+    private List<Connection> upstreams = new ArrayList<Connection>();
+    private List<Connection> downstreams = new ArrayList<Connection>();
 
-    public static class NotFound extends RuntimeException {
-
-        private Network network;
-        private String nodeName;
-
-        public NotFound(Network network, String nodeName) {
-            this.network = network;
-            this.nodeName = nodeName;
-        }
-
-        public Network getNetwork() {
-            return network;
-        }
-
-        public String getNodeName() {
-            return nodeName;
-        }
+    public Node() {
+        this(null);
     }
 
-    public static class InvalidName extends RuntimeException {
-        private Node node;
-        private String name;
-
-        public InvalidName(Node node, String name) {
-            this(node, name, "Invalid name \"" + name + "\" for node \"" + node.getName() + "\"");
-        }
-
-        public InvalidName(Node node, String name, String message) {
-            super(message);
-            this.node = node;
+    public Node(String name) {
+        if (name != null) {
             this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Node getNode() {
-            return node;
+        } else {
+            this.name = defaultName();
         }
     }
 
-    public Node(String outputType) {
-        name = defaultName();
-        outputParameter = new Parameter(this, "out", outputType, Parameter.DIRECTION_OUT);
+    //// Basic attributes ////
+
+    public double getX() {
+        return x;
     }
 
-    public void _setNetwork(Network network) {
-        this.network = network;
+    public void setX(double x) {
+        this.x = x;
+        setChanged();
+        notifyObservers();
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+        setChanged();
+        notifyObservers();
     }
 
     //// Naming ////
+
     public String defaultName() {
         return getClass().getSimpleName().toLowerCase();
     }
@@ -101,33 +84,92 @@ public class Node {
         return name;
     }
 
+    public static void validateName(String name) {
+        Matcher m1 = NODE_NAME_PATTERN.matcher(name);
+        Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
+        if (!m1.matches()) {
+            throw new ValueError("Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
+        }
+        if (m2.matches()) {
+            throw new ValueError("Names starting with double underscore are reserved for internal use.");
+        }
+    }
+
     public void setName(String name) {
         if (inNetwork()) {
             network.rename(this, name);
         } else {
-            _setName(name);
-        }
-    }
-
-    public static boolean validName(String name) {
-        Pattern nodeNamePattern = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
-        Pattern doubleUnderScorePattern = Pattern.compile("^__.*$");
-        Matcher m1 = nodeNamePattern.matcher(name);
-        Matcher m2 = doubleUnderScorePattern.matcher(name);
-        return m1.matches() && !m2.matches();
-    }
-
-    public void _setName(String name) {
-        if (validName(name)) {
+            validateName(name);
             this.name = name;
-        } else {
-            throw new InvalidName(this, name);
+            setChanged();
+            notifyObservers();
         }
+    }
+
+    //// Ports ////
+
+    public int getMinimumInputs() {
+        return minimumInputs;
+    }
+
+    public int getMaximumInputs() {
+        return maximumInputs;
+    }
+
+    public void setMinimumInputs(int minimumInputs) {
+        this.minimumInputs = minimumInputs;
+        // TODO: Check the amount of connections, and disconnect if necessary.
+    }
+
+    public void setMaximumInputs(int maximumInputs) {
+        this.maximumInputs = maximumInputs;
+        // TODO: Check the amount of connections, and disconnect if necessary.
+    }
+
+    //// Parameters ////
+
+    public List<Parameter> getParameters() {
+        return parameters;
+    }
+
+    public int parameterSize() {
+        return parameters.size();
+    }
+
+    public Parameter getParameter(String name) {
+        if (hasParameter(name)) {
+            return parameterMap.get(name);
+        } else {
+            throw new Parameter.NotFound(this, name);
+        }
+    }
+
+    public boolean hasParameter(String name) {
+        return parameterMap.containsKey(name);
+    }
+
+    public Parameter addParameter(String name, String type) {
+        Parameter p = new Parameter(this, name, type);
+        parameterMap.put(name, p);
+        parameters.add(p);
+        return p;
+    }
+
+    public Parameter addParameter(String name, String type, ParameterGroup g) {
+        Parameter p = new Parameter(this, name, type);
+        parameterMap.put(name, p);
+        g.addParameter(p);
+        return p;
     }
 
     //// Network ////
+
     public Network getNetwork() {
         return network;
+    }
+
+    public void _setNetwork(Network network) {
+        this.network = network;
     }
 
     public void setNetwork(Network network) {
@@ -145,73 +187,29 @@ public class Node {
         return network != null;
     }
 
-    //// Position ////
-    public double getX() {
-        return x;
+    public boolean isRendered() {
+        return inNetwork() && network.getRenderedNode() == this;
     }
 
-    public void setX(double x) {
-        this.x = x;
-        // TODO: notify
+    public void setRendered() {
+        if (!inNetwork()) return;
+        network.setRenderedNode(this);
     }
 
-    public double getY() {
-        return y;
-    }
-
-    public void setY(double y) {
-        this.y = y;
-        // TODO: notify
-    }
-
-    //// Parameter operations ////
-    public Parameter addParameter(String name, String type) {
-        if (hasParameter(name)) {
-            throw new Parameter.InvalidName(null, name, "There is already a parameter called \"" + name + "\" for this node.");
+    public String getNetworkPath() {
+        List<String> parts = new ArrayList<String>();
+        parts.add(name);
+        Network parent = network;
+        while (parent != null) {
+            parts.add(0, parent.getName());
+            parent = parent.getNetwork();
         }
-        Parameter p = new Parameter(this, name, type);
-        parameters.put(name, p);
-        markDirty();
-        return p;
+        return "/" + StringUtils.join(parts, "/");
     }
 
-    public Parameter getParameter(String name) {
-        if (hasParameter(name)) {
-            return parameters.get(name);
-        } else {
-            throw new Parameter.NotFound(this, name);
-        }
-    }
-
-    public void renameParameter(Parameter parameter, String newName) {
-        if (parameter.getName().equals(newName)) {
-            return;
-        }
-        if (hasParameter(newName)) {
-            throw new Parameter.InvalidName(parameter, newName, "You tried to rename your parameter to \"" + newName + "\", which is the name of another parameter for this node.");
-        }
-        parameters.remove(parameter.getName());
-        parameter._setName(newName);
-        parameters.put(newName, parameter);
-    }
-
-    public boolean hasParameter(String name) {
-        return parameters.containsKey(name);
-    }
-
-    public Parameter getOutputParameter() {
-        return outputParameter;
-    }
-
-    public String getOutputType() {
-        return outputParameter.getType();
-    }
-
-    public Collection<Parameter> getParameters() {
-        return new ArrayList<Parameter>(parameters.values());
-    }
 
     //// Value shortcuts ////
+
     public int asInt(String name) {
         return getParameter(name).asInt();
     }
@@ -238,43 +236,10 @@ public class Node {
 
     public Object asData(String name) {
         return getParameter(name).asData();
-
     }
 
     public Object asData(String name, int channel) {
         return getParameter(name).asData(channel);
-    }
-
-    public int outputAsInt() {
-        return outputParameter.asInt();
-    }
-
-    public int outputAsInt(int channel) {
-        return outputParameter.asInt(channel);
-    }
-
-    public double outputAsFloat() {
-        return outputParameter.asFloat();
-    }
-
-    public double outputAsFloat(int channel) {
-        return outputParameter.asFloat(channel);
-    }
-
-    public String outputAsString() {
-        return outputParameter.asString();
-    }
-
-    public String outputAsString(int channel) {
-        return outputParameter.asString(channel);
-    }
-
-    public Object outputAsData() {
-        return outputParameter.asData();
-    }
-
-    public Object outputAsData(int channel) {
-        return outputParameter.asData(channel);
     }
 
     public void set(String name, int value) {
@@ -309,139 +274,136 @@ public class Node {
         getParameter(name).set(value, channel);
     }
 
-    //// Dirty management ////
-    public void markDirty() {
-        if (dirty) {
-            return;
+    //// Expression shortcuts ////
+
+    //// Connection shortcuts ////
+
+    /**
+     * Returns if there is a connection on the specified port.
+     *
+     * @param port the port index
+     * @return true if the port is connected
+     */
+    public boolean isInputConnected(int port) {
+        if (upstreams.isEmpty()) return false;
+        return getInputConnection(port) != null;
+    }
+
+    /**
+     * Return the Connection object for the specified port.
+     * If the port is non-existant or nothing is connected to the port,
+     * this method returns null.
+     *
+     * @param port the port index for this connection
+     * @return a Connection object or null.
+     * @see #isInputConnected(int)
+     */
+    public Connection getInputConnection(int port) {
+        if (port < 0 | port > maximumInputs) return null;
+        for (Connection c : upstreams) {
+            if (c.getInputPort() == port)
+                return c;
         }
-        dirty = true;
+        return null;
+    }
+
+    public List<Connection> getInputConnections() {
+        return new ArrayList<Connection>(upstreams);
+    }
+
+    public List<Connection> getOutputConnections() {
+        return new ArrayList<Connection>(downstreams);
+    }
+
+    /**
+     * Disconnects a specific input from the node.
+     * Also removes the downstream connection in the corresponding output node.
+     *
+     * @param port the port number you want to disconnect
+     * @return true if the port was disconnected, false if nothing was connected to the port
+     *         or if the port does not exist.
+     */
+    public boolean disconnectInput(int port) {
+        Connection c = getInputConnection(port);
+        if (c == null) return false;
+        upstreams.remove(c);
+        c.getOutputNode().downstreams.remove(c);
+        setChanged();
+        notifyObservers();
+        return true;
+    }
+
+    /**
+     * Removes all connections from and to this node.
+     *
+     * @return true if connections were removed.
+     */
+    public boolean disconnect() {
+        boolean removedSomething = false;
+
+        // Disconnect all my inputs.
+        for (Connection c : upstreams) {
+            removedSomething = disconnectInput(c.getInputPort()) | removedSomething;
+        }
+
+        // Disconnect all my outputs.
         for (Connection c : downstreams) {
-            c.getInputNode().markDirty();
+            removedSomething = c.getInputNode().disconnectInput(c.getInputPort()) | removedSomething;
+        }
+
+        return removedSomething;
+    }
+
+    public boolean isConnected() {
+        return !upstreams.isEmpty() || !downstreams.isEmpty();
+    }
+
+    //// Change notification ////
+
+    public void setChanged() {
+        super.setChanged();
+        notifyObservers();
+    }
+
+    public void markDirty() {
+        if (dirty)
+            return;
+        dirty = true;
+        for (Connection connection : downstreams) {
+            connection.markDirtyDownstream();
         }
         if (inNetwork() && !network.isDirty()) {
-            // TODO: this is not ideal, since only changes to the rendered node should make the network dirty.
-            network.markDirty();
+            // Only changes to the rendered node should make the network dirty.
+            // TODO: Check for corner cases.
+            if (network.getRenderedNode() == this) {
+                network.markDirty();
+            }
         }
-        // TODO: notify
+        setChanged();
+        notifyObservers();
     }
 
     public boolean isDirty() {
         return dirty;
     }
 
-    public void update() {
-        if (dirty) {
-            for (Parameter p : parameters.values()) {
-                p.update();
-            }
-        }
-        process();
-        dirty = false;
+    /**
+     * This method does the actual functionality of the node.
+     *
+     * @return true if the evaluation succeeded.
+     */
+    protected boolean evaluate(ProcessingContext ctx) {
+        return true;
     }
 
     //// Output ////
-    public boolean isOutputConnected() {
-        return downstreams.size() > 0;
-    }
 
-    public boolean isOutputConnectedTo(Node node) {
-        for (Connection c : downstreams) {
-            if (c.getInputNode() == node) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isOutputConnectedTo(Parameter parameter) {
-        for (Connection c : downstreams) {
-            if (c.getInputParameter() == parameter) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Collection<Connection> getOutputConnections() {
-        return downstreams;
-    }
-
-    public void _setOutput(int value) {
-        outputParameter.set(value);
-    }
-
-    public void _setOutput(int value, int channel) {
-        outputParameter.set(value, channel);
-    }
-
-    public void _setOutput(double value) {
-        outputParameter.set(value);
-    }
-
-    public void _setOutput(double value, int channel) {
-        outputParameter.set(value, channel);
-    }
-
-    public void _setOutput(String value) {
-        outputParameter.set(value);
-    }
-
-    public void _setOutput(String value, int channel) {
-        outputParameter.set(value, channel);
-    }
-
-    public void _setOutput(Object value) {
-        outputParameter.set(value);
-    }
-
-    public void _setOutput(Object value, int channel) {
-        outputParameter.set(value, channel);
-    }
-
-    //// Processing ////
-    protected void process() {
-        // This space intentionally left blank.
-    }
-
-    //// Connection ////
-    public boolean isConnected() {
-        // Check upstream connections
-        for (Parameter p : parameters.values()) {
-            if (p.isConnected()) {
-                return true;
-            }
-        }
-        // Check downstream connections
-        return !downstreams.isEmpty();
-    }
-
-    public void disconnect() {
-        // Disconnect upstream
-        for (Parameter p : parameters.values()) {
-            p.disconnect();
-        }
-        // Disconnect downstream
-        outputParameter.disconnect();
-    }
-
-    public void _addDownstream(Connection connection) {
-        // TODO: Check if the connection/parameter is already in the list.
-        assert (connection != null);
-        assert (connection.getOutputNode() == this);
-        assert (connection.getInputNode() != this);
-        downstreams.add(connection);
-    }
-
-    public void _removeDownstream(Connection connection) {
-        if (!downstreams.remove(connection)) {
-            Logger.getLogger(LOG_NODE).log(Level.WARNING, "Could not remove connection " + connection + " on node " + name);
-            assert (false);
-        }
-    }
-
-    //// Output ////
     @Override
     public String toString() {
-        return "Node(" + name + ")";
+        return "<" + getClass().getSimpleName() + ": " + name + ">";
     }
+
+    //// Persistence ////
+
+
 }

@@ -22,9 +22,22 @@ import net.nodebox.util.StringUtils;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Parameter {
-    // TODO: MenuItem support
+/**
+ * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
+ * to change its behaviour. Parameters are represented by standard user interface controls, such as sliders for numbers,
+ * text fields for strings, and checkboxes for booleans.
+ *
+ * Parameters implement the observer pattern for expressions. Parameters that are dependent on other parameters because
+ * of their expressions will observe the parameters they depend on, and marked the node as dirty whenever they receive
+ * an update event from one of the parameters they depend on.
+ */
+public class Parameter implements Observer {
+
     public static final String TYPE_ANGLE = "angle";
     public static final String TYPE_COLOR = "color";
     public static final String TYPE_CUSTOM = "custom";
@@ -52,25 +65,26 @@ public class Parameter {
     public static final int DISPLAY_LEVEL_HIDDEN = 0;
     public static final int DISPLAY_LEVEL_DETAIL = 1;
     public static final int DISPLAY_LEVEL_HUD = 2;
+
     private Node node;
     private String name;
     private String label;
     private String helpText;
     private String type;
     private int coreType;
-    private int direction;
     private int channelCount;
     private int boundingType;
     private double minimum;
     private double maximum;
     private int displayLevel;
-    //private ArrayList<MenuItem> menuItems;
+    private ArrayList<Map.Entry> menuItems;
     private boolean disabled;
     private boolean persistent;
     private Object[] channels;
     private Expression expression;
     private boolean expressionEnabled;
     private Connection connection;
+    private Observable expressionDependencies = new Observable();
 
     public static class NotFound extends RuntimeException {
 
@@ -115,15 +129,10 @@ public class Parameter {
     }
 
     public Parameter(Node node, String name, String type) {
-        this(node, name, type, DIRECTION_IN);
-    }
-
-    public Parameter(Node node, String name, String type, int direction) {
         this.node = node;
         this.name = name;
         this.label = StringUtils.humanizeName(name);
         this.type = type;
-        this.direction = direction;
 
         if (type.equals(TYPE_ANGLE)) {
             coreType = CORE_TYPE_FLOAT;
@@ -174,39 +183,37 @@ public class Parameter {
     }
 
     //// Basic operations ////
+
     public Node getNode() {
         return node;
     }
 
-    public int getDirection() {
-        return direction;
-    }
-
-    public boolean isInputParameter() {
-        return direction == DIRECTION_IN;
-    }
-
-    public boolean isOutputParameter() {
-        return direction == DIRECTION_OUT;
-    }
-
-    public int channelCount() {
+    public int getChannelCount() {
         return channelCount;
     }
 
     //// Naming ////
+
+    public boolean validName(String name) {
+        // Check if another parameter has the same name.
+        if (node.getParameter(name) != this) return false;
+        Pattern nodeNamePattern = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
+        Pattern doubleUnderScorePattern = Pattern.compile("^__.*$");
+        Pattern reservedPattern = Pattern.compile("^(node|name)$");
+        Matcher m1 = nodeNamePattern.matcher(name);
+        Matcher m2 = doubleUnderScorePattern.matcher(name);
+        Matcher m3 = reservedPattern.matcher(name);
+        return m1.matches() && !m2.matches() && !m3.matches();
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
-        node.renameParameter(this, name);
-        // TODO: notify
-    }
-
-    public void _setName(String name) {
         if (validName(name)) {
             this.name = name;
+            node.setChanged();
         } else {
             throw new InvalidName(this, name);
         }
@@ -218,7 +225,7 @@ public class Parameter {
 
     public void setLabel(String label) {
         this.label = label;
-        // TODO: notify
+        node.setChanged();
     }
 
     public String getHelpText() {
@@ -227,20 +234,11 @@ public class Parameter {
 
     public void setHelpText(String helpText) {
         this.helpText = helpText;
-        // TODO: notify
-    }
-
-    public static boolean validName(String name) {
-        Pattern nodeNamePattern = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
-        Pattern doubleUnderScorePattern = Pattern.compile("^__.*$");
-        Pattern reservedPattern = Pattern.compile("^(node|name)$");
-        Matcher m1 = nodeNamePattern.matcher(name);
-        Matcher m2 = doubleUnderScorePattern.matcher(name);
-        Matcher m3 = reservedPattern.matcher(name);
-        return m1.matches() && !m2.matches() && !m3.matches();
+        node.setChanged();
     }
 
     //// Type ////
+
     String getType() {
         return type;
     }
@@ -250,6 +248,7 @@ public class Parameter {
     }
 
     //// Boundaries ////
+
     public void setBoundingType(int boundingType) {
         this.boundingType = boundingType;
         if (boundingType == BOUNDING_HARD) {
@@ -292,9 +291,9 @@ public class Parameter {
             for (int i = 0; i < channelCount; i++) {
                 int v = (Integer) channels[i];
                 if (v < minimum) {
-                    set((int)minimum, i);
+                    set((int) minimum, i);
                 } else if (v > maximum) {
-                    set((int)maximum, i);
+                    set((int) maximum, i);
                 }
             }
         } else if (coreType == CORE_TYPE_FLOAT) {
@@ -456,6 +455,7 @@ public class Parameter {
     }
 
     //// Expressions ////
+
     public boolean hasExpression() {
         return expression != null;
     }
@@ -498,76 +498,34 @@ public class Parameter {
         node.markDirty();
     }
 
-    //// Connection methods ////
-    public boolean canConnectTo(Node node) {
-        if (isOutputParameter()) {
-            return false;
-        }
-        return node.getOutputParameter().getType().equals(getType());
+    //// Expression dependencies ////
+
+    private void addExpressionDependency(Parameter parameter) {
+        expressionDependencies.addObserver(parameter);
     }
 
-    public Connection connect(Node outputNode) {
-        if (!isInputParameter()) {
-            throw new ConnectionError(outputNode, this, "Can only connect input nodes");
-        }
-        if (this.node == outputNode) {
-            throw new ConnectionError(outputNode, this, "Cannot connect to myself");
-        }
-        if (!canConnectTo(outputNode)) {
-
-            throw new ConnectionError(outputNode, this, "Cannot connect to " + outputNode.getName());
-        }
-        disconnect();
-        connection = new Connection(outputNode.getOutputParameter(), this);
-        outputNode._addDownstream(connection);
-        getNode().markDirty();
-        // TODO: notify
-        return connection;
+    public boolean hasExpressionDependencies() {
+        return expressionDependencies.countObservers() > 0;
     }
 
-    public boolean disconnect() {
-        // TODO: also support disconnecting output parameters.
-        assert (isInputParameter());
-        if (!isConnected()) {
-            return false;
-        }
-        if (connection.hasOutput()) {
-            assert (connection.getOutputNode().isOutputConnectedTo(this));
-            connection.getOutputNode()._removeDownstream(connection);
-        }
-        connection = null;
-        revertToDefault();
+    /**
+     * Called whenever a Parameter I depend on for my expression changes.
+     * This means I will need to refresh the value of my Parameter, so this method
+     * marks the node as dirty.
+     * @param o an Observable object. We ignore this.
+     * @param arg ignored
+     */
+    public void update(Observable o, Object arg) {
         node.markDirty();
-        // TODO: notify
-        return true;
     }
 
-    public boolean isConnected() {
-        return connection != null;
-    }
-
-    public boolean isConnectedTo(Node node) {
-        if (!isConnected()) {
-            return false;
-        } else {
-            return connection.getOutputNode() == node;
-        }
-    }
-
-    public Connection getConnection() {
-        return connection;
+    public void evaluate() {
+        if (expressionEnabled) {
+        }        
     }
 
     public void update() {
-        // The connection takes precedence over the expression.
-        if (isConnected()) {
-            connection.getOutputNode().update();
-            assert (connection.getOutputParameter().getType().equals(getType()));
-            for (int i = 0; i < channelCount; i++) {
-                // TODO: There is no type checking here. Should there be?
-                channels[i] = connection.getOutputParameter().asData(i);
-            }
-        } else if (expressionEnabled) {
+        if (expressionEnabled) {
             // TODO: Currently, the expression runs for each channel.
             // The system could be smarter: when the expression returns a list,
             // assume that this list represents the different channels, and set

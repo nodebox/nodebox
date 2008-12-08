@@ -18,47 +18,49 @@
  */
 package net.nodebox.node;
 
+/**
+ * Represents a connection between two nodes.
+ *
+ * Connections are made between ports on the nodes. The connection goes from the output port of the output node
+ * (there is only one output port) to an input port on the input node.
+ */
 public class Connection {
 
-    private Parameter output;
-    private Parameter input;
+    private Node outputNode;
+    private Node inputNode;
+    private int inputPort;
 
-    public Connection(Parameter output, Parameter input) {
-        assert (output.isOutputParameter());
-        assert (input.isInputParameter());
-        this.output = output;
-        this.input = input;
-    }
-
-    public Parameter getInputParameter() {
-        return input;
-    }
-
-    public Parameter getOutputParameter() {
-        return output;
-    }
-
-    public Node getInputNode() {
-        return input.getNode();
+    /**
+     * Creates a connection between the output (upstream) node and input (downstream) node.
+     *
+     * @param fromNode the output node
+     * @param toNode   the input node
+     * @param toInput  the input port on the node
+     */
+    public Connection(Node fromNode, Node toNode, int toInput) {
+        outputNode = fromNode;
+        inputNode = toNode;
+        inputPort = toInput;
     }
 
     public Node getOutputNode() {
-        if (!hasOutput()) {
-            return null;
-        }
-        return output.getNode();
+        return outputNode;
     }
 
-    public boolean hasOutput() {
-        return output != null;
+    public boolean hasOutputNode() {
+        return outputNode != null;
     }
 
-    private void markDirtyDownstream() {
+    public Node getInputNode() {
+        return inputNode;
+    }
+
+    public int getInputPort() {
+        return inputPort;
+    }
+
+    public void markDirtyDownstream() {
         getInputNode().markDirty();
     }
-
-    private void update() {
-        // TODO: implement
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    
 }
