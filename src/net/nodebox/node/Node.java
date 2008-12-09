@@ -18,38 +18,173 @@
  */
 package net.nodebox.node;
 
+import net.nodebox.graphics.Color;
 import net.nodebox.util.StringUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Node extends Observable {
+/**
+ * A Node is a building block in a network and encapsulates specific functionality.
+ * <p/>
+ * The operation of the Node is specified through its parameters. The data that flows
+ * through the node passes through ports.
+ */
+public abstract class Node {
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
+    public static final int MAXIMUM_INPUTS = Integer.MAX_VALUE;
 
+    /**
+     * The parent network for this node.
+     */
     private Network network;
+
+    /**
+     * The name of this node.
+     */
     private String name;
+
+    /**
+     * Position of this node in the interface.
+     */
     private double x, y;
-    private boolean dirty = true;
-    private int minimumInputs;
-    private int maximumInputs;
-    private HashMap<String, Parameter> parameterMap = new HashMap<String, Parameter>();
-    private List<Parameter> parameters = new ArrayList<Parameter>();
-    private List<Connection> upstreams = new ArrayList<Connection>();
+
+    /**
+     * A flag that indicates whether this node is in need of processing.
+     * The dirty flag is set using markDirty and cleared while processing.
+     */
+    private transient boolean dirty = true;
+
+    /**
+     * A map of all parameters, both connectable and not.
+     */
+    private LinkedHashMap<String, Parameter> parameters = new LinkedHashMap<String, Parameter>();
+
+    /**
+     * The output parameter.
+     */
+    private Parameter outputParameter;
+
+    /**
+     * The input connections for this node.
+     */
+    private HashMap<Parameter, Connection> upstreams = new HashMap<Parameter, Connection>();
+
+    /**
+     * The output connections for this node.
+     */
     private List<Connection> downstreams = new ArrayList<Connection>();
 
-    public Node() {
-        this(null);
+    /**
+     * A list of messages that occurred during processing.
+     */
+    private List<Message> messages = new ArrayList<Message>();
+
+
+    /**
+     * A list of event listeners for this component.
+     */
+    //private transient EventListenerList listenerList = new EventListenerList();
+
+    public enum MessageLevel {
+        DEBUG, INFO, WARNING, ERROR
     }
 
-    public Node(String name) {
+    class Message {
+
+        private MessageLevel level;
+        private String message;
+
+        Message(MessageLevel level, String message) {
+            this.level = level;
+            this.message = message;
+        }
+
+        public MessageLevel getLevel() {
+            return level;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public boolean isDebug() {
+            return level == MessageLevel.DEBUG;
+        }
+
+        public boolean isInfo() {
+            return level == MessageLevel.INFO;
+        }
+
+        public boolean isWarning() {
+            return level == MessageLevel.WARNING;
+        }
+
+        public boolean isError() {
+            return level == MessageLevel.ERROR;
+        }
+    }
+
+    //// Exceptions ////
+
+    public static class NotFound extends RuntimeException {
+
+        private Network network;
+        private String nodeName;
+
+        public NotFound(Network network, String nodeName) {
+            this.network = network;
+            this.nodeName = nodeName;
+        }
+
+        public Network getNetwork() {
+            return network;
+        }
+
+        public String getNodeName() {
+            return nodeName;
+        }
+    }
+
+    public static class InvalidName extends RuntimeException {
+        private Node node;
+        private String name;
+
+        public InvalidName(Node node, String name) {
+            this(node, name, "Invalid name \"" + name + "\" for node \"" + node.getName() + "\"");
+        }
+
+        public InvalidName(Node node, String name, String message) {
+            super(message);
+            this.node = node;
+            this.name = name;
+        }
+
+        public Node getNode() {
+            return node;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    //// Constructors ////
+
+    public Node(Parameter.Type outputType) {
+        this(outputType, null);
+    }
+
+    public Node(Parameter.Type outputType, String name) {
         if (name != null) {
             this.name = name;
         } else {
             this.name = defaultName();
         }
+        outputParameter = new Parameter(this, "output", outputType);
     }
 
     //// Basic attributes ////
@@ -61,7 +196,6 @@ public class Node extends Observable {
     public void setX(double x) {
         this.x = x;
         setChanged();
-        notifyObservers();
     }
 
     public double getY() {
@@ -71,7 +205,6 @@ public class Node extends Observable {
     public void setY(double y) {
         this.y = y;
         setChanged();
-        notifyObservers();
     }
 
     //// Naming ////
@@ -84,52 +217,36 @@ public class Node extends Observable {
         return name;
     }
 
-    public static void validateName(String name) {
+    public void validateName(String name) {
         Matcher m1 = NODE_NAME_PATTERN.matcher(name);
         Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
         if (!m1.matches()) {
-            throw new ValueError("Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
+            throw new InvalidName(this, name, "Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
         }
         if (m2.matches()) {
-            throw new ValueError("Names starting with double underscore are reserved for internal use.");
+            throw new InvalidName(this, name, "Names starting with double underscore are reserved for internal use.");
         }
     }
 
-    public void setName(String name) {
+    public void setName(String name) throws InvalidName {
         if (inNetwork()) {
             network.rename(this, name);
         } else {
             validateName(name);
             this.name = name;
             setChanged();
-            notifyObservers();
         }
     }
 
-    //// Ports ////
-
-    public int getMinimumInputs() {
-        return minimumInputs;
-    }
-
-    public int getMaximumInputs() {
-        return maximumInputs;
-    }
-
-    public void setMinimumInputs(int minimumInputs) {
-        this.minimumInputs = minimumInputs;
-        // TODO: Check the amount of connections, and disconnect if necessary.
-    }
-
-    public void setMaximumInputs(int maximumInputs) {
-        this.maximumInputs = maximumInputs;
-        // TODO: Check the amount of connections, and disconnect if necessary.
+    protected void _setName(String name) {
+        this.name = name;
+        setChanged();
     }
 
     //// Parameters ////
 
-    public List<Parameter> getParameters() {
-        return parameters;
+    public Collection<Parameter> getParameters() {
+        return parameters.values();
     }
 
     public int parameterSize() {
@@ -138,28 +255,37 @@ public class Node extends Observable {
 
     public Parameter getParameter(String name) {
         if (hasParameter(name)) {
-            return parameterMap.get(name);
+            return parameters.get(name);
         } else {
             throw new Parameter.NotFound(this, name);
         }
     }
 
     public boolean hasParameter(String name) {
-        return parameterMap.containsKey(name);
+        return parameters.containsKey(name);
     }
 
-    public Parameter addParameter(String name, String type) {
+    public Parameter addParameter(String name, Parameter.Type type) {
         Parameter p = new Parameter(this, name, type);
-        parameterMap.put(name, p);
-        parameters.add(p);
+        parameters.put(name, p);
         return p;
     }
 
-    public Parameter addParameter(String name, String type, ParameterGroup g) {
-        Parameter p = new Parameter(this, name, type);
-        parameterMap.put(name, p);
-        g.addParameter(p);
-        return p;
+    public void renameParameter(Parameter parameter, String name) {
+        String oldName = parameter.getName();
+        if (oldName.equals(name)) return;
+        if (hasParameter(oldName)) {
+            parameters.remove(oldName);
+            parameter._setName(name);
+            parameters.put(name, parameter);
+            setChanged();
+        } else {
+            throw new Parameter.NotFound(this, oldName);
+        }
+    }
+
+    public Parameter getOutputParameter() {
+        return outputParameter;
     }
 
     //// Network ////
@@ -168,11 +294,11 @@ public class Node extends Observable {
         return network;
     }
 
-    public void _setNetwork(Network network) {
+    protected void _setNetwork(Network network) {
         this.network = network;
     }
 
-    public void setNetwork(Network network) {
+    public void setNetwork(Network network) throws InvalidName {
         if (inNetwork() && this.network != network) {
             network.remove(this);
         }
@@ -214,79 +340,85 @@ public class Node extends Observable {
         return getParameter(name).asInt();
     }
 
-    public int asInt(String name, int channel) {
-        return getParameter(name).asInt(channel);
-    }
-
     public double asFloat(String name) {
         return getParameter(name).asFloat();
-    }
-
-    public double asFloat(String name, int channel) {
-        return getParameter(name).asFloat(channel);
     }
 
     public String asString(String name) {
         return getParameter(name).asString();
     }
 
-    public String asString(String name, int channel) {
-        return getParameter(name).asString(channel);
+    public Color asColor(String name) {
+        return getParameter(name).asColor();
     }
 
-    public Object asData(String name) {
-        return getParameter(name).asData();
-    }
-
-    public Object asData(String name, int channel) {
-        return getParameter(name).asData(channel);
+    public Object getValue(String name) {
+        return getParameter(name).getValue();
     }
 
     public void set(String name, int value) {
         getParameter(name).set(value);
     }
 
-    public void set(String name, int value, int channel) {
-        getParameter(name).set(value, channel);
-    }
-
     public void set(String name, double value) {
         getParameter(name).set(value);
-    }
-
-    public void set(String name, double value, int channel) {
-        getParameter(name).set(value, channel);
     }
 
     public void set(String name, String value) {
         getParameter(name).set(value);
     }
 
-    public void set(String name, String value, int channel) {
-        getParameter(name).set(value, channel);
-    }
-
-    public void set(String name, Object value) {
+    public void set(String name, Color value) {
         getParameter(name).set(value);
     }
 
-    public void set(String name, Object value, int channel) {
-        getParameter(name).set(value, channel);
+    public void setValue(String name, Object value) {
+        getParameter(name).setValue(value);
+    }
+
+    //// Output value shortcuts ////
+
+    public Object getOutputValue() {
+        return outputParameter.getValue();
+    }
+
+    protected void setOutputValue(Object value) throws ValueError {
+        outputParameter.setValue(value);
     }
 
     //// Expression shortcuts ////
 
     //// Connection shortcuts ////
 
+    public boolean connectTo(Node inputNode, String parameterName) {
+        Parameter p = inputNode.getParameter(parameterName);
+        Connection c = new Connection(this, inputNode, p);
+        downstreams.add(c);
+        inputNode.upstreams.put(p, c);
+        return true;
+    }
+
+
+    /**
+     * Returns if there is a connection on the specified parameter.
+     *
+     * @param parameterName the name of the parameter
+     * @return true if the parameter is connected
+     */
+    public boolean isInputConnected(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        return isInputConnected(p);
+    }
+
     /**
      * Returns if there is a connection on the specified port.
      *
-     * @param port the port index
+     * @param p the parameter
      * @return true if the port is connected
      */
-    public boolean isInputConnected(int port) {
+    public boolean isInputConnected(Parameter p) {
         if (upstreams.isEmpty()) return false;
-        return getInputConnection(port) != null;
+        return getInputConnection(p) != null;
     }
 
     /**
@@ -294,21 +426,29 @@ public class Node extends Observable {
      * If the port is non-existant or nothing is connected to the port,
      * this method returns null.
      *
-     * @param port the port index for this connection
+     * @param parameterName the name of the parameter
      * @return a Connection object or null.
-     * @see #isInputConnected(int)
+     * @see #isInputConnected(String)
      */
-    public Connection getInputConnection(int port) {
-        if (port < 0 | port > maximumInputs) return null;
-        for (Connection c : upstreams) {
-            if (c.getInputPort() == port)
-                return c;
-        }
-        return null;
+    public Connection getInputConnection(String parameterName) {
+        return getInputConnection(getParameter(parameterName));
+    }
+
+    /**
+     * Return the Connection object for the specified port.
+     * If the port is non-existant or nothing is connected to the port,
+     * this method returns null.
+     *
+     * @param parameter the name of the parameter
+     * @return a Connection object or null.
+     * @see #isInputConnected(Parameter)
+     */
+    public Connection getInputConnection(Parameter parameter) {
+        return upstreams.get(parameter);
     }
 
     public List<Connection> getInputConnections() {
-        return new ArrayList<Connection>(upstreams);
+        return new ArrayList<Connection>(upstreams.values());
     }
 
     public List<Connection> getOutputConnections() {
@@ -319,17 +459,28 @@ public class Node extends Observable {
      * Disconnects a specific input from the node.
      * Also removes the downstream connection in the corresponding output node.
      *
-     * @param port the port number you want to disconnect
+     * @param parameterName the name of the parameter you want to disconnect
      * @return true if the port was disconnected, false if nothing was connected to the port
      *         or if the port does not exist.
      */
-    public boolean disconnectInput(int port) {
-        Connection c = getInputConnection(port);
+    public boolean disconnectInput(String parameterName) {
+        return disconnectInput(getParameter(parameterName));
+    }
+
+    /**
+     * Disconnects a specific input from the node.
+     * Also removes the downstream connection in the corresponding output node.
+     *
+     * @param parameter the parameter you want to disconnect
+     * @return true if the port was disconnected, false if nothing was connected to the port
+     *         or if the port does not exist.
+     */
+    public boolean disconnectInput(Parameter parameter) {
+        Connection c = getInputConnection(parameter);
         if (c == null) return false;
-        upstreams.remove(c);
+        upstreams.remove(parameter);
         c.getOutputNode().downstreams.remove(c);
         setChanged();
-        notifyObservers();
         return true;
     }
 
@@ -342,13 +493,13 @@ public class Node extends Observable {
         boolean removedSomething = false;
 
         // Disconnect all my inputs.
-        for (Connection c : upstreams) {
-            removedSomething = disconnectInput(c.getInputPort()) | removedSomething;
+        for (Connection c : upstreams.values()) {
+            removedSomething = disconnectInput(c.getInputParameter()) | removedSomething;
         }
 
         // Disconnect all my outputs.
         for (Connection c : downstreams) {
-            removedSomething = c.getInputNode().disconnectInput(c.getInputPort()) | removedSomething;
+            removedSomething = c.getInputNode().disconnectInput(c.getInputParameter()) | removedSomething;
         }
 
         return removedSomething;
@@ -361,8 +512,7 @@ public class Node extends Observable {
     //// Change notification ////
 
     public void setChanged() {
-        super.setChanged();
-        notifyObservers();
+        // TODO: Implement finer-grained change notification
     }
 
     public void markDirty() {
@@ -380,20 +530,99 @@ public class Node extends Observable {
             }
         }
         setChanged();
-        notifyObservers();
     }
 
     public boolean isDirty() {
         return dirty;
     }
 
+    //// Error handling ////
+
+    public void addDebug(String msg) {
+        messages.add(new Message(MessageLevel.DEBUG, msg));
+    }
+
+    public void addInfo(String msg) {
+        messages.add(new Message(MessageLevel.DEBUG, msg));
+    }
+
+    public void addWarning(String msg) {
+        messages.add(new Message(MessageLevel.DEBUG, msg));
+    }
+
+    public void addError(String msg) {
+        messages.add(new Message(MessageLevel.DEBUG, msg));
+    }
+
+    public boolean hasError() {
+        for (Message msg : messages) {
+            if (msg.isError())
+                return true;
+        }
+        return false;
+    }
+
+    public boolean hasWarning() {
+        for (Message msg : messages) {
+            if (msg.isWarning())
+                return true;
+        }
+        return false;
+    }
+
+    //// Processing ////
+
+    /**
+     * Updates the node by processing all required dependencies.
+     * <p/>
+     * This method will process only dirty nodes.
+     * This operation can take a long time, and should be run in a separate thread.
+     *
+     * @return true if the operation was successful
+     */
+    public boolean update() {
+        return update(new ProcessingContext());
+    }
+
+    /**
+     * Updates the node by processing all required dependencies.
+     * <p/>
+     * This method will process only dirty nodes.
+     * This operation can take a long time, and should be run in a separate thread.
+     *
+     * @param ctx meta-information about the processing operation.
+     * @return true if the operation was successful
+     */
+    public boolean update(ProcessingContext ctx) {
+        if (!dirty) return true;
+        for (Parameter p : parameters.values()) {
+            p.update();
+        }
+        messages.clear();
+        boolean success = process(ctx);
+        dirty = false;
+        return success;
+    }
+
     /**
      * This method does the actual functionality of the node.
      *
+     * @param ctx meta-information about the processing operation.
      * @return true if the evaluation succeeded.
      */
-    protected boolean evaluate(ProcessingContext ctx) {
-        return true;
+    protected abstract boolean process(ProcessingContext ctx);
+
+    //// Path ////
+
+    public String getAbsolutePath() {
+        StringBuffer name = new StringBuffer("/");
+        Network parent = getNetwork();
+        while (parent != null) {
+            name.insert(1, parent.getName() + "/");
+            parent = parent.getNetwork();
+        }
+        name.append(getName());
+        return name.toString();
     }
 
     //// Output ////
@@ -404,6 +633,5 @@ public class Node extends Observable {
     }
 
     //// Persistence ////
-
 
 }

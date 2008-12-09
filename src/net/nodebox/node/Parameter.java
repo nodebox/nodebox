@@ -18,73 +18,115 @@
  */
 package net.nodebox.node;
 
+import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Canvas;
 import net.nodebox.util.StringUtils;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
  * to change its behaviour. Parameters are represented by standard user interface controls, such as sliders for numbers,
  * text fields for strings, and checkboxes for booleans.
- *
+ * <p/>
  * Parameters implement the observer pattern for expressions. Parameters that are dependent on other parameters because
  * of their expressions will observe the parameters they depend on, and marked the node as dirty whenever they receive
  * an update event from one of the parameters they depend on.
  */
-public class Parameter implements Observer {
+public class Parameter extends Observable implements Observer {
 
-    public static final String TYPE_ANGLE = "angle";
-    public static final String TYPE_COLOR = "color";
-    public static final String TYPE_CUSTOM = "custom";
-    public static final String TYPE_FILE = "file";
-    public static final String TYPE_FLOAT = "float";
-    public static final String TYPE_GRADIENT = "gradient";
-    public static final String TYPE_GROUP = "group";
-    public static final String TYPE_IMAGE = "image";
-    public static final String TYPE_INT = "int";
-    public static final String TYPE_MENU = "menu";
-    public static final String TYPE_POINT = "point";
-    public static final String TYPE_STRING = "string";
-    public static final String TYPE_TOGGLE = "toggle";
-    public static final String TYPE_NODE = "node";
-    public static final String TYPE_NETWORK = "network";
-    public static final int CORE_TYPE_FLOAT = 1;
-    public static final int CORE_TYPE_INT = 2;
-    public static final int CORE_TYPE_STRING = 3;
-    public static final int CORE_TYPE_DATA = 4;
-    public static final int DIRECTION_IN = 1;
-    public static final int DIRECTION_OUT = 2;
-    public static final int BOUNDING_NONE = 0;
-    public static final int BOUNDING_SOFT = 1;
-    public static final int BOUNDING_HARD = 2;
-    public static final int DISPLAY_LEVEL_HIDDEN = 0;
-    public static final int DISPLAY_LEVEL_DETAIL = 1;
-    public static final int DISPLAY_LEVEL_HUD = 2;
+    public enum Type {
+        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, CANVAS, NODEREF
+    }
+
+    public enum CoreType {
+        INT, FLOAT, STRING, COLOR, CANVAS
+    }
+
+    public enum BoundingMethod {
+        NONE, SOFT, HARD
+    }
+
+    public enum DisplayLevel {
+        HIDDEN, DETAIL, HUD
+    }
+
+    public static final HashMap<CoreType, Class> CORE_TYPE_MAPPING;
+    public static final HashMap<CoreType, Object> CORE_TYPE_DEFAULTS;
+    public static final HashMap<Type, CoreType> TYPE_REGISTRY;
+
+    public class MenuEntry {
+        private String key;
+        private String label;
+
+        public MenuEntry(String key, String label) {
+            this.key = key;
+            this.label = label;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    static {
+        CORE_TYPE_MAPPING = new HashMap<CoreType, Class>();
+        CORE_TYPE_MAPPING.put(CoreType.INT, int.class);
+        CORE_TYPE_MAPPING.put(CoreType.FLOAT, double.class);
+        CORE_TYPE_MAPPING.put(CoreType.STRING, String.class);
+        CORE_TYPE_MAPPING.put(CoreType.COLOR, Color.class);
+        CORE_TYPE_MAPPING.put(CoreType.CANVAS, Canvas.class);
+
+        CORE_TYPE_DEFAULTS = new HashMap<CoreType, Object>();
+        CORE_TYPE_DEFAULTS.put(CoreType.INT, 0);
+        CORE_TYPE_DEFAULTS.put(CoreType.FLOAT, 0.0);
+        CORE_TYPE_DEFAULTS.put(CoreType.STRING, "");
+        CORE_TYPE_DEFAULTS.put(CoreType.COLOR, new Color());
+
+        TYPE_REGISTRY = new HashMap<Type, CoreType>();
+        TYPE_REGISTRY.put(Type.ANGLE, CoreType.FLOAT);
+        TYPE_REGISTRY.put(Type.COLOR, CoreType.COLOR);
+        TYPE_REGISTRY.put(Type.FILE, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.FLOAT, CoreType.FLOAT);
+        TYPE_REGISTRY.put(Type.FONT, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.GRADIENT, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.IMAGE, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.INT, CoreType.INT);
+        TYPE_REGISTRY.put(Type.MENU, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.SEED, CoreType.INT);
+        TYPE_REGISTRY.put(Type.STRING, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.TEXT, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.TOGGLE, CoreType.INT);
+        TYPE_REGISTRY.put(Type.CANVAS, CoreType.CANVAS);
+        TYPE_REGISTRY.put(Type.NODEREF, CoreType.STRING);
+    }
 
     private Node node;
     private String name;
     private String label;
     private String helpText;
-    private String type;
-    private int coreType;
-    private int channelCount;
-    private int boundingType;
+    private Type type;
+    private CoreType coreType;
+    private BoundingMethod boundingMethod;
     private double minimum;
     private double maximum;
-    private int displayLevel;
-    private ArrayList<Map.Entry> menuItems;
+    private DisplayLevel displayLevel;
+    private ArrayList<MenuEntry> menuItems;
     private boolean disabled;
     private boolean persistent;
-    private Object[] channels;
+    private Object value;
+    private Object defaultValue;
     private Expression expression;
     private boolean expressionEnabled;
-    private Connection connection;
-    private Observable expressionDependencies = new Observable();
 
     public static class NotFound extends RuntimeException {
 
@@ -128,58 +170,11 @@ public class Parameter implements Observer {
         }
     }
 
-    public Parameter(Node node, String name, String type) {
+    public Parameter(Node node, String name, Type type) {
         this.node = node;
         this.name = name;
         this.label = StringUtils.humanizeName(name);
-        this.type = type;
-
-        if (type.equals(TYPE_ANGLE)) {
-            coreType = CORE_TYPE_FLOAT;
-            channelCount = 1;
-        } else if (type.equals(TYPE_COLOR)) {
-            coreType = CORE_TYPE_FLOAT;
-            channelCount = 4;
-        } else if (type.equals(TYPE_CUSTOM)) {
-            coreType = CORE_TYPE_DATA;
-            channelCount = 1;
-        } else if (type.equals(TYPE_FILE)) {
-            coreType = CORE_TYPE_STRING;
-            channelCount = 1;
-        } else if (type.equals(TYPE_FLOAT)) {
-            coreType = CORE_TYPE_FLOAT;
-            channelCount = 1;
-        } else if (type.equals(TYPE_GRADIENT)) {
-            coreType = CORE_TYPE_STRING;
-            channelCount = 1;
-        } else if (type.equals(TYPE_GROUP)) {
-            coreType = CORE_TYPE_INT;
-            channelCount = 1;
-        } else if (type.equals(TYPE_IMAGE)) {
-            coreType = CORE_TYPE_STRING;
-            channelCount = 1;
-        } else if (type.equals(TYPE_INT)) {
-            coreType = CORE_TYPE_INT;
-            channelCount = 1;
-        } else if (type.equals(TYPE_MENU)) {
-            coreType = CORE_TYPE_INT;
-            channelCount = 1;
-        } else if (type.equals(TYPE_POINT)) {
-            coreType = CORE_TYPE_FLOAT;
-            channelCount = 2;
-        } else if (type.equals(TYPE_STRING)) {
-            coreType = CORE_TYPE_STRING;
-            channelCount = 1;
-        } else if (type.equals(TYPE_TOGGLE)) {
-            coreType = CORE_TYPE_INT;
-            channelCount = 1;
-        } else {
-            coreType = CORE_TYPE_DATA;
-            channelCount = 1;
-        }
-        assert (channelCount >= 1);
-        channels = new Object[channelCount];
-        revertToDefault();
+        setType(type); // this sets the core type, default values, and value.
     }
 
     //// Basic operations ////
@@ -188,15 +183,11 @@ public class Parameter implements Observer {
         return node;
     }
 
-    public int getChannelCount() {
-        return channelCount;
-    }
-
     //// Naming ////
 
     public boolean validName(String name) {
         // Check if another parameter has the same name.
-        if (node.getParameter(name) != this) return false;
+        if (node.hasParameter(name) && node.getParameter(name) != this) return false;
         Pattern nodeNamePattern = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
         Pattern doubleUnderScorePattern = Pattern.compile("^__.*$");
         Pattern reservedPattern = Pattern.compile("^(node|name)$");
@@ -212,11 +203,14 @@ public class Parameter implements Observer {
 
     public void setName(String name) {
         if (validName(name)) {
-            this.name = name;
-            node.setChanged();
+            node.renameParameter(this, name);
         } else {
             throw new InvalidName(this, name);
         }
+    }
+
+    public void _setName(String name) {
+        this.name = name;
     }
 
     public String getLabel() {
@@ -239,21 +233,34 @@ public class Parameter implements Observer {
 
     //// Type ////
 
-    String getType() {
+    Type getType() {
         return type;
     }
 
-    int getCoreType() {
+    public void setType(Type type) {
+        if (this.type == type) return;
+        this.type = type;
+        assert(TYPE_REGISTRY.containsKey(type));
+        this.coreType = TYPE_REGISTRY.get(type);
+        this.defaultValue = CORE_TYPE_DEFAULTS.get(this.coreType);
+        // TODO: Change the value to something reasonable.
+        this.value = this.defaultValue;
+        node.setChanged();
+        markDirty();
+    }
+
+    public CoreType getCoreType() {
         return coreType;
     }
 
     //// Boundaries ////
 
-    public void setBoundingType(int boundingType) {
-        this.boundingType = boundingType;
-        if (boundingType == BOUNDING_HARD) {
+    public void setBoundingMethod(BoundingMethod boundingMethod) {
+        this.boundingMethod = boundingMethod;
+        if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
+        node.setChanged();
     }
 
     public void setMinimum(double minimum) {
@@ -261,9 +268,10 @@ public class Parameter implements Observer {
             return;
         }
         this.minimum = minimum;
-        if (boundingType == BOUNDING_HARD) {
+        if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
+        node.setChanged();
     }
 
     public void setMaximum(double maximum) {
@@ -271,13 +279,14 @@ public class Parameter implements Observer {
             return;
         }
         this.maximum = maximum;
-        if (boundingType == BOUNDING_HARD) {
+        if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
+        node.setChanged();
     }
 
     public boolean valueCorrectForBounds(double value) {
-        if (boundingType != BOUNDING_HARD) {
+        if (boundingMethod != BoundingMethod.HARD) {
             return true;
         }
         if (value >= minimum && value <= maximum) {
@@ -287,57 +296,56 @@ public class Parameter implements Observer {
     }
 
     private void clampToBounds() {
-        if (coreType == CORE_TYPE_INT) {
-            for (int i = 0; i < channelCount; i++) {
-                int v = (Integer) channels[i];
-                if (v < minimum) {
-                    set((int) minimum, i);
-                } else if (v > maximum) {
-                    set((int) maximum, i);
-                }
+        if (coreType == CoreType.INT) {
+            int v = (Integer) value;
+            if (v < minimum) {
+                set((int) minimum);
+            } else if (v > maximum) {
+                set((int) maximum);
             }
-        } else if (coreType == CORE_TYPE_FLOAT) {
-            for (int i = 0; i < channelCount; i++) {
-                double v = (Double) channels[i];
-                if (v < minimum) {
-                    set(minimum, i);
-                } else if (v > maximum) {
-                    set(maximum, i);
-                }
+        } else if (coreType == CoreType.FLOAT) {
+            double v = (Double) value;
+            if (v < minimum) {
+                set(minimum);
+            } else if (v > maximum) {
+                set(maximum);
             }
         }
     }
 
     //// Display level ////
-    public void setDisplayLevel(int displayLevel) {
+
+    public void setDisplayLevel(DisplayLevel displayLevel) {
         this.displayLevel = displayLevel;
-        // TODO: notify
+        node.setChanged();
     }
 
     //// Menu items ////
-    public void addMenuItem(int key, String label) {
-        // TODO: implement
+
+    public void addMenuItem(String key, String label) {
+        menuItems.add(new MenuEntry(key, label));
+        node.setChanged();
     }
 
     //// Flags ////
+
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
+        node.setChanged();
     }
 
     public void setPersistent(boolean persistent) {
         this.persistent = persistent;
+        node.setChanged();
     }
 
     //// Values ////
-    public int asInt() {
-        return asInt(0);
-    }
 
-    public int asInt(int channel) {
-        if (coreType == CORE_TYPE_INT) {
-            return (Integer) channels[channel];
-        } else if (coreType == CORE_TYPE_FLOAT) {
-            double v = (Double) channels[channel];
+    public int asInt() {
+        if (coreType == CoreType.INT) {
+            return (Integer) value;
+        } else if (coreType == CoreType.FLOAT) {
+            double v = (Double) value;
             return (int) v;
         } else {
             return 0;
@@ -345,14 +353,10 @@ public class Parameter implements Observer {
     }
 
     public double asFloat() {
-        return asFloat(0);
-    }
-
-    public double asFloat(int channel) {
-        if (coreType == CORE_TYPE_FLOAT) {
-            return (Double) channels[channel];
-        } else if (coreType == CORE_TYPE_INT) {
-            int v = (Integer) channels[channel];
+        if (coreType == CoreType.FLOAT) {
+            return (Double) value;
+        } else if (coreType == CoreType.INT) {
+            int v = (Integer) value;
             return (double) v;
         } else {
             return 0;
@@ -360,98 +364,117 @@ public class Parameter implements Observer {
     }
 
     public String asString() {
-        return asString(0);
-    }
-
-    public String asString(int channel) {
-        if (coreType == CORE_TYPE_STRING) {
-            return (String) channels[channel];
+        if (coreType == CoreType.STRING) {
+            return (String) value;
         } else {
-            return "";
+            return value.toString();
         }
     }
 
-    public Object asData() {
-        return asData(0);
+    public Color asColor() {
+        if (coreType == CoreType.COLOR) {
+            return (Color) value;
+        } else {
+            return new Color();
+        }
     }
 
-    public Object asData(int channel) {
-        return channels[channel];
+    public Object getValue() {
+        return value;
     }
 
     public void set(int value) {
-        set(value, 0);
-    }
-
-    public void set(int value, int channel) {
-        if (channel < 0 || channel > channelCount) {
-            throw new ValueError("Invalid channel " + channel);
-        }
-        if (coreType != CORE_TYPE_INT) {
+        if (coreType != CoreType.INT) {
             throw new ValueError("Tried setting integer value on parameter with type " + type);
         }
         if (!valueCorrectForBounds(value)) {
             throw new ValueError("Value is out of bounds");
         }
-        // TODO: lazy setting
-        preSet();
-        channels[channel] = value;
-        postSet();
+        if (asInt() == value) return;
+        this.value = value;
+        markDirty();
     }
 
     public void set(double value) {
-        set(value, 0);
-    }
-
-    public void set(double value, int channel) {
-        if (channel < 0 || channel >= channelCount) {
-            throw new ValueError("Invalid channel " + channel);
-        }
-        if (coreType != CORE_TYPE_FLOAT) {
+        if (coreType != CoreType.FLOAT) {
             throw new ValueError("Tried setting float value on parameter with type " + type);
         }
         if (!valueCorrectForBounds(value)) {
             throw new ValueError("Value is out of bounds");
         }
-        // TODO: lazy setting
-        preSet();
-        channels[channel] = value;
-        postSet();
+        if (asFloat() == value) return;
+        this.value = value;
+        markDirty();
     }
 
     public void set(String value) {
-        set(value, 0);
-    }
-
-    public void set(String value, int channel) {
-        if (channel < 0 || channel > channelCount) {
-            throw new ValueError("Invalid channel " + channel);
-        }
-        if (coreType != CORE_TYPE_STRING) {
+        if (value == null) return;
+        if (coreType != CoreType.STRING) {
             throw new ValueError("Tried setting string value on parameter with type " + type);
         }
-        // TODO: lazy setting
-        preSet();
-        channels[channel] = value;
-        postSet();
+        if (asString().equals(value)) return;
+        this.value = value;
+        markDirty();
     }
 
-    public void set(Object value) {
-        set(value, 0);
+    public void set(Color value) {
+        if (value == null) return;
+        if (coreType != CoreType.COLOR) {
+            throw new ValueError("Tried setting color value on parameter with type " + type);
+        }
+        if (asColor().equals(value)) return;
+        this.value = value;
+        markDirty();
     }
 
-    public void set(Object value, int channel) {
-        if (channel < 0 || channel > channelCount) {
-            throw new ValueError("Invalid channel " + channel);
+    public void setValue(Object value) throws ValueError {
+        if (value == null) return;
+        if (coreType == CoreType.INT) {
+            if (value instanceof Integer) {
+                set((Integer)value);
+            } else {
+                throw new ValueError("Value needs to be an int.");
+            }
+        } else if (coreType == CoreType.FLOAT) {
+            if (value instanceof Float) {
+                set((Float)value);
+            } else if (value instanceof Double) {
+                set((Double)value);
+            } else {
+                throw new ValueError("Value needs to be a float.");
+            }
+        } else if (coreType == CoreType.STRING) {
+            if (value instanceof String) {
+                set((String)value);
+            } else {
+                throw new ValueError("Value needs to be a string.");
+            }
+        } else if (coreType == CoreType.COLOR) {
+            if (value instanceof Color) {
+                set((Color)value);
+            } else {
+                throw new ValueError("Value needs to be a color.");
+            }
+        } else {
+            assert(false);
         }
+    }
 
-        if (coreType != CORE_TYPE_DATA) {
-            throw new ValueError("Tried setting object value on parameter with type " + type);
+    //// Parsing ////
+
+    public Object parseValue(String value) {
+        switch (coreType) {
+            case INT:
+                return Integer.parseInt(value);
+             case FLOAT:
+                 return Float.parseFloat(value);
+            case STRING:
+                return value;
+            case COLOR:
+                return new Color(value);
+            default:
+                return value;
         }
-        // TODO: lazy setting
-        preSet();
-        channels[channel] = value;
-        postSet();
     }
 
     //// Expressions ////
@@ -461,24 +484,22 @@ public class Parameter implements Observer {
     }
 
     public String getExpression() {
-        return hasExpression() ? expression.getExpression() : null;
+        return hasExpression() ? expression.getExpression() : "";
     }
 
     public void setExpression(String expression) {
-        if (coreType == CORE_TYPE_DATA) {
-            throw new ValueError("Cannot set expression on data type");
+        if (hasExpression() && expression.equals(getExpression())) {
+            return;
         }
-        if (hasExpression()) {
-            if (expression.equals(getExpression())) {
-                return;
-            }
+        if (expression == null || expression.trim().length() == 0) {
+            this.expression = null;
+            setExpressionEnabled(false);
+        } else {
+            this.expression = new Expression(this, expression);
+            // Setting an expession automatically enables it and marks the node as dirty.
+            setExpressionEnabled(true);
         }
-        // TODO: empty expression should clear out the expression
-        this.expression = new Expression(this, expression);
-
-        // Setting an expession automaticaclly enables it and marks the node as dirty.
-        setExpressionEnabled(true);
-        node.markDirty();
+        markDirty();
     }
 
     public void setExpressionEnabled(boolean enabled) {
@@ -489,73 +510,49 @@ public class Parameter implements Observer {
         if (enabled && !hasExpression()) {
             return;
         }
-        // You cannot enable expressions on data core types.
-        if (coreType == CORE_TYPE_DATA) {
-            return;
-        }
         this.expressionEnabled = enabled;
         // Since the value of this parameter will change, we mark the node as dirty.
-        node.markDirty();
+        markDirty();
     }
 
     //// Expression dependencies ////
 
     private void addExpressionDependency(Parameter parameter) {
-        expressionDependencies.addObserver(parameter);
+        addObserver(parameter);
     }
 
     public boolean hasExpressionDependencies() {
-        return expressionDependencies.countObservers() > 0;
+        return countObservers() > 0;
     }
 
     /**
      * Called whenever a Parameter I depend on for my expression changes.
      * This means I will need to refresh the value of my Parameter, so this method
      * marks the node as dirty.
-     * @param o an Observable object. We ignore this.
+     *
+     * @param o   an Observable object. We ignore this.
      * @param arg ignored
      */
     public void update(Observable o, Object arg) {
-        node.markDirty();
-    }
-
-    public void evaluate() {
-        if (expressionEnabled) {
-        }        
+        markDirty();
     }
 
     public void update() {
         if (expressionEnabled) {
-            // TODO: Currently, the expression runs for each channel.
-            // The system could be smarter: when the expression returns a list,
-            // assume that this list represents the different channels, and set
-            // the different channels to the corresponding list items.
-            for (int i = 0; i < channelCount; i++) {
-                channels[i] = expression.asData(i);
-            }
+            setValue(expression.evaluate());
         }
     }
 
     //// Values ////
     public void revertToDefault() {
-        for (int i = 0; i < channelCount; i++) {
-            if (coreType == CORE_TYPE_INT) {
-                channels[i] = new Integer(0);
-            } else if (coreType == CORE_TYPE_FLOAT) {
-                channels[i] = new Double(0);
-            } else if (coreType == CORE_TYPE_STRING) {
-                channels[i] = new String();
-            } else {
-                channels[i] = null;
-            }
-        }
+        this.value = this.defaultValue;
+        markDirty();
     }
 
-    protected void preSet() {
-        // TODO: validate
-    }
-
-    protected void postSet() {
+    public void markDirty() {
         node.markDirty();
+        setChanged();
+        notifyObservers();
+        clearChanged();
     }
 }

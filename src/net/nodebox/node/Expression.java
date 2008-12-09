@@ -23,7 +23,10 @@ import org.mvel.PreProcessor;
 import org.mvel.CompiledExpression;
 
 import java.util.Collection;
+import java.util.List;
 import java.io.Serializable;
+
+import net.nodebox.graphics.Color;
 
 public class Expression {
 
@@ -36,6 +39,7 @@ public class Expression {
         setExpression(expression);
     }
     //// Attribute access ////
+
     public String getExpression() {
         return expression;
     }
@@ -52,13 +56,11 @@ public class Expression {
     public Parameter getParameter() {
         return parameter;
     }
-    //// Values ////
-    public int asInt() {
-        return asInt(0);
-    }
 
-    public int asInt(int channel) {
-        Object value = evaluateForChannel(channel);
+    //// Values ////
+
+    public int asInt() {
+        Object value = evaluate();
         if (value instanceof Number) {
             return (Integer) value;
         } else {
@@ -67,11 +69,7 @@ public class Expression {
     }
 
     public double asFloat() {
-        return asFloat(0);
-    }
-
-    public double asFloat(int channel) {
-        Object value = evaluateForChannel(channel);
+        Object value = evaluate();
         if (value instanceof Number) {
             return (Double) value;
         } else {
@@ -80,11 +78,7 @@ public class Expression {
     }
 
     public String asString() {
-        return asString(0);
-    }
-
-    public String asString(int channel) {
-        Object value = evaluateForChannel(channel);
+        Object value = evaluate();
         if (value instanceof String) {
             return (String) value;
         } else {
@@ -92,23 +86,22 @@ public class Expression {
         }
     }
 
-    public Object asData() {
-        return asData(0);
+    public Color asColor() {
+        Object value = evaluate();
+        if (value instanceof Color) {
+            return (Color) value;
+        } else {
+            throw new ValueError("Value \"" + value + "\" for expression \"" + expression + "\" is not a color.");
+        }
     }
 
-    public Object asData(int channel) {
-        return evaluateForChannel(channel);
-    }
     //// Evaluation ////
+
     public Object evaluate() {
         return MVEL.executeExpression(compiledExpression);
     }
 
-    public Object evaluateForChannel(int channel) {
-        return MVEL.executeExpression(compiledExpression);
-    }
-
-    Collection<Node> getDependentNodes() {
+    List<Parameter> getDependentParameters() {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 }

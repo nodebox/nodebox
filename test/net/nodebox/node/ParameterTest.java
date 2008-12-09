@@ -23,8 +23,8 @@ import junit.framework.TestCase;
 public class ParameterTest extends TestCase {
 
     public void testNaming() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter p = n.addParameter("test", Parameter.TYPE_INT);
+        Node n = new TestNode();
+        Parameter p = n.addParameter("test", Parameter.Type.INT);
 
         checkInvalidName(p, "1234", "names cannot start with a digit.");
 
@@ -53,9 +53,9 @@ public class ParameterTest extends TestCase {
     }
 
     public void testInvalidName() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter pAlice = n.addParameter("alice", Parameter.TYPE_FLOAT);
-        Parameter pBob = n.addParameter("bob", Parameter.TYPE_FLOAT);
+        Node n = new TestNode();
+        Parameter pAlice = n.addParameter("alice", Parameter.Type.FLOAT);
+        Parameter pBob = n.addParameter("bob", Parameter.Type.FLOAT);
         assertEquals(pAlice.getName(), "alice");
         assertEquals(pBob.getName(), "bob");
         checkValidName(pBob, "joe");
@@ -69,20 +69,20 @@ public class ParameterTest extends TestCase {
     }
 
     public void testLabel() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter p1 = n.addParameter("width", Parameter.TYPE_FLOAT);
+        Node n = new TestNode();
+        Parameter p1 = n.addParameter("width", Parameter.Type.FLOAT);
         assertEquals("Width", p1.getLabel());
-        Parameter p2 = n.addParameter("a_somewhat_longer_parameter", Parameter.TYPE_FLOAT);
+        Parameter p2 = n.addParameter("a_somewhat_longer_parameter", Parameter.Type.FLOAT);
         assertEquals("A Somewhat Longer Parameter", p2.getLabel());
-        Parameter p3 = n.addParameter("double__underscores__everywhere", Parameter.TYPE_FLOAT);
+        Parameter p3 = n.addParameter("double__underscores__everywhere", Parameter.Type.FLOAT);
         assertEquals("Double Underscores Everywhere", p3.getLabel());
     }
 
     public void testValues() {
         ValueNode n = new ValueNode();
-        assertEquals(Parameter.TYPE_INT, n.pInt.getType());
-        assertEquals(Parameter.TYPE_FLOAT, n.pFloat.getType());
-        assertEquals(Parameter.TYPE_STRING, n.pString.getType());
+        assertEquals(Parameter.Type.INT, n.pInt.getType());
+        assertEquals(Parameter.Type.FLOAT, n.pFloat.getType());
+        assertEquals(Parameter.Type.STRING, n.pString.getType());
 
         assertEquals(0, n.pInt.asInt());
         assertEquals(0.0, n.pFloat.asFloat());
@@ -97,35 +97,28 @@ public class ParameterTest extends TestCase {
         assertEquals("hello", n.pString.asString());
     }
 
-    public void testChannels() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter color = n.addParameter("color", Parameter.TYPE_COLOR);
-        assertEquals(4, color.channelCount());
-        checkValidSet(color, 0.2, 0);
-        checkValidSet(color, 0.4, 1);
-        checkValidSet(color, 0.7, 2);
-        checkValidSet(color, 1.0, 3);
-
-        checkInvalidSet(color, 0.5, 4);
-        checkInvalidSet(color, 0.5, -1);
-    }
-
     public void testBounding() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter angle = n.addParameter("angle", Parameter.TYPE_ANGLE);
-        angle.setBoundingType(Parameter.BOUNDING_SOFT);
+        Node n = new TestNode();
+        Parameter angle = n.addParameter("angle", Parameter.Type.ANGLE);
+        angle.setBoundingMethod(Parameter.BoundingMethod.SOFT);
         angle.setMinimum(-100.0);
         angle.setMaximum(100.0);
         checkValidSet(angle, 0.0);
         checkValidSet(angle, 1000.0);
         checkValidSet(angle, -1000.0);
-        angle.setBoundingType(Parameter.BOUNDING_HARD);
+        angle.setBoundingMethod(Parameter.BoundingMethod.HARD);
         assertEquals(-100.0, angle.asFloat()); // Setting the bounding type to hard clamped the value
         checkInvalidSet(angle, 500.0);
-        angle.setBoundingType(Parameter.BOUNDING_NONE);
+        angle.setBoundingMethod(Parameter.BoundingMethod.NONE);
         checkValidSet(angle, 300.0);
-        angle.setBoundingType(Parameter.BOUNDING_HARD);
+        angle.setBoundingMethod(Parameter.BoundingMethod.HARD);
         assertEquals(100.0, angle.asFloat());
+    }
+
+    public void testType() {
+        Node n = new TestNode();
+        Parameter angle = n.addParameter("angle", Parameter.Type.ANGLE);
+        assertEquals(Parameter.CoreType.FLOAT, angle.getCoreType());
     }
 
     //// Helper functions ////
@@ -155,25 +148,17 @@ public class ParameterTest extends TestCase {
     }
 
     private void checkValidSet(Parameter p, double value) {
-        checkValidSet(p, value, 0);
-    }
-
-    private void checkValidSet(Parameter p, double value, int channel) {
         try {
-            p.set(value, channel);
+            p.set(value);
         } catch (ValueError e) {
-            fail("Value " + value + " on channel " + channel + " should have been accepted.");
+            fail("Value " + value + " should have been accepted.");
         }
     }
 
     private void checkInvalidSet(Parameter p, double value) {
-        checkInvalidSet(p, value, 0);
-    }
-
-    private void checkInvalidSet(Parameter p, double value, int channel) {
         try {
-            p.set(value, channel);
-            fail("Value " + value + " on channel " + channel + " should not have been accepted.");
+            p.set(value);
+            fail("Value " + value + " should not have been accepted.");
         } catch (ValueError e) {
         }
     }
@@ -182,10 +167,15 @@ public class ParameterTest extends TestCase {
         public Parameter pInt, pFloat, pString;
 
         private ValueNode() {
-            super(Parameter.TYPE_INT);
-            pInt = addParameter("int", Parameter.TYPE_INT);
-            pFloat = addParameter("float", Parameter.TYPE_FLOAT);
-            pString = addParameter("string", Parameter.TYPE_STRING);
+            super(Parameter.Type.INT);
+            pInt = addParameter("int", Parameter.Type.INT);
+            pFloat = addParameter("float", Parameter.Type.FLOAT);
+            pString = addParameter("string", Parameter.Type.STRING);
+        }
+
+        protected boolean process(ProcessingContext ctx) {
+            setOutputValue(42);
+            return true;
         }
     }
 }

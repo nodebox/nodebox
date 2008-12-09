@@ -23,9 +23,10 @@ import junit.framework.TestCase;
 public class ExpressionTest extends TestCase {
 
     public void testSimple() {
-        Node n = new Node(Parameter.TYPE_INT);
-        Parameter p1 = n.addParameter("p1", Parameter.TYPE_INT);
+        Node n = new TestNode();
+        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
         Expression e = new Expression(p1, "1 + 2");
         assertEquals(3, e.asInt());
     }
+
 }

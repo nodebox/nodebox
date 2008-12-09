@@ -47,6 +47,7 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="Piccolo" level="project" />
   </component>
 </module>
 

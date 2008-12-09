@@ -26,6 +26,10 @@ public class Color implements Cloneable {
     public Color() {
         awtColor = java.awt.Color.BLACK;
     }
+
+    public Color(String colorName) {
+        // TODO: Implement
+    }
     
     @Override
     public Color clone() {

@@ -23,19 +23,19 @@ import junit.framework.TestCase;
 public class NodeTest extends TestCase {
 
     public void testNaming() {
-        Node n = new Node(Parameter.TYPE_INT);
-        assertEquals(n.defaultName(), "node");
-        assertEquals(n.getName(), "node");
+        Node n = new TestNode();
+        assertEquals(n.defaultName(), "testnode");
+        assertEquals(n.getName(), "testnode");
     }
 
     public void testParameters() {
-        Node n = new Node(Parameter.TYPE_INT);
+        Node n = new TestNode();
         try {
             n.getParameter("p1");
             fail("Should have thrown Parameter.NotFound");
         } catch (Parameter.NotFound e) {
         }
-        Parameter p1 = n.addParameter("p1", Parameter.TYPE_INT);
+        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
         assertTrue(n.hasParameter("p1"));
         try {
             n.getParameter("p1");
@@ -51,7 +51,7 @@ public class NodeTest extends TestCase {
     }
 
     public void testNodeNaming() {
-        Node n = new Node(Parameter.TYPE_INT);
+        Node n = new TestNode();
         checkInvalidName(n, "1234", "names cannot start with a digit.");
         // TODO: are there reserved words in node naming?
         checkInvalidName(n, "UPPERCASE", "names cannot be in uppercase.");
@@ -70,11 +70,11 @@ public class NodeTest extends TestCase {
     }
 
     public void testDirty() {
-        Node n = new Node(Parameter.TYPE_INT);
+        Node n = new TestNode();
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());
-        n.addParameter("test", Parameter.TYPE_INT);
+        n.addParameter("test", Parameter.Type.INT);
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());

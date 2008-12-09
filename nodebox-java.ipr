@@ -262,8 +262,17 @@
     <option name="myVersion" value="123" />
   </component>
   <component name="VcsDirectoryMappings">
-    <mapping directory="" vcs="" />
+    <mapping directory="" vcs="svn" />
   </component>
   <component name="WebServicesPlugin" addRequiredLibraries="true" />
+  <component name="libraryTable">
+    <library name="Piccolo">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/piccolo.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
+  </component>
 </project>
 

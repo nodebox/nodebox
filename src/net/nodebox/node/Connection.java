@@ -28,19 +28,19 @@ public class Connection {
 
     private Node outputNode;
     private Node inputNode;
-    private int inputPort;
+    private Parameter inputParameter;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
      *
-     * @param fromNode the output node
-     * @param toNode   the input node
-     * @param toInput  the input port on the node
+     * @param outputNode the output node
+     * @param inputNode the input node
+     * @param inputParameter the input parameter on the node
      */
-    public Connection(Node fromNode, Node toNode, int toInput) {
-        outputNode = fromNode;
-        inputNode = toNode;
-        inputPort = toInput;
+    public Connection(Node outputNode, Node inputNode, Parameter inputParameter) {
+        this.outputNode = outputNode;
+        this.inputNode = inputNode;
+        this.inputParameter = inputParameter;
     }
 
     public Node getOutputNode() {
@@ -55,12 +55,12 @@ public class Connection {
         return inputNode;
     }
 
-    public int getInputPort() {
-        return inputPort;
+    public Parameter getInputParameter() {
+        return inputParameter;
     }
 
     public void markDirtyDownstream() {
         getInputNode().markDirty();
     }
-    
+
 }
