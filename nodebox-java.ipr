@@ -259,6 +259,37 @@
     <option name="ADDITIONAL_OPTIONS_STRING" value="" />
   </component>
   <component name="SvnBranchConfigurationManager">
+    <option name="myConfigurationMap">
+      <map>
+        <entry key="$PROJECT_DIR$">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="branchMap">
+                <map>
+                  <entry key="http://dev.nodebox.net/svn/nodebox-java/branches">
+                    <value>
+                      <list>
+                        <SvnBranchItem>
+                          <option name="creationDateMillis" value="1228844282926" />
+                          <option name="revision" value="527" />
+                          <option name="url" value="http://dev.nodebox.net/svn/nodebox-java/branches/rewrite" />
+                        </SvnBranchItem>
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="branchUrls">
+                <list>
+                  <option value="http://dev.nodebox.net/svn/nodebox-java/branches" />
+                </list>
+              </option>
+              <option name="trunkUrl" value="http://dev.nodebox.net/svn/nodebox-java/trunk" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="myVersion" value="123" />
   </component>
   <component name="VcsDirectoryMappings">
