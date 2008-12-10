@@ -18,6 +18,11 @@
  */
 package net.nodebox.graphics;
 
-public interface Context {
+public class GraphicsContext {
 
+    private Transform transform;
+
+    public Transform getTransform() {
+        return transform;
+    }
 }

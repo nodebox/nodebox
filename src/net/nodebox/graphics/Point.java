@@ -19,6 +19,8 @@
 
 package net.nodebox.graphics;
 
+import java.awt.geom.Point2D;
+
 /**
  * @author Frederik
  */
@@ -40,12 +42,21 @@ public class Point {
         this.y = pt.y;
     }
 
+    public Point(Point2D pt) {
+        this.x = pt.getX();
+        this.y = pt.getY();
+    }
+
     public double getX() {
         return x;
     }
 
     public double getY() {
         return y;
+    }
+
+    public Point2D getPoint2D() {
+        return new Point2D.Double(x, y);
     }
 
     @Override
@@ -59,5 +70,10 @@ public class Point {
     @Override
     public String toString() {
         return "Point(" + x + ", " + y + ")";
+    }
+
+    @Override
+    public Point clone() {
+        return new Point(x, y);
     }
 }

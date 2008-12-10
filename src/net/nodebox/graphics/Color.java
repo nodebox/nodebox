@@ -21,19 +21,60 @@ package net.nodebox.graphics;
 
 public class Color implements Cloneable {
 
-    private java.awt.Color awtColor;
-    
+    private double r, g, b, a;
+
+    public static double clamp(double v) {
+        return Math.max(0.0, Math.min(1.0, v));
+    }
+
     public Color() {
-        awtColor = java.awt.Color.BLACK;
+        r = g = b = 0.0;
+        a = 1.0;
+    }
+
+    public Color(double r, double g, double b) {
+        new Color(r, g, b, 1.0);
+    }
+
+    public Color(double r, double g, double b, double a) {
+        this.r = clamp(r);
+        this.g = clamp(g);
+        this.b = clamp(b);
+        this.a = clamp(a);
     }
 
     public Color(String colorName) {
         // TODO: Implement
     }
-    
+
+    public double getRed() {
+        return r;
+    }
+
+    public double getGreen() {
+        return g;
+    }
+
+    public double getBlue() {
+        return b;
+    }
+
+    public double getAlpha() {
+        return a;
+    }
+
+    public boolean isVisible() {
+        return a > 0.0;
+    }
+
+    public java.awt.Color getAwtColor() {
+        return new java.awt.Color((float) getRed(), (float) getGreen(), (float) getBlue(), (float) getAlpha());
+    }
+
     @Override
     public Color clone() {
-        return new Color();
+        return new Color(r, g, b, a);
     }
-    
+
+
 }

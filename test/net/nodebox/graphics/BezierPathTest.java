@@ -51,9 +51,9 @@ public class BezierPathTest extends TestCase {
         p.lineto(3, 4);
         p.close();
         assertEquals(3, p.size());
-        assertEquals(new PathElement(PathElement.COMMAND_MOVETO, 1, 2), p.getElementAt(0));
-        assertEquals(new PathElement(PathElement.COMMAND_LINETO, 3, 4), p.getElementAt(1));
-        assertEquals(new PathElement(PathElement.COMMAND_CLOSE), p.getElementAt(2));
+        assertEquals(new PathElement(PathElement.MOVETO, 1, 2), p.getElementAt(0));
+        assertEquals(new PathElement(PathElement.LINETO, 3, 4), p.getElementAt(1));
+        assertEquals(new PathElement(PathElement.CLOSE), p.getElementAt(2));
     }
 
     public void testEquality() {
@@ -73,10 +73,10 @@ public class BezierPathTest extends TestCase {
 
     public void testBounds() {
         BezierPath p1 = new BezierPath();
-        p1.rect(20, 30, 40, 50);
-        assertEquals(new Rect(20, 30, 40, 50), p1.bounds());
+        p1.addRect(20, 30, 40, 50);
+        assertEquals(new Rect(20, 30, 40, 50), p1.getBounds());
         BezierPath p2 = new BezierPath();
-        p2.rect(60, 70, 80, 90);
-        assertEquals(new Rect(60, 70, 80, 90), p2.bounds());
+        p2.addRect(60, 70, 80, 90);
+        assertEquals(new Rect(60, 70, 80, 90), p2.getBounds());
     }
 }

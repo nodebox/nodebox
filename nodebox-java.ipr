@@ -302,7 +302,9 @@
         <root url="jar://$PROJECT_DIR$/lib/piccolo.jar!/" />
       </CLASSES>
       <JAVADOC />
-      <SOURCES />
+      <SOURCES>
+        <root url="file://$PROJECT_DIR$/../../Java/piccolo-1.2.1/src" />
+      </SOURCES>
     </library>
   </component>
 </project>

@@ -20,6 +20,8 @@ package net.nodebox.node;
 
 import net.nodebox.graphics.Canvas;
 import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Group;
+import net.nodebox.graphics.Image;
 import net.nodebox.util.StringUtils;
 
 import java.util.*;
@@ -37,11 +39,12 @@ import java.util.regex.Pattern;
  */
 public class Parameter extends Observable implements Observer {
     public enum Type {
-        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, CANVAS, NODEREF
+        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF,
+        GROB_CANVAS, GROB_VECTOR, GROB_IMAGE
     }
 
     public enum CoreType {
-        INT, FLOAT, STRING, COLOR, CANVAS
+        INT, FLOAT, STRING, COLOR, GROB_CANVAS, GROB_SHAPE, GROB_IMAGE
     }
 
     public enum BoundingMethod {
@@ -80,7 +83,9 @@ public class Parameter extends Observable implements Observer {
         CORE_TYPE_MAPPING.put(CoreType.FLOAT, double.class);
         CORE_TYPE_MAPPING.put(CoreType.STRING, String.class);
         CORE_TYPE_MAPPING.put(CoreType.COLOR, Color.class);
-        CORE_TYPE_MAPPING.put(CoreType.CANVAS, Canvas.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_CANVAS, Canvas.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_SHAPE, Group.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_IMAGE, Image.class);
 
         CORE_TYPE_DEFAULTS = new HashMap<CoreType, Object>();
         CORE_TYPE_DEFAULTS.put(CoreType.INT, 0);
@@ -102,8 +107,10 @@ public class Parameter extends Observable implements Observer {
         TYPE_REGISTRY.put(Type.STRING, CoreType.STRING);
         TYPE_REGISTRY.put(Type.TEXT, CoreType.STRING);
         TYPE_REGISTRY.put(Type.TOGGLE, CoreType.INT);
-        TYPE_REGISTRY.put(Type.CANVAS, CoreType.CANVAS);
         TYPE_REGISTRY.put(Type.NODEREF, CoreType.STRING);
+        TYPE_REGISTRY.put(Type.GROB_CANVAS, CoreType.GROB_CANVAS);
+        TYPE_REGISTRY.put(Type.GROB_VECTOR, CoreType.GROB_SHAPE);
+        TYPE_REGISTRY.put(Type.GROB_IMAGE, CoreType.GROB_IMAGE);
     }
 
     private Node node;

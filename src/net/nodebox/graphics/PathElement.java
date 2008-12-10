@@ -24,10 +24,10 @@ package net.nodebox.graphics;
  */
 public class PathElement {
 
-    public static final int COMMAND_MOVETO = 0;
-    public static final int COMMAND_LINETO = 1;
-    public static final int COMMAND_CURVETO = 2;
-    public static final int COMMAND_CLOSE = 3;
+    public static final int MOVETO = 0;
+    public static final int LINETO = 1;
+    public static final int CURVETO = 2;
+    public static final int CLOSE = 3;
 
     private int command;
     private Point point, control1, control2;
@@ -37,7 +37,7 @@ public class PathElement {
     }
 
     public PathElement(int command) {
-        assert (command == COMMAND_CLOSE);
+        assert (command == CLOSE);
         this.command = command;
         this.point = new Point(0, 0);
         this.control1 = new Point(0, 0);
@@ -45,7 +45,7 @@ public class PathElement {
     }
 
     public PathElement(int command, double x, double y) {
-        assert (command == COMMAND_MOVETO || command == COMMAND_LINETO);
+        assert (command == MOVETO || command == LINETO);
         this.command = command;
         this.point = new Point(x, y);
         this.control1 = new Point(0, 0);
@@ -53,11 +53,31 @@ public class PathElement {
     }
 
     public PathElement(int command, double x1, double y1, double x2, double y2, double x3, double y3) {
-        assert (command == COMMAND_CLOSE);
+        assert (command == CLOSE);
         this.command = command;
         this.control1 = new Point(x1, y1);
         this.control2 = new Point(x2, y2);
         this.point = new Point(x3, y3);
+    }
+
+    public PathElement(int command, float[] points) {
+        this.command = command;
+        switch (command) {
+            case MOVETO:
+            case LINETO:
+                assert (points.length == 2);
+                this.point = new Point(points[0], points[1]);
+                break;
+            case CURVETO:
+                assert (points.length == 6);
+                this.control1 = new Point(points[0], points[1]);
+                this.control2 = new Point(points[2], points[3]);
+                this.point = new Point(points[4], points[5]);
+                break;
+            case CLOSE:
+                assert (points.length == 0);
+                break;
+        }
     }
 
     public int getCommand() {
@@ -98,17 +118,27 @@ public class PathElement {
     @Override
     public String toString() {
         switch (command) {
-            case COMMAND_MOVETO:
-                return "PathElement(COMMAND_MOVETO, " + getX() + ", " + getY() + ")";
-            case COMMAND_LINETO:
-                return "PathElement(COMMAND_LINETO, " + getX() + ", " + getY() + ")";
-            case COMMAND_CURVETO:
-                return "PathElement(COMMAND_CURVETO, " + getControl1().getX() + ", " + getControl1().getY()
+            case MOVETO:
+                return "PathElement(Command.MOVETO, " + getX() + ", " + getY() + ")";
+            case LINETO:
+                return "PathElement(Command.LINETO, " + getX() + ", " + getY() + ")";
+            case CURVETO:
+                return "PathElement(Command.CURVETO, " + getControl1().getX() + ", " + getControl1().getY()
                         + ", " + getControl2().getX() + ", " + getControl2().getY() + ", "
                         + getX() + ", " + getY() + ")";
-            case COMMAND_CLOSE:
-                return "PathElement(COMMAND_CLOSE)";
+            case CLOSE:
+                return "PathElement(Command.CLOSE)";
         }
         throw new AssertionError("Invalid PathElement command " + command);
+    }
+
+    @Override
+    public PathElement clone() {
+        PathElement pe = new PathElement();
+        pe.command = command;
+        pe.point = point.clone();
+        pe.control1 = control1.clone();
+        pe.control2 = control2.clone();
+        return pe;
     }
 }

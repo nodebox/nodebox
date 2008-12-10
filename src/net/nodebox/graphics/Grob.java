@@ -18,11 +18,62 @@
  */
 package net.nodebox.graphics;
 
-public interface Grob extends Cloneable {
+import java.awt.*;
 
-    public Rect bounds();
+public abstract class Grob implements Cloneable {
 
-    public Grob clone();
+    private Transform transform;
 
-    public void draw(Context ctx);
+    public void inheritFromContext(GraphicsContext ctx) {
+        this.transform = ctx.getTransform().clone();
+    }
+
+    public abstract void draw(Graphics2D g);
+
+    //// Geometric queries ////
+
+    public abstract Rect getBounds();
+
+    public Rect getFrame() {
+        return transform.convertBoundsToFrame(getBounds());
+    }
+
+    //// Transformations ////
+
+    public Transform getTransform() {
+        return transform;
+    }
+
+    public void setTransform(Transform transform) {
+        this.transform = transform;
+    }
+
+    public void translate(double tx, double ty) {
+        transform.translate(tx, ty);
+    }
+
+    public void rotate(double degrees) {
+        transform.rotate(degrees);
+    }
+
+    public void scale(double scale) {
+        transform.scale(scale);
+    }
+
+    public void scale(double sx, double sy) {
+        transform.scale(sx, sy);
+    }
+
+    public void skew(double skew) {
+        transform.skew(skew);
+    }
+
+    public void skew(double kx, double ky) {
+        transform.skew(kx, ky);
+    }
+
+    //// Cloning ////
+
+    public abstract Grob clone();
+
 }

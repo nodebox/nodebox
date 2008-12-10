@@ -18,9 +18,11 @@
  */
 package net.nodebox.graphics;
 
+import java.awt.geom.Rectangle2D;
+
 public class Rect {
 
-    private double x,  y,  width,  height;
+    private double x, y, width, height;
 
     public Rect() {
         this(0, 0, 0, 0);
@@ -39,7 +41,7 @@ public class Rect {
         this.width = r.width;
         this.height = r.height;
     }
-    
+
     public Rect(java.awt.geom.Rectangle2D r) {
         this.x = r.getX();
         this.y = r.getY();
@@ -123,5 +125,9 @@ public class Rect {
     @Override
     public String toString() {
         return "Rect(" + x + ", " + y + ", " + width + ", " + height + ")";
+    }
+
+    public Rectangle2D getRectangle2D() {
+        return new Rectangle2D.Double(x, y, width, height);
     }
 }

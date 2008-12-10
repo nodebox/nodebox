@@ -1,9 +1,10 @@
-package net.nodebox.node.canvas;
+package net.nodebox.node.vector;
 
-import net.nodebox.node.Parameter;
-import net.nodebox.node.ProcessingContext;
 import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Canvas;
+import net.nodebox.node.Parameter;
+import net.nodebox.node.ProcessingContext;
+import net.nodebox.node.canvas.CanvasNode;
 
 public class RectNode extends CanvasNode {
 
@@ -34,9 +35,11 @@ public class RectNode extends CanvasNode {
     protected boolean process(ProcessingContext ctx) {
         Canvas c = new Canvas();
         BezierPath p = new BezierPath();
-        p.rect(pX.asFloat(), pY.asFloat(), pWidth.asFloat(), pHeight.asFloat());
-        c.append(p);
-        // TODO: Set fill/stroke color
+        p.setFillColor(pFillColor.asColor());
+        p.setStrokeColor(pStrokeColor.asColor());
+        p.setStrokeWidth(pStrokeWidth.asFloat());
+        p.addRect(pX.asFloat(), pY.asFloat(), pWidth.asFloat(), pHeight.asFloat());
+        c.add(p);
         outputValue = c;
         return true;
     }

@@ -3,14 +3,13 @@ package net.nodebox.client;
 import edu.umd.cs.piccolo.PCanvas;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
-import net.nodebox.node.Connection;
-import net.nodebox.node.canvas.RectNode;
+import net.nodebox.node.vector.RectNode;
 
 import javax.swing.*;
-import java.util.Iterator;
 import java.util.ArrayList;
-import java.util.Observer;
+import java.util.Iterator;
 import java.util.Observable;
+import java.util.Observer;
 
 
 public class NetworkPanel extends PCanvas implements Observer {
@@ -86,7 +85,8 @@ public class NetworkPanel extends PCanvas implements Observer {
         }
         firePropertyChange(SELECT_PROPERTY, selection, null);
     }
-      public void deselectAll() {
+
+    public void deselectAll() {
         for (Iterator<Selectable> selectionIter = selection.iterator(); selectionIter.hasNext();) {
             Selectable s = selectionIter.next();
             assert s.isSelected();
@@ -100,7 +100,7 @@ public class NetworkPanel extends PCanvas implements Observer {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         Node n = new RectNode();
-        ParameterPanel p = new ParameterPanel();
+        ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);
         frame.setSize(500, 500);
@@ -108,6 +108,6 @@ public class NetworkPanel extends PCanvas implements Observer {
     }
 
     public void update(Observable o, Object arg) {
-        
+
     }
 }

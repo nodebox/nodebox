@@ -2,16 +2,16 @@ package net.nodebox.client;
 
 import net.nodebox.node.Node;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.canvas.RectNode;
+import net.nodebox.node.vector.RectNode;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class ParameterPanel extends JPanel {
+public class ParameterView extends JPanel {
 
     private Node node;
 
-    public ParameterPanel() {
+    public ParameterView() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     }
 
@@ -27,6 +27,8 @@ public class ParameterPanel extends JPanel {
     }
 
     private void rebuildInterface() {
+        removeAll();
+        if (node == null) return;
         for (Parameter p : node.getParameters()) {
             JTextField f = new JTextField(p.getName());
             add(f);
@@ -37,11 +39,11 @@ public class ParameterPanel extends JPanel {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         Node n = new RectNode();
-        ParameterPanel p = new ParameterPanel();
+        ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);
         frame.setSize(500, 500);
         frame.setVisible(true);
     }
-    
+
 }

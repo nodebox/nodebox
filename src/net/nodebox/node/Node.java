@@ -19,6 +19,7 @@
 package net.nodebox.node;
 
 import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Point;
 import net.nodebox.util.StringUtils;
 
 import java.util.ArrayList;
@@ -203,7 +204,7 @@ public abstract class Node {
 
     public void setX(double x) {
         this.x = x;
-        setChanged();
+        Dispatcher.send(SIGNAL_NODE_MOVED, this);
     }
 
     public double getY() {
@@ -212,7 +213,23 @@ public abstract class Node {
 
     public void setY(double y) {
         this.y = y;
-        setChanged();
+        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+    }
+
+    public Point getPosition() {
+        return new Point(x, y);
+    }
+
+    public void setPosition(Point p) {
+        this.x = p.getX();
+        this.y = p.getY();
+        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+    }
+
+    public void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+        Dispatcher.send(SIGNAL_NODE_MOVED, this);
     }
 
     //// Naming ////

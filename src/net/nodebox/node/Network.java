@@ -82,7 +82,21 @@ public abstract class Network extends Node {
             throw new Node.InvalidName(node, node.getName(), "There is already a node named \"" + node.getName() + "\" in this network.");
         }
         node._setNetwork(this);
-        // TODO: notify
+        nodes.put(node.getName(), node);
+        Dispatcher.send(Node.SIGNAL_NETWORK_NODE_ADDED, this);
+    }
+
+    public Node create(Class nodeClass) {
+        assert (nodeClass.isAssignableFrom(Node.class));
+        try {
+            Node newNode = (Node) nodeClass.newInstance();
+            setUniqueNodeName(newNode);
+            add(newNode);
+            return newNode;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public boolean remove(Node node) {

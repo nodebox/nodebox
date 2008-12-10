@@ -19,66 +19,70 @@
 package net.nodebox.graphics;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Canvas implements Grob {
+public class Canvas extends Group {
 
     public static final double DEFAULT_WIDTH = 1000;
     public static final double DEFAULT_HEIGHT = 1000;
-    private double width,  height;
-    private ArrayList<Grob> elements;
+
+    private Color background;
+    private double width, height;
 
     public Canvas() {
         this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
     public Canvas(double width, double height) {
+        setSize(width, height);
+    }
+
+    public Color getBackground() {
+        return background;
+    }
+
+    public void setBackground(Color background) {
+        this.background = background;
+    }
+
+    public double getWidth() {
+        return width;
+    }
+
+    public void setWidth(double width) {
         this.width = width;
+    }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public void setHeight(double height) {
         this.height = height;
     }
-    //// Container operations ////
-    public void append(Grob g) {
-        elements.add(g);
-    }
 
-    public int size() {
-        return elements.size();
-    }
-
-    public void clear() {
-        elements.clear();
-    }
-
-    public List<Grob> elements() {
-        return new ArrayList<Grob>(elements);
-    }
-    //// Geometry ////
-    public Rect bounds() {
-        if (elements.isEmpty()) {
-            return new Rect();
-        // TODO: We're running bounds() twice on the first element
-        }
-        Rect r = elements.get(0).bounds();
-        for (Grob g : elements) {
-            r = r.united(g.bounds());
-        }
-        return r;
+    public void setSize(double width, double height) {
+        this.width = width;
+        this.height = height;
     }
 
     @Override
     public Grob clone() {
-        Canvas c = new Canvas(width, height);
-        c.elements = (ArrayList<Grob>) elements.clone();
-        return c;
+
+        Canvas newCanvas = new Canvas(width, height);
+        for (Grob g : getGrobs()) {
+            newCanvas.add(g.clone());
+        }
+        return newCanvas;
     }
+
     //// Drawing ////
-    public void draw(Context ctx) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     public void save(File file) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
 
+    @Override
+    public String toString() {
+        return "<" + getClass().getSimpleName() + ": " + width + ", " + height + ">";
     }
 }
