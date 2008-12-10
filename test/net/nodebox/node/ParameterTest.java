@@ -101,8 +101,8 @@ public class ParameterTest extends TestCase {
         Node n = new TestNode();
         Parameter angle = n.addParameter("angle", Parameter.Type.ANGLE);
         angle.setBoundingMethod(Parameter.BoundingMethod.SOFT);
-        angle.setMinimum(-100.0);
-        angle.setMaximum(100.0);
+        angle.setMinimumValue(-100.0);
+        angle.setMaximumValue(100.0);
         checkValidSet(angle, 0.0);
         checkValidSet(angle, 1000.0);
         checkValidSet(angle, -1000.0);

@@ -20,39 +20,42 @@ package net.nodebox.node;
 
 /**
  * Represents a connection between two nodes.
- *
+ * <p/>
  * Connections are made between ports on the nodes. The connection goes from the output port of the output node
  * (there is only one output port) to an input port on the input node.
  */
 public class Connection {
 
-    private Node outputNode;
-    private Node inputNode;
+    private Parameter outputParameter;
     private Parameter inputParameter;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
      *
-     * @param outputNode the output node
-     * @param inputNode the input node
-     * @param inputParameter the input parameter on the node
+     * @param outputParameter the output (upstream) parameter
+     * @param inputParameter  the input (downstream) parameter
      */
-    public Connection(Node outputNode, Node inputNode, Parameter inputParameter) {
-        this.outputNode = outputNode;
-        this.inputNode = inputNode;
+    public Connection(Parameter outputParameter, Parameter inputParameter) {
+        this.outputParameter = outputParameter;
         this.inputParameter = inputParameter;
     }
 
+    public Parameter getOutputParameter() {
+        return outputParameter;
+    }
+
     public Node getOutputNode() {
-        return outputNode;
+        if (outputParameter == null) return null;
+        return outputParameter.getNode();
     }
 
     public boolean hasOutputNode() {
-        return outputNode != null;
+        return outputParameter != null;
     }
 
     public Node getInputNode() {
-        return inputNode;
+        if (inputParameter == null) return null;
+        return inputParameter.getNode();
     }
 
     public Parameter getInputParameter() {

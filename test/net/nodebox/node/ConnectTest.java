@@ -38,7 +38,7 @@ public class ConnectTest extends TestCase {
         assertEquals(12, ng.getOutputValue());
     }
 
-    /*
+
     public void testConnect() {
         NumberGenerator ng = new NumberGenerator();
         Multiplier m = new Multiplier();
@@ -65,7 +65,7 @@ public class ConnectTest extends TestCase {
         assertEquals(ng, conn.getOutputNode());
 
         assertConnectionError(m, "somestring", ng, "Somestring is of the wrong type and should not be connectable to NumberGenerator's output.");
-    }*/
+    }
 
     public void testCycles() {
         NumberGenerator ng = new NumberGenerator();
@@ -86,7 +86,7 @@ public class ConnectTest extends TestCase {
         assertFalse(m.isDirty());
         // Connecting the multiplier to another node makes it dirty.
         // The output node doesn't become dirty.
-        ng.connectTo(m, "number");
+        m.getParameter("number").connect(ng);
         assertFalse(ng.isDirty());
         assertTrue(m.isDirty());
         m.update();
@@ -108,7 +108,7 @@ public class ConnectTest extends TestCase {
         m.update();
         assertFalse(m.isDirty());
         // Disconnecting makes the downstream dirty.
-        m.disconnectInput("number");
+        m.getParameter("number").disconnect();
         assertFalse(ng.isDirty());
         assertTrue(m.isDirty());
         // Check is disconnected nodes still propagate.
@@ -117,37 +117,37 @@ public class ConnectTest extends TestCase {
         assertTrue(m.isDirty());
         m.update();
         assertFalse(m.isDirty());
-        ng.set("number", 12);
+        ng.set("number", 13);
         assertTrue(ng.isDirty());
         assertFalse(m.isDirty());
     }
 
-   /* public void testValuePropagation() {
+    public void testValuePropagation() {
         NumberGenerator ng = new NumberGenerator();
         Multiplier m = new Multiplier();
         m.set("multiplier", 2);
         m.getParameter("number").connect(ng);
-        assertEquals(0, m.outputAsInt());
+        assertEquals(0, m.getOutputValue());
         ng.set("number", 3);
         assertTrue(m.isDirty());
-        assertEquals(0, m.outputAsInt());
+        assertEquals(0, m.getOutputValue());
         // Updating the NumberGenerator node has no effect on the multiplier node.
         ng.update();
         assertTrue(m.isDirty());
-        assertEquals(0, m.outputAsInt());
+        assertEquals(0, m.getOutputValue());
         m.update();
         assertFalse(m.isDirty());
-        assertEquals(6, m.outputAsInt());
+        assertEquals(6, m.getOutputValue());
         // Test if value stops propagating after disconnection.
         m.getParameter("number").disconnect();
         assertTrue(m.isDirty());
         assertFalse(ng.isDirty());
         ng.set("number", 3);
         m.update();
-        assertEquals(0, m.outputAsInt());
-    }*/
+        assertEquals(0, m.getOutputValue());
+    }
 
-    /*public void testDisconnect() {
+    public void testDisconnect() {
         NumberGenerator ng = new NumberGenerator();
         Multiplier m = new Multiplier();
         m.set("multiplier", 2);
@@ -157,7 +157,7 @@ public class ConnectTest extends TestCase {
         assertTrue(ng.isOutputConnected());
         m.update();
         assertEquals(5, m.asInt("number"));
-        assertEquals(10, m.outputAsInt());
+        assertEquals(10, m.getOutputValue());
 
         m.getParameter("number").disconnect();
         assertTrue(m.isDirty());
@@ -166,18 +166,18 @@ public class ConnectTest extends TestCase {
         assertFalse(ng.isOutputConnected());
         // Numbers reverts to default after disconnection
         m.update();
-        assertEquals(0, m.outputAsInt());
-    }*/
+        assertEquals(0, m.getOutputValue());
+    }
 
     //// Custom assertions ////
 
-    /*private void assertConnectionError(Node inputNode, String inputParameter, Node outputNode, String message) {
+    private void assertConnectionError(Node inputNode, String inputParameter, Node outputNode, String message) {
         try {
             inputNode.getParameter(inputParameter).connect(outputNode);
             fail(message);
         } catch (ConnectionError e) {
         }
-    }*/
+    }
 
     //// Custom nodes ////
 
@@ -201,6 +201,7 @@ public class ConnectTest extends TestCase {
             super(Parameter.Type.INT);
             addParameter("number", Parameter.Type.INT);
             addParameter("multiplier", Parameter.Type.INT);
+            addParameter("somestring", Parameter.Type.STRING);
         }
 
         @Override

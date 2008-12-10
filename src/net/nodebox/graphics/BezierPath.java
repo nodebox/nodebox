@@ -135,23 +135,23 @@ public class BezierPath implements Grob {
         for (PathElement el : elements) {
             switch (el.getCommand()) {
                 case PathElement.COMMAND_MOVETO:
-                    gp.moveTo((float)el.getX(), (float)el.getY());
+                    gp.moveTo((float) el.getX(), (float) el.getY());
                     break;
                 case PathElement.COMMAND_LINETO:
-                    gp.lineTo((float)el.getX(), (float)el.getY());
+                    gp.lineTo((float) el.getX(), (float) el.getY());
                     break;
                 case PathElement.COMMAND_CURVETO:
                     c1 = el.getControl1();
                     c2 = el.getControl2();
-                    gp.curveTo((float)el.getX(), (float)el.getY(),
-                            (float)c1.getX(), (float)c1.getY(),
-                            (float)c2.getX(), (float)c2.getY());
+                    gp.curveTo((float) el.getX(), (float) el.getY(),
+                            (float) c1.getX(), (float) c1.getY(),
+                            (float) c2.getX(), (float) c2.getY());
                     break;
                 case PathElement.COMMAND_CLOSE:
                     gp.closePath();
                     break;
                 default:
-                    assert (false);
+                    throw new AssertionError("Unknown path command " + el.getCommand());
             }
         }
         awtPath = gp;

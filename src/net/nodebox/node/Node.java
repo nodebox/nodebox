@@ -21,7 +21,10 @@ package net.nodebox.node;
 import net.nodebox.graphics.Color;
 import net.nodebox.util.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +35,20 @@ import java.util.regex.Pattern;
  * through the node passes through ports.
  */
 public abstract class Node {
+
+    public static final String SIGNAL_NODE_CHANGED_NETWORK = "node_changed_network";
+    public static final String SIGNAL_NODE_MARKED_DIRTY = "node_marked_dirty";
+    public static final String SIGNAL_NODE_MOVED = "node_moved";
+    public static final String SIGNAL_NODE_RENAMED = "node_renamed";
+    public static final String SIGNAL_NODE_SET_RENDERED = "node_set_rendered";
+    public static final String SIGNAL_NODE_UPDATED = "node_updated";
+    public static final String SIGNAL_NETWORK_NODE_ADDED = "network_node_added";
+    public static final String SIGNAL_NETWORK_NODE_REMOVED = "network_node_removed";
+    public static final String SIGNAL_NETWORK_RENDERED_NODE_CHANGED = "network_rendered_node_changed";
+    public static final String SIGNAL_PARAMETER_CONNECTED = "parameter_connected";
+    public static final String SIGNAL_PARAMETER_DISCONNECTED = "parameter_disconnected";
+    public static final String SIGNAL_PARAMETER_EXPRESSION_CHANGED = "parameter_expression_changed";
+    public static final String SIGNAL_PARAMETER_VALUE_CHANGED = "parameter_value_changed";
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
@@ -66,17 +83,8 @@ public abstract class Node {
     /**
      * The output parameter.
      */
-    private Parameter outputParameter;
+    private OutputParameter outputParameter;
 
-    /**
-     * The input connections for this node.
-     */
-    private HashMap<Parameter, Connection> upstreams = new HashMap<Parameter, Connection>();
-
-    /**
-     * The output connections for this node.
-     */
-    private List<Connection> downstreams = new ArrayList<Connection>();
 
     /**
      * A list of messages that occurred during processing.
@@ -184,7 +192,7 @@ public abstract class Node {
         } else {
             this.name = defaultName();
         }
-        outputParameter = new Parameter(this, "output", outputType);
+        outputParameter = new OutputParameter(this, outputType);
     }
 
     //// Basic attributes ////
@@ -284,7 +292,7 @@ public abstract class Node {
         }
     }
 
-    public Parameter getOutputParameter() {
+    public OutputParameter getOutputParameter() {
         return outputParameter;
     }
 
@@ -390,100 +398,6 @@ public abstract class Node {
 
     //// Connection shortcuts ////
 
-    public boolean connectTo(Node inputNode, String parameterName) {
-        Parameter p = inputNode.getParameter(parameterName);
-        Connection c = new Connection(this, inputNode, p);
-        downstreams.add(c);
-        inputNode.upstreams.put(p, c);
-        return true;
-    }
-
-
-    /**
-     * Returns if there is a connection on the specified parameter.
-     *
-     * @param parameterName the name of the parameter
-     * @return true if the parameter is connected
-     */
-    public boolean isInputConnected(String parameterName) {
-        Parameter p = getParameter(parameterName);
-        return isInputConnected(p);
-    }
-
-    /**
-     * Returns if there is a connection on the specified port.
-     *
-     * @param p the parameter
-     * @return true if the port is connected
-     */
-    public boolean isInputConnected(Parameter p) {
-        if (upstreams.isEmpty()) return false;
-        return getInputConnection(p) != null;
-    }
-
-    /**
-     * Return the Connection object for the specified port.
-     * If the port is non-existant or nothing is connected to the port,
-     * this method returns null.
-     *
-     * @param parameterName the name of the parameter
-     * @return a Connection object or null.
-     * @see #isInputConnected(String)
-     */
-    public Connection getInputConnection(String parameterName) {
-        return getInputConnection(getParameter(parameterName));
-    }
-
-    /**
-     * Return the Connection object for the specified port.
-     * If the port is non-existant or nothing is connected to the port,
-     * this method returns null.
-     *
-     * @param parameter the name of the parameter
-     * @return a Connection object or null.
-     * @see #isInputConnected(Parameter)
-     */
-    public Connection getInputConnection(Parameter parameter) {
-        return upstreams.get(parameter);
-    }
-
-    public List<Connection> getInputConnections() {
-        return new ArrayList<Connection>(upstreams.values());
-    }
-
-    public List<Connection> getOutputConnections() {
-        return new ArrayList<Connection>(downstreams);
-    }
-
-    /**
-     * Disconnects a specific input from the node.
-     * Also removes the downstream connection in the corresponding output node.
-     *
-     * @param parameterName the name of the parameter you want to disconnect
-     * @return true if the port was disconnected, false if nothing was connected to the port
-     *         or if the port does not exist.
-     */
-    public boolean disconnectInput(String parameterName) {
-        return disconnectInput(getParameter(parameterName));
-    }
-
-    /**
-     * Disconnects a specific input from the node.
-     * Also removes the downstream connection in the corresponding output node.
-     *
-     * @param parameter the parameter you want to disconnect
-     * @return true if the port was disconnected, false if nothing was connected to the port
-     *         or if the port does not exist.
-     */
-    public boolean disconnectInput(Parameter parameter) {
-        Connection c = getInputConnection(parameter);
-        if (c == null) return false;
-        upstreams.remove(parameter);
-        c.getOutputNode().downstreams.remove(c);
-        setChanged();
-        return true;
-    }
-
     /**
      * Removes all connections from and to this node.
      *
@@ -493,20 +407,50 @@ public abstract class Node {
         boolean removedSomething = false;
 
         // Disconnect all my inputs.
-        for (Connection c : upstreams.values()) {
-            removedSomething = disconnectInput(c.getInputParameter()) | removedSomething;
+        for (Parameter p : parameters.values()) {
+            removedSomething = p.disconnect() | removedSomething;
         }
 
         // Disconnect all my outputs.
-        for (Connection c : downstreams) {
-            removedSomething = c.getInputNode().disconnectInput(c.getInputParameter()) | removedSomething;
+        // Copy the list of downstreams, since you will be removing elements
+        // from it while iterating.
+        List<Connection> downstreamConnections = new ArrayList<Connection>(getOutputParameter().getDownstreamConnections());
+        for (Connection c : downstreamConnections) {
+            removedSomething = c.getInputParameter().disconnect() | removedSomething;
         }
 
         return removedSomething;
     }
 
     public boolean isConnected() {
-        return !upstreams.isEmpty() || !downstreams.isEmpty();
+        // Check parameters for upstream connections.
+        for (Parameter p : parameters.values()) {
+            if (p.isConnected())
+                return true;
+        }
+
+        // Check output parameter for downstream connections.
+        return getOutputParameter().isConnected();
+    }
+
+    public boolean isOutputConnected() {
+        return getOutputParameter().isConnected();
+    }
+
+    public boolean isOutputConnectedTo(Node inputNode) {
+        for (Connection c : getOutputParameter().getDownstreamConnections()) {
+            if (c.getInputNode() == inputNode)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isOutputConnectedTo(Parameter inputParameter) {
+        for (Connection c : getOutputParameter().getDownstreamConnections()) {
+            if (c.getInputParameter() == inputParameter)
+                return true;
+        }
+        return false;
     }
 
     //// Change notification ////
@@ -519,9 +463,7 @@ public abstract class Node {
         if (dirty)
             return;
         dirty = true;
-        for (Connection connection : downstreams) {
-            connection.markDirtyDownstream();
-        }
+        getOutputParameter().markDirtyDownstream();
         if (inNetwork() && !network.isDirty()) {
             // Only changes to the rendered node should make the network dirty.
             // TODO: Check for corner cases.
@@ -529,7 +471,7 @@ public abstract class Node {
                 network.markDirty();
             }
         }
-        setChanged();
+        Dispatcher.send(SIGNAL_NODE_MARKED_DIRTY, this);
     }
 
     public boolean isDirty() {
@@ -596,7 +538,7 @@ public abstract class Node {
     public boolean update(ProcessingContext ctx) {
         if (!dirty) return true;
         for (Parameter p : parameters.values()) {
-            p.update();
+            p.update(ctx);
         }
         messages.clear();
         boolean success = process(ctx);

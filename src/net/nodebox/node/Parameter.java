@@ -18,14 +18,11 @@
  */
 package net.nodebox.node;
 
-import net.nodebox.graphics.Color;
 import net.nodebox.graphics.Canvas;
+import net.nodebox.graphics.Color;
 import net.nodebox.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,7 +36,6 @@ import java.util.regex.Pattern;
  * an update event from one of the parameters they depend on.
  */
 public class Parameter extends Observable implements Observer {
-
     public enum Type {
         ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, CANVAS, NODEREF
     }
@@ -117,8 +113,8 @@ public class Parameter extends Observable implements Observer {
     private Type type;
     private CoreType coreType;
     private BoundingMethod boundingMethod;
-    private double minimum;
-    private double maximum;
+    private Double minimumValue;
+    private Double maximumValue;
     private DisplayLevel displayLevel;
     private ArrayList<MenuEntry> menuItems;
     private boolean disabled;
@@ -127,6 +123,8 @@ public class Parameter extends Observable implements Observer {
     private Object defaultValue;
     private Expression expression;
     private boolean expressionEnabled;
+    private Connection connection;
+    private List<Connection> expressionConnections = new ArrayList<Connection>();
 
     public static class NotFound extends RuntimeException {
 
@@ -240,7 +238,7 @@ public class Parameter extends Observable implements Observer {
     public void setType(Type type) {
         if (this.type == type) return;
         this.type = type;
-        assert(TYPE_REGISTRY.containsKey(type));
+        assert (TYPE_REGISTRY.containsKey(type));
         this.coreType = TYPE_REGISTRY.get(type);
         this.defaultValue = CORE_TYPE_DEFAULTS.get(this.coreType);
         // TODO: Change the value to something reasonable.
@@ -255,6 +253,10 @@ public class Parameter extends Observable implements Observer {
 
     //// Boundaries ////
 
+    public Object getBoundingMethod() {
+        return boundingMethod;
+    }
+
     public void setBoundingMethod(BoundingMethod boundingMethod) {
         this.boundingMethod = boundingMethod;
         if (boundingMethod == BoundingMethod.HARD) {
@@ -263,22 +265,22 @@ public class Parameter extends Observable implements Observer {
         node.setChanged();
     }
 
-    public void setMinimum(double minimum) {
-        if (minimum > maximum) {
+    public void setMinimumValue(Double minimumValue) {
+        if (minimumValue != null && maximumValue != null && minimumValue > maximumValue) {
             return;
         }
-        this.minimum = minimum;
+        this.minimumValue = minimumValue;
         if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
         node.setChanged();
     }
 
-    public void setMaximum(double maximum) {
-        if (maximum < minimum) {
+    public void setMaximumValue(Double maximumValue) {
+        if (minimumValue != null && maximumValue != null && maximumValue < minimumValue) {
             return;
         }
-        this.maximum = maximum;
+        this.maximumValue = maximumValue;
         if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
@@ -289,31 +291,32 @@ public class Parameter extends Observable implements Observer {
         if (boundingMethod != BoundingMethod.HARD) {
             return true;
         }
-        if (value >= minimum && value <= maximum) {
-            return true;
-        }
-        return false;
+        return value >= minimumValue && value <= maximumValue;
     }
 
     private void clampToBounds() {
         if (coreType == CoreType.INT) {
             int v = (Integer) value;
-            if (v < minimum) {
-                set((int) minimum);
-            } else if (v > maximum) {
-                set((int) maximum);
+            if (minimumValue != null && v < minimumValue) {
+                set(minimumValue.intValue());
+            } else if (maximumValue != null && v > maximumValue) {
+                set(maximumValue.intValue());
             }
         } else if (coreType == CoreType.FLOAT) {
             double v = (Double) value;
-            if (v < minimum) {
-                set(minimum);
-            } else if (v > maximum) {
-                set(maximum);
+            if (minimumValue != null && v < minimumValue) {
+                set(minimumValue);
+            } else if (maximumValue != null && v > maximumValue) {
+                set(maximumValue);
             }
         }
     }
 
     //// Display level ////
+
+    public DisplayLevel getDisplayLevel() {
+        return displayLevel;
+    }
 
     public void setDisplayLevel(DisplayLevel displayLevel) {
         this.displayLevel = displayLevel;
@@ -321,6 +324,10 @@ public class Parameter extends Observable implements Observer {
     }
 
     //// Menu items ////
+
+    public List<MenuEntry> getMenuItems() {
+        return menuItems;
+    }
 
     public void addMenuItem(String key, String label) {
         menuItems.add(new MenuEntry(key, label));
@@ -431,32 +438,68 @@ public class Parameter extends Observable implements Observer {
         if (value == null) return;
         if (coreType == CoreType.INT) {
             if (value instanceof Integer) {
-                set((Integer)value);
+                set((Integer) value);
             } else {
                 throw new ValueError("Value needs to be an int.");
             }
         } else if (coreType == CoreType.FLOAT) {
             if (value instanceof Float) {
-                set((Float)value);
+                set((Float) value);
             } else if (value instanceof Double) {
-                set((Double)value);
+                set((Double) value);
             } else {
                 throw new ValueError("Value needs to be a float.");
             }
         } else if (coreType == CoreType.STRING) {
             if (value instanceof String) {
-                set((String)value);
+                set((String) value);
             } else {
                 throw new ValueError("Value needs to be a string.");
             }
         } else if (coreType == CoreType.COLOR) {
             if (value instanceof Color) {
-                set((Color)value);
+                set((Color) value);
             } else {
                 throw new ValueError("Value needs to be a color.");
             }
         } else {
-            assert(false);
+            throw new AssertionError("Unknown core type " + coreType);
+        }
+    }
+
+    //// Validation ////
+
+    /**
+     * Checks if the given value would fit this parameter.
+     * <p/>
+     * Raises a ValueError if the value does not match.
+     *
+     * @param value the value to validate.
+     */
+    public void validate(Object value) {
+        if (value == null) {
+            throw new ValueError("Value cannot be null.");
+        }
+        // Check if the type matches
+        Class requiredType = CORE_TYPE_MAPPING.get(coreType);
+        if (!value.getClass().isAssignableFrom(requiredType)) {
+            throw new ValueError("Value is not of the required type (" + requiredType.getSimpleName() + ")");
+        }
+        // If hard bounds are set, check if the value falls within the bounds.
+
+        if (getBoundingMethod() == BoundingMethod.HARD) {
+            double doubleValue = (Double) value;
+//            if (value instanceof Integer) {
+//                doubleValue = (Double) value;
+//            } else if (value instanceof Double) {
+//                doubleValue = (Double) value;
+//            }
+            if (minimumValue != null && doubleValue < minimumValue) {
+                throw new ValueError("Parameter " + getName() + ": value " + value + " is too small. (minimum=" + minimumValue + ")");
+            }
+            if (maximumValue != null && doubleValue > maximumValue) {
+                throw new ValueError("Parameter " + getName() + ": value " + value + " is too big. (maximum=" + maximumValue + ")");
+            }
         }
     }
 
@@ -466,8 +509,8 @@ public class Parameter extends Observable implements Observer {
         switch (coreType) {
             case INT:
                 return Integer.parseInt(value);
-             case FLOAT:
-                 return Float.parseFloat(value);
+            case FLOAT:
+                return Float.parseFloat(value);
             case STRING:
                 return value;
             case COLOR:
@@ -525,6 +568,85 @@ public class Parameter extends Observable implements Observer {
         return countObservers() > 0;
     }
 
+    //// Connections ////
+
+    public boolean isCompatible(Node outputNode) {
+        return outputNode.getOutputParameter().getType().equals(getType());
+    }
+
+    public boolean isConnected() {
+        return connection != null;
+    }
+
+    public boolean isConnectedTo(Parameter parameter) {
+        if (!isConnected()) return false;
+        // Parameters can only be connected to output parameters.
+        if (!(parameter instanceof OutputParameter)) return false;
+        return connection.getOutputParameter() == parameter;
+    }
+
+    public boolean isConnectedTo(Node node) {
+        if (!isConnected()) return false;
+        return connection.getOutputParameter() == node.getOutputParameter();
+    }
+
+    public boolean canConnectTo(Parameter parameter) {
+        // Parameters can only be connected to output parameters.
+        if (!(parameter instanceof OutputParameter)) return false;
+        return parameter.getCoreType() == getCoreType();
+    }
+
+    public boolean canConnectTo(Node node) {
+        return node.getOutputParameter().getCoreType() == getCoreType();
+    }
+
+    /**
+     * Connects this (input) parameter to the given output node.
+     * <p/>
+     * Once connected, the node is marked dirty.
+     *
+     * @param outputNode the upstream node to connect to.
+     * @return true if the connection succeeded.
+     */
+    public Connection connect(Node outputNode) {
+        if (node == outputNode)
+            throw new ConnectionError(outputNode, this, "You cannot connect a node to itself.");
+        if (!canConnectTo(outputNode))
+            throw new ConnectionError(outputNode, this, "The parameter types do not match.");
+        if (connection != null) disconnect();
+        connection = new Connection(outputNode.getOutputParameter(), this);
+        outputNode.getOutputParameter().addDownstreamConnection(connection);
+        // After the connection is made, check if it creates a cycle, and
+        // remove the connection if it does.
+        if (getNode().getNetwork() != null) {
+            if (getNode().getNetwork().containsCycles()) {
+                disconnect();
+                throw new ConnectionError(outputNode, this, "This creates a cyclic connection.");
+            }
+        }
+        getNode().markDirty();
+        Dispatcher.send(Node.SIGNAL_PARAMETER_CONNECTED, this);
+        return connection;
+    }
+
+    /**
+     * Disconnects this (input) parameter from its output node.
+     * <p/>
+     * If no connection was present, this method does nothing.
+     *
+     * @return true if the connection was removed
+     */
+    public boolean disconnect() {
+        if (!isConnected()) return false;
+        Node outputNode = connection.getOutputNode();
+        boolean downstreamRemoved = outputNode.getOutputParameter().getDownstreamConnections().remove(connection);
+        assert (downstreamRemoved);
+        connection = null;
+        revertToDefault();
+        Dispatcher.send(Node.SIGNAL_PARAMETER_DISCONNECTED, this);
+        return true;
+    }
+
     /**
      * Called whenever a Parameter I depend on for my expression changes.
      * This means I will need to refresh the value of my Parameter, so this method
@@ -537,13 +659,30 @@ public class Parameter extends Observable implements Observer {
         markDirty();
     }
 
-    public void update() {
-        if (expressionEnabled) {
-            setValue(expression.evaluate());
+    /**
+     * Updates the parameter, making sure all dependencies are clean.
+     * <p/>
+     * This method can take a long time and should be run in a separate thread.
+     */
+    public void update(ProcessingContext ctx) {
+        if (isConnected()) {
+            connection.getOutputNode().update(ctx);
+            Object outputValue = connection.getOutputNode().getOutputValue();
+            // TODO: validate
+            value = outputValue;
+        }
+        if (hasExpression()) {
+            for (Connection c : expressionConnections) {
+                c.getOutputNode().update(ctx);
+            }
+            Object expressionValue = expression.evaluate();
+            validate(expressionValue);
+            value = expressionValue;
         }
     }
 
     //// Values ////
+
     public void revertToDefault() {
         this.value = this.defaultValue;
         markDirty();
