@@ -29,9 +29,9 @@ public class SaveDialog extends JComponent {
 
     private void initInterface() {
         setLayout(new BorderLayout());
-        Icon dialogIcon = PnaClient.getImageIcon();
-        JLabel iconLabel = new JLabel(dialogIcon);
-        iconLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        //Icon dialogIcon = Application.getInstance().getImageIcon();
+        //JLabel iconLabel = new JLabel(dialogIcon);
+        //iconLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new GridLayout(3, 1, 10, 0));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -51,7 +51,7 @@ public class SaveDialog extends JComponent {
         buttonPanel.add(saveButton);
         contentPanel.add(buttonPanel);
 
-        add(iconLabel, BorderLayout.WEST);
+        //add(iconLabel, BorderLayout.WEST);
         add(contentPanel, BorderLayout.CENTER);
 
         setSize(400, 250);

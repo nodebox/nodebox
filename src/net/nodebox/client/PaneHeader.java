@@ -29,7 +29,7 @@ public class PaneHeader extends JPanel implements MouseListener {
 
     public PaneHeader(Pane pane) {
         super(new FlowLayout(FlowLayout.LEADING, 5, 0));
-        setPreferredSize(new Dimension(100, 22));
+        setPreferredSize(new Dimension(100, 24));
         setBackground(Theme.getInstance().getBackgroundColor());
         this.pane = pane;
         paneMenu = new PaneMenu(this.pane);

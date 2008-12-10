@@ -11,45 +11,6 @@ import java.util.ArrayList;
 
 public class NetworkAddressBar extends JPanel {
 
-    class NetworkSegment extends JButton implements ActionListener {
-        private Pane pane;
-        private Node node;
-
-        NetworkSegment(Pane pane, Node node) {
-            super(node.getName());
-            this.pane = pane;
-            this.node = node;
-            addActionListener(this);
-            setPreferredSize(new Dimension(100, 22));
-            setBackground(Theme.getInstance().getBackgroundColor());
-            setForeground(Theme.getInstance().getTextColor());
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (node instanceof Network) {
-                pane.getDocument().setActiveNetwork((Network) node);
-            }
-        }
-
-        @Override
-        public void paint(Graphics g) {
-            getModel().isArmed();
-            Graphics2D g2 = (Graphics2D) g;
-            Dimension d = getSize();
-            //Rectangle2D r2 = new Rectangle2D.Float(0, 0, d.width - 1, d.height - 1);
-            //g2.draw(r2);
-            if (getModel().isArmed()) {
-                g2.setColor(Theme.getInstance().getActionColor());
-            } else {
-                g2.setColor(Theme.getInstance().getBackgroundColor());
-            }
-            g2.fillRoundRect(1, 1, d.width - 1, d.height - 1, 5, 5);
-            g2.setColor(Theme.getInstance().getBorderColor());
-            g2.drawRoundRect(0, 0, d.width - 1, d.height - 1, 5, 5);
-            g2.setColor(Theme.getInstance().getTextColor());
-            g2.drawString(node.getName(), 5, 20);
-        }
-    }
 
     private Pane pane;
     private Node node;
@@ -86,6 +47,42 @@ public class NetworkAddressBar extends JPanel {
             currentNode = currentNode.getNetwork();
         }
         return parts;
+    }
+
+    class NetworkSegment extends JButton implements ActionListener {
+        private Pane pane;
+        private Node node;
+
+        NetworkSegment(Pane pane, Node node) {
+            super(node.getName());
+            this.pane = pane;
+            this.node = node;
+            addActionListener(this);
+            setPreferredSize(new Dimension(100, 22));
+            setBackground(Theme.getInstance().getBackgroundColor());
+            setForeground(Theme.getInstance().getTextColor());
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (node instanceof Network) {
+                pane.getDocument().setActiveNetwork((Network) node);
+            }
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            getModel().isArmed();
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setColor(Theme.getInstance().getTextColor());
+            g2.drawString(node.getName(), 5, 18);
+            Dimension d = getSize();
+            if (getModel().isArmed()) {
+                g2.setColor(Theme.getInstance().getActionColor());
+            } else {
+                g2.setColor(Theme.getInstance().getBorderColor());
+            }
+            g2.drawLine(0, 20, 100, 20);
+        }
     }
 
 }

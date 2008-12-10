@@ -60,6 +60,7 @@ public class Document extends JFrame {
     }
 
     public Document() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         rootNetwork = new CanvasNetwork("root");
         Network vector1 = (Network) rootNetwork.create(VectorNetwork.class);
         vector1.setPosition(10, 10);
@@ -75,9 +76,12 @@ public class Document extends JFrame {
         rect1.setPosition(40, 40);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
-
+        NetworkPane viewPane = new NetworkPane(this);
+        ParameterPane parameterPane = new ParameterPane(this);
         NetworkPane networkPane = new NetworkPane(this);
-        rootPanel.add(networkPane, BorderLayout.CENTER);
+        PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
+        PaneSplitter viewRestSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewPane, parameterNetworkSplit);
+        rootPanel.add(viewRestSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setActiveNetwork(rootNetwork);
         setActiveNode(vector1);
@@ -220,7 +224,8 @@ public class Document extends JFrame {
     public boolean saveToFile(File file) {
         try {
             FileOutputStream fos = new FileOutputStream(file);
-            fos.write(rootNetwork.toXml().getBytes());
+            // TODO: Implement the toXml()
+            //fos.write(rootNetwork.toXml().getBytes());
             fos.close();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while saving the file.", "MainController", JOptionPane.ERROR_MESSAGE);

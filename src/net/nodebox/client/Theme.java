@@ -11,11 +11,12 @@ public class Theme {
         return instance;
     }
 
-    private Color backgroundColor = new Color(72, 72, 72);
+    private Color backgroundColor = new Color(178, 178, 178);
     private Color foregroundColor = new Color(136, 136, 136);
     private Color textColor = new Color(204, 204, 204);
     private Color actionColor = new Color(0, 116, 168);
     private Color borderColor = new Color(48, 48, 48);
+    private Color borderHighlightColor = new Color(120, 120, 120);
     private Color viewBackgroundColor = new Color(144, 152, 160);
     private ArrowIcon arrowIcon = new ArrowIcon();
 
@@ -62,6 +63,10 @@ public class Theme {
 
     public Color getBorderColor() {
         return borderColor;
+    }
+
+    public Color getBorderHighlightColor() {
+        return borderHighlightColor;
     }
 
     public Color getViewBackgroundColor() {

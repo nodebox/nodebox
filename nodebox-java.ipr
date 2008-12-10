@@ -241,7 +241,7 @@
       <module fileurl="file://$PROJECT_DIR$/Nodebox-java.iml" filepath="$PROJECT_DIR$/Nodebox-java.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="1.5" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="1.6" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="ResourceManagerContainer">
@@ -264,21 +264,6 @@
         <entry key="$PROJECT_DIR$">
           <value>
             <SvnBranchConfiguration>
-              <option name="branchMap">
-                <map>
-                  <entry key="http://dev.nodebox.net/svn/nodebox-java/branches">
-                    <value>
-                      <list>
-                        <SvnBranchItem>
-                          <option name="creationDateMillis" value="1228844282926" />
-                          <option name="revision" value="527" />
-                          <option name="url" value="http://dev.nodebox.net/svn/nodebox-java/branches/rewrite" />
-                        </SvnBranchItem>
-                      </list>
-                    </value>
-                  </entry>
-                </map>
-              </option>
               <option name="branchUrls">
                 <list>
                   <option value="http://dev.nodebox.net/svn/nodebox-java/branches" />
