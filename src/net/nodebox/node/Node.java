@@ -204,7 +204,7 @@ public abstract class Node {
 
     public void setX(double x) {
         this.x = x;
-        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+        fireNodeChanged();
     }
 
     public double getY() {
@@ -213,7 +213,7 @@ public abstract class Node {
 
     public void setY(double y) {
         this.y = y;
-        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+        fireNodeChanged();
     }
 
     public Point getPosition() {
@@ -223,13 +223,13 @@ public abstract class Node {
     public void setPosition(Point p) {
         this.x = p.getX();
         this.y = p.getY();
-        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+        fireNodeChanged();
     }
 
     public void setPosition(double x, double y) {
         this.x = x;
         this.y = y;
-        Dispatcher.send(SIGNAL_NODE_MOVED, this);
+        fireNodeChanged();
     }
 
     //// Naming ////
@@ -254,18 +254,17 @@ public abstract class Node {
     }
 
     public void setName(String name) throws InvalidName {
+        // Since the network does the rename, fireNodeChanged() will be called from the network.
         if (inNetwork()) {
             network.rename(this, name);
         } else {
             validateName(name);
             this.name = name;
-            setChanged();
         }
     }
 
     protected void _setName(String name) {
         this.name = name;
-        setChanged();
     }
 
     //// Parameters ////
@@ -293,6 +292,7 @@ public abstract class Node {
     public Parameter addParameter(String name, Parameter.Type type) {
         Parameter p = new Parameter(this, name, type);
         parameters.put(name, p);
+        fireNodeChanged();
         return p;
     }
 
@@ -303,7 +303,7 @@ public abstract class Node {
             parameters.remove(oldName);
             parameter._setName(name);
             parameters.put(name, parameter);
-            setChanged();
+            fireNodeChanged();
         } else {
             throw new Parameter.NotFound(this, oldName);
         }
@@ -356,6 +356,11 @@ public abstract class Node {
             parent = parent.getNetwork();
         }
         return "/" + StringUtils.join(parts, "/");
+    }
+
+    public void fireNodeChanged() {
+        if (inNetwork())
+            getNetwork().fireNodeChanged(this);
     }
 
 
@@ -471,10 +476,6 @@ public abstract class Node {
     }
 
     //// Change notification ////
-
-    public void setChanged() {
-        // TODO: Implement finer-grained change notification
-    }
 
     public void markDirty() {
         if (dirty)

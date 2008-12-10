@@ -11,6 +11,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.swing.*;
+import javax.swing.event.EventListenerList;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -21,10 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +50,7 @@ public class Document extends JFrame {
     private File documentFile;
     private boolean documentChanged;
     private static Logger logger = Logger.getLogger("net.nodebox.client");
+    private EventListenerList documentFocusListeners = new EventListenerList();
 
     private class DocumentObservable extends Observable {
         public void setChanged() {
@@ -88,6 +87,26 @@ public class Document extends JFrame {
         setSize(800, 600);
     }
 
+    public void addDocumentFocusListener(DocumentFocusListener l) {
+        documentFocusListeners.add(DocumentFocusListener.class, l);
+    }
+
+    public void removeDocumentFocusListener(DocumentFocusListener l) {
+        documentFocusListeners.remove(DocumentFocusListener.class, l);
+    }
+
+    public void fireActiveNetworkChanged() {
+        for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
+            ((DocumentFocusListener) l).activeNetworkChanged(activeNetwork);
+        }
+    }
+
+    public void fireActiveNodeChanged() {
+        for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
+            ((DocumentFocusListener) l).activeNodeChanged(activeNode);
+        }
+    }
+
     public void addObserver(Observer o) {
         documentObservable.addObserver(o);
     }
@@ -106,9 +125,7 @@ public class Document extends JFrame {
 
     public void setActiveNetwork(Network activeNetwork) {
         this.activeNetwork = activeNetwork;
-        SelectionChangedEvent event = new SelectionChangedEvent(SelectionChangedEvent.NETWORK, activeNetwork);
-        documentObservable.setChanged();
-        documentObservable.notifyObservers(event);
+        fireActiveNetworkChanged();
         if (!activeNetwork.isEmpty()) {
             // Get the first node.
             Iterator<Node> it = activeNetwork.getNodes().iterator();
@@ -125,9 +142,7 @@ public class Document extends JFrame {
 
     public void setActiveNode(Node activeNode) {
         this.activeNode = activeNode;
-        SelectionChangedEvent event = new SelectionChangedEvent(SelectionChangedEvent.NODE, activeNode);
-        documentObservable.setChanged();
-        documentObservable.notifyObservers(event);
+        fireActiveNodeChanged();
     }
 
     //// Document actions ////

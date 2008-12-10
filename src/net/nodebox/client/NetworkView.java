@@ -5,10 +5,7 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import net.nodebox.node.Connection;
-import net.nodebox.node.Dispatcher;
-import net.nodebox.node.Network;
-import net.nodebox.node.Node;
+import net.nodebox.node.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class NetworkView extends PCanvas {
+public class NetworkView extends PCanvas implements NetworkEventListener {
 
     public static final String SELECT_PROPERTY = "select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -36,7 +33,6 @@ public class NetworkView extends PCanvas {
     private SelectionMarker selectionMarker;
     private JPopupMenu popup;
     private PopupHandler popupHandler = new PopupHandler();
-
 
     public NetworkView(Pane pane, Network network) {
         this.pane = pane;
@@ -92,14 +88,14 @@ public class NetworkView extends PCanvas {
         if (this.network == network) return;
         Network oldNetwork = this.network;
         if (oldNetwork != null) {
-            Dispatcher.disconnect(this, "nodeAddedEvent", Network.SIGNAL_NETWORK_NODE_ADDED, oldNetwork);
-            Dispatcher.disconnect(this, "nodeRemovedEvent", Network.SIGNAL_NETWORK_NODE_REMOVED, oldNetwork);
+            oldNetwork.removeNetworkEventListener(this);
         }
         this.network = network;
         getLayer().removeAllChildren();
         deselectAll();
-        setHighlight(null);
+        setHighlight((NodeView) null);
         if (network == null) return;
+        network.addNetworkEventListener(this);
         // Add nodes
         for (Node n : network.getNodes()) {
 
@@ -116,7 +112,7 @@ public class NetworkView extends PCanvas {
         firePropertyChange(NETWORK_PROPERTY, oldNetwork, network);
     }
 
-    //// Node view queries ////
+    //// View queries ////
 
     public NodeView getNodeView(Node n) {
         for (Object child : getLayer().getChildrenReference()) {
@@ -127,6 +123,14 @@ public class NetworkView extends PCanvas {
         return null;
     }
 
+    public ConnectionView getConnectionView(Connection c) {
+        for (Object child : getLayer().getChildrenReference()) {
+            if (!(child instanceof ConnectionView)) continue;
+            if (((ConnectionView) child).getConnection() == c)
+                return (ConnectionView) child;
+        }
+        return null;
+    }
 
     //// Selections ////
 
@@ -166,6 +170,10 @@ public class NetworkView extends PCanvas {
 
     //// Highlight ////
 
+    public void setHighlight(Node n) {
+        setHighlight(getNodeView(n));
+    }
+
     public void setHighlight(NodeView n) {
         if (highlight == n) return;
         NodeView old = highlight;
@@ -186,29 +194,40 @@ public class NetworkView extends PCanvas {
 
     //// Events ////
 
-    public void nodeAddedEvent(Node node) {
-
+    public void nodeAdded(Network source, Node node) {
+        NodeView nv = new NodeView(this, node);
+        getLayer().addChild(nv);
     }
 
-    public void nodeRemovedEvent(Node node) {
-
+    public void nodeRemoved(Network source, Node node) {
+        NodeView nv = getNodeView(node);
+        if (nv == null) return;
+        getLayer().removeChild(nv);
     }
 
-    public void connectionAddedEvent(Connection connection) {
-
+    public void connectionAdded(Network source, Connection connection) {
+        ConnectionView cv = new ConnectionView(this, connection);
+        getLayer().addChild(cv);
     }
 
-    public void connectionRemovedEvent(Connection connection) {
-
+    public void connectionRemoved(Network source, Connection connection) {
+        ConnectionView cv = getConnectionView(connection);
+        if (cv == null) return;
+        getLayer().removeChild(cv);
     }
 
-    public void nodeRenamedEvent(Node node) {
-
+    public void nodeChanged(Network source, Node node) {
+        NodeView nv = getNodeView(node);
+        // TODO: Should set position in other networks.
+        // nv.setOffset(node.getX(), node.getY());
+        nv.repaint();
     }
 
-    public void renderedNodeChangedEvent(Node node) {
-
+    public void renderedNodeChanged(Network source, Node node) {
+        repaint();
     }
+
+    //// Inner classes ////
 
     private class SelectionMarker extends PNode {
         public SelectionMarker(Point2D p) {

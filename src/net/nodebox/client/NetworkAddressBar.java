@@ -18,7 +18,7 @@ public class NetworkAddressBar extends JPanel {
     public NetworkAddressBar(Pane pane) {
         setLayout(new FlowLayout(FlowLayout.LEADING, 5, 0));
         this.pane = pane;
-        setPreferredSize(new Dimension(300, 22));
+        setPreferredSize(new Dimension(400, 22));
         setBackground(Theme.getInstance().getBackgroundColor());
     }
 
@@ -58,7 +58,7 @@ public class NetworkAddressBar extends JPanel {
             this.pane = pane;
             this.node = node;
             addActionListener(this);
-            setPreferredSize(new Dimension(100, 22));
+            setPreferredSize(new Dimension(80, 22));
             setBackground(Theme.getInstance().getBackgroundColor());
             setForeground(Theme.getInstance().getTextColor());
         }
@@ -74,7 +74,7 @@ public class NetworkAddressBar extends JPanel {
             getModel().isArmed();
             Graphics2D g2 = (Graphics2D) g;
             g2.setColor(Theme.getInstance().getTextColor());
-            g2.drawString(node.getName(), 5, 18);
+            g2.drawString(node.getName(), 0, 18);
             Dimension d = getSize();
             if (getModel().isArmed()) {
                 g2.setColor(Theme.getInstance().getActionColor());

@@ -224,7 +224,7 @@ public class Parameter extends Observable implements Observer {
 
     public void setLabel(String label) {
         this.label = label;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     public String getHelpText() {
@@ -233,7 +233,7 @@ public class Parameter extends Observable implements Observer {
 
     public void setHelpText(String helpText) {
         this.helpText = helpText;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     //// Type ////
@@ -250,7 +250,7 @@ public class Parameter extends Observable implements Observer {
         this.defaultValue = CORE_TYPE_DEFAULTS.get(this.coreType);
         // TODO: Change the value to something reasonable.
         this.value = this.defaultValue;
-        node.setChanged();
+        node.fireNodeChanged();
         markDirty();
     }
 
@@ -269,7 +269,7 @@ public class Parameter extends Observable implements Observer {
         if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     public void setMinimumValue(Double minimumValue) {
@@ -280,7 +280,7 @@ public class Parameter extends Observable implements Observer {
         if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     public void setMaximumValue(Double maximumValue) {
@@ -291,7 +291,7 @@ public class Parameter extends Observable implements Observer {
         if (boundingMethod == BoundingMethod.HARD) {
             clampToBounds();
         }
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     public boolean valueCorrectForBounds(double value) {
@@ -327,7 +327,7 @@ public class Parameter extends Observable implements Observer {
 
     public void setDisplayLevel(DisplayLevel displayLevel) {
         this.displayLevel = displayLevel;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     //// Menu items ////
@@ -338,19 +338,19 @@ public class Parameter extends Observable implements Observer {
 
     public void addMenuItem(String key, String label) {
         menuItems.add(new MenuEntry(key, label));
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     //// Flags ////
 
     public void setDisabled(boolean disabled) {
         this.disabled = disabled;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     public void setPersistent(boolean persistent) {
         this.persistent = persistent;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     //// Values ////
@@ -496,6 +496,7 @@ public class Parameter extends Observable implements Observer {
 
         if (getBoundingMethod() == BoundingMethod.HARD) {
             double doubleValue = (Double) value;
+            // TODO: Check if bounding is implemented correctly.
 //            if (value instanceof Integer) {
 //                doubleValue = (Double) value;
 //            } else if (value instanceof Double) {
@@ -562,6 +563,7 @@ public class Parameter extends Observable implements Observer {
         }
         this.expressionEnabled = enabled;
         // Since the value of this parameter will change, we mark the node as dirty.
+        node.fireNodeChanged();
         markDirty();
     }
 
@@ -632,7 +634,8 @@ public class Parameter extends Observable implements Observer {
             }
         }
         getNode().markDirty();
-        Dispatcher.send(Node.SIGNAL_PARAMETER_CONNECTED, this);
+        if (getNode().inNetwork())
+            getNode().getNetwork().fireConnectionAdded(connection);
         return connection;
     }
 
@@ -648,9 +651,11 @@ public class Parameter extends Observable implements Observer {
         Node outputNode = connection.getOutputNode();
         boolean downstreamRemoved = outputNode.getOutputParameter().getDownstreamConnections().remove(connection);
         assert (downstreamRemoved);
+        Connection oldConnection = connection;
         connection = null;
         revertToDefault();
-        Dispatcher.send(Node.SIGNAL_PARAMETER_DISCONNECTED, this);
+        if (getNode().inNetwork())
+            getNode().getNetwork().fireConnectionRemoved(oldConnection);
         return true;
     }
 

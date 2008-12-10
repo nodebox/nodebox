@@ -1,11 +1,10 @@
 package net.nodebox.client;
 
 import net.nodebox.node.Network;
-import net.nodebox.node.Node;
 
 import java.awt.*;
 
-public class NetworkPane extends Pane {
+public class ViewerPane extends Pane {
 
     private PaneHeader paneHeader;
     private NetworkAddressBar networkAddressBar;
@@ -13,12 +12,12 @@ public class NetworkPane extends Pane {
     private Network network;
 
 
-    public NetworkPane(Document document) {
+    public ViewerPane(Document document) {
         this();
         setDocument(document);
     }
 
-    public NetworkPane() {
+    public ViewerPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         networkAddressBar = new NetworkAddressBar(this);
@@ -33,10 +32,6 @@ public class NetworkPane extends Pane {
         super.setDocument(document);
         if (document == null) return;
         setNetwork(document.getActiveNetwork());
-    }
-
-    public Pane clone() {
-        return new NetworkPane(getDocument());
     }
 
     public Network getNetwork() {
@@ -54,8 +49,7 @@ public class NetworkPane extends Pane {
         setNetwork(activeNetwork);
     }
 
-    @Override
-    public void activeNodeChanged(Node activeNode) {
-        networkView.setHighlight(activeNode);
+    public Pane clone() {
+        return new ViewerPane(getDocument());
     }
 }

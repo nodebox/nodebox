@@ -1,7 +1,7 @@
 package net.nodebox.node;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ParameterGroup {
 
@@ -17,13 +17,14 @@ public class ParameterGroup {
     public void setNode(Node node) {
         this.node = node;
     }
+
     public String getLabel() {
         return label;
     }
 
     public void setLabel(String label) {
         this.label = label;
-        node.setChanged();
+        node.fireNodeChanged();
     }
 
     //// Container operations ////

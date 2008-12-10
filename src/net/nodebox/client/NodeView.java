@@ -161,10 +161,12 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK) {
                     networkView.deselectAll();
                 }
-                if (!oldSelection)
+                if (!oldSelection) {
                     networkView.select(NodeView.this);
+                    networkView.getPane().getDocument().setActiveNode(node);
+                }
             } else if (e.getClickCount() == 2 && node instanceof Network) {
-                networkView.setNetwork((Network) node);
+                networkView.getPane().getDocument().setActiveNetwork((Network) node);
             }
             e.setHandled(true);
         }

@@ -48,7 +48,7 @@ public class ParameterPane extends Pane {
     }
 
     @Override
-    public void activeNodeChangedEvent(Node activeNode) {
+    public void activeNodeChanged(Node activeNode) {
         setNode(activeNode);
     }
 }

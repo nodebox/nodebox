@@ -18,8 +18,10 @@
  */
 package net.nodebox.node;
 
+import javax.swing.event.EventListenerList;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EventListener;
 import java.util.HashMap;
 
 public abstract class Network extends Node {
@@ -33,6 +35,11 @@ public abstract class Network extends Node {
      * The node being rendered in this network.
      */
     private Node renderedNode = null;
+
+    /**
+     * The event listeners registered to listen to this network.
+     */
+    private EventListenerList listeners = new EventListenerList();
 
     public static class NodeNotInNetwork extends RuntimeException {
 
@@ -83,7 +90,7 @@ public abstract class Network extends Node {
         }
         node._setNetwork(this);
         nodes.put(node.getName(), node);
-        Dispatcher.send(Node.SIGNAL_NETWORK_NODE_ADDED, this);
+        fireNodeAdded(node);
     }
 
     public Node create(Class nodeClass) {
@@ -111,7 +118,7 @@ public abstract class Network extends Node {
         if (node == renderedNode) {
             setRenderedNode(null);
         }
-        // TODO: notify
+        fireNodeRemoved(node);
         return true;
     }
 
@@ -169,6 +176,7 @@ public abstract class Network extends Node {
         nodes.remove(node.getName());
         node._setName(newName);
         nodes.put(newName, node);
+        fireNodeChanged(node);
         return true;
     }
 
@@ -185,6 +193,7 @@ public abstract class Network extends Node {
         if (this.renderedNode == renderedNode) return;
         this.renderedNode = renderedNode;
         markDirty();
+        fireRenderedNodeChanged(renderedNode);
     }
 
     //// Processing ////
@@ -205,6 +214,59 @@ public abstract class Network extends Node {
 
     public boolean containsCycles() {
         return false;
+    }
+
+    //// Event handling ////
+
+    public void addNetworkEventListener(NetworkEventListener l) {
+        listeners.add(NetworkEventListener.class, l);
+    }
+
+    public void removeNetworkEventListener(NetworkEventListener l) {
+        listeners.remove(NetworkEventListener.class, l);
+    }
+
+    public void fireNodeAdded(Node node) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).nodeAdded(this, node);
+    }
+
+    public void fireNodeRemoved(Node node) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).nodeRemoved(this, node);
+    }
+
+    public void fireConnectionAdded(Connection connection) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).connectionAdded(this, connection);
+    }
+
+    public void fireConnectionRemoved(Connection connection) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).connectionRemoved(this, connection);
+    }
+
+    public void fireRenderedNodeChanged(Node node) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).renderedNodeChanged(this, node);
+    }
+
+    public void fireNodeChanged(Node node) {
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).nodeChanged(this, node);
+    }
+
+    public void addNetworkDirtyListener(NetworkDirtyListener l) {
+        listeners.add(NetworkDirtyListener.class, l);
+    }
+
+    public void removeNetworkDirtyListener(NetworkDirtyListener l) {
+        listeners.remove(NetworkDirtyListener.class, l);
+    }
+
+    public void fireNetworkDirty() {
+        for (EventListener l : listeners.getListeners(NetworkDirtyListener.class))
+            ((NetworkDirtyListener) l).networkDirty(this);
     }
 
 }

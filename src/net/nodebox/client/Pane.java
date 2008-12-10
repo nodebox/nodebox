@@ -5,10 +5,8 @@ import net.nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Observable;
-import java.util.Observer;
 
-public abstract class Pane extends JPanel implements Observer {
+public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     private Document document;
 
@@ -22,10 +20,10 @@ public abstract class Pane extends JPanel implements Observer {
     public void setDocument(Document document) {
         Document oldDocument = this.document;
         if (oldDocument != null)
-            oldDocument.removeObserver(this);
+            oldDocument.removeDocumentFocusListener(this);
         this.document = document;
         if (document != null)
-            document.addObserver(this);
+            document.addDocumentFocusListener(this);
     }
 
     public Document getDocument() {
@@ -34,20 +32,10 @@ public abstract class Pane extends JPanel implements Observer {
 
     public abstract Pane clone();
 
-    public void update(Observable o, Object arg) {
-        if (!(arg instanceof SelectionChangedEvent)) return;
-        SelectionChangedEvent event = (SelectionChangedEvent) arg;
-        if (event.getType() == SelectionChangedEvent.NODE) {
-            activeNodeChangedEvent(event.getNode());
-        } else if (event.getType() == SelectionChangedEvent.NETWORK) {
-            activeNetworkChangedEvent((Network) event.getNode());
-        }
+    public void activeNetworkChanged(Network activeNetwork) {
     }
 
-    public void activeNetworkChangedEvent(Network activeNetwork) {
-    }
-
-    public void activeNodeChangedEvent(Node activeNode) {
+    public void activeNodeChanged(Node activeNode) {
     }
 
     /**

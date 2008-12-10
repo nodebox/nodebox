@@ -22,7 +22,7 @@ public class ParameterView extends JPanel {
     public void setNode(Node node) {
         this.node = node;
         rebuildInterface();
-        invalidate();
+        validate();
         repaint();
     }
 

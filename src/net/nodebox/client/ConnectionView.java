@@ -30,6 +30,14 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
         updatePath();
     }
 
+    public NetworkView getNetworkView() {
+        return networkView;
+    }
+
+    public Connection getConnection() {
+        return connection;
+    }
+
     public void updateBounds() {
         double x0 = connection.getOutputNode().getX();
         double y0 = connection.getOutputNode().getY();
