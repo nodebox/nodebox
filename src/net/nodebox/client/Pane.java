@@ -56,11 +56,9 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     private void split(int orientation) {
         Dimension d = getSize();
-        int sz = (orientation == JSplitPane.VERTICAL_SPLIT ? getWidth() : getHeight()) / 2;
         Container parent = getParent();
         parent.remove(this);
         PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
-        split.setDividerLocation(sz);
         split.setSize(d);
         parent.add(split);
         parent.validate();

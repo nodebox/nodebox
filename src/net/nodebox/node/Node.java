@@ -489,7 +489,6 @@ public abstract class Node {
                 network.markDirty();
             }
         }
-        Dispatcher.send(SIGNAL_NODE_MARKED_DIRTY, this);
     }
 
     public boolean isDirty() {

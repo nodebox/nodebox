@@ -41,15 +41,16 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         setTransparency(1.0F);
         setBorder(normalBorder);
         addInputEventListener(new NodeHandler());
-        setBounds(node.getX(), node.getY(), NODE_WIDTH, NODE_HEIGHT);
+        setOffset(node.getX(), node.getY());
+        setBounds(0, 0, NODE_WIDTH, NODE_HEIGHT);
         addPropertyChangeListener(PROPERTY_TRANSFORM, this);
+        addPropertyChangeListener(PROPERTY_BOUNDS, this);
 
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(PROPERTY_TRANSFORM)) {
-            System.out.println("property = " + evt.getPropertyName());
-            node.setPosition(node.getX(), node.getY());
+            node.setPosition(new net.nodebox.graphics.Point(getOffset()));
         }
     }
 
@@ -88,7 +89,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.setColor(Color.WHITE);
 
 
-        g.drawString(node.getName(), (float) (node.getX() + 10), (float) (node.getY() + NODE_HEIGHT / 2));
+        g.drawString(node.getName(), 10, NODE_HEIGHT / 2);
 
         if (node.isRendered()) {
             g.setColor(Color.RED);

@@ -5,8 +5,6 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.nodes.PPath;
 import net.nodebox.graphics.Rect;
 import net.nodebox.node.Connection;
-import net.nodebox.node.Dispatcher;
-import net.nodebox.node.Node;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
@@ -24,8 +22,6 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
         this.networkView = networkView;
         this.connection = connection;
         addInputEventListener(new ConnectionHandler());
-        Dispatcher.connect(this, "nodeMovedEvent", Node.SIGNAL_NODE_MOVED, connection.getInputNode());
-        Dispatcher.connect(this, "nodeMovedEvent", Node.SIGNAL_NODE_MOVED, connection.getOutputNode());
         updateBounds();
         updatePath();
     }

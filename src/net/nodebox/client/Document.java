@@ -12,6 +12,9 @@ import org.xml.sax.SAXException;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -43,6 +46,13 @@ public class Document extends JFrame {
     public ExportAction exportAction = new ExportAction();
     public QuitAction quitAction = new QuitAction();
 
+    public UndoAction undoAction = new UndoAction();
+    public RedoAction redoAction = new RedoAction();
+    public CutAction cutAction = new CutAction();
+    public CopyAction copyAction = new CopyAction();
+    public PasteAction pasteAction = new PasteAction();
+    public DeleteAction deleteAction = new DeleteAction();
+
     private DocumentObservable documentObservable = new DocumentObservable();
     private Network rootNetwork;
     private Network activeNetwork;
@@ -51,6 +61,7 @@ public class Document extends JFrame {
     private boolean documentChanged;
     private static Logger logger = Logger.getLogger("net.nodebox.client");
     private EventListenerList documentFocusListeners = new EventListenerList();
+    private UndoManager undo = new UndoManager();
 
     private class DocumentObservable extends Observable {
         public void setChanged() {
@@ -85,7 +96,44 @@ public class Document extends JFrame {
         setActiveNetwork(rootNetwork);
         setActiveNode(vector1);
         setSize(800, 600);
+        initMenu();
     }
+
+    private void initMenu() {
+        JMenuBar menuBar = new JMenuBar();
+        // File menu
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.add(new JMenuItem(newAction));
+        fileMenu.add(new JMenuItem(openAction));
+        fileMenu.addSeparator();
+        fileMenu.add(new JMenuItem(closeAction));
+        fileMenu.add(new JMenuItem(saveAction));
+        fileMenu.add(new JMenuItem(saveAsAction));
+        fileMenu.add(new JMenuItem(revertAction));
+        fileMenu.addSeparator();
+        fileMenu.add(new JMenuItem(exportAction));
+        if (!PlatformUtils.onMac()) {
+            fileMenu.addSeparator();
+            fileMenu.add(new JMenuItem(quitAction));
+        }
+        menuBar.add(fileMenu);
+
+        // Edit menu
+        JMenu editMenu = new JMenu("Edit");
+        editMenu.add(new JMenuItem(undoAction));
+        editMenu.add(new JMenuItem(redoAction));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem(cutAction));
+        editMenu.add(new JMenuItem(copyAction));
+        editMenu.add(new JMenuItem(pasteAction));
+        editMenu.addSeparator();
+        editMenu.add(new JMenuItem(deleteAction));
+        menuBar.add(editMenu);
+
+        setJMenuBar(menuBar);
+    }
+
+    //// Document events ////
 
     public void addDocumentFocusListener(DocumentFocusListener l) {
         documentFocusListeners.add(DocumentFocusListener.class, l);
@@ -419,6 +467,103 @@ public class Document extends JFrame {
             if (allClosed) {
                 System.exit(0);
             }
+        }
+    }
+
+    public class UndoAction extends AbstractAction {
+        public UndoAction() {
+            putValue(NAME, "Undo");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z));
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undo.undo();
+            } catch (CannotUndoException ex) {
+                logger.log(Level.WARNING, "Unable to undo.", ex);
+            }
+            update();
+            redoAction.update();
+        }
+
+        public void update() {
+            if (undo.canUndo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undo.getUndoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, "Undo");
+            }
+        }
+    }
+
+    public class RedoAction extends AbstractAction {
+        public RedoAction() {
+            putValue(NAME, "Redo");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undo.redo();
+            } catch (CannotRedoException ex) {
+                logger.log(Level.WARNING, "Unable to redo.", ex);
+            }
+            update();
+            undoAction.update();
+        }
+
+        public void update() {
+            if (undo.canRedo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undo.getRedoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, "Redo");
+            }
+        }
+    }
+
+    public class CutAction extends AbstractAction {
+        public CutAction() {
+            putValue(NAME, "Cut");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_X));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+        }
+    }
+
+    public class CopyAction extends AbstractAction {
+        public CopyAction() {
+            putValue(NAME, "Copy");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_C));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+        }
+    }
+
+    public class PasteAction extends AbstractAction {
+        public PasteAction() {
+            putValue(NAME, "Paste");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_V));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+        }
+    }
+
+    public class DeleteAction extends AbstractAction {
+        public DeleteAction() {
+            putValue(NAME, "Delete");
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO: Find network view, delete selected.
         }
     }
 

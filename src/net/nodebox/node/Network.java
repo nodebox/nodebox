@@ -199,6 +199,12 @@ public abstract class Network extends Node {
     //// Processing ////
 
     @Override
+    public void markDirty() {
+        super.markDirty();
+        fireNetworkDirty();
+    }
+
+    @Override
     protected boolean process(ProcessingContext ctx) {
         if (renderedNode == null) {
             addError("No node to render");
@@ -227,31 +233,37 @@ public abstract class Network extends Node {
     }
 
     public void fireNodeAdded(Node node) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).nodeAdded(this, node);
     }
 
     public void fireNodeRemoved(Node node) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).nodeRemoved(this, node);
     }
 
     public void fireConnectionAdded(Connection connection) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).connectionAdded(this, connection);
     }
 
     public void fireConnectionRemoved(Connection connection) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).connectionRemoved(this, connection);
     }
 
     public void fireRenderedNodeChanged(Node node) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).renderedNodeChanged(this, node);
     }
 
     public void fireNodeChanged(Node node) {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkEventListener.class))
             ((NetworkEventListener) l).nodeChanged(this, node);
     }
@@ -265,6 +277,7 @@ public abstract class Network extends Node {
     }
 
     public void fireNetworkDirty() {
+        if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkDirtyListener.class))
             ((NetworkDirtyListener) l).networkDirty(this);
     }

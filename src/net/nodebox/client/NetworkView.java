@@ -5,7 +5,10 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import net.nodebox.node.*;
+import net.nodebox.node.Connection;
+import net.nodebox.node.Network;
+import net.nodebox.node.NetworkEventListener;
+import net.nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
@@ -63,17 +66,12 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
             }
         });
         initPopupMenu();
-        Dispatcher.connect(this, "nodeMovedEvent", Node.SIGNAL_NODE_MOVED);
     }
 
     private void initPopupMenu() {
         popup = new JPopupMenu();
         popup.add(new RemoveNodeAction());
 
-    }
-
-    public void nodeMovedEvent() {
-        System.out.println("something moved");
     }
 
     public Pane getPane() {
@@ -218,9 +216,9 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
 
     public void nodeChanged(Network source, Node node) {
         NodeView nv = getNodeView(node);
-        // TODO: Should set position in other networks.
-        // nv.setOffset(node.getX(), node.getY());
-        nv.repaint();
+        if (!nv.getOffset().equals(node.getPosition().getPoint2D())) {
+            nv.setOffset(node.getX(), node.getY());
+        }
     }
 
     public void renderedNodeChanged(Network source, Node node) {
