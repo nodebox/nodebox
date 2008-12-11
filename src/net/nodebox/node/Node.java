@@ -502,15 +502,15 @@ public abstract class Node {
     }
 
     public void addInfo(String msg) {
-        messages.add(new Message(MessageLevel.DEBUG, msg));
+        messages.add(new Message(MessageLevel.INFO, msg));
     }
 
     public void addWarning(String msg) {
-        messages.add(new Message(MessageLevel.DEBUG, msg));
+        messages.add(new Message(MessageLevel.WARNING, msg));
     }
 
     public void addError(String msg) {
-        messages.add(new Message(MessageLevel.DEBUG, msg));
+        messages.add(new Message(MessageLevel.ERROR, msg));
     }
 
     public boolean hasError() {

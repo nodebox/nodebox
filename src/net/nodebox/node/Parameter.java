@@ -18,10 +18,7 @@
  */
 package net.nodebox.node;
 
-import net.nodebox.graphics.Canvas;
-import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Group;
-import net.nodebox.graphics.Image;
+import net.nodebox.graphics.*;
 import net.nodebox.util.StringUtils;
 
 import java.util.*;
@@ -79,8 +76,8 @@ public class Parameter extends Observable implements Observer {
 
     static {
         CORE_TYPE_MAPPING = new HashMap<CoreType, Class>();
-        CORE_TYPE_MAPPING.put(CoreType.INT, int.class);
-        CORE_TYPE_MAPPING.put(CoreType.FLOAT, double.class);
+        CORE_TYPE_MAPPING.put(CoreType.INT, Integer.class);
+        CORE_TYPE_MAPPING.put(CoreType.FLOAT, Double.class);
         CORE_TYPE_MAPPING.put(CoreType.STRING, String.class);
         CORE_TYPE_MAPPING.put(CoreType.COLOR, Color.class);
         CORE_TYPE_MAPPING.put(CoreType.GROB_CANVAS, Canvas.class);
@@ -128,6 +125,7 @@ public class Parameter extends Observable implements Observer {
     private boolean persistent;
     private Object value;
     private Object defaultValue;
+    private boolean valueSet = false;
     private Expression expression;
     private boolean expressionEnabled;
     private Connection connection;
@@ -353,6 +351,20 @@ public class Parameter extends Observable implements Observer {
         node.fireNodeChanged();
     }
 
+    //// Default value ////
+
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(Object defaultValue) {
+        validate(defaultValue);
+        this.defaultValue = defaultValue;
+        if (!valueSet) {
+            setValue(this.defaultValue);
+        }
+    }
+
     //// Values ////
 
     public int asInt() {
@@ -406,6 +418,7 @@ public class Parameter extends Observable implements Observer {
         }
         if (asInt() == value) return;
         this.value = value;
+        valueSet = true;
         markDirty();
     }
 
@@ -418,6 +431,7 @@ public class Parameter extends Observable implements Observer {
         }
         if (asFloat() == value) return;
         this.value = value;
+        valueSet = true;
         markDirty();
     }
 
@@ -428,6 +442,7 @@ public class Parameter extends Observable implements Observer {
         }
         if (asString().equals(value)) return;
         this.value = value;
+        valueSet = true;
         markDirty();
     }
 
@@ -438,6 +453,17 @@ public class Parameter extends Observable implements Observer {
         }
         if (asColor().equals(value)) return;
         this.value = value;
+        valueSet = true;
+        markDirty();
+    }
+
+    public void set(Grob value) {
+        if (value == null) return;
+        if (coreType != CoreType.GROB_SHAPE && coreType != CoreType.GROB_CANVAS && coreType != CoreType.GROB_IMAGE) {
+            throw new ValueError("Tried setting grob value on parameter with type " + type);
+        }
+        this.value = value;
+        valueSet = true;
         markDirty();
     }
 
@@ -468,6 +494,24 @@ public class Parameter extends Observable implements Observer {
                 set((Color) value);
             } else {
                 throw new ValueError("Value needs to be a color.");
+            }
+        } else if (coreType == CoreType.GROB_SHAPE) {
+            if (value instanceof Grob) {
+                set((Grob) value);
+            } else {
+                throw new ValueError("Value needs to be a Grob.");
+            }
+        } else if (coreType == CoreType.GROB_CANVAS) {
+            if (value instanceof Canvas) {
+                set((Canvas) value);
+            } else {
+                throw new ValueError("Value needs to be a Canvas.");
+            }
+        } else if (coreType == CoreType.GROB_IMAGE) {
+            if (value instanceof Image) {
+                set((Image) value);
+            } else {
+                throw new ValueError("Value needs to be an Image.");
             }
         } else {
             throw new AssertionError("Unknown core type " + coreType);

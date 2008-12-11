@@ -92,8 +92,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.drawString(node.getName(), 10, NODE_HEIGHT / 2);
 
         if (node.isRendered()) {
-            g.setColor(Color.RED);
-            g.fillRect(10, 10, 10, 10);
+            g.setColor(Theme.getInstance().getActionColor());
+            g.fillRect(0, 0, 5, NODE_HEIGHT);
         }
 
         paintBorder(g);
@@ -156,7 +156,9 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         private boolean isDraggingNode;
 
         public void mouseClicked(PInputEvent e) {
-            if (e.getClickCount() == 1) {
+            if (e.getButton() == 3) {
+                node.setRendered();
+            } else if (e.getClickCount() == 1) {
                 e.getInputManager().setKeyboardFocus(this);
                 boolean oldSelection = selected;
                 if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK) {

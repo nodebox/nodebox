@@ -8,7 +8,7 @@ public class ViewerPane extends Pane {
 
     private PaneHeader paneHeader;
     private NetworkAddressBar networkAddressBar;
-    private NetworkView networkView;
+    private Viewer viewer;
     private Network network;
 
 
@@ -22,9 +22,9 @@ public class ViewerPane extends Pane {
         paneHeader = new PaneHeader(this);
         networkAddressBar = new NetworkAddressBar(this);
         paneHeader.add(networkAddressBar);
-        networkView = new NetworkView(this, null);
+        viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
-        add(networkView, BorderLayout.CENTER);
+        add(viewer, BorderLayout.CENTER);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class ViewerPane extends Pane {
     public void setNetwork(Network network) {
         this.network = network;
         networkAddressBar.setNode(network);
-        networkView.setNetwork(network);
+        viewer.setNetwork(network);
     }
 
     @Override

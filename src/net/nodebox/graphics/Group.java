@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Group extends Grob {
 
-    private ArrayList<Grob> grobs;
+    private ArrayList<Grob> grobs = new ArrayList<Grob>();
 
     //// Container operations ////
 
@@ -25,6 +25,14 @@ public class Group extends Grob {
 
     public List<Grob> getGrobs() {
         return grobs;
+    }
+
+    public Grob get(int index) {
+        try {
+            return grobs.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     /**

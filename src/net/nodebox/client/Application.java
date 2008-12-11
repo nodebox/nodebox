@@ -18,6 +18,7 @@
  */
 package net.nodebox.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Application {
@@ -28,7 +29,7 @@ public class Application {
         return instance;
     }
 
-    private List<Document> documents;
+    private List<Document> documents = new ArrayList<Document>();
     private Document currentDocument;
 
     private Application() {

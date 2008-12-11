@@ -4,9 +4,8 @@ import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Canvas;
 import net.nodebox.node.Parameter;
 import net.nodebox.node.ProcessingContext;
-import net.nodebox.node.canvas.CanvasNode;
 
-public class EllipseNode extends CanvasNode {
+public class EllipseNode extends VectorNode {
 
     private Parameter pX;
     private Parameter pY;
@@ -20,7 +19,9 @@ public class EllipseNode extends CanvasNode {
         pX = addParameter("x", Parameter.Type.FLOAT);
         pY = addParameter("y", Parameter.Type.FLOAT);
         pWidth = addParameter("width", Parameter.Type.FLOAT);
+        pWidth.setDefaultValue(100.0);
         pHeight = addParameter("height", Parameter.Type.FLOAT);
+        pHeight.setDefaultValue(100.0);
         pFillColor = addParameter("fill", Parameter.Type.COLOR);
         pStrokeColor = addParameter("stroke", Parameter.Type.COLOR);
         pStrokeWidth = addParameter("strokewidth", Parameter.Type.FLOAT);
@@ -40,7 +41,7 @@ public class EllipseNode extends CanvasNode {
         p.setStrokeWidth(pStrokeWidth.asFloat());
         p.addEllipse(pX.asFloat(), pY.asFloat(), pWidth.asFloat(), pHeight.asFloat());
         c.add(p);
-        outputValue = c;
+        setOutputValue(c);
         return true;
     }
 }

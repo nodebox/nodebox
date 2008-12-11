@@ -22,7 +22,7 @@ import java.awt.*;
 
 public abstract class Grob implements Cloneable {
 
-    private Transform transform;
+    private Transform transform = new Transform();
 
     public void inheritFromContext(GraphicsContext ctx) {
         this.transform = ctx.getTransform().clone();

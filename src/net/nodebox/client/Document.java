@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.node.Network;
+import net.nodebox.node.NetworkDataListener;
 import net.nodebox.node.Node;
 import net.nodebox.node.canvas.CanvasNetwork;
 import net.nodebox.node.image.ImageNetwork;
@@ -25,11 +26,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.Iterator;
+import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Document extends JFrame {
+public class Document extends JFrame implements NetworkDataListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -53,7 +57,6 @@ public class Document extends JFrame {
     public PasteAction pasteAction = new PasteAction();
     public DeleteAction deleteAction = new DeleteAction();
 
-    private DocumentObservable documentObservable = new DocumentObservable();
     private Network rootNetwork;
     private Network activeNetwork;
     private Node activeNode;
@@ -74,6 +77,7 @@ public class Document extends JFrame {
         rootNetwork = new CanvasNetwork("root");
         Network vector1 = (Network) rootNetwork.create(VectorNetwork.class);
         vector1.setPosition(10, 10);
+        vector1.setRendered();
         Network vector2 = (Network) rootNetwork.create(VectorNetwork.class);
         vector2.setPosition(10, 110);
         Network image1 = (Network) rootNetwork.create(ImageNetwork.class);
@@ -81,14 +85,16 @@ public class Document extends JFrame {
         Network image2 = (Network) rootNetwork.create(ImageNetwork.class);
         image2.setPosition(10, 310);
         Node ellipse1 = vector1.create(EllipseNode.class);
+        ellipse1.setRendered();
         ellipse1.setPosition(100, 30);
         Node ellipse2 = vector1.create(EllipseNode.class);
         ellipse2.setPosition(100, 130);
         Node rect1 = vector2.create(RectNode.class);
         rect1.setPosition(40, 40);
+        rect1.setRendered();
 
         JPanel rootPanel = new JPanel(new BorderLayout());
-        NetworkPane viewPane = new NetworkPane(this);
+        ViewerPane viewPane = new ViewerPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
         NetworkPane networkPane = new NetworkPane(this);
         PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
@@ -157,14 +163,6 @@ public class Document extends JFrame {
         }
     }
 
-    public void addObserver(Observer o) {
-        documentObservable.addObserver(o);
-    }
-
-    public void removeObserver(Observer o) {
-        documentObservable.deleteObserver(o);
-    }
-
     public Network getRootNetwork() {
         return rootNetwork;
     }
@@ -174,7 +172,12 @@ public class Document extends JFrame {
     }
 
     public void setActiveNetwork(Network activeNetwork) {
+        Network oldNetwork = this.activeNetwork;
+        if (oldNetwork != null)
+            oldNetwork.removeNetworkDataListener(this);
         this.activeNetwork = activeNetwork;
+        if (activeNetwork != null)
+            activeNetwork.addNetworkDataListener(this);
         fireActiveNetworkChanged();
         if (!activeNetwork.isEmpty()) {
             // Get the first node.
@@ -184,6 +187,7 @@ public class Document extends JFrame {
         } else {
             setActiveNode(null);
         }
+        activeNetwork.update();
     }
 
     public Node getActiveNode() {
@@ -196,7 +200,6 @@ public class Document extends JFrame {
     }
 
     //// Document actions ////
-
 
     public File getDocumentFile() {
         return documentFile;
@@ -343,6 +346,18 @@ public class Document extends JFrame {
             return exportToFile(chosenFile);
         }
         return false;
+    }
+
+    //// Network events ////
+
+    public void networkDirty(Network network) {
+        System.out.println("networkDirty " + network.getName());
+        if (network != activeNetwork) return;
+        activeNetwork.update();
+    }
+
+    public void networkUpdated(Network network) {
+        System.out.println("networkUpdated");
     }
 
     //// Document Action classes ////

@@ -28,6 +28,7 @@ public class PaneMenu extends JPopupMenu {
         this.pane = pane;
         add(new ChangePaneTypeAction("Network", NetworkPane.class));
         add(new ChangePaneTypeAction("Parameters", ParameterPane.class));
+        add(new ChangePaneTypeAction("Viewer", ViewerPane.class));
         addSeparator();
         splitTopBottomAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
