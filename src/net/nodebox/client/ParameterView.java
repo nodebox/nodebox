@@ -1,5 +1,7 @@
 package net.nodebox.client;
 
+import net.nodebox.node.Network;
+import net.nodebox.node.NetworkEventAdapter;
 import net.nodebox.node.Node;
 import net.nodebox.node.Parameter;
 import net.nodebox.node.vector.RectNode;
@@ -10,6 +12,8 @@ import java.awt.*;
 public class ParameterView extends JPanel {
 
     private Node node;
+    private NetworkEventHandler handler = new NetworkEventHandler();
+    // private static Map CONTROL_MAP
 
     public ParameterView() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -20,7 +24,12 @@ public class ParameterView extends JPanel {
     }
 
     public void setNode(Node node) {
+        Node oldNode = this.node;
+        if (oldNode != null && oldNode.inNetwork())
+            oldNode.getNetwork().removeNetworkEventListener(handler);
         this.node = node;
+        if (node != null && node.inNetwork())
+            node.getNetwork().addNetworkEventListener(handler);
         rebuildInterface();
         validate();
         repaint();
@@ -46,4 +55,20 @@ public class ParameterView extends JPanel {
         frame.setVisible(true);
     }
 
+    //// Network events ////
+
+    private class NetworkEventHandler extends NetworkEventAdapter {
+        @Override
+        public void nodeChanged(Network source, Node node) {
+            if (node == getNode()) {
+                rebuildInterface();
+            }
+        }
+    }
+
+    //// Inner classes ////
+
+    public class ParameterRow extends JPanel {
+
+    }
 }

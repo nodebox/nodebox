@@ -82,6 +82,8 @@ public class Document extends JFrame {
         image2.setPosition(10, 310);
         Node ellipse1 = vector1.create(EllipseNode.class);
         ellipse1.setPosition(100, 30);
+        Node ellipse2 = vector1.create(EllipseNode.class);
+        ellipse2.setPosition(100, 130);
         Node rect1 = vector2.create(RectNode.class);
         rect1.setPosition(40, 40);
 
