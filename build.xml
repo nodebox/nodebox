@@ -33,15 +33,17 @@
         <condition property="platform" value="linux">
             <isset property="platform.linux"/>
         </condition>
+        <!--
         <property name="platform.dir" location="platform/${platform}"/>
         <property name="platform.src.dir" location="${platform.dir}/src"/>
         <property name="platform.lib.dir" location="${platform.dir}/lib"/>
         <property name="platform.res.dir" location="${platform.dir}/res"/>
+        -->
 
         <path id="project.classpath">
             <pathelement location="${build.prod.dir}"/>
             <pathelement location="${build.test.dir}"/>
-            <pathelement location="${platform.lib.dir}"/>
+            <!-- <pathelement location="${platform.lib.dir}"/> -->
             <fileset dir="${lib.dir}">
                 <include name="*.jar"/>
             </fileset>
@@ -57,7 +59,7 @@
     <target name="compile" depends="init">
         <javac destdir="${build.prod.dir}" source="1.5">
             <src path="${src.dir}"/>
-            <src path="${platform.src.dir}"/>
+            <!--<src path="${platform.src.dir}"/> -->
             <classpath refid="project.classpath"/>
         </javac>
     </target>
