@@ -20,11 +20,11 @@ public class FloatControl extends JComponent implements ChangeListener, Vetoable
         setLayout(new FlowLayout(FlowLayout.LEADING));
         this.parameter = parameter;
         textField = new JTextField();
-        textField.setPreferredSize(new Dimension(50, 16));
-        textField.putClientProperty("JComponent.sizeVariant", "mini");
+        textField.setPreferredSize(new Dimension(50, 19));
+        textField.putClientProperty("JComponent.sizeVariant", "small");
         textField.addVetoableChangeListener(this);
         slider = new JSlider(0, 1000);
-        slider.putClientProperty("JComponent.sizeVariant", "mini");
+        slider.putClientProperty("JComponent.sizeVariant", "small");
         slider.addChangeListener(this);
         add(textField);
         add(slider);

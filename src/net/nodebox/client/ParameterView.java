@@ -57,6 +57,7 @@ public class ParameterView extends JComponent {
         if (node == null) return;
         for (Parameter p : node.getParameters()) {
             JLabel label = new JLabel(p.getLabel());
+            label.putClientProperty("JComponent.sizeVariant", "small");
             Class controlClass = CONTROL_MAP.get(p.getType());
             JComponent control;
             if (controlClass != null) {
@@ -66,7 +67,6 @@ public class ParameterView extends JComponent {
             } else {
                 control = new JLabel("<no control>");
             }
-            control.putClientProperty("JComponent.sizeVariant", "mini");
             controlPanel.add(label);
             controlPanel.add(control);
 
