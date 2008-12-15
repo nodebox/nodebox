@@ -291,6 +291,22 @@
         <root url="file://$PROJECT_DIR$/../../Java/piccolo-1.2.1/src" />
       </SOURCES>
     </library>
+    <library name="MVEL">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/mvel.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="file://$PROJECT_DIR$/../../Java/mvel" />
+      </SOURCES>
+    </library>
+    <library name="JUnit">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/junit-4.5.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
+    </library>
   </component>
 </project>
 

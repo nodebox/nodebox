@@ -15,6 +15,7 @@ public class CopyNode extends VectorNode {
         pShape = addParameter("shape", Parameter.Type.GROB_VECTOR);
         pTemplate = addParameter("template", Parameter.Type.GROB_VECTOR);
         pCopies = addParameter("copies", Parameter.Type.INT);
+        pCopies.setDefaultValue(1);
         pTx = addParameter("tx", Parameter.Type.FLOAT);
         pTy = addParameter("ty", Parameter.Type.FLOAT);
         pR = addParameter("r", Parameter.Type.FLOAT);

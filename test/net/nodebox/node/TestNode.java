@@ -9,4 +9,9 @@ public class TestNode extends Node {
         setOutputValue(42);
         return true;
     }
+
+    @Override
+    public String defaultName() {
+        return "test";
+    }
 }

@@ -216,6 +216,10 @@ public class Parameter extends Observable implements Observer {
         this.name = name;
     }
 
+    public String getAbsolutePath() {
+        return getNode().getAbsolutePath() + "/" + getName();
+    }
+
     public String getLabel() {
         return label;
     }
@@ -254,6 +258,10 @@ public class Parameter extends Observable implements Observer {
 
     public CoreType getCoreType() {
         return coreType;
+    }
+
+    public Class getTypeClass() {
+        return CORE_TYPE_MAPPING.get(coreType);
     }
 
     //// Boundaries ////

@@ -24,8 +24,8 @@ public class NodeTest extends TestCase {
 
     public void testNaming() {
         Node n = new TestNode();
-        assertEquals(n.defaultName(), "testnode");
-        assertEquals(n.getName(), "testnode");
+        assertEquals(n.defaultName(), "test");
+        assertEquals(n.getName(), "test");
     }
 
     public void testParameters() {
@@ -87,6 +87,7 @@ public class NodeTest extends TestCase {
         n.update();
         assertFalse(n.isDirty());
     }
+
     //// Helper functions ////
     private void checkInvalidName(Node n, String newName, String reason) {
         try {

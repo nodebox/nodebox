@@ -319,6 +319,16 @@ public abstract class Node {
         return network;
     }
 
+    public Network getRootNetwork() {
+        if (!inNetwork()) return null;
+        Network net = network;
+        while (net.getNetwork() != null) {
+            net = net.getNetwork();
+        }
+        return net;
+    }
+
+
     protected void _setNetwork(Network network) {
         this.network = network;
     }
