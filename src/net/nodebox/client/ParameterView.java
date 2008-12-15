@@ -1,5 +1,7 @@
 package net.nodebox.client;
 
+import net.nodebox.client.parameter.FloatControl;
+import net.nodebox.client.parameter.ParameterControl;
 import net.nodebox.node.Network;
 import net.nodebox.node.NetworkEventAdapter;
 import net.nodebox.node.Node;
@@ -8,15 +10,30 @@ import net.nodebox.node.vector.RectNode;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ParameterView extends JPanel {
+public class ParameterView extends JComponent {
+
+    private static final Map<Parameter.Type, Class> CONTROL_MAP;
+    private JPanel controlPanel;
+
+    static {
+        CONTROL_MAP = new HashMap<Parameter.Type, Class>();
+        CONTROL_MAP.put(Parameter.Type.FLOAT, FloatControl.class);
+    }
 
     private Node node;
     private NetworkEventHandler handler = new NetworkEventHandler();
-    // private static Map CONTROL_MAP
+    private ArrayList<ParameterControl> controls = new ArrayList<ParameterControl>();
 
     public ParameterView() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout());
+        controlPanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     public Node getNode() {
@@ -36,13 +53,33 @@ public class ParameterView extends JPanel {
     }
 
     private void rebuildInterface() {
-        removeAll();
+        controlPanel.removeAll();
         if (node == null) return;
         for (Parameter p : node.getParameters()) {
-            JTextField f = new JTextField(p.getName());
-            add(f);
+            JLabel label = new JLabel(p.getLabel());
+            Class controlClass = CONTROL_MAP.get(p.getType());
+            JComponent control;
+            if (controlClass != null) {
+                control = (JComponent) constructControl(controlClass, p);
+                controls.add((ParameterControl) control);
+
+            } else {
+                control = new JLabel("<no control>");
+            }
+            control.putClientProperty("JComponent.sizeVariant", "mini");
+            controlPanel.add(label);
+            controlPanel.add(control);
+
         }
-        add(new Box.Filler(new Dimension(0, 0), new Dimension(0, Integer.MAX_VALUE), new Dimension(0, Integer.MAX_VALUE)));
+    }
+
+    private ParameterControl constructControl(Class controlClass, Parameter p) {
+        try {
+            Constructor constructor = controlClass.getConstructor(Parameter.class);
+            return (FloatControl) constructor.newInstance(p);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public static void main(String[] args) {
@@ -66,9 +103,4 @@ public class ParameterView extends JPanel {
         }
     }
 
-    //// Inner classes ////
-
-    public class ParameterRow extends JPanel {
-
-    }
 }

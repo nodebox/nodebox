@@ -240,7 +240,7 @@ public class Parameter extends Observable implements Observer {
 
     //// Type ////
 
-    Type getType() {
+    public Type getType() {
         return type;
     }
 
@@ -278,6 +278,10 @@ public class Parameter extends Observable implements Observer {
         node.fireNodeChanged();
     }
 
+    public Double getMinimumValue() {
+        return minimumValue;
+    }
+
     public void setMinimumValue(Double minimumValue) {
         if (minimumValue != null && maximumValue != null && minimumValue > maximumValue) {
             return;
@@ -298,6 +302,10 @@ public class Parameter extends Observable implements Observer {
             clampToBounds();
         }
         node.fireNodeChanged();
+    }
+
+    public Double getMaximumValue() {
+        return maximumValue;
     }
 
     public boolean valueCorrectForBounds(double value) {

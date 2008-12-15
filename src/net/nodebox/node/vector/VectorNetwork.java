@@ -9,6 +9,7 @@ public class VectorNetwork extends Network {
 
     private Parameter pTx;
     private Parameter pTy;
+    private Parameter pR;
     private Parameter pSx;
     private Parameter pSy;
 
@@ -26,7 +27,9 @@ public class VectorNetwork extends Network {
         pTx = addParameter("tx", Parameter.Type.FLOAT);
         pTx.setLabel("Transform X");
         pTy = addParameter("ty", Parameter.Type.FLOAT);
-        pTx.setLabel("Transform Y");
+        pTy.setLabel("Transform Y");
+        pR = addParameter("r", Parameter.Type.FLOAT);
+        pR.setLabel("Rotation");
         pSx = addParameter("sx", Parameter.Type.FLOAT);
         pSx.setLabel("Scale X");
         pSx.setDefaultValue(1.0);
@@ -43,6 +46,7 @@ public class VectorNetwork extends Network {
             if (outputValue instanceof Grob) {
                 Grob g = (Grob) outputValue;
                 g.translate(pTx.asFloat(), pTy.asFloat());
+                g.rotate(pR.asFloat());
                 g.scale(pSx.asFloat(), pSy.asFloat());
                 setOutputValue(g);
             } else {
