@@ -48,6 +48,10 @@ public abstract class Grob implements Cloneable {
         this.transform = transform;
     }
 
+    public void appendTransform(Transform transform) {
+        this.transform.append(transform);
+    }
+
     public void translate(double tx, double ty) {
         transform.translate(tx, ty);
     }

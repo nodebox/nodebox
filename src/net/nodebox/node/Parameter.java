@@ -405,6 +405,14 @@ public class Parameter extends Observable implements Observer {
         }
     }
 
+    public Grob asGrob() {
+        if (coreType == CoreType.GROB_SHAPE || coreType == CoreType.GROB_CANVAS || coreType == CoreType.GROB_IMAGE) {
+            return (Grob) value;
+        } else {
+            return new Group();
+        }
+    }
+
     public Object getValue() {
         return value;
     }
