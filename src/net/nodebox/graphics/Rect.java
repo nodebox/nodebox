@@ -90,7 +90,7 @@ public class Rect {
         u.x = Math.min(r1.x, r2.x);
         u.y = Math.min(r1.y, r2.y);
         u.width = Math.max(r1.x + r1.width, r2.x + r2.width) - u.x;
-        u.height = Math.max(r1.y + r1.height, r2.y + r2.height) - u.y;
+        u.height = Math.max(r1.y + r1.width, r2.y + r2.height) - u.y;
         return u;
     }
 

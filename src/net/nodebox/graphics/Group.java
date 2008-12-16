@@ -48,16 +48,23 @@ public class Group extends Grob {
 
     //// Geometry ////
 
+    /**
+     * Returns the bounding box of all elements in the group.
+     *
+     * @return a bounding box that contains all elements in the group.
+     */
     public Rect getBounds() {
         if (grobs.isEmpty()) {
             return new Rect();
         }
         Rect r = null;
+        // Note that, to calculate the bounding box of a group, we use the frames of the inner elements.
+        // This means we take the child grobs' transforms in account.
         for (Grob g : grobs) {
             if (r == null) {
-                r = g.getBounds();
+                r = g.getFrame();
             } else {
-                r = r.united(g.getBounds());
+                r = r.united(g.getFrame());
             }
         }
         return r;

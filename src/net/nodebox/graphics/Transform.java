@@ -91,7 +91,7 @@ public class Transform implements Cloneable {
         Point2D transformedOrigin = new Point2D.Double();
         Point2D transformedSize = new Point2D.Double();
         t.transform(new Point2D.Double(bounds.getX(), bounds.getY()), transformedOrigin);
-        t.deltaTransform(new Point2D.Double(bounds.getWidth(), bounds.getHeight()), transformedOrigin);
+        t.deltaTransform(new Point2D.Double(bounds.getWidth(), bounds.getHeight()), transformedSize);
         return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
     }
 
