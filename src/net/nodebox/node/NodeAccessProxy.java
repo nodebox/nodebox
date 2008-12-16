@@ -1,7 +1,5 @@
 package net.nodebox.node;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -77,7 +75,7 @@ public class NodeAccessProxy implements Map {
     }
 
     public boolean containsValue(Object value) {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -154,10 +152,10 @@ public class NodeAccessProxy implements Map {
     }
 
     public Collection values() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 
     public Set entrySet() {
-        throw new NotImplementedException();
+        throw new RuntimeException("Not implemented");
     }
 }

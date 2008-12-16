@@ -24,7 +24,6 @@ import org.mvel2.MVEL;
 import org.mvel2.UnresolveablePropertyException;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -200,7 +199,7 @@ public class Expression {
         }
 
         public void setStaticType(Class type) {
-            throw new NotImplementedException();
+            throw new RuntimeException("Not implemented");
         }
 
         public int getFlags() {
