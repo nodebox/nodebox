@@ -8,5 +8,5 @@ import net.nodebox.node.Parameter;
 public interface ParameterControl {
     Parameter getParameter();
 
-    void setValue(Object v);
+    void setValueForControl(Object v);
 }

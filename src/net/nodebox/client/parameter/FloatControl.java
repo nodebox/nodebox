@@ -1,34 +1,30 @@
 package net.nodebox.client.parameter;
 
+import net.nodebox.client.DraggableNumber;
 import net.nodebox.node.Parameter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class FloatControl extends JComponent implements ChangeListener, VetoableChangeListener, ParameterControl {
+public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl {
 
     private Parameter parameter;
-    private JTextField textField;
-    private JSlider slider;
+    private DraggableNumber draggable;
 
     public FloatControl(Parameter parameter) {
+        setPreferredSize(new Dimension(100, 20));
         setLayout(new FlowLayout(FlowLayout.LEADING));
         this.parameter = parameter;
-        textField = new JTextField();
-        textField.setPreferredSize(new Dimension(50, 19));
-        textField.putClientProperty("JComponent.sizeVariant", "small");
-        textField.addVetoableChangeListener(this);
-        slider = new JSlider(0, 1000);
-        slider.putClientProperty("JComponent.sizeVariant", "small");
-        slider.addChangeListener(this);
-        add(textField);
-        add(slider);
-        setValue(parameter.getValue());
+        draggable = new DraggableNumber();
+        draggable.addChangeListener(this);
+        draggable.addActionListener(this);
+        draggable.setPreferredSize(new Dimension(100, 20));
+        add(draggable);
+        setValueForControl(parameter.getValue());
     }
 
     public Parameter getParameter() {
@@ -39,38 +35,30 @@ public class FloatControl extends JComponent implements ChangeListener, Vetoable
         return Math.max(minimum, Math.min(maximum, value));
     }
 
-    public void setValue(Object v) {
+    public void setValueForControl(Object v) {
         Double value = (Double) v;
-        double minimumValue = parameter.getMinimumValue() == null ? 0 : parameter.getMinimumValue();
-        double maximumValue = parameter.getMaximumValue() == null ? 10 : parameter.getMaximumValue();
-        double range = maximumValue - minimumValue;
-        value = clamp(value, minimumValue, maximumValue);
-        int sliderValue = (int) (value / range * 1000);
-        textField.setText(value.toString());
-        slider.setValue(sliderValue);
+        draggable.setValue(value);
     }
 
     public void stateChanged(ChangeEvent e) {
-        System.out.println("stateChanged " + slider.getValue());
-        // The slider ranges from 0-1000.
-        // The first conversion moves from 0.0 - 1.0
-        double v = slider.getValue() / 1000.0;
-        double minimumValue = parameter.getMinimumValue() == null ? 0 : parameter.getMinimumValue();
-        double maximumValue = parameter.getMaximumValue() == null ? 10 : parameter.getMaximumValue();
-        double delta = maximumValue - minimumValue;
-        // Now multiply the delta with the 0.0 - 1.0 range to get the abs delta and add it to the min.
-        double finalValue = minimumValue + delta * v;
-        if (finalValue != (Double) parameter.getValue()) {
-            parameter.setValue(finalValue);
+        setValueFromControl();
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        setValueFromControl();
+    }
+
+    private void setValueFromControl() {
+        double value = draggable.getValue();
+        if (parameter.getMinimumValue() != null) {
+            value = Math.max(parameter.getMinimumValue(), value);
+        }
+        if (parameter.getMaximumValue() != null) {
+            value = Math.max(parameter.getMaximumValue(), value);
+        }
+        if (value != (Double) parameter.getValue()) {
+            parameter.setValue(value);
         }
     }
 
-    public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
-        System.out.println("vetoableChange " + evt.getNewValue());
-        String s = evt.getNewValue().toString();
-        double v = Double.parseDouble(s);
-        if (v != (Double) parameter.getValue()) {
-            parameter.setValue(v);
-        }
-    }
 }

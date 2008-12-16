@@ -38,7 +38,6 @@ public class Viewer extends JComponent implements NetworkDataListener {
         Graphics2D g2 = (Graphics2D) g;
         if (getNetwork() == null) return;
         Object outputValue = getNetwork().getOutputValue();
-        System.out.println("outputValue = " + outputValue);
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
         }

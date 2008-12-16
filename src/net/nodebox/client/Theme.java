@@ -13,7 +13,7 @@ public class Theme {
 
     private Color backgroundColor = new Color(178, 178, 178);
     private Color foregroundColor = new Color(136, 136, 136);
-    private Color textColor = new Color(204, 204, 204);
+    private Color textColor = new Color(80, 80, 80);
     private Color actionColor = new Color(0, 116, 168);
     private Color borderColor = new Color(48, 48, 48);
     private Color borderHighlightColor = new Color(120, 120, 120);

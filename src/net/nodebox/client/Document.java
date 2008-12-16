@@ -351,13 +351,11 @@ public class Document extends JFrame implements NetworkDataListener {
     //// Network events ////
 
     public void networkDirty(Network network) {
-        System.out.println("networkDirty " + network.getName());
         if (network != activeNetwork) return;
         activeNetwork.update();
     }
 
     public void networkUpdated(Network network) {
-        System.out.println("networkUpdated");
     }
 
     //// Document Action classes ////

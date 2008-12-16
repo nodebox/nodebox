@@ -33,6 +33,7 @@ public class ParameterView extends JComponent {
         setLayout(new BorderLayout());
         controlPanel = new JPanel(new GridLayout(0, 2, 5, 5));
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
     }
 
