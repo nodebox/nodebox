@@ -31,6 +31,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
     private Pane pane;
     private Network network;
     private List<Selectable> selection = new ArrayList<Selectable>();
+    private ConnectionLayer connectionLayer;
     private NodeView highlight;
     private SelectionHandler selectionHandler = new SelectionHandler();
     private SelectionMarker selectionMarker;
@@ -42,16 +43,17 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         this.network = network;
         setBackground(Theme.getInstance().getViewBackgroundColor());
         addInputEventListener(selectionHandler);
-
         // Remove default panning and zooming behaviour
         removeInputEventListener(getPanEventHandler());
         removeInputEventListener(getZoomEventHandler());
         // Install custom panning and zooming
-        PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON1_MASK | InputEvent.ALT_MASK);
+        PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON2_MASK);
         panFilter.setNotMask(InputEvent.CTRL_MASK);
         PPanEventHandler panHandler = new PPanEventHandler();
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
+        connectionLayer = new ConnectionLayer(this);
+        getCamera().addLayer(0, connectionLayer);
         setZoomEventHandler(new PZoomEventHandler() {
             public void processEvent(final PInputEvent evt, final int i) {
                 if (evt.isMouseWheelEvent()) {
@@ -72,6 +74,12 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         popup = new JPopupMenu();
         popup.add(new RemoveNodeAction());
 
+    }
+
+    @Override
+    public void setBounds(int i, int i1, int i2, int i3) {
+        super.setBounds(i, i1, i2, i3);
+        connectionLayer.setBounds(getBounds());
     }
 
     public Pane getPane() {
@@ -99,12 +107,6 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
 
             NodeView nv = new NodeView(this, n);
             getLayer().addChild(nv);
-        }
-        for (Node n : network.getNodes()) {
-            for (Connection c : n.getOutputParameter().getDownstreamConnections()) {
-                ConnectionView cv = new ConnectionView(this, c);
-                getLayer().addChild(cv);
-            }
         }
         validate();
         firePropertyChange(NETWORK_PROPERTY, oldNetwork, network);
@@ -163,6 +165,8 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
             s.setSelected(false);
             selection.remove(s);
         }
+        connectionLayer.deselectAll();
+        connectionLayer.repaint();
         firePropertyChange(SELECT_PROPERTY, selection, null);
     }
 
@@ -215,10 +219,13 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
     }
 
     public void nodeChanged(Network source, Node node) {
+        // We assume the change event is a move.
+        // Find the NodeView related to this change event.
         NodeView nv = getNodeView(node);
         if (!nv.getOffset().equals(node.getPosition().getPoint2D())) {
             nv.setOffset(node.getX(), node.getY());
         }
+        connectionLayer.repaint();
     }
 
     public void renderedNodeChanged(Network source, Node node) {
@@ -272,8 +279,9 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
                         select(s);
                     }
                 }
-
             }
+            connectionLayer.select(selectionMarker.getBounds().getBounds2D());
+            connectionLayer.repaint();
         }
 
         public void mouseReleased(PInputEvent pInputEvent) {

@@ -647,6 +647,10 @@ public class Parameter extends Observable implements Observer {
 
     //// Connections ////
 
+    public Connection getConnection() {
+        return connection;
+    }
+
     public boolean isCompatible(Node outputNode) {
         return outputNode.getOutputParameter().getType().equals(getType());
     }

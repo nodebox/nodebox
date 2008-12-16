@@ -3,7 +3,6 @@ package net.nodebox.client;
 import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.nodes.PPath;
-import net.nodebox.graphics.Rect;
 import net.nodebox.node.Connection;
 
 import java.awt.*;
@@ -16,14 +15,19 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
     private NetworkView networkView;
     private Connection connection;
     private boolean selected;
-
+    private NodeView inputNodeView;
+    private NodeView outputNodeView;
 
     public ConnectionView(NetworkView networkView, Connection connection) {
         this.networkView = networkView;
         this.connection = connection;
         addInputEventListener(new ConnectionHandler());
-        updateBounds();
+        //updateBounds();
         updatePath();
+        inputNodeView = networkView.getNodeView(connection.getInputNode());
+        outputNodeView = networkView.getNodeView(connection.getOutputNode());
+        assert (inputNodeView != null);
+        assert (outputNodeView != null);
     }
 
     public NetworkView getNetworkView() {
@@ -34,15 +38,15 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
         return connection;
     }
 
-    public void updateBounds() {
-        double x0 = connection.getOutputNode().getX();
-        double y0 = connection.getOutputNode().getY();
-        double x1 = connection.getInputNode().getX();
-        double y1 = connection.getInputNode().getY();
-        Rect bounds = new Rect(x0, y0, x1 - x0, y1 - y0);
-        bounds = bounds.normalized();
-        setBounds(bounds.getRectangle2D());
-    }
+//    public void updateBounds() {
+//        double x0 = connection.getOutputNode().getX();
+//        double y0 = connection.getOutputNode().getY();
+//        double x1 = connection.getInputNode().getX();
+//        double y1 = connection.getInputNode().getY();
+//        Rect bounds = new Rect(x0, y0, x1 - x0, y1 - y0);
+//        bounds = bounds.normalized();
+//        setBounds(bounds.getRectangle2D());
+//    }
 
     public void invalidateLayout() {
         super.invalidateLayout();
@@ -58,6 +62,7 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
         float dx = Math.abs(x1 - x0) / 2;
         moveTo(x0, y0);
         curveTo(x0, y0 + dx, x1, y1 - dx, x1, y1);
+        repaint();
     }
 
     public boolean isSelected() {
@@ -91,7 +96,7 @@ public class ConnectionView extends PPath implements Selectable, PropertyChangeL
     }
 
     public void nodeMovedEvent() {
-        updateBounds();
+        //updateBounds();
         updatePath();
     }
 

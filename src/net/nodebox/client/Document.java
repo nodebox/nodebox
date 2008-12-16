@@ -7,6 +7,7 @@ import net.nodebox.node.canvas.CanvasNetwork;
 import net.nodebox.node.image.ImageNetwork;
 import net.nodebox.node.vector.EllipseNode;
 import net.nodebox.node.vector.RectNode;
+import net.nodebox.node.vector.TransformNode;
 import net.nodebox.node.vector.VectorNetwork;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -92,6 +93,10 @@ public class Document extends JFrame implements NetworkDataListener {
         Node rect1 = vector2.create(RectNode.class);
         rect1.setPosition(40, 40);
         rect1.setRendered();
+        Node transform1 = vector2.create(TransformNode.class);
+        transform1.setPosition(40, 80);
+        transform1.setRendered();
+        transform1.getParameter("shape").connect(rect1);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
@@ -103,7 +108,7 @@ public class Document extends JFrame implements NetworkDataListener {
         setContentPane(rootPanel);
         setActiveNetwork(rootNetwork);
         setActiveNode(vector1);
-        setSize(800, 600);
+        setSize(1100, 800);
         initMenu();
     }
 

@@ -18,9 +18,10 @@ public class Theme {
     private Color borderColor = new Color(48, 48, 48);
     private Color borderHighlightColor = new Color(120, 120, 120);
     private Color viewBackgroundColor = new Color(144, 152, 160);
+    private Color connectionColor = new Color(100, 100, 100);
     private ArrowIcon arrowIcon = new ArrowIcon();
 
-    class ArrowIcon implements Icon {
+    public class ArrowIcon implements Icon {
         public void paintIcon(Component c, Graphics g, int x, int y) {
             g.setColor(Theme.getInstance().getForegroundColor());
             g.drawLine(x + 1, y, x + 1, y);
@@ -71,6 +72,10 @@ public class Theme {
 
     public Color getViewBackgroundColor() {
         return viewBackgroundColor;
+    }
+
+    public Color getConnectionColor() {
+        return connectionColor;
     }
 
     public ArrowIcon getArrowIcon() {

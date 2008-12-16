@@ -25,6 +25,7 @@ public class RectNode extends VectorNode {
         pFillColor = addParameter("fill", Parameter.Type.COLOR);
         pStrokeColor = addParameter("stroke", Parameter.Type.COLOR);
         pStrokeWidth = addParameter("strokewidth", Parameter.Type.FLOAT);
+        pStrokeWidth.setMinimumValue(0.0);
     }
 
     @Override

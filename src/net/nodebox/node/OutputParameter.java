@@ -1,7 +1,6 @@
 package net.nodebox.node;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class OutputParameter extends Parameter {
@@ -36,7 +35,7 @@ public class OutputParameter extends Parameter {
         return downstreams.remove(connection);
     }
 
-    public Collection<Connection> getDownstreamConnections() {
+    public List<Connection> getDownstreamConnections() {
         return downstreams;
     }
 

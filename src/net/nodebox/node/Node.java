@@ -430,6 +430,27 @@ public abstract class Node {
 
     //// Connection shortcuts ////
 
+    public List<Connection> getInputConnections() {
+        List<Connection> inputConnections = new ArrayList<Connection>();
+        for (Parameter p : parameters.values()) {
+            if (p.isConnected()) {
+                inputConnections.add(p.getConnection());
+            }
+        }
+        return inputConnections;
+    }
+
+    public List<Connection> getOutputConnections() {
+        return getOutputParameter().getDownstreamConnections();
+    }
+
+    public List<Connection> getConnections() {
+        List<Connection> connections = new ArrayList<Connection>();
+        connections.addAll(getInputConnections());
+        connections.addAll(getOutputConnections());
+        return connections;
+    }
+
     /**
      * Removes all connections from and to this node.
      *

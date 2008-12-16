@@ -9,8 +9,10 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
 
-public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl {
+public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, Observer {
 
     private Parameter parameter;
     private DraggableNumber draggable;
@@ -23,8 +25,10 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         draggable.addChangeListener(this);
         draggable.addActionListener(this);
         draggable.setPreferredSize(new Dimension(100, 20));
+        draggable.setMinimumSize(new Dimension(100, 20));
         add(draggable);
         setValueForControl(parameter.getValue());
+        parameter.addObserver(this);
     }
 
     public Parameter getParameter() {
@@ -61,4 +65,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         }
     }
 
+    public void update(Observable o, Object arg) {
+        setValueForControl(parameter.getValue());
+    }
 }
