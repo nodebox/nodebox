@@ -13,11 +13,6 @@ public class VectorNetwork extends Network {
     private Parameter pSx;
     private Parameter pSy;
 
-    @Override
-    public String defaultName() {
-        return "vecnet";
-    }
-
     public VectorNetwork() {
         this(null);
     }
@@ -39,6 +34,11 @@ public class VectorNetwork extends Network {
     }
 
     @Override
+    public String defaultName() {
+        return "vecnet";
+    }
+
+    @Override
     protected boolean process(ProcessingContext ctx) {
         boolean success = updateRenderedNode(ctx);
         if (success) {
@@ -57,4 +57,6 @@ public class VectorNetwork extends Network {
         }
         return success;
     }
+
+
 }

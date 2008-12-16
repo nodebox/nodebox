@@ -18,11 +18,21 @@
  */
 package net.nodebox.node;
 
+import org.xml.sax.InputSource;
+
 import javax.swing.event.EventListenerList;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public abstract class Network extends Node {
 
@@ -40,6 +50,8 @@ public abstract class Network extends Node {
      * The event listeners registered to listen to this network.
      */
     private EventListenerList listeners = new EventListenerList();
+
+    private static Logger logger = Logger.getLogger("net.nodebox.node.Network");
 
     public static class NodeNotInNetwork extends RuntimeException {
 
@@ -311,7 +323,7 @@ public abstract class Network extends Node {
         StringBuffer xml = new StringBuffer();
         // Build the header
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<ndbx type=\"file\" formatversion=\"0.8\">");
+        xml.append("<ndbx type=\"file\" formatVersion=\"0.8\">");
         toXml(xml, "  ");
         xml.append("</ndbx>");
         return xml.toString();
@@ -329,7 +341,8 @@ public abstract class Network extends Node {
         xml.append(spaces);
         xml.append("<network");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getClass().getCanonicalName()).append("\"");
+        xml.append(" type=\"").append(getTypeName()).append("\"");
+        xml.append(" version=\"").append(getVersion()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
         xml.append(">\n");
@@ -352,5 +365,59 @@ public abstract class Network extends Node {
         // End the node
         xml.append(spaces).append("</network>\n");
     }
+
+    public static Network load(NodeManager nodeManager, String s) throws RuntimeException {
+        StringReader reader = new StringReader(s);
+        return load(nodeManager, new InputSource(reader));
+    }
+
+    public static Network load(NodeManager nodeManager, File file) throws RuntimeException {
+        // Load the document
+        FileInputStream fis;
+        try {
+            fis = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            logger.log(Level.SEVERE, "Could not read file " + file, e);
+            throw new RuntimeException("Could not read file " + file, e);
+        }
+        return load(nodeManager, new InputSource(fis));
+    }
+
+    private static Network load(NodeManager nodeManager, InputSource source) throws RuntimeException {
+        // Setup the parser
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        // The next lines make sure that the SAX parser doesn't try to validate the document,
+        // or tries to load in external DTDs (such as those from W3). Non-parsing means you
+        // don't need an internet connection to use the program, and speeds up loading the
+        // document massively.
+        try {
+            factory.setFeature("http://xml.org/sax/features/validation", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Parsing feature not supported.", e);
+            throw new RuntimeException("Parsing feature not supported.", e);
+        }
+        SAXParser parser;
+        try {
+            parser = factory.newSAXParser();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Could not create parser.", e);
+            throw new RuntimeException("Could not create parser.", e);
+        }
+
+        // Parse the document
+        XmlHandler handler = new XmlHandler(nodeManager);
+        try {
+            parser.parse(source, handler);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error during parsing.", e);
+            throw new RuntimeException("Error during parsing.", e);
+        }
+        return handler.getNetwork();
+
+    }
+
 
 }

@@ -89,6 +89,9 @@ public class NetworkTest extends TestCase {
     }
 
     public void testPersistence() {
+        NodeManager manager = new NodeManager();
+
+        // Create network
         CanvasNetwork rootNetwork = new CanvasNetwork("root");
         Network vector1 = (Network) rootNetwork.create(VectorNetwork.class);
         vector1.setPosition(10, 10);
@@ -100,7 +103,15 @@ public class NetworkTest extends TestCase {
         transform1.setPosition(40, 80);
         transform1.setRendered();
         transform1.getParameter("shape").connect(ellipse1);
-        System.out.println("rootNetwork.toXml()\n" + rootNetwork.toXml());
+
+        // Write network
+        String xmlString = rootNetwork.toXml();
+
+        // Read network
+        Network newNetwork = Network.load(manager, xmlString);
+
+        // TODO: Equals tests for identity. We need to correctly test this.
+        assertEquals(rootNetwork, newNetwork);
     }
 
     public class ValueNode extends Node {

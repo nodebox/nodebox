@@ -13,5 +13,6 @@ public abstract class VectorNode extends Node {
     public VectorNode(String name) {
         super(Parameter.Type.GROB_VECTOR, name);
     }
+
 }
 

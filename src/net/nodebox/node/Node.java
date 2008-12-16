@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,6 +72,17 @@ public abstract class Node {
      */
     private double x, y;
 
+
+    /**
+     * The type name of this node. If this is still null when getTypeName() is asked, it will be set to the class name.
+     */
+    private String typeName;
+
+    /**
+     * The version of this node.
+     */
+    private Version version = new Version();
+
     /**
      * A flag that indicates whether this node is in need of processing.
      * The dirty flag is set using markDirty and cleared while processing.
@@ -92,17 +105,14 @@ public abstract class Node {
      */
     private List<Message> messages = new ArrayList<Message>();
 
+    private static Logger logger = Logger.getLogger("net.nodebox.node.Node");
 
-    /**
-     * A list of event listeners for this component.
-     */
-    //private transient EventListenerList listenerList = new EventListenerList();
 
     public enum MessageLevel {
         DEBUG, INFO, WARNING, ERROR
     }
 
-    class Message {
+    public static class Message {
 
         private MessageLevel level;
         private String message;
@@ -134,6 +144,82 @@ public abstract class Node {
 
         public boolean isError() {
             return level == MessageLevel.ERROR;
+        }
+    }
+
+    public static class Version {
+
+        private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
+
+        private int major, minor;
+
+        public static Version parseVersionString(String s) {
+            return new Version(s);
+        }
+
+        public Version() {
+            major = 1;
+            minor = 0;
+        }
+
+        public Version(int major, int minor) {
+            this.major = major;
+            this.minor = minor;
+        }
+
+        public Version(String versionString) {
+            Matcher m = VERSION_PATTERN.matcher(versionString);
+            if (!m.matches()) {
+                logger.log(Level.WARNING, "Could not parse version " + versionString + ": returning null.");
+            }
+            String[] majorMinor = versionString.split("\\.");
+            assert (majorMinor.length == 2);
+            major = Integer.parseInt(majorMinor[0]);
+            minor = Integer.parseInt(majorMinor[1]);
+        }
+
+        public int getMajor() {
+            return major;
+        }
+
+        public int getMinor() {
+            return minor;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Version)) return false;
+            Version v = (Version) o;
+            return major == v.major &&
+                    minor == v.minor;
+        }
+
+        public boolean largerThan(Version other) {
+            if (major > other.major) return true;
+            return major == other.major && minor > other.minor;
+        }
+
+        public boolean largerOrEqualThan(Version other) {
+            if (largerThan(other)) return true;
+            return major == other.major && minor == other.minor;
+        }
+
+        public boolean smallerOrEqualThan(Version other) {
+            return !largerThan(other);
+        }
+
+        public boolean smallerThan(Version other) {
+            return !largerOrEqualThan(other);
+        }
+
+        public String toString() {
+            return major + "." + minor;
+        }
+
+        @Override
+        public Object clone() {
+            return new Version(major, minor);
         }
     }
 
@@ -267,6 +353,36 @@ public abstract class Node {
         this.name = name;
     }
 
+    //// Typing ////
+
+    public String getTypeName() {
+        if (typeName == null)
+            typeName = getClass().getName();
+        return typeName;
+    }
+
+    //// Versioning ////
+
+    public Version getVersion() {
+        return (Version) version.clone();
+    }
+
+    public String getVersionAsString() {
+        return version.toString();
+    }
+
+    public void setVersion(Version v) {
+        version = new Version(v.getMajor(), v.getMinor());
+    }
+
+    public void setVersion(int major, int minor) {
+        version = new Version(major, minor);
+    }
+
+    public void setVersion(String v) {
+        version = new Version(v);
+    }
+
     //// Parameters ////
 
     public Collection<Parameter> getParameters() {
@@ -277,7 +393,7 @@ public abstract class Node {
         return parameters.size();
     }
 
-    public Parameter getParameter(String name) {
+    public Parameter getParameter(String name) throws NotFound {
         if (hasParameter(name)) {
             return parameters.get(name);
         } else {
@@ -633,21 +749,14 @@ public abstract class Node {
      */
     public void toXml(StringBuffer xml, String spaces) {
         // Build the node
-        xml.append(spaces).append("<node ");
-        xml.append("name=\"");
-        xml.append(getName());
-        xml.append("\" ");
-        xml.append("type=\"");
-        xml.append(getClass().getName());
-        xml.append("\" ");
-        xml.append("x=\"");
-        xml.append(getX());
-        xml.append("\" ");
-        xml.append("y=\"");
-        xml.append(getY());
-        xml.append("\" ");
+        xml.append(spaces).append("<node");
+        xml.append(" name=\"").append(getName()).append("\"");
+        xml.append(" type=\"").append(getTypeName()).append("\"");
+        xml.append(" version=\"").append(getVersion()).append("\"");
+        xml.append(" x=\"").append(getX()).append("\"");
+        xml.append(" y=\"").append(getY()).append("\"");
         if (isRendered())
-            xml.append("rendered=\"true\" ");
+            xml.append(" rendered=\"true\"");
         xml.append(">\n");
         xml.append(spaces);
         xml.append("  <data>\n");

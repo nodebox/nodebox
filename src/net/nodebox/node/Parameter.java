@@ -585,7 +585,7 @@ public class Parameter extends Observable implements Observer {
 
     //// Parsing ////
 
-    public Object parseValue(String value) {
+    public Object parseValue(String value) throws NumberFormatException {
         switch (coreType) {
             case INT:
                 return Integer.parseInt(value);

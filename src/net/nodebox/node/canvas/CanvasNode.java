@@ -12,4 +12,5 @@ public abstract class CanvasNode extends Node {
     public CanvasNode(String name) {
         super(Parameter.Type.GROB_CANVAS, name);
     }
+
 }

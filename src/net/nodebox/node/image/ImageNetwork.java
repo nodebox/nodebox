@@ -12,4 +12,5 @@ public class ImageNetwork extends Network {
     public ImageNetwork(String name) {
         super(Parameter.Type.GROB_IMAGE, name);
     }
+
 }
