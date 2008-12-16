@@ -94,7 +94,7 @@ public abstract class Network extends Node {
     }
 
     public Node create(Class nodeClass) {
-        assert (nodeClass.isAssignableFrom(Node.class));
+        assert (Node.class.isAssignableFrom(nodeClass));
         try {
             Node newNode = (Node) nodeClass.newInstance();
             setUniqueNodeName(newNode);
