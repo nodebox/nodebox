@@ -20,7 +20,9 @@ public class CopyNode extends VectorNode {
         pTy = addParameter("ty", Parameter.Type.FLOAT);
         pR = addParameter("r", Parameter.Type.FLOAT);
         pSx = addParameter("sx", Parameter.Type.FLOAT);
+        pSx.setDefaultValue(1.0);
         pSy = addParameter("sy", Parameter.Type.FLOAT);
+        pSy.setDefaultValue(1.0);
     }
 
     @Override

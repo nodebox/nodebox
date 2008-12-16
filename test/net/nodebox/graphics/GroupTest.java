@@ -29,7 +29,7 @@ public class GroupTest extends TestCase {
         Group g = new Group();
         g.add(r1);
         g.add(r2);
-        assertEquals(new Rect(10, 20, 30, 120 + 40), g.getBounds());
+        assertEquals(new Rect(10, 20, 30, 120 + 40 - 20), g.getBounds());
     }
 
 

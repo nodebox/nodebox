@@ -42,10 +42,10 @@ public class RectTest extends TestCase {
     public void testUnited() {
         Rect r1 = new Rect(10, 20, 30, 40);
         Rect r2 = new Rect(40, 30, 50, 30);
-        assertEquals(new Rect(10, 20, 80, 90), r1.united(r2));
+        assertEquals(new Rect(10, 20, 40 + 50 - 10, 30 + 30 - 20), r1.united(r2));
         Rect r3 = new Rect(10, 20, 30, 40);
         Rect r4 = new Rect(10, 120, 30, 40);
-        assertEquals(new Rect(10, 20, 30, 120 + 40), r3.united(r4));
+        assertEquals(new Rect(10, 20, 30, 120 + 40 - 20), r3.united(r4));
     }
 
     public void testContains() {

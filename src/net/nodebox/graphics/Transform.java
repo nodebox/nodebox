@@ -107,7 +107,7 @@ public class Transform implements Cloneable {
 
     @Override
     protected Transform clone() {
-        return new Transform(affineTransform);
+        return new Transform((AffineTransform) affineTransform.clone());
     }
 
     public void apply(Graphics2D g, Rect bounds) {
