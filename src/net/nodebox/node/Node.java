@@ -624,4 +624,49 @@ public abstract class Node {
 
     //// Persistence ////
 
+    /**
+     * Converts the data structure to xml. The xml String is appended to the given StringBuffer.
+     *
+     * @param xml    the StringBuffer to use when appending.
+     * @param spaces the indentation.
+     * @see Network#toXml for returning the Network as a full xml document
+     */
+    public void toXml(StringBuffer xml, String spaces) {
+        // Build the node
+        xml.append(spaces).append("<node ");
+        xml.append("name=\"");
+        xml.append(getName());
+        xml.append("\" ");
+        xml.append("type=\"");
+        xml.append(getClass().getName());
+        xml.append("\" ");
+        xml.append("x=\"");
+        xml.append(getX());
+        xml.append("\" ");
+        xml.append("y=\"");
+        xml.append(getY());
+        xml.append("\" ");
+        if (isRendered())
+            xml.append("rendered=\"true\" ");
+        xml.append(">\n");
+        xml.append(spaces);
+        xml.append("  <data>\n");
+
+        // Build the parameter list
+        dataToXml(xml, spaces);
+
+        // End the node
+        xml.append(spaces);
+        xml.append("  </data>\n");
+        xml.append(spaces);
+        xml.append("</node>\n");
+    }
+
+    public void dataToXml(StringBuffer xml, String spaces) {
+        for (Parameter p : getParameters()) {
+            p.toXml(xml, spaces + "  ");
+        }
+    }
+
+
 }

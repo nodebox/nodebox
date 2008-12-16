@@ -305,4 +305,52 @@ public abstract class Network extends Node {
             ((NetworkDataListener) l).networkUpdated(this);
     }
 
+    //// Persistence ////
+
+    public String toXml() {
+        StringBuffer xml = new StringBuffer();
+        // Build the header
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<ndbx type=\"file\" formatversion=\"0.8\">");
+        toXml(xml, "  ");
+        xml.append("</ndbx>");
+        return xml.toString();
+    }
+
+    /**
+     * Converts the data structure to xml. The xml String is appended to the given StringBuffer.
+     *
+     * @param xml    the StringBuffer to use when appending.
+     * @param spaces the indentation
+     * @see Network#toXml for returning the Network as a full xml document
+     */
+    public void toXml(StringBuffer xml, String spaces) {
+        // Build the node
+        xml.append(spaces);
+        xml.append("<network");
+        xml.append(" name=\"").append(getName()).append("\"");
+        xml.append(" type=\"").append(getClass().getCanonicalName()).append("\"");
+        xml.append(" x=\"").append(getX()).append("\"");
+        xml.append(" y=\"").append(getY()).append("\"");
+        xml.append(">\n");
+
+        // Create the data
+        dataToXml(xml, spaces);
+
+        // Include all vertices
+        for (Node n : getNodes()) {
+            n.toXml(xml, spaces + "  ");
+        }
+
+        // Include all edges
+        for (Node n : getNodes()) {
+            for (Connection c : n.getOutputConnections()) {
+                c.toXml(xml, spaces + "  ");
+            }
+        }
+
+        // End the node
+        xml.append(spaces).append("</network>\n");
+    }
+
 }

@@ -244,6 +244,10 @@ public class Parameter extends Observable implements Observer {
         return type;
     }
 
+    public boolean isPrimitive() {
+        return (coreType == CoreType.INT || coreType == CoreType.FLOAT || coreType == CoreType.STRING || coreType == CoreType.COLOR);
+    }
+
     public void setType(Type type) {
         if (this.type == type) return;
         this.type = type;
@@ -777,5 +781,36 @@ public class Parameter extends Observable implements Observer {
         setChanged();
         notifyObservers();
         clearChanged();
+    }
+
+    //// Persistence ////
+
+    /**
+     * Converts the data structure to xml. The xml String is appended to the given StringBuffer.
+     *
+     * @param xml    the StringBuffer to use when appending.
+     * @param spaces the indentation.
+     * @see Network#toXml for returning the Network as a full xml document
+     */
+    public void toXml(StringBuffer xml, String spaces) {
+        // Don't do non-primitive parameters.
+        if (!isPrimitive()) return;
+        // Write parameter name
+        xml.append(spaces).append("<key>").append(getName()).append("</key>\n");
+        if (hasExpression()) {
+            xml.append(spaces).append("<expression>").append(getExpression()).append("</expression>\n");
+        } else {
+            if (getCoreType() == CoreType.INT) {
+                xml.append(spaces).append("<int>").append(asFloat()).append("</int>\n");
+            } else if (getCoreType() == CoreType.FLOAT) {
+                xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
+            } else if (getCoreType() == CoreType.STRING) {
+                xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
+            } else if (getCoreType() == CoreType.COLOR) {
+                xml.append(spaces).append("<color>").append(asColor().toString()).append("</color>\n");
+            } else {
+                throw new AssertionError("Unknown value class " + getCoreType());
+            }
+        }
     }
 }

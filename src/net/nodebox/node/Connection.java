@@ -66,4 +66,15 @@ public class Connection {
         getInputNode().markDirty();
     }
 
+    //// Persistence ////
+
+    public void toXml(StringBuffer xml, String spaces) {
+        xml.append(spaces);
+        xml.append("<edge");
+        xml.append(" outputNode=\"").append(getOutputNode().getName()).append("\"");
+        xml.append(" inputNode=\"").append(getInputNode().getName()).append("\"");
+        xml.append(" inputParameter=\"").append(getInputParameter().getName()).append("\"");
+        xml.append("/>\n");
+    }
+
 }

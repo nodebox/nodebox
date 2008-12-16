@@ -3,9 +3,8 @@ package net.nodebox.node;
 import junit.framework.TestCase;
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Rect;
-import net.nodebox.node.vector.CopyNode;
-import net.nodebox.node.vector.RectNode;
-import net.nodebox.node.vector.VectorNetwork;
+import net.nodebox.node.canvas.CanvasNetwork;
+import net.nodebox.node.vector.*;
 
 public class NetworkTest extends TestCase {
 
@@ -87,6 +86,21 @@ public class NetworkTest extends TestCase {
         towerMacro.update();
         Grob g = (Grob) towerMacro.getOutputValue();
         assertEquals(new Rect(0, 0, 50.0, 160.0), g.getBounds());
+    }
+
+    public void testPersistence() {
+        CanvasNetwork rootNetwork = new CanvasNetwork("root");
+        Network vector1 = (Network) rootNetwork.create(VectorNetwork.class);
+        vector1.setPosition(10, 10);
+        vector1.setRendered();
+        Node ellipse1 = vector1.create(EllipseNode.class);
+        ellipse1.setRendered();
+        ellipse1.setPosition(100, 30);
+        Node transform1 = vector1.create(TransformNode.class);
+        transform1.setPosition(40, 80);
+        transform1.setRendered();
+        transform1.getParameter("shape").connect(ellipse1);
+        System.out.println("rootNetwork.toXml()\n" + rootNetwork.toXml());
     }
 
     public class ValueNode extends Node {
