@@ -53,7 +53,7 @@ public class PathElement {
     }
 
     public PathElement(int command, double x1, double y1, double x2, double y2, double x3, double y3) {
-        assert (command == CLOSE);
+        assert (command == CURVETO);
         this.command = command;
         this.control1 = new Point(x1, y1);
         this.control2 = new Point(x2, y2);
