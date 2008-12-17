@@ -18,12 +18,12 @@
  */
 package net.nodebox.node;
 
-import net.nodebox.graphics.*;
-import net.nodebox.util.StringUtils;
+import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Grob;
+import net.nodebox.graphics.Group;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -34,150 +34,34 @@ import java.util.regex.Pattern;
  * of their expressions will observe the parameters they depend on, and marked the node as dirty whenever they receive
  * an update event from one of the parameters they depend on.
  */
-public class Parameter extends Observable implements Observer {
-    public enum Type {
-        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF,
-        GROB_CANVAS, GROB_VECTOR, GROB_IMAGE
-    }
+public class Parameter implements ParameterTypeListener {
 
-    public enum CoreType {
-        INT, FLOAT, STRING, COLOR, GROB_CANVAS, GROB_SHAPE, GROB_IMAGE
-    }
-
-    public enum BoundingMethod {
-        NONE, SOFT, HARD
-    }
-
-    public enum DisplayLevel {
-        HIDDEN, DETAIL, HUD
-    }
-
-    public static final HashMap<CoreType, Class> CORE_TYPE_MAPPING;
-    public static final HashMap<CoreType, Object> CORE_TYPE_DEFAULTS;
-    public static final HashMap<Type, CoreType> TYPE_REGISTRY;
-
-    public class MenuEntry {
-        private String key;
-        private String label;
-
-        public MenuEntry(String key, String label) {
-            this.key = key;
-            this.label = label;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-    }
-
-    static {
-        CORE_TYPE_MAPPING = new HashMap<CoreType, Class>();
-        CORE_TYPE_MAPPING.put(CoreType.INT, Integer.class);
-        CORE_TYPE_MAPPING.put(CoreType.FLOAT, Double.class);
-        CORE_TYPE_MAPPING.put(CoreType.STRING, String.class);
-        CORE_TYPE_MAPPING.put(CoreType.COLOR, Color.class);
-        CORE_TYPE_MAPPING.put(CoreType.GROB_CANVAS, Canvas.class);
-        CORE_TYPE_MAPPING.put(CoreType.GROB_SHAPE, Group.class);
-        CORE_TYPE_MAPPING.put(CoreType.GROB_IMAGE, Image.class);
-
-        CORE_TYPE_DEFAULTS = new HashMap<CoreType, Object>();
-        CORE_TYPE_DEFAULTS.put(CoreType.INT, 0);
-        CORE_TYPE_DEFAULTS.put(CoreType.FLOAT, 0.0);
-        CORE_TYPE_DEFAULTS.put(CoreType.STRING, "");
-        CORE_TYPE_DEFAULTS.put(CoreType.COLOR, new Color());
-
-        TYPE_REGISTRY = new HashMap<Type, CoreType>();
-        TYPE_REGISTRY.put(Type.ANGLE, CoreType.FLOAT);
-        TYPE_REGISTRY.put(Type.COLOR, CoreType.COLOR);
-        TYPE_REGISTRY.put(Type.FILE, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.FLOAT, CoreType.FLOAT);
-        TYPE_REGISTRY.put(Type.FONT, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.GRADIENT, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.IMAGE, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.INT, CoreType.INT);
-        TYPE_REGISTRY.put(Type.MENU, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.SEED, CoreType.INT);
-        TYPE_REGISTRY.put(Type.STRING, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.TEXT, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.TOGGLE, CoreType.INT);
-        TYPE_REGISTRY.put(Type.NODEREF, CoreType.STRING);
-        TYPE_REGISTRY.put(Type.GROB_CANVAS, CoreType.GROB_CANVAS);
-        TYPE_REGISTRY.put(Type.GROB_VECTOR, CoreType.GROB_SHAPE);
-        TYPE_REGISTRY.put(Type.GROB_IMAGE, CoreType.GROB_IMAGE);
-    }
-
+    private ParameterType parameterType;
     private Node node;
-    private String name;
-    private String label;
-    private String helpText;
-    private Type type;
-    private CoreType coreType;
-    private BoundingMethod boundingMethod;
-    private Double minimumValue;
-    private Double maximumValue;
-    private DisplayLevel displayLevel;
-    private ArrayList<MenuEntry> menuItems;
-    private boolean disabled;
-    private boolean persistent;
     private Object value;
-    private Object defaultValue;
     private boolean valueSet = false;
     private Expression expression;
     private boolean expressionEnabled;
     private Connection connection;
     private List<Connection> expressionConnections = new ArrayList<Connection>();
+    /**
+     * A list of Parameters that want to be notified when my value changes.
+     */
+    private List<Parameter> dependents = new ArrayList<Parameter>();
+    /**
+     * A list of Parameters that I rely on, and that need to notify me when their value changes.
+     */
+    private List<Parameter> dependencies = new ArrayList<Parameter>();
 
-    public static class NotFound extends RuntimeException {
+    /**
+     * A list of listeners that want to be notified when my value changes.
+     */
+    private List<ParameterDataListener> listeners = new ArrayList<ParameterDataListener>();
 
-        private Node node;
-        private String parameterName;
-
-        public NotFound(Node node, String parameterName) {
-            this.node = node;
-            this.parameterName = parameterName;
-        }
-
-        public Node getNode() {
-            return node;
-        }
-
-        public String getParameterName() {
-            return parameterName;
-        }
-    }
-
-    public static class InvalidName extends RuntimeException {
-        private Parameter parameter;
-        private String name;
-
-        public InvalidName(Parameter parameter, String name) {
-            this(parameter, name, "Invalid name \"" + name + "\" for parameter \"" + parameter.getName() + "\"");
-        }
-
-        public InvalidName(Parameter parameter, String name, String message) {
-            super(message);
-            this.parameter = parameter;
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public Parameter getParameter() {
-            return parameter;
-        }
-    }
-
-    public Parameter(Node node, String name, Type type) {
+    public Parameter(ParameterType parameterType, Node node) {
+        this.parameterType = parameterType;
         this.node = node;
-        this.name = name;
-        this.label = StringUtils.humanizeName(name);
-        setType(type); // this sets the core type, default values, and value.
+        this.value = parameterType.getDefaultValue();
     }
 
     //// Basic operations ////
@@ -188,32 +72,8 @@ public class Parameter extends Observable implements Observer {
 
     //// Naming ////
 
-    public boolean validName(String name) {
-        // Check if another parameter has the same name.
-        if (node.hasParameter(name) && node.getParameter(name) != this) return false;
-        Pattern nodeNamePattern = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
-        Pattern doubleUnderScorePattern = Pattern.compile("^__.*$");
-        Pattern reservedPattern = Pattern.compile("^(node|name)$");
-        Matcher m1 = nodeNamePattern.matcher(name);
-        Matcher m2 = doubleUnderScorePattern.matcher(name);
-        Matcher m3 = reservedPattern.matcher(name);
-        return m1.matches() && !m2.matches() && !m3.matches();
-    }
-
     public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        if (validName(name)) {
-            node.renameParameter(this, name);
-        } else {
-            throw new InvalidName(this, name);
-        }
-    }
-
-    public void _setName(String name) {
-        this.name = name;
+        return parameterType.getName();
     }
 
     public String getAbsolutePath() {
@@ -221,176 +81,72 @@ public class Parameter extends Observable implements Observer {
     }
 
     public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-        node.fireNodeChanged();
+        return parameterType.getLabel();
     }
 
     public String getHelpText() {
-        return helpText;
-    }
-
-    public void setHelpText(String helpText) {
-        this.helpText = helpText;
-        node.fireNodeChanged();
+        return parameterType.getDescription();
     }
 
     //// Type ////
 
-    public Type getType() {
-        return type;
+    public ParameterType getParameterType() {
+        return parameterType;
+    }
+
+    public ParameterType.Type getType() {
+        return parameterType.getType();
     }
 
     public boolean isPrimitive() {
-        return (coreType == CoreType.INT || coreType == CoreType.FLOAT || coreType == CoreType.STRING || coreType == CoreType.COLOR);
+        return parameterType.isPrimitive();
     }
 
-    public void setType(Type type) {
-        if (this.type == type) return;
-        this.type = type;
-        assert (TYPE_REGISTRY.containsKey(type));
-        this.coreType = TYPE_REGISTRY.get(type);
-        this.defaultValue = CORE_TYPE_DEFAULTS.get(this.coreType);
-        // TODO: Change the value to something reasonable.
-        this.value = this.defaultValue;
-        node.fireNodeChanged();
-        markDirty();
+    public ParameterType.CoreType getCoreType() {
+        return parameterType.getCoreType();
     }
 
-    public CoreType getCoreType() {
-        return coreType;
+    public void typeChanged(ParameterType source) {
+        // todo: Migrate type to new type.
     }
 
-    public Class getTypeClass() {
-        return CORE_TYPE_MAPPING.get(coreType);
-    }
+    //// Bounding ////
 
-    //// Boundaries ////
-
-    public Object getBoundingMethod() {
-        return boundingMethod;
-    }
-
-    public void setBoundingMethod(BoundingMethod boundingMethod) {
-        this.boundingMethod = boundingMethod;
-        if (boundingMethod == BoundingMethod.HARD) {
+    public void boundingChanged(ParameterType source) {
+        if (source.getBoundingMethod() == ParameterType.BoundingMethod.HARD)
             clampToBounds();
-        }
-        node.fireNodeChanged();
-    }
-
-    public Double getMinimumValue() {
-        return minimumValue;
-    }
-
-    public void setMinimumValue(Double minimumValue) {
-        if (minimumValue != null && maximumValue != null && minimumValue > maximumValue) {
-            return;
-        }
-        this.minimumValue = minimumValue;
-        if (boundingMethod == BoundingMethod.HARD) {
-            clampToBounds();
-        }
-        node.fireNodeChanged();
-    }
-
-    public void setMaximumValue(Double maximumValue) {
-        if (minimumValue != null && maximumValue != null && maximumValue < minimumValue) {
-            return;
-        }
-        this.maximumValue = maximumValue;
-        if (boundingMethod == BoundingMethod.HARD) {
-            clampToBounds();
-        }
-        node.fireNodeChanged();
-    }
-
-    public Double getMaximumValue() {
-        return maximumValue;
-    }
-
-    public boolean valueCorrectForBounds(double value) {
-        if (boundingMethod != BoundingMethod.HARD) {
-            return true;
-        }
-        return value >= minimumValue && value <= maximumValue;
     }
 
     private void clampToBounds() {
-        if (coreType == CoreType.INT) {
+        if (getCoreType() == ParameterType.CoreType.INT) {
             int v = (Integer) value;
-            if (minimumValue != null && v < minimumValue) {
-                set(minimumValue.intValue());
-            } else if (maximumValue != null && v > maximumValue) {
-                set(maximumValue.intValue());
+            if (parameterType.getMinimumValue() != null && v < parameterType.getMinimumValue()) {
+                set(parameterType.getMinimumValue().intValue());
+            } else if (parameterType.getMaximumValue() != null && v > parameterType.getMaximumValue()) {
+                set(parameterType.getMaximumValue().intValue());
             }
-        } else if (coreType == CoreType.FLOAT) {
+        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
             double v = (Double) value;
-            if (minimumValue != null && v < minimumValue) {
-                set(minimumValue);
-            } else if (maximumValue != null && v > maximumValue) {
-                set(maximumValue);
+            if (parameterType.getMinimumValue() != null && v < parameterType.getMinimumValue()) {
+                set(parameterType.getMinimumValue());
+            } else if (parameterType.getMaximumValue() != null && v > parameterType.getMaximumValue()) {
+                set(parameterType.getMaximumValue());
             }
         }
     }
 
     //// Display level ////
 
-    public DisplayLevel getDisplayLevel() {
-        return displayLevel;
-    }
-
-    public void setDisplayLevel(DisplayLevel displayLevel) {
-        this.displayLevel = displayLevel;
-        node.fireNodeChanged();
-    }
-
-    //// Menu items ////
-
-    public List<MenuEntry> getMenuItems() {
-        return menuItems;
-    }
-
-    public void addMenuItem(String key, String label) {
-        menuItems.add(new MenuEntry(key, label));
-        node.fireNodeChanged();
-    }
-
-    //// Flags ////
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-        node.fireNodeChanged();
-    }
-
-    public void setPersistent(boolean persistent) {
-        this.persistent = persistent;
-        node.fireNodeChanged();
-    }
-
-    //// Default value ////
-
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
-
-    public void setDefaultValue(Object defaultValue) {
-        validate(defaultValue);
-        this.defaultValue = defaultValue;
-        if (!valueSet) {
-            setValue(this.defaultValue);
-        }
+    public void displayLevelChanged(ParameterType source) {
+        // TODO: inform node of metadata changes so views can update.
     }
 
     //// Values ////
 
     public int asInt() {
-        if (coreType == CoreType.INT) {
+        if (getCoreType() == ParameterType.CoreType.INT) {
             return (Integer) value;
-        } else if (coreType == CoreType.FLOAT) {
+        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
             double v = (Double) value;
             return (int) v;
         } else {
@@ -399,9 +155,9 @@ public class Parameter extends Observable implements Observer {
     }
 
     public double asFloat() {
-        if (coreType == CoreType.FLOAT) {
+        if (getCoreType() == ParameterType.CoreType.FLOAT) {
             return (Double) value;
-        } else if (coreType == CoreType.INT) {
+        } else if (getCoreType() == ParameterType.CoreType.INT) {
             int v = (Integer) value;
             return (double) v;
         } else {
@@ -410,7 +166,7 @@ public class Parameter extends Observable implements Observer {
     }
 
     public String asString() {
-        if (coreType == CoreType.STRING) {
+        if (getCoreType() == ParameterType.CoreType.STRING) {
             return (String) value;
         } else {
             return value.toString();
@@ -418,7 +174,7 @@ public class Parameter extends Observable implements Observer {
     }
 
     public Color asColor() {
-        if (coreType == CoreType.COLOR) {
+        if (getCoreType() == ParameterType.CoreType.COLOR) {
             return (Color) value;
         } else {
             return new Color();
@@ -426,7 +182,9 @@ public class Parameter extends Observable implements Observer {
     }
 
     public Grob asGrob() {
-        if (coreType == CoreType.GROB_SHAPE || coreType == CoreType.GROB_CANVAS || coreType == CoreType.GROB_IMAGE) {
+        if (getCoreType() == ParameterType.CoreType.GROB_SHAPE
+                || getCoreType() == ParameterType.CoreType.GROB_CANVAS
+                || getCoreType() == ParameterType.CoreType.GROB_IMAGE) {
             return (Grob) value;
         } else {
             return new Group();
@@ -437,167 +195,20 @@ public class Parameter extends Observable implements Observer {
         return value;
     }
 
-    public void set(int value) {
-        if (coreType != CoreType.INT) {
-            throw new ValueError("Tried setting integer value on parameter with type " + type);
-        }
-        if (!valueCorrectForBounds(value)) {
-            throw new ValueError("Value is out of bounds");
-        }
-        if (asInt() == value) return;
-        this.value = value;
-        valueSet = true;
-        markDirty();
-    }
-
-    public void set(double value) {
-        if (coreType != CoreType.FLOAT) {
-            throw new ValueError("Tried setting float value on parameter with type " + type);
-        }
-        if (!valueCorrectForBounds(value)) {
-            throw new ValueError("Value is out of bounds");
-        }
-        if (asFloat() == value) return;
-        this.value = value;
-        valueSet = true;
-        markDirty();
-    }
-
-    public void set(String value) {
-        if (value == null) return;
-        if (coreType != CoreType.STRING) {
-            throw new ValueError("Tried setting string value on parameter with type " + type);
-        }
-        if (asString().equals(value)) return;
-        this.value = value;
-        valueSet = true;
-        markDirty();
-    }
-
-    public void set(Color value) {
-        if (value == null) return;
-        if (coreType != CoreType.COLOR) {
-            throw new ValueError("Tried setting color value on parameter with type " + type);
-        }
-        if (asColor().equals(value)) return;
-        this.value = value;
-        valueSet = true;
-        markDirty();
-    }
-
-    public void set(Grob value) {
-        if (value == null) return;
-        if (coreType != CoreType.GROB_SHAPE && coreType != CoreType.GROB_CANVAS && coreType != CoreType.GROB_IMAGE) {
-            throw new ValueError("Tried setting grob value on parameter with type " + type);
-        }
-        this.value = value;
-        valueSet = true;
-        markDirty();
+    public void set(Object value) {
+        setValue(value);
     }
 
     public void setValue(Object value) throws ValueError {
-        if (value == null) return;
-        if (coreType == CoreType.INT) {
-            if (value instanceof Integer) {
-                set((Integer) value);
-            } else {
-                throw new ValueError("Value needs to be an int.");
-            }
-        } else if (coreType == CoreType.FLOAT) {
-            if (value instanceof Float) {
-                set((Float) value);
-            } else if (value instanceof Double) {
-                set((Double) value);
-            } else {
-                throw new ValueError("Value needs to be a float.");
-            }
-        } else if (coreType == CoreType.STRING) {
-            if (value instanceof String) {
-                set((String) value);
-            } else {
-                throw new ValueError("Value needs to be a string.");
-            }
-        } else if (coreType == CoreType.COLOR) {
-            if (value instanceof Color) {
-                set((Color) value);
-            } else {
-                throw new ValueError("Value needs to be a color.");
-            }
-        } else if (coreType == CoreType.GROB_SHAPE) {
-            if (value instanceof Grob) {
-                set((Grob) value);
-            } else {
-                throw new ValueError("Value needs to be a Grob.");
-            }
-        } else if (coreType == CoreType.GROB_CANVAS) {
-            if (value instanceof Canvas) {
-                set((Canvas) value);
-            } else {
-                throw new ValueError("Value needs to be a Canvas.");
-            }
-        } else if (coreType == CoreType.GROB_IMAGE) {
-            if (value instanceof Image) {
-                set((Image) value);
-            } else {
-                throw new ValueError("Value needs to be an Image.");
-            }
-        } else {
-            throw new AssertionError("Unknown core type " + coreType);
+        if (isConnected()) {
+            throw new ValueError("The parameter is connected.");
         }
-    }
-
-    //// Validation ////
-
-    /**
-     * Checks if the given value would fit this parameter.
-     * <p/>
-     * Raises a ValueError if the value does not match.
-     *
-     * @param value the value to validate.
-     */
-    public void validate(Object value) {
-        if (value == null) {
-            throw new ValueError("Value cannot be null.");
+        if (hasExpression()) {
+            throw new ValueError("The parameter has an expression set.");
         }
-        // Check if the type matches
-        Class requiredType = CORE_TYPE_MAPPING.get(coreType);
-        if (!value.getClass().isAssignableFrom(requiredType)) {
-            throw new ValueError("Value is not of the required type (" + requiredType.getSimpleName() + ")");
-        }
-        // If hard bounds are set, check if the value falls within the bounds.
-
-        if (getBoundingMethod() == BoundingMethod.HARD) {
-            double doubleValue = (Double) value;
-            // TODO: Check if bounding is implemented correctly.
-//            if (value instanceof Integer) {
-//                doubleValue = (Double) value;
-//            } else if (value instanceof Double) {
-//                doubleValue = (Double) value;
-//            }
-            if (minimumValue != null && doubleValue < minimumValue) {
-                throw new ValueError("Parameter " + getName() + ": value " + value + " is too small. (minimum=" + minimumValue + ")");
-            }
-            if (maximumValue != null && doubleValue > maximumValue) {
-                throw new ValueError("Parameter " + getName() + ": value " + value + " is too big. (maximum=" + maximumValue + ")");
-            }
-        }
-    }
-
-    //// Parsing ////
-
-    public Object parseValue(String value) throws NumberFormatException {
-        switch (coreType) {
-            case INT:
-                return Integer.parseInt(value);
-            case FLOAT:
-                return Float.parseFloat(value);
-            case STRING:
-                return value;
-            case COLOR:
-                return new Color(value);
-            default:
-                return value;
-        }
+        parameterType.validate(value);
+        this.value = value;
+        fireValueChanged();
     }
 
     //// Expressions ////
@@ -619,10 +230,11 @@ public class Parameter extends Observable implements Observer {
             setExpressionEnabled(false);
         } else {
             this.expression = new Expression(this, expression);
+            updateDependencies();
             // Setting an expession automatically enables it and marks the node as dirty.
             setExpressionEnabled(true);
         }
-        markDirty();
+        fireValueChanged();
     }
 
     public void setExpressionEnabled(boolean enabled) {
@@ -636,17 +248,72 @@ public class Parameter extends Observable implements Observer {
         this.expressionEnabled = enabled;
         // Since the value of this parameter will change, we mark the node as dirty.
         node.fireNodeChanged();
-        markDirty();
+        fireValueChanged();
     }
 
     //// Expression dependencies ////
 
-    private void addExpressionDependency(Parameter parameter) {
-        addObserver(parameter);
+    /**
+     * The parameter dependencies function like a directed-acyclic graph, just like the node framework itself.
+     * Parameter depencies are created by setting expressions that refer to other parameters. Once these parameters
+     * are changed, the dependent parameters need to be changed as well.
+     */
+    private void updateDependencies() {
+        clearDependencies();
+        for (Parameter p : expression.getDependencies()) {
+            p.addDependent(this);
+            dependencies.add(p);
+        }
     }
 
-    public boolean hasExpressionDependencies() {
-        return countObservers() > 0;
+    private void clearDependencies() {
+        for (Parameter p : dependencies) {
+            p.removeDependent(this);
+        }
+        dependencies.clear();
+    }
+
+    private void addDependent(Parameter parameter) {
+        assert (!dependents.contains(parameter));
+        dependents.add(this);
+    }
+
+    private void removeDependent(Parameter parameter) {
+        assert (dependents.contains(parameter));
+        dependents.remove(this);
+    }
+
+    public List<Parameter> getDependents() {
+        return new ArrayList<Parameter>(dependents);
+    }
+
+    public List<Parameter> getDependencies() {
+        return new ArrayList<Parameter>(dependencies);
+    }
+
+    /**
+     * Called whenever the value of this parameter changes. This method informs the dependent parameters that my value
+     * has changed. I call the dependencyValueChanged method on these parameters.
+     *
+     * @see #dependencyValueChanged(Parameter)
+     */
+    protected void fireValueChanged() {
+        for (Parameter p : dependents) {
+            p.dependencyValueChanged(this);
+        }
+        for (ParameterDataListener l : listeners) {
+            l.valueChanged(this, value);
+        }
+        getNode().markDirty();
+    }
+
+    /**
+     * Called by my parameter dependencies whenever their value changes.
+     *
+     * @param parameter the parameter that has changed its value.
+     */
+    private void dependencyValueChanged(Parameter parameter) {
+        getNode().markDirty();
     }
 
     //// Connections ////
@@ -736,27 +403,17 @@ public class Parameter extends Observable implements Observer {
     }
 
     /**
-     * Called whenever a Parameter I depend on for my expression changes.
-     * This means I will need to refresh the value of my Parameter, so this method
-     * marks the node as dirty.
-     *
-     * @param o   an Observable object. We ignore this.
-     * @param arg ignored
-     */
-    public void update(Observable o, Object arg) {
-        markDirty();
-    }
-
-    /**
      * Updates the parameter, making sure all dependencies are clean.
      * <p/>
      * This method can take a long time and should be run in a separate thread.
+     *
+     * @param ctx the processing context
      */
     public void update(ProcessingContext ctx) {
         if (isConnected()) {
             connection.getOutputNode().update(ctx);
             Object outputValue = connection.getOutputNode().getOutputValue();
-            // TODO: validate
+            validate(outputValue);
             value = outputValue;
         }
         if (hasExpression()) {
@@ -764,23 +421,40 @@ public class Parameter extends Observable implements Observer {
                 c.getOutputNode().update(ctx);
             }
             Object expressionValue = expression.evaluate();
-            validate(expressionValue);
+            parameterType.validate(expressionValue);
             value = expressionValue;
         }
     }
 
     //// Values ////
 
-    public void revertToDefault() {
-        this.value = this.defaultValue;
-        markDirty();
+    public void nullAllowedChanged(ParameterType source) {
+        if (!parameterType.isNullAllowed() && value == null) {
+            value = parameterType.getDefaultValue();
+        }
     }
 
-    public void markDirty() {
-        node.markDirty();
-        setChanged();
-        notifyObservers();
-        clearChanged();
+    public void revertToDefault() {
+        this.value = parameterType.getDefaultValue();
+        fireValueChanged();
+    }
+
+    public Object parseValue(String valueAsString) {
+        return getParameterType().parseValue(valueAsString);
+    }
+
+    public void validate(Object value) {
+        getParameterType().validate(value);
+    }
+
+    //// Event handling ////
+
+    public void addDataListener(ParameterDataListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeDataListener(ParameterDataListener listener) {
+        listeners.remove(listener);
     }
 
     //// Persistence ////
@@ -800,17 +474,18 @@ public class Parameter extends Observable implements Observer {
         if (hasExpression()) {
             xml.append(spaces).append("<expression>").append(getExpression()).append("</expression>\n");
         } else {
-            if (getCoreType() == CoreType.INT) {
+            if (getCoreType() == ParameterType.CoreType.INT) {
                 xml.append(spaces).append("<int>").append(asFloat()).append("</int>\n");
-            } else if (getCoreType() == CoreType.FLOAT) {
+            } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
                 xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
-            } else if (getCoreType() == CoreType.STRING) {
+            } else if (getCoreType() == ParameterType.CoreType.STRING) {
                 xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
-            } else if (getCoreType() == CoreType.COLOR) {
+            } else if (getCoreType() == ParameterType.CoreType.COLOR) {
                 xml.append(spaces).append("<color>").append(asColor().toString()).append("</color>\n");
             } else {
                 throw new AssertionError("Unknown value class " + getCoreType());
             }
         }
     }
+
 }

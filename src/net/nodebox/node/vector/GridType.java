@@ -1,4 +1,4 @@
 package net.nodebox.node.vector;
 
-public class GridNode {
+public class GridType {
 }

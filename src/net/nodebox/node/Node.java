@@ -19,17 +19,16 @@
 package net.nodebox.node;
 
 import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Point;
 import net.nodebox.util.StringUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A Node is a building block in a network and encapsulates specific functionality.
@@ -37,7 +36,7 @@ import java.util.regex.Pattern;
  * The operation of the Node is specified through its parameters. The data that flows
  * through the node passes through ports.
  */
-public abstract class Node {
+public class Node {
 
     public static final String SIGNAL_NODE_CHANGED_NETWORK = "node_changed_network";
     public static final String SIGNAL_NODE_MARKED_DIRTY = "node_marked_dirty";
@@ -53,8 +52,6 @@ public abstract class Node {
     public static final String SIGNAL_PARAMETER_EXPRESSION_CHANGED = "parameter_expression_changed";
     public static final String SIGNAL_PARAMETER_VALUE_CHANGED = "parameter_value_changed";
 
-    private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
-    private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     public static final int MAXIMUM_INPUTS = Integer.MAX_VALUE;
 
     /**
@@ -72,16 +69,10 @@ public abstract class Node {
      */
     private double x, y;
 
-
     /**
-     * The type name of this node. If this is still null when getTypeName() is asked, it will be set to the class name.
+     * The type of this node. This contains all the meta-information about the node.
      */
-    private String typeName;
-
-    /**
-     * The version of this node.
-     */
-    private Version version = new Version();
+    private NodeType nodeType;
 
     /**
      * A flag that indicates whether this node is in need of processing.
@@ -98,7 +89,6 @@ public abstract class Node {
      * The output parameter.
      */
     private OutputParameter outputParameter;
-
 
     /**
      * A list of messages that occurred during processing.
@@ -147,139 +137,15 @@ public abstract class Node {
         }
     }
 
-    public static class Version {
-
-        private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
-
-        private int major, minor;
-
-        public static Version parseVersionString(String s) {
-            return new Version(s);
-        }
-
-        public Version() {
-            major = 1;
-            minor = 0;
-        }
-
-        public Version(int major, int minor) {
-            this.major = major;
-            this.minor = minor;
-        }
-
-        public Version(String versionString) {
-            Matcher m = VERSION_PATTERN.matcher(versionString);
-            if (!m.matches()) {
-                logger.log(Level.WARNING, "Could not parse version " + versionString + ": returning null.");
-            }
-            String[] majorMinor = versionString.split("\\.");
-            assert (majorMinor.length == 2);
-            major = Integer.parseInt(majorMinor[0]);
-            minor = Integer.parseInt(majorMinor[1]);
-        }
-
-        public int getMajor() {
-            return major;
-        }
-
-        public int getMinor() {
-            return minor;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Version)) return false;
-            Version v = (Version) o;
-            return major == v.major &&
-                    minor == v.minor;
-        }
-
-        public boolean largerThan(Version other) {
-            if (major > other.major) return true;
-            return major == other.major && minor > other.minor;
-        }
-
-        public boolean largerOrEqualThan(Version other) {
-            if (largerThan(other)) return true;
-            return major == other.major && minor == other.minor;
-        }
-
-        public boolean smallerOrEqualThan(Version other) {
-            return !largerThan(other);
-        }
-
-        public boolean smallerThan(Version other) {
-            return !largerOrEqualThan(other);
-        }
-
-        public String toString() {
-            return major + "." + minor;
-        }
-
-        @Override
-        public Object clone() {
-            return new Version(major, minor);
-        }
-    }
-
-    //// Exceptions ////
-
-    public static class NotFound extends RuntimeException {
-
-        private Network network;
-        private String nodeName;
-
-        public NotFound(Network network, String nodeName) {
-            this.network = network;
-            this.nodeName = nodeName;
-        }
-
-        public Network getNetwork() {
-            return network;
-        }
-
-        public String getNodeName() {
-            return nodeName;
-        }
-    }
-
-    public static class InvalidName extends RuntimeException {
-        private Node node;
-        private String name;
-
-        public InvalidName(Node node, String name) {
-            this(node, name, "Invalid name \"" + name + "\" for node \"" + node.getName() + "\"");
-        }
-
-        public InvalidName(Node node, String name, String message) {
-            super(message);
-            this.node = node;
-            this.name = name;
-        }
-
-        public Node getNode() {
-            return node;
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
     //// Constructors ////
 
-    public Node(Parameter.Type outputType) {
-        this(outputType, null);
-    }
-
-    public Node(Parameter.Type outputType, String name) {
-        if (name != null) {
-            this.name = name;
-        } else {
-            this.name = defaultName();
+    public Node(NodeType nodeType) {
+        this.nodeType = nodeType;
+        this.name = getDefaultName();
+        for (ParameterType pt : nodeType.getParameterTypes()) {
+            parameters.put(pt.getName(), pt.createParameter(this));
         }
-        outputParameter = new OutputParameter(this, outputType);
+        outputParameter = (OutputParameter) nodeType.getOutputParameterType().createParameter(this);
     }
 
     //// Basic attributes ////
@@ -318,33 +184,33 @@ public abstract class Node {
         fireNodeChanged();
     }
 
+    //// Type ////
+
+    public NodeType getNodeType() {
+        return nodeType;
+    }
+
+    public void setNodeType(NodeType nodeType) {
+        this.nodeType = nodeType;
+        // TODO: migrate parameters
+    }
+
     //// Naming ////
 
-    public String defaultName() {
-        return getClass().getSimpleName().toLowerCase();
+    public String getDefaultName() {
+        return getNodeType().getDefaultName();
     }
 
     public String getName() {
         return name;
     }
 
-    public void validateName(String name) {
-        Matcher m1 = NODE_NAME_PATTERN.matcher(name);
-        Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
-        if (!m1.matches()) {
-            throw new InvalidName(this, name, "Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
-        }
-        if (m2.matches()) {
-            throw new InvalidName(this, name, "Names starting with double underscore are reserved for internal use.");
-        }
-    }
-
-    public void setName(String name) throws InvalidName {
+    public void setName(String name) throws InvalidNameException {
         // Since the network does the rename, fireNodeChanged() will be called from the network.
         if (inNetwork()) {
             network.rename(this, name);
         } else {
-            validateName(name);
+            getNodeType().validateName(name);
             this.name = name;
         }
     }
@@ -353,51 +219,28 @@ public abstract class Node {
         this.name = name;
     }
 
-    //// Typing ////
-
-    public String getTypeName() {
-        if (typeName == null)
-            typeName = getClass().getName();
-        return typeName;
-    }
-
-    //// Versioning ////
-
-    public Version getVersion() {
-        return (Version) version.clone();
-    }
-
-    public String getVersionAsString() {
-        return version.toString();
-    }
-
-    public void setVersion(Version v) {
-        version = new Version(v.getMajor(), v.getMinor());
-    }
-
-    public void setVersion(int major, int minor) {
-        version = new Version(major, minor);
-    }
-
-    public void setVersion(String v) {
-        version = new Version(v);
-    }
-
     //// Parameters ////
 
-    public Collection<Parameter> getParameters() {
-        return parameters.values();
+
+    public List<Parameter> getParameters() {
+        // Parameters are stored in a map, and are not ordered.
+        // The correct order is that of ParameterTypes in the NodeType.
+        List<Parameter> plist = new ArrayList<Parameter>();
+        for (ParameterType pt : getNodeType().getParameterTypes()) {
+            plist.add(getParameter(pt.getName()));
+        }
+        return plist;
     }
 
-    public int parameterSize() {
+    public int parameterCount() {
         return parameters.size();
     }
 
-    public Parameter getParameter(String name) throws NotFound {
+    public Parameter getParameter(String name) throws NotFoundException {
         if (hasParameter(name)) {
             return parameters.get(name);
         } else {
-            throw new Parameter.NotFound(this, name);
+            throw new NotFoundException(this, name, "The node " + getAbsolutePath() + " does not have a parameter '" + name + "'");
         }
     }
 
@@ -405,25 +248,6 @@ public abstract class Node {
         return parameters.containsKey(name);
     }
 
-    public Parameter addParameter(String name, Parameter.Type type) {
-        Parameter p = new Parameter(this, name, type);
-        parameters.put(name, p);
-        fireNodeChanged();
-        return p;
-    }
-
-    public void renameParameter(Parameter parameter, String name) {
-        String oldName = parameter.getName();
-        if (oldName.equals(name)) return;
-        if (hasParameter(oldName)) {
-            parameters.remove(oldName);
-            parameter._setName(name);
-            parameters.put(name, parameter);
-            fireNodeChanged();
-        } else {
-            throw new Parameter.NotFound(this, oldName);
-        }
-    }
 
     public OutputParameter getOutputParameter() {
         return outputParameter;
@@ -449,7 +273,7 @@ public abstract class Node {
         this.network = network;
     }
 
-    public void setNetwork(Network network) throws InvalidName {
+    public void setNetwork(Network network) throws InvalidNameException {
         if (inNetwork() && this.network != network) {
             network.remove(this);
         }
@@ -508,6 +332,10 @@ public abstract class Node {
         return getParameter(name).asColor();
     }
 
+    public Grob asGrob(String name) {
+        return getParameter(name).asGrob();
+    }
+
     public Object getValue(String name) {
         return getParameter(name).getValue();
     }
@@ -538,7 +366,7 @@ public abstract class Node {
         return outputParameter.getValue();
     }
 
-    protected void setOutputValue(Object value) throws ValueError {
+    public void setOutputValue(Object value) throws ValueError {
         outputParameter.setValue(value);
     }
 
@@ -716,7 +544,17 @@ public abstract class Node {
      * @param ctx meta-information about the processing operation.
      * @return true if the evaluation succeeded.
      */
-    protected abstract boolean process(ProcessingContext ctx);
+    public boolean process(ProcessingContext ctx) {
+        try {
+            return getNodeType().process(this, ctx);
+        } catch (Exception e) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            addError("Error while processing " + getAbsolutePath() + "\n" + sw.toString());
+            return false;
+        }
+    }
 
     //// Path ////
 
@@ -751,8 +589,8 @@ public abstract class Node {
         // Build the node
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getTypeName()).append("\"");
-        xml.append(" version=\"").append(getVersion()).append("\"");
+        xml.append(" type=\"").append(getNodeType().getIdentifier()).append("\"");
+        xml.append(" version=\"").append(getNodeType().getVersionAsString()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
         if (isRendered())

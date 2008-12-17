@@ -22,35 +22,35 @@ import junit.framework.TestCase;
 
 public class ParameterTest extends TestCase {
 
-    public void testNaming() {
-        Node n = new TestNode();
-        Parameter p = n.addParameter("test", Parameter.Type.INT);
+    private NodeManager manager;
+    private NodeType numberType, negateType, addType;
 
-        checkInvalidName(p, "1234", "names cannot start with a digit.");
-
-        checkInvalidName(p, "node", "names can not be one of the reserved words.");
-        checkInvalidName(p, "name", "names can not be one of the reserved words.");
-
-        checkInvalidName(p, "UPPERCASE", "names cannot be in uppercase.");
-        checkInvalidName(p, "uPpercase", "names cannot contain uppercase letters");
-        checkInvalidName(p, "__reserved", "names cannot start with double underscores");
-        checkInvalidName(p, "what!", "Only lowercase, numbers and underscore are allowed");
-        checkInvalidName(p, "$-#34", "Only lowercase, numbers and underscore are allowed");
-        checkInvalidName(p, "", "names cannot be empty");
-        checkInvalidName(p, "very_very_very_very_very_very_long_name", "names cannot be longer than 30 characters");
-
-        checkValidName(p, "radius");
-        checkValidName(p, "_test");
-        checkValidName(p, "_");
-        checkValidName(p, "_1234");
-        checkValidName(p, "a1234");
-
-        // TODO: Right now, these names are accepted, although they will conflict with the internal node attributes.
-        checkValidName(p, "x");
-        checkValidName(p, "y");
-        checkValidName(p, "dirty");
-        checkValidName(p, "process");
+    @Override
+    protected void setUp() throws Exception {
+        manager = new TestManager();
+        numberType = manager.getNodeType("net.nodebox.node.test.number");
+        negateType = manager.getNodeType("net.nodebox.node.test.negate");
+        addType = manager.getNodeType("net.nodebox.node.test.add");
     }
+
+    public void testCorrectType() {
+        Node number = numberType.createNode();
+        ParameterType valueType = number.getParameter("value").getParameterType();
+        assertEquals(ParameterType.Type.INT, valueType.getType());
+        assertEquals(ParameterType.CoreType.INT, valueType.getCoreType());
+    }
+
+    public void testDirectValue() {
+        Node num1 = numberType.createNode();
+        assertEquals(0, num1.getOutputValue());
+        Node num2 = numberType.createNode();
+        num2.setValue("value", 12);
+        assertEquals(0, num2.getOutputValue());
+        assertFalse(num2.getParameter("value").hasExpression());
+        assertFalse(num2.getParameter("value").isConnected());
+    }
+
+    /*
 
     public void testInvalidName() {
         Node n = new TestNode();
@@ -127,14 +127,14 @@ public class ParameterTest extends TestCase {
         try {
             p.setName(newName);
             fail("the following condition was not met: " + reason);
-        } catch (Parameter.InvalidName e) {
+        } catch (InvalidNameException e) {
         }
     }
 
     private void checkValidName(Parameter p, String newName) {
         try {
             p.setName(newName);
-        } catch (Parameter.InvalidName e) {
+        } catch (InvalidNameException e) {
             fail("The name \"" + newName + "\" should have been accepted.");
         }
     }
@@ -178,4 +178,5 @@ public class ParameterTest extends TestCase {
             return true;
         }
     }
+    */
 }

@@ -2,6 +2,7 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.DraggableNumber;
 import net.nodebox.node.Parameter;
+import net.nodebox.node.ParameterDataListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -9,10 +10,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Observable;
-import java.util.Observer;
 
-public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, Observer {
+public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterDataListener {
 
     private Parameter parameter;
     private DraggableNumber draggable;
@@ -28,7 +27,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         draggable.setMinimumSize(new Dimension(100, 20));
         add(draggable);
         setValueForControl(parameter.getValue());
-        parameter.addObserver(this);
+        parameter.addDataListener(this);
     }
 
     public Parameter getParameter() {
@@ -54,18 +53,18 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
 
     private void setValueFromControl() {
         double value = draggable.getValue();
-        if (parameter.getMinimumValue() != null) {
-            value = Math.max(parameter.getMinimumValue(), value);
+        if (parameter.getParameterType().getMinimumValue() != null) {
+            value = Math.max(parameter.getParameterType().getMinimumValue(), value);
         }
-        if (parameter.getMaximumValue() != null) {
-            value = Math.max(parameter.getMaximumValue(), value);
+        if (parameter.getParameterType().getMaximumValue() != null) {
+            value = Math.max(parameter.getParameterType().getMaximumValue(), value);
         }
         if (value != (Double) parameter.getValue()) {
             parameter.setValue(value);
         }
     }
 
-    public void update(Observable o, Object arg) {
-        setValueForControl(parameter.getValue());
+    public void valueChanged(Parameter source, Object newValue) {
+        setValueForControl(newValue);
     }
 }

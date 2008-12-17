@@ -18,42 +18,42 @@
  */
 package net.nodebox.node;
 
-import junit.framework.TestCase;
-
-public class NodeTest extends TestCase {
+public class NodeTest extends NodeTestCase {
 
     public void testNaming() {
-        Node n = new TestNode();
-        assertEquals(n.defaultName(), "test");
-        assertEquals(n.getName(), "test");
+        Node n = numberType.createNode();
+        assertEquals(n.getDefaultName(), "number");
+        assertEquals(n.getName(), "number");
     }
 
     public void testParameters() {
-        Node n = new TestNode();
+        Node n = addType.createNode();
         try {
             n.getParameter("p1");
-            fail("Should have thrown Parameter.NotFound");
-        } catch (Parameter.NotFound e) {
+            fail("Should have thrown NotFoundException");
+        } catch (NotFoundException e) {
         }
-        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
-        assertTrue(n.hasParameter("p1"));
+        assertTrue(n.hasParameter("v1"));
         try {
-            n.getParameter("p1");
-        } catch (Parameter.NotFound e) {
-            fail("Should not have thrown Parameter.NotFound");
+            n.getParameter("v1");
+        } catch (NotFoundException e) {
+            fail("Should not have thrown NotFoundException");
         }
-        assertEquals(n.getParameter("p1"), p1);
         try {
             n.getParameter("x");
-            fail("Should have thrown Parameter.NotFound");
-        } catch (Parameter.NotFound e) {
+            fail("Should have thrown NotFoundException");
+        } catch (NotFoundException e) {
         }
     }
 
     public void testNodeNaming() {
-        Node n = new TestNode();
+        Node n = numberType.createNode();
         checkInvalidName(n, "1234", "names cannot start with a digit.");
-        // TODO: are there reserved words in node naming?
+
+        checkInvalidName(n, "node", "names can not be one of the reserved words.");
+        checkInvalidName(n, "root", "names can not be one of the reserved words.");
+        checkInvalidName(n, "network", "names can not be one of the reserved words.");
+
         checkInvalidName(n, "UPPERCASE", "names cannot be in uppercase.");
         checkInvalidName(n, "uPpercase", "names cannot contain uppercase letters");
         checkInvalidName(n, "__reserved", "names cannot start with double underscores");
@@ -67,41 +67,40 @@ public class NodeTest extends TestCase {
         checkValidName(n, "_");
         checkValidName(n, "_1234");
         checkValidName(n, "a1234");
+        checkValidName(n, "node1");
     }
 
     public void testDirty() {
-        Node n = new TestNode();
+        Node n = numberType.createNode();
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());
-        n.addParameter("test", Parameter.Type.INT);
+        n.set("value", 12);
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());
-        n.set("test", 12);
-        assertTrue(n.isDirty());
-        n.update();
-        assertFalse(n.isDirty());
-        n.getParameter("test").set(13);
+        n.getParameter("value").set(13);
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());
     }
 
     //// Helper functions ////
+
     private void checkInvalidName(Node n, String newName, String reason) {
         try {
             n.setName(newName);
             fail("the following condition was not met: " + reason);
-        } catch (Node.InvalidName e) {
+        } catch (InvalidNameException e) {
         }
     }
 
     private void checkValidName(Node n, String newName) {
         try {
             n.setName(newName);
-        } catch (Node.InvalidName e) {
+        } catch (InvalidNameException e) {
             fail("The name \"" + newName + "\" should have been accepted.");
         }
     }
+
 }

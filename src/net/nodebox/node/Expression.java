@@ -26,6 +26,7 @@ import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -108,8 +109,9 @@ public class Expression {
         }
     }
 
-    List<Parameter> getDependentParameters() {
-        throw new UnsupportedOperationException("Not yet implemented");
+    List<Parameter> getDependencies() {
+        // TODO: Implement
+        return new ArrayList<Parameter>();
     }
 
 

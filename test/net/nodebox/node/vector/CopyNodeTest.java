@@ -1,14 +1,15 @@
 package net.nodebox.node.vector;
 
-import junit.framework.TestCase;
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Rect;
+import net.nodebox.node.Node;
+import net.nodebox.node.NodeTestCase;
 
-public class CopyNodeTest extends TestCase {
+public class CopyNodeTest extends NodeTestCase {
 
     public void testBasicCopy() {
-        RectNode rect = new RectNode();
-        CopyNode copy = new CopyNode();
+        Node rect = manager.getNodeType("net.nodebox.node.vector.rect").createNode();
+        Node copy = manager.getNodeType("net.nodebox.node.vector.copy").createNode();
         copy.getParameter("shape").connect(rect);
         copy.update();
         Grob g = (Grob) copy.getOutputValue();

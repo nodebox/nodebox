@@ -3,7 +3,8 @@ package net.nodebox.client;
 import edu.umd.cs.piccolo.PCanvas;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
-import net.nodebox.node.vector.RectNode;
+import net.nodebox.node.NodeManager;
+import net.nodebox.node.vector.RectType;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ public class NetworkPanel extends PCanvas implements Observer {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        Node n = new RectNode();
+        Node n = new RectType(new NodeManager()).createNode();
         ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);

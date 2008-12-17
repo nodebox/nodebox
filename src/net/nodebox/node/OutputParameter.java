@@ -5,10 +5,16 @@ import java.util.List;
 
 public class OutputParameter extends Parameter {
 
+    /**
+     * I have my own value, since setValue in Parameter checks if the parameter is connected, which has different
+     * semantics for an OutputParameter.
+     */
+    private Object value;
     private List<Connection> downstreams = new ArrayList<Connection>();
 
-    public OutputParameter(Node node, Type type) {
-        super(node, "output", type);
+    public OutputParameter(ParameterType parameterType, Node node) {
+        super(parameterType, node);
+        value = getParameterType().getDefaultValue();
     }
 
     /**
@@ -90,6 +96,16 @@ public class OutputParameter extends Parameter {
                 return true;
         }
         return false;
+    }
+
+    public void setValue(Object value) throws ValueError {
+        getParameterType().validate(value);
+        this.value = value;
+        fireValueChanged();
+    }
+
+    public Object getValue() {
+        return value;
     }
 
 }

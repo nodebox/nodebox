@@ -159,18 +159,20 @@ public class XmlHandler extends DefaultHandler {
      * @throws SAXException if the node could not be found.
      */
     private Node lookupNode(Attributes attributes) throws SAXException {
+        NodeType nodeType;
         Node newNode;
-        String qualifiedName = attributes.getValue("type");
+        String identifier = attributes.getValue("type");
         String version = attributes.getValue("version");
         try {
             if (version == null) {
-                newNode = nodeManager.getNode(qualifiedName);
+                nodeType = nodeManager.getNodeType(identifier);
             } else {
-                newNode = nodeManager.getNode(qualifiedName, new Node.Version(version));
+                nodeType = nodeManager.getNodeType(identifier, new NodeType.Version(version));
             }
-        } catch (NodeManager.NodeNotFound e) {
-            throw new SAXException("A node with type " + qualifiedName + " and version " + version + " does not exist.");
+        } catch (NotFoundException e) {
+            throw new SAXException("A node with type " + identifier + " and version " + version + " does not exist.");
         }
+        newNode = nodeType.createNode();
         String name = attributes.getValue("name");
         if (name != null) {
             newNode.setName(name);
@@ -180,7 +182,7 @@ public class XmlHandler extends DefaultHandler {
             try {
                 newNode.setX(Double.parseDouble(x));
             } catch (NumberFormatException e) {
-                logger.log(Level.WARNING, "Could not parse x attribute for node " + name + "[" + qualifiedName + "] value=" + x);
+                logger.log(Level.WARNING, "Could not parse x attribute for node " + name + "[" + identifier + "] value=" + x);
             }
         }
         String y = attributes.getValue("y");
@@ -188,7 +190,7 @@ public class XmlHandler extends DefaultHandler {
             try {
                 newNode.setY(Double.parseDouble(y));
             } catch (NumberFormatException e) {
-                logger.log(Level.WARNING, "Could not parse y attribute for node " + name + "[" + qualifiedName + "] value=" + y);
+                logger.log(Level.WARNING, "Could not parse y attribute for node " + name + "[" + identifier + "] value=" + y);
             }
         }
         return newNode;
@@ -240,13 +242,13 @@ public class XmlHandler extends DefaultHandler {
     private void setValue(String parameterName, String valueAsString) throws SAXException {
         if (currentNode == null)
             throw new SAXException("There is no current node.");
-        Parameter parameter = null;
+        Parameter parameter;
         try {
             parameter = currentNode.getParameter(parameterName);
-        } catch (Parameter.NotFound e) {
+        } catch (NotFoundException e) {
             throw new SAXException("Node " + currentNode.getName() + " has no parameter '" + parameterName + "'", e);
         }
-        Object value = null;
+        Object value;
         try {
             value = parameter.parseValue(valueAsString);
         } catch (NumberFormatException e) {

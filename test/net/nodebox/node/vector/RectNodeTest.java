@@ -1,14 +1,15 @@
 package net.nodebox.node.vector;
 
-import junit.framework.TestCase;
 import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Group;
 import net.nodebox.graphics.Rect;
+import net.nodebox.node.Node;
+import net.nodebox.node.NodeTestCase;
 
-public class RectNodeTest extends TestCase {
+public class RectNodeTest extends NodeTestCase {
 
     public void testRectNode() {
-        RectNode r = new RectNode();
+        Node r = manager.getNodeType("net.nodebox.node.vector.rect").createNode();
         r.update();
         Object outputValue = r.getOutputValue();
         if (!(outputValue instanceof Group))

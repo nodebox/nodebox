@@ -18,14 +18,12 @@
  */
 package net.nodebox.node;
 
-import junit.framework.TestCase;
-
-public class ExpressionTest extends TestCase {
+public class ExpressionTest extends NodeTestCase {
 
     public void testSimple() {
-        Node n = new TestNode();
-        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
-        Expression e = new Expression(p1, "1 + 2");
+        Node n = numberType.createNode();
+        Parameter pValue = n.getParameter("value");
+        Expression e = new Expression(pValue, "1 + 2");
         assertEquals(3, e.asInt());
     }
 
@@ -33,38 +31,43 @@ public class ExpressionTest extends TestCase {
      * Test parameter interaction between nodes.
      */
     public void testNodeLocal() {
-        Node n = new TestNode();
-        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
-        Parameter p2 = n.addParameter("p2", Parameter.Type.INT);
-        p2.setDefaultValue(12);
-        assertExpressionEquals(12, p1, "p2");
+        Node multiply = multiplyType.createNode();
+        Parameter p1 = multiply.getParameter("v1");
+        Parameter p2 = multiply.getParameter("v2");
+        p2.setValue(12);
+        assertExpressionEquals(12, p1, "v2");
     }
 
     public void xtestCycles() {
-        Node n = new TestNode();
-        Parameter p1 = n.addParameter("p1", Parameter.Type.INT);
-        assertExpressionInvalid(p1, "p1");
+        Node n = numberType.createNode();
+        Parameter pValue = n.getParameter("value");
+        assertExpressionInvalid(pValue, "value");
     }
 
     public void testNetworkLocal() {
-        Network n = new TestNetwork();
-        Parameter pn = n.addParameter("pn", Parameter.Type.INT);
+        NodeType netType = testNetworkType.clone();
+        ParameterType pn = netType.addParameterType("pn", ParameterType.Type.INT);
         pn.setDefaultValue(33);
-        Node test1 = n.create(TestNode.class);
-        assertEquals("test1", test1.getName());
-        Parameter p1 = test1.addParameter("p1", Parameter.Type.INT);
-        Node test2 = n.create(TestNode.class);
-        assertEquals("test2", test2.getName());
-        Parameter p2 = test2.addParameter("p2", Parameter.Type.INT);
-        p2.setDefaultValue(12);
-        // Try to access p2 directly. Should fail, since p2 is on another node.
-        assertExpressionInvalid(p1, "p2");
+        Network net = (Network) netType.createNode();
+        Node number1 = net.create(numberType);
+        Parameter pValue1 = number1.getParameter("value");
+        pValue1.set(84);
+        assertEquals("number1", number1.getName());
+        //Parameter p1 = test1.addParameter("p1", Parameter.Type.INT);
+        Node number2 = net.create(numberType);
+        assertEquals("number2", number2.getName());
+        //Parameter p2 = number2.addParameter("p2", Parameter.Type.INT);
+        Parameter pValue2 = number2.getParameter("value");
+        pValue2.set(12);
+        // Trying to retrieve the value of number2 by just using the expression "value" is impossible,
+        // since it will retrieve the value parameter of number1.
+        assertExpressionEquals(84, pValue1, "value");
         // Access p2 through the node name.
-        assertExpressionEquals(12, p1, "test2.p2");
+        assertExpressionEquals(12, pValue1, "number2.value");
         // Access p2 through the network.
-        assertExpressionEquals(12, p1, "network.test2.p2");
+        assertExpressionEquals(12, pValue1, "network.number2.value");
         // Access the pn Parameter on the network.
-        assertExpressionEquals(33, p1, "network.pn");
+        assertExpressionEquals(33, pValue1, "network.pn");
     }
 
 

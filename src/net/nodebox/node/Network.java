@@ -34,7 +34,7 @@ import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public abstract class Network extends Node {
+public class Network extends Node {
 
     /**
      * A list of all the nodes in this network.
@@ -53,33 +53,10 @@ public abstract class Network extends Node {
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.Network");
 
-    public static class NodeNotInNetwork extends RuntimeException {
-
-        private Network network;
-        private Node node;
-
-        public NodeNotInNetwork(Network network, Node node) {
-            this.network = network;
-            this.node = node;
-        }
-
-        public Network getNetwork() {
-            return network;
-        }
-
-        public Node getNode() {
-            return node;
-        }
-    }
-
     //// Constructors ////
 
-    public Network(Parameter.Type outputType) {
-        super(outputType);
-    }
-
-    public Network(Parameter.Type outputType, String name) {
-        super(outputType, name);
+    public Network(NodeType nodeType) {
+        super(nodeType);
     }
 
     //// Container operations ////
@@ -98,24 +75,18 @@ public abstract class Network extends Node {
             return;
         }
         if (contains(node.getName())) {
-            throw new Node.InvalidName(node, node.getName(), "There is already a node named \"" + node.getName() + "\" in this network.");
+            throw new InvalidNameException(this, node.getName(), "There is already a node named \"" + node.getName() + "\" in network " + getAbsolutePath());
         }
         node._setNetwork(this);
         nodes.put(node.getName(), node);
         fireNodeAdded(node);
     }
 
-    public Node create(Class nodeClass) {
-        assert (Node.class.isAssignableFrom(nodeClass));
-        try {
-            Node newNode = (Node) nodeClass.newInstance();
-            setUniqueNodeName(newNode);
-            add(newNode);
-            return newNode;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+    public Node create(NodeType nodeType) {
+        Node newNode = nodeType.createNode();
+        setUniqueNodeName(newNode);
+        add(newNode);
+        return newNode;
     }
 
     public boolean remove(Node node) {
@@ -144,7 +115,7 @@ public abstract class Network extends Node {
 
     public Node getNode(String nodeName) {
         if (!contains(nodeName)) {
-            throw new Node.NotFound(this, nodeName);
+            throw new NotFoundException(this, nodeName, "Could not find node '" + nodeName + "' in network " + getAbsolutePath());
         }
         return nodes.get(nodeName);
     }
@@ -166,7 +137,7 @@ public abstract class Network extends Node {
     public String setUniqueNodeName(Node node) {
         int counter = 1;
         while (true) {
-            String suggestedName = node.defaultName() + counter;
+            String suggestedName = node.getDefaultName() + counter;
             if (!contains(suggestedName)) {
                 // We don't use rename here, since it assumes the node will be in 
                 // this network.
@@ -200,7 +171,7 @@ public abstract class Network extends Node {
 
     public void setRenderedNode(Node renderedNode) {
         if (renderedNode != null && !contains(renderedNode)) {
-            throw new NodeNotInNetwork(this, renderedNode);
+            throw new NotFoundException(this, renderedNode.getName(), "Node '" + renderedNode.getAbsolutePath() + "' is not in this network (" + getAbsolutePath() + ")");
         }
         if (this.renderedNode == renderedNode) return;
         this.renderedNode = renderedNode;
@@ -234,7 +205,8 @@ public abstract class Network extends Node {
     }
 
     @Override
-    protected boolean process(ProcessingContext ctx) {
+    public boolean process(ProcessingContext ctx) {
+        // TODO: this method does NOT get overridden by the different network types!
         boolean success = updateRenderedNode(ctx);
         if (success) {
             setOutputValue(renderedNode.getOutputValue());
@@ -323,7 +295,7 @@ public abstract class Network extends Node {
         StringBuffer xml = new StringBuffer();
         // Build the header
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<ndbx type=\"file\" formatVersion=\"0.8\">");
+        xml.append("<ndbx type=\"file\" formatVersion=\"0.8\">\n");
         toXml(xml, "  ");
         xml.append("</ndbx>");
         return xml.toString();
@@ -341,8 +313,8 @@ public abstract class Network extends Node {
         xml.append(spaces);
         xml.append("<network");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getTypeName()).append("\"");
-        xml.append(" version=\"").append(getVersion()).append("\"");
+        xml.append(" type=\"").append(getNodeType().getIdentifier()).append("\"");
+        xml.append(" version=\"").append(getNodeType().getVersionAsString()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
         xml.append(">\n");

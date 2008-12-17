@@ -18,17 +18,15 @@
  */
 package net.nodebox.node;
 
-import junit.framework.TestCase;
-
-public class ConnectTest extends TestCase {
+public class ConnectTest extends NodeTestCase {
 
     public void testDirty() {
-        NumberGenerator ng = new NumberGenerator();
+        Node ng = numberType.createNode();
         assertTrue(ng.isDirty());
         ng.update();
         assertFalse(ng.isDirty());
         assertEquals(0, ng.getOutputValue());
-        ng.set("number", 12);
+        ng.set("value", 12);
         assertTrue(ng.isDirty());
         // Asking for the output value doesn't update the node implicitly.
         assertEquals(0, ng.getOutputValue());
@@ -38,28 +36,27 @@ public class ConnectTest extends TestCase {
         assertEquals(12, ng.getOutputValue());
     }
 
-
     public void testConnect() {
-        NumberGenerator ng = new NumberGenerator();
-        Multiplier m = new Multiplier();
+        Node ng = numberType.createNode();
+        Node m = multiplyType.createNode();
 
-        assertFalse(m.getParameter("number").isConnected());
-        assertFalse(m.getParameter("number").isConnectedTo(ng));
+        assertFalse(m.getParameter("v1").isConnected());
+        assertFalse(m.getParameter("v1").isConnectedTo(ng));
         assertFalse(ng.isOutputConnected());
         assertFalse(ng.isOutputConnectedTo(m));
-        assertFalse(ng.isOutputConnectedTo(m.getParameter("number")));
+        assertFalse(ng.isOutputConnectedTo(m.getParameter("v1")));
 
-        assertTrue(m.getParameter("number").canConnectTo(ng));
-        assertTrue(m.getParameter("multiplier").canConnectTo(ng));
+        assertTrue(m.getParameter("v1").canConnectTo(ng));
+        assertTrue(m.getParameter("v2").canConnectTo(ng));
         assertFalse(m.getParameter("somestring").canConnectTo(ng));
 
-        Connection conn = m.getParameter("number").connect(ng);
-        assertTrue(m.getParameter("number").isConnected());
-        assertTrue(m.getParameter("number").isConnectedTo(ng));
+        Connection conn = m.getParameter("v1").connect(ng);
+        assertTrue(m.getParameter("v1").isConnected());
+        assertTrue(m.getParameter("v1").isConnectedTo(ng));
         assertTrue(ng.isOutputConnected());
         assertTrue(ng.isOutputConnectedTo(m));
-        assertTrue(ng.isOutputConnectedTo(m.getParameter("number")));
-        assertEquals(m.getParameter("number"), conn.getInputParameter());
+        assertTrue(ng.isOutputConnectedTo(m.getParameter("v1")));
+        assertEquals(m.getParameter("v1"), conn.getInputParameter());
         assertEquals(ng.getOutputParameter(), conn.getOutputParameter());
         assertEquals(m, conn.getInputNode());
         assertEquals(ng, conn.getOutputNode());
@@ -68,14 +65,14 @@ public class ConnectTest extends TestCase {
     }
 
     public void testCycles() {
-        NumberGenerator ng = new NumberGenerator();
+        Node ng = numberType.createNode();
 //        assertConnectionError(ng, "number", ng, "Nodes cannot connect to themselves.");
         // TODO: more complex cyclic checks (A->B->A)
     }
 
     public void testDirtyPropagation() {
-        NumberGenerator ng = new NumberGenerator();
-        Multiplier m = new Multiplier();
+        Node ng = numberType.createNode();
+        Node m = multiplyType.createNode();
         // Nodes start out dirty
         assertTrue(ng.isDirty());
         assertTrue(m.isDirty());
@@ -86,14 +83,14 @@ public class ConnectTest extends TestCase {
         assertFalse(m.isDirty());
         // Connecting the multiplier to another node makes it dirty.
         // The output node doesn't become dirty.
-        m.getParameter("number").connect(ng);
+        m.getParameter("v1").connect(ng);
         assertFalse(ng.isDirty());
         assertTrue(m.isDirty());
         m.update();
         assertFalse(ng.isDirty()); // This shouldn't have changed.
         assertFalse(m.isDirty());
         // A change to the upstream node should make downstream nodes dirty.
-        ng.set("number", 12);
+        ng.set("value", 12);
         assertTrue(ng.isDirty());
         assertTrue(m.isDirty());
         // Updating the downstream node should make all upstreams clean,
@@ -102,13 +99,13 @@ public class ConnectTest extends TestCase {
         assertFalse(ng.isDirty());
         assertFalse(m.isDirty());
         // Changes to the downstream node don't affect upstreams.
-        m.set("multiplier", 1);
+        m.set("v2", 1);
         assertFalse(ng.isDirty());
         assertTrue(m.isDirty());
         m.update();
         assertFalse(m.isDirty());
         // Disconnecting makes the downstream dirty.
-        m.getParameter("number").disconnect();
+        m.getParameter("v1").disconnect();
         assertFalse(ng.isDirty());
         assertTrue(m.isDirty());
         // Check is disconnected nodes still propagate.
@@ -117,18 +114,18 @@ public class ConnectTest extends TestCase {
         assertTrue(m.isDirty());
         m.update();
         assertFalse(m.isDirty());
-        ng.set("number", 13);
+        ng.set("value", 13);
         assertTrue(ng.isDirty());
         assertFalse(m.isDirty());
     }
 
     public void testValuePropagation() {
-        NumberGenerator ng = new NumberGenerator();
-        Multiplier m = new Multiplier();
-        m.set("multiplier", 2);
-        m.getParameter("number").connect(ng);
+        Node ng = numberType.createNode();
+        Node m = multiplyType.createNode();
+        m.set("v2", 2);
+        m.getParameter("v1").connect(ng);
         assertEquals(0, m.getOutputValue());
-        ng.set("number", 3);
+        ng.set("value", 3);
         assertTrue(m.isDirty());
         assertEquals(0, m.getOutputValue());
         // Updating the NumberGenerator node has no effect on the multiplier node.
@@ -139,30 +136,30 @@ public class ConnectTest extends TestCase {
         assertFalse(m.isDirty());
         assertEquals(6, m.getOutputValue());
         // Test if value stops propagating after disconnection.
-        m.getParameter("number").disconnect();
+        m.getParameter("v1").disconnect();
         assertTrue(m.isDirty());
         assertFalse(ng.isDirty());
-        ng.set("number", 3);
+        ng.set("value", 3);
         m.update();
         assertEquals(0, m.getOutputValue());
     }
 
     public void testDisconnect() {
-        NumberGenerator ng = new NumberGenerator();
-        Multiplier m = new Multiplier();
-        m.set("multiplier", 2);
-        ng.set("number", 5);
-        m.getParameter("number").connect(ng);
-        assertTrue(m.getParameter("number").isConnected());
+        Node ng = numberType.createNode();
+        Node m = multiplyType.createNode();
+        m.set("v2", 2);
+        ng.set("value", 5);
+        m.getParameter("v1").connect(ng);
+        assertTrue(m.getParameter("v1").isConnected());
         assertTrue(ng.isOutputConnected());
         m.update();
-        assertEquals(5, m.asInt("number"));
+        assertEquals(5, m.asInt("v1"));
         assertEquals(10, m.getOutputValue());
 
-        m.getParameter("number").disconnect();
+        m.getParameter("v1").disconnect();
         assertTrue(m.isDirty());
         assertFalse(ng.isDirty());
-        assertFalse(m.getParameter("number").isConnected());
+        assertFalse(m.getParameter("v1").isConnected());
         assertFalse(ng.isOutputConnected());
         // Numbers reverts to default after disconnection
         m.update();
@@ -176,38 +173,6 @@ public class ConnectTest extends TestCase {
             inputNode.getParameter(inputParameter).connect(outputNode);
             fail(message);
         } catch (ConnectionError e) {
-        }
-    }
-
-    //// Custom nodes ////
-
-    private class NumberGenerator extends Node {
-
-        private NumberGenerator() {
-            super(Parameter.Type.INT);
-            addParameter("number", Parameter.Type.INT);
-        }
-
-        @Override
-        protected boolean process(ProcessingContext ctx) {
-            setOutputValue(asInt("number"));
-            return true;
-        }
-    }
-
-    private class Multiplier extends Node {
-
-        private Multiplier() {
-            super(Parameter.Type.INT);
-            addParameter("number", Parameter.Type.INT);
-            addParameter("multiplier", Parameter.Type.INT);
-            addParameter("somestring", Parameter.Type.STRING);
-        }
-
-        @Override
-        protected boolean process(ProcessingContext ctx) {
-            setOutputValue(asInt("number") * asInt("multiplier"));
-            return true;
         }
     }
 

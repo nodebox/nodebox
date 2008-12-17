@@ -1,14 +1,6 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
-import net.nodebox.node.NetworkDataListener;
-import net.nodebox.node.Node;
-import net.nodebox.node.canvas.CanvasNetwork;
-import net.nodebox.node.image.ImageNetwork;
-import net.nodebox.node.vector.EllipseNode;
-import net.nodebox.node.vector.RectNode;
-import net.nodebox.node.vector.TransformNode;
-import net.nodebox.node.vector.VectorNetwork;
+import net.nodebox.node.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -58,6 +50,7 @@ public class Document extends JFrame implements NetworkDataListener {
     public PasteAction pasteAction = new PasteAction();
     public DeleteAction deleteAction = new DeleteAction();
 
+    private NodeManager nodeManager;
     private Network rootNetwork;
     private Network activeNetwork;
     private Node activeNode;
@@ -75,25 +68,33 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public Document() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        rootNetwork = new CanvasNetwork("root");
-        Network vector1 = (Network) rootNetwork.create(VectorNetwork.class);
+
+        nodeManager = new NodeManager();
+        NodeType canvasNetworkType = nodeManager.getNodeType("net.nodebox.node.canvas.network");
+        NodeType vectorNetworkType = nodeManager.getNodeType("net.nodebox.node.vector.network");
+        NodeType imageNetworkType = nodeManager.getNodeType("net.nodebox.node.image.network");
+        NodeType ellipseType = nodeManager.getNodeType("net.nodebox.node.vector.ellipse");
+        NodeType rectType = nodeManager.getNodeType("net.nodebox.node.vector.rect");
+        NodeType transformType = nodeManager.getNodeType("net.nodebox.node.vector.transform");
+        rootNetwork = (Network) canvasNetworkType.createNode();
+        Network vector1 = (Network) rootNetwork.create(vectorNetworkType);
         vector1.setPosition(10, 10);
         vector1.setRendered();
-        Network vector2 = (Network) rootNetwork.create(VectorNetwork.class);
+        Network vector2 = (Network) rootNetwork.create(vectorNetworkType);
         vector2.setPosition(10, 110);
-        Network image1 = (Network) rootNetwork.create(ImageNetwork.class);
+        Network image1 = (Network) rootNetwork.create(imageNetworkType);
         image1.setPosition(10, 210);
-        Network image2 = (Network) rootNetwork.create(ImageNetwork.class);
+        Network image2 = (Network) rootNetwork.create(imageNetworkType);
         image2.setPosition(10, 310);
-        Node ellipse1 = vector1.create(EllipseNode.class);
+        Node ellipse1 = vector1.create(ellipseType);
         ellipse1.setRendered();
         ellipse1.setPosition(100, 30);
-        Node ellipse2 = vector1.create(EllipseNode.class);
+        Node ellipse2 = vector1.create(ellipseType);
         ellipse2.setPosition(100, 130);
-        Node rect1 = vector2.create(RectNode.class);
+        Node rect1 = vector2.create(rectType);
         rect1.setPosition(40, 40);
         rect1.setRendered();
-        Node transform1 = vector2.create(TransformNode.class);
+        Node transform1 = vector2.create(transformType);
         transform1.setPosition(40, 80);
         transform1.setRendered();
         transform1.getParameter("shape").connect(rect1);

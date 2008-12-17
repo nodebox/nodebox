@@ -1,7 +1,7 @@
 package net.nodebox.node;
 
-import net.nodebox.node.canvas.CanvasNetwork;
-import net.nodebox.node.image.ImageNetwork;
+import net.nodebox.node.canvas.CanvasNetworkType;
+import net.nodebox.node.image.ImageNetworkType;
 import net.nodebox.node.vector.*;
 
 import java.util.ArrayList;
@@ -39,137 +39,122 @@ public class NodeManager {
             return specifier;
         }
 
-        public boolean matches(Node.Version version) {
+        public boolean matches(NodeType.Version version) {
+            // TODO: implement
             return false;
         }
 
         public boolean matches(int major, int minor) {
-            return matches(new Node.Version(major, minor));
-        }
-    }
-
-    public static class NodeNotFound extends RuntimeException {
-
-        public String qualifiedName;
-
-        public NodeNotFound(String name) {
-            this.qualifiedName = name;
-        }
-
-        public String getQualifiedName() {
-            return qualifiedName;
+            return matches(new NodeType.Version(major, minor));
         }
     }
 
     /**
-     * A list of nodes with the same type but different version.
+     * A list of node types with the same type but different version.
      * <p/>
      * The list is ordered from the newest (highest) version to the oldest (lowest) version.
      */
-    public static class VersionedNodeList {
-        private List<Node> nodes = new ArrayList<Node>();
+    public static class VersionedNodeTypeList {
+        private List<NodeType> nodeTypes = new ArrayList<NodeType>();
 
-        public void addNode(Node node) {
-            Node.Version newVersion = node.getVersion();
+        public void addNodeType(NodeType nodeType) {
+            NodeType.Version newVersion = nodeType.getVersion();
             int i = 0;
-            for (; i < nodes.size(); i++) {
-                Node n = nodes.get(i);
-                if (n.getVersion().smallerThan(newVersion))
+            for (; i < nodeTypes.size(); i++) {
+                NodeType nt = nodeTypes.get(i);
+                if (nt.getVersion().smallerThan(newVersion))
                     break;
             }
-            nodes.add(i, node);
+            nodeTypes.add(i, nodeType);
         }
 
-        public Node getLatestVersion() {
-            return nodes.get(0);
+        public NodeType getLatestVersion() {
+            return nodeTypes.get(0);
         }
 
-        public List<Node> getNodes() {
-            return nodes;
+        public List<NodeType> getNodeTypes() {
+            return nodeTypes;
         }
 
     }
 
-    private HashMap<String, VersionedNodeList> nodeMap = new HashMap<String, VersionedNodeList>();
+    private HashMap<String, VersionedNodeTypeList> nodeTypeMap = new HashMap<String, VersionedNodeTypeList>();
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.NodeManager");
 
     public NodeManager() {
         // Add builtin nodes
         // Canvas nodes
-        addNode(new CanvasNetwork());
+        addNodeType(new CanvasNetworkType(this));
         // Image nodes
-        addNode(new ImageNetwork());
-        // Vecto nodes
-        addNode(new CopyNode());
-        addNode(new EllipseNode());
-        addNode(new RectNode());
-        addNode(new TransformNode());
-        addNode(new VectorNetwork());
+        addNodeType(new ImageNetworkType(this));
+        // Vector nodes
+        addNodeType(new CopyType(this));
+        addNodeType(new EllipseType(this));
+        addNodeType(new RectType(this));
+        addNodeType(new TransformType(this));
+        addNodeType(new VectorNetworkType(this));
     }
 
-    public void addNode(Node n) {
-        VersionedNodeList nodeList = nodeMap.get(n.getTypeName());
-        if (nodeList == null) {
-            nodeList = new VersionedNodeList();
-            nodeMap.put(n.getTypeName(), nodeList);
+    public void addNodeType(NodeType n) {
+        VersionedNodeTypeList nodeTypeList = nodeTypeMap.get(n.getIdentifier());
+        if (nodeTypeList == null) {
+            nodeTypeList = new VersionedNodeTypeList();
+            nodeTypeMap.put(n.getIdentifier(), nodeTypeList);
         }
-        nodeList.addNode(n);
+        nodeTypeList.addNodeType(n);
     }
 
     /**
      * Finds and returns the latest version of the node with the given qualified name.
      *
-     * @param qualifiedName the fully qualified type name of the node (e.g. net.nodebox.node.vector.RectNode)
+     * @param identifier the identifier in reverse-DNS format (e.g. net.nodebox.node.vector.RectNode)
      * @return a Node object or null if no node with that name was found.
-     * @throws net.nodebox.node.NodeManager.NodeNotFound
-     *          if the node could not be found
+     * @throws NotFoundException if the node could not be found
      */
-    public Node getNode(String qualifiedName) throws NodeNotFound {
-        VersionedNodeList nodeList = nodeMap.get(qualifiedName);
-        if (nodeList == null)
-            throw new NodeNotFound(qualifiedName);
-        return nodeList.getLatestVersion();
+    public NodeType getNodeType(String identifier) throws NotFoundException {
+        VersionedNodeTypeList nodeTypeList = nodeTypeMap.get(identifier);
+        if (nodeTypeList == null)
+            throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
+        return nodeTypeList.getLatestVersion();
     }
 
     /**
-     * Finds and returns the exact specified version of the node with the given qualified name.
+     * Finds and returns the exact specified version of the node type with the given identifier.
      *
-     * @param qualifiedName the fully qualified type name of the node (e.g. net.nodebox.node.vector.RectNode)
-     * @param version       the exact version number you want to retrieve.
+     * @param identifier the identifier in reverse-DNS format (e.g. net.nodebox.node.vector.RectNode)
+     * @param version    the exact version number you want to retrieve.
      * @return a Node object or null if no node with that name was found.
-     * @throws net.nodebox.node.NodeManager.NodeNotFound
-     *          if the node could not be found
+     * @throws NotFoundException if the node type could not be found
      */
-    public Node getNode(String qualifiedName, Node.Version version) throws NodeNotFound {
-        VersionedNodeList nodeList = nodeMap.get(qualifiedName);
-        if (nodeList == null)
-            throw new NodeNotFound(qualifiedName);
-        for (Node n : nodeList.getNodes()) {
-            if (n.getVersion().equals(version))
-                return n;
+    public NodeType getNodeType(String identifier, NodeType.Version version) throws NotFoundException {
+        VersionedNodeTypeList nodeTypeList = nodeTypeMap.get(identifier);
+        if (nodeTypeList == null)
+            throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
+        for (NodeType nt : nodeTypeList.getNodeTypes()) {
+            if (nt.getVersion().equals(version))
+                return nt;
         }
-        throw new NodeNotFound(qualifiedName);
+        throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
     }
 
     /**
      * Finds and returns the specified version of the node with the given qualified name.
      *
-     * @param qualifiedName the fully qualified type name of the node (e.g. net.nodebox.node.vector.RectNode)
-     * @param specifier     the version specifier you want to retrieve.
+     * @param identifier the identifier in reverse-DNS format (e.g. net.nodebox.node.vector.RectNode)
+     * @param specifier  the version specifier you want to retrieve.
      * @return a Node object.
-     * @throws net.nodebox.node.NodeManager.NodeNotFound
-     *          if the node could not be found
+     * @throws NotFoundException if the node type could not be found
      */
-    public Node getNode(String qualifiedName, VersionSpecifier specifier) throws NodeNotFound {
-        VersionedNodeList nodeList = nodeMap.get(qualifiedName);
-        if (nodeList == null)
-            throw new NodeNotFound(qualifiedName);
-        for (Node n : nodeList.getNodes()) {
-            if (specifier.matches(n.getVersion()))
-                return n;
+    public NodeType getNodeType(String identifier, VersionSpecifier specifier) throws NotFoundException {
+        VersionedNodeTypeList nodeTypeList = nodeTypeMap.get(identifier);
+        if (nodeTypeList == null)
+            throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
+        for (NodeType nt : nodeTypeList.getNodeTypes()) {
+            if (specifier.matches(nt.getVersion()))
+                return nt;
         }
-        throw new NodeNotFound(qualifiedName);
+        throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
     }
 
 }

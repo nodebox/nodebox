@@ -2,11 +2,8 @@ package net.nodebox.client;
 
 import net.nodebox.client.parameter.FloatControl;
 import net.nodebox.client.parameter.ParameterControl;
-import net.nodebox.node.Network;
-import net.nodebox.node.NetworkEventAdapter;
-import net.nodebox.node.Node;
-import net.nodebox.node.Parameter;
-import net.nodebox.node.vector.RectNode;
+import net.nodebox.node.*;
+import net.nodebox.node.vector.RectType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,12 +14,12 @@ import java.util.Map;
 
 public class ParameterView extends JComponent {
 
-    private static final Map<Parameter.Type, Class> CONTROL_MAP;
+    private static final Map<ParameterType.Type, Class> CONTROL_MAP;
     private JPanel controlPanel;
 
     static {
-        CONTROL_MAP = new HashMap<Parameter.Type, Class>();
-        CONTROL_MAP.put(Parameter.Type.FLOAT, FloatControl.class);
+        CONTROL_MAP = new HashMap<ParameterType.Type, Class>();
+        CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
     }
 
     private Node node;
@@ -85,7 +82,7 @@ public class ParameterView extends JComponent {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        Node n = new RectNode();
+        Node n = new RectType(new NodeManager()).createNode();
         ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);

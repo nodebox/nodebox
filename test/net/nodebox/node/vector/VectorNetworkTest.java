@@ -1,14 +1,16 @@
 package net.nodebox.node.vector;
 
-import junit.framework.TestCase;
 import net.nodebox.node.Node;
+import net.nodebox.node.NodeTestCase;
+import net.nodebox.node.NodeType;
+import net.nodebox.node.ParameterType;
 
-public class VectorNetworkTest extends TestCase {
+public class VectorNetworkTest extends NodeTestCase {
 
-
-    public void testVectorNetwork() {
-        VectorNetwork net = new VectorNetwork();
-        Node rect1 = net.create(RectNode.class);
-        net.update();
+    public void testType() {
+        NodeType vectorNetworkType = manager.getNodeType("net.nodebox.node.vector.network");
+        Node n = vectorNetworkType.createNode();
+        assertEquals(ParameterType.Type.GROB_VECTOR, n.getOutputParameter().getType());
     }
+
 }
