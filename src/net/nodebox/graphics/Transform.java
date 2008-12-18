@@ -24,7 +24,12 @@ public class Transform implements Cloneable {
     }
 
     public void rotate(double degrees) {
-        affineTransform.rotate(degrees);
+        double radians = degrees * Math.PI / 180;
+        affineTransform.rotate(radians);
+    }
+
+    public void rotateRadians(double radians) {
+        affineTransform.rotate(radians);
     }
 
     public void scale(double scale) {
