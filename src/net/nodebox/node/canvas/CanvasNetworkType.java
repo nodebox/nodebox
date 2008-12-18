@@ -1,36 +1,11 @@
 package net.nodebox.node.canvas;
 
-import net.nodebox.graphics.Canvas;
-import net.nodebox.graphics.Grob;
-import net.nodebox.node.*;
+import net.nodebox.node.Node;
+import net.nodebox.node.NodeManager;
+import net.nodebox.node.ParameterType;
+import net.nodebox.node.ProcessingContext;
 
 public class CanvasNetworkType extends CanvasNodeType {
-
-    public class CanvasNetworkExtender extends Network {
-        public CanvasNetworkExtender(NodeType nodeType) {
-            super(nodeType);
-        }
-
-        @Override
-        public boolean process(ProcessingContext ctx) {
-            boolean success = updateRenderedNode(ctx);
-            if (success) {
-                Canvas c = new Canvas(asFloat("width"), asFloat("height"));
-                Object outputValue = getRenderedNode().getOutputValue();
-                if (outputValue instanceof Grob) {
-                    Grob g = (Grob) outputValue;
-                    g = g.clone();
-                    c.add(g);
-                    setOutputValue(c);
-                } else {
-                    throw new AssertionError(getAbsolutePath() + ": output of rendered node is not Grob, but " + outputValue);
-                }
-            } else {
-                getOutputParameter().revertToDefault();
-            }
-            return success;
-        }
-    }
 
     public CanvasNetworkType(NodeManager manager) {
         super(manager, "net.nodebox.node.canvas.network");
@@ -51,7 +26,7 @@ public class CanvasNetworkType extends CanvasNodeType {
 
     @Override
     public Node createNode() {
-        return new CanvasNetworkExtender(this);
+        return new CanvasNetwork(this);
     }
 
 }

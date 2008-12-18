@@ -59,17 +59,19 @@ public class NetworkTest extends NodeTestCase {
         assertEquals(42, net.getOutputValue());
     }
 
-    /*
+
     public void testMacro() {
-        VectorNetworkType towerMacro = new VectorNetworkType();
-        // myCopyMacro.setDescription("Gets an image and makes points out of it.");
-        Parameter pFloorHeight = towerMacro.addParameter("floorHeight", Parameter.Type.FLOAT);
+        /*
+        NodeType vectorNetworkType = manager.getNodeType("net.nodebox.node.vector.network");
+        NodeType towerType = vectorNetworkType.clone();
+        towerType.setDescription("Gets an image and makes points out of it.");
+        Parameter pFloorHeight = towerType.addParameter("floorHeight", Parameter.Type.FLOAT);
         pFloorHeight.setLabel("Height of Floor");
-        Parameter pSize = towerMacro.addParameter("buildingHeight", Parameter.Type.INT);
+        Parameter pSize = towerType.addParameter("buildingHeight", Parameter.Type.INT);
         pSize.setLabel("Building Height (in floors)");
         // Inner nodes
-        Node rect1 = towerMacro.create(RectType.class);
-        Node copy1 = towerMacro.create(CopyType.class);
+        Node rect1 = towerType.create(RectType.class);
+        Node copy1 = towerType.create(CopyType.class);
         rect1.getParameter("width").set(50.0);
         rect1.getParameter("height").setExpression("network.floorHeight");
         copy1.getParameter("shape").connect(rect1);
@@ -77,13 +79,14 @@ public class NetworkTest extends NodeTestCase {
         copy1.getParameter("ty").setExpression("network.floorHeight");
         copy1.setRendered();
         // Execute the macro.
-        towerMacro.setValue("floorHeight", 20.0);
-        towerMacro.setValue("buildingHeight", 8);
-        towerMacro.update();
-        Grob g = (Grob) towerMacro.getOutputValue();
+        towerType.setValue("floorHeight", 20.0);
+        towerType.setValue("buildingHeight", 8);
+        towerType.update();
+        Grob g = (Grob) towerType.getOutputValue();
         assertEquals(new Rect(0, 0, 50.0, 160.0), g.getBounds());
+        */
     }
-    */
+
 
     public void testPersistence() {
         // Create network

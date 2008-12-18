@@ -1,36 +1,11 @@
 package net.nodebox.node.vector;
 
-import net.nodebox.graphics.Grob;
-import net.nodebox.node.*;
+import net.nodebox.node.Node;
+import net.nodebox.node.NodeManager;
+import net.nodebox.node.ParameterType;
+import net.nodebox.node.ProcessingContext;
 
 public class VectorNetworkType extends VectorNodeType {
-
-    public class VectorNetworkExtender extends Network {
-        public VectorNetworkExtender(NodeType nodeType) {
-            super(nodeType);
-        }
-
-        @Override
-        public boolean process(ProcessingContext ctx) {
-            boolean success = updateRenderedNode(ctx);
-            if (success) {
-                Object outputValue = getRenderedNode().getOutputValue();
-                if (outputValue instanceof Grob) {
-                    Grob g = (Grob) outputValue;
-                    g = g.clone();
-                    g.translate(asFloat("tx"), asFloat("ty"));
-                    g.rotate(asFloat("r"));
-                    g.scale(asFloat("sx"), asFloat("sy"));
-                    setOutputValue(g);
-                } else {
-                    throw new AssertionError(getAbsolutePath() + ": output of rendered node is not Grob, but " + outputValue);
-                }
-            } else {
-                getOutputParameter().revertToDefault();
-            }
-            return success;
-        }
-    }
 
     public VectorNetworkType(NodeManager manager) {
         super(manager, "net.nodebox.node.vector.network");
@@ -60,6 +35,6 @@ public class VectorNetworkType extends VectorNodeType {
 
     @Override
     public Node createNode() {
-        return new VectorNetworkExtender(this);
+        return new VectorNetwork(this);
     }
 }
