@@ -17,6 +17,7 @@ public class VectorNetworkType extends VectorNodeType {
                 Object outputValue = getRenderedNode().getOutputValue();
                 if (outputValue instanceof Grob) {
                     Grob g = (Grob) outputValue;
+                    g = g.clone();
                     g.translate(asFloat("tx"), asFloat("ty"));
                     g.rotate(asFloat("r"));
                     g.scale(asFloat("sx"), asFloat("sy"));

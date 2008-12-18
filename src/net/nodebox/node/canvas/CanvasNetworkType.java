@@ -18,7 +18,9 @@ public class CanvasNetworkType extends CanvasNodeType {
                 Canvas c = new Canvas(asFloat("width"), asFloat("height"));
                 Object outputValue = getRenderedNode().getOutputValue();
                 if (outputValue instanceof Grob) {
-                    c.add((Grob) outputValue);
+                    Grob g = (Grob) outputValue;
+                    g = g.clone();
+                    c.add(g);
                     setOutputValue(c);
                 } else {
                     throw new AssertionError(getAbsolutePath() + ": output of rendered node is not Grob, but " + outputValue);

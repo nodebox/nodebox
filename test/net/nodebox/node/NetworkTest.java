@@ -1,8 +1,6 @@
 package net.nodebox.node;
 
-import junit.framework.TestCase;
-
-public class NetworkTest extends TestCase {
+public class NetworkTest extends NodeTestCase {
 
     class TestDataListener implements NetworkDataListener {
         public int dirtyCounter = 0;
@@ -15,17 +13,6 @@ public class NetworkTest extends TestCase {
         public void networkUpdated(Network network) {
             ++updatedCounter;
         }
-    }
-
-    private NodeManager manager;
-    private NodeType testNetworkType;
-    private NodeType numberType;
-
-    @Override
-    protected void setUp() throws Exception {
-        manager = new TestManager();
-        testNetworkType = manager.getNodeType("net.nodebox.node.test.network");
-        numberType = manager.getNodeType("net.nodebox.node.test.number");
     }
 
     public void testCreate() {
@@ -99,8 +86,6 @@ public class NetworkTest extends TestCase {
     */
 
     public void testPersistence() {
-        NodeManager manager = new NodeManager();
-
         // Create network
         Network rootNetwork = (Network) manager.getNodeType("net.nodebox.node.canvas.network").createNode();
         Network vector1 = (Network) rootNetwork.create(manager.getNodeType("net.nodebox.node.vector.network"));
@@ -116,13 +101,23 @@ public class NetworkTest extends TestCase {
 
         // Write network
         String xmlString = rootNetwork.toXml();
-        System.out.println("xmlString = " + xmlString);
 
         // Read network
         Network newNetwork = Network.load(manager, xmlString);
 
         // TODO: Equals tests for identity. We need to correctly test this.
         // assertEquals(rootNetwork, newNetwork);
+    }
+
+    /**
+     * Tests whether the network copies the output of the rendered node.
+     */
+    public void testCopy() {
+        Network vector1 = (Network) manager.getNodeType("net.nodebox.node.vector.network").createNode();
+        Node ellipse1 = vector1.create(manager.getNodeType("net.nodebox.node.vector.rect"));
+        ellipse1.setRendered();
+        vector1.update();
+        assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
 }
