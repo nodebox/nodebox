@@ -2,6 +2,8 @@ package net.nodebox.node;
 
 import net.nodebox.graphics.Canvas;
 import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Group;
+import net.nodebox.graphics.Image;
 
 public class ParameterTypeTest extends NodeTestCase {
 
@@ -38,12 +40,16 @@ public class ParameterTypeTest extends NodeTestCase {
         ParameterType ptString = customType.addParameterType("string", ParameterType.Type.STRING);
         ParameterType ptColor = customType.addParameterType("color", ParameterType.Type.COLOR);
         ParameterType ptCanvas = customType.addParameterType("canvas", ParameterType.Type.GROB_CANVAS);
+        ParameterType ptVector = customType.addParameterType("vector", ParameterType.Type.GROB_VECTOR);
+        ParameterType ptImage = customType.addParameterType("image", ParameterType.Type.GROB_IMAGE);
 
         assertEquals(0, ptInt.getDefaultValue());
         assertEquals(0.0, ptFloat.getDefaultValue());
         assertEquals("", ptString.getDefaultValue());
         assertEquals(new Color(), ptColor.getDefaultValue());
         assertEquals(new Canvas(), ptCanvas.getDefaultValue());
+        assertEquals(new Group(), ptVector.getDefaultValue());
+        assertEquals(new Image(), ptImage.getDefaultValue());
     }
 
     //// Helper functions ////

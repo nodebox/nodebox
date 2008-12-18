@@ -3,6 +3,7 @@ package net.nodebox.graphics;
 import javax.imageio.ImageIO;
 import javax.management.RuntimeErrorException;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
@@ -17,6 +18,7 @@ public class Image extends Grob {
     private double alpha = 1.0F;
 
     private RenderedImage image;
+    private static BufferedImage blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
     public static final String BLANK_IMAGE = "__blank";
 
     public Image() {
@@ -25,7 +27,7 @@ public class Image extends Grob {
 
     public Image(File file) {
         if (file == null || file.getPath().equals(BLANK_IMAGE)) {
-            image = new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
+            image = blankImage;
         } else {
             image = imageCache.get(file.getAbsolutePath());
             if (image == null) {
