@@ -66,6 +66,30 @@ public class Document extends JFrame implements NetworkDataListener {
         }
     }
 
+    private class AllControlsType extends NodeType {
+        private AllControlsType(NodeManager manager) {
+            super(manager, "test.allcontrols", ParameterType.Type.GROB_CANVAS);
+            addParameterType("angle", ParameterType.Type.ANGLE);
+            addParameterType("color", ParameterType.Type.COLOR);
+            addParameterType("file", ParameterType.Type.FILE);
+            addParameterType("float", ParameterType.Type.FLOAT);
+            addParameterType("font", ParameterType.Type.FONT);
+            addParameterType("gradient", ParameterType.Type.GRADIENT);
+            addParameterType("image", ParameterType.Type.IMAGE);
+            addParameterType("int", ParameterType.Type.INT);
+            addParameterType("menu", ParameterType.Type.MENU);
+            addParameterType("seed", ParameterType.Type.SEED);
+            addParameterType("string", ParameterType.Type.STRING);
+            addParameterType("text", ParameterType.Type.TEXT);
+            addParameterType("noderef", ParameterType.Type.NODEREF);
+        }
+
+        public boolean process(Node node, ProcessingContext ctx) {
+            node.setOutputValue(new net.nodebox.graphics.Canvas());
+            return true;
+        }
+    }
+
     public Document() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -76,10 +100,15 @@ public class Document extends JFrame implements NetworkDataListener {
         NodeType ellipseType = nodeManager.getNodeType("net.nodebox.node.vector.ellipse");
         NodeType rectType = nodeManager.getNodeType("net.nodebox.node.vector.rect");
         NodeType transformType = nodeManager.getNodeType("net.nodebox.node.vector.transform");
+        NodeType allControlsType = new AllControlsType(nodeManager);
+
         rootNetwork = (Network) canvasNetworkType.createNode();
+        Node allControls = rootNetwork.create(allControlsType);
+        allControls.setPosition(200, 10);
+        allControls.setRendered();
         Network vector1 = (Network) rootNetwork.create(vectorNetworkType);
         vector1.setPosition(10, 10);
-        vector1.setRendered();
+        //vector1.setRendered();
         Network vector2 = (Network) rootNetwork.create(vectorNetworkType);
         vector2.setPosition(10, 110);
         Network image1 = (Network) rootNetwork.create(imageNetworkType);
@@ -110,7 +139,7 @@ public class Document extends JFrame implements NetworkDataListener {
         rootPanel.add(viewRestSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setActiveNetwork(rootNetwork);
-        setActiveNode(vector1);
+        setActiveNode(allControls);
         setSize(1100, 800);
         initMenu();
         SwingUtils.centerOnScreen(this);

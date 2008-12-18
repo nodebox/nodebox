@@ -36,6 +36,7 @@ public class Viewer extends JComponent implements NetworkDataListener {
     @Override
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         if (getNetwork() == null) return;
         Object outputValue = getNetwork().getOutputValue();
         if (outputValue instanceof Grob) {
