@@ -113,6 +113,7 @@ public class Document extends JFrame implements NetworkDataListener {
         setActiveNode(vector1);
         setSize(1100, 800);
         initMenu();
+        SwingUtils.centerOnScreen(this);
     }
 
     private void initMenu() {

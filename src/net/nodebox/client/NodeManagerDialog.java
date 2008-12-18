@@ -64,14 +64,10 @@ public class NodeManagerDialog extends JDialog {
         nodeList.setSelectedIndex(0);
         panel.add(searchField, BorderLayout.NORTH);
         panel.add(nodeList, BorderLayout.CENTER);
+        addEscapeSupport(this);
         setContentPane(panel);
         setSize(346, 382);
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - getWidth()) / 2;
-        int y = (screenSize.height - getHeight()) / 2;
-        setLocation(x, y);
-        addEscapeSupport(this);
+        SwingUtils.centerOnScreen(this);
     }
 
     public NodeType getSelectedNodeType() {
