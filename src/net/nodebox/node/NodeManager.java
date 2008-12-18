@@ -157,4 +157,17 @@ public class NodeManager {
         throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");
     }
 
+    /**
+     * Gets the latest version of all available node types. Each type only occurs once, and with its latest version.
+     *
+     * @return a list of node types.
+     */
+    public List<NodeType> getNodeTypes() {
+        List<NodeType> types = new ArrayList<NodeType>();
+        for (VersionedNodeTypeList versionedList : nodeTypeMap.values()) {
+            types.add(versionedList.getLatestVersion());
+        }
+        return types;
+    }
+
 }

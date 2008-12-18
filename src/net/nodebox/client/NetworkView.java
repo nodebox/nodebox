@@ -12,10 +12,7 @@ import net.nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +34,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
     private SelectionMarker selectionMarker;
     private JPopupMenu popup;
     private PopupHandler popupHandler = new PopupHandler();
+    private DialogHandler dialogHandler = new DialogHandler();
 
     public NetworkView(Pane pane, Network network) {
         this.pane = pane;
@@ -67,7 +65,10 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
                 }
             }
         });
+        addKeyListener(dialogHandler);
         initPopupMenu();
+        // This is disabled so we can detect the tab key.
+        setFocusTraversalKeysEnabled(false);
     }
 
     private void initPopupMenu() {
@@ -220,6 +221,23 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         repaint();
     }
 
+    //// Node manager ////
+
+    public void showNodeManagerDialog() {
+        Document doc = getPane().getDocument();
+        NodeManagerDialog dialog = new NodeManagerDialog(doc, doc.getNodeManager());
+        Point pt = getMousePosition();
+        if (pt == null) {
+            pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));
+        }
+        dialog.setVisible(true);
+        if (dialog.getSelectedNodeType() != null) {
+            Node n = getNetwork().create(dialog.getSelectedNodeType());
+            n.setPosition(new net.nodebox.graphics.Point(pt));
+        }
+
+    }
+
     //// Inner classes ////
 
     private class SelectionMarker extends PNode {
@@ -276,6 +294,15 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
             if (selectionMarker == null) return;
             getLayer().removeChild(selectionMarker);
             selectionMarker = null;
+        }
+    }
+
+    private class DialogHandler extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_TAB) {
+                showNodeManagerDialog();
+            }
         }
     }
 

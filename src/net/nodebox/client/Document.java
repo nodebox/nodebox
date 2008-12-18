@@ -207,6 +207,10 @@ public class Document extends JFrame implements NetworkDataListener {
         fireActiveNodeChanged();
     }
 
+    public NodeManager getNodeManager() {
+        return nodeManager;
+    }
+
     //// Document actions ////
 
     public File getDocumentFile() {
