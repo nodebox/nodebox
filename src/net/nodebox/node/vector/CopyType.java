@@ -50,7 +50,7 @@ public class CopyType extends VectorNodeType {
     public boolean process(Node node, ProcessingContext ctx) {
         Group outputGroup = new Group();
         Grob shape = node.asGrob("shape");
-        Grob template = node.asGrob("template");
+        Grob template = node.getParameter("template").isConnected() ? node.asGrob("template") : null;
         int copies = node.asInt("copies");
         double tx = node.asFloat("tx");
         double ty = node.asFloat("ty");

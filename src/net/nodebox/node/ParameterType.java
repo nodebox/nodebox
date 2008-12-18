@@ -41,6 +41,19 @@ public class ParameterType extends Observable {
     public static final HashMap<CoreType, Class> CORE_TYPE_MAPPING;
     public static final HashMap<CoreType, Object> CORE_TYPE_DEFAULTS;
     public static final HashMap<Type, CoreType> TYPE_REGISTRY;
+    public static final HashMap<Type, BoundingTemplate> BOUNDING_TEMPLATES;
+
+    private static class BoundingTemplate {
+        public BoundingMethod boundingMethod;
+        public Double minimumValue;
+        public Double maximumValue;
+
+        private BoundingTemplate(BoundingMethod boundingMethod, Double minimumValue, Double maximumValue) {
+            this.boundingMethod = boundingMethod;
+            this.minimumValue = minimumValue;
+            this.maximumValue = maximumValue;
+        }
+    }
 
     public class MenuEntry {
         private String key;
@@ -97,6 +110,10 @@ public class ParameterType extends Observable {
         TYPE_REGISTRY.put(Type.GROB_CANVAS, CoreType.GROB_CANVAS);
         TYPE_REGISTRY.put(Type.GROB_VECTOR, CoreType.GROB_SHAPE);
         TYPE_REGISTRY.put(Type.GROB_IMAGE, CoreType.GROB_IMAGE);
+
+        BOUNDING_TEMPLATES = new HashMap<Type, BoundingTemplate>();
+        BOUNDING_TEMPLATES.put(Type.SEED, new BoundingTemplate(BoundingMethod.HARD, 0.0, null));
+        BOUNDING_TEMPLATES.put(Type.TOGGLE, new BoundingTemplate(BoundingMethod.HARD, 0.0, 1.0));
     }
 
     public static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(network|node|name)$");
@@ -185,6 +202,12 @@ public class ParameterType extends Observable {
         assert (TYPE_REGISTRY.containsKey(type));
         this.coreType = TYPE_REGISTRY.get(type);
         this.defaultValue = CORE_TYPE_DEFAULTS.get(this.coreType);
+        BoundingTemplate t = BOUNDING_TEMPLATES.get(type);
+        if (t != null) {
+            this.boundingMethod = t.boundingMethod;
+            this.minimumValue = t.minimumValue;
+            this.maximumValue = t.maximumValue;
+        }
         fireTypeChanged();
     }
 
@@ -321,7 +344,7 @@ public class ParameterType extends Observable {
      *
      * @param value the value to validate.
      */
-    public void validate(Object value) {
+    public void validate(Object value) throws ValueError {
         if (value == null && !isNullAllowed()) {
             throw new ValueError("Value for parameter " + getName() + " cannot be null.");
         }
@@ -333,13 +356,14 @@ public class ParameterType extends Observable {
         // If hard bounds are set, check if the value falls within the bounds.
 
         if (getBoundingMethod() == BoundingMethod.HARD) {
-            double doubleValue = (Double) value;
-            // TODO: Check if bounding is implemented correctly.
-//            if (value instanceof Integer) {
-//                doubleValue = (Double) value;
-//            } else if (value instanceof Double) {
-//                doubleValue = (Double) value;
-//            }
+            double doubleValue;
+            if (value instanceof Integer) {
+                doubleValue = (Integer) value;
+            } else if (value instanceof Double) {
+                doubleValue = (Double) value;
+            } else {
+                throw new AssertionError("Bounding set, but value is not integer or float. (type: " + this + " value: " + value + ")");
+            }
             if (minimumValue != null && doubleValue < minimumValue) {
                 throw new ValueError("Parameter " + getName() + ": value " + value + " is too small. (minimum=" + minimumValue + ")");
             }

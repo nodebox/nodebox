@@ -52,6 +52,28 @@ public class ParameterTypeTest extends NodeTestCase {
         assertEquals(new Image(), ptImage.getDefaultValue());
     }
 
+    public void testValidate() {
+        NodeType customType = numberType.clone();
+        ParameterType ptFloat = customType.addParameterType("float", ParameterType.Type.FLOAT);
+        assertInvalidValue(ptFloat, "A");
+        assertInvalidValue(ptFloat, new Color());
+        assertInvalidValue(ptFloat, new Canvas());
+        assertValidValue(ptFloat, 1.0);
+
+        ParameterType ptColor = customType.addParameterType("color", ParameterType.Type.COLOR);
+        assertInvalidValue(ptColor, "A");
+        assertInvalidValue(ptColor, 2);
+        assertValidValue(ptColor, new Color());
+
+        // Toggle has a hard bounded range between 0 and 1.
+        ParameterType ptToggle = customType.addParameterType("toggle", ParameterType.Type.TOGGLE);
+        assertInvalidValue(ptToggle, "A");
+        assertInvalidValue(ptToggle, -1);
+        assertInvalidValue(ptToggle, 100);
+        assertValidValue(ptToggle, 0);
+        assertValidValue(ptToggle, 1);
+    }
+
     //// Helper functions ////
 
     private void checkInvalidName(NodeType nt, String newName, String reason) {
@@ -69,4 +91,21 @@ public class ParameterTypeTest extends NodeTestCase {
             fail("The name \"" + newName + "\" should have been accepted.");
         }
     }
+
+    private void assertValidValue(ParameterType pt, Object value) {
+        try {
+            pt.validate(value);
+        } catch (ValueError e) {
+            fail("The value '" + value + "' should have been accepted: " + e);
+        }
+    }
+
+    private void assertInvalidValue(ParameterType pt, Object value) {
+        try {
+            pt.validate(value);
+            fail("The value '" + value + "' should not have been accepted.");
+        } catch (ValueError e) {
+        }
+    }
+
 }
