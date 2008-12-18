@@ -54,6 +54,7 @@ public class ParameterView extends JComponent {
         controlPanel.removeAll();
         if (node == null) return;
         for (Parameter p : node.getParameters()) {
+            if (!p.isPrimitive()) continue;
             JLabel label = new JLabel(p.getLabel());
             label.putClientProperty("JComponent.sizeVariant", "small");
             Class controlClass = CONTROL_MAP.get(p.getType());
