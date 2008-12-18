@@ -61,6 +61,7 @@ public class Parameter implements ParameterTypeListener {
     public Parameter(ParameterType parameterType, Node node) {
         this.parameterType = parameterType;
         this.node = node;
+        // This returns a clone of the default value.
         this.value = parameterType.getDefaultValue();
     }
 

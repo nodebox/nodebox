@@ -110,6 +110,12 @@ public class Transform implements Cloneable {
         return new Transform((AffineTransform) affineTransform.clone());
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Transform)) return false;
+        return getAffineTransform().equals(((Transform) obj).getAffineTransform());
+    }
+
     public void apply(Graphics2D g, Rect bounds) {
         AffineTransform t = fullTransform(bounds);
         g.transform(t);

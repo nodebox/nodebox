@@ -80,4 +80,11 @@ public abstract class Grob implements Cloneable {
 
     public abstract Grob clone();
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Grob)) return false;
+        Grob other = (Grob) obj;
+        return transform.equals(other.transform);
+    }
 }

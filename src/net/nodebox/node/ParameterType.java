@@ -1,9 +1,6 @@
 package net.nodebox.node;
 
-import net.nodebox.graphics.Canvas;
-import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Group;
-import net.nodebox.graphics.Image;
+import net.nodebox.graphics.*;
 import net.nodebox.util.StringUtils;
 
 import javax.swing.event.EventListenerList;
@@ -78,6 +75,9 @@ public class ParameterType extends Observable {
         CORE_TYPE_DEFAULTS.put(CoreType.FLOAT, 0.0);
         CORE_TYPE_DEFAULTS.put(CoreType.STRING, "");
         CORE_TYPE_DEFAULTS.put(CoreType.COLOR, new Color());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_CANVAS, new Canvas());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_SHAPE, new Group());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_IMAGE, new Image());
 
         TYPE_REGISTRY = new HashMap<Type, CoreType>();
         TYPE_REGISTRY.put(Type.ANGLE, CoreType.FLOAT);
@@ -213,8 +213,19 @@ public class ParameterType extends Observable {
 
     //// Default value ////
 
+    /**
+     * Returns a copy of the getDefaultValue.
+     *
+     * @return the default value for this parameter type
+     */
     public Object getDefaultValue() {
-        return defaultValue;
+        if (isPrimitive() && getCoreType() != CoreType.COLOR) {
+            return defaultValue;
+        } else if (getCoreType() == CoreType.COLOR) {
+            return ((Color) defaultValue).clone();
+        } else { // One of the grob types
+            return ((Grob) defaultValue).clone();
+        }
     }
 
     public void setDefaultValue(Object value) {

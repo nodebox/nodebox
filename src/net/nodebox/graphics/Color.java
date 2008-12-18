@@ -76,5 +76,10 @@ public class Color implements Cloneable {
         return new Color(r, g, b, a);
     }
 
-
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Color)) return false;
+        Color other = (Color) obj;
+        return r == other.r && g == other.g && b == other.b && a == other.a;
+    }
 }

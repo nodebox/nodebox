@@ -91,6 +91,15 @@ public class Group extends Grob {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Group)) return false;
+        Group other = (Group) obj;
+        return grobs.equals(other.grobs)
+                && super.equals(other);
+    }
+
+    @Override
     public String toString() {
         return "<" + getClass().getSimpleName() + ">";
     }

@@ -1,8 +1,9 @@
 package net.nodebox.node;
 
-import junit.framework.TestCase;
+import net.nodebox.graphics.Canvas;
+import net.nodebox.graphics.Color;
 
-public class ParameterTypeTest extends TestCase {
+public class ParameterTypeTest extends NodeTestCase {
 
     public void testNaming() {
         NodeType nt = new TestManager.Number(null);
@@ -28,6 +29,21 @@ public class ParameterTypeTest extends TestCase {
         checkValidName(nt, "a1234");
 
         checkInvalidName(nt, "radius", "parameter type names must be unique for the node type");
+    }
+
+    public void testDefaultValue() {
+        NodeType customType = numberType.clone();
+        ParameterType ptInt = customType.addParameterType("int", ParameterType.Type.INT);
+        ParameterType ptFloat = customType.addParameterType("float", ParameterType.Type.FLOAT);
+        ParameterType ptString = customType.addParameterType("string", ParameterType.Type.STRING);
+        ParameterType ptColor = customType.addParameterType("color", ParameterType.Type.COLOR);
+        ParameterType ptCanvas = customType.addParameterType("canvas", ParameterType.Type.GROB_CANVAS);
+
+        assertEquals(0, ptInt.getDefaultValue());
+        assertEquals(0.0, ptFloat.getDefaultValue());
+        assertEquals("", ptString.getDefaultValue());
+        assertEquals(new Color(), ptColor.getDefaultValue());
+        assertEquals(new Canvas(), ptCanvas.getDefaultValue());
     }
 
     //// Helper functions ////

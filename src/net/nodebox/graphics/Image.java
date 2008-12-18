@@ -17,15 +17,24 @@ public class Image extends Grob {
     private double alpha = 1.0F;
 
     private RenderedImage image;
+    public static final String BLANK_IMAGE = "__blank";
+
+    public Image() {
+        this(new File(BLANK_IMAGE));
+    }
 
     public Image(File file) {
-        image = imageCache.get(file.getAbsolutePath());
-        if (image == null) {
-            try {
-                image = ImageIO.read(file);
-                imageCache.put(file.getAbsolutePath(), image);
-            } catch (IOException e) {
-                throw new RuntimeErrorException(null, "Could not read image " + file);
+        if (file == null || file.getPath().equals(BLANK_IMAGE)) {
+            image = new java.awt.image.BufferedImage(1, 1, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
+        } else {
+            image = imageCache.get(file.getAbsolutePath());
+            if (image == null) {
+                try {
+                    image = ImageIO.read(file);
+                    imageCache.put(file.getAbsolutePath(), image);
+                } catch (IOException e) {
+                    throw new RuntimeErrorException(null, "Could not read image " + file);
+                }
             }
         }
     }
@@ -151,5 +160,17 @@ public class Image extends Grob {
         return new Image(this);
     }
 
-
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Image)) return false;
+        Image other = (Image) obj;
+        return this.x == other.x
+                && this.y == other.y
+                && this.desiredWidth == other.desiredWidth
+                && this.desiredHeight == other.desiredHeight
+                && this.alpha == other.alpha
+                && this.image.equals(other.image)
+                && super.equals(other);
+    }
 }

@@ -307,12 +307,15 @@ public class BezierPath extends Grob {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof BezierPath)) return false;
-        BezierPath p = (BezierPath) o;
-        // TODO: equality should incorporate color as well.
-        return elements.equals(p.elements);
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof BezierPath)) return false;
+        BezierPath other = (BezierPath) obj;
+        return elements.equals(other.elements)
+                && fillColor.equals(other.fillColor)
+                && strokeColor.equals(other.strokeColor)
+                && strokeWidth == other.strokeWidth
+                && super.equals(other);
     }
 
     @Override

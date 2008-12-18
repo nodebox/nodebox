@@ -25,7 +25,7 @@ public class Canvas extends Group {
     public static final double DEFAULT_WIDTH = 1000;
     public static final double DEFAULT_HEIGHT = 1000;
 
-    private Color background;
+    private Color background = new Color(0, 0, 0, 0);
     private double width, height;
 
     public Canvas() {
@@ -73,6 +73,17 @@ public class Canvas extends Group {
             newCanvas.add(g.clone());
         }
         return newCanvas;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Canvas)) return false;
+        Canvas other = (Canvas) obj;
+        return width == other.width
+                && height == other.height
+                && background.equals(other.background)
+                && super.equals(other);
     }
 
     //// Drawing ////
