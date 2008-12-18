@@ -11,6 +11,7 @@ import net.nodebox.node.Parameter;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
@@ -251,7 +252,13 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                         Parameter inputParameter = compatibleParameters.get(0);
                         inputParameter.connect(connectSource.getNode());
                     } else {
-                        System.out.println("make menu!");
+                        JPopupMenu menu = new JPopupMenu("Select input");
+                        for (Parameter p : compatibleParameters) {
+                            Action a = new SelectCompatibleParameterAction(connectSource.getNode(), connectTarget.getNode(), p);
+                            menu.add(a);
+                        }
+                        Point pt = getNetworkView().getMousePosition();
+                        menu.show(getNetworkView(), pt.x, pt.y);
                     }
                 }
             }
@@ -262,6 +269,25 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
     }
+
+    class SelectCompatibleParameterAction extends AbstractAction {
+
+        private Node outputNode;
+        private Node inputNode;
+        private Parameter inputParameter;
+
+        SelectCompatibleParameterAction(Node outputNode, Node inputNode, Parameter inputParameter) {
+            super(inputParameter.getName());
+            this.outputNode = outputNode;
+            this.inputNode = inputNode;
+            this.inputParameter = inputParameter;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            inputParameter.connect(outputNode);
+        }
+    }
+
 
     /*
     private class RenderHandler extends PBasicInputEventHandler {
