@@ -123,15 +123,6 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         return null;
     }
 
-    public ConnectionView getConnectionView(Connection c) {
-        for (Object child : getLayer().getChildrenReference()) {
-            if (!(child instanceof ConnectionView)) continue;
-            if (((ConnectionView) child).getConnection() == c)
-                return (ConnectionView) child;
-        }
-        return null;
-    }
-
     //// Selections ////
 
     public void select(Selectable v) {
@@ -208,14 +199,11 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
     }
 
     public void connectionAdded(Network source, Connection connection) {
-        ConnectionView cv = new ConnectionView(this, connection);
-        getLayer().addChild(cv);
+        connectionLayer.repaint();
     }
 
     public void connectionRemoved(Network source, Connection connection) {
-        ConnectionView cv = getConnectionView(connection);
-        if (cv == null) return;
-        getLayer().removeChild(cv);
+        connectionLayer.repaint();
     }
 
     public void nodeChanged(Network source, Node node) {

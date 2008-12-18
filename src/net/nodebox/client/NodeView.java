@@ -6,6 +6,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
+import net.nodebox.node.Parameter;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -32,6 +33,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
     private boolean selected;
     private boolean highlighted;
+
+    private static boolean isConnecting;
+    private static NodeView connectSource;
+    private static NodeView connectTarget;
 
     public NodeView(NetworkView networkView, Node node) {
         this.networkView = networkView;
@@ -107,7 +112,9 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
     protected void paintBorder(Graphics2D g2) {
         Color borderColor;
-        if (selected) {
+        if (connectTarget == this) {
+            borderColor = Theme.getInstance().getBorderHighlightColor();
+        } else if (selected) {
             borderColor = Theme.getInstance().getActionColor();
         } else {
             borderColor = Color.BLACK;
@@ -153,7 +160,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private class NodeHandler extends PBasicInputEventHandler {
 
         protected Point2D dragPoint;
-        private boolean isDraggingNode;
+        private boolean isDragging;
 
         public void mouseClicked(PInputEvent e) {
             if (e.getButton() == 3) {
@@ -183,16 +190,45 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void mousePressed(PInputEvent e) {
             if (e.getButton() == MouseEvent.BUTTON1) {
-                isDraggingNode = true;
+
                 Point2D pt = NodeView.this.getOffset();
                 double x = e.getPosition().getX() - pt.getX();
                 double y = e.getPosition().getY() - pt.getY();
-                dragPoint = new Point2D.Double(x, y);
+                if (y < 20) {
+                    isDragging = true;
+                    dragPoint = new Point2D.Double(x, y);
+                } else {
+                    System.out.println("connect start " + NodeView.this.getNode().getName());
+                    isConnecting = true;
+                    connectSource = NodeView.this;
+                }
+
+            }
+        }
+
+        public void mouseEntered(PInputEvent e) {
+            if (isConnecting) {
+                System.out.println("entered " + NodeView.this.getNode().getName());
+                NodeView oldTarget = connectTarget;
+                connectTarget = NodeView.this;
+                if (oldTarget != null)
+                    oldTarget.repaint();
+                connectTarget.repaint();
+            }
+        }
+
+        public void mouseExited(PInputEvent e) {
+            if (isConnecting) {
+                System.out.println("exited" + NodeView.this.getNode().getName());
+                NodeView oldTarget = connectTarget;
+                connectTarget = null;
+                if (oldTarget != null)
+                    oldTarget.repaint();
             }
         }
 
         public void mouseDragged(PInputEvent e) {
-            if (isDraggingNode) {
+            if (isDragging) {
                 Point2D pt = e.getPosition();
                 double x = pt.getX() - dragPoint.getX();
                 double y = pt.getY() - dragPoint.getY();
@@ -202,7 +238,27 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void mouseReleased(PInputEvent event) {
-            isDraggingNode = false;
+            if (isConnecting) {
+                if (connectTarget != null)
+                    connectTarget.repaint();
+                NodeView.this.repaint();
+                if (connectSource != null && connectTarget != null) {
+                    java.util.List<Parameter> compatibleParameters = connectSource.getNode().getCompatibleInputs(connectTarget.getNode());
+                    if (compatibleParameters.isEmpty()) {
+                        System.out.println("No compatible parameters");
+                    } else if (compatibleParameters.size() == 1) {
+                        // Only one possible connection, make it now.
+                        Parameter inputParameter = compatibleParameters.get(0);
+                        inputParameter.connect(connectSource.getNode());
+                    } else {
+                        System.out.println("make menu!");
+                    }
+                }
+            }
+            isDragging = false;
+            isConnecting = false;
+            connectSource = null;
+            connectTarget = null;
         }
 
     }

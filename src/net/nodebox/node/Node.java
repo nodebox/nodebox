@@ -374,6 +374,21 @@ public class Node {
 
     //// Connection shortcuts ////
 
+    /**
+     * Return a list of all parameters on this Node that can be connected to the given node.
+     *
+     * @param inputNode the input node
+     * @return a list of parameters.
+     */
+    public List<Parameter> getCompatibleInputs(Node inputNode) {
+        List<Parameter> compatibleParameters = new ArrayList<Parameter>();
+        for (Parameter p : inputNode.getParameters()) {
+            if (p.getType().equals(getOutputParameter().getType()))
+                compatibleParameters.add(p);
+        }
+        return compatibleParameters;
+    }
+
     public List<Connection> getInputConnections() {
         List<Connection> inputConnections = new ArrayList<Connection>();
         for (Parameter p : parameters.values()) {

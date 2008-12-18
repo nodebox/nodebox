@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
  * but in a Parameter object, contained in the Node instance.
  */
 public class ParameterType extends Observable {
-
     public enum Type {
         ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF,
         GROB_CANVAS, GROB_VECTOR, GROB_IMAGE

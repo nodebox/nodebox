@@ -91,13 +91,15 @@ public class Document extends JFrame implements NetworkDataListener {
         ellipse1.setPosition(100, 30);
         Node ellipse2 = vector1.create(ellipseType);
         ellipse2.setPosition(100, 130);
+        Node transform1 = vector1.create(transformType);
+        transform1.setPosition(300, 230);
         Node rect1 = vector2.create(rectType);
         rect1.setPosition(40, 40);
         rect1.setRendered();
-        Node transform1 = vector2.create(transformType);
-        transform1.setPosition(40, 80);
-        transform1.setRendered();
-        transform1.getParameter("shape").connect(rect1);
+        Node transform2 = vector2.create(transformType);
+        transform2.setPosition(40, 80);
+        transform2.setRendered();
+        transform2.getParameter("shape").connect(rect1);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
