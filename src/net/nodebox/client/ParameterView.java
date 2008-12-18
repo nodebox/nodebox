@@ -1,5 +1,6 @@
 package net.nodebox.client;
 
+import net.nodebox.client.parameter.ColorControl;
 import net.nodebox.client.parameter.FloatControl;
 import net.nodebox.client.parameter.ParameterControl;
 import net.nodebox.node.*;
@@ -11,8 +12,12 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ParameterView extends JComponent {
+
+    private static Logger logger = Logger.getLogger("net.nodebox.client.ParameterView");
 
     private static final Map<ParameterType.Type, Class> CONTROL_MAP;
     private JPanel controlPanel;
@@ -20,6 +25,7 @@ public class ParameterView extends JComponent {
     static {
         CONTROL_MAP = new HashMap<ParameterType.Type, Class>();
         CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
+        CONTROL_MAP.put(ParameterType.Type.COLOR, ColorControl.class);
     }
 
     private Node node;
@@ -75,9 +81,10 @@ public class ParameterView extends JComponent {
     private ParameterControl constructControl(Class controlClass, Parameter p) {
         try {
             Constructor constructor = controlClass.getConstructor(Parameter.class);
-            return (FloatControl) constructor.newInstance(p);
+            return (ParameterControl) constructor.newInstance(p);
         } catch (Exception e) {
-            return null;
+            logger.log(Level.SEVERE, "Cannot construct control", e);
+            throw new AssertionError("Cannot construct control");
         }
     }
 
