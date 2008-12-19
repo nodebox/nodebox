@@ -18,20 +18,7 @@
  */
 package net.nodebox.node;
 
-import junit.framework.TestCase;
-
-public class ParameterTest extends TestCase {
-
-    private NodeManager manager;
-    private NodeType numberType, negateType, addType;
-
-    @Override
-    protected void setUp() throws Exception {
-        manager = new TestManager();
-        numberType = manager.getNodeType("net.nodebox.node.test.number");
-        negateType = manager.getNodeType("net.nodebox.node.test.negate");
-        addType = manager.getNodeType("net.nodebox.node.test.add");
-    }
+public class ParameterTest extends NodeTestCase {
 
     public void testCorrectType() {
         Node number = numberType.createNode();
@@ -48,6 +35,23 @@ public class ParameterTest extends TestCase {
         assertEquals(0, num2.getOutputValue());
         assertFalse(num2.getParameter("value").hasExpression());
         assertFalse(num2.getParameter("value").isConnected());
+    }
+
+    public void testAsString() {
+        NodeType allControlsType = new NodeType(null, "", ParameterType.Type.INT) {
+            public boolean process(Node node, ProcessingContext ctx) {
+                return false;
+            }
+        };
+        allControlsType.addParameterType("int", ParameterType.Type.INT);
+        allControlsType.addParameterType("float", ParameterType.Type.FLOAT);
+        allControlsType.addParameterType("string", ParameterType.Type.STRING);
+        allControlsType.addParameterType("color", ParameterType.Type.COLOR);
+        Node n = allControlsType.createNode();
+        assertEquals("0", n.asString("int"));
+        assertEquals("0.0", n.asString("float"));
+        assertEquals("", n.asString("string"));
+        assertEquals("#000000ff", n.asString("color"));
     }
 
     /*

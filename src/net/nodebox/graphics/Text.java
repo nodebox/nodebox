@@ -30,7 +30,7 @@ public class Text extends Grob {
         this.baseLineY = pt.getY();
     }
 
-    public Text(String text, float baseLineX, float baseLineY) {
+    public Text(String text, double baseLineX, double baseLineY) {
         this.text = text;
         this.baseLineX = baseLineX;
         this.baseLineY = baseLineY;

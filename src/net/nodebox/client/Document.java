@@ -1,5 +1,6 @@
 package net.nodebox.client;
 
+import net.nodebox.graphics.Text;
 import net.nodebox.node.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -84,8 +85,26 @@ public class Document extends JFrame implements NetworkDataListener {
             addParameterType("noderef", ParameterType.Type.NODEREF);
         }
 
+        private void addText(net.nodebox.graphics.Canvas c, Node node, String parameterName, double y) {
+            c.add(new Text(parameterName + ": " + node.asString(parameterName), 10, 24 + y * 24));
+        }
+
         public boolean process(Node node, ProcessingContext ctx) {
-            node.setOutputValue(new net.nodebox.graphics.Canvas());
+            net.nodebox.graphics.Canvas c = new net.nodebox.graphics.Canvas();
+            addText(c, node, "angle", 1);
+            addText(c, node, "color", 2);
+            addText(c, node, "file", 3);
+            addText(c, node, "float", 4);
+            addText(c, node, "font", 5);
+            addText(c, node, "gradient", 6);
+            addText(c, node, "image", 7);
+            addText(c, node, "int", 8);
+            addText(c, node, "menu", 9);
+            addText(c, node, "seed", 10);
+            addText(c, node, "string", 11);
+            addText(c, node, "text", 12);
+            addText(c, node, "noderef", 13);
+            node.setOutputValue(c);
             return true;
         }
     }

@@ -89,4 +89,33 @@ public class Color implements Cloneable {
         Color other = (Color) obj;
         return r == other.r && g == other.g && b == other.b && a == other.a;
     }
+
+    private String paddedHexString(int v) {
+        String s = Integer.toHexString(v);
+        if (s.length() == 1) {
+            return "0" + s;
+        } else if (s.length() == 2) {
+            return s;
+        } else {
+            throw new AssertionError("Value too large (must be between 0-255, was " + v + ").");
+        }
+    }
+
+    /**
+     * Returns the color as a 8-bit hexadecimal value, e.g. #ae45cdff
+     *
+     * @return the color as a 8-bit hexadecimal value
+     */
+    @Override
+    public String toString() {
+        int r256 = (int) Math.round(r * 255);
+        int g256 = (int) Math.round(g * 255);
+        int b256 = (int) Math.round(b * 255);
+        int a256 = (int) Math.round(a * 255);
+        return "#"
+                + paddedHexString(r256)
+                + paddedHexString(g256)
+                + paddedHexString(b256)
+                + paddedHexString(a256);
+    }
 }
