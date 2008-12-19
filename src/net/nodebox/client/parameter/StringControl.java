@@ -4,11 +4,10 @@ import net.nodebox.node.Parameter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyVetoException;
-import java.beans.VetoableChangeListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class StringControl extends JComponent implements ParameterControl, VetoableChangeListener {
+public class StringControl extends JComponent implements ParameterControl, ActionListener {
 
     private Parameter parameter;
     private JTextField textField;
@@ -17,8 +16,8 @@ public class StringControl extends JComponent implements ParameterControl, Vetoa
         this.parameter = parameter;
         setLayout(new FlowLayout(FlowLayout.LEADING));
         textField = new JTextField();
-        textField.setPreferredSize(new Dimension(100, 20));
-        textField.addVetoableChangeListener(this);
+        textField.setPreferredSize(new Dimension(150, 20));
+        textField.addActionListener(this);
         add(textField);
     }
 
@@ -31,7 +30,7 @@ public class StringControl extends JComponent implements ParameterControl, Vetoa
         textField.setText(v.toString());
     }
 
-    public void vetoableChange(PropertyChangeEvent evt) throws PropertyVetoException {
+    public void actionPerformed(ActionEvent e) {
         String newValue = textField.getText();
         if (!newValue.equals(parameter.asString())) {
             parameter.set(newValue);
