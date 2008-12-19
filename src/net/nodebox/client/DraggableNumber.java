@@ -35,14 +35,7 @@ public class DraggableNumber extends JComponent {
      */
     protected transient ChangeEvent changeEvent = null;
 
-    private static NumberFormat numberFormat;
-
-    static {
-        numberFormat = NumberFormat.getNumberInstance();
-        numberFormat.setMinimumFractionDigits(2);
-        numberFormat.setMaximumFractionDigits(2);
-    }
-
+    private NumberFormat numberFormat;
 
     public DraggableNumber() {
         setLayout(new BorderLayout());
@@ -50,6 +43,10 @@ public class DraggableNumber extends JComponent {
         //setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         setBackground(new Color(20, 20, 20));
         content = new ContentPanel();
+
+        numberFormat = NumberFormat.getNumberInstance();
+        numberFormat.setMinimumFractionDigits(2);
+        numberFormat.setMaximumFractionDigits(2);
 
         decNumber = new JLabel(new Icons.ArrowIcon(Icons.ArrowIcon.WEST, Color.LIGHT_GRAY));
         decNumber.setPreferredSize(new Dimension(10, 10));
@@ -134,6 +131,16 @@ public class DraggableNumber extends JComponent {
 
         setValue(0);
 
+    }
+
+    public NumberFormat getNumberFormat() {
+        return numberFormat;
+    }
+
+    public void setNumberFormat(NumberFormat numberFormat) {
+        this.numberFormat = numberFormat;
+        // Refresh the label
+        setValue(getValue());
     }
 
     public double getValue() {

@@ -1,8 +1,6 @@
 package net.nodebox.client;
 
-import net.nodebox.client.parameter.ColorControl;
-import net.nodebox.client.parameter.FloatControl;
-import net.nodebox.client.parameter.ParameterControl;
+import net.nodebox.client.parameter.*;
 import net.nodebox.node.*;
 import net.nodebox.node.vector.RectType;
 
@@ -24,8 +22,20 @@ public class ParameterView extends JComponent {
 
     static {
         CONTROL_MAP = new HashMap<ParameterType.Type, Class>();
-        CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
+        CONTROL_MAP.put(ParameterType.Type.ANGLE, FloatControl.class);
         CONTROL_MAP.put(ParameterType.Type.COLOR, ColorControl.class);
+        CONTROL_MAP.put(ParameterType.Type.FILE, null);
+        CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
+        CONTROL_MAP.put(ParameterType.Type.FONT, null);
+        CONTROL_MAP.put(ParameterType.Type.GRADIENT, null);
+        CONTROL_MAP.put(ParameterType.Type.IMAGE, null);
+        CONTROL_MAP.put(ParameterType.Type.INT, IntControl.class);
+        CONTROL_MAP.put(ParameterType.Type.MENU, null);
+        CONTROL_MAP.put(ParameterType.Type.SEED, IntControl.class);
+        CONTROL_MAP.put(ParameterType.Type.STRING, StringControl.class);
+        CONTROL_MAP.put(ParameterType.Type.TEXT, null);
+        CONTROL_MAP.put(ParameterType.Type.TOGGLE, null);
+        CONTROL_MAP.put(ParameterType.Type.NODEREF, null);
     }
 
     private Node node;

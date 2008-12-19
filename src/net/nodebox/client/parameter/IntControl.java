@@ -10,13 +10,14 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 
-public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterDataListener {
+public class IntControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterDataListener {
 
     private Parameter parameter;
     private DraggableNumber draggable;
 
-    public FloatControl(Parameter parameter) {
+    public IntControl(Parameter parameter) {
         setPreferredSize(new Dimension(100, 20));
         setLayout(new FlowLayout(FlowLayout.LEADING));
         this.parameter = parameter;
@@ -25,6 +26,10 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         draggable.addActionListener(this);
         draggable.setPreferredSize(new Dimension(100, 20));
         draggable.setMinimumSize(new Dimension(100, 20));
+        NumberFormat intFormat = NumberFormat.getNumberInstance();
+        intFormat.setMinimumFractionDigits(0);
+        intFormat.setMaximumFractionDigits(0);
+        draggable.setNumberFormat(intFormat);
         add(draggable);
         setValueForControl(parameter.getValue());
         parameter.addDataListener(this);
@@ -35,7 +40,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
     }
 
     public void setValueForControl(Object v) {
-        Double value = (Double) v;
+        int value = (Integer) v;
         draggable.setValue(value);
     }
 
@@ -48,15 +53,16 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
     }
 
     private void setValueFromControl() {
-        double value = draggable.getValue();
+        double doubleValue = draggable.getValue();
         if (parameter.getParameterType().getMinimumValue() != null) {
-            value = Math.max(parameter.getParameterType().getMinimumValue(), value);
+            doubleValue = Math.max(parameter.getParameterType().getMinimumValue(), doubleValue);
         }
         if (parameter.getParameterType().getMaximumValue() != null) {
-            value = Math.max(parameter.getParameterType().getMaximumValue(), value);
+            doubleValue = Math.max(parameter.getParameterType().getMaximumValue(), doubleValue);
         }
-        if (value != (Double) parameter.getValue()) {
-            parameter.setValue(value);
+        int intValue = (int) doubleValue;
+        if (intValue != parameter.asInt()) {
+            parameter.setValue(intValue);
         }
     }
 
