@@ -1,13 +1,14 @@
 package net.nodebox.client.parameter;
 
 import net.nodebox.node.Parameter;
+import net.nodebox.node.ParameterDataListener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class StringControl extends JComponent implements ParameterControl, ActionListener {
+public class StringControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
 
     private Parameter parameter;
     private JTextField textField;
@@ -19,6 +20,8 @@ public class StringControl extends JComponent implements ParameterControl, Actio
         textField.setPreferredSize(new Dimension(150, 20));
         textField.addActionListener(this);
         add(textField);
+        setValueForControl(parameter.getValue());
+        parameter.addDataListener(this);
     }
 
     public Parameter getParameter() {
@@ -35,5 +38,9 @@ public class StringControl extends JComponent implements ParameterControl, Actio
         if (!newValue.equals(parameter.asString())) {
             parameter.set(newValue);
         }
+    }
+
+    public void valueChanged(Parameter source, Object newValue) {
+        setValueForControl(newValue);
     }
 }

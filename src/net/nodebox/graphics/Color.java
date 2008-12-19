@@ -47,6 +47,13 @@ public class Color implements Cloneable {
         // TODO: Implement
     }
 
+    public Color(java.awt.Color color) {
+        this.r = color.getRed() / 255.0;
+        this.g = color.getGreen() / 255.0;
+        this.b = color.getBlue() / 255.0;
+        this.a = color.getAlpha() / 255.0;
+    }
+
     public Color(Color other) {
         this.r = other.r;
         this.g = other.g;
