@@ -9,20 +9,27 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class StringControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class TextControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
 
     private Parameter parameter;
     private JTextField textField;
+    private JButton externalWindowButton;
 
-    public StringControl(Parameter parameter) {
+    public TextControl(Parameter parameter) {
         this.parameter = parameter;
-        setLayout(new FlowLayout(FlowLayout.LEADING));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         textField = new JTextField();
         textField.putClientProperty("Jcomponent.sizeVariant", "small");
-        textField.setFont(PlatformUtils.getSmallFont());
         textField.setPreferredSize(new Dimension(150, 19));
+        textField.setEditable(true);
         textField.addActionListener(this);
+        textField.setFont(PlatformUtils.getSmallFont());
+        externalWindowButton = new JButton("...");
+        externalWindowButton.putClientProperty("JButton.buttonType", "gradient");
+        externalWindowButton.setPreferredSize(new Dimension(30, 27));
+        externalWindowButton.addActionListener(this);
         add(textField);
+        add(externalWindowButton);
         setValueForControl(parameter.getValue());
         parameter.addDataListener(this);
     }
@@ -32,18 +39,19 @@ public class StringControl extends JComponent implements ParameterControl, Actio
     }
 
     public void setValueForControl(Object v) {
-        if (v == null) return;
         textField.setText(v.toString());
     }
 
     public void actionPerformed(ActionEvent e) {
-        String newValue = textField.getText();
-        if (!newValue.equals(parameter.asString())) {
-            parameter.set(newValue);
+        if (e.getSource() == textField) {
+            parameter.setValue(textField.getText());
+        } else if (e.getSource() == externalWindowButton) {
+            // TODO: Implement
         }
     }
 
     public void valueChanged(Parameter source, Object newValue) {
         setValueForControl(newValue);
     }
+
 }

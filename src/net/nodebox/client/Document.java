@@ -82,7 +82,13 @@ public class Document extends JFrame implements NetworkDataListener {
             addParameterType("seed", ParameterType.Type.SEED);
             addParameterType("string", ParameterType.Type.STRING);
             addParameterType("text", ParameterType.Type.TEXT);
+            addParameterType("toggle", ParameterType.Type.TOGGLE);
             addParameterType("noderef", ParameterType.Type.NODEREF);
+            ParameterType ptMenu = getParameterType("menu");
+            ptMenu.addMenuItem("red", "Red");
+            ptMenu.addMenuItem("green", "Green");
+            ptMenu.addMenuItem("blue", "Blue");
+            ptMenu.setDefaultValue("blue");
         }
 
         private void addText(net.nodebox.graphics.Canvas c, Node node, String parameterName, double y) {

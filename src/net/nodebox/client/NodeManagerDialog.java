@@ -57,6 +57,7 @@ public class NodeManagerDialog extends JDialog {
         JPanel panel = new JPanel(new BorderLayout());
         this.nodeManager = nodeManager;
         searchField = new JTextField();
+        searchField.putClientProperty("JTextField.variant", "search");
         searchField.addKeyListener(arrowKeysListener);
         nodeList = new JList(new NodeListModel(nodeManager));
         nodeList.addMouseListener(doubleClickListener);

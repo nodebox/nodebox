@@ -24,18 +24,18 @@ public class ParameterView extends JComponent {
         CONTROL_MAP = new HashMap<ParameterType.Type, Class>();
         CONTROL_MAP.put(ParameterType.Type.ANGLE, FloatControl.class);
         CONTROL_MAP.put(ParameterType.Type.COLOR, ColorControl.class);
-        CONTROL_MAP.put(ParameterType.Type.FILE, null);
+        CONTROL_MAP.put(ParameterType.Type.FILE, FileControl.class);
         CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
-        CONTROL_MAP.put(ParameterType.Type.FONT, null);
+        CONTROL_MAP.put(ParameterType.Type.FONT, FontControl.class);
         CONTROL_MAP.put(ParameterType.Type.GRADIENT, null);
-        CONTROL_MAP.put(ParameterType.Type.IMAGE, null);
+        CONTROL_MAP.put(ParameterType.Type.IMAGE, ImageControl.class);
         CONTROL_MAP.put(ParameterType.Type.INT, IntControl.class);
-        CONTROL_MAP.put(ParameterType.Type.MENU, null);
+        CONTROL_MAP.put(ParameterType.Type.MENU, MenuControl.class);
         CONTROL_MAP.put(ParameterType.Type.SEED, IntControl.class);
         CONTROL_MAP.put(ParameterType.Type.STRING, StringControl.class);
-        CONTROL_MAP.put(ParameterType.Type.TEXT, null);
-        CONTROL_MAP.put(ParameterType.Type.TOGGLE, null);
-        CONTROL_MAP.put(ParameterType.Type.NODEREF, null);
+        CONTROL_MAP.put(ParameterType.Type.TEXT, TextControl.class);
+        CONTROL_MAP.put(ParameterType.Type.TOGGLE, ToggleControl.class);
+        CONTROL_MAP.put(ParameterType.Type.NODEREF, NoderefControl.class);
     }
 
     private Node node;

@@ -54,11 +54,11 @@ public class ParameterType extends Observable {
         }
     }
 
-    public class MenuEntry {
+    public class MenuItem {
         private String key;
         private String label;
 
-        public MenuEntry(String key, String label) {
+        public MenuItem(String key, String label) {
             this.key = key;
             this.label = label;
         }
@@ -130,7 +130,7 @@ public class ParameterType extends Observable {
     private Double minimumValue;
     private Double maximumValue;
     private DisplayLevel displayLevel;
-    private ArrayList<MenuEntry> menuItems = new ArrayList<MenuEntry>();
+    private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private EventListenerList listeners = new EventListenerList();
 
     public ParameterType(NodeType nodeType, String name, Type type) {
@@ -325,12 +325,12 @@ public class ParameterType extends Observable {
 
     //// Menu items ////
 
-    public List<MenuEntry> getMenuItems() {
+    public List<MenuItem> getMenuItems() {
         return menuItems;
     }
 
     public void addMenuItem(String key, String label) {
-        menuItems.add(new MenuEntry(key, label));
+        menuItems.add(new MenuItem(key, label));
         // TODO: fireMenuChanged();
     }
 
@@ -454,7 +454,7 @@ public class ParameterType extends Observable {
         newType.minimumValue = getMinimumValue();
         newType.maximumValue = getMaximumValue();
         newType.displayLevel = getDisplayLevel();
-        newType.menuItems = new ArrayList<MenuEntry>(menuItems);
+        newType.menuItems = new ArrayList<MenuItem>(menuItems);
         return newType;
     }
 

@@ -69,6 +69,14 @@ public class PlatformUtils {
         }
     }
 
+    public static Font getSmallFont() {
+        if (onMac()) {
+            return new Font("Lucida Grande", Font.PLAIN, 11);
+        } else {
+            return new Font("Verdana", Font.PLAIN, 10);
+        }
+    }
+
     public static Border createLineBorder() {
         if (platformLineBorder == null) {
             Color borderColor;

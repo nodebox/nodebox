@@ -9,20 +9,20 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class StringControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class ToggleControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
 
     private Parameter parameter;
-    private JTextField textField;
+    private JCheckBox checkBox;
 
-    public StringControl(Parameter parameter) {
+    public ToggleControl(Parameter parameter) {
         this.parameter = parameter;
         setLayout(new FlowLayout(FlowLayout.LEADING));
-        textField = new JTextField();
-        textField.putClientProperty("Jcomponent.sizeVariant", "small");
-        textField.setFont(PlatformUtils.getSmallFont());
-        textField.setPreferredSize(new Dimension(150, 19));
-        textField.addActionListener(this);
-        add(textField);
+        checkBox = new JCheckBox(parameter.getLabel());
+        checkBox.putClientProperty("JComponent.sizeVariant", "small");
+        checkBox.setPreferredSize(new Dimension(150, 18));
+        checkBox.setFont(PlatformUtils.getSmallFont());
+        checkBox.addActionListener(this);
+        add(checkBox);
         setValueForControl(parameter.getValue());
         parameter.addDataListener(this);
     }
@@ -33,14 +33,12 @@ public class StringControl extends JComponent implements ParameterControl, Actio
 
     public void setValueForControl(Object v) {
         if (v == null) return;
-        textField.setText(v.toString());
+        int value = (Integer) v;
+        checkBox.setSelected(value == 1);
     }
 
     public void actionPerformed(ActionEvent e) {
-        String newValue = textField.getText();
-        if (!newValue.equals(parameter.asString())) {
-            parameter.set(newValue);
-        }
+        parameter.set(checkBox.isSelected() ? 1 : 0);
     }
 
     public void valueChanged(Parameter source, Object newValue) {

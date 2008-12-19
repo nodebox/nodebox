@@ -80,7 +80,7 @@ public class FileUtils {
             String extension = FileUtils.getExtension(s);
             if (extension != null) {
                 for (int i = 0; i < extensions.length; i++) {
-                    if (extensions[i].equalsIgnoreCase(extension)) {
+                    if (extensions[i].equals("*") || extensions[i].equalsIgnoreCase(extension)) {
                         return true;
                     }
                 }

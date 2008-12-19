@@ -119,6 +119,7 @@ public class DraggableNumber extends JComponent {
         //numberLabel.setBorder(null);
         //numberLabel.setOpaque(false);
         numberLabel.setForeground(new Color(228, 228, 228));
+        numberLabel.setFont(PlatformUtils.getSmallFont());
         //numberLabel.setBackground(Color.DARK_GRAY);
         dragger = new Dragger();
         numberLabel.addMouseListener(dragger);
