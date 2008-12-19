@@ -24,6 +24,13 @@ public abstract class Grob implements Cloneable {
 
     private Transform transform = new Transform();
 
+    protected Grob() {
+    }
+
+    protected Grob(Grob other) {
+        transform = other.transform.clone();
+    }
+
     public void inheritFromContext(GraphicsContext ctx) {
         this.transform = ctx.getTransform().clone();
     }

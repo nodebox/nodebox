@@ -9,6 +9,16 @@ public class Group extends Grob {
 
     private ArrayList<Grob> grobs = new ArrayList<Grob>();
 
+    public Group() {
+    }
+
+    public Group(Group other) {
+        super(other);
+        for (Grob g : other.grobs) {
+            add(g.clone());
+        }
+    }
+
     //// Container operations ////
 
     public void add(Grob g) {
@@ -81,13 +91,8 @@ public class Group extends Grob {
 
     //// Copy ////
 
-    public Grob clone() {
-        Group newGroup = new Group();
-        newGroup.setTransform(getTransform().clone());
-        for (Grob g : grobs) {
-            newGroup.add(g.clone());
-        }
-        return newGroup;
+    public Group clone() {
+        return new Group(this);
     }
 
     @Override

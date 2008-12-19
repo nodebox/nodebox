@@ -17,6 +17,10 @@ public class Transform implements Cloneable {
         this.affineTransform = affineTransform;
     }
 
+    public Transform(Transform other) {
+        this.affineTransform = (AffineTransform) other.affineTransform.clone();
+    }
+
     //// Transform changes ////
 
     public void translate(double tx, double ty) {
@@ -112,7 +116,7 @@ public class Transform implements Cloneable {
 
     @Override
     protected Transform clone() {
-        return new Transform((AffineTransform) affineTransform.clone());
+        return new Transform(this);
     }
 
     @Override

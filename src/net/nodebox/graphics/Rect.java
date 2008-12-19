@@ -130,4 +130,9 @@ public class Rect {
     public Rectangle2D getRectangle2D() {
         return new Rectangle2D.Double(x, y, width, height);
     }
+
+    @Override
+    public Rect clone() {
+        return new Rect(this);
+    }
 }

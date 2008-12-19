@@ -57,6 +57,14 @@ public class BezierPath extends Grob {
         }
     }
 
+    public BezierPath(BezierPath other) {
+        super(other);
+        elements = (ArrayList<PathElement>) other.elements.clone();
+        fillColor = other.fillColor == null ? null : other.fillColor.clone();
+        strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
+        strokeWidth = other.strokeWidth;
+    }
+
     //// Color methods ////
 
     public Color getFillColor() {
@@ -296,14 +304,8 @@ public class BezierPath extends Grob {
     }
 
     @Override
-    public Grob clone() {
-        BezierPath p = new BezierPath();
-        p.setTransform(getTransform().clone());
-        p.elements = (ArrayList<PathElement>) elements.clone();
-        p.fillColor = fillColor == null ? null : fillColor.clone();
-        p.strokeColor = strokeColor == null ? null : strokeColor.clone();
-        p.strokeWidth = strokeWidth;
-        return p;
+    public BezierPath clone() {
+        return new BezierPath(this);
     }
 
     @Override

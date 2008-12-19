@@ -47,6 +47,13 @@ public class Color implements Cloneable {
         // TODO: Implement
     }
 
+    public Color(Color other) {
+        this.r = other.r;
+        this.g = other.g;
+        this.b = other.b;
+        this.a = other.a;
+    }
+
     public double getRed() {
         return r;
     }
@@ -73,7 +80,7 @@ public class Color implements Cloneable {
 
     @Override
     public Color clone() {
-        return new Color(r, g, b, a);
+        return new Color(this);
     }
 
     @Override

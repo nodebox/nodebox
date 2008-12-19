@@ -36,6 +36,12 @@ public class Canvas extends Group {
         setSize(width, height);
     }
 
+    public Canvas(Canvas other) {
+        super(other);
+        this.width = other.width;
+        this.height = other.height;
+    }
+
     public Color getBackground() {
         return background;
     }
@@ -66,13 +72,8 @@ public class Canvas extends Group {
     }
 
     @Override
-    public Grob clone() {
-
-        Canvas newCanvas = new Canvas(width, height);
-        for (Grob g : getGrobs()) {
-            newCanvas.add(g.clone());
-        }
-        return newCanvas;
+    public Canvas clone() {
+        return new Canvas(this);
     }
 
     @Override

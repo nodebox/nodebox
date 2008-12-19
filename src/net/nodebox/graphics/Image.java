@@ -49,14 +49,14 @@ public class Image extends Grob {
         this.image = image;
     }
 
-    public Image(Image image) {
-        this.x = image.x;
-        this.y = image.y;
-        this.desiredWidth = image.desiredWidth;
-        this.desiredHeight = image.desiredHeight;
-        this.alpha = image.alpha;
-        this.setTransform(image.getTransform().clone());
-        this.image = image.image;
+    public Image(Image other) {
+        super(other);
+        this.x = other.x;
+        this.y = other.y;
+        this.desiredWidth = other.desiredWidth;
+        this.desiredHeight = other.desiredHeight;
+        this.alpha = other.alpha;
+        this.image = other.image;
     }
 
     //// Attribute access ////

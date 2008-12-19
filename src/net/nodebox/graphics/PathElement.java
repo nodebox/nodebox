@@ -80,6 +80,13 @@ public class PathElement {
         }
     }
 
+    public PathElement(PathElement other) {
+        this.command = other.command;
+        this.control1 = other.control1.clone();
+        this.control2 = other.control2.clone();
+        this.point = other.point.clone();
+    }
+
     public int getCommand() {
         return command;
     }
@@ -134,11 +141,6 @@ public class PathElement {
 
     @Override
     public PathElement clone() {
-        PathElement pe = new PathElement();
-        pe.command = command;
-        pe.point = point.clone();
-        pe.control1 = control1.clone();
-        pe.control2 = control2.clone();
-        return pe;
+        return new PathElement(this);
     }
 }
