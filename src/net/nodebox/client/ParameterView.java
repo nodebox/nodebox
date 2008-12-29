@@ -45,6 +45,8 @@ public class ParameterView extends JComponent {
     public ParameterView() {
         setLayout(new BorderLayout());
         controlPanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        controlPanel.setBackground(new Color(204, 204, 204));
+        controlPanel.setPreferredSize(new Dimension(300, 300));
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
@@ -72,7 +74,9 @@ public class ParameterView extends JComponent {
         for (Parameter p : node.getParameters()) {
             if (!p.isPrimitive()) continue;
             JLabel label = new JLabel(p.getLabel());
+            label.setAlignmentX(JLabel.RIGHT_ALIGNMENT);
             label.putClientProperty("JComponent.sizeVariant", "small");
+            label.setFont(PlatformUtils.getSmallBoldFont());
             Class controlClass = CONTROL_MAP.get(p.getType());
             JComponent control;
             if (controlClass != null) {

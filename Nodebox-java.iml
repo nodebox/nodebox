@@ -14,6 +14,7 @@
     <orderEntry type="library" name="Piccolo" level="project" />
     <orderEntry type="library" name="MVEL" level="project" />
     <orderEntry type="library" name="JUnit" level="project" />
+    <orderEntry type="library" name="Jython" level="project" />
   </component>
 </module>
 

@@ -307,6 +307,15 @@
       <JAVADOC />
       <SOURCES />
     </library>
+    <library name="Jython">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/jython-complete.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="file://$PROJECT_DIR$/../../Java/jython2.5b0/src" />
+      </SOURCES>
+    </library>
   </component>
 </project>
 

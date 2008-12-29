@@ -18,8 +18,11 @@
  */
 package net.nodebox.client;
 
+import org.python.core.PySystemState;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class Application {
 
@@ -32,8 +35,15 @@ public class Application {
     private List<Document> documents = new ArrayList<Document>();
     private Document currentDocument;
 
+    public static final String NAME = "NodeBox";
+
     private Application() {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+        // Initialize Jython
+        Properties jythonProperties = new Properties();
+        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
+        jythonProperties.put("python.cachedir", jythonCacheDir);
+        PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
         createNewDocument();
     }
 

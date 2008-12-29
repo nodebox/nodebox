@@ -13,6 +13,8 @@ public class PlatformUtils {
     public static int platformSpecificModifier;
     private static Border platformLineBorder;
 
+    public static final String SEP = System.getProperty("file.separator");
+
     static {
         String osName = System.getProperty("os.name").toLowerCase();
         platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -35,6 +37,29 @@ public class PlatformUtils {
 
     public static boolean onOther() {
         return current_platform == OTHER;
+    }
+
+    public static String getHomeDirectory() {
+        return System.getProperty("user.home");
+
+    }
+
+    /**
+     * Returns the full path to the user's data directory.
+     * Under Unix, this is usually "~/nodebox"
+     * Under Windows, this is usually "Documents and Settings/username/Application Data/NodeBox"
+     * Under Mac OS X, this is usually "/Users/username/Library/Application Support/NodeBox"
+     *
+     * @return the user's data directory.
+     */
+    public static String getUserDataDirectory() {
+        if (onMac()) {
+            return getHomeDirectory() + SEP + "Library" + SEP + "Application Support" + SEP + Application.NAME;
+        } else if (onWindows()) {
+            return getHomeDirectory() + SEP + "Application Data" + SEP + Application.NAME;
+        } else {
+            return getHomeDirectory() + SEP + Application.NAME.toLowerCase();
+        }
     }
 
     public static KeyStroke getKeyStroke(int key) {
@@ -74,6 +99,14 @@ public class PlatformUtils {
             return new Font("Lucida Grande", Font.PLAIN, 11);
         } else {
             return new Font("Verdana", Font.PLAIN, 10);
+        }
+    }
+
+    public static Font getSmallBoldFont() {
+        if (onMac()) {
+            return new Font("Lucida Grande", Font.BOLD, 11);
+        } else {
+            return new Font("Verdana", Font.BOLD, 10);
         }
     }
 
