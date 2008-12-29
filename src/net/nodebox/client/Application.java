@@ -20,13 +20,14 @@ package net.nodebox.client;
 
 import org.python.core.PySystemState;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class Application {
 
-    private static Application instance = new Application();
+    private static Application instance;
 
     public static Application getInstance() {
         return instance;
@@ -68,6 +69,10 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        // new Application();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                instance = new Application();
+            }
+        });
     }
 }

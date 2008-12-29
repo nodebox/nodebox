@@ -20,7 +20,7 @@ public class PlatformUtils {
         platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         if (osName.indexOf("windows") != -1) {
             current_platform = WIN;
-        } else if (osName.indexOf("mac") != -1) {
+        } else if (osName.startsWith("mac os x")) {
             current_platform = MAC;
         } else {
             current_platform = OTHER;

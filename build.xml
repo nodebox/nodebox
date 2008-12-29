@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="nodebox-core" default="default" basedir=".">
+<project name="NodeBox" default="install" basedir=".">
     <description>Builds and tests the NodeBox core.</description>
 
     <target name="properties">
-        <property name="application.name" value="NodeBox"/>
-        <property name="src.dir" value="src"/>
-        <property name="test.dir" value="test"/>
-        <property name="lib.dir" value="lib"/>
-        <property name="build.dir" value="build"/>
-        <property name="build.prod.dir" location="${build.dir}/prod"/>
-        <property name="build.test.dir" location="${build.dir}/test"/>
-        <property name="dist.dir" value="dist"/>
+        <property name="src" value="src"/>
+        <property name="test" value="test"/>
+        <property name="lib" value="lib"/>
+        <property name="build" value="build"/>
+        <property name="build.prod" location="${build}/prod"/>
+        <property name="build.test" location="${build}/test"/>
+        <property name="dist" value="dist"/>
+        <property name="apple.appstub"
+                  location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
+        <property name="mac.application" location="${dist}/${ant.project.name}.app/"/>
+        <property name="mac.application.contents" location="${mac.application}/Contents"/>
+        <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
+        <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
+        <property name="mac.application.resources" location="${mac.application.contents}/Resources"/>
+        <property name="mac.application.resources.java" location="${mac.application.resources}/Java"/>
 
         <!-- Determine the platform family: windows, mac or linux. -->
         <condition property="platform.windows" value="true">
@@ -33,39 +40,38 @@
         <condition property="platform" value="linux">
             <isset property="platform.linux"/>
         </condition>
-        <!--
+
         <property name="platform.dir" location="platform/${platform}"/>
-        <property name="platform.src.dir" location="${platform.dir}/src"/>
-        <property name="platform.lib.dir" location="${platform.dir}/lib"/>
-        <property name="platform.res.dir" location="${platform.dir}/res"/>
-        -->
+        <property name="platform.src" location="${platform.dir}/src"/>
+        <property name="platform.lib" location="${platform.dir}/lib"/>
+        <property name="platform.res" location="${platform.dir}/res"/>
 
         <path id="project.classpath">
-            <pathelement location="${build.prod.dir}"/>
-            <pathelement location="${build.test.dir}"/>
-            <!-- <pathelement location="${platform.lib.dir}"/> -->
-            <fileset dir="${lib.dir}">
+            <pathelement location="${build.prod}"/>
+            <pathelement location="${build.test}"/>
+            <!-- <pathelement location="${platform.lib}"/> -->
+            <fileset dir="${lib}">
                 <include name="*.jar"/>
             </fileset>
         </path>
     </target>
 
     <target name="init" depends="properties">
-        <mkdir dir="${build.prod.dir}"/>
-        <mkdir dir="${build.test.dir}"/>
-        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${build.prod}"/>
+        <mkdir dir="${build.test}"/>
+        <mkdir dir="${dist}"/>
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod.dir}" source="1.5">
-            <src path="${src.dir}"/>
-            <!--<src path="${platform.src.dir}"/> -->
+        <javac destdir="${build.prod}" source="1.5" target="1.5">
+            <src path="${src}"/>
+            <!--<src path="${platform.src}"/> -->
             <classpath refid="project.classpath"/>
         </javac>
     </target>
 
     <target name="compile-tests" depends="compile">
-        <javac srcdir="${test.dir}" destdir="${build.test.dir}" source="1.5">
+        <javac srcdir="${test}" destdir="${build.test}" source="1.5" target="1.5">
             <classpath refid="project.classpath"/>
         </javac>
     </target>
@@ -75,25 +81,75 @@
             <classpath refid="project.classpath"/>
             <formatter type="brief" usefile="false"/>
             <batchtest>
-                <fileset dir="${build.test.dir}" includes="**/*Test.class"/>
+                <fileset dir="${build.test}" includes="**/*Test.class"/>
             </batchtest>
         </junit>
     </target>
 
     <target name="jar" depends="compile">
-        <mkdir dir="${dist.dir}/lib"/>
-        <jar jarfile="${dist.dir}/lib/nodebox.jar" basedir="${build.prod.dir}"/>
+        <mkdir dir="${dist}/lib"/>
+        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
+    </target>
+
+    <target name="run-jar" depends="jar">
+        <java jar="${jars}/${ant.project.name}.jar" classpath="${bin}" fork="true">
+        </java>
     </target>
 
     <target name="dist-win" depends="jar">
     </target>
 
-    <target name="clean">
-        <delete dir="${build.dir}"/>
-        <delete dir="${dist.dir}"/>
+    <target name="dist-mac" depends="jar" description="Make a double-clickable Mac OS X application">
+        <mkdir dir="${mac.application.resources.java}"/>
+        <mkdir dir="${mac.application.macos}"/>
+        <!-- Copy program jar and library jars -->
+        <copy file="${dist}/lib/nodebox.jar"
+              todir="${mac.application.resources.java}"/>
+        <copy todir="${mac.application.resources.java}">
+            <fileset dir="${lib}">
+                <include name="*.jar"/>
+                <include name="*.py"/>
+                <include name="*.properties"/>
+            </fileset>
+            <fileset dir="${platform.lib}">
+                <include name="*.jar"/>
+                <include name="*.py"/>
+                <include name="*.properties"/>
+            </fileset>
+        </copy>
+        <!-- Copy application stub -->
+        <copy file="${apple.appstub}" toFile="${mac.application.macos}/${ant.project.name}"/>
+        <!-- fix stub permissions -->
+        <chmod file="${mac.application.macos.stub}" perm="755"/>
+        <!-- copy additional Mac contents -->
+        <copy todir="${mac.application.contents}">
+            <fileset dir="${platform.res}"/>
+        </copy>
+        <!-- Copy Jython library files -->
+        <!--
+        <copy todir="${application.resources.java}/Lib">
+            <fileset dir="lib/Lib" />
+        </copy>
+        -->
+        <!-- Make directory into a bundle -->
+        <exec executable="/Developer/Tools/SetFile">
+            <arg line="-a B ${mac.application}"/>
+        </exec>
     </target>
 
+    <!-- Install target, for building the actual product -->
+    <target name="install" depends="dist-mac" description="Create application">
+    </target>
 
-    <target name="default" depends="test" description="Tests the core module."/>
+    <target name="run" depends="install" description="Run the double-clickable application">
+        <!-- Use the exec task to open the application -->
+        <exec dir="${dist}" executable="/usr/bin/open" os="Mac OS X">
+            <arg line="${ant.project.name}.app"/>
+        </exec>
+    </target>
 
+    <target name="clean">
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+    </target>
 </project>

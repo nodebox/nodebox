@@ -116,9 +116,45 @@ public class Document extends JFrame implements NetworkDataListener {
     }
 
     public Document() {
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
         nodeManager = new NodeManager();
+        JPanel rootPanel = new JPanel(new BorderLayout());
+        ViewerPane viewPane = new ViewerPane(this);
+        ParameterPane parameterPane = new ParameterPane(this);
+        NetworkPane networkPane = new NetworkPane(this);
+        PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
+        PaneSplitter viewRestSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewPane, parameterNetworkSplit);
+        rootPanel.add(viewRestSplit, BorderLayout.CENTER);
+        setContentPane(rootPanel);
+        setSize(1100, 800);
+        initMenu();
+        registerForMacOSXEvents();
+        SwingUtils.centerOnScreen(this);
+        setRootNetwork(createEmptyNetwork());
+    }
+
+    private void registerForMacOSXEvents() {
+        if (PlatformUtils.onMac()) {
+            try {
+                // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
+                // use as delegates for various com.apple.eawt.ApplicationListener methods
+                OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
+                OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
+                OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
+                OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
+            } catch (Exception e) {
+                System.err.println("Error while loading the OSXAdapter:");
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    private Network createEmptyNetwork() {
+        NodeType canvasNetworkType = nodeManager.getNodeType("net.nodebox.node.canvas.network");
+        return (Network) canvasNetworkType.createNode();
+    }
+
+    private Network createTestNetwork() {
         NodeType canvasNetworkType = nodeManager.getNodeType("net.nodebox.node.canvas.network");
         NodeType vectorNetworkType = nodeManager.getNodeType("net.nodebox.node.vector.network");
         NodeType imageNetworkType = nodeManager.getNodeType("net.nodebox.node.image.network");
@@ -126,19 +162,18 @@ public class Document extends JFrame implements NetworkDataListener {
         NodeType rectType = nodeManager.getNodeType("net.nodebox.node.vector.rect");
         NodeType transformType = nodeManager.getNodeType("net.nodebox.node.vector.transform");
         NodeType allControlsType = new AllControlsType(nodeManager);
-
-        rootNetwork = (Network) canvasNetworkType.createNode();
-        Node allControls = rootNetwork.create(allControlsType);
+        Network network = (Network) canvasNetworkType.createNode();
+        Node allControls = network.create(allControlsType);
         allControls.setPosition(200, 10);
         allControls.setRendered();
-        Network vector1 = (Network) rootNetwork.create(vectorNetworkType);
+        Network vector1 = (Network) network.create(vectorNetworkType);
         vector1.setPosition(10, 10);
         //vector1.setRendered();
-        Network vector2 = (Network) rootNetwork.create(vectorNetworkType);
+        Network vector2 = (Network) network.create(vectorNetworkType);
         vector2.setPosition(10, 110);
-        Network image1 = (Network) rootNetwork.create(imageNetworkType);
+        Network image1 = (Network) network.create(imageNetworkType);
         image1.setPosition(10, 210);
-        Network image2 = (Network) rootNetwork.create(imageNetworkType);
+        Network image2 = (Network) network.create(imageNetworkType);
         image2.setPosition(10, 310);
         Node ellipse1 = vector1.create(ellipseType);
         ellipse1.setRendered();
@@ -154,20 +189,7 @@ public class Document extends JFrame implements NetworkDataListener {
         transform2.setPosition(40, 80);
         transform2.setRendered();
         transform2.getParameter("shape").connect(rect1);
-
-        JPanel rootPanel = new JPanel(new BorderLayout());
-        ViewerPane viewPane = new ViewerPane(this);
-        ParameterPane parameterPane = new ParameterPane(this);
-        NetworkPane networkPane = new NetworkPane(this);
-        PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
-        PaneSplitter viewRestSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewPane, parameterNetworkSplit);
-        rootPanel.add(viewRestSplit, BorderLayout.CENTER);
-        setContentPane(rootPanel);
-        setActiveNetwork(rootNetwork);
-        setActiveNode(allControls);
-        setSize(1100, 800);
-        initMenu();
-        SwingUtils.centerOnScreen(this);
+        return network;
     }
 
     private void initMenu() {
@@ -230,6 +252,11 @@ public class Document extends JFrame implements NetworkDataListener {
         return rootNetwork;
     }
 
+    public void setRootNetwork(Network rootNetwork) {
+        this.rootNetwork = rootNetwork;
+        setActiveNetwork(rootNetwork);
+    }
+
     public Network getActiveNetwork() {
         return activeNetwork;
     }
@@ -242,7 +269,7 @@ public class Document extends JFrame implements NetworkDataListener {
         if (activeNetwork != null)
             activeNetwork.addNetworkDataListener(this);
         fireActiveNetworkChanged();
-        if (!activeNetwork.isEmpty()) {
+        if (activeNetwork != null && !activeNetwork.isEmpty()) {
             // Get the first node.
             Iterator<Node> it = activeNetwork.getNodes().iterator();
             Node n = it.next();
@@ -281,8 +308,12 @@ public class Document extends JFrame implements NetworkDataListener {
         return documentChanged;
     }
 
+    public boolean readFromFile(String path) {
+        return readFromFile(new File(path));
+    }
+
     public boolean readFromFile(File file) {
-        FileInputStream fis = null;
+        FileInputStream fis;
         try {
             // Load the document
             fis = new FileInputStream(file);
@@ -290,28 +321,23 @@ public class Document extends JFrame implements NetworkDataListener {
 
             // Setup the parser
             SAXParserFactory spf = SAXParserFactory.newInstance();
-            SAXParser parser = spf.newSAXParser();
-            // TODO: Parsing
-            /*
-            PnaXmlReader reader = new PnaXmlReader();
-            parser.setContentHandler(reader);
             // The next lines make sure that the SAX parser doesn't try to validate the document,
             // or tries to load in external DTDs (such as those from W3). Non-parsing means you
             // don't need an internet connection to use the program, and speeds up loading the
             // document massively.
-            parser.setFeature("http://xml.org/sax/features/validation", false);
-            parser.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            parser.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            spf.setFeature("http://xml.org/sax/features/validation", false);
+            spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
-            // Parse the document
-            parser.parse(source);
+            SAXParser parser = spf.newSAXParser();
+            XmlHandler handler = new XmlHandler(nodeManager);
+            parser.parse(source, handler);
 
             // The parsed network is now stored in the reader
-            setRootNetwork(reader.getNetwork());
+            setRootNetwork(handler.getNetwork());
             setDocumentFile(file);
             documentChanged = false;
-            */
             return true;
         } catch (ParserConfigurationException e) {
             logger.log(Level.SEVERE, "Error during configuration", e);
@@ -338,6 +364,16 @@ public class Document extends JFrame implements NetworkDataListener {
         return true;
     }
 
+    public void showAbout() {
+        // TODO: Implement
+        Toolkit.getDefaultToolkit().beep();
+    }
+
+    public void showPreferences() {
+        // TODO: Implement
+        Toolkit.getDefaultToolkit().beep();
+    }
+
     public boolean save() {
         if (documentFile == null) {
             return saveAs();
@@ -359,8 +395,7 @@ public class Document extends JFrame implements NetworkDataListener {
     public boolean saveToFile(File file) {
         try {
             FileOutputStream fos = new FileOutputStream(file);
-            // TODO: Implement the toXml()
-            //fos.write(rootNetwork.toXml().getBytes());
+            fos.write(rootNetwork.toXml().getBytes("UTF-8"));
             fos.close();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while saving the file.", "MainController", JOptionPane.ERROR_MESSAGE);
@@ -384,6 +419,18 @@ public class Document extends JFrame implements NetworkDataListener {
         }
     }
 
+    public void quit() {
+        boolean allClosed = true;
+        // Because documents will disappear from the list once they are closed,
+        // make a copy of the list.
+        java.util.List<Document> documents = new ArrayList<Document>(Application.getInstance().getDocuments());
+        for (Document d : documents) {
+            allClosed = allClosed && d.shouldClose();
+        }
+        if (allClosed) {
+            System.exit(0);
+        }
+    }
 
     public void markChanged() {
         if (!documentChanged) {
@@ -446,8 +493,7 @@ public class Document extends JFrame implements NetworkDataListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            //PnaDocumentFrame requester = getCurrentDocument();
-            File chosenFile = FileUtils.showOpenDialog(Document.this, lastFilePath, "pna", "PNA File");
+            File chosenFile = FileUtils.showOpenDialog(Document.this, lastFilePath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
                 lastFilePath = chosenFile.getParentFile().getAbsolutePath();
                 if (rootNetwork == null || rootNetwork.isEmpty()) { // Re-use the requesting object if it's empty.
@@ -539,16 +585,7 @@ public class Document extends JFrame implements NetworkDataListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            boolean allClosed = true;
-            // Because documents will disappear from the list once they are closed,
-            // make a copy of the list.
-            java.util.List<Document> documents = new ArrayList<Document>(Application.getInstance().getDocuments());
-            for (Document d : documents) {
-                allClosed = allClosed && d.shouldClose();
-            }
-            if (allClosed) {
-                System.exit(0);
-            }
+            quit();
         }
     }
 
