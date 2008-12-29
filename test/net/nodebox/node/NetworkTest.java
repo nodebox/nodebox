@@ -91,13 +91,16 @@ public class NetworkTest extends NodeTestCase {
     public void testPersistence() {
         // Create network
         Network rootNetwork = (Network) manager.getNodeType("net.nodebox.node.canvas.network").createNode();
-        Network vector1 = (Network) rootNetwork.create(manager.getNodeType("net.nodebox.node.vector.network"));
-        vector1.setPosition(10, 10);
-        vector1.setRendered();
-        Node ellipse1 = vector1.create(manager.getNodeType("net.nodebox.node.vector.ellipse"));
+        Network vecnet1 = (Network) rootNetwork.create(manager.getNodeType("net.nodebox.node.vector.network"));
+        vecnet1.setPosition(10, 10);
+        assertEquals("vecnet1", vecnet1.getName());
+        vecnet1.setRendered();
+        Node ellipse1 = vecnet1.create(manager.getNodeType("net.nodebox.node.vector.ellipse"));
+        assertEquals("ellipse1", ellipse1.getName());
         ellipse1.setRendered();
         ellipse1.setPosition(100, 30);
-        Node transform1 = vector1.create(manager.getNodeType("net.nodebox.node.vector.transform"));
+        Node transform1 = vecnet1.create(manager.getNodeType("net.nodebox.node.vector.transform"));
+        assertEquals("transform1", transform1.getName());
         transform1.setPosition(40, 80);
         transform1.setRendered();
         transform1.getParameter("shape").connect(ellipse1);
@@ -108,8 +111,20 @@ public class NetworkTest extends NodeTestCase {
         // Read network
         Network newNetwork = Network.load(manager, xmlString);
 
-        // TODO: Equals tests for identity. We need to correctly test this.
-        // assertEquals(rootNetwork, newNetwork);
+        // Perform tests on the network
+        assertEquals(rootNetwork.getName(), newNetwork.getName());
+        assertTrue(newNetwork.contains("vecnet1"));
+        Network nVector1 = (Network) newNetwork.getNode("vecnet1");
+        assertTrue(nVector1.contains("ellipse1"));
+        assertTrue(nVector1.contains("transform1"));
+        Node nEllipse1 = nVector1.getNode("ellipse1");
+        Node nTransform1 = nVector1.getNode("transform1");
+        assertEquals(ellipse1.getValue("x"), nEllipse1.getValue("x"));
+        assertEquals(ellipse1.getValue("fill"), nEllipse1.getValue("fill"));
+        assertEquals(ellipse1.getValue("stroke"), nEllipse1.getValue("stroke"));
+        assertTrue(nEllipse1.isConnected());
+        assertTrue(nTransform1.isConnected());
+        assertTrue(nTransform1.getParameter("shape").isConnectedTo(nEllipse1));
     }
 
     /**

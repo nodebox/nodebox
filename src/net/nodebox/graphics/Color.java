@@ -44,7 +44,27 @@ public class Color implements Cloneable {
     }
 
     public Color(String colorName) {
-        // TODO: Implement
+        // RGB hex color.
+        if (colorName.startsWith("#")) {
+            if (colorName.length() == 9) { // #rrggbbaa
+                String rr = colorName.substring(1, 3);
+                String gg = colorName.substring(3, 5);
+                String bb = colorName.substring(5, 7);
+                String aa = colorName.substring(7);
+                int r = Integer.parseInt(rr, 16);
+                int g = Integer.parseInt(gg, 16);
+                int b = Integer.parseInt(bb, 16);
+                int a = Integer.parseInt(aa, 16);
+                this.r = r / 255.0;
+                this.g = g / 255.0;
+                this.b = b / 255.0;
+                this.a = a / 255.0;
+            } else {
+                throw new IllegalArgumentException("Inapropriate length for color value (" + colorName + ")");
+            }
+        } else {
+            throw new IllegalArgumentException("Only hexadecima values (e.g. #337711ff) are accepted. (" + colorName + ")");
+        }
     }
 
     public Color(java.awt.Color color) {
