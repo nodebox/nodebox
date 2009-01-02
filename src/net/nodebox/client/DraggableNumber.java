@@ -128,7 +128,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        Rectangle r = g2.getClipBounds();
+        Rectangle r = getBounds();
         int radius = r.height / 2;
         int halfradius = (radius / 2) - 2;
         r.setRect(r.x + 2, r.y + 2, r.width - 8, r.height - 8);
