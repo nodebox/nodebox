@@ -128,7 +128,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //Rectangle r = getBounds();
         Rectangle r = g2.getClipBounds();
         r.setRect(r.x + 2, r.y + 2, r.width - 8, r.height - 8);
         g2.setColor(new Color(180, 180, 180));
@@ -136,10 +135,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         g2.setColor(new Color(30, 30, 30));
         g2.setFont(PlatformUtils.getSmallBoldFont());
         paintCenteredString(g2, valueAsString(), r.x + r.width / 2F, r.y + r.height / 2F);
-        Rectangle leftButtonRect = getLeftButtonRect(r);
-        Rectangle rightButtonRect = getRightButtonRect(r);
-        leftIcon.paintIcon(this, g, leftButtonRect.x, leftButtonRect.y + r.height / 2);
-        rightIcon.paintIcon(this, g, rightButtonRect.x, rightButtonRect.y + r.height / 2);
+        // TODO: The "-2" at the end is a hack. 
+        leftIcon.paintIcon(this, g, r.x + 2, r.y + r.height / 2 - 2);
+        rightIcon.paintIcon(this, g, r.x + r.width - 8, r.y + r.height / 2 - 2);
     }
 
     private void paintCenteredString(Graphics2D g2, String s, float centerX, float centerY) {
