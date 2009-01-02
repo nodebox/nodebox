@@ -33,6 +33,12 @@ public class ParameterTypeTest extends NodeTestCase {
         checkInvalidName(nt, "radius", "parameter type names must be unique for the node type");
     }
 
+    public void testType() {
+        NodeType customType = numberType.clone();
+        ParameterType ptAngle = customType.addParameterType("angle", ParameterType.Type.ANGLE);
+        assertEquals(ParameterType.CoreType.FLOAT, ptAngle.getCoreType());
+    }
+
     public void testDefaultValue() {
         NodeType customType = numberType.clone();
         ParameterType ptInt = customType.addParameterType("int", ParameterType.Type.INT);
@@ -74,6 +80,25 @@ public class ParameterTypeTest extends NodeTestCase {
         assertValidValue(ptToggle, 1);
     }
 
+    public void testBounding() {
+        NodeType customType = numberType.clone();
+        ParameterType ptAngle = customType.addParameterType("angle", ParameterType.Type.ANGLE);
+        ptAngle.setBoundingMethod(ParameterType.BoundingMethod.SOFT);
+        ptAngle.setMinimumValue(-100.0);
+        ptAngle.setMaximumValue(100.0);
+        Node n = customType.createNode();
+        assertValidValue(n, "angle", 0.0);
+        assertValidValue(n, "angle", 1000.0);
+        assertValidValue(n, "angle", -1000.0);
+        ptAngle.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        assertEquals(-100.0, n.asFloat("angle")); // Setting the bounding type to hard clamped the value
+        assertInvalidValue(n, "angle", 500.0);
+        ptAngle.setBoundingMethod(ParameterType.BoundingMethod.NONE);
+        assertValidValue(n, "angle", 300.0);
+        ptAngle.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        assertEquals(100.0, n.asFloat("angle"));
+    }
+
     //// Helper functions ////
 
     private void checkInvalidName(NodeType nt, String newName, String reason) {
@@ -100,9 +125,26 @@ public class ParameterTypeTest extends NodeTestCase {
         }
     }
 
+    private void assertValidValue(Node n, String parameterName, Object value) {
+        try {
+            n.setValue(parameterName, value);
+        } catch (ValueError e) {
+            fail("The value '" + value + "' should have been accepted: " + e);
+        }
+    }
+
+
     private void assertInvalidValue(ParameterType pt, Object value) {
         try {
             pt.validate(value);
+            fail("The value '" + value + "' should not have been accepted.");
+        } catch (ValueError e) {
+        }
+    }
+
+    private void assertInvalidValue(Node n, String parameterName, Object value) {
+        try {
+            n.setValue(parameterName, value);
             fail("The value '" + value + "' should not have been accepted.");
         } catch (ValueError e) {
         }
