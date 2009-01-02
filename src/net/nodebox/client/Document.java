@@ -53,6 +53,12 @@ public class Document extends JFrame implements NetworkDataListener {
     public PasteAction pasteAction = new PasteAction();
     public DeleteAction deleteAction = new DeleteAction();
 
+    public MinimizeAction minimizeAction = new MinimizeAction();
+    public ZoomAction zoomAction = new ZoomAction();
+    public BringAllToFrontAction bringAllToFrontAction = new BringAllToFrontAction();
+
+    public NodeboxSiteAction nodeboxSiteAction = new NodeboxSiteAction();
+
     private JMenu recentFileMenu;
 
     private NodeManager nodeManager;
@@ -250,35 +256,53 @@ public class Document extends JFrame implements NetworkDataListener {
         JMenuBar menuBar = new JMenuBar();
         // File menu
         JMenu fileMenu = new JMenu("File");
-        fileMenu.add(new JMenuItem(newAction));
-        fileMenu.add(new JMenuItem(openAction));
+        fileMenu.add(newAction);
+        fileMenu.add(openAction);
         recentFileMenu = new JMenu("Open Recent");
         buildRecentFileMenu();
         fileMenu.add(recentFileMenu);
         fileMenu.addSeparator();
-        fileMenu.add(new JMenuItem(closeAction));
-        fileMenu.add(new JMenuItem(saveAction));
-        fileMenu.add(new JMenuItem(saveAsAction));
-        fileMenu.add(new JMenuItem(revertAction));
+        fileMenu.add(closeAction);
+        fileMenu.add(saveAction);
+        fileMenu.add(saveAsAction);
+        fileMenu.add(revertAction);
         fileMenu.addSeparator();
-        fileMenu.add(new JMenuItem(exportAction));
+        fileMenu.add(exportAction);
         if (!PlatformUtils.onMac()) {
             fileMenu.addSeparator();
-            fileMenu.add(new JMenuItem(quitAction));
+            fileMenu.add(quitAction);
         }
         menuBar.add(fileMenu);
 
         // Edit menu
         JMenu editMenu = new JMenu("Edit");
-        editMenu.add(new JMenuItem(undoAction));
-        editMenu.add(new JMenuItem(redoAction));
+        editMenu.add(undoAction);
+        editMenu.add(redoAction);
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem(cutAction));
-        editMenu.add(new JMenuItem(copyAction));
-        editMenu.add(new JMenuItem(pasteAction));
+        editMenu.add(cutAction);
+        editMenu.add(copyAction);
+        editMenu.add(pasteAction);
         editMenu.addSeparator();
-        editMenu.add(new JMenuItem(deleteAction));
+        editMenu.add(deleteAction);
         menuBar.add(editMenu);
+
+        // Window menu
+        JMenu windowMenu = new JMenu("Window");
+        JMenu layoutMenu = new JMenu("Layout");
+        //layoutMenu.add(new )
+        windowMenu.add(minimizeAction);
+        windowMenu.add(zoomAction);
+        windowMenu.addSeparator();
+        windowMenu.add(layoutMenu);
+        windowMenu.addSeparator();
+        windowMenu.add(bringAllToFrontAction);
+        windowMenu.addSeparator();
+        menuBar.add(windowMenu);
+
+        // Help menu
+        JMenu helpMenu = new JMenu("Help");
+        helpMenu.add(nodeboxSiteAction);
+        menuBar.add(helpMenu);
 
         setJMenuBar(menuBar);
     }
@@ -624,7 +648,7 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public class SaveAsAction extends AbstractAction {
         public SaveAsAction() {
-            putValue(NAME, "Save As");
+            putValue(NAME, "Save As...");
             putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_S, Event.SHIFT_MASK));
         }
 
@@ -635,7 +659,7 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public class RevertAction extends AbstractAction {
         public RevertAction() {
-            putValue(NAME, "Revert");
+            putValue(NAME, "Revert to Saved");
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -762,4 +786,47 @@ public class Document extends JFrame implements NetworkDataListener {
     }
 
 
+    public class MinimizeAction extends AbstractAction {
+        public MinimizeAction() {
+            putValue(NAME, "Minimize");
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_M, KeyEvent.META_MASK));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            setState(Frame.ICONIFIED);
+        }
+    }
+
+    public class ZoomAction extends AbstractAction {
+        public ZoomAction() {
+            putValue(NAME, "Zoom");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO: Implement
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    public class BringAllToFrontAction extends AbstractAction {
+        public BringAllToFrontAction() {
+            putValue(NAME, "Bring All to Front");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO: Implement
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    public class NodeboxSiteAction extends AbstractAction {
+        public NodeboxSiteAction() {
+            putValue(NAME, "NodeBox Site");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            // TODO: Implement
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
 }
