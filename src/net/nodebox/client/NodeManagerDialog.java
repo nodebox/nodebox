@@ -4,6 +4,8 @@ import net.nodebox.node.NodeManager;
 import net.nodebox.node.NodeType;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
@@ -109,7 +111,7 @@ public class NodeManagerDialog extends JDialog {
         searchField.putClientProperty("JTextField.variant", "search");
         searchField.addKeyListener(escapeListener);
         searchField.addKeyListener(arrowKeysListener);
-        searchField.addKeyListener(searchFieldChangeListener);
+        searchField.getDocument().addDocumentListener(searchFieldChangeListener);
         nodeList = new JList(filteredNodeListModel);
         nodeList.addMouseListener(doubleClickListener);
         nodeList.addKeyListener(escapeListener);
@@ -189,9 +191,20 @@ public class NodeManagerDialog extends JDialog {
         }
     }
 
-    private class SearchFieldChangeListener extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
+    private class SearchFieldChangeListener implements DocumentListener {
+        public void insertUpdate(DocumentEvent e) {
+            changedEvent();
+        }
+
+        public void removeUpdate(DocumentEvent e) {
+            changedEvent();
+        }
+
+        public void changedUpdate(DocumentEvent e) {
+            changedEvent();
+        }
+
+        private void changedEvent() {
             if (filteredNodeListModel.getSearchString().equals(searchField.getText())) return;
             filteredNodeListModel.setSearchString(searchField.getText());
             // Trigger a model reload.
