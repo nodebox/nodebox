@@ -347,6 +347,7 @@ public class ParameterType extends Observable {
         if (value == null && !isNullAllowed()) {
             throw new ValueError("Value for parameter " + getName() + " cannot be null.");
         }
+        if (value == null) return;
         // Check if the type matches
         Class requiredType = CORE_TYPE_MAPPING.get(coreType);
         if (!value.getClass().isAssignableFrom(requiredType)) {

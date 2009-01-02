@@ -148,6 +148,11 @@ public class DraggableNumber extends JComponent {
         return value;
     }
 
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(120, 30);
+    }
+
     public void setValue(double value) {
         this.value = value;
         String formattedNumber = numberFormat.format(getValue());

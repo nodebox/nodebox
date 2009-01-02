@@ -192,6 +192,24 @@ public class Parameter implements ParameterTypeListener {
         }
     }
 
+    public String asExpression() {
+        if (getCoreType() == ParameterType.CoreType.INT) {
+            return String.valueOf((Integer) value);
+        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
+            return String.valueOf((Double) value);
+        } else if (getCoreType() == ParameterType.CoreType.STRING) {
+            String v = (String) value;
+            // Quote the string
+            v = v.replaceAll("\"", "\\\"");
+            return "\"" + v + "\"";
+        } else if (getCoreType() == ParameterType.CoreType.COLOR) {
+            Color v = (Color) value;
+            return String.format("Color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
+        } else {
+            throw new AssertionError("Cannot convert parameter value " + asString() + " of type " + getCoreType() + " to expression.");
+        }
+    }
+
     public Object getValue() {
         return value;
     }
@@ -223,7 +241,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public void setExpression(String expression) {
-        if (hasExpression() && expression.equals(getExpression())) {
+        if (hasExpression() && getExpression().equals(expression)) {
             return;
         }
         if (expression == null || expression.trim().length() == 0) {
@@ -488,5 +506,4 @@ public class Parameter implements ParameterTypeListener {
             }
         }
     }
-
 }
