@@ -540,8 +540,11 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public void updateTitle() {
         String postfix = "";
-        if (true || !PlatformUtils.onMac()) { // todo: mac only code
+        if (!PlatformUtils.onMac()) { // todo: mac only code
             postfix = (documentChanged ? " *" : "") + " - PNA";
+        } else {
+            getRootPane().putClientProperty("Window.documentModified", Boolean.TRUE);
+            getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
         if (documentFile == null) {
             setTitle("Untitled" + postfix);

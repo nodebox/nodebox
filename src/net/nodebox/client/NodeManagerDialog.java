@@ -54,6 +54,7 @@ public class NodeManagerDialog extends JDialog {
 
     public NodeManagerDialog(Frame owner, NodeManager nodeManager) {
         super(owner, "Create node type", true);
+        getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
         this.nodeManager = nodeManager;
         searchField = new JTextField();

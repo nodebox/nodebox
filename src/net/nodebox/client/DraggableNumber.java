@@ -129,10 +129,18 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Rectangle r = g2.getClipBounds();
+        int radius = r.height / 2;
+        int halfradius = (radius / 2) - 2;
         r.setRect(r.x + 2, r.y + 2, r.width - 8, r.height - 8);
-        g2.setColor(new Color(180, 180, 180));
-        g2.fillRoundRect(r.x, r.y, r.width, r.height, 5, 5);
-        g2.setColor(new Color(30, 30, 30));
+        g2.setColor(new Color(215, 215, 215));
+        g2.fillRoundRect(r.x, r.y, r.width, r.height, radius, radius);
+        g2.setColor(new Color(150, 150, 150));
+        g2.drawRoundRect(r.x, r.y, r.width, r.height, radius, radius);
+        g2.setColor(new Color(187, 187, 187));
+        g2.drawLine(r.x + halfradius, r.y + 1, r.width - halfradius, r.y + 1);
+        g2.setColor(new Color(223, 223, 223));
+        g2.drawLine(r.x + halfradius, r.y + r.height - 1, r.width - halfradius, r.y + r.height - 1);
+        g2.setColor(new Color(0, 0, 0));
         g2.setFont(PlatformUtils.getSmallBoldFont());
         paintCenteredString(g2, valueAsString(), r.x + r.width / 2F, r.y + r.height / 2F);
         // TODO: The "-2" at the end is a hack. 
