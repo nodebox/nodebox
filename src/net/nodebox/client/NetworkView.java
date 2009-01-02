@@ -234,6 +234,8 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         if (dialog.getSelectedNodeType() != null) {
             Node n = getNetwork().create(dialog.getSelectedNodeType());
             n.setPosition(new net.nodebox.graphics.Point(pt));
+            doc.setActiveNode(n);
+            n.setRendered();
         }
 
     }
