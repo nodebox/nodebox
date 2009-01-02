@@ -10,25 +10,49 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 public class NodeManagerDialog extends JDialog {
 
-    private class NodeListModel implements ListModel {
+    private class FilteredNodeListModel implements ListModel {
 
         private NodeManager nodeManager;
-        private java.util.List<NodeType> nodeTypes;
+        private java.util.List<NodeType> filteredNodeTypes;
+        private String searchString;
 
-        private NodeListModel(NodeManager nodeManager) {
+        private FilteredNodeListModel(NodeManager nodeManager) {
             this.nodeManager = nodeManager;
-            this.nodeTypes = nodeManager.getNodeTypes();
+            this.searchString = "";
+            this.filteredNodeTypes = nodeManager.getNodeTypes();
+        }
+
+        public String getSearchString() {
+            return searchString;
+        }
+
+        public void setSearchString(String searchString) {
+            this.searchString = searchString.trim();
+            if (searchString.length() == 0) {
+                filteredNodeTypes = nodeManager.getNodeTypes();
+
+            } else {
+                filteredNodeTypes = new ArrayList<NodeType>();
+                for (NodeType type : nodeManager.getNodeTypes()) {
+                    String description = type.getDescription() == null ? "" : type.getDescription();
+                    if (type.getShortName().contains(searchString) ||
+                            description.contains(searchString)) {
+                        filteredNodeTypes.add(type);
+                    }
+                }
+            }
         }
 
         public int getSize() {
-            return nodeTypes.size();
+            return filteredNodeTypes.size();
         }
 
         public Object getElementAt(int index) {
-            return nodeTypes.get(index);
+            return filteredNodeTypes.get(index);
         }
 
         public void addListDataListener(ListDataListener l) {
@@ -40,6 +64,27 @@ public class NodeManagerDialog extends JDialog {
         }
     }
 
+    private class NodeTypeRenderer extends JLabel implements ListCellRenderer {
+
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            assert (value instanceof NodeType);
+            NodeType nodeType = (NodeType) value;
+            setText(nodeType.getShortName());
+            if (isSelected) {
+                setBackground(list.getSelectionBackground());
+                setForeground(list.getSelectionForeground());
+            } else {
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
+            }
+            setEnabled(list.isEnabled());
+            setFont(list.getFont());
+            setOpaque(true);
+            return this;
+        }
+
+    }
+
     private NodeManager nodeManager;
     private JTextField searchField;
     private JList nodeList;
@@ -47,6 +92,8 @@ public class NodeManagerDialog extends JDialog {
     private DoubleClickListener doubleClickListener = new DoubleClickListener();
     private EscapeListener escapeListener = new EscapeListener();
     private ArrowKeysListener arrowKeysListener = new ArrowKeysListener();
+    private SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
+    private FilteredNodeListModel filteredNodeListModel;
 
     public NodeManagerDialog(NodeManager nodeManager) {
         this(null, nodeManager);
@@ -57,16 +104,20 @@ public class NodeManagerDialog extends JDialog {
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
         this.nodeManager = nodeManager;
+        filteredNodeListModel = new FilteredNodeListModel(nodeManager);
         searchField = new JTextField();
         searchField.putClientProperty("JTextField.variant", "search");
+        searchField.addKeyListener(escapeListener);
         searchField.addKeyListener(arrowKeysListener);
-        nodeList = new JList(new NodeListModel(nodeManager));
+        searchField.addKeyListener(searchFieldChangeListener);
+        nodeList = new JList(filteredNodeListModel);
         nodeList.addMouseListener(doubleClickListener);
+        nodeList.addKeyListener(escapeListener);
         nodeList.addKeyListener(arrowKeysListener);
         nodeList.setSelectedIndex(0);
+        nodeList.setCellRenderer(new NodeTypeRenderer());
         panel.add(searchField, BorderLayout.NORTH);
         panel.add(nodeList, BorderLayout.CENTER);
-        addEscapeSupport(this);
         setContentPane(panel);
         setSize(346, 382);
         SwingUtils.centerOnScreen(this);
@@ -74,16 +125,6 @@ public class NodeManagerDialog extends JDialog {
 
     public NodeType getSelectedNodeType() {
         return selectedNodeType;
-    }
-
-    private void addEscapeSupport(Component c) {
-        c.addKeyListener(escapeListener);
-        if (c instanceof Container) {
-            Container container = (Container) c;
-            for (Component child : container.getComponents()) {
-                addEscapeSupport(child);
-            }
-        }
     }
 
     public NodeManager getNodeManager() {
@@ -145,6 +186,18 @@ public class NodeManagerDialog extends JDialog {
             } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 selectAndClose();
             }
+        }
+    }
+
+    private class SearchFieldChangeListener extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (filteredNodeListModel.getSearchString().equals(searchField.getText())) return;
+            filteredNodeListModel.setSearchString(searchField.getText());
+            // Trigger a model reload.
+            nodeList.setModel(filteredNodeListModel);
+            nodeList.setSelectedIndex(0);
+            repaint();
         }
     }
 }

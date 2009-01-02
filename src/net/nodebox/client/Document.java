@@ -543,13 +543,13 @@ public class Document extends JFrame implements NetworkDataListener {
         if (!PlatformUtils.onMac()) { // todo: mac only code
             postfix = (documentChanged ? " *" : "") + " - PNA";
         } else {
-            getRootPane().putClientProperty("Window.documentModified", Boolean.TRUE);
-            getRootPane().putClientProperty("Window.documentFile", documentFile);
+            getRootPane().putClientProperty("Window.documentModified", documentChanged);
         }
         if (documentFile == null) {
             setTitle("Untitled" + postfix);
         } else {
             setTitle(documentFile.getName() + postfix);
+            getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
     }
 

@@ -57,6 +57,8 @@ public class ParameterRow extends JComponent implements ComponentListener {
         expressionField = new JTextField();
         expressionField.setVisible(false);
         expressionField.setAction(new ExpressionFieldChangedAction());
+        expressionField.putClientProperty("JComponent.sizeVariant", "small");
+        expressionField.setFont(PlatformUtils.getSmallBoldFont());
 
         add(this.label);
         add(this.control);
