@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 public class Document extends JFrame implements NetworkDataListener {
 
@@ -33,7 +35,7 @@ public class Document extends JFrame implements NetworkDataListener {
 
     private static String lastFilePath;
     private static String lastExportPath;
-
+    private static Preferences recentFilesPreferences = Preferences.userRoot().node("/net/nodebox/recent");
 
     public NewAction newAction = new NewAction();
     public OpenAction openAction = new OpenAction();
@@ -50,6 +52,8 @@ public class Document extends JFrame implements NetworkDataListener {
     public CopyAction copyAction = new CopyAction();
     public PasteAction pasteAction = new PasteAction();
     public DeleteAction deleteAction = new DeleteAction();
+
+    private JMenu recentFileMenu;
 
     private NodeManager nodeManager;
     private Network rootNetwork;
@@ -192,12 +196,64 @@ public class Document extends JFrame implements NetworkDataListener {
         return network;
     }
 
+    private static void addRecentFile(File f) {
+        File canonicalFile;
+        try {
+            canonicalFile = f.getCanonicalFile();
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Could not get canonical file name", e);
+            return;
+        }
+        ArrayList<File> fileList = getRecentFiles();
+        // If the recent file was already in the list, remove it and add it to the top.
+        // If the list did not contain the file, the remove call does nothing.
+        fileList.remove(canonicalFile);
+        fileList.add(0, canonicalFile);
+        writeRecentFiles(fileList);
+        for (Document doc : Application.getInstance().getDocuments()) {
+            doc.buildRecentFileMenu();
+        }
+    }
+
+    private static void writeRecentFiles(ArrayList<File> fileList) {
+        int i = 1;
+        for (File f : fileList) {
+            try {
+                recentFilesPreferences.put(String.valueOf(i), f.getCanonicalPath());
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Could not get canonical file name", e);
+                return;
+            }
+            i++;
+            if (i > 10) break;
+        }
+        try {
+            recentFilesPreferences.flush();
+        } catch (BackingStoreException e) {
+            logger.log(Level.WARNING, "Could not write recent files preferences", e);
+        }
+    }
+
+    private static ArrayList<File> getRecentFiles() {
+        ArrayList<File> fileList = new ArrayList<File>(10);
+        for (int i = 1; i <= 10; i++) {
+            File file = new File(recentFilesPreferences.get(String.valueOf(i), ""));
+            if (file.exists()) {
+                fileList.add(file);
+            }
+        }
+        return fileList;
+    }
+
     private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
         // File menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.add(new JMenuItem(newAction));
         fileMenu.add(new JMenuItem(openAction));
+        recentFileMenu = new JMenu("Open Recent");
+        buildRecentFileMenu();
+        fileMenu.add(recentFileMenu);
         fileMenu.addSeparator();
         fileMenu.add(new JMenuItem(closeAction));
         fileMenu.add(new JMenuItem(saveAction));
@@ -224,6 +280,13 @@ public class Document extends JFrame implements NetworkDataListener {
         menuBar.add(editMenu);
 
         setJMenuBar(menuBar);
+    }
+
+    private void buildRecentFileMenu() {
+        recentFileMenu.removeAll();
+        for (File f : getRecentFiles()) {
+            recentFileMenu.add(new OpenRecentAction(f));
+        }
     }
 
     //// Document events ////
@@ -306,6 +369,15 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public boolean isChanged() {
         return documentChanged;
+    }
+
+    public static void open(File file) {
+        lastFilePath = file.getParentFile().getAbsolutePath();
+        Document doc = Application.getInstance().createNewDocument();
+        if (doc.readFromFile(file)) {
+            doc.setDocumentFile(file);
+        }
+        addRecentFile(file);
     }
 
     public boolean readFromFile(String path) {
@@ -485,29 +557,31 @@ public class Document extends JFrame implements NetworkDataListener {
         }
     }
 
-
     public class OpenAction extends AbstractAction {
         public OpenAction() {
-            putValue(NAME, "Open");
+            putValue(NAME, "Open...");
             putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_O));
         }
 
         public void actionPerformed(ActionEvent e) {
             File chosenFile = FileUtils.showOpenDialog(Document.this, lastFilePath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
-                lastFilePath = chosenFile.getParentFile().getAbsolutePath();
-                if (rootNetwork == null || rootNetwork.isEmpty()) { // Re-use the requesting object if it's empty.
-                    if (readFromFile(chosenFile)) {
-                        setDocumentFile(chosenFile);
-                        setVisible(true);
-                    }
-                } else { // Create a new document.
-                    Document doc = Application.getInstance().createNewDocument();
-                    if (doc.readFromFile(chosenFile)) {
-                        doc.setDocumentFile(chosenFile);
-                    }
-                }
+                open(chosenFile);
             }
+        }
+    }
+
+    public class OpenRecentAction extends AbstractAction {
+        private File file;
+
+
+        public OpenRecentAction(File file) {
+            this.file = file;
+            putValue(NAME, file.getName());
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            open(file);
         }
     }
 
