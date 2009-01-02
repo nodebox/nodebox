@@ -71,7 +71,8 @@ public class NodeManagerDialog extends JDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof NodeType);
             NodeType nodeType = (NodeType) value;
-            setText(nodeType.getShortName());
+            String html = "<html>" + nodeType.getShortName() + "<font color=#cccccc> Ð " + nodeType.getDescription() + "</font></html>";
+            setText(html);
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
                 setForeground(list.getSelectionForeground());

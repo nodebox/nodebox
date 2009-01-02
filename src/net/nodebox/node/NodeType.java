@@ -115,7 +115,7 @@ public abstract class NodeType {
     /**
      * The description of this node.
      */
-    private String description;
+    private String description = "";
 
     /**
      * An ordered list with all input parameter types.
