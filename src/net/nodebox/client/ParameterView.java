@@ -1,11 +1,15 @@
 package net.nodebox.client;
 
+import net.nodebox.Icons;
 import net.nodebox.client.parameter.*;
 import net.nodebox.node.*;
 import net.nodebox.node.vector.RectType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,6 +80,8 @@ public class ParameterView extends JComponent {
             if (!p.isPrimitive()) continue;
             JLabel label = new JLabel(p.getLabel());
             label.setAlignmentX(JLabel.RIGHT_ALIGNMENT);
+            label.setHorizontalAlignment(JLabel.RIGHT);
+            label.setHorizontalTextPosition(JLabel.RIGHT);
             label.putClientProperty("JComponent.sizeVariant", "small");
             label.setFont(PlatformUtils.getSmallBoldFont());
             Class controlClass = CONTROL_MAP.get(p.getType());
@@ -90,6 +96,8 @@ public class ParameterView extends JComponent {
             GridBagConstraints labelConstraints = new GridBagConstraints();
             labelConstraints.gridx = 0;
             labelConstraints.gridy = rowindex;
+            labelConstraints.insets = new Insets(10, 0, 0, 10);
+            labelConstraints.ipadx = 20;
             labelConstraints.fill = GridBagConstraints.HORIZONTAL;
             labelConstraints.anchor = GridBagConstraints.LINE_END;
             controlPanel.add(label, labelConstraints);
@@ -101,6 +109,28 @@ public class ParameterView extends JComponent {
             controlConstraints.fill = GridBagConstraints.HORIZONTAL;
             controlConstraints.anchor = GridBagConstraints.LINE_START;
             controlPanel.add(control, controlConstraints);
+            JButton popupButton = new JButton();
+            popupButton.putClientProperty("JButton.buttonType", "roundRect");
+            popupButton.putClientProperty("JComponent.sizeVariant", "mini");
+            popupButton.setFocusable(false);
+            popupButton.setIcon(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH, new Color(180, 180, 180)));
+            JPopupMenu menu = new JPopupMenu();
+            popupButton.addMouseListener(new MouseAdapter() {
+                public void mousePressed(MouseEvent e) {
+                    JButton b = (JButton) e.getSource();
+                    Point p = e.getPoint();
+                    b.getComponentPopupMenu().show(b, p.x, p.y);
+                }
+            });
+            menu.add("Expression");
+            popupButton.setComponentPopupMenu(menu);
+            GridBagConstraints popupButtonConstraints = new GridBagConstraints();
+            popupButtonConstraints.gridx = 2;
+            popupButtonConstraints.insets = new Insets(0, 5, 0, 0);
+            popupButtonConstraints.gridy = rowindex;
+            popupButtonConstraints.fill = GridBagConstraints.HORIZONTAL;
+            popupButtonConstraints.anchor = GridBagConstraints.LINE_END;
+            controlPanel.add(popupButton, popupButtonConstraints);
             rowindex++;
         }
         JLabel filler = new JLabel();
@@ -123,6 +153,10 @@ public class ParameterView extends JComponent {
         }
     }
 
+    private void toggleExpression() {
+
+    }
+
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         Node n = new RectType(new NodeManager()).createNode();
@@ -141,6 +175,18 @@ public class ParameterView extends JComponent {
             if (node == getNode()) {
                 rebuildInterface();
             }
+        }
+    }
+
+    //// Action classes ////
+
+    private class ToggleExpressionAction extends AbstractAction {
+        private ToggleExpressionAction() {
+            putValue(Action.NAME, "Expression");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            toggleExpression();
         }
     }
 
