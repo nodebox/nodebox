@@ -18,19 +18,17 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
     private DraggableNumber draggable;
 
     public IntControl(Parameter parameter) {
-        setPreferredSize(new Dimension(100, 20));
-        setLayout(new FlowLayout(FlowLayout.LEADING));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         this.parameter = parameter;
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
         draggable.addActionListener(this);
-        draggable.setPreferredSize(new Dimension(100, 20));
-        draggable.setMinimumSize(new Dimension(100, 20));
         NumberFormat intFormat = NumberFormat.getNumberInstance();
         intFormat.setMinimumFractionDigits(0);
         intFormat.setMaximumFractionDigits(0);
         draggable.setNumberFormat(intFormat);
         add(draggable);
+        setPreferredSize(draggable.getPreferredSize());
         setValueForControl(parameter.getValue());
         parameter.addDataListener(this);
     }

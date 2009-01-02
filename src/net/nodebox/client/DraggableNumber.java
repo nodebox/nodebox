@@ -7,23 +7,24 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineMetrics;
+import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
 /**
  * DraggableNumber represents a number that can be edited in a variety of interesting ways:
  * by dragging, selecting the arrow buttons, or double-clicking to do direct input.
  */
-public class DraggableNumber extends JComponent {
+public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener {
 
     // todo: could use something like BoundedRangeModel (but then for floats) for checking bounds.
 
-    private JPanel content;
-    private JLabel decNumber;
-    private JLabel incNumber;
-    private JLabel numberLabel;
     private JTextField numberField;
-    private Dragger dragger;
-    private double value;
+    private double oldValue, value;
+    private Icon leftIcon;
+    private Icon rightIcon;
+    private int previousX;
 
     /**
      * Only one <code>ChangeEvent</code> is needed per slider instance since the
@@ -38,101 +39,56 @@ public class DraggableNumber extends JComponent {
     private NumberFormat numberFormat;
 
     public DraggableNumber() {
-        setLayout(new BorderLayout());
-        //setBorder(BorderFactory.createLineBorder(new Color(109,108,119), 2));
-        //setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-        setBackground(new Color(20, 20, 20));
-        content = new ContentPanel();
+        setLayout(null);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addComponentListener(this);
+        leftIcon = new Icons.ArrowIcon(Icons.ArrowIcon.WEST, Color.GRAY);
+        rightIcon = new Icons.ArrowIcon(Icons.ArrowIcon.EAST, Color.GRAY);
+
+        numberField = new JTextField();
+        numberField.putClientProperty("JComponent.sizeVariant", "small");
+        numberField.setFont(PlatformUtils.getSmallBoldFont());
+        numberField.setBounds(12, 1, 100, 30);
+        numberField.setHorizontalAlignment(JTextField.CENTER);
+        numberField.setVisible(false);
+        numberField.addKeyListener(new EscapeListener());
+        numberField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                commitNumberField();
+            }
+        });
+        add(numberField);
 
         numberFormat = NumberFormat.getNumberInstance();
         numberFormat.setMinimumFractionDigits(2);
         numberFormat.setMaximumFractionDigits(2);
 
-        decNumber = new JLabel(new Icons.ArrowIcon(Icons.ArrowIcon.WEST, Color.LIGHT_GRAY));
-        decNumber.setPreferredSize(new Dimension(10, 10));
-        decNumber.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
-                    setValue(getValue() - 10);
-                } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
-                    setValue(getValue() - 0.01F);
-                } else {
-                    setValue(getValue() - 1);
-                }
-                fireActionPerformed();
-            }
-        });
-        decNumber.setBorder(null);
-        //decNumber.setFocusPainted(false);
-        decNumber.setOpaque(false);
-        decNumber.setBackground(Color.WHITE);
-
-        incNumber = new JLabel(new Icons.ArrowIcon(Icons.ArrowIcon.EAST, Color.LIGHT_GRAY));
-        incNumber.setPreferredSize(new Dimension(10, 10));
-        incNumber.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
-                    setValue(getValue() + 10);
-                } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
-                    setValue(getValue() + 0.01F);
-                } else {
-                    setValue(getValue() + 1);
-                }
-                fireActionPerformed();
-            }
-        });
-        incNumber.setBorder(null);
-        //incNumber.setFocusPainted(false);
-        incNumber.setOpaque(false);
-        incNumber.setBackground(Color.WHITE);
-
-        numberField = new JTextField();
-        numberField.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-        //numberField.setOpaque(false);
-        numberField.setForeground(Color.WHITE);
-        numberField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    setValue(Double.parseDouble(numberField.getText()));
-                    content.remove(numberField);
-                    content.add(numberLabel, BorderLayout.CENTER);
-                    validate();
-                } catch (NumberFormatException ex) {
-                    Toolkit.getDefaultToolkit().beep();
-                }
-                fireActionPerformed();
-            }
-        });
-        numberField.addFocusListener(new FocusListener() {
-            public void focusGained(FocusEvent e) {
-            }
-
-            public void focusLost(FocusEvent e) {
-                content.remove(numberField);
-                content.add(numberLabel, BorderLayout.CENTER);
-                repaint();
-            }
-        });
-
-        numberLabel = new JLabel();
-        numberLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        //numberLabel.setBorder(null);
-        //numberLabel.setOpaque(false);
-        numberLabel.setForeground(new Color(228, 228, 228));
-        numberLabel.setFont(PlatformUtils.getSmallFont());
-        //numberLabel.setBackground(Color.DARK_GRAY);
-        dragger = new Dragger();
-        numberLabel.addMouseListener(dragger);
-        numberLabel.addMouseMotionListener(dragger);
-
-        content.add(decNumber, BorderLayout.WEST);
-        content.add(incNumber, BorderLayout.EAST);
-        content.add(numberLabel, BorderLayout.CENTER);
-        add(content);
-
         setValue(0);
-
     }
+
+    //// Value ////
+
+    public double getValue() {
+        return value;
+    }
+
+    public void setValue(double value) {
+        this.value = value;
+        String formattedNumber = numberFormat.format(getValue());
+        numberField.setText(formattedNumber);
+        repaint();
+    }
+
+    public void setValueFromString(String s) throws NumberFormatException {
+        setValue(Double.parseDouble(s));
+    }
+
+    public String valueAsString() {
+        return numberFormat.format(value);
+    }
+
+    //// Number formatting ////
 
     public NumberFormat getNumberFormat() {
         return numberFormat;
@@ -144,74 +100,131 @@ public class DraggableNumber extends JComponent {
         setValue(getValue());
     }
 
-    public double getValue() {
-        return value;
+    private void commitNumberField() {
+        numberField.setVisible(false);
+        String s = numberField.getText();
+        try {
+            setValueFromString(s);
+        } catch (NumberFormatException e) {
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    //// Component paint ////
+
+    private Rectangle getLeftButtonRect(Rectangle r) {
+        if (r == null)
+            r = getBounds();
+        return new Rectangle(r.x + 2, r.y + 1, 10, r.height - 2);
+    }
+
+    private Rectangle getRightButtonRect(Rectangle r) {
+        r = getLeftButtonRect(r);
+        r.setRect(getWidth() - 10, r.y, 10, r.height);
+        return r;
     }
 
     @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        //Rectangle r = getBounds();
+        Rectangle r = g2.getClipBounds();
+        r.setRect(r.x + 2, r.y + 2, r.width - 8, r.height - 8);
+        g2.setColor(new Color(180, 180, 180));
+        g2.fillRoundRect(r.x, r.y, r.width, r.height, 5, 5);
+        g2.setColor(new Color(30, 30, 30));
+        g2.setFont(PlatformUtils.getSmallBoldFont());
+        paintCenteredString(g2, valueAsString(), r.x + r.width / 2F, r.y + r.height / 2F);
+        Rectangle leftButtonRect = getLeftButtonRect(r);
+        Rectangle rightButtonRect = getRightButtonRect(r);
+        leftIcon.paintIcon(this, g, leftButtonRect.x, leftButtonRect.y + r.height / 2);
+        rightIcon.paintIcon(this, g, rightButtonRect.x, rightButtonRect.y + r.height / 2);
+    }
+
+    private void paintCenteredString(Graphics2D g2, String s, float centerX, float centerY) {
+        FontRenderContext frc = g2.getFontRenderContext();
+        Rectangle2D bounds = g2.getFont().getStringBounds(s, frc);
+        float leftX = centerX - (float) bounds.getWidth() / 2;
+        LineMetrics lm = g2.getFont().getLineMetrics(s, frc);
+        float baselineY = centerY - lm.getHeight() / 2 + lm.getAscent();
+        g2.drawString(s, leftX, baselineY);
+    }
+
+    //// Component size ////
+
+    @Override
     public Dimension getPreferredSize() {
-        return new Dimension(120, 30);
+        return new Dimension(120, 25);
     }
 
-    public void setValue(double value) {
-        this.value = value;
-        String formattedNumber = numberFormat.format(getValue());
-        numberLabel.setText(formattedNumber);
-        //numberField.setText(formattedNumber);
+    //// Component listeners
+
+    public void componentResized(ComponentEvent e) {
+        numberField.setBounds(12, 1, getWidth() - 24, getHeight() - 2);
     }
 
-    public class Dragger implements MouseListener, MouseMotionListener {
-        int sourceX, sourceY;
-        int prevX, prevY;
-        double oldValue;
+    public void componentMoved(ComponentEvent e) {
+    }
 
-        public void mouseClicked(MouseEvent e) {
-            if (e.getClickCount() >= 2) {
-                content.remove(numberLabel);
-                content.add(numberField, BorderLayout.CENTER);
-                getParent().doLayout();
-                // invalidate();
-                numberField.setText(numberLabel.getText());
-                numberField.requestFocus();
-                numberField.selectAll();
-                repaint();
-            }
-        }
+    public void componentShown(ComponentEvent e) {
+    }
 
-        public void mousePressed(MouseEvent e) {
-            sourceX = prevX = e.getX();
-            sourceX = prevY = e.getY();
+    public void componentHidden(ComponentEvent e) {
+    }
+
+    //// Mouse listeners ////
+
+    public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
             oldValue = getValue();
-        }
-
-        public void mouseReleased(MouseEvent e) {
-            if (oldValue != value)
-                fireActionPerformed();
-        }
-
-        public void mouseEntered(MouseEvent e) {
-        }
-
-        public void mouseExited(MouseEvent e) {
-        }
-
-        public void mouseDragged(MouseEvent e) {
-            float dX = e.getX() - prevX;
-
-            if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
-                dX *= 10;
-            } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
-                dX *= 0.01;
-            }
-
-            setValue(getValue() + dX);
-            prevX = e.getX();
-            fireStateChanged();
-        }
-
-        public void mouseMoved(MouseEvent e) {
+            previousX = e.getX();
         }
     }
+
+    public void mouseClicked(MouseEvent e) {
+        if (getLeftButtonRect(null).contains(e.getPoint())) {
+            setValue(getValue() + 1.0);
+            fireActionPerformed();
+        } else if (getRightButtonRect(null).contains(e.getPoint())) {
+            setValue(getValue() - 1.0);
+        } else if (e.getClickCount() >= 2) {
+            numberField.setText(valueAsString());
+            numberField.setVisible(true);
+            numberField.requestFocus();
+            numberField.selectAll();
+            componentResized(null);
+            repaint();
+        }
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        if (oldValue != value)
+            fireActionPerformed();
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseMoved(MouseEvent e) {
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        float deltaX = e.getX() - previousX;
+        if (deltaX == 0F) return;
+        if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
+            deltaX *= 10;
+        } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
+            deltaX *= 0.01;
+        }
+        setValue(getValue() + deltaX);
+        previousX = e.getX();
+        fireStateChanged();
+    }
+
 
     /**
      * Adds the specified action listener to receive
@@ -325,33 +338,22 @@ public class DraggableNumber extends JComponent {
         }
     }
 
-    private class ContentPanel extends JPanel {
-        public ContentPanel() {
-            super(new BorderLayout());
-            setBackground(new Color(88, 87, 96));
-            // setBorder(new Borders.RoundedBorder());
-            //setBorder(new Borders.RoundedBorder());
-            setBackground(new Color(88, 87, 96));
-        }
+    public static void main(String[] args) {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(new DraggableNumber());
+        frame.pack();
+        frame.setVisible(true);
+    }
 
-//        public void paintComponent(Graphics g) {
-//            Graphics2D g2 = (Graphics2D) g;
-//            Rectangle r = g2.getClipBounds();
-//            Color top = new Color(220, 225, 200);
-//            Color mid1 = new Color(255, 255, 255);
-//            Color mid2 = new Color(200, 200, 200);
-//            Color bot = new Color(220, 220, 200);
-//            top = new Color(88,87,96);
-//            mid1 = new Color(109,108,119);
-//            mid2 = new Color(81,80,88);
-//            bot = new Color(73,74,80);
-//
-//            //g2.fill(r);
-//
-//            g2.setPaint(new GradientPaint(r.x, r.y, top, r.x, r.y + r.height / 2, mid1));
-//            g2.fill(new Rectangle(r.x, r.y, r.width, r.height / 2));
-//            g2.setPaint(new GradientPaint(r.x, r.y, mid2, r.x, r.y + r.height / 2, bot));
-//            g2.fill(new Rectangle(r.x, r.y + r.height / 2, r.width, r.height / 2));
-//        }
+    /**
+     * When the escape key is pressed in the numberField, ignore the change and "close" the field.
+     */
+    private class EscapeListener extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+                numberField.setVisible(false);
+        }
     }
 }

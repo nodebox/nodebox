@@ -16,9 +16,10 @@ public class ParameterRow extends JComponent implements ComponentListener {
     private JTextField expressionField;
     private JButton popupButton;
     private JCheckBoxMenuItem expressionMenuItem;
+    private Color borderColor = new Color(170, 170, 170);
 
-    private static final int TOP_PADDING = 5;
-    private static final int BOTTOM_PADDING = 5;
+    private static final int TOP_PADDING = 2;
+    private static final int BOTTOM_PADDING = 2;
 
     public ParameterRow(Parameter parameter, JComponent control) {
         addComponentListener(this);
@@ -66,7 +67,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
         setBorder(new Border() {
             public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                g.setColor(Color.GRAY);
+                g.setColor(borderColor);
                 g.fillRect(x, y + height - 1, width, 1);
             }
 
@@ -80,27 +81,28 @@ public class ParameterRow extends JComponent implements ComponentListener {
         });
     }
 
-
-    @Override
-    public Insets getInsets() {
-        return new Insets(TOP_PADDING, 0, BOTTOM_PADDING, 0);
-    }
+//
+//    @Override
+//    public Insets getInsets() {
+//        return new Insets(TOP_PADDING, 0, BOTTOM_PADDING, 0);
+//    }
 
     //// Component listeners ////
 
     public void componentResized(ComponentEvent e) {
         Dimension controlSize = control.getPreferredSize();
         Rectangle bounds = getBounds();
-        label.setBounds(0, TOP_PADDING, 100, controlSize.height);
-        control.setBounds(110, TOP_PADDING, controlSize.width, controlSize.height);
-        expressionField.setBounds(110, TOP_PADDING, 200, controlSize.height);
-        popupButton.setBounds(bounds.width - 30, TOP_PADDING, 30, controlSize.height);
+        int h = bounds.height - TOP_PADDING - BOTTOM_PADDING;
+        label.setBounds(0, TOP_PADDING, 100, h);
+        control.setBounds(110, TOP_PADDING, controlSize.width, h);
+        expressionField.setBounds(110, TOP_PADDING, 200, h);
+        popupButton.setBounds(bounds.width - 30, TOP_PADDING, 30, h);
         repaint();
     }
 
     @Override
     public void paintComponent(Graphics g) {
-        g.setColor(Color.GRAY);
+        g.setColor(borderColor);
         g.fillRect(105, 0, 1, getPreferredSize().height);
     }
 

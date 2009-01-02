@@ -113,7 +113,8 @@ public class Document extends JFrame implements NetworkDataListener {
             addText(c, node, "seed", 10);
             addText(c, node, "string", 11);
             addText(c, node, "text", 12);
-            addText(c, node, "noderef", 13);
+            addText(c, node, "toggle", 13);
+            addText(c, node, "noderef", 14);
             node.setOutputValue(c);
             return true;
         }
@@ -133,7 +134,7 @@ public class Document extends JFrame implements NetworkDataListener {
         initMenu();
         registerForMacOSXEvents();
         SwingUtils.centerOnScreen(this);
-        setRootNetwork(createEmptyNetwork());
+        setRootNetwork(createTestNetwork());
     }
 
     private void registerForMacOSXEvents() {
