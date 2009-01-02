@@ -44,7 +44,7 @@ public class ParameterView extends JComponent {
 
     public ParameterView() {
         setLayout(new BorderLayout());
-        controlPanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        controlPanel = new JPanel(new GridBagLayout());
         controlPanel.setBackground(new Color(204, 204, 204));
         controlPanel.setPreferredSize(new Dimension(300, 300));
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -71,6 +71,7 @@ public class ParameterView extends JComponent {
     private void rebuildInterface() {
         controlPanel.removeAll();
         if (node == null) return;
+        int rowindex = 0;
         for (Parameter p : node.getParameters()) {
             if (!p.isPrimitive()) continue;
             JLabel label = new JLabel(p.getLabel());
@@ -86,10 +87,30 @@ public class ParameterView extends JComponent {
             } else {
                 control = new JLabel("<no control>");
             }
-            controlPanel.add(label);
-            controlPanel.add(control);
-
+            GridBagConstraints labelConstraints = new GridBagConstraints();
+            labelConstraints.gridx = 0;
+            labelConstraints.gridy = rowindex;
+            labelConstraints.fill = GridBagConstraints.HORIZONTAL;
+            labelConstraints.anchor = GridBagConstraints.LINE_END;
+            controlPanel.add(label, labelConstraints);
+            GridBagConstraints controlConstraints = new GridBagConstraints();
+            controlConstraints.gridx = 1;
+            controlConstraints.gridy = rowindex;
+            controlConstraints.ipadx = 5;
+            controlConstraints.ipady = 5;
+            controlConstraints.fill = GridBagConstraints.HORIZONTAL;
+            controlConstraints.anchor = GridBagConstraints.LINE_START;
+            controlPanel.add(control, controlConstraints);
+            rowindex++;
         }
+        JLabel filler = new JLabel();
+        GridBagConstraints fillerConstraints = new GridBagConstraints();
+        fillerConstraints.gridx = 0;
+        fillerConstraints.gridy = rowindex;
+        fillerConstraints.fill = GridBagConstraints.BOTH;
+        fillerConstraints.weighty = 1.0;
+        fillerConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        controlPanel.add(filler, fillerConstraints);
     }
 
     private ParameterControl constructControl(Class controlClass, Parameter p) {
