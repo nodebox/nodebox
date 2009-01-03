@@ -21,6 +21,7 @@ package net.nodebox.graphics;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,13 +49,7 @@ public class BezierPath extends Grob {
     }
 
     public BezierPath(Shape s) {
-        PathIterator pi = s.getPathIterator(new AffineTransform());
-        while (!pi.isDone()) {
-            float[] points = new float[6];
-            int cmd = pi.currentSegment(points);
-            addElement(new PathElement(cmd, points));
-            pi.next();
-        }
+        extend(s);
     }
 
     public BezierPath(BezierPath other) {
@@ -159,21 +154,8 @@ public class BezierPath extends Grob {
     }
 
     public void addEllipse(double x, double y, double width, double height) {
-        double hdiff = width / 2 * KAPPA;
-        double vdiff = height / 2 * KAPPA;
-        moveto(x + width / 2, y + height);
-        curveto(x + width / 2 - hdiff, y + height,
-                x, y + height / 2 + vdiff,
-                x, y + height / 2);
-        curveto(x, y + height / 2 - vdiff,
-                x + width / 2 - hdiff, y,
-                x + width / 2, y);
-        curveto(x + width / 2 + hdiff, y,
-                x + width, y + height / 2 - vdiff,
-                x + width, y + height / 2);
-        curveto(x + width, y + height / 2 + vdiff,
-                x + width / 2 + hdiff, y + height,
-                x + width / 2, y + height);
+        Ellipse2D.Double e = new Ellipse2D.Double(x, y, width, height);
+        extend(e);
     }
 
     public void addLine(double x1, double y1, double x2, double y2) {
@@ -251,6 +233,33 @@ public class BezierPath extends Grob {
         elements.add(el);
     }
 
+    public void extend(BezierPath p) {
+        for (PathElement el : p.getElements()) {
+            append(el.clone());
+        }
+    }
+
+    public void extend(Shape s) {
+        PathIterator pi = s.getPathIterator(new AffineTransform());
+        while (!pi.isDone()) {
+            float[] points = new float[6];
+            int cmd = pi.currentSegment(points);
+            if (cmd == PathIterator.SEG_MOVETO) {
+                moveto(points[0], points[1]);
+            } else if (cmd == PathIterator.SEG_LINETO) {
+                lineto(points[0], points[1]);
+            } else if (cmd == PathIterator.SEG_CUBICTO) {
+                curveto(points[2], points[3], points[4], points[5], points[0], points[1]);
+            } else if (cmd == PathIterator.SEG_CLOSE) {
+                close();
+            } else {
+                throw new AssertionError("Unknown path command " + cmd);
+            }
+            pi.next();
+        }
+
+    }
+
 
     //// Geometry ////
     public java.awt.geom.GeneralPath getGeneralPath() {
@@ -296,7 +305,7 @@ public class BezierPath extends Grob {
             g.setColor(fillColor.getAwtColor());
             g.fill(getGeneralPath());
         }
-        if (strokeColor != null && strokeColor.isVisible()) {
+        if (strokeWidth > 0 && strokeColor != null && strokeColor.isVisible()) {
             g.setColor(strokeColor.getAwtColor());
             g.setStroke(new BasicStroke((float) strokeWidth));
             g.draw(getGeneralPath());

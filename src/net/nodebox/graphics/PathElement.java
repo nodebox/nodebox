@@ -74,17 +74,20 @@ public class PathElement {
                 this.control2 = new Point(points[2], points[3]);
                 this.point = new Point(points[4], points[5]);
                 break;
+
             case CLOSE:
                 assert (points.length == 0);
                 break;
+            default:
+                throw new AssertionError("Unknown command" + command);
         }
     }
 
     public PathElement(PathElement other) {
         this.command = other.command;
-        this.control1 = other.control1.clone();
-        this.control2 = other.control2.clone();
-        this.point = other.point.clone();
+        this.control1 = other.control1 == null ? null : other.control1.clone();
+        this.control2 = other.control2 == null ? null : other.control2.clone();
+        this.point = other.point == null ? null : other.point.clone();
     }
 
     public int getCommand() {
