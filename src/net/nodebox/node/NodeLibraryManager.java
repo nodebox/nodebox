@@ -28,7 +28,7 @@ import java.util.List;
 public class NodeLibraryManager {
 
     private ArrayList<File> searchPaths = new ArrayList<File>();
-    private HashMap<String, NodeLibrary> nodeLibraryMap = new HashMap<String, NodeLibrary>();
+    private HashMap<String, NodeTypeLibrary> nodeLibraryMap = new HashMap<String, NodeTypeLibrary>();
     private boolean lookedForLibraries = false;
 
     public NodeLibraryManager(String... searchPaths) throws IOException {
@@ -55,11 +55,11 @@ public class NodeLibraryManager {
         this.searchPaths.add(searchPath);
     }
 
-    public List<NodeLibrary> getLibraries() {
-        return new ArrayList<NodeLibrary>(nodeLibraryMap.values());
+    public List<NodeTypeLibrary> getLibraries() {
+        return new ArrayList<NodeTypeLibrary>(nodeLibraryMap.values());
     }
 
-    public NodeLibrary loadLatestVersion(String libraryName) {
+    public NodeTypeLibrary loadLatestVersion(String libraryName) {
         throw new AssertionError("Not implemented yet.");
     }
 
@@ -67,10 +67,10 @@ public class NodeLibraryManager {
      * Searches for available libraries in the plugin search path.
      */
     private void lookForLibraries() {
-        
+
     }
 
-    private NodeLibrary directoryNameToLibrary(String searchPath, String directoryName) {
+    private NodeTypeLibrary directoryNameToLibrary(String searchPath, String directoryName) {
         //searchPath.split("-")
         throw new AssertionError("Not implemented yet.");
     }

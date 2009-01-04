@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
  * but in a Parameter object, contained in the Node instance.
  */
 public class ParameterType extends Observable {
+
     public enum Type {
         ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF,
         GROB_CANVAS, GROB_VECTOR, GROB_IMAGE
@@ -132,6 +133,28 @@ public class ParameterType extends Observable {
     private DisplayLevel displayLevel;
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private EventListenerList listeners = new EventListenerList();
+
+    /**
+     * Given a type name, parse it and return a Type enum.
+     *
+     * @param typeString the type as a string, e.g. "float". Case is unimportant.
+     * @return the Type enum.
+     * @throws IllegalArgumentException if the type string cannot be parsed.
+     */
+    public static Type parseType(String typeString) throws IllegalArgumentException {
+        return Type.valueOf(typeString.toUpperCase());
+    }
+
+    /**
+     * Given a bounding method name, parse it and return a BoundingMethod enum.
+     *
+     * @param boundingMethodString the bounding method as a string, e.g. "soft". Case is unimportant.
+     * @return the BoundingMethod enum.
+     * @throws IllegalArgumentException if the bounding method string cannot be parsed.
+     */
+    public static BoundingMethod parseBoundingMethod(String boundingMethodString) throws IllegalArgumentException {
+        return BoundingMethod.valueOf(boundingMethodString.toUpperCase());
+    }
 
     public ParameterType(NodeType nodeType, String name, Type type) {
         this(nodeType, name, type, Direction.IN);
