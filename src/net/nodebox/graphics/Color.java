@@ -63,7 +63,7 @@ public class Color implements Cloneable {
                 throw new IllegalArgumentException("Inapropriate length for color value (" + colorName + ")");
             }
         } else {
-            throw new IllegalArgumentException("Only hexadecima values (e.g. #337711ff) are accepted. (" + colorName + ")");
+            throw new IllegalArgumentException("Only hexadecimal values (e.g. #337711ff) are accepted. (" + colorName + ")");
         }
     }
 

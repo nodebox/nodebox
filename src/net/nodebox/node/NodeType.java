@@ -22,82 +22,6 @@ import java.util.regex.Pattern;
  */
 public abstract class NodeType {
 
-    public static class Version {
-
-        private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
-
-        private int major, minor;
-
-        public static Version parseVersionString(String s) {
-            return new Version(s);
-        }
-
-        public Version() {
-            major = 1;
-            minor = 0;
-        }
-
-        public Version(int major, int minor) {
-            this.major = major;
-            this.minor = minor;
-        }
-
-        public Version(String versionString) {
-            Matcher m = VERSION_PATTERN.matcher(versionString);
-            if (!m.matches()) {
-                logger.log(Level.WARNING, "Could not parse version " + versionString + ": returning null.");
-            }
-            String[] majorMinor = versionString.split("\\.");
-            assert (majorMinor.length == 2);
-            major = Integer.parseInt(majorMinor[0]);
-            minor = Integer.parseInt(majorMinor[1]);
-        }
-
-        public int getMajor() {
-            return major;
-        }
-
-        public int getMinor() {
-            return minor;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Version)) return false;
-            Version v = (Version) o;
-            return major == v.major &&
-                    minor == v.minor;
-        }
-
-        public boolean largerThan(Version other) {
-            if (major > other.major) return true;
-            return major == other.major && minor > other.minor;
-        }
-
-        public boolean largerOrEqualThan(Version other) {
-            if (largerThan(other)) return true;
-            return major == other.major && minor == other.minor;
-        }
-
-        public boolean smallerOrEqualThan(Version other) {
-            return !largerThan(other);
-        }
-
-        public boolean smallerThan(Version other) {
-            return !largerOrEqualThan(other);
-        }
-
-        public String toString() {
-            return major + "." + minor;
-        }
-
-        @Override
-        public Object clone() {
-            return new Version(major, minor);
-        }
-    }
-
     public static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
     public static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     public static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
@@ -320,7 +244,7 @@ public abstract class NodeType {
         }
         newType.identifier = identifier;
         newType.description = description;
-        newType.version = new Version(version.major, version.minor);
+        newType.version = version.clone();
         newType.outputParameterType = outputParameterType.clone(newType);
         newType.parameterTypes.clear();
         for (ParameterType pt : getParameterTypes()) {

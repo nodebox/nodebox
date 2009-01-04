@@ -39,13 +39,13 @@ public class NodeManager {
             return specifier;
         }
 
-        public boolean matches(NodeType.Version version) {
+        public boolean matches(Version version) {
             // TODO: implement
             return false;
         }
 
         public boolean matches(int major, int minor) {
-            return matches(new NodeType.Version(major, minor));
+            return matches(new Version(major, minor));
         }
     }
 
@@ -58,7 +58,7 @@ public class NodeManager {
         private List<NodeType> nodeTypes = new ArrayList<NodeType>();
 
         public void addNodeType(NodeType nodeType) {
-            NodeType.Version newVersion = nodeType.getVersion();
+            Version newVersion = nodeType.getVersion();
             int i = 0;
             for (; i < nodeTypes.size(); i++) {
                 NodeType nt = nodeTypes.get(i);
@@ -127,7 +127,7 @@ public class NodeManager {
      * @return a Node object or null if no node with that name was found.
      * @throws NotFoundException if the node type could not be found
      */
-    public NodeType getNodeType(String identifier, NodeType.Version version) throws NotFoundException {
+    public NodeType getNodeType(String identifier, Version version) throws NotFoundException {
         VersionedNodeTypeList nodeTypeList = nodeTypeMap.get(identifier);
         if (nodeTypeList == null)
             throw new NotFoundException(this, identifier, "The node manager cannot find node type '" + identifier + "'.");

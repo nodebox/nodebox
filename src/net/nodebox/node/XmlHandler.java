@@ -167,7 +167,7 @@ public class XmlHandler extends DefaultHandler {
             if (version == null) {
                 nodeType = nodeManager.getNodeType(identifier);
             } else {
-                nodeType = nodeManager.getNodeType(identifier, new NodeType.Version(version));
+                nodeType = nodeManager.getNodeType(identifier, new Version(version));
             }
         } catch (NotFoundException e) {
             throw new SAXException("A node with type " + identifier + " and version " + version + " does not exist.");

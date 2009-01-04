@@ -26,6 +26,7 @@ import java.util.List;
 
 public class NodeLibrary {
 
+
     enum LibraryType {
         UNKNOWN, JAVA, PYTHON
     }
@@ -61,52 +62,9 @@ public class NodeLibrary {
         }
     }
 
-    public static class Version {
-
-        private int major, minor, revision;
-
-        public static Version parseVersionString(String s) {
-            throw new RuntimeException("Not yet implemented");
-        }
-
-        public Version() {
-        }
-
-        public Version(int major, int minor, int revision) {
-            this.major = major;
-            this.minor = minor;
-            this.revision = revision;
-        }
-
-        public int getMajor() {
-            return major;
-        }
-
-        public int getMinor() {
-            return minor;
-        }
-
-        public int getRevision() {
-            return revision;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Version)) return false;
-            Version v = (Version) o;
-            return major == v.major &&
-                    minor == v.minor &&
-                    revision == v.revision;
-        }
-
-        public String toString() {
-            return major + "." + minor + "." + revision;
-        }
-    }
 
     private String name;
-    private HashMap<String, NodeInfo> nodeInfoMap = new HashMap<String, NodeInfo>();
+    private HashMap<String, NodeType> types = new HashMap<String, NodeType>();
     private Version version;
     private File path;
     private LibraryType type = null;
@@ -182,31 +140,31 @@ public class NodeLibrary {
     }
 
     private void loadJavaLibrary() {
-        
+
     }
 
     private void loadPythonLibrary() {
 
     }
-    
+
     public boolean isLoaded() {
         return loaded;
     }
 
     //// Node info ////
 
-    NodeInfo getNodeInfo(String nodeName) {
+    NodeType getNodeType(String nodeName) {
         if (!isLoaded()) load();
-        if (nodeInfoMap.containsKey(nodeName)) {
-            return nodeInfoMap.get(nodeName);
+        if (types.containsKey(nodeName)) {
+            return types.get(nodeName);
         } else {
-            throw new NodeInfo.NotFound(nodeName);
+            throw new NotFoundException(this, nodeName, "Node type " + nodeName + " not found in library " + getName());
         }
     }
 
-    List<NodeInfo> getNodeInfos() {
+    List<NodeType> getNodeTypes() {
         if (!isLoaded()) load();
-        return new ArrayList<NodeInfo>(nodeInfoMap.values());
+        return new ArrayList<NodeType>(types.values());
     }
 
     //// Path information ////
