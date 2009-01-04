@@ -1,4 +1,4 @@
-#from nodebox import graphics
+from net.nodebox import graphics
 
 _process_counter = 0
 
@@ -43,6 +43,14 @@ def custom(value):
 def bounding(*args):
     """Method that only tests the parsing of bounded parameters."""
     return 0
+
+def ellipse(x, y, width, height, color):
+    g = graphics.Group()
+    p = graphics.BezierPath()
+    p.fillColor = color
+    p.addEllipse(x, y, width, height)
+    g.add(p)
+    return g
 
 def allcontrols(angle, color, custom, file, float, font, gradient, group, image, int, menu, point, seed, string, text, toggle):
     ctx = graphics.Context()

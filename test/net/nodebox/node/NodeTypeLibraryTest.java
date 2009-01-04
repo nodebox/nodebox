@@ -2,6 +2,10 @@ package net.nodebox.node;
 
 import junit.framework.TestCase;
 import net.nodebox.client.PlatformUtils;
+import net.nodebox.graphics.BezierPath;
+import net.nodebox.graphics.Color;
+import net.nodebox.graphics.Group;
+import net.nodebox.graphics.Rect;
 import org.python.core.PySystemState;
 
 import java.io.File;
@@ -43,15 +47,38 @@ public class NodeTypeLibraryTest extends TestCase {
         NodeType negateType = library.getNodeType("negate");
         Node negateNode = negateType.createNode();
         negateNode.set("value", 42);
-        negateNode.update();
+        assertTrue(negateNode.update());
         assertEquals(-42, negateNode.getOutputValue());
         // Check node with multiple parameters.
         NodeType addType = library.getNodeType("add");
         Node addNode = addType.createNode();
         addNode.set("v1", 50);
         addNode.set("v2", 3);
-        addNode.update();
+        assertTrue(addNode.update());
         assertEquals(53, addNode.getOutputValue());
+        // Ellipse
+        NodeType ellipseType = library.getNodeType("ellipse");
+        Node ellipseNode = ellipseType.createNode();
+        ellipseNode.set("x", 10.0);
+        ellipseNode.set("y", 20.0);
+        ellipseNode.set("width", 30.0);
+        ellipseNode.set("height", 40.0);
+        Color color = new Color(0.1, 0.2, 0.3, 0.4);
+        ellipseNode.set("color", color);
+        ellipseNode.update();
+        for (Node.Message m : ellipseNode.getMessages()) {
+            System.out.println("m = " + m);
+        }
+
+        assertTrue(ellipseNode.update());
+        Object ellipseValue = ellipseNode.getOutputValue();
+        assertTrue(ellipseValue instanceof Group);
+        Group ellipseGroup = (Group) ellipseValue;
+        assertEquals(new Rect(10, 20, 30, 40), ellipseGroup.getBounds());
+        assertEquals(1, ellipseGroup.size());
+        BezierPath ellipsePath = (BezierPath) ellipseGroup.get(0);
+        assertEquals(color, ellipsePath.getFillColor());
+
     }
 
 }
