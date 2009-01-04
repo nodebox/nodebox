@@ -135,6 +135,11 @@ public class Node {
         public boolean isError() {
             return level == MessageLevel.ERROR;
         }
+
+        @Override
+        public String toString() {
+            return level + ": " + message;
+        }
     }
 
     //// Constructors ////
@@ -517,6 +522,10 @@ public class Node {
                 return true;
         }
         return false;
+    }
+
+    public List<Message> getMessages() {
+        return new ArrayList<Message>(messages);
     }
 
     //// Processing ////
