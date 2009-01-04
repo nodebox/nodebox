@@ -1,20 +1,31 @@
 package net.nodebox.client;
 
+import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.graphics.Grob;
+import net.nodebox.handle.FourPointHandle;
+import net.nodebox.handle.Handle;
 import net.nodebox.node.Network;
 import net.nodebox.node.NetworkDataListener;
+import net.nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
-public class Viewer extends JComponent implements NetworkDataListener {
+public class Viewer extends JComponent implements NetworkDataListener, MouseListener, MouseMotionListener {
 
     private Pane pane;
     private Network network;
+    private Node activeNode;
+    private Handle handle;
 
     public Viewer(Pane pane, Network network) {
         this.pane = pane;
         this.network = network;
+        addMouseListener(this);
+        addMouseMotionListener(this);
     }
 
     public Network getNetwork() {
@@ -33,6 +44,18 @@ public class Viewer extends JComponent implements NetworkDataListener {
         repaint();
     }
 
+    public void setActiveNode(Node node) {
+        activeNode = node;
+        if (node.getNodeType().getIdentifier().equals("net.nodebox.node.vector.rect") ||
+                node.getNodeType().getIdentifier().equals("net.nodebox.node.vector.ellipse")) {
+            handle = new FourPointHandle(node);
+        } else {
+            handle = null;
+        }
+        repaint();
+    }
+
+
     @Override
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
@@ -41,6 +64,12 @@ public class Viewer extends JComponent implements NetworkDataListener {
         Object outputValue = getNetwork().getOutputValue();
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
+        }
+        // Draw handle
+        if (handle != null) {
+            GraphicsContext ctx = new GraphicsContext();
+            handle.draw(ctx);
+            ctx.getCanvas().draw(g2);
         }
     }
 
@@ -55,5 +84,42 @@ public class Viewer extends JComponent implements NetworkDataListener {
         if (network == getNetwork()) {
             repaint();
         }
+    }
+
+    //// Mouse events ////
+
+    public void mouseClicked(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseClicked(e);
+    }
+
+    public void mousePressed(MouseEvent e) {
+        if (handle == null) return;
+        handle.mousePressed(e);
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseReleased(e);
+    }
+
+    public void mouseEntered(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseEntered(e);
+    }
+
+    public void mouseExited(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseExited(e);
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseDragged(e);
+    }
+
+    public void mouseMoved(MouseEvent e) {
+        if (handle == null) return;
+        handle.mouseMoved(e);
     }
 }

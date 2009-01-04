@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.node.Network;
+import net.nodebox.node.Node;
 
 import java.awt.*;
 
@@ -44,9 +45,18 @@ public class ViewerPane extends Pane {
         viewer.setNetwork(network);
     }
 
+    public void setActiveNode(Node node) {
+        viewer.setActiveNode(node);
+    }
+
     @Override
     public void activeNetworkChanged(Network activeNetwork) {
         setNetwork(activeNetwork);
+    }
+
+    @Override
+    public void activeNodeChanged(Node activeNode) {
+        setActiveNode(activeNode);
     }
 
     public Pane clone() {

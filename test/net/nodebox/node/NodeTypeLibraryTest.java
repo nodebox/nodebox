@@ -78,7 +78,6 @@ public class NodeTypeLibraryTest extends TestCase {
         assertEquals(1, ellipseGroup.size());
         BezierPath ellipsePath = (BezierPath) ellipseGroup.get(0);
         assertEquals(color, ellipsePath.getFillColor());
-
     }
 
 }

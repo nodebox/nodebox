@@ -20,9 +20,32 @@ package net.nodebox.graphics;
 
 public class GraphicsContext {
 
+    private Canvas canvas;
     private Transform transform;
+
+    public GraphicsContext() {
+        canvas = new Canvas();
+    }
+
+    public Canvas getCanvas() {
+        return canvas;
+    }
+
+    public GraphicsContext(Canvas canvas) {
+        this.canvas = canvas;
+    }
 
     public Transform getTransform() {
         return transform;
     }
+
+    public BezierPath rect(double x, double y, double width, double height) {
+        BezierPath p = new BezierPath();
+        p.addRect(x, y, width, height);
+        // TODO: Inherit from context
+        canvas.add(p);
+        return p;
+    }
+
+
 }
