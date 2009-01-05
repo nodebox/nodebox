@@ -140,7 +140,7 @@ public class Document extends JFrame implements NetworkDataListener {
         initMenu();
         registerForMacOSXEvents();
         SwingUtils.centerOnScreen(this);
-        setRootNetwork(createTestNetwork());
+        setRootNetwork(createEmptyNetwork());
     }
 
     private void registerForMacOSXEvents() {
