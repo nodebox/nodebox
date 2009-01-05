@@ -33,7 +33,7 @@ public class Color implements Cloneable {
     }
 
     public Color(double r, double g, double b) {
-        new Color(r, g, b, 1.0);
+        this(r, g, b, 1.0);
     }
 
     public Color(double r, double g, double b, double a) {
