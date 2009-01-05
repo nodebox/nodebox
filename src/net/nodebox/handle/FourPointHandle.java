@@ -16,7 +16,7 @@ public class FourPointHandle extends AbstractHandle {
 
     public static final int HANDLE_SIZE = 6;
     public static final int HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
-    public static final Color HANDLE_COLOR = new Color(1, 0, 0);
+    public static final Color HANDLE_COLOR = new Color(0.41, 0.39, 0.68);
 
     private DragState dragState = DragState.NONE;
     private int px, py;
@@ -43,13 +43,19 @@ public class FourPointHandle extends AbstractHandle {
         double y = node.asFloat("y");
         double width = node.asFloat("width");
         double height = node.asFloat("height");
-        BezierPath p = new BezierPath();
-        p.setFillColor(HANDLE_COLOR);
-        drawDot(p, x, y);
-        drawDot(p, x + width, y);
-        drawDot(p, x + width, y + height);
-        drawDot(p, x, y + height);
-        ctx.getCanvas().add(p);
+        BezierPath cornerPath = new BezierPath();
+        cornerPath.setFillColor(HANDLE_COLOR);
+        cornerPath.setStrokeWidth(0.0);
+        drawDot(cornerPath, x, y);
+        drawDot(cornerPath, x + width, y);
+        drawDot(cornerPath, x + width, y + height);
+        drawDot(cornerPath, x, y + height);
+        ctx.getCanvas().add(cornerPath);
+        BezierPath strokePath = new BezierPath();
+        strokePath.setFillColor(null);
+        strokePath.setStrokeColor(HANDLE_COLOR);
+        strokePath.addRect(x, y, width, height);
+        ctx.getCanvas().add(strokePath);
     }
 
     @Override
