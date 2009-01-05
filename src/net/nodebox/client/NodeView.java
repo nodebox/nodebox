@@ -244,7 +244,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     connectTarget.repaint();
                 NodeView.this.repaint();
                 if (connectSource != null && connectTarget != null) {
-                    java.util.List<Parameter> compatibleParameters = connectSource.getNode().getCompatibleInputs(connectTarget.getNode());
+                    java.util.List<Parameter> compatibleParameters = connectTarget.getNode().getCompatibleInputs(connectSource.getNode());
                     if (compatibleParameters.isEmpty()) {
                         System.out.println("No compatible parameters");
                     } else if (compatibleParameters.size() == 1) {

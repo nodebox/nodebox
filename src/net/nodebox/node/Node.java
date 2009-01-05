@@ -381,15 +381,16 @@ public class Node {
     //// Connection shortcuts ////
 
     /**
-     * Return a list of all parameters on this Node that can be connected to the given node.
+     * Return a list of all parameters on this Node that can be connected to the given output node.
      *
-     * @param inputNode the input node
+     * @param outputNode the output node
      * @return a list of parameters.
      */
-    public List<Parameter> getCompatibleInputs(Node inputNode) {
+    public List<Parameter> getCompatibleInputs(Node outputNode) {
+        ParameterType.Type outputType = outputNode.getOutputParameter().getType();
         List<Parameter> compatibleParameters = new ArrayList<Parameter>();
-        for (Parameter p : inputNode.getParameters()) {
-            if (p.getType().equals(getOutputParameter().getType()))
+        for (Parameter p : getParameters()) {
+            if (p.getType().equals(outputType))
                 compatibleParameters.add(p);
         }
         return compatibleParameters;
