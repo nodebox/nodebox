@@ -189,11 +189,17 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseClicked(MouseEvent e) {
+        float dx = 1.0F;
+        if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
+            dx = 10F;
+        } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
+            dx = 0.01F;
+        }
         if (getLeftButtonRect(null).contains(e.getPoint())) {
-            setValue(getValue() + 1.0);
+            setValue(getValue() - dx);
             fireActionPerformed();
         } else if (getRightButtonRect(null).contains(e.getPoint())) {
-            setValue(getValue() - 1.0);
+            setValue(getValue() + dx);
         } else if (e.getClickCount() >= 2) {
             numberField.setText(valueAsString());
             numberField.setVisible(true);
