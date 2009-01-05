@@ -5,10 +5,7 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import net.nodebox.node.Connection;
-import net.nodebox.node.Network;
-import net.nodebox.node.NetworkEventListener;
-import net.nodebox.node.Node;
+import net.nodebox.node.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -233,11 +230,34 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         dialog.setVisible(true);
         if (dialog.getSelectedNodeType() != null) {
             Node n = getNetwork().create(dialog.getSelectedNodeType());
-            n.setPosition(new net.nodebox.graphics.Point(pt));
-            doc.setActiveNode(n);
+            boolean success = smartConnect(getPane().getDocument().getActiveNode(), n);
+            if (!success)
+                n.setPosition(new net.nodebox.graphics.Point(pt));
             n.setRendered();
+            doc.setActiveNode(n);
         }
+    }
 
+    /**
+     * Try to connect the new node to the active node.
+     *
+     * @param activeNode the currently selected node
+     * @param newNode    the newly created node
+     * @return true if a connection could be made.
+     */
+    private boolean smartConnect(Node activeNode, Node newNode) {
+        // Check if there is an active node.
+        if (activeNode == null) return false;
+        // Check if there are compatible parameters on the new node that can be connected
+        // to the output of the active node.
+        List<Parameter> compatibles = newNode.getCompatibleInputs(activeNode);
+        if (compatibles.size() == 0) return false;
+        // Connect the output of the active node to the first compatible input of the new node.
+        compatibles.get(0).connect(activeNode);
+        // Move the node under the active node.
+        newNode.setPosition(activeNode.getX(), activeNode.getY() + 40);
+        // Return true to indicate the connection was created successfully.
+        return true;
     }
 
     //// Inner classes ////
