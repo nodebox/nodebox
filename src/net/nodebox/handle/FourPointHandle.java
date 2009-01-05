@@ -1,7 +1,6 @@
 package net.nodebox.handle;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Color;
 import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.node.Node;
 
@@ -13,10 +12,6 @@ public class FourPointHandle extends AbstractHandle {
     private enum DragState {
         NONE, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT, CENTER
     }
-
-    public static final int HANDLE_SIZE = 6;
-    public static final int HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
-    public static final Color HANDLE_COLOR = new Color(0.41, 0.39, 0.68);
 
     private String xName, yName, widthName, heightName;
     private DragState dragState = DragState.NONE;
@@ -33,12 +28,6 @@ public class FourPointHandle extends AbstractHandle {
         this.yName = yName;
         this.widthName = widthName;
         this.heightName = heightName;
-    }
-
-    private Rectangle createRectangle(double x, double y) {
-        int ix = (int) x;
-        int iy = (int) y;
-        return new Rectangle(ix - HALF_HANDLE_SIZE, iy - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
     }
 
     private void drawDot(BezierPath p, double x, double y) {
@@ -76,10 +65,10 @@ public class FourPointHandle extends AbstractHandle {
         owidth = node.asFloat(widthName);
         oheight = node.asFloat(heightName);
 
-        Rectangle topLeft = createRectangle(ox, oy);
-        Rectangle topRight = createRectangle(ox + owidth, oy);
-        Rectangle bottomLeft = createRectangle(ox, oy + oheight);
-        Rectangle bottomRight = createRectangle(ox + owidth, oy + oheight);
+        Rectangle topLeft = createHitRectangle(ox, oy);
+        Rectangle topRight = createHitRectangle(ox + owidth, oy);
+        Rectangle bottomLeft = createHitRectangle(ox, oy + oheight);
+        Rectangle bottomRight = createHitRectangle(ox + owidth, oy + oheight);
         Rectangle center = new Rectangle((int) ox, (int) oy, (int) owidth, (int) oheight);
 
         if (topLeft.contains(pt)) {
