@@ -18,14 +18,21 @@ public class FourPointHandle extends AbstractHandle {
     public static final int HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
     public static final Color HANDLE_COLOR = new Color(0.41, 0.39, 0.68);
 
+    private String xName, yName, widthName, heightName;
     private DragState dragState = DragState.NONE;
     private int px, py;
     private double ox, oy, owidth, oheight;
 
-    private Rectangle topLeft, topRight, bottomLeft, bottomRight, center;
-
     public FourPointHandle(Node node) {
+        this(node, "x", "y", "width", "height");
+    }
+
+    public FourPointHandle(Node node, String xName, String yName, String widthName, String heightName) {
         super(node);
+        this.xName = xName;
+        this.yName = yName;
+        this.widthName = widthName;
+        this.heightName = heightName;
     }
 
     private Rectangle createRectangle(double x, double y) {
@@ -39,10 +46,10 @@ public class FourPointHandle extends AbstractHandle {
     }
 
     public void draw(GraphicsContext ctx) {
-        double x = node.asFloat("x");
-        double y = node.asFloat("y");
-        double width = node.asFloat("width");
-        double height = node.asFloat("height");
+        double x = node.asFloat(xName);
+        double y = node.asFloat(yName);
+        double width = node.asFloat(widthName);
+        double height = node.asFloat(heightName);
         BezierPath cornerPath = new BezierPath();
         cornerPath.setFillColor(HANDLE_COLOR);
         cornerPath.setStrokeWidth(0.0);
@@ -64,10 +71,10 @@ public class FourPointHandle extends AbstractHandle {
         px = e.getX();
         py = e.getY();
 
-        ox = node.asFloat("x");
-        oy = node.asFloat("y");
-        owidth = node.asFloat("width");
-        oheight = node.asFloat("height");
+        ox = node.asFloat(xName);
+        oy = node.asFloat(yName);
+        owidth = node.asFloat(widthName);
+        oheight = node.asFloat(heightName);
 
         Rectangle topLeft = createRectangle(ox, oy);
         Rectangle topRight = createRectangle(ox + owidth, oy);
@@ -100,28 +107,28 @@ public class FourPointHandle extends AbstractHandle {
         if (dx == 0 && dy == 0) return;
         switch (dragState) {
             case TOP_LEFT:
-                node.set("x", ox + dx);
-                node.set("y", oy + dy);
-                node.set("width", owidth - dx);
-                node.set("height", oheight - dy);
+                node.set(xName, ox + dx);
+                node.set(yName, oy + dy);
+                node.set(widthName, owidth - dx);
+                node.set(heightName, oheight - dy);
                 break;
             case TOP_RIGHT:
-                node.set("y", oy + dy);
-                node.set("height", oheight - dy);
-                node.set("width", owidth + dx);
+                node.set(yName, oy + dy);
+                node.set(heightName, oheight - dy);
+                node.set(widthName, owidth + dx);
                 break;
             case BOTTOM_LEFT:
-                node.set("x", ox + dx);
-                node.set("width", owidth - dx);
-                node.set("height", oheight + dy);
+                node.set(xName, ox + dx);
+                node.set(widthName, owidth - dx);
+                node.set(heightName, oheight + dy);
                 break;
             case BOTTOM_RIGHT:
-                node.set("width", owidth + dx);
-                node.set("height", oheight + dy);
+                node.set(widthName, owidth + dx);
+                node.set(heightName, oheight + dy);
                 break;
             case CENTER:
-                node.set("x", ox + dx);
-                node.set("y", oy + dy);
+                node.set(xName, ox + dx);
+                node.set(yName, oy + dy);
         }
     }
 

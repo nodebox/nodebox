@@ -2,6 +2,8 @@ package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Group;
+import net.nodebox.handle.FourPointHandle;
+import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
 import net.nodebox.node.NodeManager;
 import net.nodebox.node.ParameterType;
@@ -34,5 +36,18 @@ public class EllipseType extends VectorNodeType {
         g.add(p);
         node.setOutputValue(g);
         return true;
+    }
+
+    /**
+     * Creates and returns a Handle object that can be used for direct manipulation of the parameters of this node.
+     * By default, this code returns null to indicate that no handle is available. Classes can override this method
+     * to provide an appropriate handle implementation.
+     *
+     * @param node the node instance that is bound to this handle.
+     * @return a handle instance bound to this node, or null.
+     */
+    @Override
+    public Handle createHandle(Node node) {
+        return new FourPointHandle(node);
     }
 }

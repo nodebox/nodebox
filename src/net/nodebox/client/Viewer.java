@@ -2,7 +2,6 @@ package net.nodebox.client;
 
 import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.graphics.Grob;
-import net.nodebox.handle.FourPointHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Network;
 import net.nodebox.node.NetworkDataListener;
@@ -46,12 +45,8 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
 
     public void setActiveNode(Node node) {
         activeNode = node;
-        if (node.getNodeType().getIdentifier().equals("net.nodebox.node.vector.rect") ||
-                node.getNodeType().getIdentifier().equals("net.nodebox.node.vector.ellipse")) {
-            handle = new FourPointHandle(node);
-        } else {
-            handle = null;
-        }
+        if (activeNode != null)
+            handle = activeNode.createHandle();
         repaint();
     }
 

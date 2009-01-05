@@ -21,6 +21,7 @@ package net.nodebox.node;
 import net.nodebox.graphics.Color;
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Point;
+import net.nodebox.handle.Handle;
 import net.nodebox.util.StringUtils;
 
 import java.io.PrintWriter;
@@ -591,6 +592,23 @@ public class Node {
         }
         name.append(getName());
         return name.toString();
+    }
+
+    //// Handle support ////
+
+    /**
+     * Creates and returns a Handle object that can be used for direct manipulation of the parameters of this node.
+     * The handle is bound to this node.
+     * <p/>
+     * This method may return null to indicate that no handle is available.
+     * <p/>
+     * You should not override this method, but rather the createHandle method on the NodeType.
+     *
+     * @return a handle instance bound to this node, or null.
+     * @see net.nodebox.node.NodeType#createHandle(Node)
+     */
+    public Handle createHandle() {
+        return getNodeType().createHandle(this);
     }
 
     //// Output ////
