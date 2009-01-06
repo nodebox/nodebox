@@ -301,7 +301,7 @@ public class BezierPath extends Grob {
     public static double curveLength(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, int n) {
         double length = 0;
         double xi = x0;
-        double yi = x1;
+        double yi = y0;
         double t;
         double px, py;
         double tmpX, tmpY;
@@ -363,7 +363,7 @@ public class BezierPath extends Grob {
 
     public double[] calculateSegmentLengths(int n) {
         if (segmentLengths != null) return segmentLengths;
-        segmentLengths = new double[elements.size()];
+        segmentLengths = new double[elements.size() - 1];
         double length;
         pathLength = 0;
         double closeX = 0;
@@ -377,6 +377,8 @@ public class BezierPath extends Grob {
                 closeX = el.getX();
                 closeY = el.getY();
                 first = false;
+                // At the end of the loop, i will be incremented, setting it to 0.
+                i = -1;
             } else if (el.getCommand() == PathElement.MOVETO) {
                 closeX = el.getX();
                 closeY = el.getY();
@@ -403,6 +405,7 @@ public class BezierPath extends Grob {
             }
             i++;
         }
+        assert (i == segmentLengths.length);
         return segmentLengths;
     }
 
