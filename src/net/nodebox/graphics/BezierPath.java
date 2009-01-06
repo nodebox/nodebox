@@ -439,6 +439,8 @@ public class BezierPath extends Grob {
 
         // Since t is relative, convert it to the absolute length.
         double absT = t * pathLength;
+        // The resT is what remains of t after we traversed all segments.
+        double resT = t;
 
         // Find the segment that contains t.
         int i = 0;
@@ -452,10 +454,13 @@ public class BezierPath extends Grob {
             if (absT <= segmentLengths[i] || i == segmentLengths.length - 1)
                 break;
             absT -= segmentLengths[i];
+            resT -= segmentLengths[i] / pathLength;
             i++;
         }
-        if (segmentLengths[i] != 0)
+        if (segmentLengths[i] != 0) {
             absT /= segmentLengths[i];
+            resT /= segmentLengths[i] / pathLength;
+        }
         if (i == segmentLengths.length - 1 && segmentLengths[i] == 0)
             i--;
 
@@ -464,7 +469,7 @@ public class BezierPath extends Grob {
         PathElement el0 = elements.get(i);
         PathElement el1 = elements.get(i + 1);
         // The resT is what remains of t after we traversed all segments.
-        double resT = (absT / pathLength) - t;
+        //double resT = absT / pathLength;
         switch (el1.getCommand()) {
             case PathElement.CLOSE:
                 return linePoint(resT, el0.getX(), el0.getY(), closeX, closeY);
@@ -477,7 +482,7 @@ public class BezierPath extends Grob {
                         el1.getControl2().getX(), el1.getControl2().getY(),
                         el1.getX(), el1.getY());
             default:
-                throw new NodeBoxError("Unknown path command for p1: " + el1);
+                return new Point(); // throw new AssertionError("Unknown path command for p1: " + el1);
         }
     }
 
