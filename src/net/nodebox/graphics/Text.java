@@ -18,8 +18,8 @@ public class Text extends Grob {
 
     private String text;
     private double baseLineX, baseLineY;
-    private double width = -1;
-    private double height = -1;
+    private double width = Double.MAX_VALUE;
+    private double height = Double.MAX_VALUE;
     private String fontName = "Helvetica";
     private double fontSize = 24;
     private double lineHeight;

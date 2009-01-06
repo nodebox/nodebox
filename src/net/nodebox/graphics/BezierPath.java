@@ -45,6 +45,8 @@ public class BezierPath extends Grob {
     private boolean dirty = true;
     private boolean needsMoveto = true; // Flag to check if we already moved to a start point.
     private transient java.awt.geom.GeneralPath awtPath;
+    private double[] segmentLengths;
+    private double pathLength = -1;
 
     public BezierPath() {
     }
@@ -106,6 +108,7 @@ public class BezierPath extends Grob {
         if (needsMoveto)
             throw new NodeBoxError("Quadto without first doing moveto.");
         PathElement lastElement = elements.get(elements.size() - 1);
+        // We don't support quads natively, but we accept them and convert them to a cubic bezier.
         double lastX = lastElement.getX();
         double lastY = lastElement.getY();
         double c1x = lastX + (x1 - lastX) * 2 / 3;
@@ -199,6 +202,283 @@ public class BezierPath extends Grob {
         t.setLineHeight(lineHeight);
         t.setAlign(align);
         extend(t.getPath());
+    }
+
+    //// Mathematics ////
+
+
+    /**
+     * Returns the length of the line.
+     *
+     * @param x0 X start coordinate
+     * @param y0 Y start coordinate
+     * @param x1 X end coordinate
+     * @param y1 Y end coordinate
+     * @return the length of the line
+     */
+    public static double lineLength(double x0, double y0, double x1, double y1) {
+        x0 = Math.abs(x0 - x1);
+        x0 *= x0;
+        y0 = Math.abs(y0 - y1);
+        y0 *= y0;
+        return Math.sqrt(x0 + y0);
+    }
+
+    /**
+     * Returns coordinates for point at t on the line.
+     * <p/>
+     * Calculates the coordinates of x and y for a point
+     * at t on a straight line.
+     * <p/>
+     * The t parameter is a number between 0.0 and 1.0,
+     * x0 and y0 define the starting point of the line,
+     * x1 and y1 the ending point of the line,
+     *
+     * @param t  a number between 0.0 and 1.0 defining the position on the path.
+     * @param x0 X start coordinate
+     * @param y0 Y start coordinate
+     * @param x1 X end coordinate
+     * @param y1 Y end coordinate
+     * @return a Point at position t on the line.
+     */
+    public static Point linePoint(double t, double x0, double y0, double x1, double y1) {
+        return new Point(
+                x0 + t * (x1 - x0),
+                y0 + t * (y1 - y0));
+    }
+
+
+    /**
+     * Returns the length of the spline.
+     * <p/>
+     * Integrates the estimated length of the cubic bezier spline
+     * defined by x0, y0, ... x3, y3, by adding the lengths of
+     * lineair lines between points at t.
+     * <p/>
+     * The number of points is defined by n
+     * (n=10 would add the lengths of lines between 0.0 and 0.1,
+     * between 0.1 and 0.2, and so on).
+     * <p/>
+     * This will use a default accuracy of 20, which is fine for most cases, usually
+     * resulting in a deviation of less than 0.01.
+     *
+     * @param x0 X start coordinate
+     * @param y0 Y start coordinate
+     * @param x1 X control point 1
+     * @param y1 Y control point 1
+     * @param x2 X control point 2
+     * @param y2 Y control point 2
+     * @param x3 X end coordinate
+     * @param y3 Y end coordinate
+     * @return the length of the spline.
+     */
+    public static double curveLength(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+        return curveLength(x0, y0, x1, y1, x2, y2, x3, y3, 20);
+    }
+
+    /**
+     * Returns the length of the spline.
+     * <p/>
+     * Integrates the estimated length of the cubic bezier spline
+     * defined by x0, y0, ... x3, y3, by adding the lengths of
+     * lineair lines between points at t.
+     * <p/>
+     * The number of points is defined by n
+     * (n=10 would add the lengths of lines between 0.0 and 0.1,
+     * between 0.1 and 0.2, and so on).
+     *
+     * @param x0 X start coordinate
+     * @param y0 Y start coordinate
+     * @param x1 X control point 1
+     * @param y1 Y control point 1
+     * @param x2 X control point 2
+     * @param y2 Y control point 2
+     * @param x3 X end coordinate
+     * @param y3 Y end coordinate
+     * @param n  accuracy
+     * @return the length of the spline.
+     */
+    public static double curveLength(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, int n) {
+        double length = 0;
+        double xi = x0;
+        double yi = x1;
+        double t;
+        double px, py;
+        double tmpX, tmpY;
+        for (int i = 0; i < n; i++) {
+            t = (i + 1) / (double) n;
+            Point pt = curvePoint(t, x0, y0, x1, y1, x2, y2, x3, y3);
+            px = pt.getX();
+            py = pt.getY();
+            tmpX = Math.abs(xi - px);
+            tmpX *= tmpX;
+            tmpY = Math.abs(yi - py);
+            tmpY *= tmpY;
+            length += Math.sqrt(tmpX + tmpY);
+            xi = px;
+            yi = py;
+        }
+        return length;
+    }
+
+    /**
+     * Returns coordinates for point at t on the spline.
+     * <p/>
+     * Calculates the coordinates of x and y for a point
+     * at t on the cubic bezier spline, and its control points,
+     * based on the de Casteljau interpolation algorithm.
+     *
+     * @param t  a number between 0.0 and 1.0 defining the position on the path.
+     * @param x0 X start coordinate
+     * @param y0 Y start coordinate
+     * @param x1 X control point 1
+     * @param y1 Y control point 1
+     * @param x2 X control point 2
+     * @param y2 Y control point 2
+     * @param x3 X end coordinate
+     * @param y3 Y end coordinate
+     * @return a Point at position t on the spline.
+     */
+    public static Point curvePoint(double t, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+        double mint = 1 - t;
+        double x01 = x0 * mint + x1 * t;
+        double y01 = y0 * mint + y1 * t;
+        double x12 = x1 * mint + x2 * t;
+        double y12 = y1 * mint + y2 * t;
+        double x23 = x2 * mint + x3 * t;
+        double y23 = y2 * mint + y3 * t;
+
+        double out_c1x = x01 * mint + x12 * t;
+        double out_c1y = y01 * mint + y12 * t;
+        double out_c2x = x12 * mint + x23 * t;
+        double out_c2y = y12 * mint + y23 * t;
+        double out_x = out_c1x * mint + out_c2x * t;
+        double out_y = out_c1y * mint + out_c2y * t;
+        return new Point(out_x, out_y);
+    }
+
+    public double[] calculateSegmentLengths() {
+        return calculateSegmentLengths(20);
+    }
+
+    public double[] calculateSegmentLengths(int n) {
+        if (segmentLengths != null) return segmentLengths;
+        segmentLengths = new double[elements.size()];
+        double length;
+        pathLength = 0;
+        double closeX = 0;
+        double closeY = 0;
+        double x0 = 0;
+        double y0 = 0;
+        boolean first = true;
+        int i = 0;
+        for (PathElement el : elements) {
+            if (first) {
+                closeX = el.getX();
+                closeY = el.getY();
+                first = false;
+            } else if (el.getCommand() == PathElement.MOVETO) {
+                closeX = el.getX();
+                closeY = el.getY();
+                segmentLengths[i] = 0.0;
+            } else if (el.getCommand() == PathElement.CLOSE) {
+                length = lineLength(x0, y0, closeX, closeY);
+                segmentLengths[i] = length;
+                pathLength += length;
+            } else if (el.getCommand() == PathElement.LINETO) {
+                length = lineLength(x0, y0, el.getX(), el.getY());
+                segmentLengths[i] = length;
+                pathLength += length;
+            } else if (el.getCommand() == PathElement.CURVETO) {
+                length = curveLength(x0, y0,
+                        el.getControl1().getX(), el.getControl1().getY(),
+                        el.getControl2().getX(), el.getControl2().getY(),
+                        el.getX(), el.getY(), n);
+                segmentLengths[i] = length;
+                pathLength += length;
+            }
+            if (el.getCommand() != PathElement.CLOSE) {
+                x0 = el.getX();
+                y0 = el.getY();
+            }
+            i++;
+        }
+        return segmentLengths;
+    }
+
+    /**
+     * Calculate the length of the path. This is not the number of segments, but rather the sum of all segment lengths.
+     *
+     * @return the length of the path.
+     */
+    public double getLength() {
+        if (segmentLengths == null)
+            calculateSegmentLengths();
+        assert (pathLength != -1);
+        return pathLength;
+    }
+
+    /**
+     * Returns coordinates for point at t on the path.
+     * <p/>
+     * Gets the length of the path, based on the length
+     * of each curve and line in the path.
+     * Determines in what segment t falls.
+     * Gets the point on that segment.
+     *
+     * @param t relative coordinate of the point (between 0.0 and 1.0)
+     * @return coordinates for point at t.
+     */
+    public Point getPoint(double t) {
+        if (segmentLengths == null)
+            calculateSegmentLengths();
+
+        // Check if there is a path.
+        if (pathLength <= 0)
+            throw new NodeBoxError("The path is empty.");
+
+        // Since t is relative, convert it to the absolute length.
+        double absT = t * pathLength;
+
+        // Find the segment that contains t.
+        int i = 0;
+        double closeX = 0;
+        double closeY = 0;
+        for (PathElement el : elements) {
+            if (i == 0 || el.getCommand() == PathElement.MOVETO) {
+                closeX = el.getX();
+                closeY = el.getY();
+            }
+            if (absT <= segmentLengths[i] || i == segmentLengths.length - 1)
+                break;
+            absT -= segmentLengths[i];
+            i++;
+        }
+        if (segmentLengths[i] != 0)
+            absT /= segmentLengths[i];
+        if (i == segmentLengths.length - 1 && segmentLengths[i] == 0)
+            i--;
+
+        // Get the element for this (and the next) segment.
+        // Calculate the point on that segment.
+        PathElement el0 = elements.get(i);
+        PathElement el1 = elements.get(i + 1);
+        // The resT is what remains of t after we traversed all segments.
+        double resT = (absT / pathLength) - t;
+        switch (el1.getCommand()) {
+            case PathElement.CLOSE:
+                return linePoint(resT, el0.getX(), el0.getY(), closeX, closeY);
+            case PathElement.LINETO:
+                return linePoint(resT, el0.getX(), el0.getY(), el1.getX(), el1.getY());
+            case PathElement.CURVETO:
+                return curvePoint(resT,
+                        el0.getX(), el0.getY(),
+                        el1.getControl1().getX(), el1.getControl1().getY(),
+                        el1.getControl2().getX(), el1.getControl2().getY(),
+                        el1.getX(), el1.getY());
+            default:
+                throw new NodeBoxError("Unknown path command for p1: " + el1);
+        }
     }
 
     //// Geometric queries ////
