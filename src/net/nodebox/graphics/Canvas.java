@@ -18,6 +18,7 @@
  */
 package net.nodebox.graphics;
 
+import java.awt.*;
 import java.io.File;
 
 public class Canvas extends Group {
@@ -25,7 +26,7 @@ public class Canvas extends Group {
     public static final double DEFAULT_WIDTH = 1000;
     public static final double DEFAULT_HEIGHT = 1000;
 
-    private Color background = new Color(0, 0, 0, 0);
+    private Color background = new Color(1, 1, 1);
     private double width, height;
 
     public Canvas() {
@@ -88,6 +89,17 @@ public class Canvas extends Group {
     }
 
     //// Drawing ////
+
+    @Override
+    public void draw(Graphics2D g) {
+        g.setColor(background.getAwtColor());
+        g.fillRect(0, 0, (int) width, (int) height);
+        Rectangle clip = g.getClipBounds();
+        int clipwidth = width > clip.width ? clip.width : (int) width;
+        int clipheight = height > clip.height ? clip.height : (int) height;
+        g.setClip(clip.x, clip.y, clipwidth, clipheight);
+        super.draw(g);
+    }
 
     public void save(File file) {
         throw new UnsupportedOperationException("Not supported yet.");

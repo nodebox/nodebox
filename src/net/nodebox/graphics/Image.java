@@ -63,21 +63,21 @@ public class Image extends Grob {
 
     // todo: native width and desired width are incosistently presented.
 
-    public float getWidth() {
+    public double getWidth() {
         if (image == null) return 0;
         return image.getWidth();
     }
 
-    public float getHeight() {
+    public double getHeight() {
         if (image == null) return 0;
         return image.getHeight();
     }
 
-    public void setWidth(float width) {
+    public void setWidth(double width) {
         this.desiredWidth = width;
     }
 
-    public void setHeight(float height) {
+    public void setHeight(double height) {
         this.desiredHeight = height;
     }
 
@@ -85,7 +85,7 @@ public class Image extends Grob {
         return x;
     }
 
-    public void setX(float x) {
+    public void setX(double x) {
         this.x = x;
     }
 
@@ -93,7 +93,7 @@ public class Image extends Grob {
         return y;
     }
 
-    public void setY(float y) {
+    public void setY(double y) {
         this.y = y;
     }
 
@@ -101,12 +101,16 @@ public class Image extends Grob {
         return alpha;
     }
 
-    public void setAlpha(float alpha) {
+    public void setAlpha(double alpha) {
         this.alpha = alpha;
     }
 
     public RenderedImage getAwtImage() {
         return image;
+    }
+
+    public Size getSize() {
+        return new Size(image.getWidth(), image.getHeight());
     }
 
     //// Grob support ////
@@ -117,8 +121,8 @@ public class Image extends Grob {
     }
 
     public void draw(Graphics2D g) {
-        float srcW = image.getWidth();
-        float srcH = image.getHeight();
+        double srcW = image.getWidth();
+        double srcH = image.getHeight();
         // Width or height given
         if (desiredWidth != 0 || desiredHeight != 0) {
             double factor;
@@ -175,4 +179,5 @@ public class Image extends Grob {
                 && this.image.equals(other.image)
                 && super.equals(other);
     }
+
 }

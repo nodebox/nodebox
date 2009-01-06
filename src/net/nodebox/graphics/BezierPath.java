@@ -43,6 +43,7 @@ public class BezierPath extends Grob {
     private Color strokeColor = new Color();
     private double strokeWidth = 1;
     private boolean dirty = true;
+    private boolean needsMoveto = true; // Flag to check if we already moved to a start point.
     private transient java.awt.geom.GeneralPath awtPath;
 
     public BezierPath() {
@@ -90,21 +91,41 @@ public class BezierPath extends Grob {
 
     public void moveto(double x, double y) {
         elements.add(new PathElement(PathElement.MOVETO, x, y));
+        needsMoveto = false;
         dirty = true;
     }
 
     public void lineto(double x, double y) {
+        if (needsMoveto)
+            throw new NodeBoxError("Lineto without first doing moveto.");
         elements.add(new PathElement(PathElement.LINETO, x, y));
         dirty = true;
     }
 
+    public void quadto(double x1, double y1, double x2, double y2) {
+        if (needsMoveto)
+            throw new NodeBoxError("Quadto without first doing moveto.");
+        PathElement lastElement = elements.get(elements.size() - 1);
+        double lastX = lastElement.getX();
+        double lastY = lastElement.getY();
+        double c1x = lastX + (x1 - lastX) * 2 / 3;
+        double c1y = lastY + (y1 - lastY) * 2 / 3;
+        double c2x = x2 - (x2 - x1) * 2 / 3;
+        double c2y = y2 - (y2 - y1) * 2 / 3;
+        curveto(c1x, c1y, c2x, c2y, x2, y2);
+    }
+
     public void curveto(double x1, double y1, double x2, double y2, double x3, double y3) {
+        if (needsMoveto)
+            throw new NodeBoxError("Curveto without first doing moveto.");
         elements.add(new PathElement(PathElement.CURVETO, x1, y1, x2, y2, x3, y3));
         dirty = true;
     }
 
     public void close() {
         elements.add(new PathElement(PathElement.CLOSE));
+        // After the path is closed, we need a new moveto to start a new path segment.
+        needsMoveto = true;
         dirty = true;
     }
 
@@ -161,6 +182,23 @@ public class BezierPath extends Grob {
     public void addLine(double x1, double y1, double x2, double y2) {
         moveto(x1, y1);
         lineto(x2, y2);
+    }
+
+    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y) {
+        addText(text, fontName, fontSize, lineHeight, align, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
+    }
+
+    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width) {
+        addText(text, fontName, fontSize, lineHeight, align, x, y, width, Double.MAX_VALUE);
+    }
+
+    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width, double height) {
+        Text t = new Text(text, x, y, width, height);
+        t.setFontName(fontName);
+        t.setFontSize(fontSize);
+        t.setLineHeight(lineHeight);
+        t.setAlign(align);
+        extend(t.getPath());
     }
 
     //// Geometric queries ////
@@ -248,8 +286,10 @@ public class BezierPath extends Grob {
                 moveto(points[0], points[1]);
             } else if (cmd == PathIterator.SEG_LINETO) {
                 lineto(points[0], points[1]);
+            } else if (cmd == PathIterator.SEG_QUADTO) {
+                quadto(points[0], points[1], points[2], points[3]);
             } else if (cmd == PathIterator.SEG_CUBICTO) {
-                curveto(points[2], points[3], points[4], points[5], points[0], points[1]);
+                curveto(points[0], points[1], points[2], points[3], points[4], points[5]);
             } else if (cmd == PathIterator.SEG_CLOSE) {
                 close();
             } else {
@@ -262,6 +302,7 @@ public class BezierPath extends Grob {
 
 
     //// Geometry ////
+
     public java.awt.geom.GeneralPath getGeneralPath() {
         if (!dirty) {
             return awtPath;
@@ -279,9 +320,9 @@ public class BezierPath extends Grob {
                 case PathElement.CURVETO:
                     c1 = el.getControl1();
                     c2 = el.getControl2();
-                    gp.curveTo((float) el.getX(), (float) el.getY(),
-                            (float) c1.getX(), (float) c1.getY(),
-                            (float) c2.getX(), (float) c2.getY());
+                    gp.curveTo((float) c1.getX(), (float) c1.getY(),
+                            (float) c2.getX(), (float) c2.getY(),
+                            (float) el.getX(), (float) el.getY());
                     break;
                 case PathElement.CLOSE:
                     gp.closePath();
@@ -339,4 +380,5 @@ public class BezierPath extends Grob {
         sb.append(")");
         return sb.toString();
     }
+
 }
