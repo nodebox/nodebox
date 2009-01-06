@@ -11,7 +11,7 @@ public class ParameterPane extends Pane {
     private ParameterView parameterView;
     private Node node;
 
-    public ParameterPane(Document document) {
+    public ParameterPane(NodeBoxDocument document) {
         this();
         setDocument(document);
     }
@@ -31,7 +31,7 @@ public class ParameterPane extends Pane {
     }
 
     @Override
-    public void setDocument(Document document) {
+    public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);
         if (document == null) return;
         setNode(document.getActiveNode());

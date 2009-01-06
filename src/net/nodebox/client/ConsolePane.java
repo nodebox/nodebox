@@ -8,7 +8,7 @@ public class ConsolePane extends Pane {
     private PaneHeader paneHeader;
     private Console console;
 
-    public ConsolePane(Document document) {
+    public ConsolePane(NodeBoxDocument document) {
         this();
         setDocument(document);
     }

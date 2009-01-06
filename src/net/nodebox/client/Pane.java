@@ -8,17 +8,17 @@ import java.awt.*;
 
 public abstract class Pane extends JPanel implements DocumentFocusListener {
 
-    private Document document;
+    private NodeBoxDocument document;
 
     public Pane() {
     }
 
-    public Pane(Document document) {
+    public Pane(NodeBoxDocument document) {
         setDocument(document);
     }
 
-    public void setDocument(Document document) {
-        Document oldDocument = this.document;
+    public void setDocument(NodeBoxDocument document) {
+        NodeBoxDocument oldDocument = this.document;
         if (oldDocument != null)
             oldDocument.removeDocumentFocusListener(this);
         this.document = document;
@@ -26,7 +26,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
             document.addDocumentFocusListener(this);
     }
 
-    public Document getDocument() {
+    public NodeBoxDocument getDocument() {
         return document;
     }
 

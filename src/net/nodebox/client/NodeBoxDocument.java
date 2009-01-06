@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-public class Document extends JFrame implements NetworkDataListener {
+public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -126,7 +126,7 @@ public class Document extends JFrame implements NetworkDataListener {
         }
     }
 
-    public Document() {
+    public NodeBoxDocument() {
         nodeManager = new NodeManager();
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
@@ -217,7 +217,7 @@ public class Document extends JFrame implements NetworkDataListener {
         fileList.remove(canonicalFile);
         fileList.add(0, canonicalFile);
         writeRecentFiles(fileList);
-        for (Document doc : Application.getInstance().getDocuments()) {
+        for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
             doc.buildRecentFileMenu();
         }
     }
@@ -398,7 +398,7 @@ public class Document extends JFrame implements NetworkDataListener {
 
     public static void open(File file) {
         lastFilePath = file.getParentFile().getAbsolutePath();
-        Document doc = Application.getInstance().createNewDocument();
+        NodeBoxDocument doc = Application.getInstance().createNewDocument();
         if (doc.readFromFile(file)) {
             doc.setDocumentFile(file);
         }
@@ -520,8 +520,8 @@ public class Document extends JFrame implements NetworkDataListener {
         boolean allClosed = true;
         // Because documents will disappear from the list once they are closed,
         // make a copy of the list.
-        java.util.List<Document> documents = new ArrayList<Document>(Application.getInstance().getDocuments());
-        for (Document d : documents) {
+        java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(Application.getInstance().getDocuments());
+        for (NodeBoxDocument d : documents) {
             allClosed = allClosed && d.shouldClose();
         }
         if (allClosed) {
@@ -592,7 +592,7 @@ public class Document extends JFrame implements NetworkDataListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            File chosenFile = FileUtils.showOpenDialog(Document.this, lastFilePath, "ndbx", "NodeBox Document");
+            File chosenFile = FileUtils.showOpenDialog(NodeBoxDocument.this, lastFilePath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
                 open(chosenFile);
             }
@@ -623,7 +623,7 @@ public class Document extends JFrame implements NetworkDataListener {
         public void actionPerformed(ActionEvent e) {
             if (shouldClose()) {
                 if (Application.getInstance().getDocumentCount() > 1) {
-                    Application.getInstance().removeDocument(Document.this);
+                    Application.getInstance().removeDocument(NodeBoxDocument.this);
                     dispose();
                 } else {
                     // TODO: On mac, the application doesn't quit after the last document is closed.

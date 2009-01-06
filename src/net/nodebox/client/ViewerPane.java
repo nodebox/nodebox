@@ -13,7 +13,7 @@ public class ViewerPane extends Pane {
     private Network network;
 
 
-    public ViewerPane(Document document) {
+    public ViewerPane(NodeBoxDocument document) {
         this();
         setDocument(document);
     }
@@ -29,7 +29,7 @@ public class ViewerPane extends Pane {
     }
 
     @Override
-    public void setDocument(Document document) {
+    public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);
         if (document == null) return;
         setNetwork(document.getActiveNetwork());

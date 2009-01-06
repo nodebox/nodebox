@@ -17,11 +17,11 @@ public class WindowLayout {
         this.topComponent = topComponent;
     }
 
-    public void apply(Document document) {
+    public void apply(NodeBoxDocument document) {
 
     }
 
-    public void extract(Document document) {
+    public void extract(NodeBoxDocument document) {
         document.getContentPane();
     }
 

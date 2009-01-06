@@ -5,6 +5,9 @@ import org.python.util.PythonInterpreter;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -19,9 +22,12 @@ public class EditorDocument extends JFrame {
     private GraphicsContext context;
     private PythonInterpreter interpreter;
     private EditorViewer viewer;
-    private JTextArea codeArea;
+    private CodeArea codeArea;
     private FeedbackArea feedbackArea;
 
+    private UndoManager undo = new UndoManager();
+    private UndoAction undoAction = new UndoAction();
+    private RedoAction redoAction = new RedoAction();
 
     public EditorDocument() {
         context = new GraphicsContext();
@@ -29,7 +35,7 @@ public class EditorDocument extends JFrame {
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         viewer = new EditorViewer();
-        codeArea = new JTextArea();
+        codeArea = new CodeArea();
         codeArea.setBorder(BorderFactory.createEtchedBorder());
         JScrollPane codeScroll = new JScrollPane(codeArea);
         codeScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -53,9 +59,19 @@ public class EditorDocument extends JFrame {
 
     private void initMenu() {
         JMenuBar menuBar = new JMenuBar();
+
+        // Edit
+        JMenu editMenu = new JMenu("Edit");
+        editMenu.add(undoAction);
+        editMenu.add(redoAction);
+        editMenu.addSeparator();
+        menuBar.add(editMenu);
+
+        // Python
         JMenu pythonMenu = new JMenu("Python");
         pythonMenu.add(new RunAction());
         menuBar.add(pythonMenu);
+
         setJMenuBar(menuBar);
     }
 
@@ -125,6 +141,63 @@ public class EditorDocument extends JFrame {
             viewer.repaint();
         }
     }
+
+    public class UndoAction extends AbstractAction {
+        public UndoAction() {
+            putValue(NAME, "Undo");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z));
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undo.undo();
+            } catch (CannotUndoException ex) {
+                logger.log(Level.WARNING, "Unable to undo.", ex);
+            }
+            update();
+            redoAction.update();
+        }
+
+        public void update() {
+            if (undo.canUndo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undo.getUndoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, "Undo");
+            }
+        }
+    }
+
+    public class RedoAction extends AbstractAction {
+        public RedoAction() {
+            putValue(NAME, "Redo");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
+            setEnabled(false);
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undo.redo();
+            } catch (CannotRedoException ex) {
+                logger.log(Level.WARNING, "Unable to redo.", ex);
+            }
+            update();
+            undoAction.update();
+        }
+
+        public void update() {
+            if (undo.canRedo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undo.getRedoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, "Redo");
+            }
+        }
+    }
+
 
     private class FeedbackArea extends JTextArea {
 

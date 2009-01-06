@@ -33,8 +33,8 @@ public class Application {
         return instance;
     }
 
-    private List<Document> documents = new ArrayList<Document>();
-    private Document currentDocument;
+    private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
+    private NodeBoxDocument currentDocument;
 
     public static final String NAME = "NodeBox";
 
@@ -48,7 +48,7 @@ public class Application {
         createNewDocument();
     }
 
-    public List<Document> getDocuments() {
+    public List<NodeBoxDocument> getDocuments() {
         return documents;
     }
 
@@ -56,12 +56,12 @@ public class Application {
         return documents.size();
     }
 
-    public void removeDocument(Document document) {
+    public void removeDocument(NodeBoxDocument document) {
         documents.remove(document);
     }
 
-    public Document createNewDocument() {
-        Document doc = new Document();
+    public NodeBoxDocument createNewDocument() {
+        NodeBoxDocument doc = new NodeBoxDocument();
         doc.setVisible(true);
         documents.add(doc);
         currentDocument = doc;
