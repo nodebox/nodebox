@@ -495,11 +495,11 @@ public class Parameter implements ParameterTypeListener {
             xml.append(spaces).append("<expression>").append(getExpression()).append("</expression>\n");
         } else {
             if (getCoreType() == ParameterType.CoreType.INT) {
-                xml.append(spaces).append("<int>").append(asFloat()).append("</int>\n");
+                xml.append(spaces).append("<int>").append(asInt()).append("</int>\n");
             } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
                 xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
             } else if (getCoreType() == ParameterType.CoreType.STRING) {
-                xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
+                xml.append(spaces).append("<string>").append(asString()).append("</string>\n");
             } else if (getCoreType() == ParameterType.CoreType.COLOR) {
                 xml.append(spaces).append("<color>").append(asColor().toString()).append("</color>\n");
             } else {
