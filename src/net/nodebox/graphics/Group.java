@@ -1,7 +1,6 @@
 package net.nodebox.graphics;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,12 +80,11 @@ public class Group extends Grob {
     }
 
     public void draw(Graphics2D g) {
-        AffineTransform t = g.getTransform();
-        getTransform().apply(g, getBounds());
+        setupTransform(g);
         for (Grob grob : grobs) {
             grob.draw(g);
         }
-        g.setTransform(t);
+        restoreTransform(g);
     }
 
     //// Copy ////

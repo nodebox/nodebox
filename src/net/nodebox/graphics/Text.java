@@ -170,25 +170,6 @@ public class Text extends Grob {
 
     //// Metrics ////
 
-    private TextLayout getTextLayout() {
-        // TODO: Incorporate LineBreakMeasurer
-
-        AffineTransform trans = new AffineTransform();
-        FontRenderContext frc = new FontRenderContext(trans, true, true);
-        AttributedString attrString = new AttributedString(text);
-        attrString.addAttribute(TextAttribute.FONT, getFont());
-        attrString.addAttribute(TextAttribute.FOREGROUND, fillColor.getAwtColor());
-        if (align == Align.RIGHT) {
-            attrString.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
-        } else if (align == Align.CENTER) {
-            // TODO: Center alignment?
-        } else if (align == Align.JUSTIFY) {
-            attrString.addAttribute(TextAttribute.JUSTIFICATION, TextAttribute.JUSTIFICATION_FULL);
-        }
-        TextLayout layout = new TextLayout(attrString.getIterator(), frc);
-        return layout;
-    }
-
     private AttributedString getStyledText() {
         AttributedString attrString = new AttributedString(text);
         attrString.addAttribute(TextAttribute.FONT, getFont());
@@ -218,37 +199,14 @@ public class Text extends Grob {
     //// Drawing ////
 
     public void draw(Graphics2D g) {
+        setupTransform(g);
         if (text == null || text.length() == 0) return;
-        // g.setColor(fillColor.getAwtColor());
-        //getTextLayout().draw(g, (float) baseLineX, (float) baseLineY);
-
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
             TextLayout layout = iterator.next();
             layout.draw(g, iterator.getX(), iterator.getY());
         }
-        /*
-        double x = baseLineX;
-        double y = baseLineY;
-        FontRenderContext frc = g.getFontRenderContext();
-        AttributedString styledText = getStyledText();
-        LineBreakMeasurer measurer = new LineBreakMeasurer(styledText.getIterator(), frc);
-        while (measurer.getPosition() < text.length()) {
-            TextLayout layout = measurer.nextLayout((float) width);
-            double dx = 0;
-            if (align == Align.RIGHT) {
-                dx = width - layout.getAdvance();
-            } else if (align == Align.CENTER) {
-                dx = (width - layout.getAdvance()) / 2.0F;
-            } else if (align == Align.JUSTIFY) {
-                // Don't justify the last line.
-                if (measurer.getPosition() < text.length()) {
-                    layout = layout.getJustifiedLayout((float) width);
-                }
-            }
-            layout.draw(g, (float) (x + dx), (float) y);
-        }
-        */
+        restoreTransform(g);
     }
 
 

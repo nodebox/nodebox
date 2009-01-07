@@ -63,18 +63,26 @@ public class Image extends Grob {
 
     // todo: native width and desired width are incosistently presented.
 
-    public double getWidth() {
+    public double getOriginalWidth() {
         if (image == null) return 0;
         return image.getWidth();
     }
 
-    public double getHeight() {
+    public double getOriginalHeight() {
         if (image == null) return 0;
         return image.getHeight();
     }
 
+    public double getWidth() {
+        return getOriginalWidth() * getScaleFactor();
+    }
+
     public void setWidth(double width) {
         this.desiredWidth = width;
+    }
+
+    public double getHeight() {
+        return getOriginalHeight() * getScaleFactor();
     }
 
     public void setHeight(double height) {
@@ -117,48 +125,41 @@ public class Image extends Grob {
 
     public Rect getBounds() {
         if (image == null) return new Rect();
-        return new Rect(x, y, image.getWidth(), image.getHeight());
+        double factor = getScaleFactor();
+        return new Rect(x, y, image.getWidth() * factor, image.getHeight() * factor);
+    }
+
+    public double getScaleFactor() {
+        if (desiredWidth != 0 || desiredHeight != 0) {
+            double srcW = image.getWidth();
+            double srcH = image.getHeight();
+            if (desiredWidth != 0 && desiredHeight != 0) {
+                // Both width and height were given, constrain to smallest
+                return Math.min(desiredWidth / srcW, desiredHeight / srcH);
+            } else if (desiredWidth != 0) {
+                return desiredWidth / srcW;
+            } else {
+                return desiredHeight / srcH;
+            }
+        } else {
+            return 1;
+        }
     }
 
     public void draw(Graphics2D g) {
-        double srcW = image.getWidth();
-        double srcH = image.getHeight();
-        // Width or height given
-        if (desiredWidth != 0 || desiredHeight != 0) {
-            double factor;
-            if (desiredWidth != 0 && desiredHeight != 0) {
-                // Both width and height were given, constrain to smallest
-                factor = Math.min(desiredWidth / srcW, desiredHeight / srcH);
-            } else if (desiredWidth != 0) {
-                factor = desiredWidth / srcW;
-            } else {
-                factor = desiredHeight / srcH;
-            }
-
-            Transform imageTrans = new Transform(g.getTransform());
-
-            // Do current transformation.
-            imageTrans.append(getTransform());
-
-            // Scale the image according to the factors.
-            imageTrans.translate(x, y);  // Here we add the positioning of the image.
-            imageTrans.scale(factor);
-
-            // Draw the actual image
-            g.drawRenderedImage(image, imageTrans.getAffineTransform());
-
-            // No width or height given
-        } else {
-
-            Transform imageTrans = new Transform(g.getTransform());
-
-            // Do current transformation.
-            imageTrans.append(getTransform());
-            imageTrans.translate(x, y);
-
-            // Draw the actual image
-            g.drawRenderedImage(image, imageTrans.getAffineTransform());
-        }
+        setupTransform(g);
+        // You can only position an image using an affine transformation.
+        // We use the transformation to translate the image to the specified
+        // position, and scale it according to the given width and height.
+        Transform imageTrans = new Transform();
+        // Move to the image position
+        imageTrans.translate(x, y);
+        // Scaling only applies to image that have their desired width and/or height set.
+        // However, getScaleFactor return 1 if height/width are not set, in effect negating
+        // the effect of the scale.
+        imageTrans.scale(getScaleFactor());
+        g.drawRenderedImage(image, imageTrans.getAffineTransform());
+        restoreTransform(g);
     }
 
 

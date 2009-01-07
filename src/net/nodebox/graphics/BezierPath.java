@@ -630,6 +630,7 @@ public class BezierPath extends Grob {
     }
 
     public void draw(Graphics2D g) {
+        setupTransform(g);
         if (fillColor != null && fillColor.isVisible()) {
             g.setColor(fillColor.getAwtColor());
             g.fill(getGeneralPath());
@@ -639,6 +640,7 @@ public class BezierPath extends Grob {
             g.setStroke(new BasicStroke((float) strokeWidth));
             g.draw(getGeneralPath());
         }
+        restoreTransform(g);
     }
 
     @Override

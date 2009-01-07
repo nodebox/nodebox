@@ -103,6 +103,7 @@ public class EditorDocument extends JFrame {
 
         public void actionPerformed(ActionEvent actionEvent) {
             // Clear out feedback area
+            context.resetContext();
             context.getCanvas().clear();
             feedbackArea.setText("");
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

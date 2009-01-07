@@ -394,6 +394,7 @@ public class GraphicsContext {
         Image img = new Image(path);
         img.setX(x);
         img.setY(y);
+        inheritFromContext(img);
         canvas.add(img);
         return img;
     }
@@ -418,19 +419,23 @@ public class GraphicsContext {
     //// Context inheritance ////
 
     private void inheritFromContext(BezierPath p) {
-        p.setTransform(transform);
-        p.setFillColor(fillColor);
-        p.setStrokeColor(strokeColor);
+        p.setTransform(transform.clone());
+        p.setFillColor(fillColor.clone());
+        p.setStrokeColor(strokeColor.clone());
         p.setStrokeWidth(strokeWidth);
     }
 
     private void inheritFromContext(Text t) {
-        t.setTransform(transform);
-        t.setFillColor(fillColor);
+        t.setTransform(transform.clone());
+        t.setFillColor(fillColor.clone());
         t.setFontName(fontName);
         t.setFontSize(fontSize);
         t.setLineHeight(lineHeight);
         t.setAlign(align);
+    }
+
+    private void inheritFromContext(Image i) {
+        i.setTransform(transform.clone());
     }
 
 }

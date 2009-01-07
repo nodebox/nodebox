@@ -19,10 +19,12 @@
 package net.nodebox.graphics;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public abstract class Grob implements Cloneable {
 
     private Transform transform = new Transform();
+    private AffineTransform savedTransform = null;
 
     protected Grob() {
     }
@@ -81,6 +83,35 @@ public abstract class Grob implements Cloneable {
 
     public void skew(double kx, double ky) {
         transform.skew(kx, ky);
+    }
+
+    protected void saveTransform(Graphics2D g) {
+        assert (savedTransform == null);
+        savedTransform = new AffineTransform(g.getTransform());
+    }
+
+    protected void restoreTransform(Graphics2D g) {
+        assert (savedTransform != null);
+        g.setTransform(savedTransform);
+        savedTransform = null;
+    }
+
+    public Transform getCenteredTransform() {
+        Rect bounds = getBounds();
+        Transform t = new Transform();
+        double dx = bounds.getX() + bounds.getWidth() / 2;
+        double dy = bounds.getY() + bounds.getHeight() / 2;
+        t.translate(dx, dy);
+        t.append(getTransform());
+        t.translate(-dx, -dy);
+        return t;
+    }
+
+    protected void setupTransform(Graphics2D g) {
+        saveTransform(g);
+        AffineTransform trans = g.getTransform();
+        trans.concatenate(getCenteredTransform().getAffineTransform());
+        g.setTransform(trans);
     }
 
     //// Cloning ////
