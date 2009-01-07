@@ -137,11 +137,11 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         PaneSplitter viewRestSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewPane, parameterNetworkSplit);
         rootPanel.add(viewRestSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
+        setLocationByPlatform(true);
         setSize(1100, 800);
         updateTitle();
         initMenu();
         registerForMacOSXEvents();
-        SwingUtils.centerOnScreen(this);
         setRootNetwork(createEmptyNetwork());
     }
 
