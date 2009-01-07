@@ -199,7 +199,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     isDragging = true;
                     dragPoint = new Point2D.Double(x, y);
                 } else {
-                    System.out.println("connect start " + NodeView.this.getNode().getName());
                     isConnecting = true;
                     connectSource = NodeView.this;
                 }
@@ -209,7 +208,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void mouseEntered(PInputEvent e) {
             if (isConnecting) {
-                System.out.println("entered " + NodeView.this.getNode().getName());
                 NodeView oldTarget = connectTarget;
                 connectTarget = NodeView.this;
                 if (oldTarget != null)
@@ -220,7 +218,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void mouseExited(PInputEvent e) {
             if (isConnecting) {
-                System.out.println("exited" + NodeView.this.getNode().getName());
                 NodeView oldTarget = connectTarget;
                 connectTarget = null;
                 if (oldTarget != null)
@@ -246,7 +243,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 if (connectSource != null && connectTarget != null) {
                     java.util.List<Parameter> compatibleParameters = connectTarget.getNode().getCompatibleInputs(connectSource.getNode());
                     if (compatibleParameters.isEmpty()) {
-                        System.out.println("No compatible parameters");
+                        // There are no compatible parameters.
                     } else if (compatibleParameters.size() == 1) {
                         // Only one possible connection, make it now.
                         Parameter inputParameter = compatibleParameters.get(0);

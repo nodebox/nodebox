@@ -123,7 +123,6 @@ public class ColorWell extends JComponent {
             Point pt = e.getPoint();
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(c);
             pt = SwingUtilities.convertPoint(c, pt, frame.getContentPane());
-            //System.out.println("CH  e = " + e);
             MouseEvent newEvent = new MouseEvent(colorPicker, e.getID(), e.getWhen(), e.getModifiers(), (int) pt.getX(), (int) pt.getY(), e.getClickCount(), e.isPopupTrigger(), e.getButton());
             colorPicker.dispatchEvent(newEvent);
         }
@@ -200,7 +199,6 @@ public class ColorWell extends JComponent {
 
         public void mouseClicked(MouseEvent e) {
             if (pickerRect.contains(e.getPoint())) {
-                System.out.println("clicked pickerRect contains");
                 setDragPoint(e.getPoint());
             }
             setVisible(false);
