@@ -37,7 +37,9 @@ import java.util.logging.Logger;
 
 public class NodeTypeLibrary {
 
-    private static Logger logger = Logger.getLogger("net.nodebox.node.Network");
+    public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
+
+    private static Logger logger = Logger.getLogger("net.nodebox.node.NodeTypeLibrary");
 
     enum LibraryType {
         UNKNOWN, JAVA, PYTHON
@@ -211,10 +213,13 @@ public class NodeTypeLibrary {
             logger.log(Level.SEVERE, "Error during parsing.", e);
             throw new RuntimeException("Error during parsing.", e);
         }
+
+        // Set the loaded flag
+        loaded = true;
     }
 
     private File getLibraryDescriptionFile() {
-        return new File(path + PlatformUtils.SEP + "types.ntl");
+        return new File(path + PlatformUtils.SEP + LIBRARY_DESCRIPTION_FILE);
     }
 
     public boolean isLoaded() {
