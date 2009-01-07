@@ -1,14 +1,14 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeManager;
+import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
 public class VectorNetworkType extends VectorNodeType {
 
-    public VectorNetworkType(NodeManager manager) {
-        super(manager, "net.nodebox.node.vector.network");
+    public VectorNetworkType(NodeTypeLibrary library) {
+        super(library, "vecnet");
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         pTx.setLabel("Transform X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);
@@ -21,11 +21,6 @@ public class VectorNetworkType extends VectorNodeType {
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setLabel("Scale Y");
         pSy.setDefaultValue(1.0);
-    }
-
-    @Override
-    public String getDefaultName() {
-        return "vecnet";
     }
 
     @Override

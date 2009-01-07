@@ -1,11 +1,13 @@
 package net.nodebox.node;
 
-public class TestManager extends NodeManager {
+import java.io.File;
+
+public class TestLibrary extends NodeTypeLibrary {
 
     public static abstract class Unary extends NodeType {
 
-        public Unary(NodeManager manager, String identifier) {
-            super(manager, identifier, ParameterType.Type.INT);
+        public Unary(NodeTypeLibrary library, String name) {
+            super(library, name, ParameterType.Type.INT);
             addParameterType("value", ParameterType.Type.INT);
         }
 
@@ -20,8 +22,8 @@ public class TestManager extends NodeManager {
 
     public static abstract class Binary extends NodeType {
 
-        public Binary(NodeManager manager, String identifier) {
-            super(manager, identifier, ParameterType.Type.INT);
+        public Binary(NodeTypeLibrary library, String name) {
+            super(library, name, ParameterType.Type.INT);
             addParameterType("v1", ParameterType.Type.INT);
             addParameterType("v2", ParameterType.Type.INT);
         }
@@ -36,8 +38,8 @@ public class TestManager extends NodeManager {
 
     public static class Number extends Unary {
 
-        public Number(NodeManager manager) {
-            super(manager, "net.nodebox.node.test.number");
+        public Number(NodeTypeLibrary library) {
+            super(library, "number");
         }
 
         public int process(int value) {
@@ -47,8 +49,8 @@ public class TestManager extends NodeManager {
 
     public static class Negate extends Unary {
 
-        public Negate(NodeManager manager) {
-            super(manager, "net.nodebox.node.test.negate");
+        public Negate(NodeTypeLibrary library) {
+            super(library, "negate");
         }
 
         public int process(int value) {
@@ -57,8 +59,8 @@ public class TestManager extends NodeManager {
     }
 
     public static class Add extends Binary {
-        public Add(NodeManager manager) {
-            super(manager, "net.nodebox.node.test.add");
+        public Add(NodeTypeLibrary library) {
+            super(library, "add");
         }
 
         public int process(int v1, int v2) {
@@ -67,8 +69,8 @@ public class TestManager extends NodeManager {
     }
 
     public static class Multiply extends Binary {
-        public Multiply(NodeManager manager) {
-            super(manager, "net.nodebox.node.test.multiply");
+        public Multiply(NodeTypeLibrary library) {
+            super(library, "multiply");
             addParameterType("somestring", ParameterType.Type.STRING);
         }
 
@@ -78,8 +80,8 @@ public class TestManager extends NodeManager {
     }
 
     public static class TestNetworkType extends NodeType {
-        public TestNetworkType(NodeManager manager) {
-            super(manager, "net.nodebox.node.test.network", ParameterType.Type.INT);
+        public TestNetworkType(NodeTypeLibrary library) {
+            super(library, "testnet", ParameterType.Type.INT);
         }
 
         @Override
@@ -93,11 +95,17 @@ public class TestManager extends NodeManager {
         }
     }
 
-    public TestManager() {
+    public TestLibrary() {
+        super("test", 1, 0, 0, new File(""));
         addNodeType(new Number(this));
         addNodeType(new Negate(this));
         addNodeType(new Add(this));
         addNodeType(new Multiply(this));
         addNodeType(new TestNetworkType(this));
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return true;
     }
 }

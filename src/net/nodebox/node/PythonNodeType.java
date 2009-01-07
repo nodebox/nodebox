@@ -10,8 +10,8 @@ public class PythonNodeType extends NodeType {
     private PyFunction function;
     String[] keywords;
 
-    public PythonNodeType(NodeManager manager, String identifier, ParameterType.Type outputType, PyFunction function) {
-        super(manager, identifier, outputType);
+    public PythonNodeType(NodeTypeLibrary library, String identifier, ParameterType.Type outputType, PyFunction function) {
+        super(library, identifier, outputType);
         this.function = function;
         initKeywords();
     }

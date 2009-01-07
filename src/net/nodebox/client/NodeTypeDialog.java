@@ -1,7 +1,7 @@
 package net.nodebox.client;
 
-import net.nodebox.node.NodeManager;
 import net.nodebox.node.NodeType;
+import net.nodebox.node.NodeTypeLibraryManager;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -14,18 +14,18 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
-public class NodeManagerDialog extends JDialog {
+public class NodeTypeDialog extends JDialog {
 
     private class FilteredNodeListModel implements ListModel {
 
-        private NodeManager nodeManager;
+        private NodeTypeLibraryManager manager;
         private java.util.List<NodeType> filteredNodeTypes;
         private String searchString;
 
-        private FilteredNodeListModel(NodeManager nodeManager) {
-            this.nodeManager = nodeManager;
+        private FilteredNodeListModel(NodeTypeLibraryManager manager) {
+            this.manager = manager;
             this.searchString = "";
-            this.filteredNodeTypes = nodeManager.getNodeTypes();
+            this.filteredNodeTypes = manager.getNodeTypes();
         }
 
         public String getSearchString() {
@@ -35,13 +35,13 @@ public class NodeManagerDialog extends JDialog {
         public void setSearchString(String searchString) {
             this.searchString = searchString.trim();
             if (searchString.length() == 0) {
-                filteredNodeTypes = nodeManager.getNodeTypes();
+                filteredNodeTypes = manager.getNodeTypes();
 
             } else {
                 filteredNodeTypes = new ArrayList<NodeType>();
-                for (NodeType type : nodeManager.getNodeTypes()) {
+                for (NodeType type : manager.getNodeTypes()) {
                     String description = type.getDescription() == null ? "" : type.getDescription();
-                    if (type.getShortName().contains(searchString) ||
+                    if (type.getName().contains(searchString) ||
                             description.contains(searchString)) {
                         filteredNodeTypes.add(type);
                     }
@@ -71,7 +71,7 @@ public class NodeManagerDialog extends JDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof NodeType);
             NodeType nodeType = (NodeType) value;
-            String html = "<html>" + nodeType.getShortName() + "<font color=#cccccc> Ð " + nodeType.getDescription() + "</font></html>";
+            String html = "<html>" + nodeType.getName() + "<font color=#cccccc> Ð " + nodeType.getDescription() + "</font></html>";
             setText(html);
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
@@ -88,7 +88,7 @@ public class NodeManagerDialog extends JDialog {
 
     }
 
-    private NodeManager nodeManager;
+    private NodeTypeLibraryManager manager;
     private JTextField searchField;
     private JList nodeList;
     private NodeType selectedNodeType;
@@ -98,16 +98,16 @@ public class NodeManagerDialog extends JDialog {
     private SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
     private FilteredNodeListModel filteredNodeListModel;
 
-    public NodeManagerDialog(NodeManager nodeManager) {
-        this(null, nodeManager);
+    public NodeTypeDialog(NodeTypeLibraryManager manager) {
+        this(null, manager);
     }
 
-    public NodeManagerDialog(Frame owner, NodeManager nodeManager) {
+    public NodeTypeDialog(Frame owner, NodeTypeLibraryManager manager) {
         super(owner, "Create node type", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
-        this.nodeManager = nodeManager;
-        filteredNodeListModel = new FilteredNodeListModel(nodeManager);
+        this.manager = manager;
+        filteredNodeListModel = new FilteredNodeListModel(manager);
         searchField = new JTextField();
         searchField.putClientProperty("JTextField.variant", "search");
         searchField.addKeyListener(escapeListener);
@@ -130,8 +130,8 @@ public class NodeManagerDialog extends JDialog {
         return selectedNodeType;
     }
 
-    public NodeManager getNodeManager() {
-        return nodeManager;
+    public NodeTypeLibraryManager getManager() {
+        return manager;
     }
 
     private void closeDialog() {

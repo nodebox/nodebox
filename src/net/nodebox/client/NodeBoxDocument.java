@@ -61,7 +61,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     private JMenu recentFileMenu;
 
-    private NodeManager nodeManager;
+    private NodeTypeLibraryManager manager;
     private Network rootNetwork;
     private Network activeNetwork;
     private Node activeNode;
@@ -78,8 +78,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     private class AllControlsType extends NodeType {
-        private AllControlsType(NodeManager manager) {
-            super(manager, "test.allcontrols", ParameterType.Type.GROB_CANVAS);
+        private AllControlsType(NodeTypeLibrary library) {
+            super(library, "allcontrols", ParameterType.Type.GROB_CANVAS);
             addParameterType("angle", ParameterType.Type.ANGLE);
             addParameterType("color", ParameterType.Type.COLOR);
             addParameterType("file", ParameterType.Type.FILE);
@@ -127,7 +127,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     public NodeBoxDocument() {
-        nodeManager = new NodeManager();
+        manager = new NodeTypeLibraryManager();
+        // TODO: Add search paths
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
@@ -161,18 +162,19 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
 
     private Network createEmptyNetwork() {
-        NodeType canvasNetworkType = nodeManager.getNodeType("net.nodebox.node.canvas.network");
+        NodeType canvasNetworkType = manager.getNodeType("builtin.canvasnet");
         return (Network) canvasNetworkType.createNode();
     }
 
     private Network createTestNetwork() {
-        NodeType canvasNetworkType = nodeManager.getNodeType("net.nodebox.node.canvas.network");
-        NodeType vectorNetworkType = nodeManager.getNodeType("net.nodebox.node.vector.network");
-        NodeType imageNetworkType = nodeManager.getNodeType("net.nodebox.node.image.network");
-        NodeType ellipseType = nodeManager.getNodeType("net.nodebox.node.vector.ellipse");
-        NodeType rectType = nodeManager.getNodeType("net.nodebox.node.vector.rect");
-        NodeType transformType = nodeManager.getNodeType("net.nodebox.node.vector.transform");
-        NodeType allControlsType = new AllControlsType(nodeManager);
+        NodeTypeLibrary builtin = NodeTypeLibrary.BUILTIN;
+        NodeType canvasNetworkType = builtin.getNodeType("canvasnet");
+        NodeType vectorNetworkType = builtin.getNodeType("vecnet");
+        NodeType imageNetworkType = builtin.getNodeType("imagenet");
+        NodeType ellipseType = builtin.getNodeType("ellipse");
+        NodeType rectType = builtin.getNodeType("rect");
+        NodeType transformType = builtin.getNodeType("transform");
+        NodeType allControlsType = new AllControlsType(null);
         Network network = (Network) canvasNetworkType.createNode();
         Node allControls = network.create(allControlsType);
         allControls.setPosition(200, 10);
@@ -377,8 +379,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         fireActiveNodeChanged();
     }
 
-    public NodeManager getNodeManager() {
-        return nodeManager;
+    public NodeTypeLibraryManager getManager() {
+        return manager;
     }
 
     //// Document actions ////
@@ -428,7 +430,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
             spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
             SAXParser parser = spf.newSAXParser();
-            XmlHandler handler = new XmlHandler(nodeManager);
+            XmlHandler handler = new XmlHandler(manager);
             parser.parse(source, handler);
 
             // The parsed network is now stored in the reader

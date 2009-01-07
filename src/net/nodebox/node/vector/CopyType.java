@@ -4,7 +4,7 @@ import net.nodebox.graphics.*;
 import net.nodebox.handle.Handle;
 import net.nodebox.handle.PointHandle;
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeManager;
+import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
@@ -13,8 +13,8 @@ import java.util.List;
 
 public class CopyType extends VectorNodeType {
 
-    public CopyType(NodeManager manager) {
-        super(manager, "net.nodebox.node.vector.copy");
+    public CopyType(NodeTypeLibrary library) {
+        super(library, "copy");
         ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
         ParameterType pTemplate = addParameterType("template", ParameterType.Type.GROB_VECTOR);
         pTemplate.setNullAllowed(true);

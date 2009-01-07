@@ -29,14 +29,14 @@ public abstract class NodeType {
     public static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
 
     /**
-     * The manager object that created this node type. Used for reloading.
+     * The library that contains this node type. Used for reloading.
      */
-    private NodeManager manager;
+    private NodeTypeLibrary library;
 
     /**
-     * The full, reverse-DNS identifier for this node, e.g. net.nodebox.node.vector.rect
+     * The name for this node type, e.g. "ellipse"
      */
-    private String identifier;
+    private String name;
 
     /**
      * The description of this node.
@@ -60,37 +60,36 @@ public abstract class NodeType {
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.NodeType");
 
-    protected NodeType(NodeManager manager, String identifier, ParameterType.Type outputType) {
-        this.manager = manager;
-        this.identifier = identifier;
+    protected NodeType(NodeTypeLibrary library, String name, ParameterType.Type outputType) {
+        this.library = library;
+        this.name = name;
         outputParameterType = new ParameterType(this, "output", outputType, ParameterType.Direction.OUT);
     }
 
-    public NodeManager getManager() {
-        return manager;
+    public NodeTypeLibrary getLibrary() {
+        return library;
     }
 
     //// Identifiers ////
 
     /**
-     * The full name of this type, in Reverse-DNS format, e.g. net.nodebox.node.vector.rect
+     * The name of this type.
      *
-     * @return the type identifier
-     * @see #getShortName()
+     * @return the type name
+     * @see #getQualifiedName()
      */
-    public String getIdentifier() {
-        return identifier;
+    public String getName() {
+        return name;
     }
 
     /**
-     * The short identifier of this type. Returns the last part of the identifier. This name is not unique.
+     * The qualified name of this type that includes the library name, e.g. "corevector.ellipse".
      *
-     * @return the short name of this type
-     * @see #getIdentifier()
+     * @return the qualified name of this type.
+     * @see #getName()
      */
-    public String getShortName() {
-        String[] tokens = identifier.split("\\.");
-        return tokens[tokens.length - 1];
+    public String getQualifiedName() {
+        return getLibrary().getName() + "." + name;
     }
 
     public String getDescription() {
@@ -103,14 +102,14 @@ public abstract class NodeType {
 
     /**
      * This method returns the name prefix that will be used when creating new nodes.
-     * Subclasses can override this method to define custom names. By default, the short name
+     * Subclasses can override this method to define custom names. By default, the name
      * of the node type is used.
      *
      * @return the default name for creating new nodes.
-     * @see #getShortName()
+     * @see #getName()
      */
     public String getDefaultName() {
-        return getShortName();
+        return getName();
     }
 
     /**
@@ -176,7 +175,7 @@ public abstract class NodeType {
             if (pt.getName().equals(name))
                 return pt;
         }
-        throw new NotFoundException(this, name, "Node type " + getIdentifier() + " does not have a parameter type '" + name + "'");
+        throw new NotFoundException(this, name, "Node type " + getName() + " does not have a parameter type '" + name + "'");
     }
 
     public boolean hasParameterType(String name) {
@@ -252,13 +251,13 @@ public abstract class NodeType {
     public NodeType clone() {
         NodeType newType;
         try {
-            Constructor c = getClass().getConstructor(NodeManager.class);
-            newType = (NodeType) c.newInstance(manager);
+            Constructor c = getClass().getConstructor(NodeTypeLibrary.class);
+            newType = (NodeType) c.newInstance(library);
         } catch (Exception e) {
-            logger.log(Level.WARNING, "Could not clone node type '" + getIdentifier() + "'.  No appropriate constructor found.");
+            logger.log(Level.WARNING, "Could not clone node type '" + getName() + "'.  No appropriate constructor found.");
             return null;
         }
-        newType.identifier = identifier;
+        newType.name = name;
         newType.description = description;
         newType.version = version.clone();
         newType.outputParameterType = outputParameterType.clone(newType);

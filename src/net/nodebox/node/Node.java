@@ -632,7 +632,7 @@ public class Node {
         // Build the node
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getNodeType().getIdentifier()).append("\"");
+        xml.append(" type=\"").append(getNodeType().getQualifiedName()).append("\"");
         xml.append(" version=\"").append(getNodeType().getVersionAsString()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");

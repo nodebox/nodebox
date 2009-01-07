@@ -3,14 +3,14 @@ package net.nodebox.node.vector;
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Transform;
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeManager;
+import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
 public class TransformType extends VectorNodeType {
 
-    public TransformType(NodeManager manager) {
-        super(manager, "net.nodebox.node.vector.transform");
+    public TransformType(NodeTypeLibrary library) {
+        super(library, "transform");
         ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         pTx.setLabel("Transform X");

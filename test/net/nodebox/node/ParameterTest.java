@@ -107,8 +107,8 @@ public class ParameterTest extends NodeTestCase {
     private class ValueNodeType extends NodeType {
         public ParameterType pInt, pFloat, pString;
 
-        private ValueNodeType(NodeManager manager) {
-            super(manager, "test.value", ParameterType.Type.INT);
+        private ValueNodeType(NodeTypeLibrary library) {
+            super(library, "test.value", ParameterType.Type.INT);
             pInt = addParameterType("int", ParameterType.Type.INT);
             pFloat = addParameterType("float", ParameterType.Type.FLOAT);
             pString = addParameterType("string", ParameterType.Type.STRING);

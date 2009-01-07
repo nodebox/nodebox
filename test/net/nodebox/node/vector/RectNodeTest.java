@@ -9,7 +9,7 @@ import net.nodebox.node.NodeTestCase;
 public class RectNodeTest extends NodeTestCase {
 
     public void testRectNode() {
-        Node r = manager.getNodeType("net.nodebox.node.vector.rect").createNode();
+        Node r = manager.getNodeType("builtin.rect").createNode();
         r.update();
         Object outputValue = r.getOutputValue();
         if (!(outputValue instanceof Group))

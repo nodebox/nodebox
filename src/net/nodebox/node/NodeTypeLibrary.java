@@ -41,7 +41,7 @@ public class NodeTypeLibrary {
 
     public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
     private static final Pattern TYPE_PATTERN = Pattern.compile(".*type\\s*=\\s*\"(python|java)\".*");
-
+    public static final NodeTypeLibrary BUILTIN = new BuiltinNodeTypeLibrary();
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.NodeTypeLibrary");
 
@@ -88,10 +88,14 @@ public class NodeTypeLibrary {
     private boolean loaded = false;
     private PyObject pythonModule;
 
-    public NodeTypeLibrary(String name, int majorVersion, int minorVersion, int revisionVersion, File path) throws IOException {
+    public NodeTypeLibrary(String name, int majorVersion, int minorVersion, int revisionVersion, File path) {
         this.name = name;
         this.version = new Version(majorVersion, minorVersion, revisionVersion);
-        this.path = path.getCanonicalPath();
+        try {
+            this.path = path.getCanonicalPath();
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "The canonical path for library " + name + " throws IOException ", e);
+        }
     }
 
     public String getName() {
@@ -125,7 +129,7 @@ public class NodeTypeLibrary {
     //// Types collection ////
 
     public void addNodeType(NodeType nodeType) {
-        types.put(nodeType.getIdentifier(), nodeType);
+        types.put(nodeType.getName(), nodeType);
     }
 
     //// Python module support ////
@@ -238,7 +242,7 @@ public class NodeTypeLibrary {
 
     //// Node info ////
 
-    NodeType getNodeType(String nodeName) {
+    public NodeType getNodeType(String nodeName) throws NotFoundException {
         if (!isLoaded()) load();
         if (types.containsKey(nodeName)) {
             return types.get(nodeName);
@@ -247,25 +251,25 @@ public class NodeTypeLibrary {
         }
     }
 
-    List<NodeType> getNodeTypes() {
+    public List<NodeType> getNodeTypes() {
         if (!isLoaded()) load();
         return new ArrayList<NodeType>(types.values());
     }
 
-    class BuiltinNodeTypeLibrary extends NodeTypeLibrary {
+    public static class BuiltinNodeTypeLibrary extends NodeTypeLibrary {
 
-        BuiltinNodeTypeLibrary() throws IOException {
-            super("builtin", 1, 0, 0, null);
+        public BuiltinNodeTypeLibrary() {
+            super("builtin", 1, 0, 0, new File(""));
             // Canvas nodes
-            super.addNodeType(new CanvasNetworkType(null));
+            super.addNodeType(new CanvasNetworkType(this));
             // Image nodes
-            super.addNodeType(new ImageNetworkType(null));
+            super.addNodeType(new ImageNetworkType(this));
             // Vector nodes
-            super.addNodeType(new CopyType(null));
-            super.addNodeType(new EllipseType(null));
-            super.addNodeType(new RectType(null));
-            super.addNodeType(new TransformType(null));
-            super.addNodeType(new VectorNetworkType(null));
+            super.addNodeType(new CopyType(this));
+            super.addNodeType(new EllipseType(this));
+            super.addNodeType(new RectType(this));
+            super.addNodeType(new TransformType(this));
+            super.addNodeType(new VectorNetworkType(this));
         }
 
         @Override

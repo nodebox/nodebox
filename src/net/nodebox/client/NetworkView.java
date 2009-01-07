@@ -222,7 +222,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
 
     public void showNodeManagerDialog() {
         NodeBoxDocument doc = getPane().getDocument();
-        NodeManagerDialog dialog = new NodeManagerDialog(doc, doc.getNodeManager());
+        NodeTypeDialog dialog = new NodeTypeDialog(doc, doc.getManager());
         Point pt = getMousePosition();
         if (pt == null) {
             pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));

@@ -113,7 +113,7 @@ public class ParameterView extends JComponent {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        Node n = new RectType(new NodeManager()).createNode();
+        Node n = new RectType(NodeTypeLibrary.BUILTIN).createNode();
         ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);

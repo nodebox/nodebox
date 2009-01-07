@@ -180,7 +180,7 @@ public class ParameterType extends Observable {
     public void validateName(String name) {
         // Check if another parameter has the same name.
         if (nodeType.hasParameterType(name) && nodeType.getParameterType(name) != this) {
-            throw new InvalidNameException(this, name, "Node type " + nodeType.getIdentifier() + " already has a parameter type named '" + name + "'.");
+            throw new InvalidNameException(this, name, "Node type " + nodeType.getName() + " already has a parameter type named '" + name + "'.");
 
         }
         NodeType.validateName(name);

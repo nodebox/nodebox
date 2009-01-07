@@ -2,18 +2,13 @@ package net.nodebox.node.image;
 
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeManager;
+import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ProcessingContext;
 
 public class ImageNetworkType extends ImageNodeType {
 
-    public ImageNetworkType(NodeManager manager) {
-        super(manager, "net.nodebox.node.image.network");
-    }
-
-    @Override
-    public String getDefaultName() {
-        return "imagenet";
+    public ImageNetworkType(NodeTypeLibrary library) {
+        super(library, "imagenet");
     }
 
     @Override

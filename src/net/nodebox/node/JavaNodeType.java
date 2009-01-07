@@ -7,8 +7,8 @@ public class JavaNodeType extends NodeType {
 
     private Method method;
 
-    public JavaNodeType(NodeManager manager, String identifier, ParameterType.Type outputType) {
-        super(manager, identifier, outputType);
+    public JavaNodeType(NodeTypeLibrary library, String identifier, ParameterType.Type outputType) {
+        super(library, identifier, outputType);
     }
 
     public Method getMethod() {
@@ -32,7 +32,7 @@ public class JavaNodeType extends NodeType {
 
     public boolean process(Node node, ProcessingContext ctx) {
         if (method == null)
-            throw new RuntimeException("Java node type " + getIdentifier() + "does not have method set.");
+            throw new RuntimeException("Java node type " + getName() + "does not have method set.");
         Object[] parameterValues = new Object[getParameterTypeCount()];
         for (int i = 0; i < getParameterTypeCount(); i++) {
             ParameterType pt = getParameterTypes().get(i);

@@ -18,12 +18,7 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
         File testlibPath = new File(getLibrariesDirectory() + PlatformUtils.SEP + "testlib");
         // Create a library object. This is normally something handled by the NodeTypeLibraryManager.
         NodeTypeLibrary library;
-        try {
-            library = new NodeTypeLibrary("testlib", 1, 0, 0, testlibPath);
-        } catch (IOException e) {
-            fail("An exception occurred while loading library:" + e);
-            return;
-        }
+        library = new NodeTypeLibrary("testlib", 1, 0, 0, testlibPath);
         // Load the library. This can throw a multitude of exceptions.
         library.load();
         // Check if everything's there.

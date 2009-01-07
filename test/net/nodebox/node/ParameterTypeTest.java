@@ -8,7 +8,7 @@ import net.nodebox.graphics.Image;
 public class ParameterTypeTest extends NodeTestCase {
 
     public void testNaming() {
-        NodeType nt = new TestManager.Number(null);
+        NodeType nt = new TestLibrary.Number(null);
 
         checkInvalidName(nt, "1234", "names cannot start with a digit.");
 

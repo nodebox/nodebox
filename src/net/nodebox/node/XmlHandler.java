@@ -13,7 +13,7 @@ public class XmlHandler extends DefaultHandler {
         OUT_OF_DATA, IN_KEY, IN_INT, IN_FLOAT, IN_STRING, IN_COLOR, IN_EXPRESSION
     }
 
-    private NodeManager nodeManager;
+    private NodeTypeLibraryManager manager;
     private Network rootNetwork;
     private Network currentNetwork;
     private Node currentNode;
@@ -22,8 +22,8 @@ public class XmlHandler extends DefaultHandler {
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.XmlHandler");
 
-    public XmlHandler(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
+    public XmlHandler(NodeTypeLibraryManager manager) {
+        this.manager = manager;
     }
 
     public Network getNetwork() {
@@ -165,9 +165,9 @@ public class XmlHandler extends DefaultHandler {
         String version = attributes.getValue("version");
         try {
             if (version == null) {
-                nodeType = nodeManager.getNodeType(identifier);
+                nodeType = manager.getNodeType(identifier);
             } else {
-                nodeType = nodeManager.getNodeType(identifier, new Version(version));
+                nodeType = manager.getNodeType(identifier, new Version(version));
             }
         } catch (NotFoundException e) {
             throw new SAXException("A node with type " + identifier + " and version " + version + " does not exist.");

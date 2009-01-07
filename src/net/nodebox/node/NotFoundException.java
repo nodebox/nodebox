@@ -18,4 +18,9 @@ public class NotFoundException extends RuntimeException {
     public String getName() {
         return name;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + "/" + source + "/" + name;
+    }
 }

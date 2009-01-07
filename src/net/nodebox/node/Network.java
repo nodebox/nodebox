@@ -313,7 +313,7 @@ public class Network extends Node {
         xml.append(spaces);
         xml.append("<network");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getNodeType().getIdentifier()).append("\"");
+        xml.append(" type=\"").append(getNodeType().getQualifiedName()).append("\"");
         xml.append(" version=\"").append(getNodeType().getVersionAsString()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
@@ -338,12 +338,12 @@ public class Network extends Node {
         xml.append(spaces).append("</network>\n");
     }
 
-    public static Network load(NodeManager nodeManager, String s) throws RuntimeException {
+    public static Network load(NodeTypeLibraryManager manager, String s) throws RuntimeException {
         StringReader reader = new StringReader(s);
-        return load(nodeManager, new InputSource(reader));
+        return load(manager, new InputSource(reader));
     }
 
-    public static Network load(NodeManager nodeManager, File file) throws RuntimeException {
+    public static Network load(NodeTypeLibraryManager manager, File file) throws RuntimeException {
         // Load the document
         FileInputStream fis;
         try {
@@ -352,10 +352,10 @@ public class Network extends Node {
             logger.log(Level.SEVERE, "Could not read file " + file, e);
             throw new RuntimeException("Could not read file " + file, e);
         }
-        return load(nodeManager, new InputSource(fis));
+        return load(manager, new InputSource(fis));
     }
 
-    private static Network load(NodeManager nodeManager, InputSource source) throws RuntimeException {
+    private static Network load(NodeTypeLibraryManager manager, InputSource source) throws RuntimeException {
         // Setup the parser
         SAXParserFactory factory = SAXParserFactory.newInstance();
         // The next lines make sure that the SAX parser doesn't try to validate the document,
@@ -380,7 +380,7 @@ public class Network extends Node {
         }
 
         // Parse the document
-        XmlHandler handler = new XmlHandler(nodeManager);
+        XmlHandler handler = new XmlHandler(manager);
         try {
             parser.parse(source, handler);
         } catch (Exception e) {

@@ -4,18 +4,21 @@ import junit.framework.TestCase;
 
 public class NodeTestCase extends TestCase {
 
-    protected NodeManager manager;
+    protected NodeTypeLibraryManager manager;
     protected NodeType numberType, negateType, addType, multiplyType, testNetworkType;
 
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        manager = new TestManager();
-        numberType = manager.getNodeType("net.nodebox.node.test.number");
-        negateType = manager.getNodeType("net.nodebox.node.test.negate");
-        addType = manager.getNodeType("net.nodebox.node.test.add");
-        multiplyType = manager.getNodeType("net.nodebox.node.test.multiply");
-        testNetworkType = manager.getNodeType("net.nodebox.node.test.network");
+        manager = new NodeTypeLibraryManager();
+        TestLibrary testlib = new TestLibrary();
+        manager.addLibrary(testlib);
+        // TODO: Add test NTL
+        numberType = manager.getNodeType("test.number");
+        negateType = manager.getNodeType("test.negate");
+        addType = manager.getNodeType("test.add");
+        multiplyType = manager.getNodeType("test.multiply");
+        testNetworkType = manager.getNodeType("test.testnet");
     }
 
     public void testDummy() {

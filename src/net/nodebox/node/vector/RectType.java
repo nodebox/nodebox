@@ -5,14 +5,14 @@ import net.nodebox.graphics.Group;
 import net.nodebox.handle.FourPointHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeManager;
+import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
 public class RectType extends VectorNodeType {
 
-    public RectType(NodeManager manager) {
-        super(manager, "net.nodebox.node.vector.rect");
+    public RectType(NodeTypeLibrary library) {
+        super(library, "rect");
         ParameterType pX = addParameterType("x", ParameterType.Type.FLOAT);
         ParameterType pY = addParameterType("y", ParameterType.Type.FLOAT);
         ParameterType pWidth = addParameterType("width", ParameterType.Type.FLOAT);
