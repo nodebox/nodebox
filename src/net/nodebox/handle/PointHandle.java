@@ -35,7 +35,7 @@ public class PointHandle extends AbstractHandle {
         BezierPath dot = new BezierPath();
         dot.setFillColor(HANDLE_COLOR);
         dot.setStrokeWidth(0.0);
-        dot.addRect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        dot.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
         ctx.getCanvas().add(dot);
     }
 

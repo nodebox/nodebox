@@ -32,7 +32,7 @@ public class RectType extends VectorNodeType {
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
-        p.addRect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
+        p.rect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
         g.add(p);
         node.setOutputValue(g);
         return true;

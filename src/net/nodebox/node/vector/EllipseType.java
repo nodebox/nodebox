@@ -32,7 +32,7 @@ public class EllipseType extends VectorNodeType {
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
-        p.addEllipse(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
+        p.ellipse(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
         g.add(p);
         node.setOutputValue(g);
         return true;

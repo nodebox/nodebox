@@ -99,9 +99,25 @@ public class GraphicsContext {
 
     //// Primitives ////
 
+    public BezierPath rect(Rect r) {
+        BezierPath p = new BezierPath();
+        p.rect(r);
+        inheritFromContext(p);
+        canvas.add(p);
+        return p;
+    }
+
     public BezierPath rect(double x, double y, double width, double height) {
         BezierPath p = new BezierPath();
-        p.addRect(x, y, width, height);
+        p.rect(x, y, width, height);
+        inheritFromContext(p);
+        canvas.add(p);
+        return p;
+    }
+
+    public BezierPath rect(Rect r, double roundness) {
+        BezierPath p = new BezierPath();
+        p.rect(r, roundness);
         inheritFromContext(p);
         canvas.add(p);
         return p;
@@ -109,7 +125,15 @@ public class GraphicsContext {
 
     public BezierPath rect(double x, double y, double width, double height, double roundness) {
         BezierPath p = new BezierPath();
-        p.addRoundedRect(x, y, width, height, roundness, roundness);
+        p.rect(x, y, width, height, roundness);
+        inheritFromContext(p);
+        canvas.add(p);
+        return p;
+    }
+
+    public BezierPath rect(double x, double y, double width, double height, double rx, double ry) {
+        BezierPath p = new BezierPath();
+        p.rect(x, y, width, height, rx, ry);
         inheritFromContext(p);
         canvas.add(p);
         return p;
@@ -122,7 +146,7 @@ public class GraphicsContext {
 
     public BezierPath ellipse(double x, double y, double width, double height) {
         BezierPath p = new BezierPath();
-        p.addEllipse(x, y, width, height);
+        p.ellipse(x, y, width, height);
         inheritFromContext(p);
         canvas.add(p);
         return p;
@@ -130,7 +154,7 @@ public class GraphicsContext {
 
     public BezierPath line(double x1, double y1, double x2, double y2) {
         BezierPath p = new BezierPath();
-        p.addLine(x1, y1, x2, y2);
+        p.ellipse(x1, y1, x2, y2);
         inheritFromContext(p);
         canvas.add(p);
         return p;
@@ -369,7 +393,7 @@ public class GraphicsContext {
 
     public BezierPath textPath(String text, double x, double y, double width, double height) {
         BezierPath p = new BezierPath();
-        p.addText(text, fontName, fontSize, lineHeight, align, x, y, width, height);
+        p.text(text, fontName, fontSize, lineHeight, align, x, y, width, height);
         inheritFromContext(p);
         return p;
     }
@@ -420,14 +444,14 @@ public class GraphicsContext {
 
     private void inheritFromContext(BezierPath p) {
         p.setTransform(transform.clone());
-        p.setFillColor(fillColor.clone());
-        p.setStrokeColor(strokeColor.clone());
+        p.setFillColor(fillColor == null ? null : fillColor.clone());
+        p.setStrokeColor(strokeColor == null ? null : strokeColor.clone());
         p.setStrokeWidth(strokeWidth);
     }
 
     private void inheritFromContext(Text t) {
         t.setTransform(transform.clone());
-        t.setFillColor(fillColor.clone());
+        t.setFillColor(fillColor == null ? null : fillColor.clone());
         t.setFontName(fontName);
         t.setFontSize(fontSize);
         t.setLineHeight(lineHeight);

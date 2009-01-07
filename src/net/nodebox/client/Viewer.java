@@ -62,7 +62,10 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         }
         // Draw handle
         if (handle != null) {
-            GraphicsContext ctx = new GraphicsContext();
+            // Create a canvas with a transparent background
+            net.nodebox.graphics.Canvas canvas = new net.nodebox.graphics.Canvas();
+            canvas.setBackground(new net.nodebox.graphics.Color(0, 0, 0, 0));
+            GraphicsContext ctx = new GraphicsContext(canvas);
             handle.draw(ctx);
             ctx.getCanvas().draw(g2);
         }

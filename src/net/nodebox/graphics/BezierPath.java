@@ -138,11 +138,11 @@ public class BezierPath extends Grob {
         elements.add(el.clone());
     }
 
-    public void addRect(Rect r) {
-        addRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+    public void rect(Rect r) {
+        rect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
-    public void addRect(double x, double y, double width, double height) {
+    public void rect(double x, double y, double width, double height) {
         moveto(x, y);
         lineto(x + width, y);
         lineto(x + width, y + height);
@@ -150,11 +150,35 @@ public class BezierPath extends Grob {
         close();
     }
 
-    public void addRoundedRect(Rect r, double rx, double ry) {
-        addRoundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
+    public void rect(Rect r, double roundness) {
+        roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), roundness);
     }
 
-    public void addRoundedRect(double x, double y, double width, double height, double rx, double ry) {
+    public void rect(Rect r, double rx, double ry) {
+        roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
+    }
+
+    public void rect(double x, double y, double width, double height, double r) {
+        roundedRect(x, y, width, height, r);
+    }
+
+    public void rect(double x, double y, double width, double height, double rx, double ry) {
+        roundedRect(x, y, width, height, rx, ry);
+    }
+
+    public void roundedRect(Rect r, double roundness) {
+        roundedRect(r, roundness, roundness);
+    }
+
+    public void roundedRect(Rect r, double rx, double ry) {
+        roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
+    }
+
+    public void roundedRect(double x, double y, double width, double height, double r) {
+        roundedRect(x, y, width, height, r, r);
+    }
+
+    public void roundedRect(double x, double y, double width, double height, double rx, double ry) {
         double dx = rx;
         double dy = ry;
         // rx/ry cannot be greater than half of the width of the rectangle
@@ -177,25 +201,25 @@ public class BezierPath extends Grob {
         close();
     }
 
-    public void addEllipse(double x, double y, double width, double height) {
+    public void ellipse(double x, double y, double width, double height) {
         Ellipse2D.Double e = new Ellipse2D.Double(x, y, width, height);
         extend(e);
     }
 
-    public void addLine(double x1, double y1, double x2, double y2) {
+    public void line(double x1, double y1, double x2, double y2) {
         moveto(x1, y1);
         lineto(x2, y2);
     }
 
-    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y) {
-        addText(text, fontName, fontSize, lineHeight, align, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
+    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y) {
+        text(text, fontName, fontSize, lineHeight, align, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
     }
 
-    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width) {
-        addText(text, fontName, fontSize, lineHeight, align, x, y, width, Double.MAX_VALUE);
+    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width) {
+        text(text, fontName, fontSize, lineHeight, align, x, y, width, Double.MAX_VALUE);
     }
 
-    public void addText(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width, double height) {
+    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width, double height) {
         Text t = new Text(text, x, y, width, height);
         t.setFontName(fontName);
         t.setFontSize(fontSize);
@@ -246,7 +270,6 @@ public class BezierPath extends Grob {
                 x0 + t * (x1 - x0),
                 y0 + t * (y1 - y0));
     }
-
 
     /**
      * Returns the length of the spline.
@@ -357,11 +380,11 @@ public class BezierPath extends Grob {
         return new Point(out_x, out_y);
     }
 
-    public double[] calculateSegmentLengths() {
-        return calculateSegmentLengths(20);
+    public double[] getSegmentLengths() {
+        return getSegmentLengths(20);
     }
 
-    public double[] calculateSegmentLengths(int n) {
+    public double[] getSegmentLengths(int n) {
         if (segmentLengths != null) return segmentLengths;
         segmentLengths = new double[elements.size() - 1];
         double length;
@@ -416,7 +439,7 @@ public class BezierPath extends Grob {
      */
     public double getLength() {
         if (segmentLengths == null)
-            calculateSegmentLengths();
+            getSegmentLengths();
         assert (pathLength != -1);
         return pathLength;
     }
@@ -434,7 +457,7 @@ public class BezierPath extends Grob {
      */
     public Point getPoint(double t) {
         if (segmentLengths == null)
-            calculateSegmentLengths();
+            getSegmentLengths();
 
         // Check if there is a path.
         if (pathLength <= 0)
