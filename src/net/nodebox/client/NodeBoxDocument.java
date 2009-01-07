@@ -138,6 +138,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         rootPanel.add(viewRestSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setSize(1100, 800);
+        updateTitle();
         initMenu();
         registerForMacOSXEvents();
         SwingUtils.centerOnScreen(this);
@@ -569,6 +570,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     public void networkDirty(Network network) {
         if (network != activeNetwork) return;
         activeNetwork.update();
+        markChanged();
     }
 
     public void networkUpdated(Network network) {
