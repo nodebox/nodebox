@@ -68,4 +68,10 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
         assertEquals(color, ellipsePath.getFillColor());
     }
 
+    public void testDetectType() throws IOException {
+        File testlibPath = new File(getLibrariesDirectory() + PlatformUtils.SEP + "testlib");
+        NodeTypeLibrary lib = new NodeTypeLibrary("testlib", 0, 0, 0, testlibPath);
+        assertEquals(NodeTypeLibrary.LibraryType.PYTHON, lib.getType());
+    }
+
 }

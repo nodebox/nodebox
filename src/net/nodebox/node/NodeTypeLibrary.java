@@ -20,24 +20,28 @@
 package net.nodebox.node;
 
 import net.nodebox.client.PlatformUtils;
+import net.nodebox.node.canvas.CanvasNetworkType;
+import net.nodebox.node.image.ImageNetworkType;
+import net.nodebox.node.vector.*;
 import org.python.core.PyObject;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NodeTypeLibrary {
 
     public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
+    private static final Pattern TYPE_PATTERN = Pattern.compile(".*type\\s*=\\s*\"(python|java)\".*");
+
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.NodeTypeLibrary");
 
@@ -75,7 +79,6 @@ public class NodeTypeLibrary {
             return libraryName;
         }
     }
-
 
     private String name;
     private HashMap<String, NodeType> types = new HashMap<String, NodeType>();
@@ -138,24 +141,31 @@ public class NodeTypeLibrary {
     //// Library loading ////
 
     /**
-     * This operation doesn't require fully loading the library. It only does some file system lookups.
+     * Detect the type of the library.
+     * <p/>
+     * This operation doesn't require fully loading the library. It only does some file system lookups, and loads
+     * the first line of the types.ntl file to find the type.
      *
      * @return the type of the library.
      */
     private LibraryType detectType() {
-        File javaLibrary = new File(getJavaLibraryPath());
-        if (javaLibrary.exists()) {
-            type = LibraryType.JAVA;
-            return type;
+        // Read the description file.
+        // Instead of parsing the entire file, we load the first line and look for the type="python" pattern
+        // to determine the library type.
+        File descriptionFile = getLibraryDescriptionFile();
+        try {
+            FileInputStream fis = new FileInputStream(descriptionFile);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis, "UTF-8"), 200);
+            String firstLine = reader.readLine();
+            Matcher m = TYPE_PATTERN.matcher(firstLine);
+            if (!m.matches())
+                throw new AssertionError("File does not contain type specifier.");
+            String typeName = m.group(1);
+            type = LibraryType.valueOf(typeName.toUpperCase());
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Cannot read library description file " + descriptionFile, e);
+            type = LibraryType.UNKNOWN;
         }
-
-        File pythonLibrary = new File(getPythonLibraryPath());
-        if (pythonLibrary.exists()) {
-            type = LibraryType.PYTHON;
-            return type;
-        }
-
-        type = LibraryType.UNKNOWN;
         return type;
     }
 
@@ -242,27 +252,43 @@ public class NodeTypeLibrary {
         return new ArrayList<NodeType>(types.values());
     }
 
-    //// Path information ////
+    class BuiltinNodeTypeLibrary extends NodeTypeLibrary {
 
-    /**
-     * A Java library has one file inside of the library folder,
-     * called <em>libname</em>.jar (Java archive)
-     * The full path would be plugins/libname-1.2.3/libname.jar.
-     *
-     * @return the full path to the Java library
-     */
-    private String getJavaLibraryPath() {
-        return path + File.separator + name + ".jar";
+        BuiltinNodeTypeLibrary() throws IOException {
+            super("builtin", 1, 0, 0, null);
+            // Canvas nodes
+            super.addNodeType(new CanvasNetworkType(null));
+            // Image nodes
+            super.addNodeType(new ImageNetworkType(null));
+            // Vector nodes
+            super.addNodeType(new CopyType(null));
+            super.addNodeType(new EllipseType(null));
+            super.addNodeType(new RectType(null));
+            super.addNodeType(new TransformType(null));
+            super.addNodeType(new VectorNetworkType(null));
+        }
+
+        @Override
+        public LibraryType getType() {
+            return LibraryType.JAVA;
+        }
+
+        @Override
+        public void addNodeType(NodeType nodeType) {
+            throw new AssertionError("You cannot add types to the builtin library.");
+        }
+
+        @Override
+        public void load() {
+            // Builtin library is already loaded.
+        }
+
+        @Override
+        public boolean isLoaded() {
+            return true;
+        }
+
+
     }
 
-    /**
-     * A python library has at least a file inside of the library folder
-     * called <em>libname</em>.py.
-     * The full path would be plugins/libname-1.2.3/libname.py.
-     *
-     * @return the full path to the Python library
-     */
-    private String getPythonLibraryPath() {
-        return path + File.separator + name + ".py";
-    }
 }
