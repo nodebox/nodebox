@@ -11,6 +11,7 @@ public class TransformType extends VectorNodeType {
 
     public TransformType(NodeTypeLibrary library) {
         super(library, "transform");
+        setDescription("Transforms the input geometry.");
         ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         pTx.setLabel("Transform X");

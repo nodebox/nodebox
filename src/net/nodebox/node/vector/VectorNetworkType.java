@@ -9,6 +9,7 @@ public class VectorNetworkType extends VectorNodeType {
 
     public VectorNetworkType(NodeTypeLibrary library) {
         super(library, "vecnet");
+        setDescription("Contains vector nodes.");
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         pTx.setLabel("Transform X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);

@@ -13,6 +13,7 @@ public class RectType extends VectorNodeType {
 
     public RectType(NodeTypeLibrary library) {
         super(library, "rect");
+        setDescription("Creates a rectangle.");
         ParameterType pX = addParameterType("x", ParameterType.Type.FLOAT);
         ParameterType pY = addParameterType("y", ParameterType.Type.FLOAT);
         ParameterType pWidth = addParameterType("width", ParameterType.Type.FLOAT);

@@ -9,6 +9,7 @@ public class ImageNetworkType extends ImageNodeType {
 
     public ImageNetworkType(NodeTypeLibrary library) {
         super(library, "imagenet");
+        setDescription("Contains image nodes.");
     }
 
     @Override

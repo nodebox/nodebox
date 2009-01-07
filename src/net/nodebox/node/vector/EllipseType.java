@@ -13,6 +13,7 @@ public class EllipseType extends VectorNodeType {
 
     public EllipseType(NodeTypeLibrary library) {
         super(library, "ellipse");
+        setDescription("Creates an ellipse.");
         ParameterType pX = addParameterType("x", ParameterType.Type.FLOAT);
         ParameterType pY = addParameterType("y", ParameterType.Type.FLOAT);
         ParameterType pWidth = addParameterType("width", ParameterType.Type.FLOAT);

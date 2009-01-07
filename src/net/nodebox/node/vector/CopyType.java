@@ -15,6 +15,7 @@ public class CopyType extends VectorNodeType {
 
     public CopyType(NodeTypeLibrary library) {
         super(library, "copy");
+        setDescription("Creates copies of the input.");
         ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
         ParameterType pTemplate = addParameterType("template", ParameterType.Type.GROB_VECTOR);
         pTemplate.setNullAllowed(true);
