@@ -519,7 +519,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
     }
 
-    public void quit() {
+    public boolean quit() {
         boolean allClosed = true;
         // Because documents will disappear from the list once they are closed,
         // make a copy of the list.
@@ -529,7 +529,9 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
         if (allClosed) {
             System.exit(0);
+            return true;
         }
+        return false;
     }
 
     public void markChanged() {
