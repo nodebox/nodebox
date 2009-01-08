@@ -8,7 +8,7 @@ import net.nodebox.node.ParameterType;
 public class VectorNetworkTest extends NodeTestCase {
 
     public void testType() {
-        NodeType vectorNetworkType = manager.getNodeType("builtin.vecnet");
+        NodeType vectorNetworkType = manager.getNodeType("corevector.vecnet");
         Node n = vectorNetworkType.createNode();
         assertEquals(ParameterType.Type.GROB_VECTOR, n.getOutputParameter().getType());
     }

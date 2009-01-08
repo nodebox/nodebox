@@ -8,8 +8,8 @@ import net.nodebox.node.NodeTestCase;
 public class CopyNodeTest extends NodeTestCase {
 
     public void testBasicCopy() {
-        Node rect = manager.getNodeType("builtin.rect").createNode();
-        Node copy = manager.getNodeType("builtin.copy").createNode();
+        Node rect = manager.getNodeType("corevector.rect").createNode();
+        Node copy = manager.getNodeType("corevector.copy").createNode();
         copy.getParameter("shape").connect(rect);
         copy.update();
         Grob g = (Grob) copy.getOutputValue();

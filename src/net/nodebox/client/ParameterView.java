@@ -2,7 +2,6 @@ package net.nodebox.client;
 
 import net.nodebox.client.parameter.*;
 import net.nodebox.node.*;
-import net.nodebox.node.vector.RectType;
 
 import javax.swing.*;
 import java.awt.*;
@@ -113,7 +112,9 @@ public class ParameterView extends JComponent {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        Node n = new RectType(NodeTypeLibrary.BUILTIN).createNode();
+        NodeTypeLibraryManager manager = new NodeTypeLibraryManager();
+        NodeType rectType = manager.getNodeType("corevector.rect");
+        Node n = rectType.createNode();
         ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);

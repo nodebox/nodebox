@@ -18,7 +18,7 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
         File testlibPath = new File(getLibrariesDirectory() + PlatformUtils.SEP + "testlib");
         // Create a library object. This is normally something handled by the NodeTypeLibraryManager.
         NodeTypeLibrary library;
-        library = new NodeTypeLibrary("testlib", 1, 0, 0, testlibPath);
+        library = new PythonNodeTypeLibrary("testlib", new Version(0, 0, 0), testlibPath);
         // Load the library. This can throw a multitude of exceptions.
         library.load();
         // Check if everything's there.
@@ -65,8 +65,7 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
 
     public void testDetectType() throws IOException {
         File testlibPath = new File(getLibrariesDirectory() + PlatformUtils.SEP + "testlib");
-        NodeTypeLibrary lib = new NodeTypeLibrary("testlib", 0, 0, 0, testlibPath);
-        assertEquals(NodeTypeLibrary.LibraryType.PYTHON, lib.getType());
+        assertEquals(PythonNodeTypeLibrary.class, NodeTypeLibraryManager.detectType(testlibPath.getPath()));
     }
 
 }

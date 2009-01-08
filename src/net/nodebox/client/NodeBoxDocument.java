@@ -163,18 +163,17 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
 
     private Network createEmptyNetwork() {
-        NodeType canvasNetworkType = manager.getNodeType("builtin.canvasnet");
+        NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
         return (Network) canvasNetworkType.createNode();
     }
 
     private Network createTestNetwork() {
-        NodeTypeLibrary builtin = NodeTypeLibrary.BUILTIN;
-        NodeType canvasNetworkType = builtin.getNodeType("canvasnet");
-        NodeType vectorNetworkType = builtin.getNodeType("vecnet");
-        NodeType imageNetworkType = builtin.getNodeType("imagenet");
-        NodeType ellipseType = builtin.getNodeType("ellipse");
-        NodeType rectType = builtin.getNodeType("rect");
-        NodeType transformType = builtin.getNodeType("transform");
+        NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
+        NodeType vectorNetworkType = manager.getNodeType("corevector.vecnet");
+        NodeType imageNetworkType = manager.getNodeType("coreimage.imagenet");
+        NodeType ellipseType = manager.getNodeType("corevector.ellipse");
+        NodeType rectType = manager.getNodeType("corevector.rect");
+        NodeType transformType = manager.getNodeType("corevector.transform");
         NodeType allControlsType = new AllControlsType(null);
         Network network = (Network) canvasNetworkType.createNode();
         Node allControls = network.create(allControlsType);

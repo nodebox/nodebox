@@ -9,7 +9,7 @@ import net.nodebox.node.ParameterType;
 public class CanvasNetworkTest extends NodeTestCase {
 
     public void testType() {
-        NodeType canvasNetworkType = manager.getNodeType("builtin.canvasnet");
+        NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
         Node n = canvasNetworkType.createNode();
         Assert.assertEquals(ParameterType.Type.GROB_CANVAS, n.getOutputParameter().getType());
     }

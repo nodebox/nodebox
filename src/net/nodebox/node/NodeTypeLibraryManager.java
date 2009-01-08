@@ -19,8 +19,13 @@
 
 package net.nodebox.node;
 
-import java.io.File;
-import java.io.IOException;
+import net.nodebox.client.PlatformUtils;
+import net.nodebox.node.canvas.CanvasNetworkType;
+import net.nodebox.node.image.ImageNetworkType;
+import net.nodebox.node.vector.*;
+
+import java.io.*;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +37,12 @@ import java.util.regex.Pattern;
 public class NodeTypeLibraryManager {
 
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^([a-z]+)\\.([a-z]+)$");
+    private static final Pattern TYPE_PATTERN = Pattern.compile(".*type\\s*=\\s*\"(python|java)\".*");
+    public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
 
+    private enum LibraryType {
+        UNKNOWN, JAVA, PYTHON
+    }
 
     /**
      * A list of node type libraries with the same name but different versions.
@@ -70,22 +80,39 @@ public class NodeTypeLibraryManager {
     private boolean lookedForLibraries = false;
 
     public NodeTypeLibraryManager() {
-        addLibrary(NodeTypeLibrary.BUILTIN);
+        addBuiltinLibraries();
     }
 
     public NodeTypeLibraryManager(String... searchPaths) throws IOException {
-        addLibrary(NodeTypeLibrary.BUILTIN);
+        addBuiltinLibraries();
         for (String searchPath : searchPaths) {
             addSearchPath(searchPath);
         }
     }
 
     public NodeTypeLibraryManager(File... searchPaths) throws IOException {
-        addLibrary(NodeTypeLibrary.BUILTIN);
+        addBuiltinLibraries();
         for (File searchPath : searchPaths) {
             addSearchPath(searchPath);
         }
     }
+
+    private void addBuiltinLibraries() {
+        CoreNodeTypeLibrary corecanvas = new CoreNodeTypeLibrary("corecanvas", new Version(1, 0, 0));
+        corecanvas.addNodeType(new CanvasNetworkType(corecanvas));
+        addLibrary(corecanvas);
+        CoreNodeTypeLibrary corevector = new CoreNodeTypeLibrary("corevector", new Version(1, 0, 0));
+        corevector.addNodeType(new CopyType(corevector));
+        corevector.addNodeType(new EllipseType(corevector));
+        corevector.addNodeType(new RectType(corevector));
+        corevector.addNodeType(new TransformType(corevector));
+        corevector.addNodeType(new VectorNetworkType(corevector));
+        addLibrary(corevector);
+        CoreNodeTypeLibrary coreimage = new CoreNodeTypeLibrary("coreimage", new Version(1, 0, 0));
+        coreimage.addNodeType(new ImageNetworkType(coreimage));
+        addLibrary(coreimage);
+    }
+
 
     public void addSearchPath(String searchPath) throws IOException {
         File f = new File(searchPath);
@@ -178,7 +205,7 @@ public class NodeTypeLibraryManager {
         for (File searchPath : searchPaths) {
             for (File f : searchPath.listFiles()) {
                 if (f.isDirectory() && f.canRead()) {
-                    File libraryDescriptionFile = new File(f, NodeTypeLibrary.LIBRARY_DESCRIPTION_FILE);
+                    File libraryDescriptionFile = new File(f, LIBRARY_DESCRIPTION_FILE);
                     if (libraryDescriptionFile.exists()) {
                         try {
                             NodeTypeLibrary library = pathToLibrary(f.getParent(), f.getName());
@@ -192,6 +219,9 @@ public class NodeTypeLibraryManager {
             }
         }
     }
+
+    //// Library loading ////
+
 
     public void addLibrary(NodeTypeLibrary library) {
         VersionedLibraryList libraryList = libraryMap.get(library.getName());
@@ -278,7 +308,53 @@ public class NodeTypeLibraryManager {
             throw new RuntimeException("Only one dash excepted (e.g. \"vector-1.2.3\"): " + path);
         }
         Version v = new Version(versionString);
-        return new NodeTypeLibrary(libraryName, v.getMajor(), v.getMinor(), v.getRevision(), new File(searchPath, path));
+        File libraryPath = new File(searchPath, path);
+        Class libraryClass = detectType(libraryPath.getPath());
+        try {
+            Constructor libConstructor = libraryClass.getConstructor(String.class, Version.class, File.class);
+            return (NodeTypeLibrary) libConstructor.newInstance(libraryName, v, libraryPath);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Cannot initialize library.", e);
+            return null;
+        }
     }
+
+    public static File getLibraryDescriptionFile(String libraryPath) {
+        return new File(libraryPath + PlatformUtils.SEP + LIBRARY_DESCRIPTION_FILE);
+    }
+
+    /**
+     * Detect the type of the library.
+     * <p/>
+     * This operation doesn't require fully loading the library. It only does some file system lookups, and loads
+     * the first line of the types.ntl file to find the type.
+     *
+     * @param libraryPath the path of the library
+     * @return the type of the library.
+     */
+    public static Class detectType(String libraryPath) {
+        // Read the description file.
+        // Instead of parsing the entire file, we load the first line and look for the type="python" pattern
+        // to determine the library type.
+        File descriptionFile = getLibraryDescriptionFile(libraryPath);
+        try {
+            FileInputStream fis = new FileInputStream(descriptionFile);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(fis, "UTF-8"), 200);
+            String firstLine = reader.readLine();
+            Matcher m = TYPE_PATTERN.matcher(firstLine);
+            if (!m.matches())
+                throw new AssertionError("File does not contain type specifier.");
+            String typeName = m.group(1);
+            if (typeName.equals("python")) {
+                return PythonNodeTypeLibrary.class;
+            } else {
+                throw new AssertionError("Can only handle python node type libraries.");
+            }
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Cannot read library description file " + descriptionFile, e);
+            throw new AssertionError("Cannot read library description file: " + e);
+        }
+    }
+
 
 }

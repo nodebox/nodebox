@@ -1,8 +1,6 @@
 package net.nodebox.node;
 
-import java.io.File;
-
-public class TestLibrary extends NodeTypeLibrary {
+public class TestLibrary extends CoreNodeTypeLibrary {
 
     public static abstract class Unary extends NodeType {
 
@@ -96,7 +94,7 @@ public class TestLibrary extends NodeTypeLibrary {
     }
 
     public TestLibrary() {
-        super("test", 1, 0, 0, new File(""));
+        super("test", new Version(1, 0, 0));
         addNodeType(new Number(this));
         addNodeType(new Negate(this));
         addNodeType(new Add(this));

@@ -7,25 +7,25 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.logging.Logger;
 
-public class TypesHandler extends DefaultHandler {
+public class PythonNodeTypeLibraryHandler extends DefaultHandler {
 
     private static enum ParseState {
         INVALID, IN_DESCRIPTION
     }
 
-    private static Logger logger = Logger.getLogger("net.nodebox.node.TypesHandler");
+    private static Logger logger = Logger.getLogger("net.nodebox.node.PythonNodeTypeLibraryHandler");
 
-    private NodeTypeLibrary library;
+    private PythonNodeTypeLibrary library;
     private NodeType currentNodeType;
     private ParameterType currentParameterType;
     private ParseState parseState = ParseState.INVALID;
     private StringBuffer characterBuffer;
 
-    public TypesHandler(NodeTypeLibrary library) {
+    public PythonNodeTypeLibraryHandler(PythonNodeTypeLibrary library) {
         this.library = library;
     }
 
-    public NodeTypeLibrary getLibrary() {
+    public PythonNodeTypeLibrary getLibrary() {
         return library;
     }
 

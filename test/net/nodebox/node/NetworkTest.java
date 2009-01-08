@@ -90,16 +90,16 @@ public class NetworkTest extends NodeTestCase {
 
     public void testPersistence() {
         // Create network
-        Network rootNetwork = (Network) manager.getNodeType("builtin.canvasnet").createNode();
-        Network vecnet1 = (Network) rootNetwork.create(manager.getNodeType("builtin.vecnet"));
+        Network rootNetwork = (Network) manager.getNodeType("corecanvas.canvasnet").createNode();
+        Network vecnet1 = (Network) rootNetwork.create(manager.getNodeType("corevector.vecnet"));
         vecnet1.setPosition(10, 10);
         assertEquals("vecnet1", vecnet1.getName());
         vecnet1.setRendered();
-        Node ellipse1 = vecnet1.create(manager.getNodeType("builtin.ellipse"));
+        Node ellipse1 = vecnet1.create(manager.getNodeType("corevector.ellipse"));
         assertEquals("ellipse1", ellipse1.getName());
         ellipse1.setRendered();
         ellipse1.setPosition(100, 30);
-        Node transform1 = vecnet1.create(manager.getNodeType("builtin.transform"));
+        Node transform1 = vecnet1.create(manager.getNodeType("corevector.transform"));
         assertEquals("transform1", transform1.getName());
         transform1.setPosition(40, 80);
         transform1.setRendered();
@@ -131,8 +131,8 @@ public class NetworkTest extends NodeTestCase {
      * Tests whether the network copies the output of the rendered node.
      */
     public void testCopy() {
-        Network vector1 = (Network) manager.getNodeType("builtin.vecnet").createNode();
-        Node ellipse1 = vector1.create(manager.getNodeType("builtin.rect"));
+        Network vector1 = (Network) manager.getNodeType("corevector.vecnet").createNode();
+        Node ellipse1 = vector1.create(manager.getNodeType("corevector.rect"));
         ellipse1.setRendered();
         vector1.update();
         assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
