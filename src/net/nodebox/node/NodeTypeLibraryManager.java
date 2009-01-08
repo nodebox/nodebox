@@ -194,6 +194,8 @@ public class NodeTypeLibraryManager {
      * @return a list of libraries.
      */
     public List<NodeTypeLibrary> getLibraries() {
+        if (!lookedForLibraries)
+            lookForLibraries();
         List<NodeTypeLibrary> libraries = new ArrayList<NodeTypeLibrary>();
         for (VersionedLibraryList versionedList : libraryMap.values()) {
             libraries.add(versionedList.getLatestVersion());

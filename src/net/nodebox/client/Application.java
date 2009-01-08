@@ -18,6 +18,8 @@
  */
 package net.nodebox.client;
 
+import net.nodebox.node.NodeTypeLibrary;
+import net.nodebox.node.NodeTypeLibraryManager;
 import org.python.core.PySystemState;
 
 import javax.swing.*;
@@ -35,6 +37,7 @@ public class Application {
 
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
+    private NodeTypeLibraryManager manager;
 
     public static final String NAME = "NodeBox";
 
@@ -45,7 +48,12 @@ public class Application {
         String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
         jythonProperties.put("python.cachedir", jythonCacheDir);
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
-        createNewDocument();
+        manager = new NodeTypeLibraryManager();
+        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        for (NodeTypeLibrary library : manager.getLibraries()) {
+            System.out.println("library = " + library.getName());
+            library.load();
+        }
     }
 
     public List<NodeBoxDocument> getDocuments() {
@@ -68,10 +76,15 @@ public class Application {
         return doc;
     }
 
+    public NodeTypeLibraryManager getManager() {
+        return manager;
+    }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 instance = new Application();
+                instance.createNewDocument();
             }
         });
     }

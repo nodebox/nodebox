@@ -61,7 +61,6 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     private JMenu recentFileMenu;
 
-    private NodeTypeLibraryManager manager;
     private Network rootNetwork;
     private Network activeNetwork;
     private Node activeNode;
@@ -127,9 +126,6 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     public NodeBoxDocument() {
-        manager = new NodeTypeLibraryManager();
-        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
-        // TODO: Add search paths
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
@@ -164,11 +160,13 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
 
     private Network createEmptyNetwork() {
+        NodeTypeLibraryManager manager = getManager();
         NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
         return (Network) canvasNetworkType.createNode();
     }
 
     private Network createTestNetwork() {
+        NodeTypeLibraryManager manager = getManager();
         NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
         NodeType vectorNetworkType = manager.getNodeType("corevector.vecnet");
         NodeType imageNetworkType = manager.getNodeType("coreimage.imagenet");
@@ -381,7 +379,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     public NodeTypeLibraryManager getManager() {
-        return manager;
+        return Application.getInstance().getManager();
     }
 
     //// Document actions ////
@@ -451,7 +449,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
             spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
 
             SAXParser parser = spf.newSAXParser();
-            XmlHandler handler = new XmlHandler(manager);
+            XmlHandler handler = new XmlHandler(getManager());
             parser.parse(source, handler);
 
             // The parsed network is now stored in the reader
