@@ -68,7 +68,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     private Node activeNode;
     private File documentFile;
     private boolean documentChanged;
-    private static Logger logger = Logger.getLogger("net.nodebox.client");
+    private static Logger logger = Logger.getLogger("net.nodebox.client.NodeBoxDocument");
     private EventListenerList documentFocusListeners = new EventListenerList();
     private UndoManager undo = new UndoManager();
 

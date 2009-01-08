@@ -20,12 +20,17 @@ package net.nodebox.client;
 
 import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.NodeTypeLibraryManager;
+import org.python.core.Py;
+import org.python.core.PyString;
 import org.python.core.PySystemState;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Application {
 
@@ -38,22 +43,38 @@ public class Application {
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
     private NodeTypeLibraryManager manager;
+    private ProgressDialog startupDialog;
 
     public static final String NAME = "NodeBox";
+    private static Logger logger = Logger.getLogger("net.nodebox.client.Application");
+
 
     private Application() {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        // Initialize Jython
-        Properties jythonProperties = new Properties();
-        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
-        jythonProperties.put("python.cachedir", jythonCacheDir);
-        PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
+    }
+
+    private void load() {
         manager = new NodeTypeLibraryManager();
         manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
-        for (NodeTypeLibrary library : manager.getLibraries()) {
-            System.out.println("Loading " + library.getName());
-            library.load();
-        }
+        int tasks = manager.getLibraries().size() + 1;
+        startupDialog = new ProgressDialog(null, "Starting NodeBox", tasks);
+        startupDialog.setVisible(true);
+
+        // Initialize Jython
+        startupDialog.setMessage("Loading Python");
+        Thread t = new Thread(new PythonLoader());
+        t.start();
+    }
+
+    private void pythonLoadedEvent() {
+        startupDialog.tick();
+        Thread t = new Thread(new LibraryLoader());
+        t.start();
+    }
+
+    private void librariesLoadedEvent() {
+        startupDialog.setVisible(false);
+        instance.createNewDocument();
     }
 
     public List<NodeBoxDocument> getDocuments() {
@@ -80,11 +101,68 @@ public class Application {
         return manager;
     }
 
+
+    public class PythonLoader implements Runnable {
+        public void run() {
+            Properties jythonProperties = new Properties();
+            String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
+            jythonProperties.put("python.cachedir", jythonCacheDir);
+            PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
+            String workingDirectory = System.getProperty("user.dir");
+            File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python2.5");
+            Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    Application.getInstance().pythonLoadedEvent();
+                }
+            });
+        }
+    }
+
+    public class LibraryLoader implements Runnable {
+        public void run() {
+            // Load libraries
+            manager = new NodeTypeLibraryManager();
+            manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+            for (NodeTypeLibrary library : manager.getLibraries()) {
+                SwingUtilities.invokeLater(new MessageSetter("Loading " + library.getName() + " library"));
+                try {
+                    library.load();
+                } catch (Exception e) {
+                    logger.log(Level.WARNING, "Could not library " + library.getName(), e);
+                }
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        startupDialog.tick();
+                    }
+                });
+            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    Application.getInstance().librariesLoadedEvent();
+                }
+            });
+        }
+    }
+
+    private class MessageSetter implements Runnable {
+        private String message;
+
+        private MessageSetter(String message) {
+            this.message = message;
+        }
+
+        public void run() {
+            startupDialog.setMessage(message);
+        }
+    }
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 instance = new Application();
-                instance.createNewDocument();
+                instance.load();
             }
         });
     }
