@@ -49,6 +49,35 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
         this.pythonModule = pythonModule;
     }
 
+
+    /**
+     * Returns the file that defines this module. We take a few guesses, but if the module structure is too difficult,
+     * this method will return null, indicating the file was not found.
+     *
+     * @return the file that implements this module, or null if no file was found.
+     */
+    public File getPythonModuleFile() {
+        // We don't support module names with dots.
+        if (pythonModuleName.contains(".")) {
+            return null;
+        }
+
+        // Check if the module is implemented as a simple python file, e.g. web.py
+        File directModuleFile = new File(getPath(), getPythonModuleName() + ".py");
+        if (directModuleFile.exists()) return directModuleFile;
+
+        // Check if the module is a package with a directory.
+        File moduleDirectory = new File(getPath(), getPythonModuleName());
+        if (moduleDirectory.isDirectory()) {
+            // The module code will be a file called __init__.py in the directory
+            File initFile = new File(moduleDirectory, "__init__.py");
+            if (initFile.exists()) return initFile;
+        }
+
+        // Bail out
+        return null;
+    }
+
     //// Library loading ////
 
     @Override

@@ -52,10 +52,8 @@ public class EditorPane extends Pane {
         NodeTypeLibrary library = node.getNodeType().getLibrary();
         if (library instanceof PythonNodeTypeLibrary) {
             PythonNodeTypeLibrary pythonLibrary = (PythonNodeTypeLibrary) library;
-            String moduleName = pythonLibrary.getPythonModuleName();
-            // Try to guess file name (module name + ".py")
-            File moduleFile = new File(pythonLibrary.getPath(), moduleName + ".py");
-            if (moduleFile.exists()) {
+            File moduleFile = pythonLibrary.getPythonModuleFile();
+            if (moduleFile != null) {
                 String code = FileUtils.readFile(moduleFile);
                 codeArea.setText(code);
                 return;
