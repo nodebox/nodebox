@@ -91,10 +91,18 @@ public class BezierPath extends Grob {
 
     //// Path methods ////
 
+    public void moveto(Point pt) {
+        moveto(pt.getX(), pt.getY());
+    }
+
     public void moveto(double x, double y) {
         elements.add(new PathElement(PathElement.MOVETO, x, y));
         needsMoveto = false;
         dirty = true;
+    }
+
+    public void lineto(Point pt) {
+        lineto(pt.getX(), pt.getY());
     }
 
     public void lineto(double x, double y) {
@@ -102,6 +110,10 @@ public class BezierPath extends Grob {
             throw new NodeBoxError("Lineto without first doing moveto.");
         elements.add(new PathElement(PathElement.LINETO, x, y));
         dirty = true;
+    }
+
+    public void quadto(Point pt1, Point pt2) {
+        quadto(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY());
     }
 
     public void quadto(double x1, double y1, double x2, double y2) {
@@ -116,6 +128,10 @@ public class BezierPath extends Grob {
         double c2x = x2 - (x2 - x1) * 2 / 3;
         double c2y = y2 - (y2 - y1) * 2 / 3;
         curveto(c1x, c1y, c2x, c2y, x2, y2);
+    }
+
+    public void curveto(Point pt1, Point pt2, Point pt3) {
+        curveto(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY(), pt3.getX(), pt3.getY());
     }
 
     public void curveto(double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -226,6 +242,51 @@ public class BezierPath extends Grob {
         t.setLineHeight(lineHeight);
         t.setAlign(align);
         extend(t.getPath());
+    }
+
+    //// Contours ////
+
+    /**
+     * Returns a list of contours in the path.
+     * <p/>
+     * A contour is a sequence of lines and curves
+     * separated from the next contour by a MOVETO.
+     * <p/>
+     * For example, the glyph "o" has two contours:
+     * the inner circle and the outer circle.
+     *
+     * @return a list of BezierPaths.
+     */
+    public java.util.List<BezierPath> getContours() {
+        java.util.List<BezierPath> contours = new ArrayList<BezierPath>();
+        BezierPath currentContour = null;
+        boolean empty = true;
+        for (PathElement el : getElements()) {
+            int command = el.getCommand();
+            if (command == PathElement.MOVETO) {
+                if (!empty) {
+                    contours.add(currentContour);
+                }
+                // Clone and clear copies only the properties (fill, stroke) of this path.
+                currentContour = clone();
+                currentContour.clear();
+                currentContour.addElement(el);
+                empty = true;
+            } else if (command == PathElement.LINETO || command == PathElement.CURVETO) {
+                assert (currentContour != null);
+                currentContour.addElement(el);
+                empty = false;
+            } else if (command == PathElement.CLOSE) {
+                assert (currentContour != null);
+                currentContour.addElement(el);
+            } else {
+                throw new AssertionError("Unknown path command " + command);
+            }
+        }
+        if (!empty) {
+            contours.add(currentContour);
+        }
+        return contours;
     }
 
     //// Mathematics ////
@@ -512,6 +573,26 @@ public class BezierPath extends Grob {
         }
     }
 
+    public Point[] getPoints() {
+        return getPoints(100);
+    }
+
+    public Point[] getPoints(int amount) {
+        Point[] points = new Point[amount];
+        // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
+        // If I wouldn't use amount - 1, I fall one point short of the end.
+        // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
+        // if amount = 2, I want point at t 0.0 and t 1.0
+        double delta = 1.0;
+        if (amount > 2) {
+            delta = 1.0 / (amount - 1);
+        }
+        for (int i = 0; i < amount; i++) {
+            points[i] = getPoint(delta * i);
+        }
+        return points;
+    }
+
     //// Geometric queries ////
 
     public boolean contains(Point p) {
@@ -608,7 +689,18 @@ public class BezierPath extends Grob {
             }
             pi.next();
         }
+    }
 
+    public void extend(Point[] points) {
+        boolean first = true;
+        for (Point pt : points) {
+            if (first) {
+                moveto(pt);
+                first = false;
+            } else {
+                lineto(pt);
+            }
+        }
     }
 
 
@@ -670,6 +762,28 @@ public class BezierPath extends Grob {
     public BezierPath clone() {
         return new BezierPath(this);
     }
+
+    /**
+     * Creates a cloned empty copy of this object, so only the properties remain, but not the contents.
+     * It copies:
+     * <ul>
+     * <li>transform</li>
+     * <li>fillColor</li>
+     * <li>strokeColor</li>
+     * <li>strokeWidth</li>
+     * </ul>
+     *
+     * @return a new empty BezierPath with the same properties as this path.
+     */
+    public BezierPath cloneAndClear() {
+        BezierPath cloned = new BezierPath();
+        cloned.setTransform(getTransform().clone());
+        cloned.fillColor = fillColor == null ? null : fillColor.clone();
+        cloned.strokeColor = strokeColor == null ? null : strokeColor.clone();
+        cloned.strokeWidth = strokeWidth;
+        return cloned;
+    }
+
 
     @Override
     public boolean equals(Object obj) {
