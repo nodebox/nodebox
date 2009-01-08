@@ -400,6 +400,26 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     public static void open(File file) {
         lastFilePath = file.getParentFile().getAbsolutePath();
+        String path = null;
+        try {
+            path = file.getCanonicalPath();
+            for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
+
+                try {
+                    if (doc.getDocumentFile() == null) continue;
+                    if (doc.getDocumentFile().getCanonicalPath().equals(path)) {
+                        doc.toFront();
+                        doc.requestFocus();
+                        addRecentFile(file);
+                        return;
+                    }
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
+                }
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
+        }
         NodeBoxDocument doc = Application.getInstance().createNewDocument();
         if (doc.readFromFile(file)) {
             doc.setDocumentFile(file);
@@ -482,10 +502,14 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     public boolean saveAs() {
-        File chosenFile = FileUtils.showSaveDialog(this, lastFilePath, "pna", "PNA File");
+        File chosenFile = FileUtils.showSaveDialog(this, lastFilePath, "ndbx", "NodeBox File");
         if (chosenFile != null) {
+            if (!chosenFile.getAbsolutePath().endsWith(".ndbx")) {
+                chosenFile = new File(chosenFile.getAbsolutePath() + ".ndbx");
+            }
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
             setDocumentFile(chosenFile);
+            addRecentFile(documentFile);
             return saveToFile(documentFile);
         }
         return false;
