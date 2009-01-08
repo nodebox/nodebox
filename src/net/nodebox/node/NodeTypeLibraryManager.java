@@ -22,6 +22,7 @@ package net.nodebox.node;
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.canvas.CanvasNetworkType;
 import net.nodebox.node.image.ImageNetworkType;
+import net.nodebox.node.image.ImageType;
 import net.nodebox.node.vector.*;
 
 import java.io.*;
@@ -115,6 +116,7 @@ public class NodeTypeLibraryManager {
         addLibrary(corevector);
         CoreNodeTypeLibrary coreimage = new CoreNodeTypeLibrary("coreimage", new Version(1, 0, 0));
         coreimage.addNodeType(new ImageNetworkType(coreimage));
+        coreimage.addNodeType(new ImageType(coreimage));
         addLibrary(coreimage);
     }
 

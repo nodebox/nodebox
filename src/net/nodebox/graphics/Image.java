@@ -1,5 +1,7 @@
 package net.nodebox.graphics;
 
+import net.nodebox.util.MathUtils;
+
 import javax.imageio.ImageIO;
 import javax.management.RuntimeErrorException;
 import java.awt.*;
@@ -158,7 +160,12 @@ public class Image extends Grob {
         // However, getScaleFactor return 1 if height/width are not set, in effect negating
         // the effect of the scale.
         imageTrans.scale(getScaleFactor());
+        double a = MathUtils.clamp(alpha);
+        Composite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) a);
+        Composite oldComposite = g.getComposite();
+        g.setComposite(composite);
         g.drawRenderedImage(image, imageTrans.getAffineTransform());
+        g.setComposite(oldComposite);
         restoreTransform(g);
     }
 
