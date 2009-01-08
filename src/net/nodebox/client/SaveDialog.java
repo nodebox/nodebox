@@ -10,8 +10,8 @@ import java.awt.event.KeyEvent;
  */
 public class SaveDialog extends JComponent {
 
-    public static Font messageFont = new Font("Tahoma", Font.BOLD, 12);
-    public static Font infoFont = new Font("Tahoma", Font.PLAIN, 10);
+    public static Font messageFont = PlatformUtils.getMessageFont();
+    public static Font infoFont = PlatformUtils.getInfoFont();
 
     private JDialog dialog;
     private int selectedValue;
