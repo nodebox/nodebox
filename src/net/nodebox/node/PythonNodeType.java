@@ -5,15 +5,56 @@ import net.nodebox.graphics.Group;
 import net.nodebox.graphics.Image;
 import org.python.core.*;
 
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+
 public class PythonNodeType extends NodeType {
 
     private PyFunction function;
     String[] keywords;
+    List<WeakReference<Node>> instanceRefs = new ArrayList<WeakReference<Node>>();
 
     public PythonNodeType(NodeTypeLibrary library, String identifier, ParameterType.Type outputType, PyFunction function) {
         super(library, identifier, outputType);
         this.function = function;
         initKeywords();
+    }
+
+    @Override
+    public Node createNode() {
+        Node n = super.createNode();
+        instanceRefs.add(new WeakReference<Node>(n));
+        return n;
+    }
+
+    @Override
+    public boolean reload() {
+        return getLibrary().reload();
+    }
+
+    public void reloadPython() {
+        // Retrieve the method from the new python module.
+        PyObject module = ((PythonNodeTypeLibrary) getLibrary()).getPythonModule();
+        String functionName = function.__name__.intern();
+        PyObject functionObject;
+        try {
+            functionObject = module.__getattr__(functionName);
+        } catch (Exception e) {
+            throw new RuntimeException("the method '" + functionName + "' does not exist in the module " + module, e);
+        }
+        try {
+            this.function = (PyFunction) functionObject;
+        } catch (ClassCastException e) {
+            throw new RuntimeException("the module attribute '" + functionName + "' is not a Python function.", e);
+        }
+        // Mark all instances as dirty.
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.markDirty();
+        }
+
     }
 
     private void initKeywords() {
@@ -80,6 +121,5 @@ public class PythonNodeType extends NodeType {
         node.setOutputValue(value);
         return true;
     }
-
 
 }

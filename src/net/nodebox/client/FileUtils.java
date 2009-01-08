@@ -110,4 +110,15 @@ public class FileUtils {
         return contents.toString();
     }
 
+    public static void writeFile(File file, String s) {
+        try {
+            Writer out = new BufferedWriter(new FileWriter(file));
+            out.write(s);
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write file " + file, e);
+        }
+    }
+
+
 }

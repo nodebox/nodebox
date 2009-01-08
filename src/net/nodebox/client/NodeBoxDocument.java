@@ -53,6 +53,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     public PasteAction pasteAction = new PasteAction();
     public DeleteAction deleteAction = new DeleteAction();
 
+    public ReloadAction reloadAction = new ReloadAction();
+
     public MinimizeAction minimizeAction = new MinimizeAction();
     public ZoomAction zoomAction = new ZoomAction();
     public BringAllToFrontAction bringAllToFrontAction = new BringAllToFrontAction();
@@ -286,6 +288,11 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         editMenu.addSeparator();
         editMenu.add(deleteAction);
         menuBar.add(editMenu);
+
+        // Node menu
+        JMenu pythonMenu = new JMenu("Node");
+        pythonMenu.add(reloadAction);
+        menuBar.add(pythonMenu);
 
         // Window menu
         JMenu windowMenu = new JMenu("Window");
@@ -589,6 +596,11 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         return false;
     }
 
+    public boolean reloadActiveNode() {
+        if (activeNode == null) return false;
+        return activeNode.getNodeType().reload();
+    }
+
     //// Network events ////
 
     public void networkDirty(Network network) {
@@ -816,6 +828,16 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
     }
 
+    public class ReloadAction extends AbstractAction {
+        public ReloadAction() {
+            putValue(NAME, "Reload");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_R));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            reloadActiveNode();
+        }
+    }
 
     public class MinimizeAction extends AbstractAction {
         public MinimizeAction() {

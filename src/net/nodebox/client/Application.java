@@ -51,7 +51,7 @@ public class Application {
         manager = new NodeTypeLibraryManager();
         manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
         for (NodeTypeLibrary library : manager.getLibraries()) {
-            System.out.println("library = " + library.getName());
+            System.out.println("Loading " + library.getName());
             library.load();
         }
     }

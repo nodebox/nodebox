@@ -1,6 +1,8 @@
 package net.nodebox.node;
 
-import org.python.core.PyObject;
+import org.python.core.Py;
+import org.python.core.PyModule;
+import org.python.core.imp;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.SAXParser;
@@ -15,7 +17,7 @@ import java.util.logging.Logger;
 public class PythonNodeTypeLibrary extends NodeTypeLibrary {
 
     private String pythonModuleName;
-    private PyObject pythonModule;
+    private PyModule pythonModule;
     private String path;
     private boolean loaded = false;
 
@@ -41,11 +43,11 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
         this.pythonModuleName = pythonModuleName;
     }
 
-    public PyObject getPythonModule() {
+    public PyModule getPythonModule() {
         return pythonModule;
     }
 
-    public void setPythonModule(PyObject pythonModule) {
+    public void setPythonModule(PyModule pythonModule) {
         this.pythonModule = pythonModule;
     }
 
@@ -153,6 +155,16 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
         loaded = true;
     }
 
-
+    @Override
+    public boolean reload() {
+        String moduleName = getPythonModuleName().intern();
+        Py.getSystemState().modules.__delitem__(moduleName);
+        pythonModule = (PyModule) imp.importName(moduleName, true);
+        for (NodeType type : getNodeTypes()) {
+            PythonNodeType pnt = (PythonNodeType) type;
+            pnt.reloadPython();
+        }
+        return true;
+    }
 }
 

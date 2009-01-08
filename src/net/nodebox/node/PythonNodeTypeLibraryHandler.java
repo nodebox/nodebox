@@ -94,7 +94,8 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
         // TODO: This is the central versioning problem.
         // To properly handle this, we need several system states.
         Py.getSystemState().path.add(new PyString(library.getPath()));
-        library.setPythonModule(imp.importName(moduleName.intern(), true));
+
+        library.setPythonModule((PyModule) imp.importName(moduleName.intern(), true));
     }
 
     /**

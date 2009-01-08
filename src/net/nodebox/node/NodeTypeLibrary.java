@@ -77,8 +77,9 @@ public abstract class NodeTypeLibrary {
         // Default implementation does nothing
     }
 
-    public void reload() {
+    public boolean reload() {
         // Default implementation does nothing
+        return false;
     }
 
     //// Node info ////
