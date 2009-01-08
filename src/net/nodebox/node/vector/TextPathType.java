@@ -29,12 +29,14 @@ public class TextPathType extends VectorNodeType {
         ParameterType pLineHeight = addParameterType("lineHeight", ParameterType.Type.FLOAT);
         pLineHeight.setDefaultValue(1.2);
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
+        ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
+        ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
+        pStrokeWidth.setMinimumValue(0.0);
     }
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
         Group g = new Group();
-        BezierPath p = new BezierPath();
         Text t = new Text(node.asString("text"), node.asFloat("x"), node.asFloat("y"));
         t.setWidth(node.asFloat("width"));
         t.setHeight(node.asFloat("height"));
@@ -42,7 +44,10 @@ public class TextPathType extends VectorNodeType {
         t.setFontSize(node.asFloat("fontSize"));
         t.setLineHeight(node.asFloat("lineHeight"));
         t.setFillColor(node.asColor("fill"));
-        g.add(t.getPath());
+        BezierPath p = new BezierPath(t.getPath());
+        p.setStrokeColor(node.asColor("stroke"));
+        p.setStrokeWidth(node.asFloat("strokewidth"));
+        g.add(p);
         node.setOutputValue(g);
         return true;
     }
