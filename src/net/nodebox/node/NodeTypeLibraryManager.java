@@ -41,10 +41,6 @@ public class NodeTypeLibraryManager {
     private static final Pattern TYPE_PATTERN = Pattern.compile(".*type\\s*=\\s*\"(python|java)\".*");
     public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
 
-    private enum LibraryType {
-        UNKNOWN, JAVA, PYTHON
-    }
-
     /**
      * A list of node type libraries with the same name but different versions.
      * <p/>
@@ -121,14 +117,14 @@ public class NodeTypeLibraryManager {
     }
 
 
-    public void addSearchPath(String searchPath) throws IOException {
+    public void addSearchPath(String searchPath) throws RuntimeException {
         File f = new File(searchPath);
         addSearchPath(f);
     }
 
-    public void addSearchPath(File searchPath) throws IOException {
+    public void addSearchPath(File searchPath) throws RuntimeException {
         if (!searchPath.isDirectory()) {
-            throw new IOException("The given search path \"" + searchPath + "\" is not a directory.");
+            throw new RuntimeException("The given search path \"" + searchPath + "\" is not a directory.");
         }
         this.searchPaths.add(searchPath);
     }

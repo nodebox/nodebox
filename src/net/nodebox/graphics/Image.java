@@ -47,6 +47,12 @@ public class Image extends Grob {
         this(new File(fname));
     }
 
+    public Image(String fname, double x, double y) {
+        this(new File(fname));
+        this.x = x;
+        this.y = y;
+    }
+
     public Image(RenderedImage image) {
         this.image = image;
     }

@@ -1,6 +1,5 @@
 package net.nodebox.node;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +9,7 @@ public class NodeTypeLibraryManagerTest extends NodeTypeTestCase {
     public void testLoad() {
         initJython();
         NodeTypeLibraryManager manager = new NodeTypeLibraryManager();
-        try {
-            manager.addSearchPath(getLibrariesDirectory());
-        } catch (IOException e) {
-            fail("Failed with IOException: " + e);
-        }
+        manager.addSearchPath(getLibrariesDirectory());
         // Load the test library
         NodeTypeLibrary testlib = manager.getLibrary("testlib");
         assertEquals("testlib", testlib.getName());

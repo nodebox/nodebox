@@ -62,6 +62,10 @@ public class PlatformUtils {
         }
     }
 
+    public static String getUserNodeTypeLibraryDirectory() {
+        return getUserDataDirectory();
+    }
+
     public static KeyStroke getKeyStroke(int key) {
         return KeyStroke.getKeyStroke(key, platformSpecificModifier);
     }

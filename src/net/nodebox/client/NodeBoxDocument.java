@@ -128,6 +128,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     public NodeBoxDocument() {
         manager = new NodeTypeLibraryManager();
+        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
         // TODO: Add search paths
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
