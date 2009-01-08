@@ -89,11 +89,12 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
 
     private void createPythonNodeTypeLibrary(Attributes attributes) throws SAXException {
         String moduleName = requireAttribute("library", attributes, "module");
+        library.setPythonModuleName(moduleName);
+        // Load python module
         // TODO: This is the central versioning problem.
         // To properly handle this, we need several system states.
         Py.getSystemState().path.add(new PyString(library.getPath()));
-        PyObject module = imp.importName(moduleName.intern(), true);
-        library.setPythonModule(module);
+        library.setPythonModule(imp.importName(moduleName.intern(), true));
     }
 
     /**
@@ -121,7 +122,7 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
         } catch (ClassCastException e) {
             throwLibraryException("the module attribute '" + functionName + "' is not a Python function.");
         }
-        currentNodeType = new PythonNodeType(null, name, outputType, function);
+        currentNodeType = new PythonNodeType(library, name, outputType, function);
         library.addNodeType(currentNodeType);
     }
 

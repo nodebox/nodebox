@@ -2,8 +2,7 @@ package net.nodebox.client;
 
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
-import java.io.File;
-import java.io.FilenameFilter;
+import java.io.*;
 import java.util.StringTokenizer;
 
 public class FileUtils {
@@ -91,6 +90,24 @@ public class FileUtils {
         public String getDescription() {
             return desc;
         }
+    }
+
+    public static String readFile(File file) {
+        StringBuffer contents = new StringBuffer();
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = br.readLine()) != null) {
+                contents.append(line);
+                contents.append("\n");
+            }
+            in.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read file " + file, e);
+        }
+        return contents.toString();
     }
 
 }

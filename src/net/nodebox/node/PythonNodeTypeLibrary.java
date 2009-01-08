@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 
 public class PythonNodeTypeLibrary extends NodeTypeLibrary {
 
+    private String pythonModuleName;
     private PyObject pythonModule;
     private String path;
     private boolean loaded = false;
@@ -31,6 +32,14 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
 
 
     //// Python module support ////
+
+    public String getPythonModuleName() {
+        return pythonModuleName;
+    }
+
+    public void setPythonModuleName(String pythonModuleName) {
+        this.pythonModuleName = pythonModuleName;
+    }
 
     public PyObject getPythonModule() {
         return pythonModule;
