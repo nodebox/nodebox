@@ -1,6 +1,8 @@
 package net.nodebox.handle;
 
+import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Color;
+import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.node.Node;
 
 import java.awt.*;
@@ -52,6 +54,17 @@ public abstract class AbstractHandle implements Handle {
     }
 
     //// Utility methods ////
+
+    protected void drawDot(GraphicsContext ctx, double x, double y) {
+        BezierPath p = new BezierPath();
+        p.setFillColor(HANDLE_COLOR);
+        p.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        ctx.draw(p);
+    }
+
+    protected void drawDot(BezierPath p, double x, double y) {
+        p.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+    }
 
     /**
      * Create a rectangle that can be used to test if a point is inside of it. (hit testing)

@@ -16,8 +16,6 @@ public class ParameterTypeTest extends NodeTestCase {
         checkInvalidName(nt, "root", "names can not be one of the reserved words.");
         checkInvalidName(nt, "network", "names can not be one of the reserved words.");
 
-        checkInvalidName(nt, "UPPERCASE", "names cannot be in uppercase.");
-        checkInvalidName(nt, "uPpercase", "names cannot contain uppercase letters");
         checkInvalidName(nt, "__reserved", "names cannot start with double underscores");
         checkInvalidName(nt, "what!", "Only lowercase, numbers and underscore are allowed");
         checkInvalidName(nt, "$-#34", "Only lowercase, numbers and underscore are allowed");
@@ -29,6 +27,8 @@ public class ParameterTypeTest extends NodeTestCase {
         checkValidName(nt, "_");
         checkValidName(nt, "_1234");
         checkValidName(nt, "a1234");
+        checkValidName(nt, "UPPERCASE");
+        checkValidName(nt, "uPpercase");
 
         checkInvalidName(nt, "radius", "parameter type names must be unique for the node type");
     }

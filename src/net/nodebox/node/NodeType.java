@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  */
 public abstract class NodeType {
 
-    public static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-z_][a-z0-9_]{0,29}$");
+    public static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     public static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     public static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
 

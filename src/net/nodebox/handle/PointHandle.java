@@ -1,6 +1,5 @@
 package net.nodebox.handle;
 
-import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Color;
 import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.node.Node;
@@ -32,11 +31,7 @@ public class PointHandle extends AbstractHandle {
     public void draw(GraphicsContext ctx) {
         double x = node.asFloat(xName);
         double y = node.asFloat(yName);
-        BezierPath dot = new BezierPath();
-        dot.setFillColor(HANDLE_COLOR);
-        dot.setStrokeWidth(0.0);
-        dot.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
-        ctx.getCanvas().add(dot);
+        drawDot(ctx, x, y);
     }
 
     @Override

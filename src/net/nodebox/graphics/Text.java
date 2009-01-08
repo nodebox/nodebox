@@ -212,6 +212,8 @@ public class Text extends Grob {
 
     public BezierPath getPath() {
         BezierPath p = new BezierPath();
+        p.setTransform(getTransform().clone());
+        p.setFillColor(fillColor == null ? null : fillColor.clone());
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
             TextLayout layout = iterator.next();

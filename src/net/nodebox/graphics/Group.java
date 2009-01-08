@@ -87,6 +87,20 @@ public class Group extends Grob {
         restoreTransform(g);
     }
 
+    //// Query methods ////
+
+    @Override
+    public java.util.List<Grob> getChildren(Class grobClass) {
+        ArrayList<Grob> childGrobs = new ArrayList<Grob>();
+        for (Grob grob : grobs) {
+            if (grobClass.isAssignableFrom(grob.getClass())) {
+                childGrobs.add(grob);
+            }
+            childGrobs.addAll(grob.getChildren(grobClass));
+        }
+        return childGrobs;
+    }
+
     //// Copy ////
 
     public Group clone() {
@@ -106,6 +120,5 @@ public class Group extends Grob {
     public String toString() {
         return "<" + getClass().getSimpleName() + ">";
     }
-
 
 }

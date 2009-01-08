@@ -21,6 +21,7 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
     private JComboBox fontChooser;
     private FontDataModel fontModel;
     private FontCellRenderer fontCellRenderer;
+    private String value;
 
     public FontControl(Parameter parameter) {
         this.parameter = parameter;
@@ -45,8 +46,10 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
 
     public void setValueForControl(Object v) {
         String fontName = (String) v;
+        if (value != null && value.equals(fontName)) return;
         fontChooser.setSelectedItem(fontModel.getFont(fontName));
         fontChooser.repaint();
+        value = fontName;
     }
 
     public void actionPerformed(ActionEvent e) {

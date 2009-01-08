@@ -54,8 +54,6 @@ public class NodeTest extends NodeTestCase {
         checkInvalidName(n, "root", "names can not be one of the reserved words.");
         checkInvalidName(n, "network", "names can not be one of the reserved words.");
 
-        checkInvalidName(n, "UPPERCASE", "names cannot be in uppercase.");
-        checkInvalidName(n, "uPpercase", "names cannot contain uppercase letters");
         checkInvalidName(n, "__reserved", "names cannot start with double underscores");
         checkInvalidName(n, "what!", "Only lowercase, numbers and underscore are allowed");
         checkInvalidName(n, "$-#34", "Only lowercase, numbers and underscore are allowed");
@@ -68,6 +66,8 @@ public class NodeTest extends NodeTestCase {
         checkValidName(n, "_1234");
         checkValidName(n, "a1234");
         checkValidName(n, "node1");
+        checkValidName(n, "UPPERCASE");
+        checkValidName(n, "uPpercase");
     }
 
     public void testDirty() {

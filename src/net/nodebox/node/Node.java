@@ -342,6 +342,10 @@ public class Node {
         return getParameter(name).asGrob();
     }
 
+    public boolean asBoolean(String name) {
+        return getParameter(name).asBoolean();
+    }
+
     public Object getValue(String name) {
         return getParameter(name).getValue();
     }

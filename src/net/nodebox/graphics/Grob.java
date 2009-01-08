@@ -20,6 +20,7 @@ package net.nodebox.graphics;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 
 public abstract class Grob implements Cloneable {
 
@@ -124,5 +125,13 @@ public abstract class Grob implements Cloneable {
         if (!(obj instanceof Grob)) return false;
         Grob other = (Grob) obj;
         return transform.equals(other.transform);
+    }
+
+    public java.util.List<Grob> getChildren() {
+        return getChildren(Object.class);
+    }
+
+    public java.util.List<Grob> getChildren(Class grobClass) {
+        return new ArrayList<Grob>();
     }
 }

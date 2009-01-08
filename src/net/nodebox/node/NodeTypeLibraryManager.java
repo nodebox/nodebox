@@ -102,9 +102,13 @@ public class NodeTypeLibraryManager {
         corecanvas.addNodeType(new CanvasNetworkType(corecanvas));
         addLibrary(corecanvas);
         CoreNodeTypeLibrary corevector = new CoreNodeTypeLibrary("corevector", new Version(1, 0, 0));
+        corevector.addNodeType(new ColorType(corevector));
         corevector.addNodeType(new CopyType(corevector));
         corevector.addNodeType(new EllipseType(corevector));
         corevector.addNodeType(new RectType(corevector));
+        corevector.addNodeType(new ResampleType(corevector));
+        corevector.addNodeType(new TextType(corevector));
+        corevector.addNodeType(new TextPathType(corevector));
         corevector.addNodeType(new TransformType(corevector));
         corevector.addNodeType(new VectorNetworkType(corevector));
         addLibrary(corevector);

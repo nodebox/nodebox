@@ -175,6 +175,15 @@ public class Parameter implements ParameterTypeListener {
         }
     }
 
+    public boolean asBoolean() {
+        if (getCoreType() == ParameterType.CoreType.INT) {
+            int v = (Integer) value;
+            return v == 1;
+        } else {
+            return false;
+        }
+    }
+
     public Color asColor() {
         if (getCoreType() == ParameterType.CoreType.COLOR) {
             return (Color) value;

@@ -42,6 +42,7 @@ public class ParameterPane extends Pane {
     }
 
     public void setNode(Node node) {
+        if (this.node == node) return;
         this.node = node;
         networkAddressBar.setNode(node);
         parameterView.setNode(node);

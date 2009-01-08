@@ -30,9 +30,6 @@ public class FourPointHandle extends AbstractHandle {
         this.heightName = heightName;
     }
 
-    private void drawDot(BezierPath p, double x, double y) {
-        p.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
-    }
 
     public void draw(GraphicsContext ctx) {
         double x = node.asFloat(xName);
@@ -51,7 +48,7 @@ public class FourPointHandle extends AbstractHandle {
         strokePath.setFillColor(null);
         strokePath.setStrokeColor(HANDLE_COLOR);
         strokePath.rect(x, y, width, height);
-        ctx.getCanvas().add(strokePath);
+        ctx.draw(strokePath);
     }
 
     @Override
