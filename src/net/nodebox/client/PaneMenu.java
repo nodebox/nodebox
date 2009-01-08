@@ -8,6 +8,7 @@ public class PaneMenu extends JPopupMenu {
     private Pane pane;
     private Action splitTopBottomAction;
     private Action splitLeftRightAction;
+    private Action closePaneAction;
 
     private class ChangePaneTypeAction extends AbstractAction {
 
@@ -41,10 +42,17 @@ public class PaneMenu extends JPopupMenu {
                 getPane().splitLeftRight();
             }
         };
+        closePaneAction = new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                getPane().close();
+            }
+        };
         splitTopBottomAction.putValue(Action.NAME, "Split top/bottom");
         splitLeftRightAction.putValue(Action.NAME, "Split left/right");
+        closePaneAction.putValue(Action.NAME, "Close pane");
         add(splitTopBottomAction);
         add(splitLeftRightAction);
+        add(closePaneAction);
     }
 
     public Pane getPane() {

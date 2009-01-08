@@ -64,6 +64,27 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
         parent.validate();
     }
 
+    public void close() {
+        Container parent = getParent();
+        if (!(parent instanceof PaneSplitter)) return;
+        PaneSplitter split = (PaneSplitter) parent;
+        Component left = split.getLeftComponent();
+        Component right = split.getRightComponent();
+        Component remainingComponent = left == this ? right : left;
+        split.remove(left);
+        split.remove(right);
+        Container grandParent = parent.getParent();
+        if (!(grandParent instanceof PaneSplitter)) return;
+        PaneSplitter grandSplit = (PaneSplitter) grandParent;
+        Component grandLeft = grandSplit.getLeftComponent();
+        Component grandRight = grandSplit.getRightComponent();
+        String constraint = split == grandLeft ? JSplitPane.LEFT : JSplitPane.RIGHT;
+        // Remove the split pane.
+        grandSplit.remove(split);
+        grandSplit.add(remainingComponent, constraint);
+
+    }
+
     public void changePaneType(Class paneType) {
         if (!Pane.class.isAssignableFrom(paneType)) return;
         Pane newPane;
@@ -82,4 +103,5 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
         newPane.setSize(d);
         parent.validate();
     }
+
 }
