@@ -108,11 +108,13 @@
         <copy todir="${mac.application.resources.java}">
             <fileset dir="${lib}">
                 <include name="*.jar"/>
+                <include name="*.zip"/>
                 <include name="*.py"/>
                 <include name="*.properties"/>
             </fileset>
             <fileset dir="${platform.lib}">
                 <include name="*.jar"/>
+                <include name="*.zip"/>
                 <include name="*.py"/>
                 <include name="*.properties"/>
             </fileset>
@@ -125,12 +127,6 @@
         <copy todir="${mac.application.contents}">
             <fileset dir="${platform.res}"/>
         </copy>
-        <!-- Copy Jython library files -->
-        <!--
-        <copy todir="${application.resources.java}/Lib">
-            <fileset dir="lib/Lib" />
-        </copy>
-        -->
         <!-- Make directory into a bundle -->
         <exec executable="/Developer/Tools/SetFile">
             <arg line="-a B ${mac.application}"/>
