@@ -162,6 +162,14 @@ public abstract class NodeType {
         return p;
     }
 
+    public boolean removeParameterType(ParameterType parameterType) {
+        if (parameterTypes.remove(parameterType)) {
+            // TODO: This has an effect on the instantiated nodes that contain this parameter.
+            return true;
+        }
+        return false;
+    }
+
     public List<ParameterType> getParameterTypes() {
         return parameterTypes;
     }

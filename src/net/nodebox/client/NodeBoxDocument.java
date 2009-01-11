@@ -78,8 +78,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
     }
 
-    private class AllControlsType extends NodeType {
-        private AllControlsType(NodeTypeLibrary library) {
+    public static class AllControlsType extends NodeType {
+        public AllControlsType(NodeTypeLibrary library) {
             super(library, "allcontrols", ParameterType.Type.GROB_CANVAS);
             addParameterType("angle", ParameterType.Type.ANGLE);
             addParameterType("color", ParameterType.Type.COLOR);

@@ -127,10 +127,10 @@ public class ParameterType extends Observable {
     private Direction direction;
     private Object defaultValue;
     private boolean nullAllowed = false;
-    private BoundingMethod boundingMethod;
+    private BoundingMethod boundingMethod = BoundingMethod.NONE;
     private Double minimumValue;
     private Double maximumValue;
-    private DisplayLevel displayLevel;
+    private DisplayLevel displayLevel = DisplayLevel.HUD;
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private EventListenerList listeners = new EventListenerList();
 
@@ -482,4 +482,8 @@ public class ParameterType extends Observable {
         return newType;
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

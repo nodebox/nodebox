@@ -40,6 +40,7 @@ public class EditorDocument extends JFrame {
         JScrollPane codeScroll = new JScrollPane(codeArea);
         codeScroll.setBorder(BorderFactory.createEmptyBorder());
         feedbackArea = new FeedbackArea();
+        feedbackArea.setFont(PlatformUtils.getEditorFont());
         feedbackArea.setBorder(BorderFactory.createEtchedBorder());
         JScrollPane feedbackScroll = new JScrollPane(feedbackArea);
         feedbackScroll.setBorder(BorderFactory.createEmptyBorder());

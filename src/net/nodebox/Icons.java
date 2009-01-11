@@ -37,6 +37,49 @@ public class Icons {
 
     }
 
+    public static abstract class ColoredIcon implements Icon {
+        protected Color color;
+
+        protected ColoredIcon() {
+            color = Color.black;
+        }
+
+        protected ColoredIcon(Color color) {
+            this.color = color;
+        }
+
+        public int getIconWidth() {
+            return 7;
+        }
+
+        public int getIconHeight() {
+            return 7;
+        }
+    }
+
+    public static class PlusIcon extends ColoredIcon {
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(color);
+            g.translate(x, y);
+            g.drawLine(0, 3, 5, 3);
+            g.drawLine(0, 4, 5, 4);
+            g.drawLine(2, 1, 2, 6);
+            g.drawLine(3, 1, 3, 6);
+        }
+    }
+
+    public static class MinusIcon extends ColoredIcon {
+
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            g.setColor(color);
+            g.translate(x, y);
+            g.drawLine(0, 3, 5, 3);
+            g.drawLine(0, 4, 5, 4);
+        }
+
+    }
+
     public static class ArrowIcon implements Icon {
         public static final int NORTH = 0;
         public static final int EAST = 1;
@@ -54,6 +97,10 @@ public class Icons {
             g.setColor(color);
             g.translate(x, y);
             if (direction == NORTH) {
+                g.drawLine(3, 1, 3, 1);
+                g.drawLine(2, 2, 4, 2);
+                g.drawLine(1, 3, 5, 3);
+                g.drawLine(0, 4, 6, 4);
             } else if (direction == EAST) {
                 g.drawLine(1, 0, 1, 6);
                 g.drawLine(2, 1, 2, 5);
