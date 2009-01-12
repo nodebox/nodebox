@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-public class NetworkView extends PCanvas implements NetworkEventListener {
+public class NetworkView extends PCanvas implements NetworkEventListener, NetworkDataListener {
 
     public static final String SELECT_PROPERTY = "select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -93,6 +93,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         Network oldNetwork = this.network;
         if (oldNetwork != null) {
             oldNetwork.removeNetworkEventListener(this);
+            oldNetwork.removeNetworkDataListener(this);
         }
         this.network = network;
         getLayer().removeAllChildren();
@@ -100,9 +101,9 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
         setHighlight((NodeView) null);
         if (network == null) return;
         network.addNetworkEventListener(this);
+        network.addNetworkDataListener(this);
         // Add nodes
         for (Node n : network.getNodes()) {
-
             NodeView nv = new NodeView(this, n);
             getLayer().addChild(nv);
         }
@@ -215,6 +216,14 @@ public class NetworkView extends PCanvas implements NetworkEventListener {
     }
 
     public void renderedNodeChanged(Network source, Node node) {
+        repaint();
+    }
+
+    public void networkDirty(Network network) {
+    }
+
+    public void networkUpdated(Network network) {
+        // Implemented so we catch nodes with errors.
         repaint();
     }
 

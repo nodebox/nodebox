@@ -130,11 +130,13 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     public NodeBoxDocument() {
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
+        LoggingPane loggingPane = new LoggingPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
         NetworkPane networkPane = new NetworkPane(this);
+        PaneSplitter viewLoggingSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, viewPane, loggingPane);
         PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
-        PaneSplitter viewRestSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewPane, parameterNetworkSplit);
-        rootPanel.add(viewRestSplit, BorderLayout.CENTER);
+        PaneSplitter topSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewLoggingSplit, parameterNetworkSplit);
+        rootPanel.add(topSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);

@@ -487,6 +487,11 @@ public class Network extends Node {
     @Override
     public boolean update(ProcessingContext ctx) {
         boolean success = super.update(ctx);
+        for (Node node : getNodes()) {
+            for (Message m : node.getMessages()) {
+                messages.add(new Message(m.getLevel(), node.getName() + ": " + m.getMessage()));
+            }
+        }
         fireNetworkUpdated();
         return success;
     }

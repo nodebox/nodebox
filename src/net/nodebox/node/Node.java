@@ -94,7 +94,7 @@ public class Node {
     /**
      * A list of messages that occurred during processing.
      */
-    private List<Message> messages = new ArrayList<Message>();
+    protected List<Message> messages = new ArrayList<Message>();
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.Node");
 
@@ -643,7 +643,13 @@ public class Node {
     public boolean update(ProcessingContext ctx) {
         if (!dirty) return true;
         for (Parameter p : parameters.values()) {
-            p.update(ctx);
+            try {
+                p.update(ctx);
+            } catch (Exception e) {
+                messages.add(new Message(MessageLevel.ERROR, p.getName() + ": " + e.getMessage()));
+                dirty = false;
+                return false;
+            }
         }
         messages.clear();
         boolean success = process(ctx);

@@ -127,7 +127,7 @@ public class ParameterView extends JComponent {
     private class NetworkEventHandler extends NetworkEventAdapter {
         @Override
         public void nodeChanged(Network source, Node node) {
-            if (node == getNode()) {
+            if (node != getNode()) {
                 rebuildInterface();
             }
         }

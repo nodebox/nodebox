@@ -32,6 +32,7 @@ public class PaneMenu extends JPopupMenu {
         add(new ChangePaneTypeAction("Viewer", ViewerPane.class));
         add(new ChangePaneTypeAction("Source", EditorPane.class));
         add(new ChangePaneTypeAction("Console", ConsolePane.class));
+        add(new ChangePaneTypeAction("Log", LoggingPane.class));
         addSeparator();
         splitTopBottomAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
