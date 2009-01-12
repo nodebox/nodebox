@@ -18,9 +18,6 @@
  */
 package net.nodebox.node;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Represents a connection between two nodes.
  * <p/>
@@ -29,8 +26,13 @@ import java.util.List;
  */
 public class Connection {
 
+    public enum Type {
+        EXPLICIT, IMPLICIT
+    }
+
     private Parameter outputParameter;
     private Parameter inputParameter;
+    private Type type;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
@@ -39,27 +41,22 @@ public class Connection {
      * @param inputParameter  the input (downstream) parameter
      */
     public Connection(Parameter outputParameter, Parameter inputParameter) {
+        this(outputParameter, inputParameter, Type.EXPLICIT);
+    }
+
+    public Connection(Parameter outputParameter, Parameter inputParameter, Type type) {
         this.outputParameter = outputParameter;
         this.inputParameter = inputParameter;
+        this.type = type;
     }
 
     public Parameter getOutputParameter() {
         return outputParameter;
     }
 
-    public List<Parameter> getOutputParameters() {
-        List<Parameter> parameters = new ArrayList<Parameter>(1);
-        parameters.add(outputParameter);
-        return parameters;
-    }
-
     public Node getOutputNode() {
         if (outputParameter == null) return null;
         return outputParameter.getNode();
-    }
-
-    public boolean hasOutputNode() {
-        return outputParameter != null;
     }
 
     public Node getInputNode() {
@@ -69,6 +66,18 @@ public class Connection {
 
     public Parameter getInputParameter() {
         return inputParameter;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public boolean isExplicit() {
+        return type == Type.EXPLICIT;
+    }
+
+    public boolean isImplicit() {
+        return type == Type.IMPLICIT;
     }
 
     public void markDirtyDownstream() {
@@ -86,14 +95,4 @@ public class Connection {
         xml.append("/>\n");
     }
 
-    public boolean connect(Parameter outputParameter) {
-        this.outputParameter = outputParameter;
-        return true;
-    }
-
-    public boolean disconnect(Parameter outputParameter) {
-        assert (outputParameter == this.outputParameter);
-        this.outputParameter = null;
-        return true;
-    }
 }

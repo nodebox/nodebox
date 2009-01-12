@@ -102,6 +102,21 @@ public class ParameterTest extends NodeTestCase {
         assertEquals("hello", n.asString("string"));
     }
 
+    public void testExpressionConnections() {
+        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
+        Node rect1 = net.create(manager.getNodeType("corevector.rect"));
+        Node ellipse1 = net.create(manager.getNodeType("corevector.ellipse"));
+        Node copy1 = net.create(manager.getNodeType("corevector.copy"));
+        copy1.getParameter("shape").connect(rect1);
+        copy1.getParameter("tx").setExpression("ellipse1.x");
+        Parameter xParam = ellipse1.getParameter("x");
+        assertEquals(1, xParam.getDependents().size());
+        assert (xParam.getDependents().contains(copy1.getParameter("tx")));
+        assertEquals(2, copy1.getConnections().size());
+        assertEquals(1, rect1.getConnections().size());
+        assertEquals(1, ellipse1.getConnections().size());
+    }
+
     //// Helper functions ////
 
     private class ValueNodeType extends NodeType {

@@ -33,7 +33,8 @@ public class ExpressionTest extends NodeTestCase {
      * Test parameter interaction between nodes.
      */
     public void testNodeLocal() {
-        Node multiply = multiplyType.createNode();
+        Network net = (Network) testNetworkType.createNode();
+        Node multiply = net.create(multiplyType);
         Parameter p1 = multiply.getParameter("v1");
         Parameter p2 = multiply.getParameter("v2");
         p2.setValue(12);
@@ -61,9 +62,9 @@ public class ExpressionTest extends NodeTestCase {
         //Parameter p2 = number2.addParameter("p2", Parameter.Type.INT);
         Parameter pValue2 = number2.getParameter("value");
         pValue2.set(12);
-        // Trying to retrieve the value of number2 by just using the expression "value" is impossible,
+        // Trying to get the value of number2 by just using the expression "value" is impossible,
         // since it will retrieve the value parameter of number1.
-        assertExpressionEquals(84, pValue1, "value");
+        assertExpressionInvalid(pValue1, "value");
         // Access p2 through the node name.
         assertExpressionEquals(12, pValue1, "number2.value");
         // Access p2 through the network.
@@ -94,8 +95,8 @@ public class ExpressionTest extends NodeTestCase {
     }
 
     public void assertExpressionInvalid(Parameter p, String expression) {
-        p.setExpression(expression);
         try {
+            p.setExpression(expression);
             p.update(new ProcessingContext());
             fail("Should have thrown exception");
         } catch (Exception e) {

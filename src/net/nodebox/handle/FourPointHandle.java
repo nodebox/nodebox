@@ -93,28 +93,28 @@ public class FourPointHandle extends AbstractHandle {
         if (dx == 0 && dy == 0) return;
         switch (dragState) {
             case TOP_LEFT:
-                node.set(xName, ox + dx);
-                node.set(yName, oy + dy);
-                node.set(widthName, owidth - dx);
-                node.set(heightName, oheight - dy);
+                node.silentSet(xName, ox + dx);
+                node.silentSet(yName, oy + dy);
+                node.silentSet(widthName, owidth - dx);
+                node.silentSet(heightName, oheight - dy);
                 break;
             case TOP_RIGHT:
-                node.set(yName, oy + dy);
-                node.set(heightName, oheight - dy);
-                node.set(widthName, owidth + dx);
+                node.silentSet(yName, oy + dy);
+                node.silentSet(heightName, oheight - dy);
+                node.silentSet(widthName, owidth + dx);
                 break;
             case BOTTOM_LEFT:
-                node.set(xName, ox + dx);
-                node.set(widthName, owidth - dx);
-                node.set(heightName, oheight + dy);
+                node.silentSet(xName, ox + dx);
+                node.silentSet(widthName, owidth - dx);
+                node.silentSet(heightName, oheight + dy);
                 break;
             case BOTTOM_RIGHT:
-                node.set(widthName, owidth + dx);
-                node.set(heightName, oheight + dy);
+                node.silentSet(widthName, owidth + dx);
+                node.silentSet(heightName, oheight + dy);
                 break;
             case CENTER:
-                node.set(xName, ox + dx);
-                node.set(yName, oy + dy);
+                node.silentSet(xName, ox + dx);
+                node.silentSet(yName, oy + dy);
         }
     }
 

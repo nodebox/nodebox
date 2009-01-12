@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.Icons;
+import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Parameter;
 
 import javax.swing.*;
@@ -137,6 +138,9 @@ public class ParameterRow extends JComponent implements ComponentListener {
         expressionMenuItem.setState(parameter.hasExpression());
         if (getParent() != null)
             getParent().validate();
+        control.revalidate();
+        expressionField.revalidate();
+        revalidate();
         repaint();
     }
 
@@ -170,7 +174,12 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
     private class ExpressionFieldChangedAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            parameter.setExpression(expressionField.getText());
+            try {
+                parameter.setExpression(expressionField.getText());
+            } catch (ConnectionError ce) {
+                ExceptionDialog ed = new ExceptionDialog(null, ce);
+                ed.setVisible(true);
+            }
         }
     }
 }

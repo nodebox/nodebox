@@ -366,10 +366,86 @@ public class Node {
         getParameter(name).set(value);
     }
 
-    public void setValue(String name, Object value) {
+    /**
+     * Set the value or fail silently.
+     * <p/>
+     * The normal set method throws an error whenever the parameter is connected.
+     * This version silently discards the error.
+     *
+     * @param name  name of the parameter.
+     * @param value value of the parameter.
+     */
+    public void silentSet(String name, int value) {
+        try {
+            getParameter(name).set(value);
+        } catch (ValueError e) {
+        }
+    }
+
+    /**
+     * Set the value or fail silently.
+     * <p/>
+     * The normal set method throws an error whenever the parameter is connected.
+     * This version silently discards the error.
+     *
+     * @param name  name of the parameter.
+     * @param value value of the parameter.
+     */
+    public void silentSet(String name, double value) {
+        try {
+            getParameter(name).set(value);
+        } catch (ValueError e) {
+        }
+    }
+
+    /**
+     * Set the value or fail silently.
+     * <p/>
+     * The normal set method throws an error whenever the parameter is connected.
+     * This version silently discards the error.
+     *
+     * @param name  name of the parameter.
+     * @param value value of the parameter.
+     */
+    public void silentSet(String name, String value) {
+        try {
+            getParameter(name).set(value);
+        } catch (ValueError e) {
+        }
+    }
+
+    /**
+     * Set the value or fail silently.
+     * <p/>
+     * The normal set method throws an error whenever the parameter is connected.
+     * This version silently discards the error.
+     *
+     * @param name  name of the parameter.
+     * @param value value of the parameter.
+     */
+    public void silentSet(String name, Color value) {
+        try {
+            getParameter(name).set(value);
+        } catch (ValueError e) {
+        }
+    }
+
+    /**
+     * Set the value or fail silently.
+     * <p/>
+     * The normal set method throws an error whenever the parameter is connected.
+     * This version silently discards the error.
+     *
+     * @param name  name of the parameter.
+     * @param value value of the parameter.
+     */
+    public void silentSet(String name, Object value) {
         getParameter(name).setValue(value);
     }
 
+    public void setValue(String name, Object value) {
+        getParameter(name).setValue(value);
+    }
     //// Output value shortcuts ////
 
     public Object getOutputValue() {
@@ -403,15 +479,22 @@ public class Node {
     public List<Connection> getInputConnections() {
         List<Connection> inputConnections = new ArrayList<Connection>();
         for (Parameter p : parameters.values()) {
-            if (p.isConnected()) {
-                inputConnections.add(p.getConnection());
-            }
+            List<Connection> connections = getNetwork().getUpstreamConnections(p);
+            if (connections != null)
+                inputConnections.addAll(connections);
         }
         return inputConnections;
     }
 
     public List<Connection> getOutputConnections() {
-        return getOutputParameter().getDownstreamConnections();
+        List<Connection> outputConnections = new ArrayList<Connection>();
+        outputConnections.addAll(getOutputParameter().getDownstreamConnections());
+        for (Parameter p : parameters.values()) {
+            List<Connection> connections = getNetwork().getDownstreamConnections(p);
+            if (connections != null)
+                outputConnections.addAll(connections);
+        }
+        return outputConnections;
     }
 
     public List<Connection> getConnections() {

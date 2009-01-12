@@ -19,6 +19,7 @@ public class Theme {
     private Color borderHighlightColor = new Color(120, 120, 120);
     private Color viewBackgroundColor = new Color(144, 152, 160);
     private Color connectionColor = new Color(100, 100, 100);
+    private Color implicitConnectionColor = new Color(160, 160, 160);
     private ArrowIcon arrowIcon = new ArrowIcon();
 
     public class ArrowIcon implements Icon {
@@ -76,6 +77,10 @@ public class Theme {
 
     public Color getConnectionColor() {
         return connectionColor;
+    }
+
+    public Color getImplicitConnectionColor() {
+        return implicitConnectionColor;
     }
 
     public ArrowIcon getArrowIcon() {

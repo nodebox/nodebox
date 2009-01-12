@@ -42,14 +42,6 @@ public class Parameter implements ParameterTypeListener {
     private boolean valueSet = false;
     private Expression expression;
     private boolean expressionEnabled;
-    /**
-     * A list of Parameters that want to be notified when my value changes.
-     */
-    private List<Parameter> dependents = new ArrayList<Parameter>();
-    /**
-     * A list of Parameters that I rely on, and that need to notify me when their value changes.
-     */
-    private List<Parameter> dependencies = new ArrayList<Parameter>();
 
     /**
      * A list of listeners that want to be notified when my value changes.
@@ -252,7 +244,7 @@ public class Parameter implements ParameterTypeListener {
         return hasExpression() ? expression.getExpression() : "";
     }
 
-    public void setExpression(String expression) {
+    public void setExpression(String expression) throws ConnectionError {
         if (hasExpression() && getExpression().equals(expression)) {
             return;
         }
@@ -261,9 +253,19 @@ public class Parameter implements ParameterTypeListener {
             setExpressionEnabled(false);
         } else {
             this.expression = new Expression(this, expression);
-            updateDependencies();
             // Setting an expession automatically enables it and marks the node as dirty.
             setExpressionEnabled(true);
+            try {
+                updateDependencies();
+            } catch (ConnectionError e) {
+                // Whilst updating, we might catch a Connection error meaning you are connecting
+                // e.g. the parameter to itself. If that happens, we clear out the expression and all of its
+                // dependencies.
+                clearDependencies();
+                this.expression = null;
+                setExpressionEnabled(false);
+                throw (e);
+            }
         }
         fireValueChanged();
     }
@@ -289,62 +291,66 @@ public class Parameter implements ParameterTypeListener {
      * Parameter depencies are created by setting expressions that refer to other parameters. Once these parameters
      * are changed, the dependent parameters need to be changed as well.
      */
-    private void updateDependencies() {
+    private void updateDependencies() throws ConnectionError {
+        if (getNetwork() == null)
+            throw new AssertionError("The node needs to be in a network to use expressions.");
         clearDependencies();
         for (Parameter p : expression.getDependencies()) {
-            p.addDependent(this);
-            dependencies.add(p);
+            // Each expression depency functions as an output to which this parameter connects.
+            // This connection is implicit because it was not explicitly created by the user,
+            // but through the expression.
+            getNetwork().connect(p, this, Connection.Type.IMPLICIT);
         }
     }
 
     private void clearDependencies() {
-        for (Parameter p : dependencies) {
-            p.removeDependent(this);
+        if (getNetwork() == null) return;
+        List<Connection> connections = getNetwork().getUpstreamConnections(this);
+        for (Connection conn : connections) {
+            if (conn.getType() == Connection.Type.IMPLICIT) {
+                getNetwork().disconnect(conn.getOutputParameter(), this, Connection.Type.IMPLICIT);
+            }
         }
-        dependencies.clear();
-    }
-
-    private void addDependent(Parameter parameter) {
-        assert (!dependents.contains(parameter));
-        dependents.add(this);
-    }
-
-    private void removeDependent(Parameter parameter) {
-        assert (dependents.contains(parameter));
-        dependents.remove(this);
     }
 
     public List<Parameter> getDependents() {
-        return new ArrayList<Parameter>(dependents);
+        if (getNetwork() == null) return new ArrayList<Parameter>();
+        // My dependents are represented as implicit connections for which I am the output.
+        // The list of dependents is a list of input parameters on these connections.
+        List<Parameter> dependents = new ArrayList<Parameter>();
+        // Filter out explicit connections
+        for (Connection conn : getNetwork().getDownstreamConnections(this)) {
+            if (conn.getType() == Connection.Type.IMPLICIT)
+                dependents.add(conn.getInputParameter());
+        }
+        return dependents;
     }
 
     public List<Parameter> getDependencies() {
-        return new ArrayList<Parameter>(dependencies);
+        if (getNetwork() == null) return new ArrayList<Parameter>();
+        // My depencies are represented as implicit connections for which I am the input.
+        // The list of depencies is a list of output parameters on these connections.
+        List<Parameter> dependencies = new ArrayList<Parameter>();
+        // Filter out explicit connections
+        for (Connection conn : getNetwork().getUpstreamConnections(this)) {
+            if (conn.getType() == Connection.Type.IMPLICIT)
+                dependencies.add(conn.getOutputParameter());
+        }
+        return dependencies;
     }
 
     /**
      * Called whenever the value of this parameter changes. This method informs the dependent parameters that my value
-     * has changed. I call the dependencyValueChanged method on these parameters.
-     *
-     * @see #dependencyValueChanged(Parameter)
+     * has changed.
      */
     protected void fireValueChanged() {
-        for (Parameter p : dependents) {
-            p.dependencyValueChanged(this);
+        getNode().markDirty();
+        for (Parameter p : getDependents()) {
+            p.getNode().markDirty();
         }
         for (ParameterDataListener l : listeners) {
             l.valueChanged(this, value);
         }
-        getNode().markDirty();
-    }
-
-    /**
-     * Called by my parameter dependencies whenever their value changes.
-     *
-     * @param parameter the parameter that has changed its value.
-     */
-    private void dependencyValueChanged(Parameter parameter) {
-        getNode().markDirty();
     }
 
     //// Connections ////
@@ -357,12 +363,22 @@ public class Parameter implements ParameterTypeListener {
         return !isInputParameter();
     }
 
-    public Connection getConnection() {
-        return getNode().getNetwork().getUpstreamConnection(this);
+    public Connection getExplicitConnection() {
+        if (getNetwork() == null) return null;
+        return getNetwork().getExplicitConnection(this);
+    }
+
+    public List<Connection> getConnections() {
+        if (getNetwork() == null) return new ArrayList<Connection>();
+        return getNetwork().getUpstreamConnections(this);
     }
 
     public boolean isCompatible(Node outputNode) {
         return outputNode.getOutputParameter().getType().equals(getType());
+    }
+
+    private boolean hasExplicitConnection() {
+        return getExplicitConnection() != null;
     }
 
     public boolean isConnected() {
@@ -372,9 +388,8 @@ public class Parameter implements ParameterTypeListener {
 
     public boolean isConnectedTo(Parameter parameter) {
         if (!isConnected()) return false;
-        // Parameters can only be connected to output parameters.
-        if (!(parameter instanceof OutputParameter)) return false;
-        return getNode().getNetwork().isConnectedTo(this, parameter);
+        // Since output and input parameters can be intermingled, check both sides of the connection.
+        return getNetwork().isConnectedTo(parameter, this) || getNetwork().isConnectedTo(this, parameter);
     }
 
     public boolean isConnectable() {
@@ -383,12 +398,13 @@ public class Parameter implements ParameterTypeListener {
 
     public boolean isConnectedTo(Node node) {
         if (!isConnected()) return false;
-        return getNetwork().isConnectedTo(this, node.getOutputParameter());
+        return getNetwork().isConnectedTo(node.getOutputParameter(), this);
     }
 
     public boolean canConnectTo(Parameter parameter) {
         // Parameters can only be connected to output parameters.
-        if (!(parameter instanceof OutputParameter)) return false;
+        // TODO: No longer true for implicit connections
+        //if (!(parameter instanceof OutputParameter)) return false;
         return parameter.getCoreType() == getCoreType();
     }
 
@@ -408,7 +424,7 @@ public class Parameter implements ParameterTypeListener {
      * @return true if the connection succeeded.
      */
     public Connection connect(Node outputNode) {
-        return getNetwork().connect(this, outputNode.getOutputParameter());
+        return getNetwork().connect(outputNode.getOutputParameter(), this);
     }
 
     /**
@@ -430,21 +446,20 @@ public class Parameter implements ParameterTypeListener {
      * @param ctx the processing context
      */
     public void update(ProcessingContext ctx) {
-        if (isConnected()) {
-            getConnection().getOutputNode().update(ctx);
-            Object outputValue = getConnection().getOutputNode().getOutputValue();
+        // Update all connections.
+        for (Connection conn : getConnections()) {
+            if (conn.getOutputNode() != getNode())
+                conn.getOutputNode().update(ctx);
+        }
+
+        if (hasExplicitConnection()) {
+            Connection conn = getExplicitConnection();
+            Object outputValue = conn.getOutputNode().getOutputValue();
             validate(outputValue);
             value = outputValue;
-        }
-        if (hasExpression()) {
-            // Update expression connections
-            /*
-            for (Connection c : expressionConnections) {
-                c.getOutputNode().update(ctx);
-            }
-            */
+        } else if (hasExpression()) {
             Object expressionValue = expression.evaluate();
-            parameterType.validate(expressionValue);
+            validate(expressionValue);
             value = expressionValue;
         }
     }
@@ -509,5 +524,10 @@ public class Parameter implements ParameterTypeListener {
                 throw new AssertionError("Unknown value class " + getCoreType());
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "<Parameter " + getNode().getName() + "." + getName() + " (" + getType().toString().toLowerCase() + ")>";
     }
 }

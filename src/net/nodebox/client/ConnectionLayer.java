@@ -50,7 +50,11 @@ public class ConnectionLayer extends PLayer {
                     g.setColor(Theme.getInstance().getActionColor());
                 } else {
                     g.setStroke(new BasicStroke(1));
-                    g.setColor(Theme.getInstance().getConnectionColor());
+                    if (c.isExplicit()) {
+                        g.setColor(Theme.getInstance().getConnectionColor());
+                    } else {
+                        g.setColor(Theme.getInstance().getImplicitConnectionColor());
+                    }
                 }
                 float x0 = (float) (c.getOutputNode().getX() + NodeView.NODE_WIDTH / 2);
                 float y0 = (float) (c.getOutputNode().getY() + NodeView.NODE_HEIGHT);
