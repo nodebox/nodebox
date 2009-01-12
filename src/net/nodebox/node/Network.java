@@ -28,18 +28,51 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * A Network is a collection of nodes in a graph structure.
+ * <p/>
+ * The important part about grouping a collection of nodes is that you can connect them together.
+ * This allows for many processing possibilities, where you can connect several nodes together forming
+ * very complicated networks. Networks, in turn, can be rigged up to form sort of black-boxes, with some
+ * input parameters and an output parameter, so they form a Node themselves, that can be used to form
+ * even more complicated networks, etc.
+ * <p/>
+ * Central in this concept is the directed acyclic graph, or DAG. This is a graph where all the edges
+ * are directed, and no cycles can be formed, so you do not run into recursive loops. The vertexes of
+ * the graph are the nodes, and the edges are the connections between them.
+ * <p/>
+ * One of the vertexes in the graph is set as the rendered node, and from there on, the processing starts,
+ * working its way upwards in the network, processing other nodes (and their inputs) as they come along.
+ */
 public class Network extends Node {
 
     /**
      * A list of all the nodes in this network.
      */
     private HashMap<String, Node> nodes = new HashMap<String, Node>();
+
+    /**
+     * All connections, keyed by the output (or destination), and going downstream,
+     * to the input (or origin).
+     * Key = output parameter
+     * Value = ArrayList of input Parameters on other nodes.
+     */
+    private HashMap<Parameter, List<Connection>> downstreams = new HashMap<Parameter, List<Connection>>();
+
+    /**
+     * All connections, keyed by the input (or origin), and going upstream,
+     * to the output (or destination).
+     * Key = input Parameter
+     * Value = Connection object of the upstream connection.
+     */
+    private HashMap<Parameter, Connection> upstreams = new HashMap<Parameter, Connection>();
+
 
     /**
      * The node being rendered in this network.
@@ -120,7 +153,7 @@ public class Network extends Node {
         return nodes.get(nodeName);
     }
 
-    public Collection<Node> getNodes() {
+    public List<Node> getNodes() {
         return new ArrayList<Node>(nodes.values());
     }
 
@@ -161,6 +194,224 @@ public class Network extends Node {
         nodes.put(newName, node);
         fireNodeChanged(node);
         return true;
+    }
+
+    //// Connections ////
+
+    /**
+     * Convenience method for connecting nodes to eachother.
+     *
+     * @param input     the downstream node whose input is to be connected.
+     * @param paramName the name of the parameter on the input node.
+     * @param output    the upstream node whose output parameter is to be connected.
+     * @return the connection object.
+     */
+    public Connection connect(Node input, String paramName, Node output) {
+        Parameter inputParam = input.getParameter(paramName);
+        Parameter outputParam = output.getOutputParameter();
+        return connect(inputParam, outputParam);
+    }
+
+    /**
+     * Connect two parameters to eachother.
+     *
+     * @param input  the input parameter on the origin (downstream) node.
+     * @param output the output parameter on the destination (upstream) node.
+     * @return the connection object.
+     */
+    public Connection connect(Parameter input, Parameter output) {
+        // Sanity checks
+        if (!input.isConnectable())
+            throw new ConnectionError(input.getNode(), input, "Input parameter is not connectable.");
+        if (!output.isConnectable())
+            throw new ConnectionError(input.getNode(), input, "Output parameter is not connectable.");
+        if (!input.isInputParameter())
+            throw new ConnectionError(input.getNode(), input, "Input parameter is not an input parameter.");
+        if (!output.isOutputParameter())
+            throw new ConnectionError(input.getNode(), output, "Output parameter is not an output parameter.");
+        if (input.getNetwork() != this)
+            throw new ConnectionError(input.getNode(), output, "The input parameter is not in this network.");
+        if (!input.canConnectTo(output))
+            throw new ConnectionError(input.getNode(), output, "The parameter types do not match.");
+        if (output.getNetwork() != this)
+            throw new ConnectionError(input.getNode(), output, "The output parameter is not in this network.");
+        if (input == output)
+            throw new ConnectionError(input.getNode(), output, "The input and output parameter are the same.");
+
+        // Check if there is already a connection between the input and output.
+        if (input.isConnectedTo(output)) return null;
+
+        Connection conn = (Connection) upstreams.get(input);
+        if (conn == null) { // No connection yet
+            /*
+            if (input.isMultiInput()) {
+                conn = new MultiConnection(input, output);
+            } else {
+                conn = new SingleConnection(input, output);
+            }
+            */
+            conn = new Connection(output, input);
+            addUpstreamConnection(input, conn);
+            addDownstreamConnection(output, conn);
+        } else { // There is a connection
+//
+//               if (input.isMultiInput()) {
+//                   // If the connection is multi-connect, add to the connection
+//                   if (conn.connect(output)) {
+//                       addDownstreamConnection(output, conn);
+//                   }
+//               } else {
+            // On single-connect, remove previous connection first.
+            disconnect(input, conn.getOutputParameter());
+            // Make new connection
+            if (conn.connect(output)) {
+                addUpstreamConnection(input, conn);
+                addDownstreamConnection(output, conn);
+//                   }
+            }
+        }
+        input.getNode().markDirty();
+        fireConnectionAdded(conn);
+        return conn;
+    }
+
+    /**
+     * Disconnect two parameters.
+     *
+     * @param input  the input parameter on the origin (downstream) node.
+     * @param output
+     * @return true if the connection was found and disconnected.
+     */
+    public boolean disconnect(Parameter input, Parameter output) {
+        assert input.getNode().getNetwork() == this;
+        assert output.getNode().getNetwork() == this;
+        assert input.isConnectable();
+        assert output.isConnectable();
+        assert output.isOutputParameter();
+
+        // Find the connection first, if it can be found.
+        Connection conn = upstreams.get(input);
+        if (conn != null) {
+            if (conn.disconnect(output)) {
+                // Indicate whether still something remains as a connection object.
+                // If it does, you can't remove the upstream connection yet.
+                // The downstream connection can always be removed.
+                removeUpstreamConnection(input);
+            }
+            removeDownstreamConnection(output, conn);
+            input.revertToDefault();
+            input.getNode().markDirty();
+            fireConnectionRemoved(conn);
+            return true;
+        } else {
+            throw new ConnectionError(input.getNode(), output, "Nothing to disconnect.");
+        }
+    }
+
+    public boolean disconnect(Parameter inputParameter) {
+        Connection conn = getConnection(inputParameter);
+        if (conn == null) return false;
+        boolean downstreamRemoved = disconnect(conn.getInputParameter(), conn.getOutputParameter());
+        assert (downstreamRemoved);
+        inputParameter.revertToDefault();
+        fireConnectionRemoved(conn);
+        return true;
+    }
+
+    private Connection getConnection(Parameter parameter) {
+        assert (parameter.isInputParameter());
+        return upstreams.get(parameter);
+    }
+
+    /**
+     * Returns whether the given parameter is connected.
+     *
+     * @param param the input or output parameter
+     * @return true if the parameter is connected.
+     */
+    public boolean isConnected(Parameter param) {
+        if (param.isOutputParameter()) {
+            return downstreams.containsKey(param);
+        } else {
+            return upstreams.containsKey(param);
+        }
+    }
+
+    /**
+     * Returns whether the given input parameter is connected to the given output parameter.
+     *
+     * @param input  the input parameter
+     * @param output the output parameter
+     * @return true if the parameters are connected.
+     */
+    public boolean isConnectedTo(Parameter input, Parameter output) {
+        Connection conn = upstreams.get(input);
+        if (conn == null) return false;
+        for (Parameter p : conn.getOutputParameters()) {
+            if (p == output)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Return an iterator of all the connections in the network.
+     *
+     * @return an Iterator of all the connections.
+     */
+    public List<Connection> getConnections() {
+        return new ArrayList(upstreams.values());
+    }
+
+    /**
+     * Return a Connection object containing all the outputs connected to this input.
+     *
+     * @param input the input Parameter
+     * @return a Connection object.
+     */
+    public Connection getUpstreamConnection(Parameter input) {
+        return upstreams.get(input);
+    }
+
+    /**
+     * Return an Iterator containing all the inputs this node is connected to.
+     *
+     * @param output the output Parameter.
+     * @return an Iterator of Connection objects.
+     */
+    public List<Connection> getDownstreamConnections(Parameter output) {
+        List<Connection> connections = downstreams.get(output);
+        if (connections == null) {
+            return new ArrayList<Connection>();
+        } else {
+            return new ArrayList<Connection>(connections);
+        }
+    }
+
+    private void addUpstreamConnection(Parameter input, Connection connection) {
+        upstreams.put(input, connection);
+    }
+
+    private void addDownstreamConnection(Parameter output, Connection connection) {
+        List<Connection> connectionList;
+        connectionList = downstreams.get(output);
+        if (connectionList == null) {
+            connectionList = new ArrayList<Connection>();
+        }
+        connectionList.add(connection);
+        downstreams.put(output, connectionList);
+    }
+
+    private void removeUpstreamConnection(Parameter input) {
+        upstreams.remove(input);
+    }
+
+    private void removeDownstreamConnection(Parameter output, Connection conn) {
+        List<Connection> connections = downstreams.get(output);
+        connections.remove(conn);
+        if (connections.isEmpty()) {
+            downstreams.remove(output);
+        }
     }
 
     //// Rendered node ////

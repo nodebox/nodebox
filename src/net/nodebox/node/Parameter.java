@@ -42,8 +42,6 @@ public class Parameter implements ParameterTypeListener {
     private boolean valueSet = false;
     private Expression expression;
     private boolean expressionEnabled;
-    private Connection connection;
-    private List<Connection> expressionConnections = new ArrayList<Connection>();
     /**
      * A list of Parameters that want to be notified when my value changes.
      */
@@ -70,6 +68,10 @@ public class Parameter implements ParameterTypeListener {
 
     public Node getNode() {
         return node;
+    }
+
+    public Network getNetwork() {
+        return node == null ? null : node.getNetwork();
     }
 
     //// Naming ////
@@ -347,8 +349,16 @@ public class Parameter implements ParameterTypeListener {
 
     //// Connections ////
 
+    public boolean isInputParameter() {
+        return true;
+    }
+
+    public boolean isOutputParameter() {
+        return !isInputParameter();
+    }
+
     public Connection getConnection() {
-        return connection;
+        return getNode().getNetwork().getUpstreamConnection(this);
     }
 
     public boolean isCompatible(Node outputNode) {
@@ -356,19 +366,24 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public boolean isConnected() {
-        return connection != null;
+        if (getNetwork() == null) return false;
+        return getNetwork().isConnected(this);
     }
 
     public boolean isConnectedTo(Parameter parameter) {
         if (!isConnected()) return false;
         // Parameters can only be connected to output parameters.
         if (!(parameter instanceof OutputParameter)) return false;
-        return connection.getOutputParameter() == parameter;
+        return getNode().getNetwork().isConnectedTo(this, parameter);
+    }
+
+    public boolean isConnectable() {
+        return true;
     }
 
     public boolean isConnectedTo(Node node) {
         if (!isConnected()) return false;
-        return connection.getOutputParameter() == node.getOutputParameter();
+        return getNetwork().isConnectedTo(this, node.getOutputParameter());
     }
 
     public boolean canConnectTo(Parameter parameter) {
@@ -393,27 +408,7 @@ public class Parameter implements ParameterTypeListener {
      * @return true if the connection succeeded.
      */
     public Connection connect(Node outputNode) {
-        if (!node.inNetwork())
-            throw new ConnectionError(outputNode, this, "The node needs to be in the network.");
-        if (node == outputNode)
-            throw new ConnectionError(outputNode, this, "You cannot connect a node to itself.");
-        if (!canConnectTo(outputNode))
-            throw new ConnectionError(outputNode, this, "The parameter types do not match.");
-        if (connection != null) disconnect();
-        connection = new Connection(outputNode.getOutputParameter(), this);
-        outputNode.getOutputParameter().addDownstreamConnection(connection);
-        // After the connection is made, check if it creates a cycle, and
-        // remove the connection if it does.
-        if (getNode().getNetwork() != null) {
-            if (getNode().getNetwork().containsCycles()) {
-                disconnect();
-                throw new ConnectionError(outputNode, this, "This creates a cyclic connection.");
-            }
-        }
-        getNode().markDirty();
-        if (getNode().inNetwork())
-            getNode().getNetwork().fireConnectionAdded(connection);
-        return connection;
+        return getNetwork().connect(this, outputNode.getOutputParameter());
     }
 
     /**
@@ -424,16 +419,7 @@ public class Parameter implements ParameterTypeListener {
      * @return true if the connection was removed
      */
     public boolean disconnect() {
-        if (!isConnected()) return false;
-        Node outputNode = connection.getOutputNode();
-        boolean downstreamRemoved = outputNode.getOutputParameter().getDownstreamConnections().remove(connection);
-        assert (downstreamRemoved);
-        Connection oldConnection = connection;
-        connection = null;
-        revertToDefault();
-        if (getNode().inNetwork())
-            getNode().getNetwork().fireConnectionRemoved(oldConnection);
-        return true;
+        return getNetwork().disconnect(this);
     }
 
     /**
@@ -445,15 +431,18 @@ public class Parameter implements ParameterTypeListener {
      */
     public void update(ProcessingContext ctx) {
         if (isConnected()) {
-            connection.getOutputNode().update(ctx);
-            Object outputValue = connection.getOutputNode().getOutputValue();
+            getConnection().getOutputNode().update(ctx);
+            Object outputValue = getConnection().getOutputNode().getOutputValue();
             validate(outputValue);
             value = outputValue;
         }
         if (hasExpression()) {
+            // Update expression connections
+            /*
             for (Connection c : expressionConnections) {
                 c.getOutputNode().update(ctx);
             }
+            */
             Object expressionValue = expression.evaluate();
             parameterType.validate(expressionValue);
             value = expressionValue;

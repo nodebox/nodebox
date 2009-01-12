@@ -18,6 +18,9 @@
  */
 package net.nodebox.node;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a connection between two nodes.
  * <p/>
@@ -42,6 +45,12 @@ public class Connection {
 
     public Parameter getOutputParameter() {
         return outputParameter;
+    }
+
+    public List<Parameter> getOutputParameters() {
+        List<Parameter> parameters = new ArrayList<Parameter>(1);
+        parameters.add(outputParameter);
+        return parameters;
     }
 
     public Node getOutputNode() {
@@ -77,4 +86,14 @@ public class Connection {
         xml.append("/>\n");
     }
 
+    public boolean connect(Parameter outputParameter) {
+        this.outputParameter = outputParameter;
+        return true;
+    }
+
+    public boolean disconnect(Parameter outputParameter) {
+        assert (outputParameter == this.outputParameter);
+        this.outputParameter = null;
+        return true;
+    }
 }

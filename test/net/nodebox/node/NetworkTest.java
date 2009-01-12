@@ -138,4 +138,5 @@ public class NetworkTest extends NodeTestCase {
         assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
+
 }
