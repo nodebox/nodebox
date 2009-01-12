@@ -132,11 +132,22 @@ public class NetworkTest extends NodeTestCase {
      */
     public void testCopy() {
         Network vector1 = (Network) manager.getNodeType("corevector.vecnet").createNode();
-        Node ellipse1 = vector1.create(manager.getNodeType("corevector.rect"));
+        Node ellipse1 = vector1.create(manager.getNodeType("corevector.ellipse"));
         ellipse1.setRendered();
         vector1.update();
         assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
+    public void testCycles() {
+        Network net = (Network) testNetworkType.createNode();
+        Node n1 = net.create(numberType);
+        Node n2 = net.create(numberType);
+        n2.getParameter("value").connect(n1);
+        CycleDetector cd = CycleDetector.initWithNetwork(net);
+        assertFalse(cd.hasCycles());
+        n1.getParameter("value").connect(n2);
+        cd = CycleDetector.initWithNetwork(net);
+        assertTrue(cd.hasCycles());
+    }
 
 }
