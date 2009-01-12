@@ -377,8 +377,11 @@ public class Parameter implements ParameterTypeListener {
         return parameter.getCoreType() == getCoreType();
     }
 
-    public boolean canConnectTo(Node node) {
-        return node.getOutputParameter().getCoreType() == getCoreType();
+    public boolean canConnectTo(Node outputNode) {
+        if (!node.inNetwork()) return false;
+        if (!outputNode.inNetwork()) return false;
+        if (node.getNetwork() != outputNode.getNetwork()) return false;
+        return outputNode.getOutputParameter().getCoreType() == getCoreType();
     }
 
     /**
@@ -390,6 +393,8 @@ public class Parameter implements ParameterTypeListener {
      * @return true if the connection succeeded.
      */
     public Connection connect(Node outputNode) {
+        if (!node.inNetwork())
+            throw new ConnectionError(outputNode, this, "The node needs to be in the network.");
         if (node == outputNode)
             throw new ConnectionError(outputNode, this, "You cannot connect a node to itself.");
         if (!canConnectTo(outputNode))

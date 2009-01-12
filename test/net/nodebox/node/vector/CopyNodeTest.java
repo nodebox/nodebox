@@ -2,14 +2,16 @@ package net.nodebox.node.vector;
 
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Rect;
+import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 import net.nodebox.node.NodeTestCase;
 
 public class CopyNodeTest extends NodeTestCase {
 
     public void testBasicCopy() {
-        Node rect = manager.getNodeType("corevector.rect").createNode();
-        Node copy = manager.getNodeType("corevector.copy").createNode();
+        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
+        Node rect = net.create(manager.getNodeType("corevector.rect"));
+        Node copy = net.create(manager.getNodeType("corevector.copy"));
         copy.getParameter("shape").connect(rect);
         copy.update();
         Grob g = (Grob) copy.getOutputValue();

@@ -37,8 +37,9 @@ public class ConnectTest extends NodeTestCase {
     }
 
     public void testConnect() {
-        Node ng = numberType.createNode();
-        Node m = multiplyType.createNode();
+        Network net = (Network) testNetworkType.createNode();
+        Node ng = net.create(numberType);
+        Node m = net.create(multiplyType);
 
         assertFalse(m.getParameter("v1").isConnected());
         assertFalse(m.getParameter("v1").isConnectedTo(ng));
@@ -71,8 +72,9 @@ public class ConnectTest extends NodeTestCase {
     }
 
     public void testDirtyPropagation() {
-        Node ng = numberType.createNode();
-        Node m = multiplyType.createNode();
+        Network net = (Network) testNetworkType.createNode();
+        Node ng = net.create(numberType);
+        Node m = net.create(multiplyType);
         // Nodes start out dirty
         assertTrue(ng.isDirty());
         assertTrue(m.isDirty());
@@ -120,8 +122,9 @@ public class ConnectTest extends NodeTestCase {
     }
 
     public void testValuePropagation() {
-        Node ng = numberType.createNode();
-        Node m = multiplyType.createNode();
+        Network net = (Network) testNetworkType.createNode();
+        Node ng = net.create(numberType);
+        Node m = net.create(multiplyType);
         m.set("v2", 2);
         m.getParameter("v1").connect(ng);
         assertEquals(0, m.getOutputValue());
@@ -145,8 +148,9 @@ public class ConnectTest extends NodeTestCase {
     }
 
     public void testDisconnect() {
-        Node ng = numberType.createNode();
-        Node m = multiplyType.createNode();
+        Network net = (Network) testNetworkType.createNode();
+        Node ng = net.create(numberType);
+        Node m = net.create(multiplyType);
         m.set("v2", 2);
         ng.set("value", 5);
         m.getParameter("v1").connect(ng);
