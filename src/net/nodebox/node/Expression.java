@@ -26,9 +26,8 @@ import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Expression {
@@ -109,11 +108,16 @@ public class Expression {
         }
     }
 
-    List<Parameter> getDependencies() {
-        // TODO: Implement
-        return new ArrayList<Parameter>();
+    Set<Parameter> getDependencies() {
+        Set<Parameter> markedParameters = new HashSet<Parameter>();
+        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), markedParameters);
+        try {
+            MVEL.executeExpression(compiledExpression, prf);
+            return markedParameters;
+        } catch (Exception e) {
+            return new HashSet<Parameter>(0);
+        }
     }
-
 
     class ProxyResolverFactory extends BaseVariableResolverFactory {
 
@@ -123,6 +127,11 @@ public class Expression {
         ProxyResolverFactory(Node node) {
             this.node = node;
             proxy = new NodeAccessProxy(node);
+        }
+
+        ProxyResolverFactory(Node node, Set<Parameter> markedParameters) {
+            this.node = node;
+            proxy = new NodeAccessProxy(node, markedParameters);
         }
 
         public Node getNode() {

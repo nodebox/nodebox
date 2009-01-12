@@ -18,6 +18,8 @@
  */
 package net.nodebox.node;
 
+import java.util.List;
+
 public class ExpressionTest extends NodeTestCase {
 
     public void testSimple() {
@@ -70,6 +72,20 @@ public class ExpressionTest extends NodeTestCase {
         assertExpressionEquals(33, pValue1, "network.pn");
     }
 
+    public void testDependencies() {
+        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
+        Node rect = net.create(manager.getNodeType("corevector.rect"));
+        Node copy = net.create(manager.getNodeType("corevector.copy"));
+        rect.getParameter("y").setExpression("x");
+        List<Parameter> dependencies = rect.getParameter("y").getDependencies();
+        assertEquals(1, dependencies.size());
+        assertEquals(rect.getParameter("x"), dependencies.get(0));
+        rect.getParameter("y").setExpression("copy1.ty + x");
+        dependencies = rect.getParameter("y").getDependencies();
+        assertEquals(2, dependencies.size());
+        assertTrue(dependencies.contains(copy.getParameter("ty")));
+        assertTrue(dependencies.contains(rect.getParameter("x")));
+    }
 
     public void assertExpressionEquals(Object expected, Parameter p, String expression) {
         p.setExpression(expression);

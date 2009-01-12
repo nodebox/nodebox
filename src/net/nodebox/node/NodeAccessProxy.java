@@ -23,11 +23,23 @@ public class NodeAccessProxy implements Map {
 
     private Node node;
     private Set<String> keySet;
-
+    private Set<Parameter> markedParameters;
 
     public NodeAccessProxy(Node node) {
         this.node = node;
         updateKeys();
+    }
+
+    /**
+     * Initialize the proxy with a access marker that notes which parameters were accessed.
+     * This marker will be passed to recursive proxies.
+     *
+     * @param node             the node
+     * @param markedParameters a list of parameters that were marked.
+     */
+    public NodeAccessProxy(Node node, Set<Parameter> markedParameters) {
+        this(node);
+        this.markedParameters = markedParameters;
     }
 
     private void updateKeys() {
@@ -97,34 +109,38 @@ public class NodeAccessProxy implements Map {
         // First search for reserved words.
         if (k.equals("network")) {
             if (node.inNetwork()) {
-                return new NodeAccessProxy(node.getNetwork());
+                return new NodeAccessProxy(node.getNetwork(), markedParameters);
             } else {
                 return null;
             }
         } else if (k.equals("root")) {
             if (node.inNetwork()) {
-                return new NodeAccessProxy(node.getRootNetwork());
+                return new NodeAccessProxy(node.getRootNetwork(), markedParameters);
             } else {
                 return null;
             }
         } else if (k.equals("output")) {
+            if (markedParameters != null)
+                markedParameters.add(node.getOutputParameter());
             return node.getOutputValue();
         }
 
         // Search the parameters
         if (node.hasParameter(k)) {
+            if (markedParameters != null)
+                markedParameters.add(node.getParameter(k));
             return node.getValue(k);
         }
 
         // Network searches
         // If this is a network, search its nodes first.
         if (node instanceof Network && ((Network) node).contains(k)) {
-            return new NodeAccessProxy(((Network) node).getNode(k));
+            return new NodeAccessProxy(((Network) node).getNode(k), markedParameters);
         }
 
         // Check the siblings (nodes in this node's network).
         if (node.inNetwork() && node.getNetwork().contains(k)) {
-            return new NodeAccessProxy(node.getNetwork().getNode(k));
+            return new NodeAccessProxy(node.getNetwork().getNode(k), markedParameters);
         }
 
         // Don't know what to return.
