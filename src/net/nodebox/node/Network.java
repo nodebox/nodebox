@@ -257,12 +257,29 @@ public class Network extends Node {
         if (type == Connection.Type.EXPLICIT) {
             Connection explicitConn = getExplicitConnection(inputParameter);
             if (explicitConn != null) {
-                // TODO: Multi-input input parameters should not automatically disconnect.
-                disconnect(outputParameter, inputParameter, type);
+                // Multi-input input parameters do not automatically disconnect, because they
+                // can connect to multiple outputs. Single input parameters can only explicitly
+                // connect to one output at the same time, so we disconnect them first.
+                if (inputParameter.getCardinality() == ParameterType.Cardinality.SINGLE) {
+                    disconnect(outputParameter, inputParameter, type);
+                } else {
+                    // If an explicit connection was found on a parameter with multi-input,
+                    // just add the output parameter to that connection.
+                    ((MultiConnection) explicitConn).addOutputParameter(outputParameter);
+                    // We can shortcut the source here; we don't need to add an upstream or downstream
+                    // connection since the connection is already there.
+                    inputParameter.getNode().markDirty();
+                    fireConnectionAdded(explicitConn);
+                    return explicitConn;
+                }
             }
         }
 
-        conn = new Connection(outputParameter, inputParameter, type);
+        if (inputParameter.getCardinality() == ParameterType.Cardinality.MULTIPLE) {
+            conn = new MultiConnection(outputParameter, inputParameter, type);
+        } else {
+            conn = new Connection(outputParameter, inputParameter, type);
+        }
         addUpstreamConnection(inputParameter, conn);
         addDownstreamConnection(outputParameter, conn);
         inputParameter.getNode().markDirty();
@@ -298,10 +315,19 @@ public class Network extends Node {
         // Find the connection
         Connection conn = getConnection(outputParameter, inputParameter, type);
         if (conn == null) return false;
-
-        removeUpstreamConnection(inputParameter, conn);
-        removeDownstreamConnection(outputParameter, conn);
-        inputParameter.revertToDefault();
+        // Multi-input parameters are connected to multiple outputs.
+        // The connection can only be removed when there are no output parameters remaining.
+        boolean outputParametersRemaining = false;
+        if (inputParameter.getCardinality() == ParameterType.Cardinality.MULTIPLE) {
+            List<Parameter> outputParameters = ((MultiConnection) conn).getOutputParameters();
+            outputParameters.remove(outputParameter);
+            outputParametersRemaining = !outputParameters.isEmpty();
+        }
+        if (!outputParametersRemaining) {
+            removeUpstreamConnection(inputParameter, conn);
+            removeDownstreamConnection(outputParameter, conn);
+            inputParameter.revertToDefault();
+        }
         inputParameter.getNode().markDirty();
         fireConnectionRemoved(conn);
         return true;

@@ -117,6 +117,26 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(1, ellipse1.getConnections().size());
     }
 
+    public void testMultiParameters() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        number1.set("value", 1);
+        Node number2 = net.create(numberType);
+        number2.set("value", 2);
+        Node number3 = net.create(numberType);
+        number3.set("value", 3);
+        Node multiAdd1 = net.create(multiAddType);
+        Connection c1 = multiAdd1.getParameter("values").connect(number1);
+        Connection c2 = multiAdd1.getParameter("values").connect(number2);
+        Connection c3 = multiAdd1.getParameter("values").connect(number3);
+        assertTrue(c1 == c2);
+        assertTrue(c1 == c3);
+        assertTrue(c1 instanceof MultiConnection);
+        assertEquals(3, ((MultiConnection) c1).getOutputParameters().size());
+        multiAdd1.update();
+        assertEquals(6, multiAdd1.getOutputValue());
+    }
+
     //// Helper functions ////
 
     private class ValueNodeType extends NodeType {

@@ -104,6 +104,7 @@ public class NetworkTest extends NodeTestCase {
         transform1.setPosition(40, 80);
         transform1.setRendered();
         transform1.getParameter("shape").connect(ellipse1);
+        // TODO: Add a multi-connection node here somewhere.
 
         // Write network
         String xmlString = rootNetwork.toXml();

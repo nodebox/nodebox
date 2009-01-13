@@ -350,6 +350,10 @@ public class Node {
         return getParameter(name).getValue();
     }
 
+    public List<Object> getValues(String name) {
+        return getParameter(name).getValues();
+    }
+
     public void set(String name, int value) {
         getParameter(name).set(value);
     }

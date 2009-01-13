@@ -22,6 +22,10 @@ public class ParameterType extends Observable {
         GROB_CANVAS, GROB_VECTOR, GROB_IMAGE
     }
 
+    public enum Cardinality {
+        SINGLE, MULTIPLE
+    }
+
     public enum CoreType {
         INT, FLOAT, STRING, COLOR, GROB_CANVAS, GROB_SHAPE, GROB_IMAGE
     }
@@ -123,6 +127,7 @@ public class ParameterType extends Observable {
     private String label;
     private String description;
     private Type type;
+    private Cardinality cardinality = Cardinality.SINGLE;
     private CoreType coreType;
     private Direction direction;
     private Object defaultValue;
@@ -233,6 +238,13 @@ public class ParameterType extends Observable {
         fireTypeChanged();
     }
 
+    public Cardinality getCardinality() {
+        return cardinality;
+    }
+
+    public void setCardinality(Cardinality cardinality) {
+        this.cardinality = cardinality;
+    }
 
     public CoreType getCoreType() {
         return coreType;
@@ -371,6 +383,19 @@ public class ParameterType extends Observable {
             throw new ValueError("Value for parameter " + getName() + " cannot be null.");
         }
         if (value == null) return;
+        if (getCardinality() == Cardinality.SINGLE) {
+            validateSingle(value);
+        } else {
+            // If there is only one of this, check that the value is a list, and all elements in the list are valid.
+            if (!(value instanceof List)) {
+                List<Object> values = (List<Object>) value;
+                for (Object v : values)
+                    validateSingle(v);
+            }
+        }
+    }
+
+    private void validateSingle(Object value) throws ValueError {
         // Check if the type matches
         Class requiredType = CORE_TYPE_MAPPING.get(coreType);
         if (!value.getClass().isAssignableFrom(requiredType)) {

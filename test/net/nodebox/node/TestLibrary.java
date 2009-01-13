@@ -1,5 +1,7 @@
 package net.nodebox.node;
 
+import java.util.List;
+
 public class TestLibrary extends CoreNodeTypeLibrary {
 
     public static abstract class Unary extends NodeType {
@@ -32,6 +34,26 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         }
 
         public abstract int process(int v1, int v2);
+    }
+
+    public static abstract class Multi extends NodeType {
+        public Multi(NodeTypeLibrary library, String name) {
+            super(library, name, ParameterType.Type.INT);
+            ParameterType ptValues = addParameterType("values", ParameterType.Type.INT);
+            ptValues.setCardinality(ParameterType.Cardinality.MULTIPLE);
+        }
+
+        public boolean process(Node node, ProcessingContext ctx) {
+            List<Object> objectValues = node.getValues("values");
+            int[] values = new int[objectValues.size()];
+            for (int i = 0; i < objectValues.size(); i++) {
+                values[i] = (Integer) objectValues.get(i);
+            }
+            node.setOutputValue(process(values));
+            return true;
+        }
+
+        public abstract int process(int[] values);
     }
 
     public static class Number extends Unary {
@@ -77,6 +99,19 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         }
     }
 
+    public static class MultiAdd extends Multi {
+        public MultiAdd(NodeTypeLibrary library) {
+            super(library, "multiAdd");
+        }
+
+        public int process(int[] values) {
+            int sum = 0;
+            for (int v : values)
+                sum += v;
+            return sum;
+        }
+    }
+
     public static class TestNetworkType extends NodeType {
         public TestNetworkType(NodeTypeLibrary library) {
             super(library, "testnet", ParameterType.Type.INT);
@@ -99,6 +134,7 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         addNodeType(new Negate(this));
         addNodeType(new Add(this));
         addNodeType(new Multiply(this));
+        addNodeType(new MultiAdd(this));
         addNodeType(new TestNetworkType(this));
     }
 

@@ -5,7 +5,7 @@ import junit.framework.TestCase;
 public class NodeTestCase extends TestCase {
 
     protected NodeTypeLibraryManager manager;
-    protected NodeType numberType, negateType, addType, multiplyType, testNetworkType;
+    protected NodeType numberType, negateType, addType, multiplyType, multiAddType, testNetworkType;
 
     @Override
     protected void setUp() throws Exception {
@@ -13,11 +13,11 @@ public class NodeTestCase extends TestCase {
         manager = new NodeTypeLibraryManager();
         TestLibrary testlib = new TestLibrary();
         manager.addLibrary(testlib);
-        // TODO: Add test NTL
         numberType = manager.getNodeType("test.number");
         negateType = manager.getNodeType("test.negate");
         addType = manager.getNodeType("test.add");
         multiplyType = manager.getNodeType("test.multiply");
+        multiAddType = manager.getNodeType("test.multiAdd");
         testNetworkType = manager.getNodeType("test.testnet");
     }
 

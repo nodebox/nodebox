@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 public class NodeTypeLibraryManager {
 
-    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^([a-z]+)\\.([a-z]+)$");
+    private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("^([a-zA-Z]+)\\.([a-zA-Z]+)$");
     private static final Pattern TYPE_PATTERN = Pattern.compile(".*type\\s*=\\s*\"(python|java)\".*");
     public static final String LIBRARY_DESCRIPTION_FILE = "types.ntl";
 

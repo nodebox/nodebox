@@ -52,7 +52,11 @@ public class Parameter implements ParameterTypeListener {
         this.parameterType = parameterType;
         this.node = node;
         // This returns a clone of the default value.
-        this.value = parameterType.getDefaultValue();
+        if (getCardinality() == ParameterType.Cardinality.SINGLE) {
+            this.value = parameterType.getDefaultValue();
+        } else {
+            this.value = new ArrayList<Object>();
+        }
         parameterType.addParameterTypeListener(this);
     }
 
@@ -102,6 +106,10 @@ public class Parameter implements ParameterTypeListener {
         return parameterType.getCoreType();
     }
 
+    public ParameterType.Cardinality getCardinality() {
+        return parameterType.getCardinality();
+    }
+
     public void typeChanged(ParameterType source) {
         // todo: Migrate type to new type.
     }
@@ -140,6 +148,7 @@ public class Parameter implements ParameterTypeListener {
     //// Values ////
 
     public int asInt() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.INT) {
             return (Integer) value;
         } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
@@ -151,6 +160,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public double asFloat() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.FLOAT) {
             return (Double) value;
         } else if (getCoreType() == ParameterType.CoreType.INT) {
@@ -162,6 +172,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public String asString() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.STRING) {
             return (String) value;
         } else {
@@ -170,6 +181,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public boolean asBoolean() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.INT) {
             int v = (Integer) value;
             return v == 1;
@@ -179,6 +191,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public Color asColor() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.COLOR) {
             return (Color) value;
         } else {
@@ -187,6 +200,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public Grob asGrob() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.GROB_SHAPE
                 || getCoreType() == ParameterType.CoreType.GROB_CANVAS
                 || getCoreType() == ParameterType.CoreType.GROB_IMAGE) {
@@ -197,6 +211,7 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public String asExpression() {
+        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.INT) {
             return String.valueOf((Integer) value);
         } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
@@ -215,7 +230,15 @@ public class Parameter implements ParameterTypeListener {
     }
 
     public Object getValue() {
+        assertCardinality();
         return value;
+    }
+
+    public List<Object> getValues() {
+        if (getCardinality() == ParameterType.Cardinality.SINGLE)
+            throw new AssertionError("getValues() is not available for parameter types with single cardinality.");
+        assert (value instanceof List);
+        return (List<Object>) value;
     }
 
     public void set(Object value) {
@@ -232,6 +255,12 @@ public class Parameter implements ParameterTypeListener {
         parameterType.validate(value);
         this.value = value;
         fireValueChanged();
+    }
+
+    private void assertCardinality() {
+        if (getCardinality() == ParameterType.Cardinality.MULTIPLE)
+            throw new AssertionError("You cannot retrieve multi-parameters this way. Use getValues().");
+
     }
 
     //// Expressions ////
@@ -448,13 +477,12 @@ public class Parameter implements ParameterTypeListener {
     public void update(ProcessingContext ctx) {
         // Update all connections.
         for (Connection conn : getConnections()) {
-            if (conn.getOutputNode() != getNode())
-                conn.getOutputNode().update(ctx);
+            conn.update(ctx);
         }
 
         if (hasExplicitConnection()) {
             Connection conn = getExplicitConnection();
-            Object outputValue = conn.getOutputNode().getOutputValue();
+            Object outputValue = conn.getOutputValue();
             validate(outputValue);
             value = outputValue;
         } else if (hasExpression()) {

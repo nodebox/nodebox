@@ -33,6 +33,7 @@ public class Connection {
     private Parameter outputParameter;
     private Parameter inputParameter;
     private Type type;
+    protected Object outputValue;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
@@ -84,12 +85,29 @@ public class Connection {
         getInputNode().markDirty();
     }
 
+    public void update(ProcessingContext ctx) {
+        // Check if the output node on the connection is not the same as my node.
+        // In that case, we don't want to process the node, since it will eventually
+        // end up updating this parameter, causing infinite recursion.
+        if (getOutputNode() == getInputNode()) return;
+        getOutputNode().update(ctx);
+        outputValue = getOutputNode().getOutputValue();
+    }
+
+    public Object getOutputValue() {
+        return outputValue;
+    }
+
     //// Persistence ////
 
     public void toXml(StringBuffer xml, String spaces) {
+        toXml(xml, spaces, outputParameter);
+    }
+
+    protected void toXml(StringBuffer xml, String spaces, Parameter outputParameter) {
         xml.append(spaces);
         xml.append("<connection");
-        xml.append(" outputNode=\"").append(getOutputNode().getName()).append("\"");
+        xml.append(" outputNode=\"").append(outputParameter.getNode().getName()).append("\"");
         xml.append(" inputNode=\"").append(getInputNode().getName()).append("\"");
         xml.append(" inputParameter=\"").append(getInputParameter().getName()).append("\"");
         xml.append("/>\n");
