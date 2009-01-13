@@ -71,7 +71,6 @@ public class ParameterView extends JComponent {
         if (node == null) return;
         int rowindex = 0;
         for (Parameter p : node.getParameters()) {
-            if (!p.isPrimitive()) continue;
             Class controlClass = CONTROL_MAP.get(p.getType());
             JComponent control;
             if (controlClass != null) {
@@ -79,7 +78,7 @@ public class ParameterView extends JComponent {
                 controls.add((ParameterControl) control);
 
             } else {
-                control = new JLabel("<no control>");
+                control = new JLabel("  ");
             }
             ParameterRow parameterRow = new ParameterRow(p, control);
             GridBagConstraints rowConstraints = new GridBagConstraints();
@@ -90,6 +89,7 @@ public class ParameterView extends JComponent {
             controlPanel.add(parameterRow, rowConstraints);
             rowindex++;
         }
+
         JLabel filler = new JLabel();
         GridBagConstraints fillerConstraints = new GridBagConstraints();
         fillerConstraints.gridx = 0;

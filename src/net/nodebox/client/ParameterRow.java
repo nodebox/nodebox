@@ -45,6 +45,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
         expressionMenuItem = new JCheckBoxMenuItem(new ToggleExpressionAction());
         menu.add(expressionMenuItem);
         menu.add(new RevertToDefaultAction());
+        menu.add(new DisconnectAction());
         popupButton.setComponentPopupMenu(menu);
         popupButton.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -164,6 +165,16 @@ public class ParameterRow extends JComponent implements ComponentListener {
         }
     }
 
+    private class DisconnectAction extends AbstractAction {
+        private DisconnectAction() {
+            putValue(Action.NAME, "Disconnect");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            parameter.disconnect();
+        }
+    }
+
     private class ExpressionFieldChangedAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
             try {
@@ -174,4 +185,5 @@ public class ParameterRow extends JComponent implements ComponentListener {
             }
         }
     }
+
 }
