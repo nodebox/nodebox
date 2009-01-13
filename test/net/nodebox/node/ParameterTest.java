@@ -125,16 +125,35 @@ public class ParameterTest extends NodeTestCase {
         number2.set("value", 2);
         Node number3 = net.create(numberType);
         number3.set("value", 3);
-        Node multiAdd1 = net.create(multiAddType);
-        Connection c1 = multiAdd1.getParameter("values").connect(number1);
-        Connection c2 = multiAdd1.getParameter("values").connect(number2);
-        Connection c3 = multiAdd1.getParameter("values").connect(number3);
+        Node multiAdd = net.create(multiAddType);
+        Connection c1 = multiAdd.getParameter("values").connect(number1);
+        Connection c2 = multiAdd.getParameter("values").connect(number2);
+        Connection c3 = multiAdd.getParameter("values").connect(number3);
         assertTrue(c1 == c2);
         assertTrue(c1 == c3);
         assertTrue(c1 instanceof MultiConnection);
-        assertEquals(3, ((MultiConnection) c1).getOutputParameters().size());
-        multiAdd1.update();
-        assertEquals(6, multiAdd1.getOutputValue());
+        assertEquals(3, c1.getOutputParameters().size());
+        multiAdd.update();
+        assertEquals(1 + 2 + 3, multiAdd.getOutputValue());
+        // Check dirty propagation
+        assertFalse(multiAdd.isDirty());
+        number2.set("value", 200);
+        assertTrue(multiAdd.isDirty());
+        multiAdd.update();
+        assertEquals(1 + 200 + 3, multiAdd.getOutputValue());
+        // Check disconnect
+        number2.disconnect();
+        assertFalse(number2.isConnected());
+        assertTrue(number1.isConnected());
+        assertTrue(number3.isConnected());
+        assertTrue(multiAdd.isConnected());
+        multiAdd.update();
+        assertEquals(1 + 3, multiAdd.getOutputValue());
+        multiAdd.disconnect();
+        assertFalse(number2.isConnected());
+        assertFalse(number1.isConnected());
+        assertFalse(number3.isConnected());
+        assertFalse(multiAdd.isConnected());
     }
 
     //// Helper functions ////

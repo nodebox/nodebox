@@ -102,6 +102,7 @@ public class NodeTypeLibraryManager {
         corevector.addNodeType(new ColorType(corevector));
         corevector.addNodeType(new CopyType(corevector));
         corevector.addNodeType(new EllipseType(corevector));
+        corevector.addNodeType(new MergeType(corevector));
         corevector.addNodeType(new RectType(corevector));
         corevector.addNodeType(new ResampleType(corevector));
         corevector.addNodeType(new ScatterType(corevector));

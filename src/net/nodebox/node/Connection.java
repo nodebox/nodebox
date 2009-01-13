@@ -18,6 +18,9 @@
  */
 package net.nodebox.node;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a connection between two nodes.
  * <p/>
@@ -55,10 +58,38 @@ public class Connection {
         return outputParameter;
     }
 
+    public boolean hasOutputParameter(Parameter parameter) {
+        return outputParameter == parameter;
+    }
+
+    /**
+     * Convenience method that gets overriden in MultiConnection.
+     *
+     * @return
+     */
+    public List<Parameter> getOutputParameters() {
+        List<Parameter> outputParameters = new ArrayList<Parameter>(1);
+        outputParameters.add(outputParameter);
+        return outputParameters;
+    }
+
     public Node getOutputNode() {
         if (outputParameter == null) return null;
         return outputParameter.getNode();
     }
+
+    /**
+     * Convenience method that gets overriden in MultiConnection.
+     *
+     * @return
+     */
+    public List<Node> getOutputNodes() {
+        List<Node> outputNodes = new ArrayList<Node>(1);
+        if (outputParameter != null)
+            outputNodes.add(outputParameter.getNode());
+        return outputNodes;
+    }
+
 
     public Node getInputNode() {
         if (inputParameter == null) return null;

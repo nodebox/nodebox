@@ -23,8 +23,26 @@ public class MultiConnection extends Connection {
         return outputParameters.get(0);
     }
 
+    @Override
+    public boolean hasOutputParameter(Parameter parameter) {
+        for (Parameter outputParameter : outputParameters) {
+            if (outputParameter == parameter)
+                return true;
+        }
+        return false;
+    }
+
+    @Override
     public List<Parameter> getOutputParameters() {
         return outputParameters;
+    }
+
+    @Override
+    public List<Node> getOutputNodes() {
+        List<Node> outputNodes = new ArrayList<Node>(outputParameters.size());
+        for (Parameter outputParameter : outputParameters)
+            outputNodes.add(outputParameter.getNode());
+        return outputNodes;
     }
 
     public void addOutputParameter(Parameter outputParameter) {

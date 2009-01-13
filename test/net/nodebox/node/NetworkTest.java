@@ -104,7 +104,13 @@ public class NetworkTest extends NodeTestCase {
         transform1.setPosition(40, 80);
         transform1.setRendered();
         transform1.getParameter("shape").connect(ellipse1);
-        // TODO: Add a multi-connection node here somewhere.
+        Node rect1 = vecnet1.create(manager.getNodeType("corevector.rect"));
+        assertEquals("ellipse1", ellipse1.getName());
+        rect1.setPosition(180, 30);
+        Node merge1 = vecnet1.create(manager.getNodeType("corevector.merge"));
+        assertEquals("merge1", merge1.getName());
+        merge1.getParameter("shapes").connect(transform1);
+        merge1.getParameter("shapes").connect(rect1);
 
         // Write network
         String xmlString = rootNetwork.toXml();
@@ -120,12 +126,26 @@ public class NetworkTest extends NodeTestCase {
         assertTrue(nVector1.contains("transform1"));
         Node nEllipse1 = nVector1.getNode("ellipse1");
         Node nTransform1 = nVector1.getNode("transform1");
+        Node nRect1 = nVector1.getNode("rect1");
+        Node nMerge1 = nVector1.getNode("merge1");
         assertEquals(ellipse1.getValue("x"), nEllipse1.getValue("x"));
         assertEquals(ellipse1.getValue("fill"), nEllipse1.getValue("fill"));
         assertEquals(ellipse1.getValue("stroke"), nEllipse1.getValue("stroke"));
         assertTrue(nEllipse1.isConnected());
         assertTrue(nTransform1.isConnected());
         assertTrue(nTransform1.getParameter("shape").isConnectedTo(nEllipse1));
+        assertTrue(nMerge1.getParameter("shapes").isConnectedTo(nRect1));
+        assertTrue(nMerge1.getParameter("shapes").isConnectedTo(nTransform1));
+        // Check if this is the same connection
+        Parameter nShapes = nMerge1.getParameter("shapes");
+        Connection c1 = nVector1.getConnection(nTransform1, nShapes);
+        Connection c2 = nVector1.getConnection(nRect1, nShapes);
+        assertTrue(c1 == c2);
+        assertTrue(c1 instanceof MultiConnection);
+        // This tests for a bug where the connection would be created twice.
+        nMerge1.getParameter("shapes").disconnect();
+        assertFalse(nShapes.isConnectedTo(nRect1));
+        assertFalse(nShapes.isConnectedTo(nTransform1));
     }
 
     /**

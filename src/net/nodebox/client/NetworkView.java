@@ -317,8 +317,6 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
                     }
                 }
             }
-            connectionLayer.select(selectionMarker.getBounds().getBounds2D());
-            connectionLayer.repaint();
         }
 
         public void mouseReleased(PInputEvent pInputEvent) {

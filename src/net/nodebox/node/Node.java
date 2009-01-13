@@ -510,6 +510,7 @@ public class Node {
 
     /**
      * Removes all connections from and to this node.
+     * This only removes explicit connections.
      *
      * @return true if connections were removed.
      */
@@ -518,7 +519,7 @@ public class Node {
 
         // Disconnect all my inputs.
         for (Parameter p : parameters.values()) {
-            removedSomething = p.disconnect() | removedSomething;
+            removedSomething = network.disconnect(p) | removedSomething;
         }
 
         // Disconnect all my outputs.
@@ -526,7 +527,7 @@ public class Node {
         // from it while iterating.
         List<Connection> downstreamConnections = new ArrayList<Connection>(getOutputParameter().getDownstreamConnections());
         for (Connection c : downstreamConnections) {
-            removedSomething = c.getInputParameter().disconnect() | removedSomething;
+            removedSomething = network.disconnect(getOutputParameter(), c.getInputParameter(), Connection.Type.EXPLICIT) | removedSomething;
         }
 
         return removedSomething;

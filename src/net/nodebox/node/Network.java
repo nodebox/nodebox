@@ -250,7 +250,7 @@ public class Network extends Node {
             throw new ConnectionError(inputParameter.getNode(), outputParameter, "The input and output parameter are the same.");
 
         // Check if there already is a connection of the same type between the input and output.
-        Connection conn = getConnection(inputParameter, outputParameter, type);
+        Connection conn = getConnection(outputParameter, inputParameter, type);
         if (conn != null) return conn;
 
         // Check if there already is an explicit (non-expression) connection on this input.
@@ -266,8 +266,9 @@ public class Network extends Node {
                     // If an explicit connection was found on a parameter with multi-input,
                     // just add the output parameter to that connection.
                     ((MultiConnection) explicitConn).addOutputParameter(outputParameter);
-                    // We can shortcut the source here; we don't need to add an upstream or downstream
+                    // We can shortcut the source here; we don't need to an upstream
                     // connection since the connection is already there.
+                    addDownstreamConnection(outputParameter, explicitConn);
                     inputParameter.getNode().markDirty();
                     fireConnectionAdded(explicitConn);
                     return explicitConn;
@@ -323,9 +324,9 @@ public class Network extends Node {
             outputParameters.remove(outputParameter);
             outputParametersRemaining = !outputParameters.isEmpty();
         }
+        removeDownstreamConnection(outputParameter, conn);
         if (!outputParametersRemaining) {
             removeUpstreamConnection(inputParameter, conn);
-            removeDownstreamConnection(outputParameter, conn);
             inputParameter.revertToDefault();
         }
         inputParameter.getNode().markDirty();
@@ -333,16 +334,30 @@ public class Network extends Node {
         return true;
     }
 
+    /**
+     * Disconnect everything connected to this input parameter.
+     * <p/>
+     * This only removes explicit connections, not connections created by expressions.
+     *
+     * @param inputParameter
+     * @return
+     */
     public boolean disconnect(Parameter inputParameter) {
-        // Create a copy so the event firing can change the original list around.
         List<Connection> connections = upstreams.get(inputParameter);
         if (connections == null) return false;
+        // Create a copy so the event firing can change the original list around.
         connections = new ArrayList<Connection>(connections);
         boolean removedSomething = false;
         for (Connection conn : connections) {
-            boolean disconnected = disconnect(conn.getOutputParameter(), conn.getInputParameter(), conn.getType());
-            assert (disconnected);
-            fireConnectionRemoved(conn);
+            // Only remove explicit connections
+            if (conn.getType() != Connection.Type.EXPLICIT) continue;
+            // Create a copy of the output parameters since they will be changed.
+            List<Parameter> outputParameters = new ArrayList<Parameter>(conn.getOutputParameters());
+            for (Parameter outputParameter : outputParameters) {
+                boolean disconnected = disconnect(outputParameter, conn.getInputParameter(), conn.getType());
+                assert (disconnected);
+                fireConnectionRemoved(conn);
+            }
         }
         inputParameter.revertToDefault();
         inputParameter.getNode().markDirty();
@@ -359,9 +374,13 @@ public class Network extends Node {
         return null;
     }
 
+    public Connection getConnection(Node outputNode, Parameter inputParameter) {
+        return getConnection(outputNode.getOutputParameter(), inputParameter);
+    }
+
     public Connection getConnection(Parameter outputParameter, Parameter inputParameter) {
         for (Connection conn : upstreams.get(inputParameter)) {
-            if (conn.getOutputParameter() == outputParameter)
+            if (conn.hasOutputParameter(outputParameter))
                 return conn;
         }
         return null;
@@ -371,7 +390,7 @@ public class Network extends Node {
         List<Connection> connections = upstreams.get(inputParameter);
         if (connections == null) return null;
         for (Connection conn : connections) {
-            if (conn.getOutputParameter() == outputParameter && conn.getType() == type)
+            if (conn.hasOutputParameter(outputParameter) && conn.getType() == type)
                 return conn;
         }
         return null;
@@ -400,7 +419,7 @@ public class Network extends Node {
      */
     public boolean isConnectedTo(Parameter outputParameter, Parameter inputParameter) {
         for (Connection conn : upstreams.get(inputParameter)) {
-            if (conn.getOutputParameter() == outputParameter)
+            if (conn.hasOutputParameter(outputParameter))
                 return true;
         }
         return false;
@@ -655,8 +674,12 @@ public class Network extends Node {
         }
 
         // Include all edges
-        for (Node n : getNodes()) {
-            for (Connection c : n.getOutputConnections()) {
+        // We use the upstreams here because all the connections in there are unique.
+        // The downstreams have duplicate connections when MultiConnections are used.
+        // The same connection might be used for several output parameters, but only
+        // once for each input parameter.
+        for (List<Connection> connections : upstreams.values()) {
+            for (Connection c : connections) {
                 if (c.isExplicit())
                     c.toXml(xml, spaces + "  ");
             }
