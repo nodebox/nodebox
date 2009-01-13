@@ -44,7 +44,7 @@ public class ParameterView extends JComponent {
     public ParameterView() {
         setLayout(new BorderLayout());
         controlPanel = new JPanel(new GridBagLayout());
-        controlPanel.setBackground(new Color(204, 204, 204));
+        controlPanel.setBackground(Theme.getInstance().getParameterViewBackgroundColor());
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
@@ -78,7 +78,11 @@ public class ParameterView extends JComponent {
                 controls.add((ParameterControl) control);
 
             } else {
-                control = new JLabel("  ");
+                if (p.getCardinality() == ParameterType.Cardinality.MULTIPLE) {
+                    control = new MultiConnectionPanel(p);
+                } else {
+                    control = new JLabel("  ");
+                }
             }
             ParameterRow parameterRow = new ParameterRow(p, control);
             GridBagConstraints rowConstraints = new GridBagConstraints();

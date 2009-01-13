@@ -98,6 +98,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
         int h = bounds.height - TOP_PADDING - BOTTOM_PADDING;
         label.setBounds(0, TOP_PADDING, 100, h);
         control.setBounds(110, TOP_PADDING, controlSize.width, h);
+        control.doLayout();
         expressionField.setBounds(110, TOP_PADDING, 200, h);
         popupButton.setBounds(bounds.width - 30, TOP_PADDING, 30, h);
         repaint();

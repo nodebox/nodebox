@@ -12,6 +12,7 @@ public class Theme {
     }
 
     private Color backgroundColor = new Color(178, 178, 178);
+    private Color parameterViewBackgroundColor = new Color(204, 204, 204);
     private Color foregroundColor = new Color(136, 136, 136);
     private Color textColor = new Color(80, 80, 80);
     private Color actionColor = new Color(0, 116, 168);
@@ -49,6 +50,10 @@ public class Theme {
 
     public Color getBackgroundColor() {
         return backgroundColor;
+    }
+
+    public Color getParameterViewBackgroundColor() {
+        return parameterViewBackgroundColor;
     }
 
     public Color getForegroundColor() {

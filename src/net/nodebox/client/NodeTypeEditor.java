@@ -58,13 +58,13 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
             }
         });
 
-        JButton upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH, Color.black));
+        JButton upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH));
         upButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 moveUp();
             }
         });
-        JButton downButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH, Color.black));
+        JButton downButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH));
         downButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 moveDown();

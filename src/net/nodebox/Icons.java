@@ -88,6 +88,10 @@ public class Icons {
         protected int direction;
         protected Color color;
 
+        public ArrowIcon(int direction) {
+            this(direction, Color.black);
+        }
+
         public ArrowIcon(int direction, Color color) {
             this.direction = direction;
             this.color = color;
