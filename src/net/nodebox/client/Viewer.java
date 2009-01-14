@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
 
 public class Viewer extends JComponent implements NetworkDataListener, MouseListener, MouseMotionListener {
 
@@ -19,6 +20,7 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
     private Network network;
     private Node activeNode;
     private Handle handle;
+    private BufferedImage canvasImage;
 
     public Viewer(Pane pane, Network network) {
         this.pane = pane;
@@ -55,13 +57,16 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+        //if (canvasImage != null)
+        //g2.drawImage(canvasImage,0, 0, null);
         g2.translate(getWidth() / 2.0, getHeight() / 2.0);
+
         if (getNetwork() == null) return;
         Object outputValue = getNetwork().getOutputValue();
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
         }
+
         // Draw handle
         if (handle != null) {
             // Create a canvas with a transparent background
@@ -88,6 +93,21 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         if (network == getNetwork()) {
             repaint();
         }
+        /*
+        canvasImage = null;
+        if (getNetwork() == null || getNetwork() != network) return;
+        Object outputValue = getNetwork().getOutputValue();
+        if (!(outputValue instanceof Grob)) return;
+
+        Grob g = (Grob)outputValue;
+        Rect grobBounds = g.getBounds();
+        if (grobBounds.isEmpty()) return;
+        canvasImage = new BufferedImage((int)grobBounds.getWidth(), (int)grobBounds.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = (Graphics2D) canvasImage.getGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.translate(getWidth() / 2.0, getHeight() / 2.0);
+        g.draw(g2);
+        */
     }
 
     //// Mouse events ////

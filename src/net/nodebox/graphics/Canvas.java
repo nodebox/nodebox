@@ -101,9 +101,9 @@ public class Canvas extends Group {
         g.setColor(background.getAwtColor());
         g.fillRect((int) left, (int) top, (int) width, (int) height);
         Rectangle clip = g.getClipBounds();
-        int clipwidth = width > clip.width ? clip.width : (int) height;
-        int clipheight = height > clip.height ? clip.height : (int) width;
-        g.setClip(clip.x, clip.y, clipwidth, clipheight);
+        int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
+        int clipheight = clip != null && height > clip.height ? clip.height : (int) width;
+        g.setClip(clip != null ? clip.x : 0, clip != null ? clip.y : 0, clipwidth, clipheight);
         super.draw(g);
     }
 
