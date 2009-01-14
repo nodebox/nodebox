@@ -158,11 +158,13 @@ public class BezierPath extends Grob {
         rect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
-    public void rect(double x, double y, double width, double height) {
-        moveto(x, y);
-        lineto(x + width, y);
-        lineto(x + width, y + height);
-        lineto(x, y + height);
+    public void rect(double cx, double cy, double width, double height) {
+        double halfWidth = width / 2;
+        double halfHeight = height / 2;
+        moveto(cx - halfWidth, cy - halfHeight);
+        lineto(cx + halfWidth, cy - halfHeight);
+        lineto(cx + halfWidth, cy + halfHeight);
+        lineto(cx - halfWidth, cy + halfHeight);
         close();
     }
 
@@ -174,12 +176,12 @@ public class BezierPath extends Grob {
         roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
     }
 
-    public void rect(double x, double y, double width, double height, double r) {
-        roundedRect(x, y, width, height, r);
+    public void rect(double cx, double cy, double width, double height, double r) {
+        roundedRect(cx, cy, width, height, r);
     }
 
-    public void rect(double x, double y, double width, double height, double rx, double ry) {
-        roundedRect(x, y, width, height, rx, ry);
+    public void rect(double cx, double cy, double width, double height, double rx, double ry) {
+        roundedRect(cx, cy, width, height, rx, ry);
     }
 
     public void roundedRect(Rect r, double roundness) {
@@ -190,35 +192,37 @@ public class BezierPath extends Grob {
         roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
     }
 
-    public void roundedRect(double x, double y, double width, double height, double r) {
-        roundedRect(x, y, width, height, r, r);
+    public void roundedRect(double cx, double cy, double width, double height, double r) {
+        roundedRect(cx, cy, width, height, r, r);
     }
 
-    public void roundedRect(double x, double y, double width, double height, double rx, double ry) {
+    public void roundedRect(double cx, double cy, double width, double height, double rx, double ry) {
+        double halfWidth = width / 2.0;
+        double halfHeight = height / 2.0;
         double dx = rx;
         double dy = ry;
         // rx/ry cannot be greater than half of the width of the rectangle
         // (required by SVG spec)
         dx = Math.min(dx, width * 0.5);
         dy = Math.min(dy, height * 0.5);
-        moveto(x + dx, y);
+        moveto(cx + dx - halfWidth, cy - halfHeight);
         if (dx < width * 0.5)
-            lineto(x + width - rx, y);
-        curveto(x + width - dx * ONE_MINUS_QUARTER, y, x + width, y + dy * ONE_MINUS_QUARTER, x + width, y + dy);
+            lineto(cx + halfWidth - rx, cy - halfHeight);
+        curveto(cx + halfWidth - dx * ONE_MINUS_QUARTER, cy - halfHeight, cx + halfWidth, cy - halfHeight + dy * ONE_MINUS_QUARTER, cx + halfWidth, cy - halfHeight + dy);
         if (dy < height * 0.5)
-            lineto(x + width, y + height - dy);
-        curveto(x + width, y + height - dy * ONE_MINUS_QUARTER, x + width - dx * ONE_MINUS_QUARTER, y + height, x + width - dx, y + height);
+            lineto(cx + halfWidth, cy + halfHeight - dy);
+        curveto(cx + halfWidth, cy + halfHeight - dy * ONE_MINUS_QUARTER, cx + halfWidth - dx * ONE_MINUS_QUARTER, cy + halfHeight, cx + halfWidth - dx, cy + halfHeight);
         if (dx < width * 0.5)
-            lineto(x + dx, y + height);
-        curveto(x + dx * ONE_MINUS_QUARTER, y + height, x, y + height - dy * ONE_MINUS_QUARTER, x, y + height - dy);
+            lineto(cx + dx, cy + halfHeight);
+        curveto(cx - halfWidth + dx * ONE_MINUS_QUARTER, cy + halfHeight, cx - halfWidth, cy + halfHeight - dy * ONE_MINUS_QUARTER, cx - halfWidth, cy + halfHeight - dy);
         if (dy < height * 0.5)
-            lineto(x, y + dy);
-        curveto(x, y + dy * ONE_MINUS_QUARTER, x + dx * ONE_MINUS_QUARTER, y, x + dx, y);
+            lineto(cx - halfWidth, cy - halfHeight + dy);
+        curveto(cx - halfWidth, cy - halfHeight + dy * ONE_MINUS_QUARTER, cx - halfWidth + dx * ONE_MINUS_QUARTER, cy - halfHeight, cx - halfWidth + dx, cy - halfHeight);
         close();
     }
 
-    public void ellipse(double x, double y, double width, double height) {
-        Ellipse2D.Double e = new Ellipse2D.Double(x, y, width, height);
+    public void ellipse(double cx, double cy, double width, double height) {
+        Ellipse2D.Double e = new Ellipse2D.Double(cx - width / 2, cy - height / 2, width, height);
         extend(e);
     }
 

@@ -17,6 +17,6 @@ public class RectNodeTest extends NodeTestCase {
         Group group = (Group) outputValue;
         assertEquals(1, group.size());
         BezierPath p = (BezierPath) group.get(0);
-        assertEquals(new Rect(0, 0, 100, 100), p.getBounds());
+        assertEquals(new Rect(-50, -50, 100, 100), p.getBounds());
     }
 }

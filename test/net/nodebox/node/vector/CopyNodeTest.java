@@ -15,12 +15,12 @@ public class CopyNodeTest extends NodeTestCase {
         copy.getParameter("shape").connect(rect);
         copy.update();
         Grob g = (Grob) copy.getOutputValue();
-        assertEquals(new Rect(0, 0, 100, 100), g.getBounds());
+        assertEquals(Rect.centeredRect(0, 0, 100, 100), g.getBounds());
         copy.setValue("ty", 100.0);
         copy.setValue("copies", 5);
         copy.update();
         g = (Grob) copy.getOutputValue();
-        assertEquals(new Rect(0, 0, 100, 500), g.getBounds());
+        assertEquals(new Rect(-50, -50, 100, 500), g.getBounds());
     }
 
     public void testCopyStamping() {
@@ -32,6 +32,6 @@ public class CopyNodeTest extends NodeTestCase {
         copy.set("expression", "rect1.x = COPY");
         copy.update();
         Grob g = (Grob) copy.getOutputValue();
-        assertEquals(new Rect(0, 0, 109, 100), g.getBounds());
+        assertEquals(new Rect(-50, -50, 109, 100), g.getBounds());
     }
 }

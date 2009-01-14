@@ -105,7 +105,7 @@ public class CopyType extends VectorNodeType {
                         throw new ProcessingError(node, "Upstream node contained errors:" + copiedUpstreamNode.getMessages().toString());
                     // We do not need to clone the output shape.
                     Grob outputShape = (Grob) copiedUpstreamNode.getOutputValue();
-                    outputShape.appendTransform(t);
+                    outputShape.prependTransform(t);
                     outputGroup.add(outputShape);
                     t.translate(tx, ty);
                     t.rotate(r);
@@ -127,7 +127,7 @@ public class CopyType extends VectorNodeType {
         for (int i = 0; i < copies; i++) {
             // Clone the input shape so we can change transformations on it.
             Grob newGrob = shape.clone();
-            newGrob.appendTransform(t);
+            newGrob.prependTransform(t);
             // Appending the input path to the new path.
             outputGroup.add(newGrob);
 

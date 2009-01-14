@@ -55,6 +55,8 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.translate(getWidth() / 2.0, getHeight() / 2.0);
         if (getNetwork() == null) return;
         Object outputValue = getNetwork().getOutputValue();
         if (outputValue instanceof Grob) {
@@ -69,6 +71,10 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
             handle.draw(ctx);
             ctx.getCanvas().draw(g2);
         }
+        // Draw center
+        g.setColor(new Color(240, 240, 240));
+        g.drawLine(-getWidth() / 2, 0, getWidth() / 2, 0);
+        g.drawLine(0, -getHeight() / 2, 0, getHeight() / 2);
     }
 
     //// Network data events ////
@@ -86,38 +92,44 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
 
     //// Mouse events ////
 
+    private net.nodebox.graphics.Point pointForEvent(MouseEvent e) {
+        double cx = -getWidth() / 2.0 + e.getX();
+        double cy = -getHeight() / 2.0 + e.getY();
+        return new net.nodebox.graphics.Point(cx, cy);
+    }
+
     public void mouseClicked(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseClicked(e);
+        handle.mouseClicked(pointForEvent(e));
     }
 
     public void mousePressed(MouseEvent e) {
         if (handle == null) return;
-        handle.mousePressed(e);
+        handle.mousePressed(pointForEvent(e));
     }
 
     public void mouseReleased(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseReleased(e);
+        handle.mouseReleased(pointForEvent(e));
     }
 
     public void mouseEntered(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseEntered(e);
+        handle.mouseEntered(pointForEvent(e));
     }
 
     public void mouseExited(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseExited(e);
+        handle.mouseExited(pointForEvent(e));
     }
 
     public void mouseDragged(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseDragged(e);
+        handle.mouseDragged(pointForEvent(e));
     }
 
     public void mouseMoved(MouseEvent e) {
         if (handle == null) return;
-        handle.mouseMoved(e);
+        handle.mouseMoved(pointForEvent(e));
     }
 }

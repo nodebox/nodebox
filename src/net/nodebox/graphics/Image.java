@@ -47,10 +47,10 @@ public class Image extends Grob {
         this(new File(fname));
     }
 
-    public Image(String fname, double x, double y) {
+    public Image(String fname, double cx, double cy) {
         this(new File(fname));
-        this.x = x;
-        this.y = y;
+        this.x = cx;
+        this.y = cy;
     }
 
     public Image(RenderedImage image) {
@@ -68,8 +68,6 @@ public class Image extends Grob {
     }
 
     //// Attribute access ////
-
-    // todo: native width and desired width are incosistently presented.
 
     public double getOriginalWidth() {
         if (image == null) return 0;
@@ -134,7 +132,9 @@ public class Image extends Grob {
     public Rect getBounds() {
         if (image == null) return new Rect();
         double factor = getScaleFactor();
-        return new Rect(x, y, image.getWidth() * factor, image.getHeight() * factor);
+        double finalWidth = image.getWidth() * factor;
+        double finalHeight = image.getHeight() * factor;
+        return new Rect(x - finalWidth / 2, y - finalHeight / 2, finalWidth, finalHeight);
     }
 
     public double getScaleFactor() {
@@ -160,8 +160,12 @@ public class Image extends Grob {
         // We use the transformation to translate the image to the specified
         // position, and scale it according to the given width and height.
         Transform imageTrans = new Transform();
-        // Move to the image position
-        imageTrans.translate(x, y);
+        // Move to the image position. Convert x, y, which are centered coordinates,
+        // to "real" coordinates. 
+        double factor = getScaleFactor();
+        double finalWidth = image.getWidth() * factor;
+        double finalHeight = image.getHeight() * factor;
+        imageTrans.translate(x - finalWidth / 2, y - finalHeight / 2);
         // Scaling only applies to image that have their desired width and/or height set.
         // However, getScaleFactor return 1 if height/width are not set, in effect negating
         // the effect of the scale.

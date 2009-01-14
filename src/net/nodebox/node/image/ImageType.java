@@ -18,6 +18,7 @@ public class ImageType extends ImageNodeType {
         ParameterType pHeight = addParameterType("height", ParameterType.Type.FLOAT);
         pHeight.setDefaultValue(0.0);
         ParameterType pAlpha = addParameterType("alpha", ParameterType.Type.FLOAT);
+        pAlpha.setDefaultValue(1.0);
     }
 
     public boolean process(Node node, ProcessingContext ctx) {

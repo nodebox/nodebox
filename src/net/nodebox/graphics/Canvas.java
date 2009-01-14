@@ -92,11 +92,17 @@ public class Canvas extends Group {
 
     @Override
     public void draw(Graphics2D g) {
+        double halfWidth = width / 2;
+        double halfHeight = height / 2;
+        double left = -halfWidth;
+        double right = halfWidth;
+        double top = -halfHeight;
+        double bottom = halfHeight;
         g.setColor(background.getAwtColor());
-        g.fillRect(0, 0, (int) width, (int) height);
+        g.fillRect((int) left, (int) top, (int) width, (int) height);
         Rectangle clip = g.getClipBounds();
-        int clipwidth = width > clip.width ? clip.width : (int) width;
-        int clipheight = height > clip.height ? clip.height : (int) height;
+        int clipwidth = width > clip.width ? clip.width : (int) height;
+        int clipheight = height > clip.height ? clip.height : (int) width;
         g.setClip(clip.x, clip.y, clipwidth, clipheight);
         super.draw(g);
     }

@@ -45,6 +45,7 @@ public abstract class Grob implements Cloneable {
     public abstract Rect getBounds();
 
     public Rect getFrame() {
+        //return getBounds();
         return transform.convertBoundsToFrame(getBounds());
     }
 
@@ -60,6 +61,10 @@ public abstract class Grob implements Cloneable {
 
     public void appendTransform(Transform transform) {
         this.transform.append(transform);
+    }
+
+    public void prependTransform(Transform transform) {
+        this.transform.prepend(transform);
     }
 
     public void translate(double tx, double ty) {
@@ -134,4 +139,5 @@ public abstract class Grob implements Cloneable {
     public java.util.List<Grob> getChildren(Class grobClass) {
         return new ArrayList<Grob>();
     }
+
 }

@@ -57,7 +57,7 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
         Object ellipseValue = ellipseNode.getOutputValue();
         assertTrue(ellipseValue instanceof Group);
         Group ellipseGroup = (Group) ellipseValue;
-        assertEquals(new Rect(10, 20, 30, 40), ellipseGroup.getBounds());
+        assertEquals(new Rect(-5, 0, 30, 40), ellipseGroup.getBounds());
         assertEquals(1, ellipseGroup.size());
         BezierPath ellipsePath = (BezierPath) ellipseGroup.get(0);
         assertEquals(color, ellipsePath.getFillColor());

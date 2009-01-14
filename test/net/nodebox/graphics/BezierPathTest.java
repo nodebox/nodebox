@@ -74,9 +74,16 @@ public class BezierPathTest extends TestCase {
     public void testBounds() {
         BezierPath p1 = new BezierPath();
         p1.rect(20, 30, 40, 50);
-        assertEquals(new Rect(20, 30, 40, 50), p1.getBounds());
+        assertEquals(Rect.centeredRect(20, 30, 40, 50), p1.getBounds());
         BezierPath p2 = new BezierPath();
         p2.rect(60, 70, 80, 90);
-        assertEquals(new Rect(60, 70, 80, 90), p2.getBounds());
+        assertEquals(Rect.centeredRect(60, 70, 80, 90), p2.getBounds());
+    }
+
+    public void testFrame() {
+        BezierPath p1 = new BezierPath();
+        p1.rect(20, 30, 40, 50);
+        p1.translate(200, 300);
+        assertEquals(Rect.centeredRect(220, 330, 40, 50), p1.getFrame());
     }
 }

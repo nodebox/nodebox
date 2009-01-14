@@ -49,6 +49,10 @@ public class Rect {
         this.height = r.getHeight();
     }
 
+    public static Rect centeredRect(double cx, double cy, double width, double height) {
+        return new Rect(cx - width / 2, cy - height / 2, width, height);
+    }
+
     public double getHeight() {
         return height;
     }

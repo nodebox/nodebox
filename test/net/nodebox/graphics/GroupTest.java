@@ -9,7 +9,7 @@ public class GroupTest extends TestCase {
         r1.rect(10, 20, 30, 40);
         Group g1 = new Group();
         g1.add(r1);
-        assertEquals(new Rect(10, 20, 30, 40), g1.getBounds());
+        assertEquals(Rect.centeredRect(10, 20, 30, 40), g1.getBounds());
     }
 
     public void testTransformedBounds() {
@@ -18,7 +18,7 @@ public class GroupTest extends TestCase {
         r1.translate(200, 300);
         Group g = new Group();
         g.add(r1);
-        assertEquals(new Rect(210, 320, 30, 40), g.getBounds());
+        assertEquals(Rect.centeredRect(210, 320, 30, 40), g.getBounds());
     }
 
     public void testTransformedElements() {
@@ -29,7 +29,9 @@ public class GroupTest extends TestCase {
         Group g = new Group();
         g.add(r1);
         g.add(r2);
-        assertEquals(new Rect(10, 20, 30, 120 + 40 - 20), g.getBounds());
+        Rect rect1 = Rect.centeredRect(10, 20, 30, 40);
+        Rect rect2 = Rect.centeredRect(10, 120, 30, 40);
+        assertEquals(rect1.united(rect2), g.getBounds());
     }
 
 

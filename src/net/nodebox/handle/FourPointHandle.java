@@ -2,10 +2,9 @@ package net.nodebox.handle;
 
 import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.GraphicsContext;
+import net.nodebox.graphics.Point;
+import net.nodebox.graphics.Rect;
 import net.nodebox.node.Node;
-
-import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class FourPointHandle extends AbstractHandle {
 
@@ -15,8 +14,8 @@ public class FourPointHandle extends AbstractHandle {
 
     private String xName, yName, widthName, heightName;
     private DragState dragState = DragState.NONE;
-    private int px, py;
-    private double ox, oy, owidth, oheight;
+    private double px, py;
+    private double ocx, ocy, owidth, oheight;
 
     public FourPointHandle(Node node) {
         this(node, "x", "y", "width", "height");
@@ -30,43 +29,51 @@ public class FourPointHandle extends AbstractHandle {
         this.heightName = heightName;
     }
 
-
     public void draw(GraphicsContext ctx) {
-        double x = node.asFloat(xName);
-        double y = node.asFloat(yName);
+        double cx = node.asFloat(xName);
+        double cy = node.asFloat(yName);
         double width = node.asFloat(widthName);
         double height = node.asFloat(heightName);
+        double left = cx - width / 2;
+        double right = cx + width / 2;
+        double top = cy - height / 2;
+        double bottom = cy + height / 2;
         BezierPath cornerPath = new BezierPath();
         cornerPath.setFillColor(HANDLE_COLOR);
         cornerPath.setStrokeWidth(0.0);
-        drawDot(cornerPath, x, y);
-        drawDot(cornerPath, x + width, y);
-        drawDot(cornerPath, x + width, y + height);
-        drawDot(cornerPath, x, y + height);
+        drawDot(cornerPath, left, top);
+        drawDot(cornerPath, right, top);
+        drawDot(cornerPath, right, bottom);
+        drawDot(cornerPath, left, bottom);
+        drawDot(cornerPath, cx, cy);
         ctx.getCanvas().add(cornerPath);
         BezierPath strokePath = new BezierPath();
         strokePath.setFillColor(null);
         strokePath.setStrokeColor(HANDLE_COLOR);
-        strokePath.rect(x, y, width, height);
+        strokePath.rect(cx, cy, width, height);
         ctx.draw(strokePath);
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
-        Point pt = e.getPoint();
-        px = e.getX();
-        py = e.getY();
+    public void mousePressed(Point pt) {
+        px = pt.getX();
+        py = pt.getY();
 
-        ox = node.asFloat(xName);
-        oy = node.asFloat(yName);
+        ocx = node.asFloat(xName);
+        ocy = node.asFloat(yName);
         owidth = node.asFloat(widthName);
         oheight = node.asFloat(heightName);
 
-        Rectangle topLeft = createHitRectangle(ox, oy);
-        Rectangle topRight = createHitRectangle(ox + owidth, oy);
-        Rectangle bottomLeft = createHitRectangle(ox, oy + oheight);
-        Rectangle bottomRight = createHitRectangle(ox + owidth, oy + oheight);
-        Rectangle center = new Rectangle((int) ox, (int) oy, (int) owidth, (int) oheight);
+        double left = ocx - owidth / 2;
+        double right = ocx + owidth / 2;
+        double top = ocy - oheight / 2;
+        double bottom = ocy + oheight / 2;
+
+        Rect topLeft = createHitRectangle(left, top);
+        Rect topRight = createHitRectangle(right, top);
+        Rect bottomLeft = createHitRectangle(left, bottom);
+        Rect bottomRight = createHitRectangle(right, bottom);
+        Rect center = new Rect(left, top, owidth, oheight);
 
         if (topLeft.contains(pt)) {
             dragState = DragState.TOP_LEFT;
@@ -84,27 +91,27 @@ public class FourPointHandle extends AbstractHandle {
     }
 
     @Override
-    public void mouseDragged(MouseEvent e) {
+    public void mouseDragged(Point pt) {
         if (dragState == DragState.NONE) return;
-        int x = e.getX();
-        int y = e.getY();
-        int dx = x - px;
-        int dy = y - py;
+        double x = pt.getX();
+        double y = pt.getY();
+        double dx = x - px;
+        double dy = y - py;
         if (dx == 0 && dy == 0) return;
         switch (dragState) {
             case TOP_LEFT:
-                node.silentSet(xName, ox + dx);
-                node.silentSet(yName, oy + dy);
+                node.silentSet(xName, ocx + dx);
+                node.silentSet(yName, ocy + dy);
                 node.silentSet(widthName, owidth - dx);
                 node.silentSet(heightName, oheight - dy);
                 break;
             case TOP_RIGHT:
-                node.silentSet(yName, oy + dy);
+                node.silentSet(yName, ocy + dy);
                 node.silentSet(heightName, oheight - dy);
                 node.silentSet(widthName, owidth + dx);
                 break;
             case BOTTOM_LEFT:
-                node.silentSet(xName, ox + dx);
+                node.silentSet(xName, ocx + dx);
                 node.silentSet(widthName, owidth - dx);
                 node.silentSet(heightName, oheight + dy);
                 break;
@@ -113,13 +120,13 @@ public class FourPointHandle extends AbstractHandle {
                 node.silentSet(heightName, oheight + dy);
                 break;
             case CENTER:
-                node.silentSet(xName, ox + dx);
-                node.silentSet(yName, oy + dy);
+                node.silentSet(xName, ocx + dx);
+                node.silentSet(yName, ocy + dy);
         }
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(Point pt) {
         dragState = DragState.NONE;
     }
 }

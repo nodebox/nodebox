@@ -21,6 +21,10 @@ public class RectType extends VectorNodeType {
         pWidth.setDefaultValue(100.0);
         ParameterType pHeight = addParameterType("height", ParameterType.Type.FLOAT);
         pHeight.setDefaultValue(100.0);
+        ParameterType pRx = addParameterType("rx", ParameterType.Type.FLOAT);
+        pRx.setLabel("Roundness X");
+        ParameterType pRy = addParameterType("ry", ParameterType.Type.FLOAT);
+        pRx.setLabel("Roundness Y");
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
@@ -34,7 +38,13 @@ public class RectType extends VectorNodeType {
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
-        p.rect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
+        double rx = node.asFloat("rx");
+        double ry = node.asFloat("ry");
+        if (rx == 0 && ry == 0) {
+            p.rect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
+        } else {
+            p.roundedRect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"), rx, ry);
+        }
         g.add(p);
         node.setOutputValue(g);
         return true;

@@ -2,10 +2,9 @@ package net.nodebox.handle;
 
 import net.nodebox.graphics.Color;
 import net.nodebox.graphics.GraphicsContext;
+import net.nodebox.graphics.Point;
+import net.nodebox.graphics.Rect;
 import net.nodebox.node.Node;
-
-import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class PointHandle extends AbstractHandle {
 
@@ -15,7 +14,7 @@ public class PointHandle extends AbstractHandle {
 
     private String xName, yName;
     private boolean dragging;
-    private int px, py;
+    private double px, py;
     private double ox, oy;
 
     public PointHandle(Node node) {
@@ -35,14 +34,13 @@ public class PointHandle extends AbstractHandle {
     }
 
     @Override
-    public void mousePressed(MouseEvent e) {
-        Point pt = e.getPoint();
-        px = e.getX();
-        py = e.getY();
+    public void mousePressed(Point pt) {
+        px = pt.getX();
+        py = pt.getY();
         ox = node.asFloat(xName);
         oy = node.asFloat(yName);
 
-        Rectangle hitRect = createHitRectangle(ox, oy);
+        Rect hitRect = createHitRectangle(ox, oy);
         if (hitRect.contains(pt)) {
             dragging = true;
         } else {
@@ -51,19 +49,19 @@ public class PointHandle extends AbstractHandle {
     }
 
     @Override
-    public void mouseDragged(MouseEvent e) {
+    public void mouseDragged(Point e) {
         if (!dragging) return;
-        int x = e.getX();
-        int y = e.getY();
-        int dx = x - px;
-        int dy = y - py;
+        double x = e.getX();
+        double y = e.getY();
+        double dx = x - px;
+        double dy = y - py;
         if (dx == 0 && dy == 0) return;
         node.set(xName, ox + dx);
         node.set(yName, oy + dy);
     }
 
     @Override
-    public void mouseReleased(MouseEvent e) {
+    public void mouseReleased(Point pt) {
         dragging = false;
     }
 }

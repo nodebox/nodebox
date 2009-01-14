@@ -83,6 +83,7 @@ public class EditorDocument extends JFrame {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.translate(getWidth() / 2, getHeight() / 2);
             context.getCanvas().draw(g2);
         }
     }
@@ -109,7 +110,7 @@ public class EditorDocument extends JFrame {
             feedbackArea.setText("");
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-            interpreter.set("ctx", context);
+            interpreter.set("g", context);
             interpreter.set("BezierPath", net.nodebox.graphics.BezierPath.class);
             interpreter.set("Canvas", net.nodebox.graphics.Canvas.class);
             interpreter.set("Color", net.nodebox.graphics.Color.class);

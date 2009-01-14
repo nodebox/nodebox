@@ -1,12 +1,7 @@
 package net.nodebox.handle;
 
-import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Color;
-import net.nodebox.graphics.GraphicsContext;
+import net.nodebox.graphics.*;
 import net.nodebox.node.Node;
-
-import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public abstract class AbstractHandle implements Handle {
 
@@ -26,30 +21,30 @@ public abstract class AbstractHandle implements Handle {
 
     //// Stub implementations of event handling ////
 
-    public void mouseClicked(MouseEvent e) {
+    public void mouseClicked(Point pt) {
     }
 
-    public void mousePressed(MouseEvent e) {
-
-    }
-
-    public void mouseReleased(MouseEvent e) {
+    public void mousePressed(Point pt) {
 
     }
 
-    public void mouseEntered(MouseEvent e) {
+    public void mouseReleased(Point pt) {
 
     }
 
-    public void mouseExited(MouseEvent e) {
+    public void mouseEntered(Point pt) {
 
     }
 
-    public void mouseDragged(MouseEvent e) {
+    public void mouseExited(Point pt) {
 
     }
 
-    public void mouseMoved(MouseEvent e) {
+    public void mouseDragged(Point pt) {
+
+    }
+
+    public void mouseMoved(Point pt) {
 
     }
 
@@ -58,12 +53,12 @@ public abstract class AbstractHandle implements Handle {
     protected void drawDot(GraphicsContext ctx, double x, double y) {
         BezierPath p = new BezierPath();
         p.setFillColor(HANDLE_COLOR);
-        p.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        p.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
         ctx.draw(p);
     }
 
     protected void drawDot(BezierPath p, double x, double y) {
-        p.rect(x - HALF_HANDLE_SIZE, y - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        p.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
     }
 
     /**
@@ -74,10 +69,10 @@ public abstract class AbstractHandle implements Handle {
      * @param y the center y position of the rectangle
      * @return a rectangle the size of the handle.
      */
-    protected Rectangle createHitRectangle(double x, double y) {
+    protected Rect createHitRectangle(double x, double y) {
         int ix = (int) x;
         int iy = (int) y;
-        return new Rectangle(ix - HALF_HANDLE_SIZE, iy - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
+        return new Rect(ix - HALF_HANDLE_SIZE, iy - HALF_HANDLE_SIZE, HANDLE_SIZE, HANDLE_SIZE);
     }
 
 }
