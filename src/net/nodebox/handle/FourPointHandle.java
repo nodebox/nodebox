@@ -97,21 +97,22 @@ public class FourPointHandle extends AbstractHandle {
         double y = pt.getY();
         double dx = x - px;
         double dy = y - py;
+        // The delta value is multiplied by 2 to create the double effect of moving
+        // the top left corner down and the bottom left corner up (in the case of
+        // the top left handle).
+        dx *= 2;
+        dy *= 2;
         if (dx == 0 && dy == 0) return;
         switch (dragState) {
             case TOP_LEFT:
-                node.silentSet(xName, ocx + dx);
-                node.silentSet(yName, ocy + dy);
                 node.silentSet(widthName, owidth - dx);
                 node.silentSet(heightName, oheight - dy);
                 break;
             case TOP_RIGHT:
-                node.silentSet(yName, ocy + dy);
                 node.silentSet(heightName, oheight - dy);
                 node.silentSet(widthName, owidth + dx);
                 break;
             case BOTTOM_LEFT:
-                node.silentSet(xName, ocx + dx);
                 node.silentSet(widthName, owidth - dx);
                 node.silentSet(heightName, oheight + dy);
                 break;
