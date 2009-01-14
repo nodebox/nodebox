@@ -77,9 +77,9 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
             ctx.getCanvas().draw(g2);
         }
         // Draw center
-        g.setColor(new Color(240, 240, 240));
-        g.drawLine(-getWidth() / 2, 0, getWidth() / 2, 0);
-        g.drawLine(0, -getHeight() / 2, 0, getHeight() / 2);
+        //g.setColor(new Color(240, 240, 240));
+        //g.drawLine(-getWidth() / 2, 0, getWidth() / 2, 0);
+        //g.drawLine(0, -getHeight() / 2, 0, getHeight() / 2);
     }
 
     //// Network data events ////

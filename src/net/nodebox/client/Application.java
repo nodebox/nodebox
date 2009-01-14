@@ -45,12 +45,14 @@ public class Application {
     private NodeTypeLibraryManager manager;
     private ProgressDialog startupDialog;
 
-    public static final String NAME = "NodeBox";
+    public static final String NAME = "NodeBox 2";
     private static Logger logger = Logger.getLogger("net.nodebox.client.Application");
 
 
     private Application() {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+        Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
+        // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
     }
 
     private void load() {
@@ -76,6 +78,13 @@ public class Application {
         startupDialog.setVisible(false);
         instance.createNewDocument();
     }
+
+    private void librariesErrorEvent(String libraryName, Exception exception) {
+        startupDialog.setVisible(false);
+        ExceptionDialog ed = new ExceptionDialog(null, exception, "Library: " + libraryName);
+        ed.setVisible(true);
+    }
+
 
     public List<NodeBoxDocument> getDocuments() {
         return documents;
@@ -109,7 +118,7 @@ public class Application {
             jythonProperties.put("python.cachedir", jythonCacheDir);
             PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
             String workingDirectory = System.getProperty("user.dir");
-            File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python2.5");
+            File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
             Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
@@ -121,6 +130,8 @@ public class Application {
 
     public class LibraryLoader implements Runnable {
         public void run() {
+            String libraryName = "";
+            Exception currentException = null;
             // Load libraries
             manager = new NodeTypeLibraryManager();
             manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
@@ -129,17 +140,27 @@ public class Application {
                 try {
                     library.load();
                 } catch (Exception e) {
-                    logger.log(Level.WARNING, "Could not library " + library.getName(), e);
+                    logger.log(Level.WARNING, "Could not load library " + library.getName(), e);
+                    currentException = e;
+                    libraryName = library.getName();
+                    break;
                 }
+
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
                         startupDialog.tick();
                     }
                 });
             }
+            final Exception finalException = currentException;
+            final String finalLibraryName = libraryName;
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    Application.getInstance().librariesLoadedEvent();
+                    if (finalException != null) {
+                        Application.getInstance().librariesErrorEvent(finalLibraryName, finalException);
+                    } else {
+                        Application.getInstance().librariesLoadedEvent();
+                    }
                 }
             });
         }

@@ -611,7 +611,11 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     public void networkDirty(Network network) {
         if (network != activeNetwork) return;
         markChanged();
-        activeNetwork.update();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                activeNetwork.update();
+            }
+        });
         //doRender();
     }
 
