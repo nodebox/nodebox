@@ -21,6 +21,7 @@ import java.util.Set;
  */
 public class NodeAccessProxy implements Map {
 
+    private boolean mutable = false;
     private Node node;
     private Set<String> keySet;
     private Set<Parameter> markedParameters;
@@ -40,6 +41,14 @@ public class NodeAccessProxy implements Map {
     public NodeAccessProxy(Node node, Set<Parameter> markedParameters) {
         this(node);
         this.markedParameters = markedParameters;
+    }
+
+    public boolean isMutable() {
+        return mutable;
+    }
+
+    public void setMutable(boolean mutable) {
+        this.mutable = mutable;
     }
 
     private void updateKeys() {
@@ -109,13 +118,17 @@ public class NodeAccessProxy implements Map {
         // First search for reserved words.
         if (k.equals("network")) {
             if (node.inNetwork()) {
-                return new NodeAccessProxy(node.getNetwork(), markedParameters);
+                NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork(), markedParameters);
+                proxy.setMutable(mutable);
+                return proxy;
             } else {
                 return null;
             }
         } else if (k.equals("root")) {
             if (node.inNetwork()) {
-                return new NodeAccessProxy(node.getRootNetwork(), markedParameters);
+                NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork(), markedParameters);
+                proxy.setMutable(mutable);
+                return proxy;
             } else {
                 return null;
             }
@@ -135,12 +148,16 @@ public class NodeAccessProxy implements Map {
         // Network searches
         // If this is a network, search its nodes first.
         if (node instanceof Network && ((Network) node).contains(k)) {
-            return new NodeAccessProxy(((Network) node).getNode(k), markedParameters);
+            NodeAccessProxy proxy = new NodeAccessProxy(((Network) node).getNode(k), markedParameters);
+            proxy.setMutable(mutable);
+            return proxy;
         }
 
         // Check the siblings (nodes in this node's network).
         if (node.inNetwork() && node.getNetwork().contains(k)) {
-            return new NodeAccessProxy(node.getNetwork().getNode(k), markedParameters);
+            NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork().getNode(k), markedParameters);
+            proxy.setMutable(mutable);
+            return proxy;
         }
 
         // Don't know what to return.
@@ -148,7 +165,18 @@ public class NodeAccessProxy implements Map {
     }
 
     public Object put(Object key, Object value) {
-        throw new AssertionError("You cannot change the node access proxy.");
+        if (!mutable)
+            throw new AssertionError("You cannot change the node access proxy.");
+        String k = key.toString();
+        // Only search the parameters
+        if (node.hasParameter(k)) {
+            if (markedParameters != null)
+                markedParameters.add(node.getParameter(k));
+            Object oldValue = node.getValue(k);
+            node.setValue(k, value);
+            return oldValue;
+        }
+        throw new RuntimeException("Parameter " + k + " not found on node " + node.getName());
     }
 
     public Object remove(Object key) {

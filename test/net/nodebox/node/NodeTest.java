@@ -85,6 +85,30 @@ public class NodeTest extends NodeTestCase {
         assertFalse(n.isDirty());
     }
 
+    public void testCopyWithUpstream() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        Node number2 = net.create(numberType);
+        Node add1 = net.create(addType);
+        assertEquals("number1", number1.getName());
+        assertEquals("number2", number2.getName());
+        assertEquals("add1", add1.getName());
+        add1.getParameter("v1").connect(number1);
+        add1.getParameter("v2").connect(number2);
+
+        Node copiedAdd1 = add1.getNetwork().copyNodeWithUpstream(add1);
+        assertEquals("add1", copiedAdd1.getName());
+        Network copiedNetwork = copiedAdd1.getNetwork();
+        assertEquals(net.getName(), copiedNetwork.getName());
+        Node copiedNumber1 = copiedAdd1.getNetwork().getNode("number1");
+        Node copiedNumber2 = copiedAdd1.getNetwork().getNode("number2");
+        assertNotNull(copiedNumber1);
+        assertNotNull(copiedNumber2);
+        assert (copiedAdd1.isConnected());
+        assert (copiedAdd1.getParameter("v1").isConnectedTo(copiedNumber1));
+        assert (copiedAdd1.getParameter("v2").isConnectedTo(copiedNumber2));
+    }
+
     //// Helper functions ////
 
     private void checkInvalidName(Node n, String newName, String reason) {

@@ -22,4 +22,16 @@ public class CopyNodeTest extends NodeTestCase {
         g = (Grob) copy.getOutputValue();
         assertEquals(new Rect(0, 0, 100, 500), g.getBounds());
     }
+
+    public void testCopyStamping() {
+        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
+        Node rect = net.create(manager.getNodeType("corevector.rect"));
+        Node copy = net.create(manager.getNodeType("corevector.copy"));
+        copy.getParameter("shape").connect(rect);
+        copy.set("copies", 10);
+        copy.set("expression", "rect1.x = COPY");
+        copy.update();
+        Grob g = (Grob) copy.getOutputValue();
+        assertEquals(new Rect(0, 0, 109, 100), g.getBounds());
+    }
 }

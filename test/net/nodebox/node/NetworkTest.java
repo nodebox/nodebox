@@ -159,7 +159,7 @@ public class NetworkTest extends NodeTestCase {
         assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
-    public void testCycles() {
+    public void xtestCycles() {
         Network net = (Network) testNetworkType.createNode();
         Node n1 = net.create(numberType);
         Node n2 = net.create(numberType);

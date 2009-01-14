@@ -22,8 +22,11 @@ import net.nodebox.graphics.Color;
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Group;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -35,6 +38,8 @@ import java.util.List;
  * an update event from one of the parameters they depend on.
  */
 public class Parameter implements ParameterTypeListener {
+
+    private static Logger logger = Logger.getLogger("net.nodebox.node.Parameter");
 
     private ParameterType parameterType;
     private Node node;
@@ -253,7 +258,11 @@ public class Parameter implements ParameterTypeListener {
             throw new ValueError("The parameter has an expression set.");
         }
         parameterType.validate(value);
-        this.value = value;
+        if (value instanceof Integer && getCoreType() == ParameterType.CoreType.FLOAT) {
+            this.value = (double) ((Integer) value);
+        } else {
+            this.value = value;
+        }
         fireValueChanged();
     }
 
@@ -319,6 +328,8 @@ public class Parameter implements ParameterTypeListener {
      * The parameter dependencies function like a directed-acyclic graph, just like the node framework itself.
      * Parameter depencies are created by setting expressions that refer to other parameters. Once these parameters
      * are changed, the dependent parameters need to be changed as well.
+     *
+     * @throws ConnectionError when there is a connection error when creating the dependencies.
      */
     private void updateDependencies() throws ConnectionError {
         if (getNetwork() == null)
@@ -557,5 +568,42 @@ public class Parameter implements ParameterTypeListener {
     @Override
     public String toString() {
         return "<Parameter " + getNode().getName() + "." + getName() + " (" + getType().toString().toLowerCase() + ")>";
+    }
+
+    /**
+     * Copy this field and all its upstream connections, recursively.
+     * Used with deferreds.
+     *
+     * @param newNode the new node that will act as the parent to this parameter.
+     * @return the new copy of this parameter.
+     */
+    public Parameter copyWithUpstream(Node newNode) {
+        Constructor parameterConstructor;
+        try {
+            parameterConstructor = getClass().getConstructor(ParameterType.class, Node.class);
+        } catch (NoSuchMethodException e) {
+            logger.log(Level.SEVERE, "Class " + getClass() + " has no appropriate constructor.", e);
+            return null;
+        }
+        Parameter newParameter;
+        try {
+            newParameter = (Parameter) parameterConstructor.newInstance(parameterType, newNode);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Class " + getClass() + " cannot be instantiated.", e);
+            return null;
+        }
+
+        Connection conn = getNetwork().getExplicitConnection(this);
+        if (conn != null) {
+            Node newOutputNode = conn.getOutputNode().copyWithUpstream(newNode.getNetwork());
+            newParameter.connect(newOutputNode);
+        } else if (hasExpression()) {
+            newParameter.setExpression(getExpression());
+        } else {
+            // TODO: Clone the value properly.
+            newParameter.value = value;
+        }
+
+        return newParameter;
     }
 }

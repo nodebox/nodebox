@@ -398,7 +398,10 @@ public class ParameterType extends Observable {
     private void validateSingle(Object value) throws ValueError {
         // Check if the type matches
         Class requiredType = CORE_TYPE_MAPPING.get(coreType);
-        if (!value.getClass().isAssignableFrom(requiredType)) {
+        // We check if the value type is the same or a subclass of the required type.
+        // As a special exception, we accept integer values for parameter types that require a double.
+        if (!value.getClass().isAssignableFrom(requiredType) &&
+                !(requiredType == Double.class && value.getClass() == Integer.class)) {
             throw new ValueError("Value is not of the required type (" + requiredType.getSimpleName() + ")");
         }
         // If hard bounds are set, check if the value falls within the bounds.

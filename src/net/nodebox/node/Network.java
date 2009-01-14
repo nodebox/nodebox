@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.StringReader;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -633,6 +634,29 @@ public class Network extends Node {
         if (listeners == null) return;
         for (EventListener l : listeners.getListeners(NetworkDataListener.class))
             ((NetworkDataListener) l).networkUpdated(this);
+    }
+
+    //// Copying ////
+
+    public Node copyNodeWithUpstream(Node node) {
+        // Create a new network into which we can put this clone.
+        Constructor networkConstructor;
+        try {
+            networkConstructor = getClass().getConstructor(NodeType.class);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Class " + getNetwork().getClass() + " has no appropriate constructor.", e);
+            return null;
+        }
+
+        Network newNetwork;
+        try {
+            newNetwork = (Network) networkConstructor.newInstance(getNodeType());
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Class " + getClass() + " cannot be instantiated.", e);
+            return null;
+        }
+
+        return node.copyWithUpstream(newNetwork);
     }
 
     //// Persistence ////

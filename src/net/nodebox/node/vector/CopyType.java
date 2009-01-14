@@ -3,10 +3,7 @@ package net.nodebox.node.vector;
 import net.nodebox.graphics.*;
 import net.nodebox.handle.Handle;
 import net.nodebox.handle.PointHandle;
-import net.nodebox.node.Node;
-import net.nodebox.node.NodeTypeLibrary;
-import net.nodebox.node.ParameterType;
-import net.nodebox.node.ProcessingContext;
+import net.nodebox.node.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +25,7 @@ public class CopyType extends VectorNodeType {
         pSx.setDefaultValue(1.0);
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setDefaultValue(1.0);
+        ParameterType pExpression = addParameterType("expression", ParameterType.Type.STRING);
     }
 
     /**
@@ -60,13 +58,48 @@ public class CopyType extends VectorNodeType {
         double r = node.asFloat("r");
         double sx = node.asFloat("sx");
         double sy = node.asFloat("sy");
-        if (template == null) {  // copy source geometry according to transformation parameters
-            doCopy(outputGroup, shape, 0, 0, copies, tx, ty, r, sx, sy);
-        } else { // copy source geometry according to template
-            // Go over each point in the template geometry, and put a copy of
-            // the source geometry there.
-            for (Point p : pointsForGrob(template)) {
-                doCopy(outputGroup, shape, p.getX(), p.getY(), copies, tx, ty, r, sx, sy);
+        String expression = node.asString("expression");
+        if (expression == null || expression.trim().length() == 0) {
+            if (template == null) {  // copy source geometry according to transformation parameters
+                doCopy(outputGroup, shape, 0, 0, copies, tx, ty, r, sx, sy);
+            } else { // copy source geometry according to template
+                // Go over each point in the template geometry, and put a copy of
+                // the source geometry there.
+                for (Point p : pointsForGrob(template)) {
+                    doCopy(outputGroup, shape, p.getX(), p.getY(), copies, tx, ty, r, sx, sy);
+                }
+            }
+        } else {
+            // Expression set.
+            // The expression allows you to modify field values on upstream
+            // nodes while copying.
+            //The expression has access to all the nodes by their name (e.g. rect1),
+            //and can set values on them.
+            //The CY local variable contains the copy number (starting from zero)
+            Parameter pShape = node.getParameter("shape");
+            if (!pShape.isConnected())
+                throw new AssertionError("The shape is not connected.");
+            Transform t = new Transform();
+            for (int i = 0; i < copies; i++) {
+                Node upstreamNode = pShape.getExplicitConnection().getOutputNode();
+                Node copiedUpstreamNode = upstreamNode.getNetwork().copyNodeWithUpstream(upstreamNode);
+                // These expressions can mutate the values; that's sort of the point.
+                Expression expressionObject = new Expression(copiedUpstreamNode.getOutputParameter(), expression, true);
+                // The expression object changes the node values, so I don't care about the output.
+                ProcessingContext copyContext = (ProcessingContext) ctx.clone();
+                copyContext.put("COPY", i);
+                expressionObject.evaluate(copyContext);
+                // Now evaluate the output of the new upstream node.
+                copiedUpstreamNode.update(ctx);
+                if (copiedUpstreamNode.hasError())
+                    throw new ProcessingError(node, "Upstream node contained errors:" + copiedUpstreamNode.getMessages().toString());
+                // We do not need to clone the output shape.
+                Grob outputShape = (Grob) copiedUpstreamNode.getOutputValue();
+                outputShape.appendTransform(t);
+                outputGroup.add(outputShape);
+                t.translate(tx, ty);
+                t.rotate(r);
+                t.scale(sx, sy);
             }
         }
         node.setOutputValue(outputGroup);
@@ -79,8 +112,7 @@ public class CopyType extends VectorNodeType {
         t.translate(startx, starty);
 
         // Loop through the number of copies
-        for (int i = copies; i > 0; i--) {
-
+        for (int i = 0; i < copies; i++) {
             // Clone the input shape so we can change transformations on it.
             Grob newGrob = shape.clone();
             newGrob.appendTransform(t);

@@ -65,6 +65,17 @@ public class ParameterTypeTest extends NodeTestCase {
         assertInvalidValue(ptFloat, new Color());
         assertInvalidValue(ptFloat, new Canvas());
         assertValidValue(ptFloat, 1.0);
+        // As a special exception, floating-point parameters can also accept integers 
+        assertValidValue(ptFloat, 1);
+
+        ParameterType ptInt = customType.addParameterType("int", ParameterType.Type.INT);
+        assertInvalidValue(ptFloat, "A");
+        assertInvalidValue(ptFloat, new Color());
+        assertInvalidValue(ptFloat, new Canvas());
+        assertValidValue(ptFloat, 1);
+        // You cannot assign floating-point values to integers,
+        // so the above exception to the rule only works in one way.
+        assertValidValue(ptFloat, 1.0);
 
         ParameterType ptColor = customType.addParameterType("color", ParameterType.Type.COLOR);
         assertInvalidValue(ptColor, "A");

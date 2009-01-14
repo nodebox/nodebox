@@ -34,12 +34,19 @@ public class Expression {
 
     private Parameter parameter;
     private String expression = "";
+    private boolean mutable = false;
     private transient Serializable compiledExpression;
 
     public Expression(Parameter parameter, String expression) {
+        this(parameter, expression, false);
+    }
+
+    public Expression(Parameter parameter, String expression, boolean mutable) {
         this.parameter = parameter;
+        this.mutable = mutable;
         setExpression(expression);
     }
+
     //// Attribute access ////
 
     public String getExpression() {
@@ -57,6 +64,10 @@ public class Expression {
 
     public Parameter getParameter() {
         return parameter;
+    }
+
+    public boolean isMutable() {
+        return mutable;
     }
 
     //// Values ////
@@ -100,7 +111,11 @@ public class Expression {
     //// Evaluation ////
 
     public Object evaluate() {
-        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode());
+        return evaluate(new ProcessingContext());
+    }
+
+    public Object evaluate(ProcessingContext context) {
+        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, mutable);
         try {
             return MVEL.executeExpression(compiledExpression, prf);
         } catch (Exception e) {
@@ -108,9 +123,10 @@ public class Expression {
         }
     }
 
-    Set<Parameter> getDependencies() {
+    public Set<Parameter> getDependencies() {
         Set<Parameter> markedParameters = new HashSet<Parameter>();
-        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), markedParameters);
+        // TODO: Since the mutable property gets passed on, getting dependencies might cause side effects.
+        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), new ProcessingContext(), mutable, markedParameters);
         try {
             MVEL.executeExpression(compiledExpression, prf);
             return markedParameters;
@@ -123,15 +139,20 @@ public class Expression {
 
         private Node node;
         private NodeAccessProxy proxy;
+        private ProcessingContext context;
 
-        ProxyResolverFactory(Node node) {
+        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable) {
             this.node = node;
             proxy = new NodeAccessProxy(node);
+            proxy.setMutable(mutable);
+            this.context = context;
         }
 
-        ProxyResolverFactory(Node node, Set<Parameter> markedParameters) {
+        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable, Set<Parameter> markedParameters) {
             this.node = node;
             proxy = new NodeAccessProxy(node, markedParameters);
+            proxy.setMutable(mutable);
+            this.context = context;
         }
 
         public Node getNode() {
@@ -160,6 +181,10 @@ public class Expression {
                 vr = new ProxyResolver(proxy, proxy.get(name));
                 variableResolvers.put(name, vr);
                 return vr;
+            } else if (context.containsKey(name)) {
+                vr = new ProcessingContextResolver(context, name);
+                variableResolvers.put(name, vr);
+                return vr;
             } else if (nextFactory != null) {
                 return nextFactory.getVariableResolver(name);
             }
@@ -169,6 +194,7 @@ public class Expression {
         public boolean isResolveable(String name) {
             return (variableResolvers != null && variableResolvers.containsKey(name))
                     || (proxy.containsKey(name))
+                    || (context.containsKey(name))
                     || (nextFactory != null && nextFactory.isResolveable(name));
         }
 
@@ -178,9 +204,11 @@ public class Expression {
 
         @Override
         public Set<String> getKnownVariables() {
-            return proxy.keySet();
+            Set<String> knownVariables = new HashSet<String>();
+            knownVariables.addAll(proxy.keySet());
+            knownVariables.addAll(context.keySet());
+            return knownVariables;
         }
-
     }
 
     class ProxyResolver implements VariableResolver {
@@ -188,7 +216,7 @@ public class Expression {
         private NodeAccessProxy proxy;
         private Object value;
 
-        ProxyResolver(NodeAccessProxy proxy, Object value) {
+        public ProxyResolver(NodeAccessProxy proxy, Object value) {
             this.proxy = proxy;
             this.value = value;
         }
@@ -223,6 +251,41 @@ public class Expression {
 
         public void setValue(Object value) {
             throw new CompileException("Parameter values cannot be changed through expressions.");
+        }
+    }
+
+    class ProcessingContextResolver implements VariableResolver {
+
+        private String name;
+        private ProcessingContext context;
+
+        ProcessingContextResolver(ProcessingContext context, String name) {
+            this.context = context;
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Class getType() {
+            return Object.class;
+        }
+
+        public void setStaticType(Class aClass) {
+            throw new RuntimeException("Not implemented");
+        }
+
+        public int getFlags() {
+            return 0;
+        }
+
+        public Object getValue() {
+            return context.get(name);
+        }
+
+        public void setValue(Object o) {
+            throw new CompileException("You cannot change the value of a constant.");
         }
     }
 

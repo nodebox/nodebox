@@ -26,9 +26,11 @@ import net.nodebox.util.StringUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -708,6 +710,42 @@ public class Node {
      */
     public Handle createHandle() {
         return getNodeType().createHandle(this);
+    }
+
+    //// Cloning ////
+
+    /**
+     * Copy this node and all its upstream connections.
+     * Used with deferreds.
+     *
+     * @param newNetwork the new network that will be the parent of the newly cloned node.
+     * @return a copy of the node with copies to all of its upstream connections.
+     */
+    public Node copyWithUpstream(Network newNetwork) {
+        Constructor nodeConstructor;
+        try {
+            nodeConstructor = getClass().getConstructor(NodeType.class);
+        } catch (NoSuchMethodException e) {
+            logger.log(Level.SEVERE, "Class " + getClass() + " has no appropriate constructor.", e);
+            return null;
+        }
+
+
+        Node newNode;
+        try {
+            newNode = (Node) nodeConstructor.newInstance(nodeType);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Class " + getClass() + " cannot be instantiated.", e);
+            return null;
+        }
+        newNode.setName(getName());
+        newNode.setNetwork(newNetwork);
+
+        for (Parameter p : parameters.values()) {
+            newNode.parameters.remove(p);
+            newNode.parameters.put(p.getName(), p.copyWithUpstream(newNode));
+        }
+        return newNode;
     }
 
     //// Output ////
