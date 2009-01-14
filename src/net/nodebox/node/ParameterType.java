@@ -287,7 +287,11 @@ public class ParameterType extends Observable {
 
     public void setDefaultValue(Object value) {
         validate(value);
-        defaultValue = value;
+        if (value instanceof Integer && getCoreType() == ParameterType.CoreType.FLOAT) {
+            defaultValue = (double) ((Integer) value);
+        } else {
+            defaultValue = value;
+        }
     }
 
     //// Null ////

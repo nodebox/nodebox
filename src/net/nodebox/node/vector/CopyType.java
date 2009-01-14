@@ -79,27 +79,39 @@ public class CopyType extends VectorNodeType {
             Parameter pShape = node.getParameter("shape");
             if (!pShape.isConnected())
                 throw new AssertionError("The shape is not connected.");
-            Transform t = new Transform();
-            for (int i = 0; i < copies; i++) {
-                Node upstreamNode = pShape.getExplicitConnection().getOutputNode();
-                Node copiedUpstreamNode = upstreamNode.getNetwork().copyNodeWithUpstream(upstreamNode);
-                // These expressions can mutate the values; that's sort of the point.
-                Expression expressionObject = new Expression(copiedUpstreamNode.getOutputParameter(), expression, true);
-                // The expression object changes the node values, so I don't care about the output.
-                ProcessingContext copyContext = (ProcessingContext) ctx.clone();
-                copyContext.put("COPY", i);
-                expressionObject.evaluate(copyContext);
-                // Now evaluate the output of the new upstream node.
-                copiedUpstreamNode.update(ctx);
-                if (copiedUpstreamNode.hasError())
-                    throw new ProcessingError(node, "Upstream node contained errors:" + copiedUpstreamNode.getMessages().toString());
-                // We do not need to clone the output shape.
-                Grob outputShape = (Grob) copiedUpstreamNode.getOutputValue();
-                outputShape.appendTransform(t);
-                outputGroup.add(outputShape);
-                t.translate(tx, ty);
-                t.rotate(r);
-                t.scale(sx, sy);
+            List<Point> points;
+            if (template == null) {
+                points = new ArrayList<Point>();
+                points.add(new Point());
+            } else {
+                points = pointsForGrob(template);
+            }
+            int copyIndex = 0;
+            for (Point p : points) {
+                Transform t = new Transform();
+                t.translate(p.getX(), p.getY());
+                for (int i = 0; i < copies; i++) {
+                    Node upstreamNode = pShape.getExplicitConnection().getOutputNode();
+                    Node copiedUpstreamNode = upstreamNode.getNetwork().copyNodeWithUpstream(upstreamNode);
+                    // These expressions can mutate the values; that's sort of the point.
+                    Expression expressionObject = new Expression(copiedUpstreamNode.getOutputParameter(), expression, true);
+                    // The expression object changes the node values, so I don't care about the output.
+                    ProcessingContext copyContext = (ProcessingContext) ctx.clone();
+                    copyContext.put("COPY", copyIndex);
+                    expressionObject.evaluate(copyContext);
+                    // Now evaluate the output of the new upstream node.
+                    copiedUpstreamNode.update(ctx);
+                    if (copiedUpstreamNode.hasError())
+                        throw new ProcessingError(node, "Upstream node contained errors:" + copiedUpstreamNode.getMessages().toString());
+                    // We do not need to clone the output shape.
+                    Grob outputShape = (Grob) copiedUpstreamNode.getOutputValue();
+                    outputShape.appendTransform(t);
+                    outputGroup.add(outputShape);
+                    t.translate(tx, ty);
+                    t.rotate(r);
+                    t.scale(sx, sy);
+                    copyIndex++;
+                }
             }
         }
         node.setOutputValue(outputGroup);
