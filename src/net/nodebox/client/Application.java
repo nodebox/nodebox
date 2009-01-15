@@ -53,6 +53,7 @@ public class Application {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
+        new File(PlatformUtils.getUserDataDirectory()).mkdir();
     }
 
     private void load() {
