@@ -201,23 +201,28 @@ public class BezierPath extends Grob {
         double halfHeight = height / 2.0;
         double dx = rx;
         double dy = ry;
-        // rx/ry cannot be greater than half of the width of the rectangle
+
+        double left = cx - halfWidth;
+        double right = cx + halfWidth;
+        double top = cy - halfHeight;
+        double bottom = cy + halfHeight;
+        // rx/ry cannot be greater than half of the width of the retoctangle
         // (required by SVG spec)
         dx = Math.min(dx, width * 0.5);
         dy = Math.min(dy, height * 0.5);
-        moveto(cx + dx - halfWidth, cy - halfHeight);
+        moveto(left + dx, top);
         if (dx < width * 0.5)
-            lineto(cx + halfWidth - rx, cy - halfHeight);
-        curveto(cx + halfWidth - dx * ONE_MINUS_QUARTER, cy - halfHeight, cx + halfWidth, cy - halfHeight + dy * ONE_MINUS_QUARTER, cx + halfWidth, cy - halfHeight + dy);
+            lineto(right - rx, top);
+        curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy);
         if (dy < height * 0.5)
-            lineto(cx + halfWidth, cy + halfHeight - dy);
-        curveto(cx + halfWidth, cy + halfHeight - dy * ONE_MINUS_QUARTER, cx + halfWidth - dx * ONE_MINUS_QUARTER, cy + halfHeight, cx + halfWidth - dx, cy + halfHeight);
+            lineto(right, bottom - dy);
+        curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom);
         if (dx < width * 0.5)
-            lineto(cx + dx, cy + halfHeight);
-        curveto(cx - halfWidth + dx * ONE_MINUS_QUARTER, cy + halfHeight, cx - halfWidth, cy + halfHeight - dy * ONE_MINUS_QUARTER, cx - halfWidth, cy + halfHeight - dy);
+            lineto(left + dx, bottom);
+        curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy);
         if (dy < height * 0.5)
-            lineto(cx - halfWidth, cy - halfHeight + dy);
-        curveto(cx - halfWidth, cy - halfHeight + dy * ONE_MINUS_QUARTER, cx - halfWidth + dx * ONE_MINUS_QUARTER, cy - halfHeight, cx - halfWidth + dx, cy - halfHeight);
+            lineto(left, top + dy);
+        curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top);
         close();
     }
 

@@ -24,7 +24,7 @@ public class RectType extends VectorNodeType {
         ParameterType pRx = addParameterType("rx", ParameterType.Type.FLOAT);
         pRx.setLabel("Roundness X");
         ParameterType pRy = addParameterType("ry", ParameterType.Type.FLOAT);
-        pRx.setLabel("Roundness Y");
+        pRy.setLabel("Roundness Y");
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
