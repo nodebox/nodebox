@@ -1,7 +1,6 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Grob;
 import net.nodebox.handle.DisplayPointsHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
@@ -11,12 +10,12 @@ import net.nodebox.node.ProcessingContext;
 
 import java.util.ArrayList;
 
-public class ResampleType extends VectorNodeType {
+public class ResampleType extends PathNodeType {
 
     public ResampleType(NodeTypeLibrary library) {
         super(library, "resample");
         setDescription("Creates a new set of points based on the original shape.");
-        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
+        ParameterType pPath = addParameterType("path", ParameterType.Type.GROB_PATH);
         ParameterType pPoints = addParameterType("points", ParameterType.Type.INT);
         pPoints.setDefaultValue(20);
         ParameterType pPerContour = addParameterType("perContour", ParameterType.Type.TOGGLE);
@@ -26,45 +25,39 @@ public class ResampleType extends VectorNodeType {
     }
 
     public boolean process(Node node, ProcessingContext ctx) {
-        Grob shape = node.asGrob("shape").clone();
+        BezierPath path = (BezierPath) node.asGrob("path");
         int amount = node.asInt("points");
+        BezierPath newPath = new BezierPath();
 
-        for (Grob grob : shape.getChildren(BezierPath.class)) {
-            BezierPath p = (BezierPath) grob;
-            // We just want all the path settings, not the path data,
-            // so copy and clear the path.
-            BezierPath oldPath = p.clone();
-            p.clear();
-
-            boolean perContour = node.asBoolean("perContour");
-            boolean equalLengths = node.asBoolean("equalLengths");
-            if (!perContour) {
-                p.extend(oldPath.getPoints(amount));
+        boolean perContour = node.asBoolean("perContour");
+        boolean equalLengths = node.asBoolean("equalLengths");
+        if (!perContour) {
+            newPath.extend(path.getPoints(amount));
+        } else {
+            if (!equalLengths) {
+                for (BezierPath contour : path.getContours()) {
+                    newPath.extend(contour.getPoints(amount));
+                }
             } else {
-                if (!equalLengths) {
-                    for (BezierPath contour : oldPath.getContours()) {
-                        p.extend(contour.getPoints(amount));
-                    }
-                } else {
-                    java.util.List<Double> lengths = new ArrayList<Double>();
-                    double totalLength = 0;
-                    for (BezierPath contour : oldPath.getContours()) {
-                        double length = contour.getLength();
-                        lengths.add(length);
-                        totalLength += length;
-                    }
-                    if (totalLength == 0)
-                        totalLength = 0.001;
-                    int i = 0;
-                    for (BezierPath contour : oldPath.getContours()) {
-                        int amountPerContour = (int) ((lengths.get(i) / totalLength) * amount);
-                        p.extend(contour.getPoints(amountPerContour));
-                        i++;
-                    }
+                java.util.List<Double> lengths = new ArrayList<Double>();
+                double totalLength = 0;
+                for (BezierPath contour : path.getContours()) {
+                    double length = contour.getLength();
+                    lengths.add(length);
+                    totalLength += length;
+                }
+                if (totalLength == 0)
+                    totalLength = 0.001;
+                int i = 0;
+                for (BezierPath contour : path.getContours()) {
+                    int amountPerContour = (int) ((lengths.get(i) / totalLength) * amount);
+                    newPath.extend(contour.getPoints(amountPerContour));
+                    i++;
                 }
             }
         }
-        node.setOutputValue(shape);
+
+        node.setOutputValue(newPath);
         return true;
     }
 

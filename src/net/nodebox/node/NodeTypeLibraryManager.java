@@ -21,6 +21,9 @@ package net.nodebox.node;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.canvas.CanvasNetworkType;
+import net.nodebox.node.grob.CopyType;
+import net.nodebox.node.grob.MergeType;
+import net.nodebox.node.grob.TransformType;
 import net.nodebox.node.image.ImageNetworkType;
 import net.nodebox.node.image.ImageType;
 import net.nodebox.node.vector.*;
@@ -110,7 +113,7 @@ public class NodeTypeLibraryManager {
         corevector.addNodeType(new TextType(corevector));
         corevector.addNodeType(new TextPathType(corevector));
         corevector.addNodeType(new TransformType(corevector));
-        corevector.addNodeType(new VectorNetworkType(corevector));
+        corevector.addNodeType(new PathNetworkType(corevector));
         addLibrary(corevector);
         CoreNodeTypeLibrary coreimage = new CoreNodeTypeLibrary("coreimage", new Version(1, 0, 0));
         coreimage.addNodeType(new ImageNetworkType(coreimage));

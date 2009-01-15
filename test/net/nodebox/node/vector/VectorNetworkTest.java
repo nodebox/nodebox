@@ -10,7 +10,7 @@ public class VectorNetworkTest extends NodeTestCase {
     public void testType() {
         NodeType vectorNetworkType = manager.getNodeType("corevector.vecnet");
         Node n = vectorNetworkType.createNode();
-        assertEquals(ParameterType.Type.GROB_VECTOR, n.getOutputParameter().getType());
+        assertEquals(ParameterType.Type.GROB_PATH, n.getOutputParameter().getType());
     }
 
 }

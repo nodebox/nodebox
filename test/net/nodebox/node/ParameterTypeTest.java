@@ -1,9 +1,6 @@
 package net.nodebox.node;
 
-import net.nodebox.graphics.Canvas;
-import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Group;
-import net.nodebox.graphics.Image;
+import net.nodebox.graphics.*;
 
 public class ParameterTypeTest extends NodeTestCase {
 
@@ -46,7 +43,7 @@ public class ParameterTypeTest extends NodeTestCase {
         ParameterType ptString = customType.addParameterType("string", ParameterType.Type.STRING);
         ParameterType ptColor = customType.addParameterType("color", ParameterType.Type.COLOR);
         ParameterType ptCanvas = customType.addParameterType("canvas", ParameterType.Type.GROB_CANVAS);
-        ParameterType ptVector = customType.addParameterType("vector", ParameterType.Type.GROB_VECTOR);
+        ParameterType ptPath = customType.addParameterType("path", ParameterType.Type.GROB_PATH);
         ParameterType ptImage = customType.addParameterType("image", ParameterType.Type.GROB_IMAGE);
 
         assertEquals(0, ptInt.getDefaultValue());
@@ -54,8 +51,77 @@ public class ParameterTypeTest extends NodeTestCase {
         assertEquals("", ptString.getDefaultValue());
         assertEquals(new Color(), ptColor.getDefaultValue());
         assertEquals(new Canvas(), ptCanvas.getDefaultValue());
-        assertEquals(new Group(), ptVector.getDefaultValue());
+        assertEquals(new BezierPath(), ptPath.getDefaultValue());
         assertEquals(new Image(), ptImage.getDefaultValue());
+    }
+
+    public void testDowncasting() {
+        NodeType customType = numberType.clone();
+        ParameterType ptGrob = customType.addParameterType("grob", ParameterType.Type.GROB);
+        ParameterType ptCanvas = customType.addParameterType("canvas", ParameterType.Type.GROB_CANVAS);
+        ParameterType ptGroup = customType.addParameterType("group", ParameterType.Type.GROB_GROUP);
+        ParameterType ptImage = customType.addParameterType("image", ParameterType.Type.GROB_IMAGE);
+        ParameterType ptPath = customType.addParameterType("path", ParameterType.Type.GROB_PATH);
+        ParameterType ptText = customType.addParameterType("text", ParameterType.Type.GROB_TEXT);
+
+        Canvas canvas = new Canvas();
+        Group group = new Group();
+        Image image = new Image();
+        BezierPath path = new BezierPath();
+        Text text = new Text("", 0, 0);
+
+        assertValidValue(ptGrob, canvas);
+        assertValidValue(ptGrob, group);
+        assertValidValue(ptGrob, image);
+        assertValidValue(ptGrob, path);
+        assertValidValue(ptGrob, text);
+
+        assertValidValue(ptCanvas, canvas);
+        assertInvalidValue(ptCanvas, group);
+        assertInvalidValue(ptCanvas, image);
+        assertInvalidValue(ptCanvas, path);
+        assertInvalidValue(ptCanvas, text);
+
+        assertValidValue(ptGroup, canvas);
+        assertValidValue(ptGroup, group);
+        assertInvalidValue(ptGroup, image);
+        assertInvalidValue(ptGroup, path);
+        assertInvalidValue(ptGroup, text);
+
+        assertInvalidValue(ptImage, canvas);
+        assertInvalidValue(ptImage, group);
+        assertValidValue(ptImage, image);
+        assertInvalidValue(ptImage, path);
+        assertInvalidValue(ptImage, text);
+
+        assertInvalidValue(ptPath, canvas);
+        assertInvalidValue(ptPath, group);
+        assertInvalidValue(ptPath, image);
+        assertValidValue(ptPath, path);
+        assertInvalidValue(ptPath, text);
+
+        assertInvalidValue(ptText, canvas);
+        assertInvalidValue(ptText, group);
+        assertInvalidValue(ptText, image);
+        assertInvalidValue(ptText, path);
+        assertValidValue(ptText, text);
+
+        assertTrue(ptGrob.canConnectTo(ptCanvas));
+        assertTrue(ptGrob.canConnectTo(ptGroup));
+        assertTrue(ptGrob.canConnectTo(ptImage));
+        assertTrue(ptGrob.canConnectTo(ptPath));
+        assertTrue(ptGrob.canConnectTo(ptText));
+        assertTrue(ptGrob.canConnectTo(ptGrob));
+
+        assertTrue(ptCanvas.canConnectTo(ptCanvas));
+        assertFalse(ptCanvas.canConnectTo(ptGroup));
+
+        assertTrue(ptGroup.canConnectTo(ptGroup));
+        assertTrue(ptGroup.canConnectTo(ptCanvas));
+
+        assertTrue(ptPath.canConnectTo(ptPath));
+        assertFalse(ptPath.canConnectTo(ptGrob));
+        assertFalse(ptPath.canConnectTo(ptImage));
     }
 
     public void testValidate() {

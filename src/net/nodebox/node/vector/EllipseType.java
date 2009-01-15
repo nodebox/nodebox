@@ -1,7 +1,6 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Group;
 import net.nodebox.handle.FourPointHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
@@ -9,7 +8,7 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class EllipseType extends VectorNodeType {
+public class EllipseType extends PathNodeType {
 
     public EllipseType(NodeTypeLibrary library) {
         super(library, "ellipse");
@@ -28,14 +27,12 @@ public class EllipseType extends VectorNodeType {
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
-        Group g = new Group();
         BezierPath p = new BezierPath();
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
         p.ellipse(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
-        g.add(p);
-        node.setOutputValue(g);
+        node.setOutputValue(p);
         return true;
     }
 

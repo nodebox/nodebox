@@ -19,7 +19,7 @@ public class ParameterType extends Observable {
 
     public enum Type {
         ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF,
-        GROB_CANVAS, GROB_VECTOR, GROB_IMAGE
+        GROB, GROB_PATH, GROB_CANVAS, GROB_GROUP, GROB_IMAGE, GROB_TEXT
     }
 
     public enum Cardinality {
@@ -27,7 +27,8 @@ public class ParameterType extends Observable {
     }
 
     public enum CoreType {
-        INT, FLOAT, STRING, COLOR, GROB_CANVAS, GROB_SHAPE, GROB_IMAGE
+        INT, FLOAT, STRING, COLOR,
+        GROB, GROB_PATH, GROB_CANVAS, GROB_GROUP, GROB_IMAGE, GROB_TEXT
     }
 
     public enum Direction {
@@ -83,18 +84,25 @@ public class ParameterType extends Observable {
         CORE_TYPE_MAPPING.put(CoreType.FLOAT, Double.class);
         CORE_TYPE_MAPPING.put(CoreType.STRING, String.class);
         CORE_TYPE_MAPPING.put(CoreType.COLOR, Color.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB, Grob.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_PATH, BezierPath.class);
         CORE_TYPE_MAPPING.put(CoreType.GROB_CANVAS, Canvas.class);
-        CORE_TYPE_MAPPING.put(CoreType.GROB_SHAPE, Group.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_GROUP, Group.class);
         CORE_TYPE_MAPPING.put(CoreType.GROB_IMAGE, Image.class);
+        CORE_TYPE_MAPPING.put(CoreType.GROB_TEXT, Text.class);
 
         CORE_TYPE_DEFAULTS = new HashMap<CoreType, Object>();
         CORE_TYPE_DEFAULTS.put(CoreType.INT, 0);
         CORE_TYPE_DEFAULTS.put(CoreType.FLOAT, 0.0);
         CORE_TYPE_DEFAULTS.put(CoreType.STRING, "");
         CORE_TYPE_DEFAULTS.put(CoreType.COLOR, new Color());
+
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB, new Group());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_PATH, new BezierPath());
         CORE_TYPE_DEFAULTS.put(CoreType.GROB_CANVAS, new Canvas());
-        CORE_TYPE_DEFAULTS.put(CoreType.GROB_SHAPE, new Group());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_GROUP, new Group());
         CORE_TYPE_DEFAULTS.put(CoreType.GROB_IMAGE, new Image());
+        CORE_TYPE_DEFAULTS.put(CoreType.GROB_TEXT, new Text("", 0, 0));
 
         TYPE_REGISTRY = new HashMap<Type, CoreType>();
         TYPE_REGISTRY.put(Type.ANGLE, CoreType.FLOAT);
@@ -111,9 +119,13 @@ public class ParameterType extends Observable {
         TYPE_REGISTRY.put(Type.TEXT, CoreType.STRING);
         TYPE_REGISTRY.put(Type.TOGGLE, CoreType.INT);
         TYPE_REGISTRY.put(Type.NODEREF, CoreType.STRING);
+
+        TYPE_REGISTRY.put(Type.GROB, CoreType.GROB);
+        TYPE_REGISTRY.put(Type.GROB_PATH, CoreType.GROB_PATH);
         TYPE_REGISTRY.put(Type.GROB_CANVAS, CoreType.GROB_CANVAS);
-        TYPE_REGISTRY.put(Type.GROB_VECTOR, CoreType.GROB_SHAPE);
+        TYPE_REGISTRY.put(Type.GROB_GROUP, CoreType.GROB_GROUP);
         TYPE_REGISTRY.put(Type.GROB_IMAGE, CoreType.GROB_IMAGE);
+        TYPE_REGISTRY.put(Type.GROB_TEXT, CoreType.GROB_TEXT);
 
         BOUNDING_TEMPLATES = new HashMap<Type, BoundingTemplate>();
         BOUNDING_TEMPLATES.put(Type.SEED, new BoundingTemplate(BoundingMethod.HARD, 0.0, null));
@@ -254,6 +266,12 @@ public class ParameterType extends Observable {
         return CORE_TYPE_MAPPING.get(coreType);
     }
 
+    public boolean canConnectTo(ParameterType outputParameterType) {
+        Class thisType = CORE_TYPE_MAPPING.get(coreType);
+        Class otherType = CORE_TYPE_MAPPING.get(outputParameterType.coreType);
+        return thisType.isAssignableFrom(otherType);
+    }
+
     //// Direction ////
 
     public boolean isInputParameter() {
@@ -383,13 +401,13 @@ public class ParameterType extends Observable {
      * @param value the value to validate.
      */
     public void validate(Object value) throws ValueError {
-        if (value == null && !isNullAllowed()) {
-            throw new ValueError("Value for parameter " + getName() + " cannot be null.");
-        }
-        if (value == null) return;
         if (getCardinality() == Cardinality.SINGLE) {
             validateSingle(value);
         } else {
+            if (value == null && !isNullAllowed()) {
+                throw new ValueError("Value for parameter " + getName() + " cannot be null.");
+            }
+            if (value == null) return;
             // If there is only one of this, check that the value is a list, and all elements in the list are valid.
             if (!(value instanceof List)) {
                 List<Object> values = (List<Object>) value;
@@ -400,11 +418,16 @@ public class ParameterType extends Observable {
     }
 
     private void validateSingle(Object value) throws ValueError {
+        // Check null (again)
+        if (value == null && !isNullAllowed()) {
+            throw new ValueError("Value for parameter " + getName() + " cannot be null.");
+        }
+        if (value == null) return;
         // Check if the type matches
         Class requiredType = CORE_TYPE_MAPPING.get(coreType);
         // We check if the value type is the same or a subclass of the required type.
         // As a special exception, we accept integer values for parameter types that require a double.
-        if (!value.getClass().isAssignableFrom(requiredType) &&
+        if (!requiredType.isAssignableFrom(value.getClass()) &&
                 !(requiredType == Double.class && value.getClass() == Integer.class)) {
             throw new ValueError("Value is not of the required type (" + requiredType.getSimpleName() + ")");
         }

@@ -1,8 +1,6 @@
 package net.nodebox.node;
 
-import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Group;
-import net.nodebox.graphics.Image;
+import net.nodebox.graphics.*;
 import org.python.core.*;
 
 import java.lang.ref.WeakReference;
@@ -77,7 +75,7 @@ public class PythonNodeType extends NodeType {
             case COLOR:
                 return new PyJavaInstance(parameter.asColor());
             case GROB_CANVAS:
-            case GROB_SHAPE:
+            case GROB_PATH:
             case GROB_IMAGE:
                 return new PyJavaInstance(parameter.asGrob());
             default:
@@ -108,14 +106,23 @@ public class PythonNodeType extends NodeType {
             case COLOR:
                 value = returnValue.__tojava__(Color.class);
                 break;
-            case GROB_CANVAS:
-                value = returnValue.__tojava__(Color.class);
+            case GROB:
+                value = returnValue.__tojava__(Grob.class);
                 break;
-            case GROB_SHAPE:
+            case GROB_PATH:
+                value = returnValue.__tojava__(BezierPath.class);
+                break;
+            case GROB_CANVAS:
+                value = returnValue.__tojava__(Canvas.class);
+                break;
+            case GROB_GROUP:
                 value = returnValue.__tojava__(Group.class);
                 break;
             case GROB_IMAGE:
                 value = returnValue.__tojava__(Image.class);
+                break;
+            case GROB_TEXT:
+                value = returnValue.__tojava__(Text.class);
                 break;
         }
         node.setOutputValue(value);

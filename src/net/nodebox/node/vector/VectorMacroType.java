@@ -4,7 +4,7 @@ import net.nodebox.node.Node;
 import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ProcessingContext;
 
-public class VectorMacroType extends VectorNodeType {
+public class VectorMacroType extends PathNodeType {
 
     // private VectorNetwork network;
 

@@ -9,12 +9,12 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class ColorType extends VectorNodeType {
+public class ColorType extends PathNodeType {
 
     public ColorType(NodeTypeLibrary library) {
         super(library, "color");
         setDescription("Changes the color of the input shape.");
-        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
+        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_PATH);
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);

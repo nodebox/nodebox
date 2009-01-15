@@ -1,7 +1,6 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Group;
 import net.nodebox.handle.DisplayPointsHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
@@ -9,7 +8,7 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class GridType extends VectorNodeType {
+public class GridType extends PathNodeType {
 
     public GridType(NodeTypeLibrary library) {
         super(library, "grid");
@@ -47,15 +46,13 @@ public class GridType extends VectorNodeType {
             top = y - height / 2;
         }
 
-        Group g = new Group();
         BezierPath p = new BezierPath();
         for (int rowindex = 0; rowindex < rows; rowindex++) {
             for (int columnindex = 0; columnindex < columns; columnindex++) {
                 p.moveto(left + columnindex * columnsize, top + rowindex * rowsize);
             }
         }
-        g.add(p);
-        node.setOutputValue(g);
+        node.setOutputValue(p);
         return true;
     }
 

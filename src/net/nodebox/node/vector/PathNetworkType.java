@@ -5,9 +5,9 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class VectorNetworkType extends VectorNodeType {
+public class PathNetworkType extends PathNodeType {
 
-    public VectorNetworkType(NodeTypeLibrary library) {
+    public PathNetworkType(NodeTypeLibrary library) {
         super(library, "vecnet");
         setDescription("Contains vector nodes.");
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);

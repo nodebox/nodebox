@@ -3,7 +3,6 @@ package net.nodebox.node;
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.graphics.BezierPath;
 import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Group;
 import net.nodebox.graphics.Rect;
 
 import java.io.File;
@@ -55,11 +54,9 @@ public class NodeTypeLibraryTest extends NodeTypeTestCase {
 
         assertTrue(ellipseNode.update());
         Object ellipseValue = ellipseNode.getOutputValue();
-        assertTrue(ellipseValue instanceof Group);
-        Group ellipseGroup = (Group) ellipseValue;
-        assertEquals(new Rect(-5, 0, 30, 40), ellipseGroup.getBounds());
-        assertEquals(1, ellipseGroup.size());
-        BezierPath ellipsePath = (BezierPath) ellipseGroup.get(0);
+        assertTrue(ellipseValue instanceof BezierPath);
+        BezierPath ellipsePath = (BezierPath) ellipseValue;
+        assertEquals(new Rect(-5, 0, 30, 40), ellipsePath.getBounds());
         assertEquals(color, ellipsePath.getFillColor());
     }
 

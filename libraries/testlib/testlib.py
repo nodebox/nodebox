@@ -45,12 +45,10 @@ def bounding(*args):
     return 0
 
 def ellipse(x, y, width, height, color):
-    g = graphics.Group()
     p = graphics.BezierPath()
     p.fillColor = color
     p.ellipse(x, y, width, height)
-    g.add(p)
-    return g
+    return p
 
 def allcontrols(angle, color, custom, file, float, font, gradient, group, image, int, menu, point, seed, string, text,
                 toggle):

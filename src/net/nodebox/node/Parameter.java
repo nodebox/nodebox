@@ -206,7 +206,7 @@ public class Parameter implements ParameterTypeListener {
 
     public Grob asGrob() {
         assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.GROB_SHAPE
+        if (getCoreType() == ParameterType.CoreType.GROB_PATH
                 || getCoreType() == ParameterType.CoreType.GROB_CANVAS
                 || getCoreType() == ParameterType.CoreType.GROB_IMAGE) {
             return (Grob) value;
@@ -445,14 +445,14 @@ public class Parameter implements ParameterTypeListener {
         // Parameters can only be connected to output parameters.
         // TODO: No longer true for implicit connections
         //if (!(parameter instanceof OutputParameter)) return false;
-        return parameter.getCoreType() == getCoreType();
+        return getParameterType().canConnectTo(parameter.getParameterType());
     }
 
     public boolean canConnectTo(Node outputNode) {
         if (!node.inNetwork()) return false;
         if (!outputNode.inNetwork()) return false;
         if (node.getNetwork() != outputNode.getNetwork()) return false;
-        return outputNode.getOutputParameter().getCoreType() == getCoreType();
+        return canConnectTo(outputNode.getOutputParameter());
     }
 
     /**

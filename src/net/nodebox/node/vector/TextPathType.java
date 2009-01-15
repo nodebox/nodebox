@@ -1,14 +1,13 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Group;
 import net.nodebox.graphics.Text;
 import net.nodebox.node.Node;
 import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class TextPathType extends VectorNodeType {
+public class TextPathType extends PathNodeType {
 
     public TextPathType(NodeTypeLibrary library) {
         super(library, "textpath");
@@ -35,7 +34,6 @@ public class TextPathType extends VectorNodeType {
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
-        Group g = new Group();
         Text t = new Text(node.asString("text"), node.asFloat("x"), node.asFloat("y"));
         t.setWidth(node.asFloat("width"));
         t.setHeight(node.asFloat("height"));
@@ -46,8 +44,7 @@ public class TextPathType extends VectorNodeType {
         BezierPath p = new BezierPath(t.getPath());
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
-        g.add(p);
-        node.setOutputValue(g);
+        node.setOutputValue(p);
         return true;
     }
 

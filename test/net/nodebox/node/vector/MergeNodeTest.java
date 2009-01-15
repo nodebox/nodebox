@@ -20,15 +20,11 @@ public class MergeNodeTest extends NodeTestCase {
         Group g = (Group) merge.getOutputValue();
         assertEquals(2, g.getGrobs().size());
 
-        Group rectGroup = (Group) g.get(0);
-        assertEquals(1, rectGroup.size());
-        BezierPath rectPath = (BezierPath) rectGroup.get(0);
+        BezierPath rectPath = (BezierPath) g.get(0);
         // Compare the X value set on the rect1 node so we know it is the output of the rect1 node.
         assertEquals(25.0 - 50.0, rectPath.getBounds().getX());
 
-        Group ellipseGroup = (Group) g.get(1);
-        assertEquals(1, ellipseGroup.size());
-        BezierPath ellipsePath = (BezierPath) ellipseGroup.get(0);
+        BezierPath ellipsePath = (BezierPath) g.get(1);
         // Compare the X value set on the ellipse1 node
         assertEquals(199.0 - 50.0, ellipsePath.getBounds().getX());
 

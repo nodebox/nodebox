@@ -32,7 +32,7 @@
                    description="Minimum and maximum set, hard bounding"/>
         <parameter type="color" name="color1" bounding="hard" minimum="0.0" maximum="1.0"/>
     </type>
-    <type name="ellipse" outputType="grob_vector" method="ellipse">
+    <type name="ellipse" outputType="grob_path" method="ellipse">
         <parameter type="float" name="x"/>
         <parameter type="float" name="y"/>
         <parameter type="float" name="width"/>

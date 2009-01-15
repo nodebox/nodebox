@@ -1,4 +1,4 @@
-package net.nodebox.node.vector;
+package net.nodebox.node.grob;
 
 import net.nodebox.graphics.*;
 import net.nodebox.handle.Handle;
@@ -8,13 +8,13 @@ import net.nodebox.node.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CopyType extends VectorNodeType {
+public class CopyType extends GrobNodeType {
 
     public CopyType(NodeTypeLibrary library) {
         super(library, "copy");
         setDescription("Creates copies of the input.");
-        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_VECTOR);
-        ParameterType pTemplate = addParameterType("template", ParameterType.Type.GROB_VECTOR);
+        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB);
+        ParameterType pTemplate = addParameterType("template", ParameterType.Type.GROB_PATH);
         pTemplate.setNullAllowed(true);
         ParameterType pCopies = addParameterType("copies", ParameterType.Type.INT);
         pCopies.setDefaultValue(1);

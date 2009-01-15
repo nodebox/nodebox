@@ -7,7 +7,7 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class TextType extends VectorNodeType {
+public class TextType extends PathNodeType {
 
     public TextType(NodeTypeLibrary library) {
         super(library, "text");
@@ -32,7 +32,6 @@ public class TextType extends VectorNodeType {
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
         Group g = new Group();
-
         Text t = new Text(node.asString("text"), node.asFloat("x"), node.asFloat("y"));
         t.setWidth(node.asFloat("width"));
         t.setHeight(node.asFloat("height"));

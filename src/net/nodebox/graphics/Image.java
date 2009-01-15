@@ -198,4 +198,8 @@ public class Image extends Grob {
                 && super.equals(other);
     }
 
+    @Override
+    public String toString() {
+        return "<Image (" + getWidth() + ", " + getHeight() + ")>";
+    }
 }

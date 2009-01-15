@@ -1,4 +1,4 @@
-package net.nodebox.node.vector;
+package net.nodebox.node.grob;
 
 import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Group;
@@ -9,12 +9,12 @@ import net.nodebox.node.ProcessingContext;
 
 import java.util.List;
 
-public class MergeType extends VectorNodeType {
+public class MergeType extends GrobNodeType {
 
     public MergeType(NodeTypeLibrary library) {
         super(library, "merge");
         setDescription("Merges multiple vector nodes together.");
-        ParameterType pShapes = addParameterType("shapes", ParameterType.Type.GROB_VECTOR);
+        ParameterType pShapes = addParameterType("shapes", ParameterType.Type.GROB);
         pShapes.setCardinality(ParameterType.Cardinality.MULTIPLE);
     }
 

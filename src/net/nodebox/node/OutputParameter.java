@@ -65,7 +65,7 @@ public class OutputParameter extends Parameter {
     public boolean canConnectTo(Parameter parameter) {
         // Output paramters can only be connected to input parameters.
         if (parameter instanceof OutputParameter) return false;
-        return parameter.getCoreType() == getCoreType();
+        return super.canConnectTo(parameter);
     }
 
     @Override

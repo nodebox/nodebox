@@ -1,7 +1,6 @@
 package net.nodebox.node.vector;
 
 import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.Group;
 import net.nodebox.handle.FourPointHandle;
 import net.nodebox.handle.Handle;
 import net.nodebox.node.Node;
@@ -9,7 +8,7 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class RectType extends VectorNodeType {
+public class RectType extends PathNodeType {
 
     public RectType(NodeTypeLibrary library) {
         super(library, "rect");
@@ -33,7 +32,6 @@ public class RectType extends VectorNodeType {
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
-        Group g = new Group();
         BezierPath p = new BezierPath();
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
@@ -45,8 +43,7 @@ public class RectType extends VectorNodeType {
         } else {
             p.roundedRect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"), rx, ry);
         }
-        g.add(p);
-        node.setOutputValue(g);
+        node.setOutputValue(p);
         return true;
     }
 
