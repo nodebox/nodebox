@@ -105,6 +105,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         String s = numberField.getText();
         try {
             setValueFromString(s);
+            fireStateChanged();
         } catch (NumberFormatException e) {
             Toolkit.getDefaultToolkit().beep();
         }
@@ -115,12 +116,12 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private Rectangle getLeftButtonRect(Rectangle r) {
         if (r == null)
             r = getBounds();
-        return new Rectangle(r.x + 2, r.y + 1, 10, r.height - 2);
+        return new Rectangle(r.x + 2, r.y + 1, 15, r.height - 2);
     }
 
     private Rectangle getRightButtonRect(Rectangle r) {
         r = getLeftButtonRect(r);
-        r.setRect(getWidth() - 10, r.y, 10, r.height);
+        r.setRect(getWidth() - 15, r.y, 15, r.height);
         return r;
     }
 
