@@ -170,6 +170,22 @@ public class ConnectTest extends NodeTestCase {
         assertEquals(0, m.getOutputValue());
     }
 
+    public void testOnlyOneConnect() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        Node number2 = net.create(numberType);
+        Node negate1 = net.create(negateType);
+        negate1.getParameter("value").connect(number1);
+        assertTrue(number1.isConnected());
+        assertFalse(number2.isConnected());
+        assertTrue(negate1.isConnected());
+        // Now change the connection to number2.
+        negate1.getParameter("value").connect(number2);
+        assertFalse(number1.isConnected());
+        assertTrue(number2.isConnected());
+        assertTrue(negate1.isConnected());
+    }
+
     //// Custom assertions ////
 
     private void assertConnectionError(Node inputNode, String inputParameter, Node outputNode, String message) {

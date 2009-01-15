@@ -262,7 +262,7 @@ public class Network extends Node {
                 // can connect to multiple outputs. Single input parameters can only explicitly
                 // connect to one output at the same time, so we disconnect them first.
                 if (inputParameter.getCardinality() == ParameterType.Cardinality.SINGLE) {
-                    disconnect(outputParameter, inputParameter, type);
+                    disconnect(explicitConn.getOutputParameter(), explicitConn.getInputParameter(), type);
                 } else {
                     // If an explicit connection was found on a parameter with multi-input,
                     // just add the output parameter to that connection.
