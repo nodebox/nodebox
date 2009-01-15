@@ -122,6 +122,7 @@ public class Connection {
         // end up updating this parameter, causing infinite recursion.
         if (getOutputNode() == getInputNode()) return;
         getOutputNode().update(ctx);
+        // TODO: This doesn't take multiconnections into account
         outputValue = getOutputNode().getOutputValue();
     }
 

@@ -12,7 +12,7 @@ public class TransformType extends GrobNodeType {
     public TransformType(NodeTypeLibrary library) {
         super(library, "transform");
         setDescription("Transforms the input geometry.");
-        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB_PATH);
+        ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         pTx.setLabel("Transform X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);

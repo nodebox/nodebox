@@ -476,7 +476,7 @@ public class Node {
         ParameterType.Type outputType = outputNode.getOutputParameter().getType();
         List<Parameter> compatibleParameters = new ArrayList<Parameter>();
         for (Parameter p : getParameters()) {
-            if (p.getType().equals(outputType))
+            if (p.canConnectTo(outputNode))
                 compatibleParameters.add(p);
         }
         return compatibleParameters;

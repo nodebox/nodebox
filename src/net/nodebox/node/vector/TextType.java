@@ -1,16 +1,12 @@
 package net.nodebox.node.vector;
 
-import net.nodebox.graphics.Group;
 import net.nodebox.graphics.Text;
-import net.nodebox.node.Node;
-import net.nodebox.node.NodeTypeLibrary;
-import net.nodebox.node.ParameterType;
-import net.nodebox.node.ProcessingContext;
+import net.nodebox.node.*;
 
-public class TextType extends PathNodeType {
+public class TextType extends NodeType {
 
     public TextType(NodeTypeLibrary library) {
-        super(library, "text");
+        super(library, "text", ParameterType.Type.GROB_TEXT);
         setDescription("Creates a text object.");
         ParameterType pText = addParameterType("text", ParameterType.Type.TEXT);
         pText.setDefaultValue("hello");
@@ -31,7 +27,6 @@ public class TextType extends PathNodeType {
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
-        Group g = new Group();
         Text t = new Text(node.asString("text"), node.asFloat("x"), node.asFloat("y"));
         t.setWidth(node.asFloat("width"));
         t.setHeight(node.asFloat("height"));
@@ -39,8 +34,7 @@ public class TextType extends PathNodeType {
         t.setFontSize(node.asFloat("fontSize"));
         t.setLineHeight(node.asFloat("lineHeight"));
         t.setFillColor(node.asColor("fill"));
-        g.add(t);
-        node.setOutputValue(g);
+        node.setOutputValue(t);
         return true;
     }
 

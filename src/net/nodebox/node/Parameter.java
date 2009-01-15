@@ -206,9 +206,12 @@ public class Parameter implements ParameterTypeListener {
 
     public Grob asGrob() {
         assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.GROB_PATH
+        if (getCoreType() == ParameterType.CoreType.GROB
                 || getCoreType() == ParameterType.CoreType.GROB_CANVAS
-                || getCoreType() == ParameterType.CoreType.GROB_IMAGE) {
+                || getCoreType() == ParameterType.CoreType.GROB_GROUP
+                || getCoreType() == ParameterType.CoreType.GROB_IMAGE
+                || getCoreType() == ParameterType.CoreType.GROB_PATH
+                || getCoreType() == ParameterType.CoreType.GROB_TEXT) {
             return (Grob) value;
         } else {
             return new Group();
