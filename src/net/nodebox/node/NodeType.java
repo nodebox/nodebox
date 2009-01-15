@@ -2,6 +2,7 @@ package net.nodebox.node;
 
 import net.nodebox.handle.Handle;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,11 @@ public abstract class NodeType {
      * The version of this node.
      */
     private Version version = new Version();
+
+    /**
+     * A list of references to instances of this node. Needed for when the type changes.
+     */
+    protected List<WeakReference<Node>> instanceRefs = new ArrayList<WeakReference<Node>>();
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.NodeType");
 
@@ -198,17 +204,77 @@ public abstract class NodeType {
         return outputParameterType;
     }
 
+    //// Parameter events ////
+
+    /**
+     * Invoked when the type/core type were changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void typeChangedEvent(ParameterType source) {
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.typeChangedEvent(source);
+        }
+    }
+
+    /**
+     * Invoked when the bounding method or minimum/maximum values were changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void boundingChangedEvent(ParameterType source) {
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.boundingChangedEvent(source);
+        }
+    }
+
+    /**
+     * Invoked when the display level was changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void displayLevelChangedEvent(ParameterType source) {
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.displayLevelChangedEvent(source);
+        }
+    }
+
+    /**
+     * Invoked when the null allowed flag was changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void nullAllowedChangedEvent(ParameterType source) {
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.nullAllowedChangedEvent(source);
+        }
+    }
+
     //// Instance creation ////
 
     /**
      * Creates a node instance based on this node type.
+     * <p/>
+     * This also adds the node to the list of instance references, which is used to notify the node if any of the type
+     * information changes. This is a subtle difference with creating the node directly: in that case the node does
+     * not get added to the instanceRefs.
      * <p/>
      * Override this method if your node type requires a special type of node subclass.
      *
      * @return a Node instance (or subclass)
      */
     public Node createNode() {
-        return new Node(this);
+        Node n = new Node(this);
+        instanceRefs.add(new WeakReference<Node>(n));
+        return n;
     }
 
     //// Handle support ////

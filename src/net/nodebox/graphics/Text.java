@@ -18,12 +18,12 @@ public class Text extends Grob {
 
     private String text;
     private double baseLineX, baseLineY;
-    private double width = Double.MAX_VALUE;
-    private double height = Double.MAX_VALUE;
+    private double width = 0;
+    private double height = 0;
     private String fontName = "Helvetica";
     private double fontSize = 24;
     private double lineHeight;
-    private Align align = Align.LEFT;
+    private Align align = Align.CENTER;
     private Color fillColor = new Color();
 
     public Text(String text, Point pt) {
@@ -173,7 +173,8 @@ public class Text extends Grob {
     private AttributedString getStyledText() {
         AttributedString attrString = new AttributedString(text);
         attrString.addAttribute(TextAttribute.FONT, getFont());
-        attrString.addAttribute(TextAttribute.FOREGROUND, fillColor.getAwtColor());
+        if (fillColor != null)
+            attrString.addAttribute(TextAttribute.FOREGROUND, fillColor.getAwtColor());
         if (align == Align.RIGHT) {
             attrString.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
         } else if (align == Align.CENTER) {
@@ -199,12 +200,13 @@ public class Text extends Grob {
     //// Drawing ////
 
     public void draw(Graphics2D g) {
+        if (fillColor == null) return;
         setupTransform(g);
         if (text == null || text.length() == 0) return;
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
             TextLayout layout = iterator.next();
-            layout.draw(g, iterator.getX(), iterator.getY());
+            layout.draw(g, (float) baseLineX + iterator.getX(), (float) baseLineY + iterator.getY());
         }
         restoreTransform(g);
     }
@@ -218,7 +220,7 @@ public class Text extends Grob {
         while (iterator.hasNext()) {
             TextLayout layout = iterator.next();
             AffineTransform trans = new AffineTransform();
-            trans.translate(iterator.getX(), iterator.getY());
+            trans.translate(baseLineX + iterator.getX(), baseLineY + iterator.getY());
             Shape shape = layout.getOutline(trans);
             p.extend(shape);
         }
@@ -243,8 +245,8 @@ public class Text extends Grob {
         private boolean first;
 
         private TextLayoutIterator() {
-            x = (float) baseLineX;
-            y = (float) baseLineY;
+            x = 0;
+            y = 0;
             styledText = getStyledText();
             measurer = new LineBreakMeasurer(styledText.getIterator(), new FontRenderContext(new AffineTransform(), true, true));
             first = true;
@@ -260,9 +262,16 @@ public class Text extends Grob {
             } else {
                 y += ascent * lineHeight;
             }
-            TextLayout layout = measurer.nextLayout((float) width);
-            x = 0;
-            if (align == Align.RIGHT) {
+            float layoutWidth = width == 0 ? Float.MAX_VALUE : (float) width;
+            TextLayout layout = measurer.nextLayout(layoutWidth);
+            if (width == 0) {
+                layoutWidth = layout.getAdvance();
+                if (align == Align.RIGHT) {
+                    x = -layoutWidth;
+                } else if (align == Align.CENTER) {
+                    x = -layoutWidth / 2.0F;
+                }
+            } else if (align == Align.RIGHT) {
                 x = (float) (width - layout.getAdvance());
             } else if (align == Align.CENTER) {
                 x = (float) ((width - layout.getAdvance()) / 2.0F);

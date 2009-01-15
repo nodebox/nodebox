@@ -61,7 +61,7 @@ public class GraphicsContext {
         fontName = "Helvetica";
         fontSize = 24;
         lineHeight = 1.2;
-        align = Text.Align.LEFT;
+        align = Text.Align.CENTER;
     }
 
     //// Setup methods ////
@@ -154,7 +154,7 @@ public class GraphicsContext {
 
     public BezierPath line(double x1, double y1, double x2, double y2) {
         BezierPath p = new BezierPath();
-        p.ellipse(x1, y1, x2, y2);
+        p.line(x1, y1, x2, y2);
         inheritFromContext(p);
         canvas.add(p);
         return p;
@@ -295,13 +295,12 @@ public class GraphicsContext {
     }
 
     public void setFill(Color fillColor) {
-        this.fillColor = fillColor.clone();
+        setFillColor(fillColor);
     }
 
     public void setFillColor(Color fillColor) {
-        this.fillColor = fillColor.clone();
+        this.fillColor = fillColor == null ? null : fillColor.clone();
     }
-
 
     public Color getStroke() {
         return strokeColor;
@@ -312,11 +311,11 @@ public class GraphicsContext {
     }
 
     public void setStroke(Color strokeColor) {
-        this.strokeColor = strokeColor.clone();
+        setStrokeColor(strokeColor);
     }
 
     public void setStrokeColor(Color strokeColor) {
-        this.strokeColor = strokeColor.clone();
+        this.strokeColor = strokeColor == null ? null : strokeColor.clone();
     }
 
     public double getStrokeWidth() {
@@ -369,11 +368,11 @@ public class GraphicsContext {
     }
 
     public Text text(String text, double x, double y) {
-        return text(text, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
+        return text(text, x, y, 0, 0);
     }
 
     public Text text(String text, double x, double y, double width) {
-        return text(text, x, y, width, Double.MAX_VALUE);
+        return text(text, x, y, width, 0);
     }
 
     public Text text(String text, double x, double y, double width, double height) {
@@ -384,11 +383,11 @@ public class GraphicsContext {
     }
 
     public BezierPath textPath(String text, double x, double y) {
-        return textPath(text, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
+        return textPath(text, x, y, 0, 0);
     }
 
     public BezierPath textPath(String text, double x, double y, double width) {
-        return textPath(text, x, y, width, Double.MAX_VALUE);
+        return textPath(text, x, y, width, 0);
     }
 
     public BezierPath textPath(String text, double x, double y, double width, double height) {
@@ -399,11 +398,11 @@ public class GraphicsContext {
     }
 
     public Rect textMetrics(String text) {
-        return textMetrics(text, Double.MAX_VALUE, Double.MAX_VALUE);
+        return textMetrics(text, 0, 0);
     }
 
     public Rect textMetrics(String text, double width) {
-        return textMetrics(text, width, Double.MAX_VALUE);
+        return textMetrics(text, width, 0);
     }
 
     public Rect textMetrics(String text, double width, double height) {

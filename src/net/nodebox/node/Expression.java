@@ -24,6 +24,7 @@ import org.mvel2.MVEL;
 import org.mvel2.UnresolveablePropertyException;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
+import org.mvel2.optimizers.OptimizerFactory;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -36,6 +37,11 @@ public class Expression {
     private String expression = "";
     private boolean mutable = false;
     private transient Serializable compiledExpression;
+
+    public Expression(String expression, boolean mutable) {
+        this.mutable = mutable;
+        setExpression(expression);
+    }
 
     public Expression(Parameter parameter, String expression) {
         this(parameter, expression, false);
@@ -54,12 +60,18 @@ public class Expression {
     }
 
     public void setExpression(String expression) {
-        if (this.expression.equals(expression)) {
-            return;
-        }
+        if (this.expression != null && this.expression.equals(expression)) return;
         this.expression = expression;
         this.compiledExpression = MVEL.compileExpression(expression);
-        parameter.getNode().markDirty();
+        // The dynamic optimizer crashes for some reason, so we use the "safe reflective" one.
+        // Although "safe" sounds slower, this optimizer actually seems *faster*
+        // than the dynamic one. Don't change this unless you want to go digging for weird
+        // reflective constructor errors.
+        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+    }
+
+    public void setParameter(Parameter parameter) {
+        this.parameter = parameter;
     }
 
     public Parameter getParameter() {

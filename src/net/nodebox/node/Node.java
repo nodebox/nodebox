@@ -261,6 +261,41 @@ public class Node {
         return outputParameter;
     }
 
+    //// Parameter events /////
+    // These come from the NodeType.
+
+    /**
+     * Invoked when the type/core type were changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void typeChangedEvent(ParameterType source) {
+    }
+
+    /**
+     * Invoked when the bounding method or minimum/maximum values were changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void boundingChangedEvent(ParameterType source) {
+    }
+
+    /**
+     * Invoked when the display level was changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void displayLevelChangedEvent(ParameterType source) {
+    }
+
+    /**
+     * Invoked when the null allowed flag was changed.
+     *
+     * @param source the ParameterType this event comes from.
+     */
+    public void nullAllowedChangedEvent(ParameterType source) {
+    }
+
     //// Network ////
 
     public Network getNetwork() {

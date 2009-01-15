@@ -4,7 +4,10 @@ import net.nodebox.graphics.*;
 import net.nodebox.util.StringUtils;
 
 import javax.swing.event.EventListenerList;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Observable;
 import java.util.regex.Pattern;
 
 /**
@@ -247,7 +250,7 @@ public class ParameterType extends Observable {
             this.minimumValue = t.minimumValue;
             this.maximumValue = t.maximumValue;
         }
-        fireTypeChanged();
+        nodeType.typeChangedEvent(this);
     }
 
     public Cardinality getCardinality() {
@@ -320,7 +323,7 @@ public class ParameterType extends Observable {
 
     public void setNullAllowed(boolean value) {
         nullAllowed = value;
-        fireNullAllowedChanged();
+        nodeType.nullAllowedChangedEvent(this);
     }
 
     //// Boundaries ////
@@ -331,7 +334,7 @@ public class ParameterType extends Observable {
 
     public void setBoundingMethod(BoundingMethod boundingMethod) {
         this.boundingMethod = boundingMethod;
-        fireBoundingChanged();
+        nodeType.boundingChangedEvent(this);
     }
 
     public Double getMinimumValue() {
@@ -345,7 +348,7 @@ public class ParameterType extends Observable {
             return;
         // Create copy of minimumValue
         this.minimumValue = (double) minimumValue;
-        fireBoundingChanged();
+        nodeType.boundingChangedEvent(this);
     }
 
     public void setMaximumValue(Double maximumValue) {
@@ -355,7 +358,7 @@ public class ParameterType extends Observable {
             return;
         // Create copy of maximumValue
         this.maximumValue = (double) maximumValue;
-        fireBoundingChanged();
+        nodeType.boundingChangedEvent(this);
     }
 
     public Double getMaximumValue() {
@@ -377,7 +380,7 @@ public class ParameterType extends Observable {
 
     public void setDisplayLevel(DisplayLevel displayLevel) {
         this.displayLevel = displayLevel;
-        fireDisplayLevelChanged();
+        nodeType.displayLevelChangedEvent(this);
     }
 
     //// Menu items ////
@@ -476,40 +479,6 @@ public class ParameterType extends Observable {
         } else {
             return new OutputParameter(this, node);
         }
-    }
-
-    //// Event handling ////
-
-    public void addParameterTypeListener(ParameterTypeListener l) {
-        listeners.add(ParameterTypeListener.class, l);
-    }
-
-    public void removeParameterTypeListener(ParameterTypeListener l) {
-        listeners.remove(ParameterTypeListener.class, l);
-    }
-
-    private void fireTypeChanged() {
-        assert (listeners != null);
-        for (EventListener l : listeners.getListeners(ParameterTypeListener.class))
-            ((ParameterTypeListener) l).typeChanged(this);
-    }
-
-    private void fireBoundingChanged() {
-        assert (listeners != null);
-        for (EventListener l : listeners.getListeners(ParameterTypeListener.class))
-            ((ParameterTypeListener) l).boundingChanged(this);
-    }
-
-    private void fireDisplayLevelChanged() {
-        assert (listeners != null);
-        for (EventListener l : listeners.getListeners(ParameterTypeListener.class))
-            ((ParameterTypeListener) l).displayLevelChanged(this);
-    }
-
-    private void fireNullAllowedChanged() {
-        assert (listeners != null);
-        for (EventListener l : listeners.getListeners(ParameterTypeListener.class))
-            ((ParameterTypeListener) l).nullAllowedChanged(this);
     }
 
     //// Cloning ////

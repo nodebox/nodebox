@@ -41,7 +41,9 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
 
     public void setValueForControl(Object v) {
         String key = (String) v;
-        menuBox.setSelectedItem(menuModel.getMenuItem(key));
+        Object item = menuModel.getMenuItem(key);
+        if (menuBox.getSelectedItem() == item) return;
+        menuBox.setSelectedItem(item);
         // The menuBox does not update automatically
         menuBox.repaint();
     }

@@ -37,7 +37,7 @@ import java.util.logging.Logger;
  * of their expressions will observe the parameters they depend on, and marked the node as dirty whenever they receive
  * an update event from one of the parameters they depend on.
  */
-public class Parameter implements ParameterTypeListener {
+public class Parameter {
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.Parameter");
 
@@ -62,7 +62,6 @@ public class Parameter implements ParameterTypeListener {
         } else {
             this.value = new ArrayList<Object>();
         }
-        parameterType.addParameterTypeListener(this);
     }
 
     //// Basic operations ////

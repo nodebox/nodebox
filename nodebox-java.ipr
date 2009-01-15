@@ -297,7 +297,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$PROJECT_DIR$/../../Java/mvel" />
+        <root url="jar://$PROJECT_DIR$/../../../Java/mvel2/mvel2-2.0.6-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="JUnit">
@@ -314,6 +314,15 @@
       <JAVADOC />
       <SOURCES>
         <root url="file://$PROJECT_DIR$/../../../Java/jython2.5b0/src" />
+      </SOURCES>
+    </library>
+    <library name="ASM">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/asm.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$PROJECT_DIR$/../../../Java/asm/asm-3.1/src.zip!/" />
       </SOURCES>
     </library>
   </component>

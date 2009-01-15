@@ -4,26 +4,16 @@ import net.nodebox.graphics.*;
 import org.python.core.*;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PythonNodeType extends NodeType {
 
     private PyFunction function;
     String[] keywords;
-    List<WeakReference<Node>> instanceRefs = new ArrayList<WeakReference<Node>>();
 
     public PythonNodeType(NodeTypeLibrary library, String identifier, ParameterType.Type outputType, PyFunction function) {
         super(library, identifier, outputType);
         this.function = function;
         initKeywords();
-    }
-
-    @Override
-    public Node createNode() {
-        Node n = super.createNode();
-        instanceRefs.add(new WeakReference<Node>(n));
-        return n;
     }
 
     @Override

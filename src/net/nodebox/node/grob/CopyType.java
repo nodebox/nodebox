@@ -59,6 +59,8 @@ public class CopyType extends GrobNodeType {
         double sx = node.asFloat("sx");
         double sy = node.asFloat("sy");
         String expression = node.asString("expression");
+        Expression expressionObject = new Expression(expression, true);
+        ProcessingContext copyContext = (ProcessingContext) ctx.clone();
         if (expression == null || expression.trim().length() == 0) {
             if (template == null) {  // copy source geometry according to transformation parameters
                 doCopy(outputGroup, shape, 0, 0, copies, tx, ty, r, sx, sy);
@@ -94,9 +96,8 @@ public class CopyType extends GrobNodeType {
                     Node upstreamNode = pShape.getExplicitConnection().getOutputNode();
                     Node copiedUpstreamNode = upstreamNode.getNetwork().copyNodeWithUpstream(upstreamNode);
                     // These expressions can mutate the values; that's sort of the point.
-                    Expression expressionObject = new Expression(copiedUpstreamNode.getOutputParameter(), expression, true);
+                    expressionObject.setParameter(copiedUpstreamNode.getOutputParameter());
                     // The expression object changes the node values, so I don't care about the output.
-                    ProcessingContext copyContext = (ProcessingContext) ctx.clone();
                     copyContext.put("COPY", copyIndex);
                     expressionObject.evaluate(copyContext);
                     // Now evaluate the output of the new upstream node.

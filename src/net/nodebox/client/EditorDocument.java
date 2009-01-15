@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.graphics.GraphicsContext;
+import net.nodebox.graphics.Text;
 import org.python.util.PythonInterpreter;
 
 import javax.swing.*;
@@ -124,6 +125,10 @@ public class EditorDocument extends JFrame {
             interpreter.set("Rect", net.nodebox.graphics.Rect.class);
             interpreter.set("Text", net.nodebox.graphics.Text.class);
             interpreter.set("Transform", net.nodebox.graphics.Transform.class);
+            interpreter.set("LEFT", Text.Align.LEFT);
+            interpreter.set("RIGHT", Text.Align.RIGHT);
+            interpreter.set("CENTER", Text.Align.CENTER);
+            interpreter.set("JUSTIFY", Text.Align.JUSTIFY);
             interpreter.setOut(outputStream);
             interpreter.setErr(errorStream);
             Exception pythonException = null;
