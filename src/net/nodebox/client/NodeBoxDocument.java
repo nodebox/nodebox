@@ -71,7 +71,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     private static Logger logger = Logger.getLogger("net.nodebox.client.NodeBoxDocument");
     private EventListenerList documentFocusListeners = new EventListenerList();
     private UndoManager undo = new UndoManager();
-    private RenderThread renderThread;
+    //private RenderThread renderThread;
 
     private class DocumentObservable extends Observable {
         public void setChanged() {
@@ -145,8 +145,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         initMenu();
         registerForMacOSXEvents();
         setRootNetwork(createEmptyNetwork());
-        renderThread = new RenderThread();
-        renderThread.start();
+        //renderThread = new RenderThread();
+        //renderThread.start();
     }
 
     private void registerForMacOSXEvents() {
@@ -620,7 +620,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
     private void doRender() {
-        renderThread.render(activeNetwork);
+        //renderThread.render(activeNetwork);
     }
 
     public void networkUpdated(Network network) {
@@ -676,7 +676,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
         public void actionPerformed(ActionEvent e) {
             if (shouldClose()) {
-                renderThread.shutdown();
+                //renderThread.shutdown();
                 if (Application.getInstance().getDocumentCount() > 1) {
                     Application.getInstance().removeDocument(NodeBoxDocument.this);
                     dispose();
