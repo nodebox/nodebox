@@ -17,7 +17,6 @@ public class TextPathType extends VectorNodeType {
         pText.setDefaultValue("hello");
         ParameterType pX = addParameterType("x", ParameterType.Type.FLOAT);
         ParameterType pY = addParameterType("y", ParameterType.Type.FLOAT);
-        pY.setDefaultValue(24.0);
         ParameterType pWidth = addParameterType("width", ParameterType.Type.FLOAT);
         pWidth.setDefaultValue(1000.0);
         ParameterType pHeight = addParameterType("height", ParameterType.Type.FLOAT);

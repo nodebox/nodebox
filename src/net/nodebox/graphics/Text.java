@@ -23,7 +23,7 @@ public class Text extends Grob {
     private String fontName = "Helvetica";
     private double fontSize = 24;
     private double lineHeight;
-    private Align align = Align.CENTER;
+    private Align align = Align.LEFT;
     private Color fillColor = new Color();
 
     public Text(String text, Point pt) {
