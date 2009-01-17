@@ -114,6 +114,7 @@ public class NodeTypeLibraryManager {
         corevector.addNodeType(new TextPathType(corevector));
         corevector.addNodeType(new TransformType(corevector));
         corevector.addNodeType(new PathNetworkType(corevector));
+        corevector.addNodeType(new WiggleType(corevector));
         addLibrary(corevector);
         CoreNodeTypeLibrary coreimage = new CoreNodeTypeLibrary("coreimage", new Version(1, 0, 0));
         coreimage.addNodeType(new ImageNetworkType(coreimage));

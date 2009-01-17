@@ -57,10 +57,11 @@ public class BezierPath extends Grob {
 
     public BezierPath(BezierPath other) {
         super(other);
-        elements = (ArrayList<PathElement>) other.elements.clone();
+        elements = new ArrayList<PathElement>();
         fillColor = other.fillColor == null ? null : other.fillColor.clone();
         strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
         strokeWidth = other.strokeWidth;
+        extend(other);
     }
 
     //// Color methods ////

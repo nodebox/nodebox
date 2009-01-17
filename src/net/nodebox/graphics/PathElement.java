@@ -94,12 +94,8 @@ public class PathElement {
         return command;
     }
 
-    public Point getControl1() {
-        return control1;
-    }
-
-    public Point getControl2() {
-        return control2;
+    public void setCommand(int command) {
+        this.command = command;
     }
 
     public Point getPoint() {
@@ -112,6 +108,26 @@ public class PathElement {
 
     public double getY() {
         return point.getY();
+    }
+
+    public void setPoint(Point point) {
+        this.point = point;
+    }
+
+    public Point getControl1() {
+        return control1;
+    }
+
+    public void setControl1(Point control1) {
+        this.control1 = control1;
+    }
+
+    public Point getControl2() {
+        return control2;
+    }
+
+    public void setControl2(Point control2) {
+        this.control2 = control2;
     }
 
     @Override
