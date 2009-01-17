@@ -41,10 +41,58 @@ public class ExpressionTest extends NodeTestCase {
         assertExpressionEquals(12, p1, "v2");
     }
 
-    public void xtestCycles() {
-        Node n = numberType.createNode();
-        Parameter pValue = n.getParameter("value");
+    public void testCycles() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        Node add1 = net.create(addType);
+        Parameter pValue = number1.getParameter("value");
+        Parameter pV1 = add1.getParameter("v1");
+        Parameter pV2 = add1.getParameter("v2");
+        // Create a direct cycle.
         assertExpressionInvalid(pValue, "value");
+        // This should not have created any connections
+        assertTrue(pValue.getDependencies().isEmpty());
+        number1.set("value", 42);
+        assertExpressionEquals(42, pV1, "number1.value");
+        // Create a 2-node cycle with expressions
+        assertExpressionInvalid(pValue, "add1.v1");
+        // Now create a 2-parameter cycle within the same node.
+        pV1.setExpression("v2");
+        assertTrue(add1.update());
+        // This does not cause an error...
+        pV2.setExpression("v1");
+        // TODO: ... but updating this node does.
+        // Currently, this works fine, but all parameters will get their default value.
+        assertTrue(add1.update());
+    }
+
+    /**
+     * This test checks if parameters that refer to other parameters in the same node have the most recent data.
+     * Specifically, it tests if the order of processing doesn't affect the data flow.
+     */
+    public void testStaleData() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        Node add1 = net.create(addType);
+        Parameter v1 = add1.getParameter("v1");
+        Parameter v2 = add1.getParameter("v2");
+        // Basic setup: v2 -> v1 -> number1.value
+        // For this to work, v1 needs to update number1 first before v2 gets the data.
+        // If the value is not updated, v2 will get the value from v1, which hasn't updated yet,
+        // and which will thus return 0.
+        number1.set("value", 42);
+        v1.setExpression("number1.value");
+        v2.setExpression("v1");
+        assertTrue(add1.update());
+        assertEquals(42 + 42, add1.getOutputValue());
+        // Because we cannot determine the exact order of processing, we need to run this test twice.
+        // So this is the setup in the other direction: v1 -> v2 -> number1.value
+        // This time, v2 needs to update number1 first, then v1.
+        number1.set("value", 33);
+        v1.setExpression("v2");
+        v2.setExpression("number1.value");
+        assertTrue(add1.update());
+        assertEquals(33 + 33, add1.getOutputValue());
     }
 
     public void testNetworkLocal() {

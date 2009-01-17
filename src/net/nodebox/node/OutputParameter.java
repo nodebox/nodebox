@@ -29,12 +29,12 @@ public class OutputParameter extends Parameter {
 
     @Override
     public Connection connect(Node outputNode) {
-        throw new ConnectionError(outputNode, this, "You can only connect from an input parameter.");
+        throw new ConnectionError(this, null, "You can only connect from an input parameter.");
     }
 
     @Override
     public boolean disconnect() {
-        throw new ConnectionError(getNode(), this, "You can only disconnect from an input parameter.");
+        throw new ConnectionError(this, null, "You can only disconnect from an input parameter.");
     }
 
     @Override

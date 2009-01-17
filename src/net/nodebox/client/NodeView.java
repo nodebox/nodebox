@@ -5,6 +5,7 @@ import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.Icons;
+import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 import net.nodebox.node.Parameter;
@@ -254,7 +255,11 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     } else if (compatibleParameters.size() == 1) {
                         // Only one possible connection, make it now.
                         Parameter inputParameter = compatibleParameters.get(0);
-                        inputParameter.connect(connectSource.getNode());
+                        try {
+                            inputParameter.connect(connectSource.getNode());
+                        } catch (ConnectionError e) {
+                            JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
+                        }
                     } else {
                         JPopupMenu menu = new JPopupMenu("Select input");
                         for (Parameter p : compatibleParameters) {
@@ -288,34 +293,13 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            inputParameter.connect(outputNode);
+            try {
+                inputParameter.connect(outputNode);
+            } catch (ConnectionError ce) {
+                JOptionPane.showMessageDialog(networkView, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
-
-
-    /*
-    private class RenderHandler extends PBasicInputEventHandler {
-        public void mouseClicked(PInputEvent e) {
-            if (isRendered()) {
-                networkView.setRendered(null);
-            } else {
-                networkView.setRendered(NodeView.this);
-            }
-            e.setHandled(true);
-        }
-    }
-
-    private class HighlightHandler extends PBasicInputEventHandler {
-        public void mouseClicked(PInputEvent e) {
-            if (isHighlighted()) {
-                networkView.setHighlight(null);
-            } else {
-                networkView.setHighlight(NodeView.this);
-            }
-            e.setHandled(true);
-        }
-    }*/
-
 
     private class PopupHandler extends PBasicInputEventHandler {
         public void processEvent(PInputEvent e, int i) {
@@ -327,7 +311,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             menu.show(NodeView.this.networkView, (int) p.getX(), (int) p.getY());
             e.setHandled(true);
         }
-
     }
 
     private class SetRenderedAction extends AbstractAction {

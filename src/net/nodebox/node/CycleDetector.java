@@ -1,18 +1,28 @@
 package net.nodebox.node;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
- * The CycleDetector finds cycles in a Directed Acyclic Graph structure.
+ * The CycleDetector finds cycles in a Directed Acyclic Graph structure. The detector gets run each time a new
+ * connection gets established, or other changes to the network are made that might cause cycles.
  * <p/>
- * Its initializer excepts a list of vertices, and a dictionary of edges,
+ * Explicit connections can only create new cycles when a new connection is made. Implicit connections (expression
+ * dependencies) are a bit trickier: setting or changing an expression might cause a cycle, but also, renaming a node
+ * might cause an expression somewhere to evaluate differently, which could cause a cycle.
+ * <p/>
+ * The constructor excepts a list of vertices, and a dictionary of edges,
  * keyed by the vertex, and the value a list of input, or destination
  * vertices.
  * <p/>
- * It keeps its own state and doesn't modify the vertices or edge dict.
+ * The cycle detector keeps its own state and doesn't modify the vertices or edge dict.
+ * <p/>
+ * A Cycle detector might work on a per-node or per-parameter basis.
+ * Per-node means that parameters within different nodes cannot refer back to eachother, e.g.
+ * rect1.x -> ellipse1.x and ellipse1.y -> rect1.y would cause a cycle, because on a node level this connection would be
+ * cyclic. On a per-parameter basis, the example would not cause a cycle. This implementation works on a per-node basis.
  */
 public class CycleDetector {
 
@@ -20,36 +30,38 @@ public class CycleDetector {
         WHITE, GRAY, BLACK
     }
 
-    private List<Parameter> vertices;
-    private Map<Parameter, List<Parameter>> edges;
-    private Map<Parameter, Color> marks;
+    private Set<Node> vertices;
+    private Map<Node, Set<Node>> edges;
+    private Map<Node, Color> marks;
 
-    public static CycleDetector initWithNetwork(Network network) {
-        List<Node> nodes = network.getNodes();
-        List<Parameter> outputParameters = new ArrayList<Parameter>();
-        Map<Parameter, List<Parameter>> edges = new HashMap<Parameter, List<Parameter>>();
-        for (Node node : nodes) {
-            outputParameters.add(node.getOutputParameter());
-            ArrayList<Parameter> parameters = new ArrayList<Parameter>();
-            for (Connection connection : node.getOutputConnections()) {
-                parameters.add(connection.getInputParameter());
+    public CycleDetector(Network network) {
+        // If this code ever gets changed to a per-parameter basis, don't forget to create edges from the input
+        // parameters to the output parameter.
+        vertices = new HashSet<Node>();
+        edges = new HashMap<Node, Set<Node>>();
+        marks = new HashMap<Node, Color>();
+        vertices.addAll(network.getNodes());
+        for (Connection connection : network.getConnections()) {
+            Node inputNode = connection.getInputNode();
+            for (Node outputNode : connection.getOutputNodes()) {
+                // Connections to myself are allowed for implicit connections (expressions)
+                if (inputNode == outputNode && connection.getType() == Connection.Type.IMPLICIT)
+                    continue;
+                Set<Node> edgesForNode = edges.get(inputNode);
+                if (edgesForNode == null) {
+                    edgesForNode = new HashSet<Node>();
+                    edges.put(inputNode, edgesForNode);
+                }
+                edgesForNode.add(outputNode);
             }
-            edges.put(node.getOutputParameter(), parameters);
         }
-        return new CycleDetector(outputParameters, edges);
-    }
-
-    public CycleDetector(List<Parameter> vertices, Map<Parameter, List<Parameter>> edges) {
-        this.vertices = vertices;
-        this.edges = edges;
-        this.marks = new HashMap<Parameter, Color>();
     }
 
     public boolean hasCycles() {
-        for (Parameter vertex : vertices) {
+        for (Node vertex : vertices) {
             marks.put(vertex, Color.WHITE);
         }
-        for (Parameter vertex : vertices) {
+        for (Node vertex : vertices) {
             if (marks.get(vertex) == Color.WHITE) {
                 if (visit(vertex))
                     return true;
@@ -58,15 +70,20 @@ public class CycleDetector {
         return false;
     }
 
-    private boolean visit(Parameter vertex) {
+    private boolean visit(Node vertex) {
         marks.put(vertex, Color.GRAY);
-        for (Parameter input : edges.get(vertex)) {
-            if (!marks.containsKey(input)) continue;
-            if (marks.get(input) == Color.GRAY) {
-                return true;
-            } else if (marks.get(input) == Color.WHITE) {
-                if (visit(input))
+        Set<Node> outputNodes = edges.get(vertex);
+        if (outputNodes != null) {
+            for (Node output : outputNodes) {
+                if (!marks.containsKey(output)) continue;
+                if (marks.get(output) == Color.GRAY) {
                     return true;
+                } else if (marks.get(output) == Color.WHITE) {
+                    if (visit(output))
+                        return true;
+                } else {
+                    // Visiting black vertices is okay.
+                }
             }
         }
         marks.put(vertex, Color.BLACK);

@@ -159,16 +159,53 @@ public class NetworkTest extends NodeTestCase {
         assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
-    public void xtestCycles() {
+    public void testCycles() {
         Network net = (Network) testNetworkType.createNode();
         Node n1 = net.create(numberType);
         Node n2 = net.create(numberType);
-        n2.getParameter("value").connect(n1);
-        CycleDetector cd = CycleDetector.initWithNetwork(net);
-        assertFalse(cd.hasCycles());
-        n1.getParameter("value").connect(n2);
-        cd = CycleDetector.initWithNetwork(net);
-        assertTrue(cd.hasCycles());
+        Node n3 = net.create(numberType);
+        assertFalse(n2.isConnected());
+        assertValidConnect(n2, "value", n1);
+        assertTrue(n2.isConnected());
+        assertTrue(n2.isInputConnectedTo(n1));
+        assertTrue(n1.isOutputConnectedTo(n2));
+        assertValidConnect(n3, "value", n2);
+        assertTrue(n3.isConnected());
+        assertTrue(n3.isInputConnectedTo(n2));
+        assertTrue(n2.isOutputConnectedTo(n3));
+        // Try creating a 2-node cycle.
+        assertInvalidConnect(n1, "value", n2);
+        // The connection didn't go through, so n1's input is not connected to n2.
+        assertFalse(n1.isInputConnectedTo(n2));
+        // However the output of n2 is still connected to n1.
+        assertTrue(n2.isInputConnectedTo(n1));
+        assertTrue(n1.isConnected());
+        assertTrue(n2.isConnected());
+        // Try creating a 3-node cycle.
+        assertInvalidConnect(n1, "value", n3);
+        // Test multi-input connections.
+        Node n4 = net.create(multiAddType);
+        assertValidConnect(n4, "values", n1);
+        assertValidConnect(n4, "values", n2);
+        assertValidConnect(n4, "values", n3);
+        assertInvalidConnect(n4, "values", n4);
+        assertInvalidConnect(n1, "value", n4);
+    }
+
+    private void assertValidConnect(Node inputNode, String inputParameterName, Node outputNode) {
+        try {
+            inputNode.getParameter(inputParameterName).connect(outputNode);
+        } catch (ConnectionError e) {
+            fail("Should not have thrown ConnectionError: " + e);
+        }
+    }
+
+    private void assertInvalidConnect(Node inputNode, String inputParameterName, Node outputNode) {
+        try {
+            inputNode.getParameter(inputParameterName).connect(outputNode);
+            fail("Should have thrown ConnectionError.");
+        } catch (ConnectionError e) {
+        }
     }
 
 }

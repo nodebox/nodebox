@@ -120,14 +120,18 @@ public class Connection {
         // Check if the output node on the connection is not the same as my node.
         // In that case, we don't want to process the node, since it will eventually
         // end up updating this parameter, causing infinite recursion.
-        if (getOutputNode() == getInputNode()) return;
+        //if (getOutputNode() == getInputNode()) return;
         getOutputNode().update(ctx);
-        // TODO: This doesn't take multiconnections into account
         outputValue = getOutputNode().getOutputValue();
     }
 
     public Object getOutputValue() {
         return outputValue;
+    }
+
+    @Override
+    public String toString() {
+        return inputParameter + " => " + outputParameter;
     }
 
     //// Persistence ////

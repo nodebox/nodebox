@@ -284,13 +284,19 @@ public class Parameter {
         return hasExpression() ? expression.getExpression() : "";
     }
 
+    public void clearExpression() {
+        this.expression = null;
+        setExpressionEnabled(false);
+        clearDependencies();
+        fireValueChanged();
+    }
+
     public void setExpression(String expression) throws ConnectionError {
         if (hasExpression() && getExpression().equals(expression)) {
             return;
         }
         if (expression == null || expression.trim().length() == 0) {
-            this.expression = null;
-            setExpressionEnabled(false);
+            clearExpression();
         } else {
             this.expression = new Expression(this, expression);
             // Setting an expession automatically enables it and marks the node as dirty.

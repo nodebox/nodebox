@@ -234,21 +234,21 @@ public class Network extends Node {
     public Connection connect(Parameter outputParameter, Parameter inputParameter, Connection.Type type) {
         // Sanity checks
         if (!inputParameter.isConnectable())
-            throw new ConnectionError(inputParameter.getNode(), inputParameter, "Input parameter is not connectable.");
+            throw new ConnectionError(outputParameter, inputParameter, "Input parameter is not connectable.");
         if (!outputParameter.isConnectable())
-            throw new ConnectionError(inputParameter.getNode(), inputParameter, "Output parameter is not connectable.");
+            throw new ConnectionError(outputParameter, inputParameter, "Output parameter is not connectable.");
         if (!inputParameter.isInputParameter())
-            throw new ConnectionError(inputParameter.getNode(), inputParameter, "Input parameter is not an input parameter.");
+            throw new ConnectionError(outputParameter, inputParameter, "Input parameter is not an input parameter.");
         if (type == Connection.Type.EXPLICIT && !outputParameter.isOutputParameter())
-            throw new ConnectionError(inputParameter.getNode(), outputParameter, "Output parameter is not an output parameter.");
+            throw new ConnectionError(outputParameter, inputParameter, "Output parameter is not an output parameter.");
         if (inputParameter.getNetwork() != this)
-            throw new ConnectionError(inputParameter.getNode(), outputParameter, "The input parameter is not in this network.");
+            throw new ConnectionError(outputParameter, inputParameter, "The input parameter is not in this network.");
         if (!inputParameter.canConnectTo(outputParameter))
-            throw new ConnectionError(inputParameter.getNode(), outputParameter, "The parameter types do not match.");
+            throw new ConnectionError(outputParameter, inputParameter, "The parameter types do not match.");
         if (type == Connection.Type.EXPLICIT && outputParameter.getNetwork() != this)
-            throw new ConnectionError(inputParameter.getNode(), outputParameter, "The output parameter is not in this network.");
+            throw new ConnectionError(outputParameter, inputParameter, "The output parameter is not in this network.");
         if (inputParameter == outputParameter)
-            throw new ConnectionError(inputParameter.getNode(), outputParameter, "The input and output parameter are the same.");
+            throw new ConnectionError(outputParameter, inputParameter, "The input and output parameter are the same.");
 
         // Check if there already is a connection of the same type between the input and output.
         Connection conn = getConnection(outputParameter, inputParameter, type);
@@ -270,6 +270,11 @@ public class Network extends Node {
                     // We can shortcut the source here; we don't need to an upstream
                     // connection since the connection is already there.
                     addDownstreamConnection(outputParameter, explicitConn);
+                    // After the connection has been made, check if the network contains cycles.
+                    if (containsCycles()) {
+                        disconnect(outputParameter, inputParameter, type);
+                        throw new ConnectionError(outputParameter, inputParameter, "This creates a cyclic connection.");
+                    }
                     inputParameter.getNode().markDirty();
                     fireConnectionAdded(explicitConn);
                     return explicitConn;
@@ -284,6 +289,11 @@ public class Network extends Node {
         }
         addUpstreamConnection(inputParameter, conn);
         addDownstreamConnection(outputParameter, conn);
+        // After the connection has been made, check if the network contains cycles.
+        if (containsCycles()) {
+            disconnect(outputParameter, inputParameter, type);
+            throw new ConnectionError(outputParameter, inputParameter, "This creates a cyclic connection.");
+        }
         inputParameter.getNode().markDirty();
         fireConnectionAdded(conn);
         return conn;
@@ -440,10 +450,10 @@ public class Network extends Node {
     }
 
     /**
-     * Return a Connection object containing all the outputs connected to this input.
+     * Return a list of collection object containing all the outputs connected to this input.
      *
      * @param inputParameter the input Parameter
-     * @return a Connection object.
+     * @return a list of Connection objects.
      */
     public List<Connection> getUpstreamConnections(Parameter inputParameter) {
         List<Connection> connections = upstreams.get(inputParameter);
@@ -567,7 +577,7 @@ public class Network extends Node {
     //// Cycle detection ////
 
     public boolean containsCycles() {
-        return false;
+        return new CycleDetector(this).hasCycles();
     }
 
     //// Event handling ////

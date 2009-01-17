@@ -582,6 +582,15 @@ public class Node {
         return getOutputParameter().isConnected();
     }
 
+    public boolean isInputConnectedTo(Node outputNode) {
+        // Check parameters for upstream connections.
+        for (Parameter p : parameters.values()) {
+            if (p.isConnectedTo(outputNode))
+                return true;
+        }
+        return false;
+    }
+
     public boolean isOutputConnected() {
         return getOutputParameter().isConnected();
     }
@@ -686,6 +695,8 @@ public class Node {
     public boolean update(ProcessingContext ctx) {
         if (!dirty) return true;
         for (Parameter p : parameters.values()) {
+            if (ctx.isUpdating(p) || ctx.hasProcessed(p)) continue;
+            ctx.beginUpdating(p);
             try {
                 p.update(ctx);
             } catch (Exception e) {
@@ -693,6 +704,12 @@ public class Node {
                 dirty = false;
                 return false;
             }
+            ctx.endUpdating(p);
+        }
+        // Only after all parameters have been processed should we process the node.
+        // This happens if parameters depend on eachother, which causes recursion.
+        for (Parameter p : parameters.values()) {
+            if (!ctx.hasProcessed(p)) return false;
         }
         messages.clear();
         boolean success = process(ctx);

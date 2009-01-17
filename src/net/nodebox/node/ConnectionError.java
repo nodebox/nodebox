@@ -20,20 +20,35 @@ package net.nodebox.node;
 
 public class ConnectionError extends RuntimeException {
 
-    private Node node;
-    private Parameter parameter;
+    private Parameter outputParameter;
+    private Parameter inputParameter;
 
-    public ConnectionError(Node node, Parameter parameter, String message) {
+    public ConnectionError(Parameter outputParameter, Parameter inputParameter, String message) {
         super(message);
-        this.node = node;
-        this.parameter = parameter;
+        this.outputParameter = outputParameter;
+        this.inputParameter = inputParameter;
     }
 
-    public Node getNode() {
-        return node;
+    public Parameter getOutputParameter() {
+        return outputParameter;
     }
 
-    public Parameter getParameter() {
-        return parameter;
+    public Node getOutputNode() {
+        if (outputParameter == null) return null;
+        return outputParameter.getNode();
+    }
+
+    public Parameter getInputParameter() {
+        return inputParameter;
+    }
+
+    public Node getInputNode() {
+        if (inputParameter == null) return null;
+        return inputParameter.getNode();
+    }
+
+    @Override
+    public String toString() {
+        return inputParameter + " => " + outputParameter + ": " + getMessage();
     }
 }

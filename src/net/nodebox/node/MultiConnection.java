@@ -63,6 +63,11 @@ public class MultiConnection extends Connection {
         outputValue = values;
     }
 
+    @Override
+    public String toString() {
+        return getInputParameter() + " => " + getOutputParameters();
+    }
+
     //// Persistence ////
 
     public void toXml(StringBuffer xml, String spaces) {

@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.Icons;
+import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Parameter;
 
 import javax.swing.*;
@@ -148,7 +149,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
         public void actionPerformed(ActionEvent e) {
             if (parameter.hasExpression()) {
-                parameter.setExpression(null);
+                parameter.clearExpression();
             } else {
                 parameter.setExpression(parameter.asExpression());
             }
@@ -180,9 +181,8 @@ public class ParameterRow extends JComponent implements ComponentListener {
         public void actionPerformed(ActionEvent e) {
             try {
                 parameter.setExpression(expressionField.getText());
-            } catch (Exception ce) {
-                ExceptionDialog ed = new ExceptionDialog(null, ce);
-                ed.setVisible(true);
+            } catch (ConnectionError ce) {
+                JOptionPane.showMessageDialog(ParameterRow.this, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
