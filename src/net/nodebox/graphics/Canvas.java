@@ -18,8 +18,14 @@
  */
 package net.nodebox.graphics;
 
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import net.nodebox.client.PlatformUtils;
+
 import java.awt.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 public class Canvas extends Group {
 
@@ -108,7 +114,40 @@ public class Canvas extends Group {
     }
 
     public void save(File file) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (file.getName().endsWith(".pdf")) {
+            // I'm using fully qualified class names here so as not to polute the class' namespace.
+            com.lowagie.text.Rectangle size = new com.lowagie.text.Rectangle((float) width, (float) height);
+            com.lowagie.text.Document document = new com.lowagie.text.Document();
+            document = new Document(size);
+            FileOutputStream fos;
+            try {
+                fos = new FileOutputStream(file);
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException("The file " + file + "could not be created", e);
+            }
+            com.lowagie.text.pdf.PdfWriter writer = null;
+            try {
+                writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, fos);
+            } catch (DocumentException e) {
+                throw new RuntimeException("An error occurred while creating a PdfWriter object.", e);
+            }
+            document.open();
+            com.lowagie.text.pdf.DefaultFontMapper fontMapper = new com.lowagie.text.pdf.DefaultFontMapper();
+            if (PlatformUtils.onWindows()) {
+                fontMapper.insertDirectory("C:\\windows\\fonts");
+            } else if (PlatformUtils.onMac()) {
+                fontMapper.insertDirectory("/Library/Fonts");
+            } else {
+                // Where are the fonts in a UNIX install?
+            }
+            com.lowagie.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
+            Graphics2D graphics = contentByte.createGraphics(size.getWidth(), size.getHeight(), fontMapper);
+            draw(graphics);
+            graphics.dispose();
+            document.close();
+        } else {
+            throw new UnsupportedOperationException("Unsupported file extension " + file);
+        }
     }
 
     @Override
