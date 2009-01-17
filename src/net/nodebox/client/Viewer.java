@@ -47,8 +47,11 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
 
     public void setActiveNode(Node node) {
         activeNode = node;
-        if (activeNode != null)
+        if (activeNode != null) {
             handle = activeNode.createHandle();
+        } else {
+            handle = null;
+        }
         repaint();
     }
 
