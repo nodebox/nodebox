@@ -186,6 +186,23 @@ public class ConnectTest extends NodeTestCase {
         assertTrue(negate1.isConnected());
     }
 
+    public void testRemove() {
+        // First add a node
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        number1.set("value", 42);
+        number1.setRendered();
+        net.update();
+        assertEquals(42, net.getOutputValue());
+        // Now remove and update again
+        net.remove(number1);
+        net.update();
+        // This should cause the network to complain that there is no node to render.
+        assertTrue(net.hasError());
+        // The output value should revert to the default value.
+        assertEquals(0, net.getOutputValue());
+    }
+
     //// Custom assertions ////
 
     private void assertConnectionError(Node inputNode, String inputParameter, Node outputNode, String message) {

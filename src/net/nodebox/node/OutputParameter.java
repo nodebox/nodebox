@@ -5,15 +5,8 @@ import java.util.List;
 
 public class OutputParameter extends Parameter {
 
-    /**
-     * I have my own value, since setValue in Parameter checks if the parameter is connected, which has different
-     * semantics for an OutputParameter.
-     */
-    private Object value;
-
     public OutputParameter(ParameterType parameterType, Node node) {
         super(parameterType, node);
-        value = getParameterType().getDefaultValue();
     }
 
     public boolean isInputParameter() {
@@ -79,13 +72,11 @@ public class OutputParameter extends Parameter {
     }
 
     public void setValue(Object value) throws ValueError {
+        // OutputParameter accesses the value directly,  since setValue in Parameter checks if the parameter is connected,
+        // which has different semantics for an OutputParameter.
         getParameterType().validate(value);
         this.value = value;
         fireValueChanged();
-    }
-
-    public Object getValue() {
-        return value;
     }
 
 }

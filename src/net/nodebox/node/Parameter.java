@@ -43,7 +43,7 @@ public class Parameter {
 
     private ParameterType parameterType;
     private Node node;
-    private Object value;
+    protected Object value;
     private boolean valueSet = false;
     private Expression expression;
     private boolean expressionEnabled;
@@ -120,7 +120,7 @@ public class Parameter {
 
     //// Bounding ////
 
-    public void boundingChanged(ParameterType source) {
+    public void boundingChangedEvent(ParameterType source) {
         if (source.getBoundingMethod() == ParameterType.BoundingMethod.HARD)
             clampToBounds();
     }

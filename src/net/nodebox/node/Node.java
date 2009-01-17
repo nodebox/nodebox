@@ -278,6 +278,7 @@ public class Node {
      * @param source the ParameterType this event comes from.
      */
     public void boundingChangedEvent(ParameterType source) {
+        getParameter(source.getName()).boundingChangedEvent(source);
     }
 
     /**
