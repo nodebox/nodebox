@@ -325,6 +325,15 @@
         <root url="jar://$PROJECT_DIR$/../../../Java/asm/asm-3.1/src.zip!/" />
       </SOURCES>
     </library>
+    <library name="iText">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/iText.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="file://$PROJECT_DIR$/../../../Java/iText/core" />
+      </SOURCES>
+    </library>
   </component>
 </project>
 

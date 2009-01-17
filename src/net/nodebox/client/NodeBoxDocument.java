@@ -1,5 +1,7 @@
 package net.nodebox.client;
 
+import net.nodebox.graphics.Grob;
+import net.nodebox.graphics.Rect;
 import net.nodebox.graphics.Text;
 import net.nodebox.node.*;
 import org.xml.sax.InputSource;
@@ -544,13 +546,19 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     public boolean exportToFile(File file) {
         // todo: file export only works on grobs.
-        try {
-            //return PdfWriter.writeGrob(file, (Grob) network.getOutput());
-            return true;
-        } catch (ClassCastException e) {
-            e.printStackTrace();
-            return false;
+        Object outputValue = activeNetwork.getOutputValue();
+        net.nodebox.graphics.Canvas canvas;
+        if (outputValue instanceof net.nodebox.graphics.Canvas) {
+            canvas = (net.nodebox.graphics.Canvas) outputValue;
+        } else if (outputValue instanceof Grob) {
+            Grob g = (Grob) outputValue;
+            Rect bounds = g.getBounds();
+            canvas = new net.nodebox.graphics.Canvas(bounds.getWidth(), bounds.getHeight());
+        } else {
+            throw new RuntimeException("This type of output cannot be exported " + outputValue);
         }
+        canvas.save(file);
+        return true;
     }
 
     public boolean quit() {
