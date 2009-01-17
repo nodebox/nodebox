@@ -34,6 +34,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
         label.setHorizontalTextPosition(JLabel.RIGHT);
         label.putClientProperty("JComponent.sizeVariant", "small");
         label.setFont(PlatformUtils.getSmallBoldFont());
+        label.setToolTipText(parameter.getName());
 
         this.control = control;
 
