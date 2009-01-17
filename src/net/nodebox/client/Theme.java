@@ -18,7 +18,7 @@ public class Theme {
     private Color actionColor = new Color(0, 116, 168);
     private Color borderColor = new Color(48, 48, 48);
     private Color borderHighlightColor = new Color(120, 120, 120);
-    private Color viewBackgroundColor = new Color(144, 152, 160);
+    private Color viewBackgroundColor = new Color(178, 178, 185);
     private Color connectionColor = new Color(100, 100, 100);
     private Color implicitConnectionColor = new Color(160, 160, 160);
     private ArrowIcon arrowIcon = new ArrowIcon();

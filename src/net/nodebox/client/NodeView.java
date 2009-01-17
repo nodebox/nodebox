@@ -4,6 +4,7 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
 import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
+import net.nodebox.Icons;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 import net.nodebox.node.Parameter;
@@ -12,9 +13,11 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -24,8 +27,11 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private final static Border selectedBorder = BorderFactory.createLineBorder(Color.BLACK, 3);
     private final static Font labelFont = new Font("Arial", Font.PLAIN, 12);
 
-    public static final int NODE_WIDTH = 100;
-    public static final int NODE_HEIGHT = 25;
+    public static final int NODE_WIDTH = 110;
+    public static final int NODE_HEIGHT = 35;
+    public static final int CONNECTOR_WIDTH = 28;
+    public static final int CONNECTOR_HEIGHT = 7;
+    public static final int RENDER_FLAG_WIDTH = 12;
 
     private NetworkView networkView;
     private Node node;
@@ -33,7 +39,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private Border border;
 
     private boolean selected;
-    private boolean highlighted;
 
     private static boolean isConnecting;
     private static NodeView connectSource;
@@ -43,7 +48,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         this.networkView = networkView;
         this.node = node;
         this.selected = false;
-        setPaint(new Color(140, 140, 145));
+        setPaint(new GradientPaint(0, 0, new Color(225, 225, 225), 0, NODE_HEIGHT, new Color(200, 200, 200)));
+        //setPaint(new Color(222, 222, 222));
         setTransparency(1.0F);
         setBorder(normalBorder);
         addInputEventListener(new NodeHandler());
@@ -51,7 +57,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         setBounds(0, 0, NODE_WIDTH, NODE_HEIGHT);
         addPropertyChangeListener(PROPERTY_TRANSFORM, this);
         addPropertyChangeListener(PROPERTY_BOUNDS, this);
-
+        addInputEventListener(new PopupHandler());
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -81,54 +87,73 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         Graphics2D g = ctx.getGraphics();
         Shape clip = g.getClip();
         g.clip(getBounds());
-        //g.setClip(getBounds());
 
+        // Define positions for node and connectors.
+        double innerX = 2;
+        double innerY = 2;
+        double innerWidth = NODE_WIDTH - 5;
+        double innerHeight = NODE_HEIGHT - CONNECTOR_HEIGHT - 5;
+        Rectangle2D innerBounds = new Rectangle2D.Double(innerX, innerY, innerWidth, innerHeight);
+
+        double outputX = innerX + (innerWidth - CONNECTOR_WIDTH) / 2;
+        double outputY = innerY + innerHeight;
+        Rectangle2D outputBounds = new Rectangle2D.Double(outputX, outputY, CONNECTOR_WIDTH, CONNECTOR_HEIGHT);
+
+        // Draw the selection/connection border
+        if (connectTarget == this || selected) {
+            if (connectTarget == this) {
+                g.setStroke(new BasicStroke(4.0F));
+                g.setColor(Theme.getInstance().getBorderHighlightColor());
+            } else {
+                g.setStroke(new BasicStroke(4.0F));
+                g.setColor(Theme.getInstance().getActionColor());
+            }
+
+            Area nodeArea = new Area(innerBounds);
+            nodeArea.add(new Area(outputBounds));
+            g.draw(nodeArea);
+        }
+
+        // Set the color for the node itself.
         g.setStroke(new BasicStroke(1));
         if (!node.hasError()) {
             g.setPaint(getPaint());
         } else {
             g.setPaint(Color.RED);
         }
-        g.fill(getBounds());
 
-        g.setFont(labelFont);
-        g.setColor(Color.WHITE);
+        Color lightBorderColor = new Color(80, 80, 80);
+        // Fill the node area.
+        g.fill(innerBounds);
 
-
-        g.drawString(node.getName(), 10, NODE_HEIGHT / 2);
-
+        // Draw the rendered flag.
+        Rectangle2D renderFlagBounds = new Rectangle2D.Double(innerX + innerWidth - RENDER_FLAG_WIDTH, innerY, RENDER_FLAG_WIDTH, innerHeight);
         if (node.isRendered()) {
             g.setColor(Theme.getInstance().getActionColor());
-            g.fillRect(0, 0, 5, NODE_HEIGHT);
+            g.fill(renderFlagBounds);
         }
+        g.setPaint(new Color(160, 160, 160));
+        g.draw(renderFlagBounds);
 
-        paintBorder(g);
+        // Draw the node name.
+        g.setFont(labelFont);
+        g.setColor(Color.BLACK);
+        g.drawString(node.getName(), 10, NODE_HEIGHT / 2);
 
-        if (highlighted) {
-            g.setColor(Color.WHITE);
-            g.drawRect((int) getX(), (int) getY(), (int) getWidth() - 1, (int) getHeight() - 1);
-        }
+        // Draw the node area.
+        g.setPaint(lightBorderColor);
+        g.draw(innerBounds);
+
+        // Draw the output connector.
+        g.setPaint(new Color(160, 160, 160));
+        g.fill(outputBounds);
+        g.setPaint(lightBorderColor);
+        g.draw(outputBounds);
+        Icon outputArrow = new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH, lightBorderColor);
+        outputArrow.paintIcon(null, g, (int) (outputX + (CONNECTOR_WIDTH - outputArrow.getIconWidth()) / 2), (int) (outputY + 1));
+
+
         g.setClip(clip);
-    }
-
-    protected void paintBorder(Graphics2D g2) {
-        Color borderColor;
-        if (connectTarget == this) {
-            borderColor = Theme.getInstance().getBorderHighlightColor();
-        } else if (selected) {
-            borderColor = Theme.getInstance().getActionColor();
-        } else {
-            borderColor = Color.BLACK;
-        }
-        g2.setColor(borderColor);
-        int x = (int) getX();
-        int y = (int) getY();
-        int width = (int) getWidth();
-        int height = (int) getHeight();
-        g2.drawRect(x, y, width - 1, height - 1);
-//        g2.setColor(new Color(88, 87, 96));
-//        g2.drawLine(x, y, x+1, y);
-//        g2.drawLine(x+width-3, )
     }
 
     public boolean isSelected() {
@@ -138,23 +163,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public void setSelected(boolean s) {
         if (selected == s) return;
         selected = s;
-        if (s) {
-            //LOG.debug("select " + node.getName());
-            setBorder(selectedBorder);
-        } else {
-            //LOG.debug("deselect " + node.getName());
-            setBorder(normalBorder);
-        }
-        repaint();
-    }
-
-    public boolean isHighlighted() {
-        return highlighted;
-    }
-
-    public void setHighlighted(boolean h) {
-        if (highlighted == h) return;
-        highlighted = h;
         repaint();
     }
 
@@ -164,30 +172,14 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         private boolean isDragging;
 
         public void mouseClicked(PInputEvent e) {
-            if (e.getButton() == 3) {
-                node.setRendered();
-            } else if (e.getClickCount() == 1) {
+            if (e.getClickCount() == 1) {
                 e.getInputManager().setKeyboardFocus(this);
-                boolean oldSelection = selected;
-                if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != InputEvent.SHIFT_DOWN_MASK) {
-                    networkView.deselectAll();
-                }
-                if (!oldSelection) {
-                    networkView.select(NodeView.this);
-                    networkView.getPane().getDocument().setActiveNode(node);
-                }
+                networkView.singleSelect(NodeView.this);
             } else if (e.getClickCount() == 2 && node instanceof Network) {
                 networkView.getPane().getDocument().setActiveNetwork((Network) node);
             }
             e.setHandled(true);
         }
-
-//        public void keyReleased(PInputEvent e) {
-//            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-//                LOG.info("Pressed backspace");
-//                controller.remove(node);
-//            }
-//        }
 
         public void mousePressed(PInputEvent e) {
             if (e.getButton() == MouseEvent.BUTTON1) {
@@ -195,14 +187,28 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 Point2D pt = NodeView.this.getOffset();
                 double x = e.getPosition().getX() - pt.getX();
                 double y = e.getPosition().getY() - pt.getY();
-                if (y < 20) {
+
+                // Find the area where the mouse is pressed
+                // Possible areas are the output connector, and node itself.
+                if (y < NODE_HEIGHT - CONNECTOR_HEIGHT) {
+                    // Clicked in the node itself
+                    if (x > NODE_WIDTH - RENDER_FLAG_WIDTH) {
+                        // Clicked in the render flag area
+                        getNode().setRendered();
+                        return;
+                    }
                     isDragging = true;
-                    dragPoint = new Point2D.Double(x, y);
+                    // Make sure that this node is also selected.
+                    if (!isSelected()) {
+                        // If other nodes are selected, deselect them so they
+                        // don't get dragged along.
+                        networkView.singleSelect(NodeView.this);
+                    }
+                    dragPoint = e.getPosition();
                 } else {
                     isConnecting = true;
                     connectSource = NodeView.this;
                 }
-
             }
         }
 
@@ -228,9 +234,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         public void mouseDragged(PInputEvent e) {
             if (isDragging) {
                 Point2D pt = e.getPosition();
-                double x = pt.getX() - dragPoint.getX();
-                double y = pt.getY() - dragPoint.getY();
-                setOffset(x, y);
+                double dx = pt.getX() - dragPoint.getX();
+                double dy = pt.getY() - dragPoint.getY();
+                getNetworkView().dragSelection(dx, dy);
+                dragPoint = pt;
             }
             e.setHandled(true);
         }
@@ -310,6 +317,41 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     }*/
 
 
+    private class PopupHandler extends PBasicInputEventHandler {
+        public void processEvent(PInputEvent e, int i) {
+            if (!e.isPopupTrigger()) return;
+            JPopupMenu menu = new JPopupMenu();
+            menu.add(new SetRenderedAction());
+            menu.add(new DeleteAction());
+            Point2D p = e.getCanvasPosition();
+            menu.show(NodeView.this.networkView, (int) p.getX(), (int) p.getY());
+            e.setHandled(true);
+        }
+
+    }
+
+    private class SetRenderedAction extends AbstractAction {
+        private SetRenderedAction() {
+            super("Set Rendered");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            node.setRendered();
+        }
+    }
+
+
+    private class DeleteAction extends AbstractAction {
+
+        public DeleteAction() {
+            super("Delete");
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            node.getNetwork().remove(node);
+        }
+    }
 }
 
 

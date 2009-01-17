@@ -56,9 +56,9 @@ public class ConnectionLayer extends PLayer {
                 }
                 for (Node outputNode : c.getOutputNodes()) {
                     float x0 = (float) (outputNode.getX() + NodeView.NODE_WIDTH / 2);
-                    float y0 = (float) (outputNode.getY() + NodeView.NODE_HEIGHT);
+                    float y0 = (float) (outputNode.getY() + NodeView.NODE_HEIGHT - 2); // Compensate for selection border
                     float x1 = (float) (c.getInputNode().getX() + NodeView.NODE_WIDTH / 2);
-                    float y1 = (float) (c.getInputNode().getY());
+                    float y1 = (float) (c.getInputNode().getY() + 2); // Compensate for selection border
                     float dx = Math.abs(x1 - x0) / 2;
                     p.moveTo(x0, y0);
                     p.curveTo(x0, y0 + dx, x1, y1 - dx, x1, y1);
