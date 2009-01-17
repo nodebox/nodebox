@@ -43,18 +43,24 @@ public class GraphicsContext {
 
     public GraphicsContext() {
         canvas = new Canvas();
-        resetContext();
+        resetContext(true);
     }
 
     public GraphicsContext(Canvas canvas) {
         this.canvas = canvas;
+        resetContext(false);
     }
 
     public void resetContext() {
+        resetContext(true);
+    }
+
+    public void resetContext(boolean resetBackground) {
         fillColor = new Color();
         strokeColor = null;
         strokeWidth = 1.0;
-        canvas.setBackground(new Color(1, 1, 1));
+        if (resetBackground)
+            canvas.setBackground(new Color(1, 1, 1));
         path = null;
         transform = new Transform();
         transformStack = new ArrayList<Transform>();

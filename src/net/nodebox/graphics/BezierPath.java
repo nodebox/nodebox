@@ -39,9 +39,9 @@ public class BezierPath extends Grob {
     private static final double ONE_MINUS_QUARTER = 1.0 - 0.552;
 
     private ArrayList<PathElement> elements = new ArrayList<PathElement>();
-    private Color fillColor = new Color();
-    private Color strokeColor = new Color();
-    private double strokeWidth = 1;
+    private Color fillColor;
+    private Color strokeColor;
+    private double strokeWidth;
     private boolean dirty = true;
     private boolean needsMoveto = true; // Flag to check if we already moved to a start point.
     private transient java.awt.geom.GeneralPath awtPath;
@@ -49,15 +49,20 @@ public class BezierPath extends Grob {
     private double pathLength = -1;
 
     public BezierPath() {
+        fillColor = new Color();
+        strokeColor = new Color();
+        strokeWidth = 1;
     }
 
     public BezierPath(Shape s) {
+        fillColor = new Color();
+        strokeColor = new Color();
+        strokeWidth = 1;
         extend(s);
     }
 
     public BezierPath(BezierPath other) {
         super(other);
-        elements = new ArrayList<PathElement>();
         fillColor = other.fillColor == null ? null : other.fillColor.clone();
         strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
         strokeWidth = other.strokeWidth;
@@ -698,6 +703,18 @@ public class BezierPath extends Grob {
                 throw new AssertionError("Unknown path command " + cmd);
             }
             pi.next();
+        }
+    }
+
+    public void extend(List<Point> points) {
+        boolean first = true;
+        for (Point pt : points) {
+            if (first) {
+                moveto(pt);
+                first = false;
+            } else {
+                lineto(pt);
+            }
         }
     }
 

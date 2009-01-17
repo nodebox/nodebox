@@ -21,12 +21,23 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
     private Node activeNode;
     private Handle handle;
     private BufferedImage canvasImage;
+    private boolean showHandle;
 
     public Viewer(Pane pane, Network network) {
         this.pane = pane;
         this.network = network;
         addMouseListener(this);
         addMouseMotionListener(this);
+        showHandle = true;
+    }
+
+    public boolean isShowHandle() {
+        return showHandle;
+    }
+
+    public void setShowHandle(boolean showHandle) {
+        this.showHandle = showHandle;
+        repaint();
     }
 
     public Network getNetwork() {
@@ -71,7 +82,7 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         }
 
         // Draw handle
-        if (handle != null) {
+        if (handle != null && showHandle) {
             // Create a canvas with a transparent background
             net.nodebox.graphics.Canvas canvas = new net.nodebox.graphics.Canvas();
             canvas.setBackground(new net.nodebox.graphics.Color(0, 0, 0, 0));

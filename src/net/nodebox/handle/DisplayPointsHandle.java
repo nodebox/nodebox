@@ -1,12 +1,11 @@
 package net.nodebox.handle;
 
-import net.nodebox.graphics.BezierPath;
-import net.nodebox.graphics.GraphicsContext;
-import net.nodebox.graphics.Grob;
-import net.nodebox.graphics.PathElement;
+import net.nodebox.graphics.*;
 import net.nodebox.node.Node;
 
 public class DisplayPointsHandle extends AbstractHandle {
+
+    private boolean displayPointNumbers = false;
 
     public DisplayPointsHandle(Node node) {
         super(node);
@@ -17,20 +16,35 @@ public class DisplayPointsHandle extends AbstractHandle {
         dots.setFillColor(HANDLE_COLOR);
         dots.setStrokeWidth(0.0);
         if (node.getOutputValue() instanceof BezierPath) {
-            BezierPath p = (BezierPath) node.getOutputValue();
-            for (PathElement el : p.getElements()) {
-                drawDot(dots, el.getX(), el.getY());
-            }
-
+            drawDots(ctx, (BezierPath) node.getOutputValue(), dots);
         } else {
             Grob grob = (Grob) node.getOutputValue();
             for (Grob child : grob.getChildren(BezierPath.class)) {
-                BezierPath p = (BezierPath) child;
-                for (PathElement el : p.getElements()) {
-                    drawDot(dots, el.getX(), el.getY());
-                }
+                drawDots(ctx, (BezierPath) child, dots);
             }
         }
         ctx.draw(dots);
+    }
+
+    public boolean isDisplayPointNumbers() {
+        return displayPointNumbers;
+    }
+
+    public void setDisplayPointNumbers(boolean displayPointNumbers) {
+        this.displayPointNumbers = displayPointNumbers;
+    }
+
+    private void drawDots(GraphicsContext ctx, BezierPath path, BezierPath dots) {
+        boolean displayPointNumbers = this.displayPointNumbers;
+        int i = 0;
+        for (PathElement el : path.getElements()) {
+            drawDot(dots, el.getX(), el.getY());
+            if (displayPointNumbers) {
+                Text t = ctx.text(String.valueOf(i), el.getX() + 7, el.getY());
+                t.setFontSize(10);
+            }
+            i++;
+        }
+
     }
 }

@@ -3,7 +3,10 @@ package net.nodebox.client;
 import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class ViewerPane extends Pane {
 
@@ -23,6 +26,15 @@ public class ViewerPane extends Pane {
         paneHeader = new PaneHeader(this);
         networkAddressBar = new NetworkAddressBar(this);
         paneHeader.add(networkAddressBar);
+        JCheckBox showHandleBox = new JCheckBox("Handles");
+        showHandleBox.setSelected(true);
+        showHandleBox.putClientProperty("JComponent.sizeVariant", "small");
+        showHandleBox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                viewer.setShowHandle(((JCheckBox) e.getSource()).isSelected());
+            }
+        });
+        paneHeader.add(showHandleBox);
         viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
