@@ -45,6 +45,11 @@ public class ColorDialog extends JDialog implements ChangeListener {
         getRootPane().putClientProperty("Window.style", "small");
         setMinimumSize(new Dimension(300, 340));
         colorField = new ColorField();
+        colorField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
         Container contents = getContentPane();
         contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
 
@@ -339,7 +344,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
         }
     }
 
-    public class ColorField extends JComponent {
+    public class ColorField extends JButton {
 
         public ColorField() {
             setMinimumSize(new Dimension(60, 60));
