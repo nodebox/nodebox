@@ -21,6 +21,7 @@ package net.nodebox.node;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.canvas.CanvasNetworkType;
+import net.nodebox.node.canvas.CanvasType;
 import net.nodebox.node.grob.CopyType;
 import net.nodebox.node.grob.MergeType;
 import net.nodebox.node.grob.TransformType;
@@ -100,6 +101,7 @@ public class NodeTypeLibraryManager {
     private void addBuiltinLibraries() {
         CoreNodeTypeLibrary corecanvas = new CoreNodeTypeLibrary("corecanvas", new Version(1, 0, 0));
         corecanvas.addNodeType(new CanvasNetworkType(corecanvas));
+        corecanvas.addNodeType(new CanvasType(corecanvas));
         addLibrary(corecanvas);
         CoreNodeTypeLibrary corevector = new CoreNodeTypeLibrary("corevector", new Version(1, 0, 0));
         corevector.addNodeType(new ColorType(corevector));

@@ -18,8 +18,6 @@
  */
 package net.nodebox.graphics;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
 import net.nodebox.client.PlatformUtils;
 
 import java.awt.*;
@@ -47,6 +45,7 @@ public class Canvas extends Group {
         super(other);
         this.width = other.width;
         this.height = other.height;
+        this.background = other.background == null ? null : other.background.clone();
     }
 
     public Color getBackground() {
@@ -101,15 +100,13 @@ public class Canvas extends Group {
         double halfWidth = width / 2;
         double halfHeight = height / 2;
         double left = -halfWidth;
-        double right = halfWidth;
         double top = -halfHeight;
-        double bottom = halfHeight;
         g.setColor(background.getAwtColor());
         g.fillRect((int) left, (int) top, (int) width, (int) height);
-        Rectangle clip = g.getClipBounds();
-        int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
-        int clipheight = clip != null && height > clip.height ? clip.height : (int) width;
-        g.setClip(clip != null ? clip.x : 0, clip != null ? clip.y : 0, clipwidth, clipheight);
+        //Rectangle clip = g.getClipBounds();
+        //int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
+        //int clipheight = clip != null && height > clip.height ? clip.height : (int) width;
+        //g.setClip(clip != null ? clip.x : 0, clip != null ? clip.y : 0, clipwidth, clipheight);
         super.draw(g);
     }
 
@@ -117,18 +114,17 @@ public class Canvas extends Group {
         if (file.getName().endsWith(".pdf")) {
             // I'm using fully qualified class names here so as not to polute the class' namespace.
             com.lowagie.text.Rectangle size = new com.lowagie.text.Rectangle((float) width, (float) height);
-            com.lowagie.text.Document document = new com.lowagie.text.Document();
-            document = new Document(size);
+            com.lowagie.text.Document document = new com.lowagie.text.Document(size);
             FileOutputStream fos;
             try {
                 fos = new FileOutputStream(file);
             } catch (FileNotFoundException e) {
                 throw new RuntimeException("The file " + file + "could not be created", e);
             }
-            com.lowagie.text.pdf.PdfWriter writer = null;
+            com.lowagie.text.pdf.PdfWriter writer;
             try {
                 writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, fos);
-            } catch (DocumentException e) {
+            } catch (com.lowagie.text.DocumentException e) {
                 throw new RuntimeException("An error occurred while creating a PdfWriter object.", e);
             }
             document.open();
@@ -142,6 +138,7 @@ public class Canvas extends Group {
             }
             com.lowagie.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
             Graphics2D graphics = contentByte.createGraphics(size.getWidth(), size.getHeight(), fontMapper);
+            graphics.translate(width / 2, height / 2);
             draw(graphics);
             graphics.dispose();
             document.close();

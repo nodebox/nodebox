@@ -546,7 +546,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
 
     public boolean exportToFile(File file) {
         // todo: file export only works on grobs.
-        Object outputValue = activeNetwork.getOutputValue();
+        if (activeNetwork == null || activeNetwork.getRenderedNode() == null) return false;
+        Object outputValue = activeNetwork.getRenderedNode().getOutputValue();
         net.nodebox.graphics.Canvas canvas;
         if (outputValue instanceof net.nodebox.graphics.Canvas) {
             canvas = (net.nodebox.graphics.Canvas) outputValue;
@@ -554,6 +555,11 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
             Grob g = (Grob) outputValue;
             Rect bounds = g.getBounds();
             canvas = new net.nodebox.graphics.Canvas(bounds.getWidth(), bounds.getHeight());
+            // We need to translate the canvas to compensate for the x/y value of the grob.
+            double dx = bounds.getWidth() / 2 + bounds.getX();
+            double dy = bounds.getHeight() / 2 + bounds.getY();
+            canvas.translate(-dx, -dy);
+            canvas.add(g);
         } else {
             throw new RuntimeException("This type of output cannot be exported " + outputValue);
         }
