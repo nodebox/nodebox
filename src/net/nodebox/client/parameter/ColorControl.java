@@ -1,6 +1,11 @@
 package net.nodebox.client.parameter;
 
+import net.nodebox.client.ColorDialog;
+import net.nodebox.client.DocumentFocusListener;
+import net.nodebox.client.NodeBoxDocument;
 import net.nodebox.client.SwingUtils;
+import net.nodebox.node.Network;
+import net.nodebox.node.Node;
 import net.nodebox.node.Parameter;
 import net.nodebox.node.ParameterDataListener;
 
@@ -11,11 +16,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ParameterDataListener, ActionListener {
+public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ParameterDataListener, ActionListener, DocumentFocusListener {
 
     private Parameter parameter;
     //private ColorWell colorWell;
     private ColorButton colorButton;
+    private ColorDialog colorDialog;
 
     public ColorControl(Parameter parameter) {
         setLayout(new FlowLayout(FlowLayout.LEADING));
@@ -29,6 +35,7 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
         add(colorButton);
         setValueForControl(parameter.getValue());
         parameter.addDataListener(this);
+
     }
 
     public Parameter getParameter() {
@@ -40,6 +47,7 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
     }
 
     private void setValueFromControl() {
+        parameter.setValue(new net.nodebox.graphics.Color(colorDialog.getColor()));
         //parameter.setValue(colorWell.getColor());
     }
 
@@ -56,56 +64,38 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         final JDialog d = new JDialog(frame, "Choose Color", true);
         d.getContentPane().setLayout(new BorderLayout(10, 10));
-        final ColorSwatch colorSwatch = new ColorSwatch(parameter.asColor());
-        final JColorChooser colorChooser = new JColorChooser(parameter.asColor().getAwtColor());
-        //colorChooser.setPreviewPanel(colorSwatch);
-        colorChooser.setPreviewPanel(new JPanel());
-        JPanel alphaPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 0));
-        JLabel alphaLabel = new JLabel("Alpha:");
-        final JSlider alphaSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, (int) (parameter.asColor().getAlpha() * 100));
-        alphaPanel.add(alphaLabel);
-        alphaPanel.add(alphaSlider);
-        JPanel colorPanel = new JPanel(new BorderLayout(10, 10));
-        colorPanel.add(colorSwatch, BorderLayout.NORTH);
-        colorPanel.add(colorChooser, BorderLayout.CENTER);
-        colorPanel.add(alphaPanel, BorderLayout.SOUTH);
-        d.getContentPane().add(colorPanel, BorderLayout.CENTER);
-        JButton btn = new JButton("OK");
-        btn.addActionListener(new AbstractAction() {
-            public void actionPerformed(ActionEvent e) {
-                d.setVisible(false);
-            }
-        });
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 0, 0));
-        buttonPanel.add(btn);
-        d.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
-        ChangeListener changeListener = new ChangeListener() {
-            public void stateChanged(ChangeEvent e) {
-                Color awtColor = colorChooser.getColor();
-                colorSwatch.setColor(new net.nodebox.graphics.Color(
-                        awtColor.getRed(),
-                        awtColor.getGreen(),
-                        awtColor.getBlue(),
-                        alphaSlider.getValue() / 100.0));
-                colorSwatch.repaint();
-            }
-        };
+//        final ColorSwatch colorSwatch = new ColorSwatch(parameter.asColor());
 
-        colorChooser.getSelectionModel().addChangeListener(changeListener);
-        alphaSlider.getModel().addChangeListener(changeListener);
+        // Install a listener that listens for active node changed events, so we can dispose of the color dialog.
+        // TODO: Find a better way to do this. Maybe add color dialogs to the document itself?
+        Component component = getParent();
+        while (!(component instanceof NodeBoxDocument)) {
+            component = component.getParent();
+        }
+        NodeBoxDocument doc = (NodeBoxDocument) component;
+        doc.addDocumentFocusListener(this);
 
-        d.pack();
-        //d.setSize(400, 400);
-        SwingUtils.centerOnScreen(d);
-        // This goes into modal loop.
-        d.setVisible(true);
-        Color awtColor = colorChooser.getColor();
-        net.nodebox.graphics.Color c = new net.nodebox.graphics.Color(
-                awtColor.getRed(),
-                awtColor.getGreen(),
-                awtColor.getBlue(),
-                alphaSlider.getValue() / 100.0);
-        parameter.setValue(c);
+        if (colorDialog == null) {
+            colorDialog = new ColorDialog((Frame) SwingUtilities.getWindowAncestor(this));
+            colorDialog.setColor(parameter.asColor().getAwtColor());
+            colorDialog.setSize(500, 340);
+            colorDialog.addChangeListener(this);
+            colorDialog.setAlwaysOnTop(true);
+            SwingUtils.centerOnScreen(colorDialog);
+            colorDialog.setVisible(true);
+        } else {
+            colorDialog.setVisible(true);
+            colorDialog.requestFocus();
+        }
+    }
+
+    public void activeNetworkChanged(Network activeNetwork) {
+    }
+
+    public void activeNodeChanged(Node activeNode) {
+        if (colorDialog != null) {
+            colorDialog.dispose();
+        }
     }
 
     private class ColorSwatch extends JComponent {
@@ -144,6 +134,8 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
             Rectangle r = g.getClipBounds();
             g.setColor(parameter.asColor().getAwtColor());
             g.fillRect(r.x, r.y, r.width, r.height);
+            g.setColor(Color.darkGray);
+            g.drawRect(r.x, r.y, r.width - 1, r.height - 1);
         }
     }
 }

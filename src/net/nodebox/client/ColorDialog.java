@@ -5,6 +5,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
 public class ColorDialog extends JDialog implements ChangeListener {
 
@@ -39,6 +42,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
     public ColorDialog(Frame owner) {
         super(owner, "Choose Color");
+        getRootPane().putClientProperty("Window.style", "small");
+        setMinimumSize(new Dimension(300, 340));
         colorField = new ColorField();
         Container contents = getContentPane();
         contents.setLayout(new BoxLayout(contents, BoxLayout.Y_AXIS));
@@ -130,12 +135,19 @@ public class ColorDialog extends JDialog implements ChangeListener {
         Dimension fillDimension = new Dimension(0, Integer.MAX_VALUE);
         contents.add(new Box.Filler(fillDimension, fillDimension, fillDimension));
 
+        KeyStroke escapeStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        getRootPane().registerKeyboardAction(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        }, escapeStroke, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+
         setColor(Color.WHITE);
     }
 
     public static void main(String[] args) {
         ColorDialog cd = new ColorDialog(null);
-        cd.setSize(800, 400);
+        cd.setSize(500, 340);
         cd.setLocationByPlatform(true);
         cd.setAlwaysOnTop(true);
         cd.setVisible(true);
@@ -207,10 +219,16 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     public void setColor(Color color) {
+        if (this.color != null && color != null && this.color.equals(color)) return;
         this.color = color;
         updateRGB();
         updateHSB();
         updateAlpha();
+        fireStateChanged();
+    }
+
+    public Color getColor() {
+        return color;
     }
 
     private void setHSB(float h, float s, float b) {
@@ -221,6 +239,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
         this.color = new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (alpha * 255));
         updateRGB();
         colorField.repaint();
+        fireStateChanged();
     }
 
     private void setRGB(float r, float g, float b) {
@@ -230,13 +249,14 @@ public class ColorDialog extends JDialog implements ChangeListener {
         this.color = new Color(r, g, b, alpha);
         updateHSB();
         colorField.repaint();
+        fireStateChanged();
     }
 
     private void setAlpha(float a) {
         this.color = new Color(red, green, blue, a);
         colorField.repaint();
+        fireStateChanged();
     }
-
 
     private void updateRGB() {
         changeDisabled = true;
