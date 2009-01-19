@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx type="file" formatVersion="0.8">
+  <network name="canvasnet" type="corecanvas.canvasnet" version="1.0.0" x="0.0" y="0.0">
+    <key>width</key>
+    <float>1000.0</float>
+    <key>height</key>
+    <float>1000.0</float>
+    <node name="copy1" type="corevector.copy" version="1.0.0" x="116.0" y="212.0">
+      <data>
+      <key>copies</key>
+      <int>1</int>
+      <key>tx</key>
+      <float>0.0</float>
+      <key>ty</key>
+      <float>0.0</float>
+      <key>r</key>
+      <float>0.0</float>
+      <key>sx</key>
+      <float>1.0</float>
+      <key>sy</key>
+      <float>1.0</float>
+      <key>expression</key>
+      <string>transform2.sx=Math.sin(CNUM/10.0+transform2.sx)*10.0</string>
+      </data>
+    </node>
+    <node name="ellipse1" type="corevector.ellipse" version="1.0.0" x="14.0" y="32.0">
+      <data>
+      <key>x</key>
+      <float>0.0</float>
+      <key>y</key>
+      <float>0.0</float>
+      <key>width</key>
+      <float>2.8999999798834324</float>
+      <key>height</key>
+      <float>4.0</float>
+      <key>fill</key>
+      <color>#000000ff</color>
+      <key>stroke</key>
+      <color>#000000ff</color>
+      <key>strokewidth</key>
+      <float>0.0</float>
+      </data>
+    </node>
+    <node name="transform2" type="corevector.transform" version="1.0.0" x="48.0" y="120.0">
+      <data>
+      <key>tx</key>
+      <float>0.0</float>
+      <key>ty</key>
+      <float>0.0</float>
+      <key>r</key>
+      <float>0.0</float>
+      <key>sx</key>
+      <float>4.069999864324927</float>
+      <key>sy</key>
+      <float>1.0</float>
+      </data>
+    </node>
+    <node name="text2" type="corevector.text" version="1.0.0" x="301.0" y="215.0">
+      <data>
+      <key>text</key>
+      <string>Change the Scale X parameter on transform 2 to get a nice effect. Drag numbers with the option key for small increments.</string>
+      <key>x</key>
+      <float>-306.0</float>
+      <key>y</key>
+      <float>151.0</float>
+      <key>width</key>
+      <float>0.0</float>
+      <key>height</key>
+      <float>0.0</float>
+      <key>fontName</key>
+      <string>Arial</string>
+      <key>fontSize</key>
+      <float>11.0</float>
+      <key>lineHeight</key>
+      <float>1.2</float>
+      <key>align</key>
+      <string>left</string>
+      <key>fill</key>
+      <color>#0000004d</color>
+      </data>
+    </node>
+    <node name="textpath1" type="corevector.textpath" version="1.0.0" x="190.0" y="61.0">
+      <data>
+      <key>text</key>
+      <string>hello</string>
+      <key>x</key>
+      <float>0.0</float>
+      <key>y</key>
+      <float>16.0</float>
+      <key>width</key>
+      <float>0.0</float>
+      <key>height</key>
+      <float>0.0</float>
+      <key>fontName</key>
+      <string>Helvetica-Bold</string>
+      <key>fontSize</key>
+      <float>202.0</float>
+      <key>lineHeight</key>
+      <float>1.2</float>
+      <key>align</key>
+      <string>center</string>
+      <key>fill</key>
+      <color>#000000ff</color>
+      <key>stroke</key>
+      <color>#000000ff</color>
+      <key>strokewidth</key>
+      <float>0.0</float>
+      </data>
+    </node>
+    <node name="resample1" type="corevector.resample" version="1.0.0" x="208.0" y="109.0">
+      <data>
+      <key>points</key>
+      <int>487</int>
+      <key>perContour</key>
+      <int>1</int>
+      <key>equalLengths</key>
+      <int>1</int>
+      </data>
+    </node>
+    <node name="transform3" type="corevector.transform" version="1.0.0" x="116.0" y="253.0">
+      <data>
+      <key>tx</key>
+      <float>0.0</float>
+      <key>ty</key>
+      <float>0.0</float>
+      <key>r</key>
+      <float>0.0</float>
+      <key>sx</key>
+      <float>1.2700000125914812</float>
+      <key>sy</key>
+      <expression>sx</expression>
+      </data>
+    </node>
+    <node name="merge1" type="corevector.merge" version="1.0.0" x="179.0" y="323.0" rendered="true">
+      <data>
+      </data>
+    </node>
+    <connection outputNode="resample1" inputNode="copy1" inputParameter="template"/>
+    <connection outputNode="textpath1" inputNode="resample1" inputParameter="path"/>
+    <connection outputNode="ellipse1" inputNode="transform2" inputParameter="shape"/>
+    <connection outputNode="transform3" inputNode="merge1" inputParameter="shapes"/>
+    <connection outputNode="text2" inputNode="merge1" inputParameter="shapes"/>
+    <connection outputNode="copy1" inputNode="transform3" inputParameter="shape"/>
+    <connection outputNode="transform2" inputNode="copy1" inputParameter="shape"/>
+  </network>
+</ndbx>

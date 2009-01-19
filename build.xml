@@ -6,13 +6,16 @@
         <property name="src" value="src"/>
         <property name="test" value="test"/>
         <property name="lib" value="lib"/>
+        <property name="examples" value="examples"/>
         <property name="build" value="build"/>
         <property name="build.prod" location="${build}/prod"/>
         <property name="build.test" location="${build}/test"/>
         <property name="dist" value="dist"/>
+        <property name="dist.nodebox" value="${dist}/mac"/>
+        <property name="dist.nodebox.examples" value="${dist.nodebox}/Examples"/>
         <property name="apple.appstub"
                   location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
-        <property name="mac.application" location="${dist}/${ant.project.name}.app/"/>
+        <property name="mac.application" location="${dist.nodebox}/${ant.project.name}.app/"/>
         <property name="mac.application.contents" location="${mac.application}/Contents"/>
         <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
         <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
@@ -100,6 +103,7 @@
     </target>
 
     <target name="dist-mac" depends="jar" description="Make a double-clickable Mac OS X application">
+        <mkdir dir="${dist.nodebox}"/>
         <mkdir dir="${mac.application.resources.java}"/>
         <mkdir dir="${mac.application.macos}"/>
         <!-- Copy program jar and library jars -->
@@ -118,6 +122,9 @@
                 <include name="*.py"/>
                 <include name="*.properties"/>
             </fileset>
+        </copy>
+        <copy todir="${dist.nodebox.examples}">
+            <fileset dir="${examples}"/>
         </copy>
         <!-- Copy application stub -->
         <copy file="${apple.appstub}" toFile="${mac.application.macos}/${ant.project.name}"/>
