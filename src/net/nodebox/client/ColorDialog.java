@@ -59,18 +59,25 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
         JPanel sliderPanel = new JPanel(new GridBagLayout());
         hueDraggable = new DraggableNumber();
+        setRangeForDraggable(hueDraggable);
         hueDraggable.addChangeListener(this);
         saturationDraggable = new DraggableNumber();
+        setRangeForDraggable(saturationDraggable);
         saturationDraggable.addChangeListener(this);
         brightnessDraggable = new DraggableNumber();
+        setRangeForDraggable(brightnessDraggable);
         brightnessDraggable.addChangeListener(this);
         redDraggable = new DraggableNumber();
+        setRangeForDraggable(redDraggable);
         redDraggable.addChangeListener(this);
         blueDraggable = new DraggableNumber();
+        setRangeForDraggable(blueDraggable);
         blueDraggable.addChangeListener(this);
         greenDraggable = new DraggableNumber();
+        setRangeForDraggable(greenDraggable);
         greenDraggable.addChangeListener(this);
         alphaDraggable = new DraggableNumber();
+        setRangeForDraggable(alphaDraggable);
         alphaDraggable.addChangeListener(this);
         hueSlider = new ColorSlider();
         saturationSlider = new ColorSlider();
@@ -156,6 +163,11 @@ public class ColorDialog extends JDialog implements ChangeListener {
         cd.setLocationByPlatform(true);
         cd.setAlwaysOnTop(true);
         cd.setVisible(true);
+    }
+
+    private void setRangeForDraggable(DraggableNumber draggable) {
+        draggable.setMinimumValue(0);
+        draggable.setMaximumValue(1);
     }
 
     private float clamp(float v) {

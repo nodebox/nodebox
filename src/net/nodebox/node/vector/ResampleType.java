@@ -18,6 +18,8 @@ public class ResampleType extends PathNodeType {
         ParameterType pPath = addParameterType("path", ParameterType.Type.GROB_PATH);
         ParameterType pPoints = addParameterType("points", ParameterType.Type.INT);
         pPoints.setDefaultValue(20);
+        pPoints.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        pPoints.setMinimumValue((double) 1);
         ParameterType pPerContour = addParameterType("perContour", ParameterType.Type.TOGGLE);
         pPerContour.setDefaultValue(1);
         ParameterType pEqualLengths = addParameterType("equalLengths", ParameterType.Type.TOGGLE);

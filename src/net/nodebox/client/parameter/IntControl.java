@@ -3,6 +3,7 @@ package net.nodebox.client.parameter;
 import net.nodebox.client.DraggableNumber;
 import net.nodebox.node.Parameter;
 import net.nodebox.node.ParameterDataListener;
+import net.nodebox.node.ParameterType;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -26,6 +27,16 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         intFormat.setMinimumFractionDigits(0);
         intFormat.setMaximumFractionDigits(0);
         draggable.setNumberFormat(intFormat);
+        // Set bounding
+        ParameterType pType = parameter.getParameterType();
+        if (pType.getBoundingMethod() == ParameterType.BoundingMethod.HARD) {
+            Double minimumValue = pType.getMinimumValue();
+            if (minimumValue != null)
+                draggable.setMinimumValue(minimumValue);
+            Double maximumValue = pType.getMaximumValue();
+            if (maximumValue != null)
+                draggable.setMaximumValue(maximumValue);
+        }
         add(draggable);
         setPreferredSize(draggable.getPreferredSize());
         setValueForControl(parameter.getValue());

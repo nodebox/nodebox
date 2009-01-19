@@ -18,6 +18,8 @@ public class CopyType extends GrobNodeType {
         pTemplate.setNullAllowed(true);
         ParameterType pCopies = addParameterType("copies", ParameterType.Type.INT);
         pCopies.setDefaultValue(1);
+        pCopies.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        pCopies.setMinimumValue((double) 1);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);
         ParameterType pR = addParameterType("r", ParameterType.Type.FLOAT);

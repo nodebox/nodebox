@@ -26,6 +26,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private Icon rightIcon;
     private int previousX;
 
+    private Double minimumValue;
+    private Double maximumValue;
+
     /**
      * Only one <code>ChangeEvent</code> is needed per slider instance since the
      * event's only (read-only) state is the source property.  The source
@@ -67,14 +70,57 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         setValue(0);
     }
 
+    //// Value ranges ////
+
+    public Double getMinimumValue() {
+        return minimumValue;
+    }
+
+    public boolean hasMinimumValue() {
+        return minimumValue == null;
+    }
+
+    public void setMinimumValue(double minimumValue) {
+        this.minimumValue = minimumValue;
+    }
+
+    public void clearMinimumValue() {
+        this.minimumValue = null;
+    }
+
+    public Double getMaximumValue() {
+        return maximumValue;
+    }
+
+    public boolean hasMaximumValue() {
+        return maximumValue == null;
+    }
+
+    public void setMaximumValue(double maximumValue) {
+        this.maximumValue = maximumValue;
+    }
+
+    public void clearMaximumValue() {
+        this.maximumValue = null;
+    }
+
     //// Value ////
 
     public double getValue() {
         return value;
     }
 
+    public double clampValue(double value) {
+        if (minimumValue != null && value < minimumValue)
+            value = minimumValue;
+        if (maximumValue != null && value > maximumValue)
+            value = maximumValue;
+        return value;
+    }
+
     public void setValue(double value) {
-        this.value = value;
+
+        this.value = clampValue(value);
         String formattedNumber = numberFormat.format(getValue());
         numberField.setText(formattedNumber);
         repaint();
