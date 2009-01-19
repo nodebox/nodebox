@@ -10,6 +10,7 @@ import net.nodebox.node.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.HashSet;
 import java.util.List;
@@ -72,8 +73,9 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     private void initMenus() {
         networkMenu = new JPopupMenu();
         networkMenu.add(new NewNodeAction());
+        networkMenu.add(new ResetViewAction());
         popupHandler = new PopupHandler();
-        getLayer().addInputEventListener(popupHandler);
+        addInputEventListener(popupHandler);
     }
 
     @Override
@@ -422,25 +424,6 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
         }
 
     }
-//
-//    private class PopupHandler extends MouseAdapter {
-//        public void mousePressed(MouseEvent e) {
-//            evaluatePopup(e);
-//        }
-//
-//        public void mouseReleased(MouseEvent e) {
-//            evaluatePopup(e);
-//        }
-//
-//        private void evaluatePopup(MouseEvent e) {
-//            if (e.isPopupTrigger()) {
-//                Point p = e.getPoint();
-//                networkMenu.show(NetworkView.this, p.x, p.y);
-//            }
-//        }
-//    }
-
-    //
 
     private class NewNodeAction extends AbstractAction {
         public NewNodeAction() {
@@ -449,6 +432,16 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
 
         public void actionPerformed(ActionEvent e) {
             showNodeManagerDialog();
+        }
+    }
+
+    private class ResetViewAction extends AbstractAction {
+        private ResetViewAction() {
+            super("Reset View");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getCamera().setViewTransform(new AffineTransform());
         }
     }
 }
