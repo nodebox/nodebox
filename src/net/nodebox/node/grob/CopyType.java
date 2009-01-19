@@ -75,9 +75,9 @@ public class CopyType extends GrobNodeType {
             // Expression set.
             // The expression allows you to modify field values on upstream
             // nodes while copying.
-            //The expression has access to all the nodes by their name (e.g. rect1),
-            //and can set values on them.
-            //The CY local variable contains the copy number (starting from zero)
+            // The expression has access to all the nodes by their name (e.g. rect1),
+            // and can set values on them.
+            // The CNUM local variable contains the copy number (starting from zero)
             Parameter pShape = node.getParameter("shape");
             if (!pShape.isConnected())
                 throw new AssertionError("The shape is not connected.");
@@ -98,7 +98,7 @@ public class CopyType extends GrobNodeType {
                     // These expressions can mutate the values; that's sort of the point.
                     expressionObject.setParameter(copiedUpstreamNode.getOutputParameter());
                     // The expression object changes the node values, so I don't care about the output.
-                    copyContext.put("COPY", copyIndex);
+                    copyContext.put("CNUM", copyIndex);
                     expressionObject.evaluate(copyContext);
                     // Now evaluate the output of the new upstream node.
                     copiedUpstreamNode.update(ctx);
