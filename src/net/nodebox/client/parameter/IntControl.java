@@ -22,7 +22,6 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         this.parameter = parameter;
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
-        draggable.addActionListener(this);
         NumberFormat intFormat = NumberFormat.getNumberInstance();
         intFormat.setMinimumFractionDigits(0);
         intFormat.setMaximumFractionDigits(0);

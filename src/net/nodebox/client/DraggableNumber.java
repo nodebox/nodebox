@@ -218,7 +218,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseReleased(MouseEvent e) {
         if (oldValue != value)
-            fireActionPerformed();
+            fireStateChanged();
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -242,76 +242,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         previousX = e.getX();
         fireStateChanged();
     }
-
-
-    /**
-     * Adds the specified action listener to receive
-     * action events from this textfield.
-     *
-     * @param l the action listener to be added
-     */
-    public synchronized void addActionListener(ActionListener l) {
-        listenerList.add(ActionListener.class, l);
-    }
-
-    /**
-     * Removes the specified action listener so that it no longer
-     * receives action events from this textfield.
-     *
-     * @param l the action listener to be removed
-     */
-    public synchronized void removeActionListener(ActionListener l) {
-        listenerList.remove(ActionListener.class, l);
-    }
-
-    /**
-     * Returns an array of all the <code>ActionListener</code>s added
-     * to this JTextField with addActionListener().
-     *
-     * @return all of the <code>ActionListener</code>s added or an empty
-     *         array if no listeners have been added
-     * @since 1.4
-     */
-    public synchronized ActionListener[] getActionListeners() {
-        return listenerList.getListeners(
-                ActionListener.class);
-    }
-
-    /**
-     * Notifies all listeners that have registered interest for
-     * notification on this event type.  The event instance
-     * is lazily created.
-     * The listener list is processed in last to
-     * first order.
-     *
-     * @see javax.swing.event.EventListenerList
-     */
-    protected void fireActionPerformed() {
-        // Guaranteed to return a non-null array
-        Object[] listeners = listenerList.getListenerList();
-        int modifiers = 0;
-        AWTEvent currentEvent = EventQueue.getCurrentEvent();
-        if (currentEvent instanceof InputEvent) {
-            modifiers = ((InputEvent) currentEvent).getModifiers();
-        } else if (currentEvent instanceof ActionEvent) {
-            modifiers = ((ActionEvent) currentEvent).getModifiers();
-        }
-
-        // todo: could use lightweight event here?
-        ActionEvent e =
-                new ActionEvent(this, ActionEvent.ACTION_PERFORMED,
-                        Double.toString(value),
-                        EventQueue.getMostRecentEventTime(), modifiers);
-
-        // Process the listeners last to first, notifying
-        // those that are interested in this event
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ActionListener.class) {
-                ((ActionListener) listeners[i + 1]).actionPerformed(e);
-            }
-        }
-    }
-
 
     /**
      * Adds a ChangeListener to the slider.

@@ -21,7 +21,6 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         this.parameter = parameter;
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
-        draggable.addActionListener(this);
         setPreferredSize(draggable.getPreferredSize());
         add(draggable);
         setValueForControl(parameter.getValue());
