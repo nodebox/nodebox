@@ -19,6 +19,7 @@ public class XmlHandler extends DefaultHandler {
     private Node currentNode;
     private String currentParameterName;
     private ParseState state = ParseState.OUT_OF_DATA;
+    private StringBuffer characterData;
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.XmlHandler");
 
@@ -52,16 +53,22 @@ public class XmlHandler extends DefaultHandler {
             state = ParseState.OUT_OF_DATA;
         } else if (qName.equals("key")) {
             state = ParseState.IN_KEY;
+            characterData = new StringBuffer();
         } else if (qName.equals("int")) {
             state = ParseState.IN_INT;
+            characterData = new StringBuffer();
         } else if (qName.equals("float")) {
             state = ParseState.IN_FLOAT;
+            characterData = new StringBuffer();
         } else if (qName.equals("string")) {
             state = ParseState.IN_STRING;
+            characterData = new StringBuffer();
         } else if (qName.equals("color")) {
             state = ParseState.IN_COLOR;
+            characterData = new StringBuffer();
         } else if (qName.equals("expression")) {
             state = ParseState.IN_EXPRESSION;
+            characterData = new StringBuffer();
         } else {
             throw new SAXException("Unknown tag " + qName);
         }
@@ -83,15 +90,23 @@ public class XmlHandler extends DefaultHandler {
             // Don't do anything after data
         } else if (qName.equals("key")) {
             assert (state == ParseState.IN_KEY);
+            currentParameterName = characterData.toString();
             state = ParseState.OUT_OF_DATA;
+            characterData = null;
         } else if (qName.equals("int")
                 || qName.equals("float")
                 || qName.equals("string")
-                || qName.equals("color")
-                || qName.equals("expression")) {
+                || qName.equals("color")) {
             // Remove state
             state = ParseState.OUT_OF_DATA;
+            setValue(currentParameterName, characterData.toString());
             currentParameterName = null;
+            characterData = null;
+        } else if (qName.equals("expression")) {
+            state = ParseState.OUT_OF_DATA;
+            setExpression(currentParameterName, characterData.toString());
+            currentParameterName = null;
+            characterData = null;
         } else {
             throw new SAXException("Unknown tag " + qName);
         }
@@ -99,23 +114,23 @@ public class XmlHandler extends DefaultHandler {
 
     @Override
     public void characters(char[] ch, int start, int length) throws SAXException {
-        // TODO: Characters can be called multiple times for long value ranges. Use temp var.
         switch (state) {
             case IN_KEY:
+                characterData.append(ch, start, length);
                 currentParameterName = new String(ch, start, length);
                 break;
             case IN_INT:
             case IN_FLOAT:
             case IN_STRING:
             case IN_COLOR:
-                //if (currentParameterName == null)
-                //    throw new SAXException("Value encountered before key tag.");
-                setValue(currentParameterName, new String(ch, start, length));
+                if (currentParameterName == null)
+                    throw new SAXException("Value encountered before key tag.");
+                characterData.append(ch, start, length);
                 break;
             case IN_EXPRESSION:
                 if (currentParameterName == null)
                     throw new SAXException("Expression encountered before key tag.");
-                setExpression(currentParameterName, new String(ch, start, length));
+                characterData.append(ch, start, length);
         }
     }
 
