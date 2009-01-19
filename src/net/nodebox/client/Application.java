@@ -25,6 +25,7 @@ import org.python.core.PyString;
 import org.python.core.PySystemState;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,51 @@ public class Application {
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
         new File(PlatformUtils.getUserDataDirectory()).mkdir();
+        registerForMacOSXEvents();
+    }
+
+    private void registerForMacOSXEvents() {
+        if (PlatformUtils.onMac()) {
+            try {
+                // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
+                // use as delegates for various com.apple.eawt.ApplicationListener methods
+                OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
+                OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
+                OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
+                OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
+            } catch (Exception e) {
+                System.err.println("Error while loading the OSXAdapter:");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public boolean quit() {
+        // Because documents will disappear from the list once they are closed,
+        // make a copy of the list.
+        java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
+        for (NodeBoxDocument d : documents) {
+            if (!d.shouldClose())
+                return false;
+        }
+        System.exit(0);
+        return true;
+    }
+
+    public void showAbout() {
+        // TODO: Implement
+        Toolkit.getDefaultToolkit().beep();
+    }
+
+    public void showPreferences() {
+        // TODO: Implement
+        Toolkit.getDefaultToolkit().beep();
+    }
+
+    public boolean readFromFile(String path) {
+        NodeBoxDocument doc = createNewDocument();
+        doc.readFromFile(path);
+        return true;
     }
 
     private void load() {
@@ -77,7 +123,8 @@ public class Application {
 
     private void librariesLoadedEvent() {
         startupDialog.setVisible(false);
-        instance.createNewDocument();
+        if (documents.isEmpty())
+            instance.createNewDocument();
     }
 
     private void librariesErrorEvent(String libraryName, Exception exception) {

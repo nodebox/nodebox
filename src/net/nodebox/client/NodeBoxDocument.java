@@ -18,6 +18,8 @@ import javax.xml.parsers.SAXParserFactory;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,7 +33,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-public class NodeBoxDocument extends JFrame implements NetworkDataListener {
+public class NodeBoxDocument extends JFrame implements NetworkDataListener, WindowListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -143,28 +145,13 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(this);
         updateTitle();
         initMenu();
-        registerForMacOSXEvents();
         setRootNetwork(createEmptyNetwork());
         //renderThread = new RenderThread();
         //renderThread.start();
-    }
-
-    private void registerForMacOSXEvents() {
-        if (PlatformUtils.onMac()) {
-            try {
-                // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
-                // use as delegates for various com.apple.eawt.ApplicationListener methods
-                OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
-                OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
-                OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
-                OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
-            } catch (Exception e) {
-                System.err.println("Error while loading the OSXAdapter:");
-                e.printStackTrace();
-            }
-        }
     }
 
 
@@ -496,16 +483,6 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         return true;
     }
 
-    public void showAbout() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
-    }
-
-    public void showPreferences() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
-    }
-
     public boolean save() {
         if (documentFile == null) {
             return saveAs();
@@ -567,20 +544,6 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         return true;
     }
 
-    public boolean quit() {
-        boolean allClosed = true;
-        // Because documents will disappear from the list once they are closed,
-        // make a copy of the list.
-        java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(Application.getInstance().getDocuments());
-        for (NodeBoxDocument d : documents) {
-            allClosed = allClosed && d.shouldClose();
-        }
-        if (allClosed) {
-            System.exit(0);
-            return true;
-        }
-        return false;
-    }
 
     public void markChanged() {
         if (!documentChanged) {
@@ -591,7 +554,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     }
 
 
-    public void updateTitle() {
+    private void updateTitle() {
         String postfix = "";
         if (!PlatformUtils.onMac()) { // todo: mac only code
             postfix = (documentChanged ? " *" : "") + " - PNA";
@@ -618,6 +581,46 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
     public boolean reloadActiveNode() {
         if (activeNode == null) return false;
         return activeNode.getNodeType().reload();
+    }
+
+
+    private void close() {
+        if (shouldClose()) {
+            //renderThread.shutdown();
+            Application.getInstance().removeDocument(NodeBoxDocument.this);
+            dispose();
+            // TODO: On mac, the application doesn't quit after the last document is closed.
+            if (!PlatformUtils.onMac()) {
+                //    // On mac, the application doesn't quit after the last document is closed.
+                //    setVisible(false);
+                //} else {
+                System.exit(0);
+            }
+        }
+    }
+
+    //// Window events ////
+
+    public void windowOpened(WindowEvent e) {
+    }
+
+    public void windowClosing(WindowEvent e) {
+        close();
+    }
+
+    public void windowClosed(WindowEvent e) {
+    }
+
+    public void windowIconified(WindowEvent e) {
+    }
+
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    public void windowActivated(WindowEvent e) {
+    }
+
+    public void windowDeactivated(WindowEvent e) {
     }
 
     //// Network events ////
@@ -689,21 +692,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            if (shouldClose()) {
-                //renderThread.shutdown();
-                if (Application.getInstance().getDocumentCount() > 1) {
-                    Application.getInstance().removeDocument(NodeBoxDocument.this);
-                    dispose();
-                } else {
-                    // TODO: On mac, the application doesn't quit after the last document is closed.
-                    //if (PlatformUtils.onMac()) {
-                    //    // On mac, the application doesn't quit after the last document is closed.
-                    //    setVisible(false);
-                    //} else {
-                    System.exit(0);
-                    //}
-                }
-            }
+            close();
         }
     }
 
@@ -756,7 +745,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            quit();
+            Application.getInstance().quit();
         }
     }
 
