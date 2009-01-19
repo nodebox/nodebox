@@ -237,6 +237,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     private void setHSB(float h, float s, float b) {
+        if (hue == h && saturation == s && brightness == b) return;
         hue = h;
         saturation = s;
         brightness = b;
@@ -248,6 +249,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     private void setRGB(float r, float g, float b) {
+        if (red == r && green == g && blue == b) return;
         red = r;
         green = g;
         blue = b;
@@ -258,6 +260,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     private void setAlpha(float a) {
+        if (alpha == a) return;
+        alpha = a;
         this.color = new Color(red, green, blue, a);
         colorField.repaint();
         fireStateChanged();
