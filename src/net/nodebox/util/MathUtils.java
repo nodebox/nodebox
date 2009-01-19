@@ -15,4 +15,20 @@ public class MathUtils {
     public static double clamp(double v) {
         return 0 > v ? 0 : 1 < v ? 1 : v;
     }
+
+    /**
+     * Clamps the value so the result is between the given minimum and maximum value.
+     * <p/>
+     * This means that if the value is smaller than min, this method will return min.
+     * If the value is larger than max, this method will return max.
+     * Values within the range are returned unchanged.
+     *
+     * @param v   the value to clamp
+     * @param min the minimum value
+     * @param max the maximum value
+     * @return a value between min and max.
+     */
+    public static double clamp(double v, double min, double max) {
+        return min > v ? min : max < v ? max : v;
+    }
 }

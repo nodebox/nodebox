@@ -16,9 +16,9 @@
                 <key>r</key>
                 <float>0.0</float>
                 <key>sx</key>
-                <float>1.0</float>
+                <float>100.0</float>
                 <key>sy</key>
-                <float>1.0</float>
+                <float>100.0</float>
                 <key>expression</key>
                 <string>rect1.width=rect1.height=1+CNUM*0.2</string>
             </data>
@@ -43,6 +43,16 @@
                 <color>#000000ff</color>
                 <key>strokewidth</key>
                 <float>0.07999999821186066</float>
+            </data>
+        </node>
+        <node name="resample1" type="corevector.resample" version="1.0.0" x="276.0" y="87.0">
+            <data>
+                <key>points</key>
+                <int>20</int>
+                <key>perContour</key>
+                <int>1</int>
+                <key>equalLengths</key>
+                <int>0</int>
             </data>
         </node>
         <node name="textpath1" type="corevector.textpath" version="1.0.0" x="321.0" y="33.0">
@@ -73,16 +83,6 @@
                 <float>0.0</float>
             </data>
         </node>
-        <node name="resample1" type="corevector.resample" version="1.0.0" x="276.0" y="87.0">
-            <data>
-                <key>points</key>
-                <int>20</int>
-                <key>perContour</key>
-                <int>1</int>
-                <key>equalLengths</key>
-                <int>0</int>
-            </data>
-        </node>
         <node name="rect2" type="corevector.rect" version="1.0.0" x="144.0" y="24.0">
             <data>
                 <key>x</key>
@@ -105,10 +105,6 @@
                 <float>0.0</float>
             </data>
         </node>
-        <node name="merge1" type="corevector.merge" version="1.0.0" x="125.0" y="309.0" rendered="true">
-            <data>
-            </data>
-        </node>
         <node name="sort1" type="corevector.sort" version="1.0.0" x="203.0" y="147.0">
             <data>
                 <key>sort</key>
@@ -123,6 +119,10 @@
                 <expression>rect2.y</expression>
                 <key>expression</key>
                 <string></string>
+            </data>
+        </node>
+        <node name="merge1" type="corevector.merge" version="1.0.0" x="125.0" y="309.0" rendered="true">
+            <data>
             </data>
         </node>
         <node name="text1" type="corevector.text" version="1.0.0" x="272.0" y="202.0">
@@ -149,11 +149,11 @@
                 <color>#454545ff</color>
             </data>
         </node>
+        <connection outputNode="sort1" inputNode="copy1" inputParameter="template"/>
+        <connection outputNode="resample1" inputNode="sort1" inputParameter="path"/>
+        <connection outputNode="rect1" inputNode="copy1" inputParameter="shape"/>
         <connection outputNode="textpath1" inputNode="resample1" inputParameter="path"/>
         <connection outputNode="copy1" inputNode="merge1" inputParameter="shapes"/>
         <connection outputNode="text1" inputNode="merge1" inputParameter="shapes"/>
-        <connection outputNode="rect1" inputNode="copy1" inputParameter="shape"/>
-        <connection outputNode="sort1" inputNode="copy1" inputParameter="template"/>
-        <connection outputNode="resample1" inputNode="sort1" inputParameter="path"/>
     </network>
 </ndbx>

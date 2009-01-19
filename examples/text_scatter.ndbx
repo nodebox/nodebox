@@ -1,84 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" formatVersion="0.8">
-  <network name="canvasnet" type="corecanvas.canvasnet" version="1.0.0" x="0.0" y="0.0">
-    <key>width</key>
-    <float>1000.0</float>
-    <key>height</key>
-    <float>1000.0</float>
-    <node name="copy1" type="corevector.copy" version="1.0.0" x="180.0" y="212.0" rendered="true">
-      <data>
-      <key>copies</key>
-      <int>13</int>
-      <key>tx</key>
-      <float>0.0</float>
-      <key>ty</key>
-      <float>7.0</float>
-      <key>r</key>
-      <float>14.0</float>
-      <key>sx</key>
-      <float>0.8400000054389238</float>
-      <key>sy</key>
-      <float>0.9000000022351742</float>
-      <key>expression</key>
-      <string></string>
-      </data>
-    </node>
-    <node name="ellipse1" type="corevector.ellipse" version="1.0.0" x="121.0" y="103.0">
-      <data>
-      <key>x</key>
-      <float>0.0</float>
-      <key>y</key>
-      <float>0.0</float>
-      <key>width</key>
-      <float>14.0</float>
-      <key>height</key>
-      <float>10.0</float>
-      <key>fill</key>
-      <color>#00000000</color>
-      <key>stroke</key>
-      <color>#000000ff</color>
-      <key>strokewidth</key>
-      <float>1.0799999963492155</float>
-      </data>
-    </node>
-    <node name="textpath1" type="corevector.textpath" version="1.0.0" x="255.0" y="90.0">
-      <data>
-      <key>text</key>
-      <string>hello</string>
-      <key>x</key>
-      <float>0.0</float>
-      <key>y</key>
-      <float>0.0</float>
-      <key>width</key>
-      <float>0.0</float>
-      <key>height</key>
-      <float>0.0</float>
-      <key>fontName</key>
-      <string>Arial</string>
-      <key>fontSize</key>
-      <float>192.0</float>
-      <key>lineHeight</key>
-      <float>1.2</float>
-      <key>align</key>
-      <string>center</string>
-      <key>fill</key>
-      <color>#000000ff</color>
-      <key>stroke</key>
-      <color>#000000ff</color>
-      <key>strokewidth</key>
-      <float>0.0</float>
-      </data>
-    </node>
-    <node name="scatter1" type="corevector.scatter" version="1.0.0" x="255.0" y="130.0">
-      <data>
-      <key>points</key>
-      <int>250</int>
-      <key>seed</key>
-      <int>0</int>
-      </data>
-    </node>
-    <connection outputNode="ellipse1" inputNode="copy1" inputParameter="shape"/>
-    <connection outputNode="scatter1" inputNode="copy1" inputParameter="template"/>
-    <connection outputNode="textpath1" inputNode="scatter1" inputParameter="path"/>
-  </network>
+    <network name="canvasnet" type="corecanvas.canvasnet" version="1.0.0" x="0.0" y="0.0">
+        <key>width</key>
+        <float>1000.0</float>
+        <key>height</key>
+        <float>1000.0</float>
+        <node name="copy1" type="corevector.copy" version="1.0.0" x="180.0" y="212.0" rendered="true">
+            <data>
+                <key>copies</key>
+                <int>13</int>
+                <key>tx</key>
+                <float>0.0</float>
+                <key>ty</key>
+                <float>7.0</float>
+                <key>r</key>
+                <float>14.0</float>
+                <key>sx</key>
+                <float>84.0</float>
+                <key>sy</key>
+                <float>90.0</float>
+                <key>expression</key>
+                <string></string>
+            </data>
+        </node>
+        <node name="ellipse1" type="corevector.ellipse" version="1.0.0" x="121.0" y="103.0">
+            <data>
+                <key>x</key>
+                <float>0.0</float>
+                <key>y</key>
+                <float>0.0</float>
+                <key>width</key>
+                <float>14.0</float>
+                <key>height</key>
+                <float>10.0</float>
+                <key>fill</key>
+                <color>#00000000</color>
+                <key>stroke</key>
+                <color>#000000ff</color>
+                <key>strokewidth</key>
+                <float>1.0799999963492155</float>
+            </data>
+        </node>
+        <node name="textpath1" type="corevector.textpath" version="1.0.0" x="255.0" y="90.0">
+            <data>
+                <key>text</key>
+                <string>hello</string>
+                <key>x</key>
+                <float>0.0</float>
+                <key>y</key>
+                <float>0.0</float>
+                <key>width</key>
+                <float>0.0</float>
+                <key>height</key>
+                <float>0.0</float>
+                <key>fontName</key>
+                <string>Arial</string>
+                <key>fontSize</key>
+                <float>192.0</float>
+                <key>lineHeight</key>
+                <float>1.2</float>
+                <key>align</key>
+                <string>center</string>
+                <key>fill</key>
+                <color>#000000ff</color>
+                <key>stroke</key>
+                <color>#000000ff</color>
+                <key>strokewidth</key>
+                <float>0.0</float>
+            </data>
+        </node>
+        <node name="scatter1" type="corevector.scatter" version="1.0.0" x="255.0" y="130.0">
+            <data>
+                <key>points</key>
+                <int>250</int>
+                <key>seed</key>
+                <int>0</int>
+            </data>
+        </node>
+        <connection outputNode="ellipse1" inputNode="copy1" inputParameter="shape"/>
+        <connection outputNode="scatter1" inputNode="copy1" inputParameter="template"/>
+        <connection outputNode="textpath1" inputNode="scatter1" inputParameter="path"/>
+    </network>
 </ndbx>
