@@ -29,7 +29,7 @@ public class ResampleType extends PathNodeType {
     public boolean process(Node node, ProcessingContext ctx) {
         BezierPath path = (BezierPath) node.asGrob("path");
         int amount = node.asInt("points");
-        BezierPath newPath = new BezierPath();
+        BezierPath newPath = path.cloneAndClear();
 
         boolean perContour = node.asBoolean("perContour");
         boolean equalLengths = node.asBoolean("equalLengths");
