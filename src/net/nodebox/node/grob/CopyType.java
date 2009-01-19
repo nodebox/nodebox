@@ -21,12 +21,17 @@ public class CopyType extends GrobNodeType {
         pCopies.setBoundingMethod(ParameterType.BoundingMethod.HARD);
         pCopies.setMinimumValue((double) 1);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
+        pTx.setLabel("Transform X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);
+        pTy.setLabel("Transform Y");
         ParameterType pR = addParameterType("r", ParameterType.Type.FLOAT);
+        pR.setLabel("Rotate");
         ParameterType pSx = addParameterType("sx", ParameterType.Type.FLOAT);
-        pSx.setDefaultValue(1.0);
+        pSx.setLabel("Scale X");
+        pSx.setDefaultValue(100.0);
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
-        pSy.setDefaultValue(1.0);
+        pSy.setLabel("Scale Y");
+        pSy.setDefaultValue(100.0);
         ParameterType pExpression = addParameterType("expression", ParameterType.Type.STRING);
     }
 
@@ -58,8 +63,8 @@ public class CopyType extends GrobNodeType {
         double tx = node.asFloat("tx");
         double ty = node.asFloat("ty");
         double r = node.asFloat("r");
-        double sx = node.asFloat("sx");
-        double sy = node.asFloat("sy");
+        double sx = node.asFloat("sx") / 100.0;
+        double sy = node.asFloat("sy") / 100.0;
         String expression = node.asString("expression");
         Expression expressionObject = new Expression(expression, true);
         ProcessingContext copyContext = (ProcessingContext) ctx.clone();

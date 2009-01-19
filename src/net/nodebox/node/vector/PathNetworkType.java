@@ -18,10 +18,10 @@ public class PathNetworkType extends PathNodeType {
         pR.setLabel("Rotation");
         ParameterType pSx = addParameterType("sx", ParameterType.Type.FLOAT);
         pSx.setLabel("Scale X");
-        pSx.setDefaultValue(1.0);
+        pSx.setDefaultValue(100.0);
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setLabel("Scale Y");
-        pSy.setDefaultValue(1.0);
+        pSy.setDefaultValue(100.0);
     }
 
     @Override

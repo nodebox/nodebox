@@ -20,7 +20,7 @@ public class VectorNetwork extends Network {
                 g = g.clone();
                 g.translate(asFloat("tx"), asFloat("ty"));
                 g.rotate(asFloat("r"));
-                g.scale(asFloat("sx"), asFloat("sy"));
+                g.scale(asFloat("sx") / 100.0, asFloat("sy") / 100.0);
                 setOutputValue(g);
             } else {
                 throw new AssertionError(getAbsolutePath() + ": output of rendered node is not Grob, but " + outputValue);

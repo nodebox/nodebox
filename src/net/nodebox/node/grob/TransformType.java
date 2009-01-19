@@ -21,10 +21,10 @@ public class TransformType extends GrobNodeType {
         pR.setLabel("Rotation");
         ParameterType pSx = addParameterType("sx", ParameterType.Type.FLOAT);
         pSx.setLabel("Scale X");
-        pSx.setDefaultValue(1.0);
+        pSx.setDefaultValue(100.0);
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setLabel("Scale Y");
-        pSy.setDefaultValue(1.0);
+        pSy.setDefaultValue(100.0);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class TransformType extends GrobNodeType {
         Transform t = new Transform();
         t.translate(node.asFloat("tx"), node.asFloat("ty"));
         t.rotate(node.asFloat("r"));
-        t.scale(node.asFloat("sx"), node.asFloat("sy"));
+        t.scale(node.asFloat("sx") / 100.0, node.asFloat("sy") / 100.0);
         outGrob.appendTransform(t);
         node.setOutputValue(outGrob);
         return true;
