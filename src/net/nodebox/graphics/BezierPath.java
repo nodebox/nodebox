@@ -778,9 +778,15 @@ public class BezierPath extends Grob {
             g.fill(getGeneralPath());
         }
         if (strokeWidth > 0 && strokeColor != null && strokeColor.isVisible()) {
-            g.setColor(strokeColor.getAwtColor());
-            g.setStroke(new BasicStroke((float) strokeWidth));
-            g.draw(getGeneralPath());
+            try {
+                g.setColor(strokeColor.getAwtColor());
+                g.setStroke(new BasicStroke((float) strokeWidth));
+                g.draw(getGeneralPath());
+            } catch (Exception e) {
+                // Invalid transformations can cause the pen to not display.
+                // Catch the exception and throw it away.
+                // The path would be too small to be displayed anyway.
+            }
         }
         restoreTransform(g);
     }
