@@ -331,7 +331,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$PROJECT_DIR$/../../../Java/iText/core" />
+        <root url="file://$PROJECT_DIR$/../../../Java/iText/src/core" />
       </SOURCES>
     </library>
   </component>
