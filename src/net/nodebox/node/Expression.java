@@ -19,9 +19,12 @@
 package net.nodebox.node;
 
 import net.nodebox.graphics.Color;
+import net.nodebox.util.ExpressionUtils;
 import org.mvel2.CompileException;
 import org.mvel2.MVEL;
+import org.mvel2.ParserContext;
 import org.mvel2.UnresolveablePropertyException;
+import org.mvel2.compiler.ExpressionCompiler;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
 import org.mvel2.optimizers.OptimizerFactory;
@@ -32,6 +35,30 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Expression {
+
+    static ParserContext parserContext = new ParserContext();
+
+    static {
+        // Initialize MVEL.
+
+        // The dynamic optimizer crashes for some reason, so we use the "safe reflective" one.
+        // Although "safe" sounds slower, this optimizer actually seems *faster*
+        // than the dynamic one. Don't change this unless you want to go digging for weird
+        // reflective constructor errors.
+        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+
+        // Add "built-in" methods to the expression context.
+        parserContext = new ParserContext();
+        try {
+            // MVEL has a bug where it accepts methods with varargs, but only executes the method with
+            // non-varargs. So in our ExpressionUtils we have both the varargs and non-varargs methods.
+            // We lookup the varargs version here, but only the non-varargs will get called.
+            parserContext.addImport("random", ExpressionUtils.class.getMethod("random", long.class, double[].class));
+            parserContext.addImport("color", ExpressionUtils.class.getMethod("color", double[].class));
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError("Unknown static method for expression." + e);
+        }
+    }
 
     private Parameter parameter;
     private String expression = "";
@@ -62,12 +89,8 @@ public class Expression {
     public void setExpression(String expression) {
         if (this.expression != null && this.expression.equals(expression)) return;
         this.expression = expression;
-        this.compiledExpression = MVEL.compileExpression(expression);
-        // The dynamic optimizer crashes for some reason, so we use the "safe reflective" one.
-        // Although "safe" sounds slower, this optimizer actually seems *faster*
-        // than the dynamic one. Don't change this unless you want to go digging for weird
-        // reflective constructor errors.
-        OptimizerFactory.setDefaultOptimizer(OptimizerFactory.SAFE_REFLECTIVE);
+        ExpressionCompiler compiler = new ExpressionCompiler(expression);
+        this.compiledExpression = compiler.compile(parserContext);
     }
 
     public void setParameter(Parameter parameter) {
