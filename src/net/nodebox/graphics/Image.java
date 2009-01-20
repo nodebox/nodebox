@@ -6,21 +6,20 @@ import javax.imageio.ImageIO;
 import javax.management.RuntimeErrorException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
 public class Image extends Grob {
 
-    private static HashMap<String, RenderedImage> imageCache = new HashMap<String, RenderedImage>();
+    private static HashMap<String, java.awt.Image> imageCache = new HashMap<String, java.awt.Image>();
 
     private double x, y;
     private double desiredWidth, desiredHeight;
     private double alpha = 1.0F;
 
-    private RenderedImage image;
-    private static BufferedImage blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
+    private java.awt.Image awtImage;
+    private static java.awt.Image blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
     public static final String BLANK_IMAGE = "__blank";
 
     public Image() {
@@ -29,13 +28,13 @@ public class Image extends Grob {
 
     public Image(File file) {
         if (file == null || file.getPath().equals(BLANK_IMAGE)) {
-            image = blankImage;
+            awtImage = blankImage;
         } else {
-            image = imageCache.get(file.getAbsolutePath());
-            if (image == null) {
+            awtImage = imageCache.get(file.getAbsolutePath());
+            if (awtImage == null) {
                 try {
-                    image = ImageIO.read(file);
-                    imageCache.put(file.getAbsolutePath(), image);
+                    awtImage = ImageIO.read(file);
+                    imageCache.put(file.getAbsolutePath(), awtImage);
                 } catch (IOException e) {
                     throw new RuntimeErrorException(null, "Could not read image " + file);
                 }
@@ -53,8 +52,8 @@ public class Image extends Grob {
         this.y = cy;
     }
 
-    public Image(RenderedImage image) {
-        this.image = image;
+    public Image(java.awt.Image awtImage) {
+        this.awtImage = awtImage;
     }
 
     public Image(Image other) {
@@ -64,19 +63,19 @@ public class Image extends Grob {
         this.desiredWidth = other.desiredWidth;
         this.desiredHeight = other.desiredHeight;
         this.alpha = other.alpha;
-        this.image = other.image;
+        this.awtImage = other.awtImage;
     }
 
     //// Attribute access ////
 
     public double getOriginalWidth() {
-        if (image == null) return 0;
-        return image.getWidth();
+        if (awtImage == null) return 0;
+        return awtImage.getWidth(null);
     }
 
     public double getOriginalHeight() {
-        if (image == null) return 0;
-        return image.getHeight();
+        if (awtImage == null) return 0;
+        return awtImage.getHeight(null);
     }
 
     public double getWidth() {
@@ -119,28 +118,28 @@ public class Image extends Grob {
         this.alpha = alpha;
     }
 
-    public RenderedImage getAwtImage() {
-        return image;
+    public java.awt.Image getAwtImage() {
+        return awtImage;
     }
 
     public Size getSize() {
-        return new Size(image.getWidth(), image.getHeight());
+        return new Size(getWidth(), getHeight());
     }
 
     //// Grob support ////
 
     public Rect getBounds() {
-        if (image == null) return new Rect();
+        if (awtImage == null) return new Rect();
         double factor = getScaleFactor();
-        double finalWidth = image.getWidth() * factor;
-        double finalHeight = image.getHeight() * factor;
+        double finalWidth = getWidth() * factor;
+        double finalHeight = getHeight() * factor;
         return new Rect(x - finalWidth / 2, y - finalHeight / 2, finalWidth, finalHeight);
     }
 
     public double getScaleFactor() {
         if (desiredWidth != 0 || desiredHeight != 0) {
-            double srcW = image.getWidth();
-            double srcH = image.getHeight();
+            double srcW = getWidth();
+            double srcH = getHeight();
             if (desiredWidth != 0 && desiredHeight != 0) {
                 // Both width and height were given, constrain to smallest
                 return Math.min(desiredWidth / srcW, desiredHeight / srcH);
@@ -163,8 +162,8 @@ public class Image extends Grob {
         // Move to the image position. Convert x, y, which are centered coordinates,
         // to "real" coordinates. 
         double factor = getScaleFactor();
-        double finalWidth = image.getWidth() * factor;
-        double finalHeight = image.getHeight() * factor;
+        double finalWidth = getWidth() * factor;
+        double finalHeight = getHeight() * factor;
         imageTrans.translate(x - finalWidth / 2, y - finalHeight / 2);
         // Scaling only applies to image that have their desired width and/or height set.
         // However, getScaleFactor return 1 if height/width are not set, in effect negating
@@ -174,7 +173,7 @@ public class Image extends Grob {
         Composite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) a);
         Composite oldComposite = g.getComposite();
         g.setComposite(composite);
-        g.drawRenderedImage(image, imageTrans.getAffineTransform());
+        g.drawImage(awtImage, imageTrans.getAffineTransform(), null);
         g.setComposite(oldComposite);
         restoreTransform(g);
     }
@@ -194,7 +193,7 @@ public class Image extends Grob {
                 && this.desiredWidth == other.desiredWidth
                 && this.desiredHeight == other.desiredHeight
                 && this.alpha == other.alpha
-                && this.image.equals(other.image)
+                && this.awtImage.equals(other.awtImage)
                 && super.equals(other);
     }
 
