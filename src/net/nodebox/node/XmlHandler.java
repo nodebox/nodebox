@@ -4,6 +4,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -20,6 +22,7 @@ public class XmlHandler extends DefaultHandler {
     private String currentParameterName;
     private ParseState state = ParseState.OUT_OF_DATA;
     private StringBuffer characterData;
+    private Map<Parameter, String> expressionMap;
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.XmlHandler");
 
@@ -82,6 +85,11 @@ public class XmlHandler extends DefaultHandler {
             if (currentNetwork != rootNetwork) {
                 currentNetwork = currentNetwork.getNetwork();
             }
+            // Now all the nodes in the network are created,
+            // we can set the expressions so the dependencies will work.
+            for (Map.Entry<Parameter, String> entry : expressionMap.entrySet()) {
+                entry.getKey().setExpression(entry.getValue());
+            }
         } else if (qName.equals("node")) {
             currentNode = null;
         } else if (qName.equals("connection")) {
@@ -104,7 +112,7 @@ public class XmlHandler extends DefaultHandler {
             characterData = null;
         } else if (qName.equals("expression")) {
             state = ParseState.OUT_OF_DATA;
-            setExpression(currentParameterName, characterData.toString());
+            setTemporaryExpression(currentParameterName, characterData.toString());
             currentParameterName = null;
             characterData = null;
         } else {
@@ -157,6 +165,7 @@ public class XmlHandler extends DefaultHandler {
         }
         currentNode = currentNetwork = newNetwork;
         parseNodeFlags(currentNetwork, attributes);
+        expressionMap = new HashMap<Parameter, String>();
     }
 
     private void createNode(Attributes attributes) throws SAXException {
@@ -283,11 +292,11 @@ public class XmlHandler extends DefaultHandler {
      * @param expression    the expression string
      * @throws org.xml.sax.SAXException when there is no current node or if parameter was not found.
      */
-    private void setExpression(String parameterName, String expression) throws SAXException {
+    private void setTemporaryExpression(String parameterName, String expression) throws SAXException {
         Parameter parameter = currentNode.getParameter(parameterName);
         if (parameter == null)
             throw new SAXException("Node " + currentNode.getName() + " has no parameter '" + parameterName + "'");
-        parameter.setExpression(expression);
+        expressionMap.put(parameter, expression);
     }
 
 }
