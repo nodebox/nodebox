@@ -201,6 +201,19 @@ public class Node {
     public void setNodeType(NodeType nodeType) {
         this.nodeType = nodeType;
         // TODO: migrate parameters
+        // Ask for the parameter types in the new node type.
+        for (ParameterType pt : nodeType.getParameterTypes()) {
+            // Check if I have a parameter by that name in my node.
+            try {
+                Parameter oldParameter = getParameter(pt.getName());
+                // Migrate it to the new parameter type.
+                oldParameter.setParameterType(pt);
+            } catch (NotFoundException e) {
+                // The parameter was not found. Create a new one.
+                parameters.put(pt.getName(), pt.createParameter(this));
+            }
+        }
+        // TODO: We don't prune extraneous parameters.
     }
 
     //// Naming ////

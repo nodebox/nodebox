@@ -114,8 +114,8 @@ public class Parameter {
         return parameterType.getCardinality();
     }
 
-    public void typeChanged(ParameterType source) {
-        // todo: Migrate type to new type.
+    public void setParameterType(ParameterType parameterType) {
+        throw new RuntimeException("Not implemented yet.");
     }
 
     //// Bounding ////
