@@ -29,7 +29,7 @@ public class CopyNodeTest extends NodeTestCase {
         Node copy = net.create(manager.getNodeType("corevector.copy"));
         copy.getParameter("shape").connect(rect);
         copy.set("copies", 10);
-        copy.set("expression", "rect1.x = COPY");
+        copy.set("expression", "rect1.x = CNUM");
         copy.update();
         Grob g = (Grob) copy.getOutputValue();
         assertEquals(new Rect(-50, -50, 109, 100), g.getBounds());
