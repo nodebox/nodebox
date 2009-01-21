@@ -32,9 +32,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleGetInfoString</key>
-    <string>2.0a1 (698), Copyright NodeBox, (c) 2004-2005</string>
+    <string>2.0a1 (713), Copyright NodeBox, (c) 2004-2005</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0a1 (698)</string>
+    <string>2.0a1 (713)</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>Java</key>
@@ -53,7 +53,11 @@
         <string>true</string>
         <key>com.apple.mrj.application.apple.menu.about.name</key>
         <string>NodeBox</string>
+        <key>apple.awt.graphics.UseQuartz</key>
+        <string>true</string>
       </dict>
+      <key>VMOptions</key>
+      <string>-Xms32m -Xmx512m -XX:MaxPermSize=150m</string>
       <key>WorkingDirectory</key>
       <string>$APP_PACKAGE/Contents/Resources/Java</string>
    </dict>
