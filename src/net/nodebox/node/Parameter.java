@@ -260,6 +260,7 @@ public class Parameter {
             throw new ValueError("The parameter has an expression set.");
         }
         parameterType.validate(value);
+        if (this.value != null && this.value.equals(value)) return;
         if (value instanceof Integer && getCoreType() == ParameterType.CoreType.FLOAT) {
             this.value = (double) ((Integer) value);
         } else {
@@ -271,7 +272,6 @@ public class Parameter {
     private void assertCardinality() {
         if (getCardinality() == ParameterType.Cardinality.MULTIPLE)
             throw new AssertionError("You cannot retrieve multi-parameters this way. Use getValues().");
-
     }
 
     //// Expressions ////
