@@ -113,6 +113,7 @@ public class NodeTypeLibraryManager {
         corevector.addNodeType(new ResampleType(corevector));
         corevector.addNodeType(new ScatterType(corevector));
         corevector.addNodeType(new SortType(corevector));
+        corevector.addNodeType(new StarType(corevector));
         corevector.addNodeType(new TextType(corevector));
         corevector.addNodeType(new TextPathType(corevector));
         corevector.addNodeType(new TransformType(corevector));

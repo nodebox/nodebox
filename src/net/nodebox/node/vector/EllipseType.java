@@ -22,6 +22,7 @@ public class EllipseType extends PathNodeType {
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
+        pStrokeWidth.setBoundingMethod(ParameterType.BoundingMethod.HARD);
         pStrokeWidth.setMinimumValue(0.0);
     }
 

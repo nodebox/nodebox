@@ -17,6 +17,7 @@ public class ColorType extends GrobNodeType {
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
         pStrokeWidth.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        pStrokeWidth.setBoundingMethod(ParameterType.BoundingMethod.HARD);
         pStrokeWidth.setMinimumValue(0.0);
     }
 

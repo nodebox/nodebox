@@ -8,22 +8,21 @@ import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.ParameterType;
 import net.nodebox.node.ProcessingContext;
 
-public class RectType extends PathNodeType {
+public class StarType extends PathNodeType {
 
-    public RectType(NodeTypeLibrary library) {
-        super(library, "rect");
-        setDescription("Creates a rectangle.");
-
+    public StarType(NodeTypeLibrary library) {
+        super(library, "star");
+        setDescription("Creates a star.");
         ParameterType pX = addParameterType("x", ParameterType.Type.FLOAT);
         ParameterType pY = addParameterType("y", ParameterType.Type.FLOAT);
-        ParameterType pWidth = addParameterType("width", ParameterType.Type.FLOAT);
-        pWidth.setDefaultValue(100.0);
-        ParameterType pHeight = addParameterType("height", ParameterType.Type.FLOAT);
-        pHeight.setDefaultValue(100.0);
-        ParameterType pRx = addParameterType("rx", ParameterType.Type.FLOAT);
-        pRx.setLabel("Roundness X");
-        ParameterType pRy = addParameterType("ry", ParameterType.Type.FLOAT);
-        pRy.setLabel("Roundness Y");
+        ParameterType pPoints = addParameterType("points", ParameterType.Type.INT);
+        pPoints.setDefaultValue(20);
+        pPoints.setBoundingMethod(ParameterType.BoundingMethod.HARD);
+        pPoints.setMinimumValue((double) 1);
+        ParameterType pOuter = addParameterType("outer", ParameterType.Type.FLOAT);
+        pOuter.setDefaultValue(100.0);
+        ParameterType pInner = addParameterType("inner", ParameterType.Type.FLOAT);
+        pInner.setDefaultValue(50.0);
         ParameterType pFillColor = addParameterType("fill", ParameterType.Type.COLOR);
         ParameterType pStrokeColor = addParameterType("stroke", ParameterType.Type.COLOR);
         ParameterType pStrokeWidth = addParameterType("strokewidth", ParameterType.Type.FLOAT);
@@ -37,13 +36,24 @@ public class RectType extends PathNodeType {
         p.setFillColor(node.asColor("fill"));
         p.setStrokeColor(node.asColor("stroke"));
         p.setStrokeWidth(node.asFloat("strokewidth"));
-        double rx = node.asFloat("rx");
-        double ry = node.asFloat("ry");
-        if (rx == 0 && ry == 0) {
-            p.rect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"));
-        } else {
-            p.roundedRect(node.asFloat("x"), node.asFloat("y"), node.asFloat("width"), node.asFloat("height"), rx, ry);
+        double startx = node.asFloat("x");
+        double starty = node.asFloat("y");
+        double outer = node.asFloat("outer");
+        double inner = node.asFloat("inner");
+        int points = node.asInt("points");
+        p.moveto(startx, starty + outer);
+
+        double angle, x, y, radius;
+        for (int i = 1; i < points * 2; i++) {
+            angle = i * Math.PI / (double) points;
+            x = Math.sin(angle);
+            y = Math.cos(angle);
+            radius = i % 2 == 1 ? inner : outer;
+            x = startx + radius * x;
+            y = starty + radius * y;
+            p.lineto(x, y);
         }
+        p.close();
         node.setOutputValue(p);
         return true;
     }
@@ -58,6 +68,7 @@ public class RectType extends PathNodeType {
      */
     @Override
     public Handle createHandle(Node node) {
-        return new FourPointHandle(node);
+        return new FourPointHandle(node, "x", "y", "outer", "inner");
     }
+
 }
