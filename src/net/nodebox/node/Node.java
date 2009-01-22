@@ -706,7 +706,11 @@ public class Node {
      * @return true if the operation was successful
      */
     public boolean update(ProcessingContext ctx) {
-        if (!dirty) return true;
+        // Node output is not cached, so we need to regenerate this node every time.
+        // This actually sounds worse than it is, because most of our time would
+        // be spent in cloning node data anyway, spoling any advantages caching might have.
+        // The idea is to make caching optional, but now, there just is no caching.
+        //if (!dirty) return true;
         for (Parameter p : parameters.values()) {
             if (ctx.isUpdating(p) || ctx.hasProcessed(p)) continue;
             ctx.beginUpdating(p);

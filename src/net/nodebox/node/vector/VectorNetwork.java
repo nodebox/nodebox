@@ -17,7 +17,6 @@ public class VectorNetwork extends Network {
             Object outputValue = getRenderedNode().getOutputValue();
             if (outputValue instanceof Grob) {
                 Grob g = (Grob) outputValue;
-                g = g.clone();
                 g.translate(asFloat("tx"), asFloat("ty"));
                 g.rotate(asFloat("r"));
                 g.scale(asFloat("sx") / 100.0, asFloat("sy") / 100.0);

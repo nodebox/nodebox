@@ -30,7 +30,7 @@ public class TransformType extends GrobNodeType {
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
         Grob g = node.asGrob("shape");
-        Grob outGrob = g.clone();
+        Grob outGrob = g;
         Transform t = new Transform();
         t.translate(node.asFloat("tx"), node.asFloat("ty"));
         t.rotate(node.asFloat("r"));

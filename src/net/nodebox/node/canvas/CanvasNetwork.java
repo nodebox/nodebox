@@ -19,7 +19,6 @@ public class CanvasNetwork extends Network {
             Object outputValue = getRenderedNode().getOutputValue();
             if (outputValue instanceof Grob) {
                 Grob g = (Grob) outputValue;
-                g = g.clone();
                 c.add(g);
                 setOutputValue(c);
             } else {

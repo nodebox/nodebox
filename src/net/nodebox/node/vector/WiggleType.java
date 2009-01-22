@@ -24,7 +24,6 @@ public class WiggleType extends PathNodeType {
 
     public boolean process(Node node, ProcessingContext ctx) {
         BezierPath path = (BezierPath) node.asGrob("path");
-        path = path.clone();
         double wx = node.asFloat("wx");
         double wy = node.asFloat("wy");
         Random random = new Random(node.asInt("seed"));

@@ -33,10 +33,13 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     private DialogHandler dialogHandler = new DialogHandler();
     private PopupHandler popupHandler;
     private JPopupMenu networkMenu;
+    private boolean networkError;
 
     public NetworkView(Pane pane, Network network) {
         this.pane = pane;
         this.network = network;
+        if (network != null)
+            this.networkError = network.hasError();
         setBackground(Theme.getInstance().getViewBackgroundColor());
         addInputEventListener(selectionHandler);
         // Remove default panning and zooming behaviour
@@ -105,6 +108,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
         if (network == null) return;
         network.addNetworkEventListener(this);
         network.addNetworkDataListener(this);
+        networkError = network.hasError();
         // Add nodes
         for (Node n : network.getNodes()) {
             NodeView nv = new NodeView(this, n);
@@ -270,7 +274,8 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     }
 
     public void networkUpdated(Network network) {
-        // Implemented so we catch nodes with errors.
+        if (!networkError && !network.hasError()) return;
+        networkError = network.hasError();
         repaint();
     }
 

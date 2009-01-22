@@ -37,7 +37,6 @@ public class CanvasType extends CanvasNodeType {
         List<Object> shapes = node.getValues("shapes");
         for (Object shapeObject : shapes) {
             Grob shape = (Grob) shapeObject;
-            shape = shape.clone();
             shape.translate(x, y);
             canvas.add(shape);
         }

@@ -23,7 +23,7 @@ public class ColorType extends GrobNodeType {
 
     @Override
     public boolean process(Node node, ProcessingContext ctx) {
-        Grob shape = node.asGrob("shape").clone();
+        Grob shape = node.asGrob("shape");
         Color fillColor = node.asColor("fill");
         Color strokeColor = node.asColor("stroke");
         double strokeWidth = node.asFloat("strokewidth");

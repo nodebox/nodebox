@@ -45,6 +45,7 @@ public class BezierPath extends Grob {
     private boolean dirty = true;
     private boolean needsMoveto = true; // Flag to check if we already moved to a start point.
     private transient java.awt.geom.GeneralPath awtPath;
+    private transient Rect bounds;
     private double[] segmentLengths;
     private double pathLength = -1;
 
@@ -768,7 +769,9 @@ public class BezierPath extends Grob {
     }
 
     public Rect getBounds() {
-        return new Rect(getGeneralPath().getBounds2D());
+        if (!dirty) return bounds;
+        bounds = new Rect(getGeneralPath().getBounds2D());
+        return bounds;
     }
 
     public void draw(Graphics2D g) {

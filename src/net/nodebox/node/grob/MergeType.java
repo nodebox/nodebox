@@ -23,7 +23,7 @@ public class MergeType extends GrobNodeType {
         List<Object> shapes = node.getValues("shapes");
         for (Object shapeObject : shapes) {
             Grob shape = (Grob) shapeObject;
-            outputGroup.add(shape.clone());
+            outputGroup.add(shape);
         }
         node.setOutputValue(outputGroup);
         return true;
