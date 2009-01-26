@@ -115,7 +115,20 @@ public class Parameter {
     }
 
     public void setParameterType(ParameterType parameterType) {
-        throw new RuntimeException("Not implemented yet.");
+        ParameterType oldType = this.parameterType;
+        ParameterType newType = parameterType;
+        if (oldType.getCoreType() != newType.getCoreType()) {
+            try {
+                value = newType.parseValue(asString());
+            } catch (NumberFormatException e) {
+                // If the value could not be parsed, reset it to the default value.
+                value = newType.getDefaultValue();
+            }
+            //throw new RuntimeException("Not implemented yet.");
+        }
+        this.parameterType = newType;
+        clampToBounds();
+        // TODO: Check type info, bounding
     }
 
     //// Bounding ////

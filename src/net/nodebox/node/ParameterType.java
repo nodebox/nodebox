@@ -3,7 +3,6 @@ package net.nodebox.node;
 import net.nodebox.graphics.*;
 import net.nodebox.util.StringUtils;
 
-import javax.swing.event.EventListenerList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,6 +144,7 @@ public class ParameterType extends Observable {
     private Cardinality cardinality = Cardinality.SINGLE;
     private CoreType coreType;
     private Direction direction;
+    private boolean connectable;
     private Object defaultValue;
     private boolean nullAllowed = false;
     private BoundingMethod boundingMethod = BoundingMethod.NONE;
@@ -152,7 +152,6 @@ public class ParameterType extends Observable {
     private Double maximumValue;
     private DisplayLevel displayLevel = DisplayLevel.HUD;
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
-    private EventListenerList listeners = new EventListenerList();
 
     /**
      * Given a type name, parse it and return a Type enum.
@@ -287,6 +286,30 @@ public class ParameterType extends Observable {
 
     public Direction getDirection() {
         return direction;
+    }
+
+    //// Connectable ////
+
+    /**
+     * Returns whether this node is connectable. Actually, all parameters are connectable; this flag serves
+     * as a hint to the GUI to draw a connection port.
+     * <p/>
+     * By default, all grob types are connectable, the rest are not.
+     *
+     * @return true if the node should show a connection port for this parameter.
+     */
+    public boolean isConnectable() {
+        return connectable;
+    }
+
+    /**
+     * Set a flag to indicate if this node is connectable. All parameters are connectable, this flag serves
+     * as a hint to the GUI to draw a connection port.
+     *
+     * @param connectable true if the node should show a connection port for this parameter.
+     */
+    public void setConnectable(boolean connectable) {
+        this.connectable = connectable;
     }
 
     //// Default value ////

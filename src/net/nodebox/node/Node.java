@@ -214,6 +214,7 @@ public class Node {
             }
         }
         // TODO: We don't prune extraneous parameters.
+        outputParameter.setParameterType(nodeType.getOutputParameterType());
     }
 
     //// Naming ////

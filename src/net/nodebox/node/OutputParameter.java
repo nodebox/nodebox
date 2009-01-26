@@ -49,7 +49,7 @@ public class OutputParameter extends Parameter {
 
     @Override
     public boolean isConnectedTo(Parameter inputParameter) {
-        // Output paramters can only be connected to input parameters.
+        // Output parameters can only be connected to input parameters.
         if (inputParameter instanceof OutputParameter) return false;
         return getNetwork().isConnectedTo(inputParameter, this);
     }
@@ -77,6 +77,21 @@ public class OutputParameter extends Parameter {
         getParameterType().validate(value);
         this.value = value;
         fireValueChanged();
+    }
+
+
+    public void setParameterType(ParameterType parameterType) {
+        ParameterType oldType = getParameterType();
+        ParameterType newType = parameterType;
+        super.setParameterType(parameterType);
+        // If the new parameter type has a different core type,
+        // we reset the output value to the default value.
+        // The default behaviour (implemented in Parameter) of converting
+        // the type will almost certainly give the wrong result, since the
+        // processing will be different.
+        if (oldType.getCoreType() != newType.getCoreType()) {
+            value = newType.getDefaultValue();
+        }
     }
 
 }
