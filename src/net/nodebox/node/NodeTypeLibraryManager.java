@@ -19,6 +19,7 @@
 
 package net.nodebox.node;
 
+import net.nodebox.client.FileUtils;
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.canvas.CanvasNetworkType;
 import net.nodebox.node.canvas.CanvasType;
@@ -139,6 +140,17 @@ public class NodeTypeLibraryManager {
         this.searchPaths.add(searchPath);
     }
 
+    /**
+     * Returns true if a library with the given name exists.
+     *
+     * @param libraryName the name of the node type library
+     * @return true if the library exists.
+     */
+    public boolean hasLibrary(String libraryName) {
+        if (!lookedForLibraries)
+            lookForLibraries();
+        return libraryMap.containsKey(libraryName);
+    }
 
     /**
      * Finds and returns the latest version of the library with the given name.
@@ -245,6 +257,45 @@ public class NodeTypeLibraryManager {
             libraryMap.put(library.getName(), libraryList);
         }
         libraryList.addLibrary(library);
+    }
+
+    //// Library creation ////
+
+    /**
+     * Create a new skeleton library with the given name. The library will contain one type, called "test".
+     *
+     * @param libraryName the name of the new library
+     */
+    public NodeTypeLibrary createPythonLibrary(String libraryName) {
+        // TODO: Make sure library name follows naming conventions.
+        if (searchPaths.size() != 1) {
+            throw new AssertionError("Only one search path is supported, otherwise we cannot deduce where the library should go.");
+        }
+        // The directory the library will be created in is the first on the list of search paths.
+        String libraryParentDirectory = searchPaths.get(0).getAbsolutePath();
+        String libraryDirectory = libraryParentDirectory + PlatformUtils.SEP + libraryName;
+        boolean createdDirectory = new File(libraryDirectory).mkdir();
+        if (!createdDirectory)
+            throw new RuntimeException("Could not create library directory \"" + libraryDirectory + "\".");
+        File ntlFile = new File(libraryDirectory + PlatformUtils.SEP + "types.ntl");
+        String ntlContents = "<library name=\"" + libraryName + "\" formatVersion=\"0.8\" type=\"python\" module=\"" + libraryName + "\">\n" +
+                "    <type name=\"test\" outputType=\"grob_path\" method=\"test\">\n" +
+                "        <description>Test method.</description>\n" +
+                "        <parameter type=\"float\" name=\"x\"/>\n" +
+                "        <parameter type=\"float\" name=\"y\"/>\n" +
+                "    </type>\n" +
+                "</library>";
+        File moduleFile = new File(libraryDirectory + PlatformUtils.SEP + libraryName + ".py");
+        String moduleContents = "from net.nodebox import graphics\n\n" +
+                "def test(x, y):\n" +
+                "    p = graphics.BezierPath()\n" +
+                "    p.ellipse(x, y, 50, 50)\n" +
+                "    return p\n";
+        FileUtils.writeFile(ntlFile, ntlContents);
+        FileUtils.writeFile(moduleFile, moduleContents);
+        NodeTypeLibrary library = pathToLibrary(libraryParentDirectory, libraryName);
+        addLibrary(library);
+        return library;
     }
 
     //// NodeType lookup shortcuts ////

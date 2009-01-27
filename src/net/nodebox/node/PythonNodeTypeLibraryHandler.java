@@ -52,6 +52,8 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
         if (qName.equals("library")) {
             // Top level element -- parsing finished.
         } else if (qName.equals("type")) {
+            // Once the node type has all its parameters set, add it to the library.
+            library.addNodeType(currentNodeType);
             currentNodeType = null;
         } else if (qName.equals("description")) {
             assert (parseState == ParseState.IN_DESCRIPTION);
@@ -93,7 +95,10 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
         // Load python module
         // TODO: This is the central versioning problem.
         // To properly handle this, we need several system states.
-        Py.getSystemState().path.add(new PyString(library.getPath()));
+        PyString libraryPath = new PyString(library.getPath());
+        PyList sysPath = Py.getSystemState().path;
+        if (!sysPath.contains(libraryPath))
+            sysPath.add(libraryPath);
 
         library.setPythonModule((PyModule) imp.importName(moduleName.intern(), true));
     }
@@ -124,7 +129,6 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
             throwLibraryException("the module attribute '" + functionName + "' is not a Python function.");
         }
         currentNodeType = new PythonNodeType(library, name, outputType, function);
-        library.addNodeType(currentNodeType);
     }
 
     private void throwLibraryException(String message) throws SAXException {

@@ -8,6 +8,9 @@ import java.util.StringTokenizer;
 public class FileUtils {
     /**
      * Gets the extension of a file.
+     *
+     * @param f the file
+     * @return the extension of the file.
      */
     public static String getExtension(File f) {
         return getExtension(f.getName());
@@ -15,13 +18,16 @@ public class FileUtils {
 
     /**
      * Gets the extension of a file.
+     *
+     * @param fileName the file name
+     * @return the extension of the file.
      */
-    public static String getExtension(String s) {
+    public static String getExtension(String fileName) {
         String ext = null;
-        int i = s.lastIndexOf('.');
+        int i = fileName.lastIndexOf('.');
 
-        if (i > 0 && i < s.length() - 1) {
-            ext = s.substring(i + 1).toLowerCase();
+        if (i > 0 && i < fileName.length() - 1) {
+            ext = fileName.substring(i + 1).toLowerCase();
         }
         return ext;
     }
@@ -69,17 +75,14 @@ public class FileUtils {
         }
 
         public boolean accept(File f) {
-            if (f.isDirectory())
-                return true;
-
-            return accept(null, f.getName());
+            return f.isDirectory() || accept(null, f.getName());
         }
 
         public boolean accept(File f, String s) {
             String extension = FileUtils.getExtension(s);
             if (extension != null) {
-                for (int i = 0; i < extensions.length; i++) {
-                    if (extensions[i].equals("*") || extensions[i].equalsIgnoreCase(extension)) {
+                for (String extension1 : extensions) {
+                    if (extension1.equals("*") || extension1.equalsIgnoreCase(extension)) {
                         return true;
                     }
                 }
@@ -120,5 +123,33 @@ public class FileUtils {
         }
     }
 
+    public static File createTemporaryDirectory(String prefix) {
+        File tempDir = null;
+        try {
+            tempDir = File.createTempFile(prefix, "");
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create temporary file " + prefix);
+        }
+        boolean success = tempDir.delete();
+        if (!success) throw new RuntimeException("Could not delete temporary file " + tempDir);
+        success = tempDir.mkdir();
+        if (!success) throw new RuntimeException("Could not create temporary directory " + tempDir);
+        return tempDir;
+    }
+
+    public static boolean deleteDirectory(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+            }
+        }
+        return (directory.delete());
+    }
 
 }

@@ -28,7 +28,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -216,9 +215,7 @@ public class Node {
         }
         // Go through all parameters in the map and remove the ones that are not in the node type. 
         List<String> parametersToRemove = new ArrayList<String>();
-        Iterator<String> keySetIterator = parameters.keySet().iterator();
-        while (keySetIterator.hasNext()) {
-            String parameterName = keySetIterator.next();
+        for (String parameterName : parameters.keySet()) {
             if (!getNodeType().hasParameterType(parameterName))
                 parametersToRemove.add(parameterName);
         }
@@ -229,6 +226,9 @@ public class Node {
             parameters.remove(parameterName);
         }
         outputParameter.setParameterType(nodeType.getOutputParameterType());
+        if (inNetwork())
+            getNetwork().fireNodeChanged(this);
+        markDirty();
     }
 
     //// Naming ////
@@ -246,7 +246,7 @@ public class Node {
         if (inNetwork()) {
             network.rename(this, name);
         } else {
-            getNodeType().validateName(name);
+            NodeType.validateName(name);
             this.name = name;
         }
     }

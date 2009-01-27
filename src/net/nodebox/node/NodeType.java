@@ -312,6 +312,21 @@ public abstract class NodeType {
         return false;
     }
 
+    /**
+     * Change the node type of all node instances to the new node type.
+     *
+     * @param newNodeType the new type to migrate to.
+     */
+    public void migrateType(NodeType newNodeType) {
+        for (WeakReference<Node> ref : instanceRefs) {
+            Node n = ref.get();
+            if (n != null)
+                n.setNodeType(newNodeType);
+        }
+        // Add all my instance refs to the new type's instance refs.
+        newNodeType.instanceRefs.addAll(instanceRefs);
+    }
+
     //// Cloning ////
 
     /**

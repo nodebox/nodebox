@@ -5,7 +5,6 @@ import java.util.List;
 
 public class NodeTypeLibraryManagerTest extends NodeTypeTestCase {
 
-
     public void testLoad() {
         initJython();
         NodeTypeLibraryManager manager = new NodeTypeLibraryManager();

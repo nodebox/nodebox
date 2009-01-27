@@ -84,6 +84,11 @@ public abstract class NodeTypeLibrary {
 
     //// Node info ////
 
+    public boolean hasNodeType(String nodeName) {
+        if (!isLoaded()) load();
+        return types.containsKey(nodeName);
+    }
+
     public NodeType getNodeType(String nodeName) throws NotFoundException {
         if (!isLoaded()) load();
         if (types.containsKey(nodeName)) {

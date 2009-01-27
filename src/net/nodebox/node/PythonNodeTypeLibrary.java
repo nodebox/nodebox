@@ -2,7 +2,6 @@ package net.nodebox.node;
 
 import org.python.core.Py;
 import org.python.core.PyModule;
-import org.python.core.imp;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.SAXParser;
@@ -32,6 +31,22 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
         }
     }
 
+    /**
+     * add a new node type to this library.
+     * <p/>
+     * If a node type with the given name already exists, migrate all nodes from the old to the new node type.
+     *
+     * @param nodeType the new node type to add.
+     */
+    @Override
+    protected void addNodeType(NodeType nodeType) {
+        String nodeTypeName = nodeType.getName();
+        if (hasNodeType(nodeTypeName)) {
+            NodeType oldNodeType = getNodeType(nodeTypeName);
+            oldNodeType.migrateType(nodeType);
+        }
+        super.addNodeType(nodeType);
+    }
 
     //// Python module support ////
 
@@ -107,6 +122,10 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
     public void load() {
         if (isLoaded()) return;
 
+        // Set the loaded flag here, because addNodeType checks hasNodeType, which lazy-loads the library, causing
+        // infinite recursion.
+        loaded = true;
+
         // File name
         File file = getLibraryDescriptionFile();
         // Load the document
@@ -150,20 +169,26 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
             logger.log(Level.SEVERE, "Error during parsing.", e);
             throw new RuntimeException("Error during parsing.", e);
         }
-
-        // Set the loaded flag
-        loaded = true;
     }
 
     @Override
     public boolean reload() {
+        // Remove the module from the loaded libraries.
         String moduleName = getPythonModuleName().intern();
         Py.getSystemState().modules.__delitem__(moduleName);
-        pythonModule = (PyModule) imp.importName(moduleName, true);
-        for (NodeType type : getNodeTypes()) {
-            PythonNodeType pnt = (PythonNodeType) type;
-            pnt.reloadPython();
-        }
+        // Reload the XML file. Set the loaded flag to false and call the load command.
+        loaded = false;
+        // Load the library. This creates a new set of NodeType objects that are added to this library.
+        // addNodeType is overloaded to check if a type with the same name already exists, and will migrate
+        // nodes from the old type to the new type.
+        load();
+//
+//
+//        pythonModule = (PyModule) imp.importName(moduleName, true);
+//        for (NodeType type : getNodeTypes()) {
+//            PythonNodeType pnt = (PythonNodeType) type;
+//            pnt.reloadPython();
+//        }
         return true;
     }
 }
