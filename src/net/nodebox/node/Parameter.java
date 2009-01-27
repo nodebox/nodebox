@@ -118,13 +118,17 @@ public class Parameter {
         ParameterType oldType = this.parameterType;
         ParameterType newType = parameterType;
         if (oldType.getCoreType() != newType.getCoreType()) {
-            try {
-                value = newType.parseValue(asString());
-            } catch (NumberFormatException e) {
-                // If the value could not be parsed, reset it to the default value.
+            if (isInputParameter() && isConnected()) {
+                disconnect();
                 value = newType.getDefaultValue();
+            } else {
+                try {
+                    value = newType.parseValue(asString());
+                } catch (NumberFormatException e) {
+                    // If the value could not be parsed, reset it to the default value.
+                    value = newType.getDefaultValue();
+                }
             }
-            //throw new RuntimeException("Not implemented yet.");
         }
         this.parameterType = newType;
         clampToBounds();
@@ -496,6 +500,7 @@ public class Parameter {
      * @return true if the connection was removed
      */
     public boolean disconnect() {
+        if (getNetwork() == null) return false;
         return getNetwork().disconnect(this);
     }
 

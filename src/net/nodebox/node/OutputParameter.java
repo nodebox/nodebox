@@ -44,6 +44,7 @@ public class OutputParameter extends Parameter {
 
     @Override
     public boolean isConnected() {
+        if (getNetwork() == null) return false;
         return getNetwork().isConnected(this);
     }
 
@@ -90,6 +91,11 @@ public class OutputParameter extends Parameter {
         // the type will almost certainly give the wrong result, since the
         // processing will be different.
         if (oldType.getCoreType() != newType.getCoreType()) {
+            if (isConnected()) {
+                for (Connection c : getDownstreamConnections()) {
+                    c.disconnect();
+                }
+            }
             value = newType.getDefaultValue();
         }
     }

@@ -6,7 +6,7 @@ public class NodeTestCase extends TestCase {
 
     protected NodeTypeLibraryManager manager;
     protected TestLibrary testLibrary;
-    protected NodeType numberType, negateType, addType, multiplyType, multiAddType, testNetworkType;
+    protected NodeType numberType, negateType, addType, multiplyType, multiAddType, floatNegateType, testNetworkType;
 
     @Override
     protected void setUp() throws Exception {
@@ -19,6 +19,7 @@ public class NodeTestCase extends TestCase {
         addType = manager.getNodeType("test.add");
         multiplyType = manager.getNodeType("test.multiply");
         multiAddType = manager.getNodeType("test.multiAdd");
+        floatNegateType = manager.getNodeType("test.floatNegate");
         testNetworkType = manager.getNodeType("test.testnet");
     }
 

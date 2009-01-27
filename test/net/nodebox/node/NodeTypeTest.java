@@ -223,4 +223,98 @@ public class NodeTypeTest extends NodeTestCase {
         assertFalse(n.hasParameter("value2"));
     }
 
+    /**
+     * Migrate to a type while the parameter is connected.
+     * If the new type's parameter is compatible, the connection should not be broken.
+     */
+    public void testMigrateConnected() {
+        Network net = (Network) testNetworkType.createNode();
+        NodeType betaType = new BetaType();
+        NodeType gammaType = new GammaType();
+        Node outputNode = net.create(numberType);
+        Node n = net.create(betaType);
+        outputNode.set("value", 42);
+        n.getParameter("value").connect(outputNode);
+        assertTrue(n.isConnected());
+        assertTrue(outputNode.isConnected());
+        assertTrue(n.isInputConnectedTo(outputNode));
+        n.update();
+        assertEquals(-42, n.getOutputValue());
+        n.setNodeType(gammaType);
+        assertTrue(n.isInputConnectedTo(outputNode));
+        assertTrue(n.getParameter("value").isConnectedTo(outputNode));
+        n.update();
+        assertEquals(52, n.getOutputValue());
+    }
+
+    /**
+     * While the value parameter is connected, migrate to a type that does not have the value parameter.
+     * Assert that the conncetion was successfully removed.
+     */
+    public void testMigrateConnectedParameterRemoved() {
+        Network net = (Network) testNetworkType.createNode();
+        NodeType betaType = new BetaType();
+        NodeType alphaType = new AlphaType();
+        Node outputNode = net.create(numberType);
+        Node n = net.create(betaType);
+        outputNode.set("value", 42);
+        n.getParameter("value").connect(outputNode);
+        n.update();
+        assertEquals(-42, n.getOutputValue());
+        n.setNodeType(alphaType);
+        assertFalse(n.isConnected());
+        assertFalse(outputNode.isConnected());
+        assertFalse(n.isInputConnectedTo(outputNode));
+    }
+
+    /**
+     * Migrating from an integer to floating-point type parameter should remove the connections.
+     */
+    public void testMigrateConnectedIncompatibleParameter() {
+        Network net = (Network) testNetworkType.createNode();
+        NodeType betaType = new BetaType();
+        NodeType epsilonType = new EpsilonType();
+        Node outputNode = net.create(numberType);
+        Node n = net.create(betaType);
+        outputNode.set("value", 42);
+        n.getParameter("value").connect(outputNode);
+        n.update();
+        assertEquals(-42, n.getOutputValue());
+        n.setNodeType(epsilonType);
+        assertFalse(n.isConnected());
+        assertFalse(outputNode.isConnected());
+        assertFalse(n.isInputConnectedTo(outputNode));
+        n.update();
+        assertEquals(0.0, n.getOutputValue());
+    }
+
+    /**
+     * Assert that type migration while the output parameter is connected will break all connections when the
+     * output parameter type is incompatible.
+     */
+    public void testMigrateOutputConnected() {
+        Network net = (Network) testNetworkType.createNode();
+        NodeType gammaType = new GammaType();
+        NodeType epsilonType = new EpsilonType();
+        Node n = net.create(gammaType);
+        Node inputNode = net.create(negateType);
+        Node inputNode2 = net.create(addType);
+        inputNode.getParameter("value").connect(n);
+        inputNode.setRendered();
+        inputNode2.getParameter("v1").connect(n);
+        net.update();
+        // -109 = 99 (default value of gamma type) + 10 (processing of gamma type) turned negative (processing of input node).
+        assertEquals(-109, net.getOutputValue());
+        // Migrate output node to incompatible type.
+        n.setNodeType(epsilonType);
+        assertFalse(n.isConnected());
+        assertFalse(inputNode.isConnected());
+        assertFalse(inputNode.isInputConnectedTo(n));
+        assertFalse(inputNode2.isConnected());
+        assertFalse(inputNode2.isInputConnectedTo(n));
+        net.update();
+        // Default value of negate
+        assertEquals(0, net.getOutputValue());
+    }
+
 }

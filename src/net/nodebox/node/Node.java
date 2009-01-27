@@ -223,6 +223,9 @@ public class Node {
                 parametersToRemove.add(parameterName);
         }
         for (String parameterName : parametersToRemove) {
+            Parameter p = parameters.get(parameterName);
+            // TODO: This does not remove expression connections.
+            p.disconnect();
             parameters.remove(parameterName);
         }
         outputParameter.setParameterType(nodeType.getOutputParameterType());

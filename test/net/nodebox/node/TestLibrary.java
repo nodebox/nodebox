@@ -74,7 +74,7 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         }
 
         public int process(int value) {
-            return value;
+            return -value;
         }
     }
 
@@ -112,6 +112,18 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         }
     }
 
+    public static class FloatNegate extends NodeType {
+        public FloatNegate(NodeTypeLibrary library) {
+            super(library, "floatNegate", ParameterType.Type.FLOAT);
+            addParameterType("value", ParameterType.Type.FLOAT);
+        }
+
+        public boolean process(Node node, ProcessingContext ctx) {
+            node.setOutputValue(-node.asFloat("value"));
+            return true;
+        }
+    }
+
     public static class TestNetworkType extends NodeType {
         public TestNetworkType(NodeTypeLibrary library) {
             super(library, "testnet", ParameterType.Type.INT);
@@ -135,6 +147,7 @@ public class TestLibrary extends CoreNodeTypeLibrary {
         addNodeType(new Add(this));
         addNodeType(new Multiply(this));
         addNodeType(new MultiAdd(this));
+        addNodeType(new FloatNegate(this));
         addNodeType(new TestNetworkType(this));
     }
 

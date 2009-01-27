@@ -17,6 +17,12 @@ public class MultiConnection extends Connection {
         outputParameters.add(outputParameter);
     }
 
+    public void disconnect() {
+        for (Parameter outputParameter : outputParameters) {
+            getInputParameter().getNetwork().disconnect(outputParameter, getInputParameter(), getType());
+        }
+    }
+
     @Override
     public Parameter getOutputParameter() {
         if (outputParameters.isEmpty()) return null;

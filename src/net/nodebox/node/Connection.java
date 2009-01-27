@@ -54,6 +54,10 @@ public class Connection {
         this.type = type;
     }
 
+    public void disconnect() {
+        inputParameter.getNetwork().disconnect(outputParameter, inputParameter, type);
+    }
+
     public Parameter getOutputParameter() {
         return outputParameter;
     }
