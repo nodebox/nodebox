@@ -20,16 +20,13 @@ package net.nodebox.client;
 
 import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.NodeTypeLibraryManager;
-import org.python.core.Py;
-import org.python.core.PyString;
-import org.python.core.PySystemState;
+import net.nodebox.util.PythonUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -161,13 +158,7 @@ public class Application {
 
     public class PythonLoader implements Runnable {
         public void run() {
-            Properties jythonProperties = new Properties();
-            String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
-            jythonProperties.put("python.cachedir", jythonCacheDir);
-            PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
-            String workingDirectory = System.getProperty("user.dir");
-            File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
-            Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
+            PythonUtils.initializePython();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     Application.getInstance().pythonLoadedEvent();

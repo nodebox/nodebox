@@ -58,6 +58,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
     public DeleteAction deleteAction = new DeleteAction();
 
     public ReloadAction reloadAction = new ReloadAction();
+    public NewLibraryAction newLibraryAction = new NewLibraryAction();
 
     public MinimizeAction minimizeAction = new MinimizeAction();
     public ZoomAction zoomAction = new ZoomAction();
@@ -286,6 +287,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         // Node menu
         JMenu pythonMenu = new JMenu("Node");
         pythonMenu.add(reloadAction);
+        pythonMenu.add(newLibraryAction);
         menuBar.add(pythonMenu);
 
         // Window menu
@@ -583,6 +585,15 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         return activeNode.getNodeType().reload();
     }
 
+    public void createNewLibrary(String libraryName) {
+        // First check if a library with this name already exists.
+        if (getManager().hasLibrary(libraryName)) {
+            JOptionPane.showMessageDialog(this, "A library with the name \"" + libraryName + "\" already exists.");
+            return;
+        }
+        getManager().createPythonLibrary(libraryName);
+    }
+
 
     private void close() {
         if (shouldClose()) {
@@ -729,7 +740,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     public class ExportAction extends AbstractAction {
         public ExportAction() {
-            putValue(NAME, "Export");
+            putValue(NAME, "Export...");
             putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_E));
         }
 
@@ -854,6 +865,18 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
         public void actionPerformed(ActionEvent e) {
             reloadActiveNode();
+        }
+    }
+
+    public class NewLibraryAction extends AbstractAction {
+        public NewLibraryAction() {
+            putValue(NAME, "New Library...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String libraryName = JOptionPane.showInputDialog(NodeBoxDocument.this, "Enter the name for the new library", "Create New Library", JOptionPane.QUESTION_MESSAGE);
+            if (libraryName == null || libraryName.trim().length() == 0) return;
+            createNewLibrary(libraryName);
         }
     }
 

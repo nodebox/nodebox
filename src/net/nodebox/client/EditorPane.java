@@ -52,6 +52,7 @@ public class EditorPane extends Pane {
         if (this.node == node) return;
         this.node = node;
         networkAddressBar.setNode(node);
+        if (node == null) return;
 
         NodeTypeLibrary library = node.getNodeType().getLibrary();
         if (library instanceof PythonNodeTypeLibrary) {
