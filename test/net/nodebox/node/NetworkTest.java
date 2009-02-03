@@ -149,14 +149,14 @@ public class NetworkTest extends NodeTestCase {
     }
 
     /**
-     * Tests whether the network does not copy the output of the rendered node. (Instead the output is re-used)
+     * Tests whether the network does copy the output of the rendered node.
      */
     public void testCopy() {
         Network vector1 = (Network) manager.getNodeType("corevector.vecnet").createNode();
         Node ellipse1 = vector1.create(manager.getNodeType("corevector.ellipse"));
         ellipse1.setRendered();
         vector1.update();
-        assertTrue(vector1.getOutputValue() == ellipse1.getOutputValue());
+        assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
     }
 
     public void testCycles() {

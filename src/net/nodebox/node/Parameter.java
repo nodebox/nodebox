@@ -212,23 +212,21 @@ public class Parameter {
     }
 
     public Color asColor() {
-        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.COLOR) {
-            return (Color) value;
+            return (Color) getValue();
         } else {
             return new Color();
         }
     }
 
     public Grob asGrob() {
-        assertCardinality();
         if (getCoreType() == ParameterType.CoreType.GROB
                 || getCoreType() == ParameterType.CoreType.GROB_CANVAS
                 || getCoreType() == ParameterType.CoreType.GROB_GROUP
                 || getCoreType() == ParameterType.CoreType.GROB_IMAGE
                 || getCoreType() == ParameterType.CoreType.GROB_PATH
                 || getCoreType() == ParameterType.CoreType.GROB_TEXT) {
-            return (Grob) value;
+            return (Grob) getValue();
         } else {
             return new Group();
         }
@@ -253,12 +251,61 @@ public class Parameter {
         }
     }
 
+    /**
+     * Returns a copy of the original value.
+     * <p/>
+     * This is only relevant for grobs and colors. Other value types are immutable, so they will not be cloned.
+     *
+     * @return a clone of the original value.
+     */
     public Object getValue() {
+        assertCardinality();
+        return clonedValue(value);
+    }
+
+    /**
+     * Creates a cloned value of this object, but only if the object is not immutable.
+     * <p/>
+     * This will create clones for Grobs and Colors.
+     *
+     * @param value the original value
+     * @return a cloned copy of the original value.
+     */
+    private Object clonedValue(Object value) {
+        if (value instanceof Grob) {
+            return ((Grob) value).clone();
+        } else if (value instanceof Color) {
+            return ((Color) value).clone();
+        } else {
+            return value;
+        }
+    }
+
+    /**
+     * Return a reference to the original value stored in this parameter.
+     * <p/>
+     * This method exists for performance reasons; however, make sure not to modify the reference.
+     *
+     * @return a reference to the original value stored in the parameter.
+     */
+    public Object getValueReference() {
         assertCardinality();
         return value;
     }
 
     public List<Object> getValues() {
+        if (getCardinality() == ParameterType.Cardinality.SINGLE)
+            throw new AssertionError("getValues() is not available for parameter types with single cardinality.");
+        assert (value instanceof List);
+        ArrayList<Object> clonedValues = new ArrayList<Object>();
+        List<Object> values = (List<Object>) value;
+        for (Object v : values) {
+            clonedValues.add(clonedValue(v));
+        }
+        return clonedValues;
+    }
+
+    public List<Object> getValueReferences() {
         if (getCardinality() == ParameterType.Cardinality.SINGLE)
             throw new AssertionError("getValues() is not available for parameter types with single cardinality.");
         assert (value instanceof List);

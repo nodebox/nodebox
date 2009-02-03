@@ -203,6 +203,37 @@ public class ConnectTest extends NodeTestCase {
         assertEquals(0, net.getOutputValue());
     }
 
+    public void testMultiConnect() {
+        Network net = (Network) testNetworkType.createNode();
+        Node number1 = net.create(numberType);
+        number1.set("value", 5);
+        Node number2 = net.create(numberType);
+        number2.set("value", 10);
+        Node multiAdd1 = net.create(multiAddType);
+        net.connect(number1, multiAdd1, "values");
+        net.connect(number2, multiAdd1, "values");
+        assertTrue(number1.isConnected());
+        assertTrue(number2.isConnected());
+        multiAdd1.setRendered();
+        // Test default behaviour
+        net.update();
+        assertFalse(net.isDirty());
+        assertFalse(multiAdd1.isDirty());
+        assertEquals(15, net.getOutputValue());
+        // Change number1 and see if the change propagates.
+        number1.set("value", 3);
+        assertTrue(net.isDirty());
+        assertTrue(multiAdd1.isDirty());
+        net.update();
+        assertEquals(13, net.getOutputValue());
+        // change number2 and see if the change propagates.
+        number2.set("value", 4);
+        assertTrue(net.isDirty());
+        assertTrue(multiAdd1.isDirty());
+        net.update();
+        assertEquals(7, net.getOutputValue());
+    }
+
     //// Custom assertions ////
 
     private void assertConnectionError(Node inputNode, String inputParameter, Node outputNode, String message) {

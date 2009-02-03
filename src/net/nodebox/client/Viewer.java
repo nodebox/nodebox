@@ -76,7 +76,7 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         g2.translate(getWidth() / 2.0, getHeight() / 2.0);
 
         if (getNetwork() == null) return;
-        Object outputValue = getNetwork().getOutputValue();
+        Object outputValue = getNetwork().getOutputParameter().getValueReference();
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
         }
