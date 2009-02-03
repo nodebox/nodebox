@@ -257,7 +257,12 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     }
 
     public void nodeChanged(Network source, Node node) {
-        // We assume the change event is a move.
+        // Maybe the name of the node was changed. Redraw the node view.
+        NodeView nv = getNodeView(node);
+        nv.repaint();
+    }
+
+    public void nodePositionChanged(Network source, Node node) {
         // Find the NodeView related to this change event.
         NodeView nv = getNodeView(node);
         if (!nv.getOffset().equals(node.getPosition().getPoint2D())) {

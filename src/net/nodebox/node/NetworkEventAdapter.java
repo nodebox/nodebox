@@ -69,4 +69,15 @@ public abstract class NetworkEventAdapter implements NetworkEventListener {
      */
     public void nodeChanged(Network source, Node node) {
     }
+
+    /**
+     * Invoked when the position of the node was changed, i.e. the node was moved.
+     * This event does not fire when the value of a node was changed, only its position.
+     *
+     * @param source the network this event comes from
+     * @param node   the node that was changed
+     */
+    public void nodePositionChanged(Network source, Node node) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

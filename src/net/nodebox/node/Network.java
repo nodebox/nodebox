@@ -626,6 +626,12 @@ public class Network extends Node {
             ((NetworkEventListener) l).nodeChanged(this, node);
     }
 
+    public void fireNodePositionChanged(Node node) {
+        if (listeners == null) return;
+        for (EventListener l : listeners.getListeners(NetworkEventListener.class))
+            ((NetworkEventListener) l).nodePositionChanged(this, node);
+    }
+
     public void addNetworkDataListener(NetworkDataListener l) {
         listeners.add(NetworkDataListener.class, l);
     }

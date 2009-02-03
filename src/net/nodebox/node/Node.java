@@ -183,13 +183,13 @@ public class Node {
     public void setPosition(Point p) {
         this.x = p.getX();
         this.y = p.getY();
-        fireNodeChanged();
+        fireNodePositionChanged();
     }
 
     public void setPosition(double x, double y) {
         this.x = x;
         this.y = y;
-        fireNodeChanged();
+        fireNodePositionChanged();
     }
 
     //// Type ////
@@ -385,6 +385,10 @@ public class Node {
             getNetwork().fireNodeChanged(this);
     }
 
+    public void fireNodePositionChanged() {
+        if (inNetwork())
+            getNetwork().fireNodePositionChanged(this);
+    }
 
     //// Value shortcuts ////
 

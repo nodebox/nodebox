@@ -58,12 +58,22 @@ public interface NetworkEventListener extends EventListener {
 
     /**
      * Invoked when a generic change to a node was made.
-     * This could happen when the node was renamed, moved, or one if its parameters was added or deleted.
+     * This could happen when the node was renamed or one if its parameters was added or deleted.
      * This event does not fire when the value of a node was changed, only its metadata.
      *
      * @param source the network this event comes from
      * @param node   the node that was changed
      */
     public void nodeChanged(Network source, Node node);
+
+
+    /**
+     * Invoked when the position of the node was changed, i.e. the node was moved.
+     * This event does not fire when the value of a node was changed, only its position.
+     *
+     * @param source the network this event comes from
+     * @param node   the node that was changed
+     */
+    public void nodePositionChanged(Network source, Node node);
 
 }
