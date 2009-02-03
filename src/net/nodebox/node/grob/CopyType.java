@@ -21,9 +21,9 @@ public class CopyType extends GrobNodeType {
         pCopies.setBoundingMethod(ParameterType.BoundingMethod.HARD);
         pCopies.setMinimumValue((double) 1);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
-        pTx.setLabel("Transform X");
+        pTx.setLabel("Translate X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);
-        pTy.setLabel("Transform Y");
+        pTy.setLabel("Translate Y");
         ParameterType pR = addParameterType("r", ParameterType.Type.FLOAT);
         pR.setLabel("Rotate");
         ParameterType pSx = addParameterType("sx", ParameterType.Type.FLOAT);
@@ -32,6 +32,10 @@ public class CopyType extends GrobNodeType {
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setLabel("Scale Y");
         pSy.setDefaultValue(100.0);
+        ParameterType pKx = addParameterType("kx", ParameterType.Type.FLOAT);
+        pKx.setLabel("Skew X");
+        ParameterType pKy = addParameterType("ky", ParameterType.Type.FLOAT);
+        pKy.setLabel("Skew Y");
         ParameterType pExpression = addParameterType("expression", ParameterType.Type.STRING);
     }
 
@@ -65,6 +69,8 @@ public class CopyType extends GrobNodeType {
         double r = node.asFloat("r");
         double sx = node.asFloat("sx") / 100.0;
         double sy = node.asFloat("sy") / 100.0;
+        double kx = node.asFloat("kx");
+        double ky = node.asFloat("ky");
         String expression = node.asString("expression");
         Expression expressionObject = new Expression(expression, true);
         ProcessingContext copyContext = (ProcessingContext) ctx.clone();
@@ -118,6 +124,7 @@ public class CopyType extends GrobNodeType {
                     t.translate(tx, ty);
                     t.rotate(r);
                     t.scale(sx, sy);
+                    t.skew(kx, ky);
                     copyIndex++;
                 }
             }

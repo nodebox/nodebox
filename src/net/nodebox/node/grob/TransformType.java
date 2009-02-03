@@ -14,9 +14,9 @@ public class TransformType extends GrobNodeType {
         setDescription("Transforms the input geometry.");
         ParameterType pShape = addParameterType("shape", ParameterType.Type.GROB);
         ParameterType pTx = addParameterType("tx", ParameterType.Type.FLOAT);
-        pTx.setLabel("Transform X");
+        pTx.setLabel("Translate X");
         ParameterType pTy = addParameterType("ty", ParameterType.Type.FLOAT);
-        pTy.setLabel("Transform Y");
+        pTy.setLabel("Translate Y");
         ParameterType pR = addParameterType("r", ParameterType.Type.FLOAT);
         pR.setLabel("Rotation");
         ParameterType pSx = addParameterType("sx", ParameterType.Type.FLOAT);
@@ -25,6 +25,11 @@ public class TransformType extends GrobNodeType {
         ParameterType pSy = addParameterType("sy", ParameterType.Type.FLOAT);
         pSy.setLabel("Scale Y");
         pSy.setDefaultValue(100.0);
+        ParameterType pKx = addParameterType("kx", ParameterType.Type.FLOAT);
+        pKx.setLabel("Skew X");
+        ParameterType pKy = addParameterType("ky", ParameterType.Type.FLOAT);
+        pKy.setLabel("Skew Y");
+
     }
 
     @Override
@@ -35,6 +40,8 @@ public class TransformType extends GrobNodeType {
         t.translate(node.asFloat("tx"), node.asFloat("ty"));
         t.rotate(node.asFloat("r"));
         t.scale(node.asFloat("sx") / 100.0, node.asFloat("sy") / 100.0);
+        t.skew(node.asFloat("kx"), node.asFloat("ky"));
+
         outGrob.appendTransform(t);
         node.setOutputValue(outGrob);
         return true;
