@@ -48,6 +48,11 @@ public class Application {
 
 
     private Application() {
+        try {
+            UIManager.setLookAndFeel(
+                    UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {
+        }
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
