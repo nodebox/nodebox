@@ -27,6 +27,7 @@ public class ViewerPane extends Pane {
         networkAddressBar = new NetworkAddressBar(this);
         paneHeader.add(networkAddressBar);
         JCheckBox showHandleBox = new JCheckBox("Handles");
+        showHandleBox.setOpaque(false);
         showHandleBox.setSelected(true);
         showHandleBox.putClientProperty("JComponent.sizeVariant", "small");
         showHandleBox.addActionListener(new ActionListener() {
