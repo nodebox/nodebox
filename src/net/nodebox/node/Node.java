@@ -41,22 +41,6 @@ import java.util.logging.Logger;
  */
 public class Node {
 
-    public static final String SIGNAL_NODE_CHANGED_NETWORK = "node_changed_network";
-    public static final String SIGNAL_NODE_MARKED_DIRTY = "node_marked_dirty";
-    public static final String SIGNAL_NODE_MOVED = "node_moved";
-    public static final String SIGNAL_NODE_RENAMED = "node_renamed";
-    public static final String SIGNAL_NODE_SET_RENDERED = "node_set_rendered";
-    public static final String SIGNAL_NODE_UPDATED = "node_updated";
-    public static final String SIGNAL_NETWORK_NODE_ADDED = "network_node_added";
-    public static final String SIGNAL_NETWORK_NODE_REMOVED = "network_node_removed";
-    public static final String SIGNAL_NETWORK_RENDERED_NODE_CHANGED = "network_rendered_node_changed";
-    public static final String SIGNAL_PARAMETER_CONNECTED = "parameter_connected";
-    public static final String SIGNAL_PARAMETER_DISCONNECTED = "parameter_disconnected";
-    public static final String SIGNAL_PARAMETER_EXPRESSION_CHANGED = "parameter_expression_changed";
-    public static final String SIGNAL_PARAMETER_VALUE_CHANGED = "parameter_value_changed";
-
-    public static final int MAXIMUM_INPUTS = Integer.MAX_VALUE;
-
     /**
      * The parent network for this node.
      */
