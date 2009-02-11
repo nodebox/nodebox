@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 public class SimpleEditor extends JFrame implements TreeSelectionListener {
 
-    private static final Color inActiveColor = new Color(222, 222, 222);
+    private static final Color inactiveColor = new Color(222, 222, 222);
     private static final Color activeColor = new Color(246, 246, 246);
 
     private ArrayList<SimpleDocument> openDocuments = new ArrayList<SimpleDocument>();
@@ -264,7 +264,7 @@ public class SimpleEditor extends JFrame implements TreeSelectionListener {
 
         public void setActive(boolean active) {
             this.active = active;
-            Color bgColor = active ? activeColor : inActiveColor;
+            Color bgColor = active ? activeColor : inactiveColor;
             setBackground(bgColor);
             repaint();
         }
