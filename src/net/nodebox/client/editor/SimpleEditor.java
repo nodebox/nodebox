@@ -20,23 +20,22 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 
-public class SimpleEditor extends JFrame implements TreeSelectionListener {
+public class SimpleEditor extends JPanel implements TreeSelectionListener {
 
     private static final Color inactiveColor = new Color(222, 222, 222);
     private static final Color activeColor = new Color(246, 246, 246);
 
+    private File editorDirectory;
     private ArrayList<SimpleDocument> openDocuments = new ArrayList<SimpleDocument>();
     private JLabel placeHolder;
     private TreeModel fileModel;
     private TabBar tabBar;
+    private JTree fileTree;
 
     public SimpleEditor() {
+        setLayout(new BorderLayout());
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         PythonUtils.initializePython();
-        JPanel rootPanel = new JPanel(new BorderLayout());
-        rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        File editorDirectory = new File(PlatformUtils.getUserNodeTypeLibraryDirectory());
-        fileModel = new FileModel(editorDirectory);
         FileCellRenderer fileCellRenderer = new FileCellRenderer();
         tabBar = new TabBar();
         placeHolder = new JLabel();
@@ -45,23 +44,52 @@ public class SimpleEditor extends JFrame implements TreeSelectionListener {
         JPanel contentsPanel = new JPanel(new BorderLayout());
         contentsPanel.add(tabBar, BorderLayout.NORTH);
         contentsPanel.add(placeHolder, BorderLayout.CENTER);
-
-        JTree fileTree = new JTree(fileModel);
+        fileTree = new JTree();
         fileTree.getSelectionModel().addTreeSelectionListener(this);
         fileTree.setCellRenderer(fileCellRenderer);
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, fileTree, contentsPanel);
+        JScrollPane fileTreeScroll = new JScrollPane(fileTree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        setEditorDirectory(editorDirectory);
+        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, fileTreeScroll, contentsPanel);
         split.setBorder(BorderFactory.createEmptyBorder());
         split.setDividerLocation(0.5);
         split.setResizeWeight(0.5);
-        rootPanel.add(split, BorderLayout.CENTER);
-        setContentPane(rootPanel);
-        setSize(1100, 800);
+        add(split, BorderLayout.CENTER);
     }
 
     public static void main(String[] args) {
+        File editorDirectory = new File(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        JFrame frame = new JFrame("Simple Editor");
+        JPanel rootPanel = new JPanel(new BorderLayout());
+        rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         SimpleEditor e = new SimpleEditor();
-        e.setLocationByPlatform(true);
-        e.setVisible(true);
+        e.setEditorDirectory(editorDirectory);
+        rootPanel.add(e);
+        frame.setContentPane(rootPanel);
+        frame.setLocationByPlatform(true);
+        frame.setSize(1100, 800);
+        frame.setVisible(true);
+    }
+
+    public File getEditorDirectory() {
+        return editorDirectory;
+    }
+
+    public void setEditorDirectory(File editorDirectory) {
+        if (this.editorDirectory != null && this.editorDirectory.equals(editorDirectory)) return;
+        for (SimpleDocument doc : openDocuments) {
+            closeDocument(doc);
+        }
+        if (editorDirectory == null) {
+            this.editorDirectory = null;
+            fileTree.setModel(null);
+            return;
+        }
+        if (!editorDirectory.isDirectory())
+            throw new RuntimeException("The given editor directory is not a directory.");
+        this.editorDirectory = editorDirectory;
+        fileModel = new FileModel(editorDirectory);
+        fileTree.setModel(fileModel);
+
     }
 
     public void switchToDocument(SimpleDocument document) {
@@ -114,7 +142,7 @@ public class SimpleEditor extends JFrame implements TreeSelectionListener {
     public void closeDocument(SimpleDocument document) {
         if (document.isChanged()) {
             SaveDialog sd = new SaveDialog();
-            int retVal = sd.show(this);
+            int retVal = sd.show((JFrame) SwingUtilities.getWindowAncestor(this));
             if (retVal == JOptionPane.YES_OPTION) {
                 document.save();
                 // Now fall through, which will close the document
@@ -152,6 +180,12 @@ public class SimpleEditor extends JFrame implements TreeSelectionListener {
         File f = (File) e.getPath().getLastPathComponent();
         if (f.isDirectory()) return;
         newTabWithFile(f);
+    }
+
+    public void saveAll() {
+        for (SimpleDocument doc : openDocuments) {
+            doc.save();
+        }
     }
 
 

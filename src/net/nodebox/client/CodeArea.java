@@ -29,6 +29,23 @@ public class CodeArea extends JEditorPane {
     private Element rootElement;
     private boolean wrap;
 
+    public static InputMap defaultInputMap;
+
+    static {
+        defaultInputMap = new InputMap();
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_UP), DefaultEditorKit.beginAction);
+        defaultInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), PythonEditorKit.returnAction);
+        defaultInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), PythonEditorKit.tabAction);
+        defaultInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, Event.SHIFT_MASK), PythonEditorKit.dedentAction);
+        defaultInputMap.put(PlatformUtils.getKeyStroke('['), PythonEditorKit.dedentAction);
+        defaultInputMap.put(PlatformUtils.getKeyStroke(']'), PythonEditorKit.indentAction);
+
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN), DefaultEditorKit.endAction);
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_UP, Event.SHIFT_MASK), DefaultEditorKit.selectionBeginAction);
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN, Event.SHIFT_MASK), DefaultEditorKit.selectionEndAction);
+
+    }
+
     private void init() {
         this.setMargin(new Insets(0, 5, 0, 5));
         setFont(PlatformUtils.getEditorFont());
@@ -36,16 +53,9 @@ public class CodeArea extends JEditorPane {
         rootElement = getDocument().getDefaultRootElement();
 
         // todo:this code should be in the kit
-        getInputMap().put(PlatformUtils.getKeyStroke(KeyEvent.VK_UP), DefaultEditorKit.beginAction);
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), PythonEditorKit.returnAction);
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), PythonEditorKit.tabAction);
-        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, Event.SHIFT_MASK), PythonEditorKit.dedentAction);
-        getInputMap().put(PlatformUtils.getKeyStroke('['), PythonEditorKit.dedentAction);
-        getInputMap().put(PlatformUtils.getKeyStroke(']'), PythonEditorKit.indentAction);
-
-        getInputMap().put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN), DefaultEditorKit.endAction);
-        getInputMap().put(PlatformUtils.getKeyStroke(KeyEvent.VK_UP, Event.SHIFT_MASK), DefaultEditorKit.selectionBeginAction);
-        getInputMap().put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN, Event.SHIFT_MASK), DefaultEditorKit.selectionEndAction);
+        for (KeyStroke ks : defaultInputMap.allKeys()) {
+            getInputMap().put(ks, defaultInputMap.get(ks));
+        }
         addMouseListener(new DragDetector());
     }
 

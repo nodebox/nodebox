@@ -1,5 +1,6 @@
 package net.nodebox.client;
 
+import net.nodebox.client.editor.SimpleEditor;
 import net.nodebox.node.Node;
 import net.nodebox.node.NodeTypeLibrary;
 import net.nodebox.node.PythonNodeTypeLibrary;
@@ -14,7 +15,8 @@ public class EditorPane extends Pane {
 
     private PaneHeader paneHeader;
     private NetworkAddressBar networkAddressBar;
-    private CodeArea codeArea;
+    private SimpleEditor editor;
+    //private CodeArea codeArea;
     private Node node;
 
     public EditorPane(NodeBoxDocument document) {
@@ -27,10 +29,10 @@ public class EditorPane extends Pane {
         paneHeader = new PaneHeader(this);
         networkAddressBar = new NetworkAddressBar(this);
         paneHeader.add(networkAddressBar);
-        codeArea = new CodeArea();
-        codeArea.getInputMap().put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
+        editor = new SimpleEditor();
+        CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
-        add(codeArea, BorderLayout.CENTER);
+        add(editor, BorderLayout.CENTER);
     }
 
     @Override
@@ -57,25 +59,26 @@ public class EditorPane extends Pane {
         NodeTypeLibrary library = node.getNodeType().getLibrary();
         if (library instanceof PythonNodeTypeLibrary) {
             PythonNodeTypeLibrary pythonLibrary = (PythonNodeTypeLibrary) library;
-            File moduleFile = pythonLibrary.getPythonModuleFile();
-            if (moduleFile != null) {
-                String code = FileUtils.readFile(moduleFile);
-                codeArea.setText(code);
-                return;
-            }
+            File moduleDirectory = new File(pythonLibrary.getPath());
+            //String code = FileUtils.readFile(moduleDirectory);
+            editor.setEditorDirectory(moduleDirectory);
+            //codeArea.setText(code);
+
         }
-        codeArea.setText("# The source code for this node is not available.");
+        //codeArea.setText("# The source code for this node is not available.");
     }
 
     private void reload() {
         NodeTypeLibrary library = node.getNodeType().getLibrary();
         if (library instanceof PythonNodeTypeLibrary) {
             PythonNodeTypeLibrary pythonLibrary = (PythonNodeTypeLibrary) library;
-            File moduleFile = pythonLibrary.getPythonModuleFile();
-            if (moduleFile != null) {
-                String code = codeArea.getText();
-                FileUtils.writeFile(moduleFile, code);
-            }
+            File moduleDirectory = new File(pythonLibrary.getPath());
+
+            editor.setEditorDirectory(moduleDirectory);
+            editor.saveAll();
+            //String code = codeArea.getText();
+            //FileUtils.writeFile(moduleFile, code);
+
         }
         getDocument().reloadActiveNode();
     }
@@ -90,7 +93,9 @@ public class EditorPane extends Pane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            reload();
+            Component c = (Component) e.getSource();
+            EditorPane p = (EditorPane) SwingUtilities.getAncestorOfClass(EditorPane.class, c);
+            p.reload();
         }
     }
 }
