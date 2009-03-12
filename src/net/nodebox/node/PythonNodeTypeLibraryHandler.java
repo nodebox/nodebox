@@ -1,6 +1,9 @@
 package net.nodebox.node;
 
-import org.python.core.*;
+import org.python.core.PyFunction;
+import org.python.core.PyModule;
+import org.python.core.PyObject;
+import org.python.core.imp;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -91,16 +94,12 @@ public class PythonNodeTypeLibraryHandler extends DefaultHandler {
 
     private void createPythonNodeTypeLibrary(Attributes attributes) throws SAXException {
         String moduleName = requireAttribute("library", attributes, "module");
-        library.setPythonModuleName(moduleName);
         // Load python module
         // TODO: This is the central versioning problem.
         // To properly handle this, we need several system states.
-        PyString libraryPath = new PyString(library.getPath());
-        PyList sysPath = Py.getSystemState().path;
-        if (!sysPath.contains(libraryPath))
-            sysPath.add(libraryPath);
-
-        library.setPythonModule((PyModule) imp.importName(moduleName.intern(), true));
+        // We just import, we cannot manage multiple versions.
+        PyModule pythonModule = (PyModule) imp.importName(moduleName.intern(), false);
+        library.setPythonModule(pythonModule);
     }
 
     /**

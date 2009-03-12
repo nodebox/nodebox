@@ -63,11 +63,11 @@ public class PythonNodeType extends NodeType {
             case STRING:
                 return new PyUnicode(parameter.asString());
             case COLOR:
-                return new PyJavaInstance(parameter.asColor());
+                return PyJavaType.wrapJavaObject(parameter.asColor());
             case GROB_CANVAS:
             case GROB_PATH:
             case GROB_IMAGE:
-                return new PyJavaInstance(parameter.asGrob());
+                return PyJavaType.wrapJavaObject(parameter.asGrob());
             default:
                 throw new AssertionError("Unknown core type " + parameter.getCoreType());
         }

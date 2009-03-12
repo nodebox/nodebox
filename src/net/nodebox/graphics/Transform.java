@@ -13,6 +13,10 @@ public class Transform implements Cloneable {
         affineTransform = new AffineTransform();
     }
 
+    public Transform(double m00, double m10, double m01, double m11, double m02, double m12) {
+        affineTransform = new AffineTransform(m00, m10, m01, m11, m02, m12);
+    }
+
     public Transform(AffineTransform affineTransform) {
         this.affineTransform = affineTransform;
     }

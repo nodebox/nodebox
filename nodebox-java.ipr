@@ -240,7 +240,7 @@
   </component>
   <component name="ProjectFileVersion" converted="true" />
   <component name="ProjectKey">
-    <option name="state" value="http://dev.nodebox.net/svn/nodebox-java/branches/rewrite/nodebox-java.ipr" />
+    <option name="state" value="http://dev.nodebox.net/svn/nodebox-java/branches/prototype/nodebox-java.ipr" />
   </component>
   <component name="ProjectModuleManager">
     <modules>
@@ -295,7 +295,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$PROJECT_DIR$/../../Java/piccolo.java/src" />
+        <root url="file://$PROJECT_DIR$/../piccolo.java/src" />
       </SOURCES>
     </library>
     <library name="MVEL">
@@ -304,7 +304,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$PROJECT_DIR$/../../../Java/mvel2/mvel2-2.0.6-sources.jar!/" />
+        <root url="jar://$PROJECT_DIR$/../../../../Java/mvel2/mvel2-2.0.6-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="JUnit">
@@ -316,11 +316,11 @@
     </library>
     <library name="Jython">
       <CLASSES>
-        <root url="jar://$PROJECT_DIR$/lib/jython-complete.jar!/" />
+        <root url="jar://$PROJECT_DIR$/lib/jython.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$PROJECT_DIR$/../../../Java/jython2.5b0/src" />
+        <root url="file://$PROJECT_DIR$/../../../../Java/jython2.5b1/src" />
       </SOURCES>
     </library>
     <library name="ASM">
@@ -329,7 +329,7 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$PROJECT_DIR$/../../../Java/asm/asm-3.1/src.zip!/" />
+        <root url="jar://$PROJECT_DIR$/../../../../Java/asm/asm-3.1/src.zip!/" />
       </SOURCES>
     </library>
     <library name="iText">
@@ -338,8 +338,15 @@
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="file://$PROJECT_DIR$/../../../Java/iText/src/core" />
+        <root url="file://$PROJECT_DIR$/../../../../Java/iText/src/core" />
       </SOURCES>
+    </library>
+    <library name="Xerces">
+      <CLASSES>
+        <root url="jar://$PROJECT_DIR$/lib/xercesImpl.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
     </library>
   </component>
 </project>

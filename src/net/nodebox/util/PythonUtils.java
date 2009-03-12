@@ -16,8 +16,11 @@ public class PythonUtils {
         jythonProperties.put("python.cachedir", jythonCacheDir);
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
         String workingDirectory = System.getProperty("user.dir");
+        // Add the built-in python libraries
         File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
+        // Add the user libraries
+        Py.getSystemState().path.add(new PyString(PlatformUtils.getUserDataDirectory()));
     }
 
 }

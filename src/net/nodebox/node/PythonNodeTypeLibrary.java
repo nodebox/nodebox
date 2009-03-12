@@ -51,11 +51,7 @@ public class PythonNodeTypeLibrary extends NodeTypeLibrary {
     //// Python module support ////
 
     public String getPythonModuleName() {
-        return pythonModuleName;
-    }
-
-    public void setPythonModuleName(String pythonModuleName) {
-        this.pythonModuleName = pythonModuleName;
+        return getName();
     }
 
     public PyModule getPythonModule() {

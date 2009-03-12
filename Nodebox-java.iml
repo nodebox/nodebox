@@ -17,6 +17,7 @@
     <orderEntry type="library" name="Jython" level="project" />
     <orderEntry type="library" name="ASM" level="project" />
     <orderEntry type="library" name="iText" level="project" />
+    <orderEntry type="library" name="Xerces" level="project" />
   </component>
 </module>
 
