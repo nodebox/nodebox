@@ -1,10 +1,10 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
+import net.nodebox.node.Node;
 
 public class RenderThread extends Thread {
 
-    private Network network;
+    private Node node;
     private boolean shouldRender = false;
     private boolean isRendering = false;
     private boolean running = true;
@@ -21,13 +21,13 @@ public class RenderThread extends Thread {
         }
     }
 
-    public void render(Network network) {
-        this.network = network;
+    public void render(Node node) {
+        this.node = node;
         shouldRender = true;
     }
 
-    public Network getNetwork() {
-        return network;
+    public Node getNode() {
+        return node;
     }
 
     public boolean isRendering() {
@@ -41,7 +41,7 @@ public class RenderThread extends Thread {
     private void doRender() {
         if (isRendering) return;
         isRendering = true;
-        network.update();
+        node.update();
         shouldRender = false;
         isRendering = false;
     }

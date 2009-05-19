@@ -4,36 +4,32 @@ import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Rect;
 import net.nodebox.graphics.Text;
 import net.nodebox.node.*;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
-import java.util.Iterator;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-public class NodeBoxDocument extends JFrame implements NetworkDataListener, WindowListener {
+/**
+ * A NodeBoxDocument manages a NodeLibrary.
+ */
+public class NodeBoxDocument extends JFrame implements DirtyListener, WindowListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -58,7 +54,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
     public DeleteAction deleteAction = new DeleteAction();
 
     public ReloadAction reloadAction = new ReloadAction();
-    public NewLibraryAction newLibraryAction = new NewLibraryAction();
+    //public NewLibraryAction newLibraryAction = new NewLibraryAction();
 
     public MinimizeAction minimizeAction = new MinimizeAction();
     public ZoomAction zoomAction = new ZoomAction();
@@ -68,8 +64,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     private JMenu recentFileMenu;
 
-    private Network rootNetwork;
-    private Network activeNetwork;
+    private NodeLibrary nodeLibrary;
+    private Node activeNetwork;
     private Node activeNode;
     private File documentFile;
     private boolean documentChanged;
@@ -84,35 +80,37 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         }
     }
 
-    public static class AllControlsType extends NodeType {
-        public AllControlsType(NodeTypeLibrary library) {
-            super(library, "allcontrols", ParameterType.Type.GROB_CANVAS);
-            addParameterType("angle", ParameterType.Type.ANGLE);
-            addParameterType("color", ParameterType.Type.COLOR);
-            addParameterType("file", ParameterType.Type.FILE);
-            addParameterType("float", ParameterType.Type.FLOAT);
-            addParameterType("font", ParameterType.Type.FONT);
-            addParameterType("gradient", ParameterType.Type.GRADIENT);
-            addParameterType("image", ParameterType.Type.IMAGE);
-            addParameterType("int", ParameterType.Type.INT);
-            addParameterType("menu", ParameterType.Type.MENU);
-            addParameterType("seed", ParameterType.Type.SEED);
-            addParameterType("string", ParameterType.Type.STRING);
-            addParameterType("text", ParameterType.Type.TEXT);
-            addParameterType("toggle", ParameterType.Type.TOGGLE);
-            addParameterType("noderef", ParameterType.Type.NODEREF);
-            ParameterType ptMenu = getParameterType("menu");
-            ptMenu.addMenuItem("red", "Red");
-            ptMenu.addMenuItem("green", "Green");
-            ptMenu.addMenuItem("blue", "Blue");
-            ptMenu.setDefaultValue("blue");
+    public static class AllControlsType extends Builtin {
+        protected Node createInstance() {
+            NodeLibrary library = new NodeLibrary("allcontrols");
+            Node n = Node.ROOT_NODE.newInstance(library, "allcontrols", Canvas.class);
+            n.addParameter("angle", Parameter.Type.FLOAT).setWidget(Parameter.Widget.ANGLE);
+            n.addParameter("color", Parameter.Type.COLOR).setWidget(Parameter.Widget.COLOR);
+            n.addParameter("file", Parameter.Type.STRING).setWidget(Parameter.Widget.FILE);
+            n.addParameter("float", Parameter.Type.FLOAT).setWidget(Parameter.Widget.FLOAT);
+            n.addParameter("font", Parameter.Type.STRING).setWidget(Parameter.Widget.FONT);
+            n.addParameter("gradient", Parameter.Type.COLOR).setWidget(Parameter.Widget.GRADIENT);
+            n.addParameter("image", Parameter.Type.STRING).setWidget(Parameter.Widget.IMAGE);
+            n.addParameter("int", Parameter.Type.INT).setWidget(Parameter.Widget.INT);
+            n.addParameter("menu", Parameter.Type.STRING).setWidget(Parameter.Widget.MENU);
+            n.addParameter("seed", Parameter.Type.INT).setWidget(Parameter.Widget.SEED);
+            n.addParameter("string", Parameter.Type.STRING).setWidget(Parameter.Widget.STRING);
+            n.addParameter("text", Parameter.Type.STRING).setWidget(Parameter.Widget.TEXT);
+            n.addParameter("toggle", Parameter.Type.INT).setWidget(Parameter.Widget.TOGGLE);
+            n.addParameter("noderef", Parameter.Type.STRING).setWidget(Parameter.Widget.NODEREF);
+            Parameter pMenu = n.getParameter("menu");
+            pMenu.addMenuItem("red", "Red");
+            pMenu.addMenuItem("green", "Green");
+            pMenu.addMenuItem("blue", "Blue");
+            pMenu.setValue("blue");
+            return n;
         }
 
         private void addText(net.nodebox.graphics.Canvas c, Node node, String parameterName, double y) {
             c.add(new Text(parameterName + ": " + node.asString(parameterName), 10, 24 + y * 24));
         }
 
-        public boolean process(Node node, ProcessingContext ctx) {
+        public Object cook(Node node, ProcessingContext context) {
             net.nodebox.graphics.Canvas c = new net.nodebox.graphics.Canvas();
             addText(c, node, "angle", 1);
             addText(c, node, "color", 2);
@@ -150,55 +148,10 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         addWindowListener(this);
         updateTitle();
         initMenu();
-        setRootNetwork(createEmptyNetwork());
+        nodeLibrary = new NodeLibrary("untitled");
+        setNodeLibrary(nodeLibrary);
         //renderThread = new RenderThread();
         //renderThread.start();
-    }
-
-
-    private Network createEmptyNetwork() {
-        NodeTypeLibraryManager manager = getManager();
-        NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
-        return (Network) canvasNetworkType.createNode();
-    }
-
-    private Network createTestNetwork() {
-        NodeTypeLibraryManager manager = getManager();
-        NodeType canvasNetworkType = manager.getNodeType("corecanvas.canvasnet");
-        NodeType vectorNetworkType = manager.getNodeType("corevector.vecnet");
-        NodeType imageNetworkType = manager.getNodeType("coreimage.imagenet");
-        NodeType ellipseType = manager.getNodeType("corevector.ellipse");
-        NodeType rectType = manager.getNodeType("corevector.rect");
-        NodeType transformType = manager.getNodeType("corevector.transform");
-        NodeType allControlsType = new AllControlsType(null);
-        Network network = (Network) canvasNetworkType.createNode();
-        Node allControls = network.create(allControlsType);
-        allControls.setPosition(200, 10);
-        allControls.setRendered();
-        Network vector1 = (Network) network.create(vectorNetworkType);
-        vector1.setPosition(10, 10);
-        //vector1.setRendered();
-        Network vector2 = (Network) network.create(vectorNetworkType);
-        vector2.setPosition(10, 110);
-        Network image1 = (Network) network.create(imageNetworkType);
-        image1.setPosition(10, 210);
-        Network image2 = (Network) network.create(imageNetworkType);
-        image2.setPosition(10, 310);
-        Node ellipse1 = vector1.create(ellipseType);
-        ellipse1.setRendered();
-        ellipse1.setPosition(100, 30);
-        Node ellipse2 = vector1.create(ellipseType);
-        ellipse2.setPosition(100, 130);
-        Node transform1 = vector1.create(transformType);
-        transform1.setPosition(300, 230);
-        Node rect1 = vector2.create(rectType);
-        rect1.setPosition(40, 40);
-        rect1.setRendered();
-        Node transform2 = vector2.create(transformType);
-        transform2.setPosition(40, 80);
-        transform2.setRendered();
-        transform2.getParameter("shape").connect(rect1);
-        return network;
     }
 
     private static void addRecentFile(File f) {
@@ -287,7 +240,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         // Node menu
         JMenu pythonMenu = new JMenu("Node");
         pythonMenu.add(reloadAction);
-        pythonMenu.add(newLibraryAction);
+        //pythonMenu.add(newLibraryAction);
         menuBar.add(pythonMenu);
 
         // Window menu
@@ -330,46 +283,46 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     public void fireActiveNetworkChanged() {
         for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
-            ((DocumentFocusListener) l).activeNetworkChanged(activeNetwork);
+            ((DocumentFocusListener) l).currentNodeChanged(activeNetwork);
         }
     }
 
     public void fireActiveNodeChanged() {
         for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
-            ((DocumentFocusListener) l).activeNodeChanged(activeNode);
+            ((DocumentFocusListener) l).focusedNodeChanged(activeNode);
         }
     }
 
-    public Network getRootNetwork() {
-        return rootNetwork;
+    public NodeLibrary getNodeLibrary() {
+        return nodeLibrary;
     }
 
-    public void setRootNetwork(Network rootNetwork) {
-        this.rootNetwork = rootNetwork;
-        setActiveNetwork(rootNetwork);
+    public void setNodeLibrary(NodeLibrary nodeLibrary) {
+        this.nodeLibrary = nodeLibrary;
+        setActiveNetwork(nodeLibrary.getRootNode());
     }
 
-    public Network getActiveNetwork() {
+    public Node getActiveNetwork() {
         return activeNetwork;
     }
 
-    public void setActiveNetwork(Network activeNetwork) {
-        Network oldNetwork = this.activeNetwork;
+    public void setActiveNetwork(Node activeNetwork) {
+        Node oldNetwork = this.activeNetwork;
         if (oldNetwork != null)
-            oldNetwork.removeNetworkDataListener(this);
+            oldNetwork.removeDirtyListener(this);
         this.activeNetwork = activeNetwork;
         if (activeNetwork != null)
-            activeNetwork.addNetworkDataListener(this);
+            activeNetwork.addDirtyListener(this);
         fireActiveNetworkChanged();
         if (activeNetwork != null && !activeNetwork.isEmpty()) {
             // Get the first node.
-            Iterator<Node> it = activeNetwork.getNodes().iterator();
-            Node n = it.next();
-            setActiveNode(n);
+            setActiveNode(activeNetwork.getChildAt(0));
         } else {
             setActiveNode(null);
         }
-        activeNetwork.update();
+        if (activeNetwork != null) {
+            activeNetwork.update();
+        }
     }
 
     public Node getActiveNode() {
@@ -381,7 +334,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         fireActiveNodeChanged();
     }
 
-    public NodeTypeLibraryManager getManager() {
+    public NodeLibraryManager getManager() {
         return Application.getInstance().getManager();
     }
 
@@ -434,37 +387,14 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
     }
 
     public boolean readFromFile(File file) {
-        FileInputStream fis;
         try {
-            // Load the document
-            fis = new FileInputStream(file);
-            InputSource source = new InputSource(fis);
-
-            // Setup the parser
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            // The next lines make sure that the SAX parser doesn't try to validate the document,
-            // or tries to load in external DTDs (such as those from W3). Non-parsing means you
-            // don't need an internet connection to use the program, and speeds up loading the
-            // document massively.
-            spf.setFeature("http://xml.org/sax/features/validation", false);
-            spf.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            spf.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            spf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-
-            SAXParser parser = spf.newSAXParser();
-            XmlHandler handler = new XmlHandler(getManager());
-            parser.parse(source, handler);
-
-            // The parsed network is now stored in the reader
-            setRootNetwork(handler.getNetwork());
+            NodeLibrary library = getManager().load(file);
+            setNodeLibrary(library);
             setDocumentFile(file);
+            // The parsed network is now stored in the reader
             documentChanged = false;
             return true;
-        } catch (ParserConfigurationException e) {
-            logger.log(Level.SEVERE, "Error during configuration", e);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Error while reading " + file, e);
-        } catch (SAXException e) {
+        } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error while parsing" + file, e);
         }
         return false;
@@ -509,9 +439,7 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     public boolean saveToFile(File file) {
         try {
-            FileOutputStream fos = new FileOutputStream(file);
-            fos.write(rootNetwork.toXml().getBytes("UTF-8"));
-            fos.close();
+            nodeLibrary.store(file);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while saving the file.", "MainController", JOptionPane.ERROR_MESSAGE);
             logger.log(Level.SEVERE, "An error occurred while saving the file.", e);
@@ -525,8 +453,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     public boolean exportToFile(File file) {
         // todo: file export only works on grobs.
-        if (activeNetwork == null || activeNetwork.getRenderedNode() == null) return false;
-        Object outputValue = activeNetwork.getRenderedNode().getOutputValue();
+        if (activeNetwork == null || activeNetwork.getRenderedChild() == null) return false;
+        Object outputValue = activeNetwork.getRenderedChild().getOutputValue();
         net.nodebox.graphics.Canvas canvas;
         if (outputValue instanceof net.nodebox.graphics.Canvas) {
             canvas = (net.nodebox.graphics.Canvas) outputValue;
@@ -582,17 +510,19 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     public boolean reloadActiveNode() {
         if (activeNode == null) return false;
-        return activeNode.getNodeType().reload();
+        // TODO: What should reloading do?
+        //return activeNode.reload();
+        return false;
     }
 
-    public void createNewLibrary(String libraryName) {
-        // First check if a library with this name already exists.
-        if (getManager().hasLibrary(libraryName)) {
-            JOptionPane.showMessageDialog(this, "A library with the name \"" + libraryName + "\" already exists.");
-            return;
-        }
-        getManager().createPythonLibrary(libraryName);
-    }
+//    public void createNewLibrary(String libraryName) {
+//        // First check if a library with this name already exists.
+//        if (getManager().hasLibrary(libraryName)) {
+//            JOptionPane.showMessageDialog(this, "A library with the name \"" + libraryName + "\" already exists.");
+//            return;
+//        }
+//        getManager().createPythonLibrary(libraryName);
+//    }
 
 
     private void close() {
@@ -636,8 +566,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
 
     //// Network events ////
 
-    public void networkDirty(Network network) {
-        if (network != activeNetwork) return;
+    public void nodeDirty(Node node) {
+        if (node != activeNetwork) return;
         markChanged();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -651,7 +581,8 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         //renderThread.render(activeNetwork);
     }
 
-    public void networkUpdated(Network network) {
+    public void nodeUpdated(Node node) {
+        // Just here to statisfy DirtyListener interface.
     }
 
     //// Document Action classes ////
@@ -868,17 +799,17 @@ public class NodeBoxDocument extends JFrame implements NetworkDataListener, Wind
         }
     }
 
-    public class NewLibraryAction extends AbstractAction {
-        public NewLibraryAction() {
-            putValue(NAME, "New Library...");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            String libraryName = JOptionPane.showInputDialog(NodeBoxDocument.this, "Enter the name for the new library", "Create New Library", JOptionPane.QUESTION_MESSAGE);
-            if (libraryName == null || libraryName.trim().length() == 0) return;
-            createNewLibrary(libraryName);
-        }
-    }
+//    public class NewLibraryAction extends AbstractAction {
+//        public NewLibraryAction() {
+//            putValue(NAME, "New Library...");
+//        }
+//
+//        public void actionPerformed(ActionEvent e) {
+//            String libraryName = JOptionPane.showInputDialog(NodeBoxDocument.this, "Enter the name for the new library", "Create New Library", JOptionPane.QUESTION_MESSAGE);
+//            if (libraryName == null || libraryName.trim().length() == 0) return;
+//            createNewLibrary(libraryName);
+//        }
+//    }
 
     public class MinimizeAction extends AbstractAction {
         public MinimizeAction() {

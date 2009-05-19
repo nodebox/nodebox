@@ -1,6 +1,5 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import javax.swing.*;
@@ -14,29 +13,29 @@ import java.awt.event.MouseEvent;
 
 public class PathDialog extends JDialog {
 
-    public static String choosePath(Network network, String path) {
-        PathDialog dialog = new PathDialog(network);
+    public static String choosePath(Node root, String path) {
+        PathDialog dialog = new PathDialog(root);
         dialog.setModal(true);
         dialog.setVisible(true);
         return dialog.getSelectedPath();
     }
 
-    private Network network;
+    private Node root;
     private JTree nodeTree;
-    private NetworkTreeModel networkTreeModel;
+    private NodeTreeModel nodeTreeModel;
     private NodeCellRenderer nodeCellRenderer;
 
     /**
      * The given network is the root. If you want to limit the selection to only part of the tree,
      * don't give the root network but provide the network you want to use as root for the tree.
      *
-     * @param network the root network for this tree.
+     * @param root the root network for this tree.
      */
-    public PathDialog(Network network) {
+    public PathDialog(Node root) {
         setTitle("Select node");
         //JPanel panel = new JPanel(new BorderLayout(0, 0));
-        networkTreeModel = new NetworkTreeModel(network);
-        nodeTree = new JTree(networkTreeModel);
+        nodeTreeModel = new NodeTreeModel(root);
+        nodeTree = new JTree(nodeTreeModel);
         nodeTree.addMouseListener(new DoubleClickHandler());
         //nodeTree.setSelectionModel(new DefaultTR());
         nodeCellRenderer = new NodeCellRenderer();
@@ -67,29 +66,30 @@ public class PathDialog extends JDialog {
 
     }
 
-    private class NetworkTreeModel implements TreeModel {
-        private Network rootNetwork;
+    private class NodeTreeModel implements TreeModel {
+        private Node root;
 
-        private NetworkTreeModel(Network rootNetwork) {
-            this.rootNetwork = rootNetwork;
+        private NodeTreeModel(Node root) {
+            this.root = root;
         }
 
         public Object getRoot() {
-            return rootNetwork;
+            return root;
         }
 
         public Object getChild(Object parent, int index) {
-            Network net = (Network) parent;
-            return net.getNodes().toArray()[index];
+            Node parentNode = (Node) parent;
+            return parentNode.getChildAt(index);
         }
 
         public int getChildCount(Object parent) {
-            Network net = (Network) parent;
-            return net.getNodes().size();
+            Node parentNode = (Node) parent;
+            return parentNode.getChildCount();
         }
 
         public boolean isLeaf(Object node) {
-            return !(node instanceof Network);
+            Node parentNode = (Node) node;
+            return !parentNode.hasChildren();
         }
 
         public void valueForPathChanged(TreePath path, Object newValue) {
@@ -97,9 +97,9 @@ public class PathDialog extends JDialog {
         }
 
         public int getIndexOfChild(Object parent, Object child) {
-            Network net = (Network) parent;
+            Node parentNode = (Node) parent;
             int index = 0;
-            for (Node n : net.getNodes()) {
+            for (Node n : parentNode.getChildren()) {
                 if (n == child)
                     return index;
                 index++;

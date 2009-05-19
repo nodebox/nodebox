@@ -1,6 +1,5 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import javax.swing.*;
@@ -32,10 +31,10 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     public abstract Pane clone();
 
-    public void activeNetworkChanged(Network activeNetwork) {
+    public void currentNodeChanged(Node activeNetwork) {
     }
 
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node activeNode) {
     }
 
     /**

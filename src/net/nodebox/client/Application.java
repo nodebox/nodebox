@@ -18,8 +18,8 @@
  */
 package net.nodebox.client;
 
-import net.nodebox.node.NodeTypeLibrary;
-import net.nodebox.node.NodeTypeLibraryManager;
+import net.nodebox.node.NodeLibrary;
+import net.nodebox.node.NodeLibraryManager;
 import net.nodebox.util.PythonUtils;
 
 import javax.swing.*;
@@ -40,7 +40,7 @@ public class Application {
 
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
-    private NodeTypeLibraryManager manager;
+    private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
 
     public static final String NAME = "NodeBox 2";
@@ -105,8 +105,8 @@ public class Application {
     }
 
     private void load() {
-        manager = new NodeTypeLibraryManager();
-        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        manager = new NodeLibraryManager();
+        // TODO: manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
         int tasks = manager.getLibraries().size() + 1;
         startupDialog = new ProgressDialog(null, "Starting NodeBox", tasks);
         startupDialog.setVisible(true);
@@ -156,7 +156,7 @@ public class Application {
         return doc;
     }
 
-    public NodeTypeLibraryManager getManager() {
+    public NodeLibraryManager getManager() {
         return manager;
     }
 
@@ -177,12 +177,14 @@ public class Application {
             String libraryName = "";
             Exception currentException = null;
             // Load libraries
-            manager = new NodeTypeLibraryManager();
-            manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
-            for (NodeTypeLibrary library : manager.getLibraries()) {
+            // TODO: Check if the lines below are needed. Already done in load()?
+            //manager = new NodeLibraryManager();
+            //manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+            for (NodeLibrary library : manager.getLibraries()) {
                 SwingUtilities.invokeLater(new MessageSetter("Loading " + library.getName() + " library"));
                 try {
-                    library.load();
+                    // TODO: Implement explicit loading of libraries.
+                    //library.load();
                 } catch (Exception e) {
                     logger.log(Level.WARNING, "Could not load library " + library.getName(), e);
                     currentException = e;

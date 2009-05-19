@@ -2,8 +2,7 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
-import net.nodebox.node.ParameterType;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
@@ -11,20 +10,19 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class MenuControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class MenuControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
 
     private Parameter parameter;
     private String value;
     private JComboBox menuBox;
     private MenuDataModel menuModel;
-    private MenuItemRenderer menuItemRenderer;
 
     public MenuControl(Parameter parameter) {
         this.parameter = parameter;
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         menuBox = new JComboBox();
-        menuModel = new MenuDataModel(parameter.getParameterType());
-        menuItemRenderer = new MenuItemRenderer();
+        menuModel = new MenuDataModel(parameter);
+        MenuItemRenderer menuItemRenderer = new MenuItemRenderer();
         menuBox.setModel(menuModel);
         menuBox.setRenderer(menuItemRenderer);
         menuBox.putClientProperty("Jcomponent.sizeVariant", "small");
@@ -33,7 +31,7 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
         menuBox.addActionListener(this);
         add(menuBox);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -52,26 +50,27 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
     }
 
     public void actionPerformed(ActionEvent e) {
-        ParameterType.MenuItem item = (ParameterType.MenuItem) menuBox.getSelectedItem();
+        Parameter.MenuItem item = (Parameter.MenuItem) menuBox.getSelectedItem();
         parameter.setValue(item.getKey());
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
+    public void valueChanged(Parameter source) {
+        Object newValue = source.getValue();
         if (value != null && value.equals(newValue)) return;
         setValueForControl(newValue);
     }
 
     private class MenuDataModel implements ComboBoxModel {
 
-        java.util.List<ParameterType.MenuItem> menuItems;
-        ParameterType.MenuItem selectedItem;
+        java.util.List<Parameter.MenuItem> menuItems;
+        Parameter.MenuItem selectedItem;
 
-        public MenuDataModel(ParameterType pType) {
-            menuItems = pType.getMenuItems();
+        public MenuDataModel(Parameter parameter) {
+            menuItems = parameter.getMenuItems();
         }
 
-        public ParameterType.MenuItem getMenuItem(String key) {
-            for (ParameterType.MenuItem item : menuItems) {
+        public Parameter.MenuItem getMenuItem(String key) {
+            for (Parameter.MenuItem item : menuItems) {
                 if (item.getKey().equals(key))
                     return item;
             }
@@ -79,7 +78,7 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
         }
 
         public void setSelectedItem(Object anItem) {
-            selectedItem = (ParameterType.MenuItem) anItem;
+            selectedItem = (Parameter.MenuItem) anItem;
         }
 
         public Object getSelectedItem() {
@@ -109,7 +108,7 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             if (label == null) return null;
-            ParameterType.MenuItem item = (ParameterType.MenuItem) value;
+            Parameter.MenuItem item = (Parameter.MenuItem) value;
             if (item == null) return label;
             label.setText(item.getLabel());
             label.setFont(PlatformUtils.getSmallFont());

@@ -16,29 +16,29 @@ public class ParameterView extends JComponent {
 
     private static Logger logger = Logger.getLogger("net.nodebox.client.ParameterView");
 
-    private static final Map<ParameterType.Type, Class> CONTROL_MAP;
+    private static final Map<Parameter.Widget, Class> CONTROL_MAP;
     private JPanel controlPanel;
 
     static {
-        CONTROL_MAP = new HashMap<ParameterType.Type, Class>();
-        CONTROL_MAP.put(ParameterType.Type.ANGLE, FloatControl.class);
-        CONTROL_MAP.put(ParameterType.Type.COLOR, ColorControl.class);
-        CONTROL_MAP.put(ParameterType.Type.FILE, FileControl.class);
-        CONTROL_MAP.put(ParameterType.Type.FLOAT, FloatControl.class);
-        CONTROL_MAP.put(ParameterType.Type.FONT, FontControl.class);
-        CONTROL_MAP.put(ParameterType.Type.GRADIENT, null);
-        CONTROL_MAP.put(ParameterType.Type.IMAGE, ImageControl.class);
-        CONTROL_MAP.put(ParameterType.Type.INT, IntControl.class);
-        CONTROL_MAP.put(ParameterType.Type.MENU, MenuControl.class);
-        CONTROL_MAP.put(ParameterType.Type.SEED, IntControl.class);
-        CONTROL_MAP.put(ParameterType.Type.STRING, StringControl.class);
-        CONTROL_MAP.put(ParameterType.Type.TEXT, TextControl.class);
-        CONTROL_MAP.put(ParameterType.Type.TOGGLE, ToggleControl.class);
-        CONTROL_MAP.put(ParameterType.Type.NODEREF, NoderefControl.class);
+        CONTROL_MAP = new HashMap<Parameter.Widget, Class>();
+        CONTROL_MAP.put(Parameter.Widget.ANGLE, FloatControl.class);
+        CONTROL_MAP.put(Parameter.Widget.COLOR, ColorControl.class);
+        CONTROL_MAP.put(Parameter.Widget.FILE, FileControl.class);
+        CONTROL_MAP.put(Parameter.Widget.FLOAT, FloatControl.class);
+        CONTROL_MAP.put(Parameter.Widget.FONT, FontControl.class);
+        CONTROL_MAP.put(Parameter.Widget.GRADIENT, null);
+        CONTROL_MAP.put(Parameter.Widget.IMAGE, ImageControl.class);
+        CONTROL_MAP.put(Parameter.Widget.INT, IntControl.class);
+        CONTROL_MAP.put(Parameter.Widget.MENU, MenuControl.class);
+        CONTROL_MAP.put(Parameter.Widget.SEED, IntControl.class);
+        CONTROL_MAP.put(Parameter.Widget.STRING, StringControl.class);
+        CONTROL_MAP.put(Parameter.Widget.TEXT, TextControl.class);
+        CONTROL_MAP.put(Parameter.Widget.TOGGLE, ToggleControl.class);
+        CONTROL_MAP.put(Parameter.Widget.NODEREF, NoderefControl.class);
     }
 
     private Node node;
-    private NetworkEventHandler handler = new NetworkEventHandler();
+    private NodeEventHandler handler = new NodeEventHandler();
     private ArrayList<ParameterControl> controls = new ArrayList<ParameterControl>();
 
     public ParameterView() {
@@ -56,11 +56,9 @@ public class ParameterView extends JComponent {
 
     public void setNode(Node node) {
         Node oldNode = this.node;
-        if (oldNode != null && oldNode.inNetwork())
-            oldNode.getNetwork().removeNetworkEventListener(handler);
+        oldNode.removeNodeAttributeListener(handler);
         this.node = node;
-        if (node != null && node.inNetwork())
-            node.getNetwork().addNetworkEventListener(handler);
+        node.addNodeAttributeListener(handler);
         rebuildInterface();
         validate();
         repaint();
@@ -78,11 +76,7 @@ public class ParameterView extends JComponent {
                 controls.add((ParameterControl) control);
 
             } else {
-                if (p.getCardinality() == ParameterType.Cardinality.MULTIPLE) {
-                    control = new MultiConnectionPanel(p);
-                } else {
-                    control = new JLabel("  ");
-                }
+                control = new JLabel("  ");
             }
             ParameterRow parameterRow = new ParameterRow(p, control);
             GridBagConstraints rowConstraints = new GridBagConstraints();
@@ -117,9 +111,9 @@ public class ParameterView extends JComponent {
 
     public static void main(String[] args) {
         JFrame frame = new JFrame();
-        NodeTypeLibraryManager manager = new NodeTypeLibraryManager();
-        NodeType rectType = manager.getNodeType("corevector.rect");
-        Node n = rectType.createNode();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node n = manager.getNode("corevector.rect").newInstance(testLibrary, "myrect");
         ParameterView p = new ParameterView();
         p.setNode(n);
         frame.setContentPane(p);
@@ -127,12 +121,11 @@ public class ParameterView extends JComponent {
         frame.setVisible(true);
     }
 
-    //// Network events ////
+    //// Node events ////
 
-    private class NetworkEventHandler extends NetworkEventAdapter {
-        @Override
-        public void nodeChanged(Network source, Node node) {
-            if (node == getNode()) {
+    private class NodeEventHandler implements NodeAttributeListener {
+        public void attributeChanged(Node source) {
+            if (source == getNode()) {
                 rebuildInterface();
             }
         }

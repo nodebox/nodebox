@@ -2,8 +2,7 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.DraggableNumber;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
-import net.nodebox.node.ParameterType;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -13,7 +12,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
-public class IntControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterDataListener {
+public class IntControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterValueListener {
 
     private Parameter parameter;
     private DraggableNumber draggable;
@@ -28,19 +27,18 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         intFormat.setMaximumFractionDigits(0);
         draggable.setNumberFormat(intFormat);
         // Set bounding
-        ParameterType pType = parameter.getParameterType();
-        if (pType.getBoundingMethod() == ParameterType.BoundingMethod.HARD) {
-            Double minimumValue = pType.getMinimumValue();
+        if (parameter.getBoundingMethod() == Parameter.BoundingMethod.HARD) {
+            Float minimumValue = parameter.getMinimumValue();
             if (minimumValue != null)
                 draggable.setMinimumValue(minimumValue);
-            Double maximumValue = pType.getMaximumValue();
+            Float maximumValue = parameter.getMaximumValue();
             if (maximumValue != null)
                 draggable.setMaximumValue(maximumValue);
         }
         add(draggable);
         setPreferredSize(draggable.getPreferredSize());
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -62,11 +60,11 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
 
     private void setValueFromControl() {
         double doubleValue = draggable.getValue();
-        if (parameter.getParameterType().getMinimumValue() != null) {
-            doubleValue = Math.max(parameter.getParameterType().getMinimumValue(), doubleValue);
+        if (parameter.getMinimumValue() != null) {
+            doubleValue = Math.max(parameter.getMinimumValue(), doubleValue);
         }
-        if (parameter.getParameterType().getMaximumValue() != null) {
-            doubleValue = Math.max(parameter.getParameterType().getMaximumValue(), doubleValue);
+        if (parameter.getMaximumValue() != null) {
+            doubleValue = Math.max(parameter.getMaximumValue(), doubleValue);
         }
         int intValue = (int) doubleValue;
         if (intValue != parameter.asInt()) {
@@ -74,7 +72,7 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         }
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 }

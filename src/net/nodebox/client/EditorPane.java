@@ -2,14 +2,14 @@ package net.nodebox.client;
 
 import net.nodebox.client.editor.SimpleEditor;
 import net.nodebox.node.Node;
-import net.nodebox.node.NodeTypeLibrary;
-import net.nodebox.node.PythonNodeTypeLibrary;
+import net.nodebox.node.NodeCode;
+import net.nodebox.node.Parameter;
+import net.nodebox.node.PythonCode;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.File;
 
 public class EditorPane extends Pane {
 
@@ -56,35 +56,17 @@ public class EditorPane extends Pane {
         networkAddressBar.setNode(node);
         if (node == null) return;
 
-        NodeTypeLibrary library = node.getNodeType().getLibrary();
-        if (library instanceof PythonNodeTypeLibrary) {
-            PythonNodeTypeLibrary pythonLibrary = (PythonNodeTypeLibrary) library;
-            File moduleDirectory = new File(pythonLibrary.getPath());
-            //String code = FileUtils.readFile(moduleDirectory);
-            editor.setEditorDirectory(moduleDirectory);
-            //codeArea.setText(code);
-
+        Parameter pCode = node.getParameter("_code");
+        if (pCode == null) {
+            editor.setSource("# This node has no source code.");
+        } else {
+            String code = pCode.asCode().getSource();
+            editor.setSource(code);
         }
-        //codeArea.setText("# The source code for this node is not available.");
-    }
-
-    private void reload() {
-        NodeTypeLibrary library = node.getNodeType().getLibrary();
-        if (library instanceof PythonNodeTypeLibrary) {
-            PythonNodeTypeLibrary pythonLibrary = (PythonNodeTypeLibrary) library;
-            File moduleDirectory = new File(pythonLibrary.getPath());
-
-            editor.setEditorDirectory(moduleDirectory);
-            editor.saveAll();
-            //String code = codeArea.getText();
-            //FileUtils.writeFile(moduleFile, code);
-
-        }
-        getDocument().reloadActiveNode();
     }
 
     @Override
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node activeNode) {
         setNode(activeNode);
     }
 
@@ -93,9 +75,10 @@ public class EditorPane extends Pane {
         }
 
         public void actionPerformed(ActionEvent e) {
-            Component c = (Component) e.getSource();
-            EditorPane p = (EditorPane) SwingUtilities.getAncestorOfClass(EditorPane.class, c);
-            p.reload();
+            Parameter pCode = node.getParameter("_code");
+            if (pCode == null) return;
+            NodeCode code = new PythonCode(editor.getSource());
+            pCode.set(code);
         }
     }
 }

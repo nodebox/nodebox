@@ -2,9 +2,14 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
+import net.nodebox.node.ParameterValueListener;
 
-import javax.swing.*;
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,12 +20,11 @@ import java.awt.event.ActionListener;
  * <p/>
  * Note that we use the java.awt.Font object as the model object. The displayed name is fontName.
  */
-public class FontControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class FontControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
 
     private Parameter parameter;
     private JComboBox fontChooser;
     private FontDataModel fontModel;
-    private FontCellRenderer fontCellRenderer;
     private String value;
 
     public FontControl(Parameter parameter) {
@@ -28,7 +32,7 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fontChooser = new JComboBox();
         fontModel = new FontDataModel();
-        fontCellRenderer = new FontCellRenderer();
+        FontCellRenderer fontCellRenderer = new FontCellRenderer();
         fontChooser.setModel(fontModel);
         fontChooser.setRenderer(fontCellRenderer);
         fontChooser.putClientProperty("Jcomponent.sizeVariant", "small");
@@ -37,7 +41,7 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
         fontChooser.addActionListener(this);
         add(fontChooser);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -58,8 +62,8 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
         parameter.setValue(font.getFontName());
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 
     private class FontDataModel implements ComboBoxModel {

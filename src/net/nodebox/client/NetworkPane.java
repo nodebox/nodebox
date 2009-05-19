@@ -55,12 +55,12 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     }
 
     @Override
-    public void activeNetworkChanged(Network activeNetwork) {
+    public void currentNodeChanged(Node activeNetwork) {
         setNetwork(activeNetwork);
     }
 
     @Override
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node activeNode) {
         // If the active node is already selected, don't change the selection.
         // This avoids nasty surprises when multiple nodes (including the active one)
         // are selected.

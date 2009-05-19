@@ -63,12 +63,12 @@ public class ViewerPane extends Pane {
     }
 
     @Override
-    public void activeNetworkChanged(Network activeNetwork) {
+    public void currentNodeChanged(Node activeNetwork) {
         setNetwork(activeNetwork);
     }
 
     @Override
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node activeNode) {
         setActiveNode(activeNode);
     }
 

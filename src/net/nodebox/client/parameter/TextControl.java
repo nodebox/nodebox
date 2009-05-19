@@ -2,14 +2,14 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class TextControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class TextControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
 
     private Parameter parameter;
     private JTextField textField;
@@ -31,7 +31,7 @@ public class TextControl extends JComponent implements ParameterControl, ActionL
         add(textField);
         add(externalWindowButton);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -50,8 +50,8 @@ public class TextControl extends JComponent implements ParameterControl, ActionL
         }
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 
 }

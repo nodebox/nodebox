@@ -1,7 +1,7 @@
 package net.nodebox.client;
 
-import net.nodebox.node.NodeType;
-import net.nodebox.node.NodeTypeLibraryManager;
+import net.nodebox.node.Node;
+import net.nodebox.node.NodeLibraryManager;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -14,18 +14,20 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
+import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
+
 public class NodeTypeDialog extends JDialog {
 
     private class FilteredNodeListModel implements ListModel {
 
-        private NodeTypeLibraryManager manager;
-        private java.util.List<NodeType> filteredNodeTypes;
+        private NodeLibraryManager manager;
+        private java.util.List<Node> filteredNodes;
         private String searchString;
 
-        private FilteredNodeListModel(NodeTypeLibraryManager manager) {
+        private FilteredNodeListModel(NodeLibraryManager manager) {
             this.manager = manager;
             this.searchString = "";
-            this.filteredNodeTypes = manager.getNodeTypes();
+            this.filteredNodes = manager.getNodes();
         }
 
         public String getSearchString() {
@@ -35,26 +37,26 @@ public class NodeTypeDialog extends JDialog {
         public void setSearchString(String searchString) {
             this.searchString = searchString.trim();
             if (searchString.length() == 0) {
-                filteredNodeTypes = manager.getNodeTypes();
+                filteredNodes = manager.getNodes();
 
             } else {
-                filteredNodeTypes = new ArrayList<NodeType>();
-                for (NodeType type : manager.getNodeTypes()) {
+                filteredNodes = new ArrayList<Node>();
+                for (Node type : manager.getNodes()) {
                     String description = type.getDescription() == null ? "" : type.getDescription();
                     if (type.getName().contains(searchString) ||
                             description.contains(searchString)) {
-                        filteredNodeTypes.add(type);
+                        filteredNodes.add(type);
                     }
                 }
             }
         }
 
         public int getSize() {
-            return filteredNodeTypes.size();
+            return filteredNodes.size();
         }
 
         public Object getElementAt(int index) {
-            return filteredNodeTypes.get(index);
+            return filteredNodes.get(index);
         }
 
         public void addListDataListener(ListDataListener l) {
@@ -69,9 +71,9 @@ public class NodeTypeDialog extends JDialog {
     private class NodeTypeRenderer extends JLabel implements ListCellRenderer {
 
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            assert (value instanceof NodeType);
-            NodeType nodeType = (NodeType) value;
-            String html = "<html>" + nodeType.getName() + "<font color=#666666> Ð " + nodeType.getDescription() + "</font></html>";
+            assert (value instanceof Node);
+            Node node = (Node) value;
+            String html = "<html>" + node.getName() + "<font color=#666666> Ð " + node.getDescription() + "</font></html>";
             setText(html);
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
@@ -88,7 +90,7 @@ public class NodeTypeDialog extends JDialog {
 
     }
 
-    private NodeTypeLibraryManager manager;
+    private NodeLibraryManager manager;
     private JTextField searchField;
     private JList nodeList;
     private NodeType selectedNodeType;
@@ -98,11 +100,11 @@ public class NodeTypeDialog extends JDialog {
     private SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
     private FilteredNodeListModel filteredNodeListModel;
 
-    public NodeTypeDialog(NodeTypeLibraryManager manager) {
+    public NodeTypeDialog(NodeLibraryManager manager) {
         this(null, manager);
     }
 
-    public NodeTypeDialog(Frame owner, NodeTypeLibraryManager manager) {
+    public NodeTypeDialog(Frame owner, NodeLibraryManager manager) {
         super(owner, "Create node type", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
@@ -130,7 +132,7 @@ public class NodeTypeDialog extends JDialog {
         return selectedNodeType;
     }
 
-    public NodeTypeLibraryManager getManager() {
+    public NodeLibraryManager getManager() {
         return manager;
     }
 

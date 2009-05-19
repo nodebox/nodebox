@@ -2,8 +2,7 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.DraggableNumber;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
-import net.nodebox.node.ParameterType;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -12,7 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterDataListener {
+public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterValueListener {
 
     private Parameter parameter;
     private DraggableNumber draggable;
@@ -24,18 +23,17 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         draggable.addChangeListener(this);
         setPreferredSize(draggable.getPreferredSize());
         // Set bounding
-        ParameterType pType = parameter.getParameterType();
-        if (pType.getBoundingMethod() == ParameterType.BoundingMethod.HARD) {
-            Double minimumValue = pType.getMinimumValue();
+        if (parameter.getBoundingMethod() == Parameter.BoundingMethod.HARD) {
+            Float minimumValue = parameter.getMinimumValue();
             if (minimumValue != null)
                 draggable.setMinimumValue(minimumValue);
-            Double maximumValue = pType.getMaximumValue();
+            Float maximumValue = parameter.getMaximumValue();
             if (maximumValue != null)
                 draggable.setMaximumValue(maximumValue);
         }
         add(draggable);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -57,18 +55,18 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
 
     private void setValueFromControl() {
         double value = draggable.getValue();
-        if (parameter.getParameterType().getMinimumValue() != null) {
-            value = Math.max(parameter.getParameterType().getMinimumValue(), value);
+        if (parameter.getMinimumValue() != null) {
+            value = Math.max(parameter.getMinimumValue(), value);
         }
-        if (parameter.getParameterType().getMaximumValue() != null) {
-            value = Math.max(parameter.getParameterType().getMaximumValue(), value);
+        if (parameter.getMaximumValue() != null) {
+            value = Math.max(parameter.getMaximumValue(), value);
         }
         if (value != (Double) parameter.getValue()) {
             parameter.setValue(value);
         }
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 }

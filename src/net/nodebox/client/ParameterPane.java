@@ -49,7 +49,7 @@ public class ParameterPane extends Pane {
     }
 
     @Override
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node activeNode) {
         setNode(activeNode);
     }
 }

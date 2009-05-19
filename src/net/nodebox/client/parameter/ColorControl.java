@@ -4,10 +4,9 @@ import net.nodebox.client.ColorDialog;
 import net.nodebox.client.DocumentFocusListener;
 import net.nodebox.client.NodeBoxDocument;
 import net.nodebox.client.SwingUtils;
-import net.nodebox.node.Network;
-import net.nodebox.node.Node;
+import net.nodebox.node.ParameterValueListener;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
+import net.nodebox.node.Node;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -16,7 +15,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ParameterDataListener, ActionListener, DocumentFocusListener {
+public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ActionListener, DocumentFocusListener, ParameterValueListener {
 
     private Parameter parameter;
     //private ColorWell colorWell;
@@ -34,8 +33,7 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
         colorButton = new ColorButton();
         add(colorButton);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
-
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -56,8 +54,8 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
         //colorWell.setColor((net.nodebox.graphics.Color) v);
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -89,10 +87,10 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
         }
     }
 
-    public void activeNetworkChanged(Network activeNetwork) {
+    public void currentNodeChanged(Node node) {
     }
 
-    public void activeNodeChanged(Node activeNode) {
+    public void focusedNodeChanged(Node node) {
         if (colorDialog != null) {
             colorDialog.dispose();
         }

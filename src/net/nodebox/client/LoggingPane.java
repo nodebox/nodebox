@@ -1,17 +1,15 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
-import net.nodebox.node.NetworkDataListener;
 import net.nodebox.node.Node;
+import net.nodebox.node.DirtyListener;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class LoggingPane extends Pane implements NetworkDataListener {
+public class LoggingPane extends Pane implements DirtyListener {
 
-    private PaneHeader paneHeader;
     private JTextArea loggingArea;
-    private Network network;
+    private Node node;
 
     public LoggingPane(NodeBoxDocument document) {
         this();
@@ -20,7 +18,7 @@ public class LoggingPane extends Pane implements NetworkDataListener {
 
     public LoggingPane() {
         setLayout(new BorderLayout(0, 0));
-        paneHeader = new PaneHeader(this);
+        PaneHeader paneHeader = new PaneHeader(this);
         loggingArea = new JTextArea(80, 30);
         loggingArea.setFont(PlatformUtils.getInfoFont());
         loggingArea.setEditable(false);
@@ -30,25 +28,22 @@ public class LoggingPane extends Pane implements NetworkDataListener {
     }
 
     @Override
-    public void activeNetworkChanged(Network activeNetwork) {
-        if (network != null) {
-            network.removeNetworkDataListener(this);
+    public void currentNodeChanged(Node activeNetwork) {
+        if (node != null) {
+            node.removeDirtyListener(this);
         }
-        network = activeNetwork;
-        if (network != null)
-            network.addNetworkDataListener(this);
+        node = activeNetwork;
+        if (node != null)
+            node.addDirtyListener(this);
     }
 
-    public void networkDirty(Network network) {
+    public void nodeDirty(Node node) {
     }
 
-    public void networkUpdated(Network network) {
+    public void nodeUpdated(Node node) {
         StringBuffer sb = new StringBuffer();
-        for (Node.Message m : network.getMessages()) {
-            sb.append(m.getLevel().toString());
-            sb.append(": ");
-            sb.append(m.getMessage());
-            sb.append("\n");
+        if (node.hasError()) {
+            sb.append(node.getError().toString());
         }
         loggingArea.setText(sb.toString());
     }

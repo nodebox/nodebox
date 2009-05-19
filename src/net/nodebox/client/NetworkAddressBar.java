@@ -1,6 +1,5 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import javax.swing.*;
@@ -42,9 +41,9 @@ public class NetworkAddressBar extends JPanel {
         ArrayList<Node> parts = new ArrayList<Node>();
         Node currentNode = node;
         parts.add(0, currentNode);
-        while (currentNode.getNetwork() != null) {
-            parts.add(0, currentNode.getNetwork());
-            currentNode = currentNode.getNetwork();
+        while (currentNode.getParent() != null) {
+            parts.add(0, currentNode.getParent());
+            currentNode = currentNode.getParent();
         }
         return parts;
     }
@@ -64,9 +63,7 @@ public class NetworkAddressBar extends JPanel {
         }
 
         public void actionPerformed(ActionEvent e) {
-            if (node instanceof Network) {
-                pane.getDocument().setActiveNetwork((Network) node);
-            }
+                pane.getDocument().setActiveNetwork(node);
         }
 
         @Override

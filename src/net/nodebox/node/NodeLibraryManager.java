@@ -7,10 +7,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -177,4 +174,18 @@ public class NodeLibraryManager {
         }
     }
 
+    /**
+     * Get a list of all nodes in every library.
+     * Only nodes directly under the root node are returned.
+     * TODO: Implement and add support for export flag.
+     *
+     * @return a list of all nodes
+     */
+    public List<Node> getNodes() {
+        List<Node> nodes = new ArrayList<Node>();
+        for (NodeLibrary library : libraries.values()) {
+            nodes.addAll(library.getRootNode().getChildren());
+        }
+        return nodes;
+    }
 }

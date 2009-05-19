@@ -2,14 +2,14 @@ package net.nodebox.client.parameter;
 
 import net.nodebox.client.PlatformUtils;
 import net.nodebox.node.Parameter;
-import net.nodebox.node.ParameterDataListener;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ToggleControl extends JComponent implements ParameterControl, ActionListener, ParameterDataListener {
+public class ToggleControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
 
     private Parameter parameter;
     private JCheckBox checkBox;
@@ -25,7 +25,7 @@ public class ToggleControl extends JComponent implements ParameterControl, Actio
         checkBox.addActionListener(this);
         add(checkBox);
         setValueForControl(parameter.getValue());
-        parameter.addDataListener(this);
+        parameter.getNode().addParameterValueListener(this);
     }
 
     public Parameter getParameter() {
@@ -42,7 +42,7 @@ public class ToggleControl extends JComponent implements ParameterControl, Actio
         parameter.set(checkBox.isSelected() ? 1 : 0);
     }
 
-    public void valueChanged(Parameter source, Object newValue) {
-        setValueForControl(newValue);
+    public void valueChanged(Parameter source) {
+        setValueForControl(source.getValue());
     }
 }
