@@ -1,7 +1,7 @@
 package net.nodebox.localhistory;
 
 import junit.framework.TestCase;
-import net.nodebox.client.FileUtils;
+import net.nodebox.util.FileUtils;
 
 import java.io.File;
 

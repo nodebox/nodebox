@@ -19,11 +19,12 @@
 package net.nodebox.node;
 
 import java.util.List;
+import java.util.Set;
 
 public class ExpressionTest extends NodeTestCase {
 
     public void testSimple() {
-        Node n = numberType.createNode();
+        Node n = numberNode.newInstance(testLibrary, "number");
         Parameter pValue = n.getParameter("value");
         Expression e = new Expression(pValue, "1 + 2");
         assertEquals(3, e.asInt());
@@ -33,37 +34,113 @@ public class ExpressionTest extends NodeTestCase {
      * Test parameter interaction between nodes.
      */
     public void testNodeLocal() {
-        Network net = (Network) testNetworkType.createNode();
-        Node multiply = net.create(multiplyType);
-        Parameter p1 = multiply.getParameter("v1");
-        Parameter p2 = multiply.getParameter("v2");
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node addDirect = net.create(addDirectNode);
+        Parameter p1 = addDirect.getParameter("v1");
+        Parameter p2 = addDirect.getParameter("v2");
         p2.setValue(12);
         assertExpressionEquals(12, p1, "v2");
     }
 
+    public void testExpressionErrors() {
+        // Setting an expression immediately evaluates it and returns an error if the expression is invalid.
+        Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pX = test.addParameter("x", Parameter.Type.INT, 3);
+        assertInvalidExpression(pX, "y", "could not access: y");
+        Parameter pY = test.addParameter("y", Parameter.Type.INT, 5);
+        assertExpressionEquals(5, pX, "y");
+        // Expression of parameter x is still set to "y"
+        assertEquals("y", pX.getExpression());
+    }
+
+    /**
+     * Test what happens if your expression depends on a parameter that gets removed.
+     */
+    public void testDeadDependencies() {
+        Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pX = test.addParameter("x", Parameter.Type.INT, 3);
+        Parameter pY = test.addParameter("y", Parameter.Type.INT, 5);
+        pX.setExpression("y");
+        assertTrue(pX.getDependencies().contains(pY));
+        pX.update(new ProcessingContext());
+        assertEquals(5, pX.getValue());
+        test.removeParameter("y");
+        // At this point, the parameter dependency should no longer exist.
+        assertFalse(pX.getDependencies().contains(pY));
+        try {
+            pX.update(new ProcessingContext());
+        } catch (ExpressionError e) {
+            // update throws an error since the expression references a parameter that cannot be found.
+            //throw e;
+            assertTrue(e.getCause().getMessage().toLowerCase().contains("unable to resolve variable 'y'"));
+        }
+        // The value hasn't changed.
+        assertEquals(5, pX.getValue());
+    }
+
+    /**
+     * Test the same as testDeadDependencies, but in the reverse. (What happens if a parameter that depends on this
+     * parameter gets removed).
+     *
+     * This is less dramatic than the other case; we just need to make sure that we don't accidentally dereference
+     * a dead Parameter.
+     */
+    public void testDeadDependents() {
+        Node net = Node.ROOT_NODE.newInstance(testLibrary, "net");
+        Node number1 = net.create(numberNode);
+        Node number2 = net.create(numberNode);
+        Parameter pValue1 = number1.getParameter("value");
+        Parameter pValue2 = number2.getParameter("value");
+        number1.setValue("value", 5);
+        number2.getParameter("value").setExpression("number1.value");
+        number2.setRendered();
+        net.update();
+        assertFalse(net.isDirty());
+        assertEquals(5, net.getOutputValue());
+        number1.setValue("value", 13);
+        assertTrue(net.isDirty());
+        net.update();
+        assertEquals(13, net.getOutputValue());
+        assertTrue(pValue1.getDependents().contains(pValue2));
+        number2.removeParameter("value");
+        assertFalse(pValue1.getDependents().contains(pValue2));
+    }
+
+    /**
+     * You can only reference other parameters and the built-in functions.
+     *
+     * Test what happens if you break this rule.
+     */
+    public void testOnlyReferenceParameters() {
+        Node net = Node.ROOT_NODE.newInstance(testLibrary, "net");
+        Node number1 = net.create(numberNode);
+        Node number2 = net.create(numberNode);
+        Parameter pValue2 = number2.getParameter("value");
+        // Setting the expression does not throw an error.
+        pValue2.setExpression("number1");
+        // Evaluating the node does.
+        assertProcessingError(number2, "value is not an int");
+    }
+
     public void testCycles() {
-        Network net = (Network) testNetworkType.createNode();
-        Node number1 = net.create(numberType);
-        Node add1 = net.create(addType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node number1 = net.create(numberNode);
+        Node addDirect1 = net.create(addDirectNode);
         Parameter pValue = number1.getParameter("value");
-        Parameter pV1 = add1.getParameter("v1");
-        Parameter pV2 = add1.getParameter("v2");
+        Parameter pV1 = addDirect1.getParameter("v1");
+        Parameter pV2 = addDirect1.getParameter("v2");
         // Create a direct cycle.
-        assertExpressionInvalid(pValue, "value");
+        assertInvalidExpression(pValue, "value", "refers to itself");
         // This should not have created any connections
         assertTrue(pValue.getDependencies().isEmpty());
-        number1.set("value", 42);
+        number1.setValue("value", 42);
         assertExpressionEquals(42, pV1, "number1.value");
         // Create a 2-node cycle with expressions
-        assertExpressionInvalid(pValue, "add1.v1");
+        assertInvalidExpression(pValue, "addDirect1.v1", "cyclic dependency");
         // Now create a 2-parameter cycle within the same node.
         pV1.setExpression("v2");
-        assertTrue(add1.update());
-        // This does not cause an error...
-        pV2.setExpression("v1");
-        // TODO: ... but updating this node does.
-        // Currently, this works fine, but all parameters will get their default value.
-        assertTrue(add1.update());
+        addDirect1.update();
+        assertInvalidExpression(pV2, "v1", "cyclic dependency");
     }
 
     /**
@@ -71,48 +148,49 @@ public class ExpressionTest extends NodeTestCase {
      * Specifically, it tests if the order of processing doesn't affect the data flow.
      */
     public void testStaleData() {
-        Network net = (Network) testNetworkType.createNode();
-        Node number1 = net.create(numberType);
-        Node add1 = net.create(addType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node number1 = net.create(numberNode);
+        Node add1 = net.create(addDirectNode);
         Parameter v1 = add1.getParameter("v1");
         Parameter v2 = add1.getParameter("v2");
         // Basic setup: v2 -> v1 -> number1.value
         // For this to work, v1 needs to update number1 first before v2 gets the data.
         // If the value is not updated, v2 will get the value from v1, which hasn't updated yet,
         // and which will thus return 0.
-        number1.set("value", 42);
+        number1.setValue("value", 42);
         v1.setExpression("number1.value");
         v2.setExpression("v1");
-        assertTrue(add1.update());
+        add1.update();
         assertEquals(42 + 42, add1.getOutputValue());
         // Because we cannot determine the exact order of processing, we need to run this test twice.
         // So this is the setup in the other direction: v1 -> v2 -> number1.value
         // This time, v2 needs to update number1 first, then v1.
-        number1.set("value", 33);
+        number1.setValue("value", 33);
+        // Setting v1 to the expression v2 would cause a cycle, since v2 is already linked to v1.
+        // Clear v2's expression first.
+        v2.clearExpression();
         v1.setExpression("v2");
         v2.setExpression("number1.value");
-        assertTrue(add1.update());
+        add1.update();
         assertEquals(33 + 33, add1.getOutputValue());
     }
 
     public void testNetworkLocal() {
-        NodeType netType = testNetworkType.clone();
-        ParameterType pn = netType.addParameterType("pn", ParameterType.Type.INT);
-        pn.setDefaultValue(33);
-        Network net = (Network) netType.createNode();
-        Node number1 = net.create(numberType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        net.addParameter("pn", Parameter.Type.INT, 33);
+        Node number1 = net.create(numberNode);
         Parameter pValue1 = number1.getParameter("value");
         pValue1.set(84);
         assertEquals("number1", number1.getName());
         //Parameter p1 = test1.addParameter("p1", Parameter.Type.INT);
-        Node number2 = net.create(numberType);
+        Node number2 = net.create(numberNode);
         assertEquals("number2", number2.getName());
         //Parameter p2 = number2.addParameter("p2", Parameter.Type.INT);
         Parameter pValue2 = number2.getParameter("value");
         pValue2.set(12);
         // Trying to get the value of number2 by just using the expression "value" is impossible,
-        // since it will retrieve the value parameter of number1.
-        assertExpressionInvalid(pValue1, "value");
+        // since it will retrieve the value parameter of number1, which will cause a cycle.
+        assertInvalidExpression(pValue1, "value", "refers to itself");
         // Access p2 through the node name.
         assertExpressionEquals(12, pValue1, "number2.value");
         // Access p2 through the network.
@@ -122,33 +200,37 @@ public class ExpressionTest extends NodeTestCase {
     }
 
     public void testDependencies() {
-        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
-        Node rect = net.create(manager.getNodeType("corevector.rect"));
-        Node copy = net.create(manager.getNodeType("corevector.copy"));
-        rect.getParameter("y").setExpression("x");
-        List<Parameter> dependencies = rect.getParameter("y").getDependencies();
+        Node polynet = Node.ROOT_NODE.newInstance(testLibrary, "polynet");
+        Node rect1 = polynet.create(rectNode);
+        Node translate1 = polynet.create(manager.getNode("polygraph.translate"));
+        assertEquals("translate1", translate1.getName());
+        rect1.getParameter("y").setExpression("x");
+        Set<Parameter> dependencies = rect1.getParameter("y").getDependencies();
         assertEquals(1, dependencies.size());
-        assertEquals(rect.getParameter("x"), dependencies.get(0));
-        rect.getParameter("y").setExpression("copy1.ty + x");
-        dependencies = rect.getParameter("y").getDependencies();
+        dependencies.contains(rect1.getParameter("x"));
+        rect1.getParameter("y").setExpression("translate1.ty + x");
+        dependencies = rect1.getParameter("y").getDependencies();
         assertEquals(2, dependencies.size());
-        assertTrue(dependencies.contains(copy.getParameter("ty")));
-        assertTrue(dependencies.contains(rect.getParameter("x")));
+        assertTrue(dependencies.contains(translate1.getParameter("ty")));
+        assertTrue(dependencies.contains(rect1.getParameter("x")));
     }
 
     public void assertExpressionEquals(Object expected, Parameter p, String expression) {
+        // We don't catch the ExpressionError but let it bubble up.
         p.setExpression(expression);
         p.update(new ProcessingContext());
         assertEquals(expected, p.getValue());
     }
 
-    public void assertExpressionInvalid(Parameter p, String expression) {
+    private void assertInvalidExpression(Parameter p, String expression, String expectedMessage) {
         try {
             p.setExpression(expression);
-            p.update(new ProcessingContext());
-            fail("Should have thrown exception");
-        } catch (Exception e) {
+            fail("Expression should have failed with \"" + expectedMessage + "\"");
+        } catch (ExpressionError e) {
+            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getCause().getMessage() + "\"",
+                    e.getCause().getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
         }
     }
+
 
 }

@@ -19,32 +19,51 @@
 package net.nodebox.node;
 
 import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Grob;
 import net.nodebox.graphics.Point;
 import net.nodebox.handle.Handle;
-import net.nodebox.util.StringUtils;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.logging.Level;
+import javax.swing.event.EventListenerList;
+import java.util.*;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A Node is a building block in a network and encapsulates specific functionality.
  * <p/>
  * The operation of the Node is specified through its parameters. The data that flows
  * through the node passes through ports.
+ * <p/>
+ * Nodes can be nested using parent/child relationships. Then, you can connect them together.
+ * This allows for many processing possibilities, where you can connect several nodes together forming
+ * very complicated networks. Networks, in turn, can be rigged up to form sort of black-boxes, with some
+ * input parameters and an output parameter, so they form a Node themselves, that can be used to form
+ * even more complicated networks, etc.
+ * <p/>
+ * Central in this concept is the directed acyclic graph, or DAG. This is a graph where all the edges
+ * are directed, and no cycles can be formed, so you do not run into recursive loops. The vertexes of
+ * the graph are the nodes, and the edges are the connections between them.
+ * <p/>
+ * One of the vertexes in the graph is set as the rendered node, and from there on, the processing starts,
+ * working its way upwards in the network, processing other nodes (and their inputs) as they come along.
  */
-public class Node {
+public class Node implements NodeCode, NodeAttributeListener {
 
-    /**
-     * The parent network for this node.
-     */
-    private Network network;
+    private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
+    private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
+    private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
+
+    public static final String OUTPUT_PORT_NAME = "output";
+
+    public static final Node ROOT_NODE;
+
+    static {
+        ROOT_NODE = new Node(NodeLibrary.BUILTINS, "root", Object.class);
+        ROOT_NODE.addParameter("_code", Parameter.Type.CODE, ROOT_NODE);
+        ROOT_NODE.addParameter("_handle", Parameter.Type.CODE, new JavaMethodWrapper(Node.class, "doNothing"));
+        ROOT_NODE.addParameter("_description", Parameter.Type.STRING, "Base node instance");
+        NodeLibrary.BUILTINS.add(ROOT_NODE);
+    }
 
     /**
      * The name of this node.
@@ -52,14 +71,29 @@ public class Node {
     private String name;
 
     /**
+     * The library this node is in.
+     */
+    private NodeLibrary library;
+
+    /**
+     * The parent for this node.
+     */
+    private Node parent;
+
+    /**
+     * The children of this node.
+     */
+    private HashMap<String, Node> children = new HashMap<String, Node>();
+
+    /**
+     * The node's prototype. NodeBox uses prototype-based inheritance to blur the lines between classes and instances.
+     */
+    private Node prototype;
+
+    /**
      * Position of this node in the interface.
      */
     private double x, y;
-
-    /**
-     * The type of this node. This contains all the meta-information about the node.
-     */
-    private NodeType nodeType;
 
     /**
      * A flag that indicates whether this node is in need of processing.
@@ -68,79 +102,366 @@ public class Node {
     private transient boolean dirty = true;
 
     /**
-     * A map of all parameters, both connectable and not.
+     * A map of all parameters.
      */
     private LinkedHashMap<String, Parameter> parameters = new LinkedHashMap<String, Parameter>();
 
-    /**
-     * The output parameter.
-     */
-    private OutputParameter outputParameter;
 
     /**
-     * A list of messages that occurred during processing.
+     * A map of all the data ports within the system.
      */
-    protected List<Message> messages = new ArrayList<Message>();
+    private LinkedHashMap<String, Port> ports = new LinkedHashMap<String, Port>();
+
+    /**
+     * The output port. This port will contain the processed data for this node.
+     */
+    private Port outputPort;
+
+    /**
+     * The child node to render.
+     */
+    private Node renderedChild;
+
+    /**
+     * All child connections within this node.
+     * <p/>
+     * This data structure is created on-demand, and will be null by default.
+     */
+    private DependencyGraph<Port, Connection> childGraph;
+
+    /**
+     * All connections linked to the output port of this node.
+     */
+    //private List<Connection> downstreams = new ArrayList<Connection>();
+
+    /**
+     * All connections keyed by the input and going upstream to the output.
+     * Key = input port
+     * Value = a connection to the output node.
+     */
+    //private HashMap<Port, Connection> upstreams = new HashMap<Port, Connection>();
+
+    /**
+     * The processing error. Null if no error occurred during processing.
+     */
+    private Throwable error;
+
+    /**
+     * Listeners list for all events that occur on this class.
+     */
+    private EventListenerList listenerList = new EventListenerList();
 
     private static Logger logger = Logger.getLogger("net.nodebox.node.Node");
 
-
-    public enum MessageLevel {
-        DEBUG, INFO, WARNING, ERROR
-    }
-
-    public static class Message {
-
-        private MessageLevel level;
-        private String message;
-
-        Message(MessageLevel level, String message) {
-            this.level = level;
-            this.message = message;
-        }
-
-        public MessageLevel getLevel() {
-            return level;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        public boolean isDebug() {
-            return level == MessageLevel.DEBUG;
-        }
-
-        public boolean isInfo() {
-            return level == MessageLevel.INFO;
-        }
-
-        public boolean isWarning() {
-            return level == MessageLevel.WARNING;
-        }
-
-        public boolean isError() {
-            return level == MessageLevel.ERROR;
-        }
-
-        @Override
-        public String toString() {
-            return level + ": " + message;
-        }
-    }
-
     //// Constructors ////
 
-    public Node(NodeType nodeType) {
-        this.nodeType = nodeType;
-        this.name = getDefaultName();
-        for (ParameterType pt : nodeType.getParameterTypes()) {
-            parameters.put(pt.getName(), pt.createParameter(this));
-        }
-        outputParameter = (OutputParameter) nodeType.getOutputParameterType().createParameter(this);
+    private Node(NodeLibrary library, String name, Class dataClass) {
+        assert library != null;
+        this.library = library;
+        this.name = name;
+        this.outputPort = new Port(this, OUTPUT_PORT_NAME, dataClass, Port.Direction.OUT);
     }
 
-    //// Basic attributes ////
+    //// Naming /////
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        validateName(name);
+        this.name = name;
+        fireNodeAttributeChanged();
+    }
+
+    public NodeLibrary getLibrary() {
+        return library;
+    }
+
+    public void setLibrary(NodeLibrary library) {
+        this.library.remove(getName());
+        this.library = library;
+        this.library.add(this);
+        fireNodeAttributeChanged();
+    }
+
+    public String getIdentifier() {
+        return library + "." + name;
+    }
+
+    public String getDescription() {
+        return asString("_description");
+    }
+
+    public void setDescription(String description) {
+        setValue("_description", description);
+        fireNodeAttributeChanged();
+    }
+
+    /**
+     * Checks if the given name would be valid for this node.
+     *
+     * @param name the name to check.
+     * @throws InvalidNameException if the name was invalid.
+     */
+    public static void validateName(String name) throws InvalidNameException {
+        Matcher m1 = NODE_NAME_PATTERN.matcher(name);
+        Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
+        Matcher m3 = RESERVED_WORD_PATTERN.matcher(name);
+        if (!m1.matches()) {
+            throw new InvalidNameException(null, name, "Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
+        }
+        if (m2.matches()) {
+            throw new InvalidNameException(null, name, "Names starting with double underscore are reserved for internal use.");
+        }
+        if (m3.matches()) {
+            throw new InvalidNameException(null, name, "Names cannot be a reserved word (network, node, root).");
+        }
+    }
+
+    //// Parent/child relationship ////
+
+    public Node getParent() {
+        return parent;
+    }
+
+    public Node getRoot() {
+        Node n = this;
+        while (n.getParent() != null) {
+            n = n.getParent();
+        }
+        return n;
+    }
+
+    /**
+     * Reparent the node.
+     * <p/>
+     * This breaks all connections.
+     *
+     * @param parent the new parent
+     */
+    public void setParent(Node parent) {
+        // This method is called indirectly by newInstance.
+        // newInstance has set the parent, but has not added it to
+        // the library yet. Therefore, we cannot do this.parent == parent,
+        // but need to check parent.contains()
+        if (parent != null && parent.contains(this)) return;
+        if (parent != null && parent.contains(name))
+            throw new InvalidNameException(this, name, "There is already a node named \"" + name + "\" in " + parent);
+        // Since this node will reside under a different parent, it can no longer maintain connections within
+        // the previous parent. Break all connections. We need to do this before the parent changes.
+        disconnect();
+        if (this.parent != null)
+            this.parent.remove(this);
+        this.parent = parent;
+        if (parent != null) {
+            parent.children.put(name, this);
+            addNodeAttributeListener(parent);
+            for (Port p : ports.values()) {
+                if (parent.childGraph == null)
+                    parent.childGraph = new DependencyGraph<Port, Connection>();
+                parent.childGraph.addDependency(p, outputPort);
+            }
+        }
+    }
+
+    public boolean hasParent() {
+        return parent != null;
+    }
+
+    public boolean isLeaf() {
+        return isEmpty();
+    }
+
+    public boolean isEmpty() {
+        return children.isEmpty();
+    }
+
+    public int size() {
+        return children.size();
+    }
+
+    public void add(Node node) {
+        if (node == null)
+            throw new IllegalArgumentException("The node cannot be null.");
+        node.setParent(this);
+//        if (contains(node.getName())) {
+//            throw new InvalidNameException(this, node.getName(), "There is already a node named \"" + node.getName() + "\" in network " + getAbsolutePath());
+//        }
+//        node.parent = this;
+//        node.addNodeAttributeListener(this);
+    }
+
+    /**
+     * Create a child node under this node from the given prototype.
+     * The name for this child is generated automatically.
+     *
+     * @param prototype the prototype node
+     * @return a new Node
+     */
+    public Node create(Node prototype) {
+        if (prototype == null) throw new IllegalArgumentException("Prototype cannot be null.");
+        return create(prototype, null, null);
+    }
+
+    /**
+     * Create a child node under this node from the given prototype.
+     *
+     * @param prototype the prototype node
+     * @param name      the name of the new node
+     * @return a new Node
+     */
+    public Node create(Node prototype, String name) {
+        return create(prototype, name, null);
+    }
+
+    /**
+     * Create a child node under this node from the given prototype.
+     * The name for this child is generated automatically.
+     *
+     * @param prototype the prototype node
+     * @param dataClass the type of data this new node instance will output.
+     * @return a new Node
+     */
+    public Node create(Node prototype, Class dataClass) {
+        return create(prototype, null, dataClass);
+    }
+
+    /**
+     * Create a child node under this node from the given prototype.
+     *
+     * @param prototype the prototype node
+     * @param name      the name of the new node
+     * @param dataClass the type of data this new node instance will output.
+     * @return a new Node
+     */
+    public Node create(Node prototype, String name, Class dataClass) {
+        if (prototype == null) throw new IllegalArgumentException("Prototype cannot be null.");
+        if (dataClass == null) dataClass = prototype.getOutputPort().getDataClass();
+        if (name == null) name = uniqueName(prototype.getName());
+        Node newNode = prototype.rawInstance(library, name, dataClass);
+        add(newNode);
+        return newNode;
+    }
+
+    public boolean remove(Node node) {
+        assert (node != null);
+        if (!contains(node))
+            return false;
+        // node.markDirty();
+        // node.disconnect();
+        node.parent = null;
+        children.remove(node.getName());
+        if (node == renderedChild) {
+            setRenderedChild(null);
+        }
+        node.removeNodeAttributeListener(this);
+        // fireNodeRemoved(node);
+        return true;
+    }
+
+    public String uniqueName(String prefix) {
+        int counter = 1;
+        while (true) {
+            String suggestedName = prefix + counter;
+            if (!contains(suggestedName)) {
+                // We don't use rename here, since it assumes the node will be in
+                // this network.
+                return suggestedName;
+            }
+            ++counter;
+        }
+    }
+
+    public boolean contains(String nodeName) {
+        return children.containsKey(nodeName);
+    }
+
+    public boolean contains(Node node) {
+        return children.containsValue(node);
+    }
+
+    public Node getChild(String nodeName) {
+        return children.get(nodeName);
+    }
+
+    public Node getChildAt(int index) {
+        Collection c = children.values();
+        if (index >= c.size()) return null;
+        return (Node) c.toArray()[index];
+    }
+
+    public int getChildCount() {
+        return children.size();
+    }
+
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
+
+    public List<Node> getChildren() {
+        return new ArrayList<Node>(children.values());
+    }
+
+    /**
+     * Whenever the name of a child node changes, this event gets called.
+     * Make sure the child node is still stored under the correct name.
+     *
+     * @param source the Node this event comes from
+     */
+    public void attributeChanged(Node source) {
+        // Check if the node exists and remove it in one operation.
+        // If remove() returns true, the given node is not a child
+        // and we should not store it.
+        if (!children.values().remove(source)) return;
+        children.put(source.getName(), source);
+    }
+
+    //// Rendered ////
+
+    public Node getRenderedChild() {
+        return renderedChild;
+    }
+
+    public void setRenderedChild(Node renderedChild) {
+        if (renderedChild != null && !contains(renderedChild)) {
+            throw new NotFoundException(this, renderedChild.getName(), "Node '" + renderedChild.getAbsolutePath() + "' is not in this network (" + getAbsolutePath() + ")");
+        }
+        if (this.renderedChild == renderedChild) return;
+        this.renderedChild = renderedChild;
+        markDirty();
+        //fireRenderedChildChanged(renderedChild);
+    }
+
+    public boolean isRendered() {
+        return parent != null && parent.getRenderedChild() == this;
+    }
+
+    public void setRendered() {
+        if (parent == null) return;
+        parent.setRenderedChild(this);
+    }
+
+    //// Path ////
+
+    public String getAbsolutePath() {
+        StringBuffer name = new StringBuffer("/");
+        Node parent = getParent();
+        while (parent != null) {
+            name.insert(1, parent.getName() + "/");
+            parent = parent.getParent();
+        }
+        name.append(getName());
+        return name.toString();
+    }
+
+    //// Prototype ////
+
+    public Node getPrototype() {
+        return prototype;
+    }
+
+    //// Position ////
 
     public double getX() {
         return x;
@@ -148,7 +469,7 @@ public class Node {
 
     public void setX(double x) {
         this.x = x;
-        fireNodeChanged();
+        fireNodeAttributeChanged();
     }
 
     public double getY() {
@@ -157,7 +478,7 @@ public class Node {
 
     public void setY(double y) {
         this.y = y;
-        fireNodeChanged();
+        fireNodeAttributeChanged();
     }
 
     public Point getPosition() {
@@ -167,351 +488,486 @@ public class Node {
     public void setPosition(Point p) {
         this.x = p.getX();
         this.y = p.getY();
-        fireNodePositionChanged();
+        fireNodeAttributeChanged();
     }
 
     public void setPosition(double x, double y) {
         this.x = x;
         this.y = y;
-        fireNodePositionChanged();
-    }
-
-    //// Type ////
-
-    public NodeType getNodeType() {
-        return nodeType;
-    }
-
-    public void setNodeType(NodeType nodeType) {
-        this.nodeType = nodeType;
-        // TODO: migrate parameters
-        // Ask for the parameter types in the new node type.
-        for (ParameterType pt : nodeType.getParameterTypes()) {
-            // Check if I have a parameter by that name in my node.
-            try {
-                Parameter oldParameter = getParameter(pt.getName());
-                // Migrate it to the new parameter type.
-                oldParameter.setParameterType(pt);
-            } catch (NotFoundException e) {
-                // The parameter was not found. Create a new one.
-                parameters.put(pt.getName(), pt.createParameter(this));
-            }
-        }
-        // Go through all parameters in the map and remove the ones that are not in the node type. 
-        List<String> parametersToRemove = new ArrayList<String>();
-        for (String parameterName : parameters.keySet()) {
-            if (!getNodeType().hasParameterType(parameterName))
-                parametersToRemove.add(parameterName);
-        }
-        for (String parameterName : parametersToRemove) {
-            Parameter p = parameters.get(parameterName);
-            // TODO: This does not remove expression connections.
-            p.disconnect();
-            parameters.remove(parameterName);
-        }
-        outputParameter.setParameterType(nodeType.getOutputParameterType());
-        if (inNetwork())
-            getNetwork().fireNodeChanged(this);
-        markDirty();
-    }
-
-    //// Naming ////
-
-    public String getDefaultName() {
-        return getNodeType().getDefaultName();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) throws InvalidNameException {
-        // Since the network does the rename, fireNodeChanged() will be called from the network.
-        if (inNetwork()) {
-            network.rename(this, name);
-        } else {
-            NodeType.validateName(name);
-            this.name = name;
-        }
-    }
-
-    protected void _setName(String name) {
-        this.name = name;
+        fireNodeAttributeChanged();
     }
 
     //// Parameters ////
 
-
-    public List<Parameter> getParameters() {
-        // Parameters are stored in a map, and are not ordered.
-        // The correct order is that of ParameterTypes in the NodeType.
-        List<Parameter> plist = new ArrayList<Parameter>();
-        for (ParameterType pt : getNodeType().getParameterTypes()) {
-            plist.add(getParameter(pt.getName()));
-        }
-        return plist;
+    /**
+     * Get a list of all parameters for this node.
+     *
+     * @return a list of all the parameters for this node.
+     */
+    public Collection<Parameter> getParameters() {
+        return new ArrayList<Parameter>(parameters.values());
     }
 
-    public int parameterCount() {
-        return parameters.size();
+    public Parameter addParameter(String name, Parameter.Type type) {
+        Parameter p = new Parameter(this, name, type);
+        parameters.put(name, p);
+        return p;
     }
 
-    public Parameter getParameter(String name) throws NotFoundException {
-        if (hasParameter(name)) {
-            return parameters.get(name);
-        } else {
-            throw new NotFoundException(this, name, "The node " + getAbsolutePath() + " does not have a parameter '" + name + "'");
-        }
+    public Parameter addParameter(String name, Parameter.Type type, Object value) {
+        Parameter p = addParameter(name, type);
+        p.setValue(value);
+        return p;
     }
 
+    /**
+     * Remove a parameter with the given name.
+     * <p/>
+     * If the parameter does not exist, this method returns false.
+     *
+     * @param name the parameter name
+     * @return true if the parameter exists and was removed.
+     */
+    public boolean removeParameter(String name) {
+        // First remove all dependencies to and from this parameter.
+        // Don't rewrite any expressions.
+        Parameter p = parameters.get(name);
+        if (p == null) return false;
+        p.removedEvent();
+        parameters.remove(name);
+        // TODO: Fire some more stuff
+        fireNodeAttributeChanged();
+        markDirty();
+        return true;
+    }
+
+    /**
+     * Get a parameter with the given name
+     *
+     * @param name the parameter name
+     * @return a Parameter or null if the parameter could not be found.
+     */
+    public Parameter getParameter(String name) {
+        return parameters.get(name);
+    }
+
+
+    /**
+     * Checks if this node has a parameter with the given name.
+     *
+     * @param name the parameter name
+     * @return true if a Parameter with that name exists
+     */
     public boolean hasParameter(String name) {
-        return parameters.containsKey(name);
-    }
-
-
-    public OutputParameter getOutputParameter() {
-        return outputParameter;
-    }
-
-    //// Parameter events /////
-    // These come from the NodeType.
-
-    /**
-     * Invoked when the type/core type were changed.
-     *
-     * @param source the ParameterType this event comes from.
-     */
-    public void typeChangedEvent(ParameterType source) {
+        return getParameter(name) != null;
     }
 
     /**
-     * Invoked when the bounding method or minimum/maximum values were changed.
+     * This method gets called by Parameter.setName().
+     * At this point, the Parameter already has its new name, but still needs to be stored
+     * under its new name in parameters.
      *
-     * @param source the ParameterType this event comes from.
+     * @param p       the parameter to rename.
+     * @param oldName the old name
+     * @param newName the new name.
      */
-    public void boundingChangedEvent(ParameterType source) {
-        getParameter(source.getName()).boundingChangedEvent(source);
+    /* package private */ void renameParameter(Parameter p, String oldName, String newName) {
+        assert (p.getName().equals(newName));
+        parameters.remove(oldName);
+        parameters.put(newName, p);
     }
 
-    /**
-     * Invoked when the display level was changed.
-     *
-     * @param source the ParameterType this event comes from.
-     */
-    public void displayLevelChangedEvent(ParameterType source) {
+    //// Parameter values ////
+
+    public Object getValue(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        if (p == null) return null;
+        return p.getValue();
     }
 
-    /**
-     * Invoked when the null allowed flag was changed.
-     *
-     * @param source the ParameterType this event comes from.
-     */
-    public void nullAllowedChangedEvent(ParameterType source) {
-    }
-
-    //// Network ////
-
-    public Network getNetwork() {
-        return network;
-    }
-
-    public Network getRootNetwork() {
-        if (!inNetwork()) return null;
-        Network net = network;
-        while (net.getNetwork() != null) {
-            net = net.getNetwork();
+    public int asInt(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        if (p.getType() != Parameter.Type.INT) {
+            throw new RuntimeException("Parameter " + parameterName + " is not an integer.");
         }
-        return net;
+        return p.asInt();
     }
 
-
-    protected void _setNetwork(Network network) {
-        this.network = network;
-    }
-
-    public void setNetwork(Network network) throws InvalidNameException {
-        if (inNetwork() && this.network != network) {
-            network.remove(this);
+    public float asFloat(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        if (p.getType() != Parameter.Type.FLOAT && p.getType() != Parameter.Type.INT) {
+            throw new RuntimeException("Parameter " + parameterName + " is not a float.");
         }
-        if (network != null) {
-            // Network.add checks if this node was already added in the network,
-            // so we don't need to check it here.
-            network.add(this);
+        return p.asFloat();
+    }
+
+    public String asString(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        // No type checking is performed here. Any parameter type can be converted to a String.
+        return p.asString();
+    }
+
+    public Color asColor(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        if (p.getType() != Parameter.Type.COLOR) {
+            throw new RuntimeException("Parameter " + parameterName + " is not a color.");
         }
+        return p.asColor();
     }
 
-    public boolean inNetwork() {
-        return network != null;
-    }
-
-    public boolean isRendered() {
-        return inNetwork() && network.getRenderedNode() == this;
-    }
-
-    public void setRendered() {
-        if (!inNetwork()) return;
-        network.setRenderedNode(this);
-    }
-
-    public String getNetworkPath() {
-        List<String> parts = new ArrayList<String>();
-        parts.add(name);
-        Network parent = network;
-        while (parent != null) {
-            parts.add(0, parent.getName());
-            parent = parent.getNetwork();
+    public NodeCode asCode(String parameterName) {
+        Parameter p = getParameter(parameterName);
+        if (p.getType() != Parameter.Type.CODE) {
+            throw new RuntimeException("Parameter " + parameterName + " is not a string.");
         }
-        return "/" + StringUtils.join(parts, "/");
+        return p.asCode();
     }
 
-    public void fireNodeChanged() {
-        if (inNetwork())
-            getNetwork().fireNodeChanged(this);
+    public void setValue(String parameterName, Object value) throws IllegalArgumentException {
+        Parameter p = parameters.get(parameterName);
+        if (p == null)
+            throw new IllegalArgumentException("Parameter " + parameterName + " does not exist.");
+        p.setValue(value);
     }
 
-    public void fireNodePositionChanged() {
-        if (inNetwork())
-            getNetwork().fireNodePositionChanged(this);
-    }
-
-    //// Value shortcuts ////
-
-    public int asInt(String name) {
-        return getParameter(name).asInt();
-    }
-
-    public double asFloat(String name) {
-        return getParameter(name).asFloat();
-    }
-
-    public String asString(String name) {
-        return getParameter(name).asString();
-    }
-
-    public Color asColor(String name) {
-        return getParameter(name).asColor();
-    }
-
-    public Grob asGrob(String name) {
-        return getParameter(name).asGrob();
-    }
-
-    public boolean asBoolean(String name) {
-        return getParameter(name).asBoolean();
-    }
-
-    public Object getValue(String name) {
-        return getParameter(name).getValue();
-    }
-
-    public List<Object> getValues(String name) {
-        return getParameter(name).getValues();
-    }
-
-    public void set(String name, int value) {
-        getParameter(name).set(value);
-    }
-
-    public void set(String name, double value) {
-        getParameter(name).set(value);
-    }
-
-    public void set(String name, String value) {
-        getParameter(name).set(value);
-    }
-
-    public void set(String name, Color value) {
-        getParameter(name).set(value);
-    }
-
-    /**
-     * Set the value or fail silently.
-     * <p/>
-     * The normal set method throws an error whenever the parameter is connected.
-     * This version silently discards the error.
-     *
-     * @param name  name of the parameter.
-     * @param value value of the parameter.
-     */
-    public void silentSet(String name, int value) {
+    public void silentSet(String parameterName, Object value) {
         try {
-            getParameter(name).set(value);
-        } catch (ValueError e) {
+            setValue(parameterName, value);
+        } catch (Exception ignored) {
         }
     }
 
-    /**
-     * Set the value or fail silently.
-     * <p/>
-     * The normal set method throws an error whenever the parameter is connected.
-     * This version silently discards the error.
-     *
-     * @param name  name of the parameter.
-     * @param value value of the parameter.
-     */
-    public void silentSet(String name, double value) {
-        try {
-            getParameter(name).set(value);
-        } catch (ValueError e) {
+    //// Ports ////
+
+    public Port addPort(String name, Class dataClass) {
+        return addPort(name, dataClass, Port.Cardinality.SINGLE);
+    }
+
+    public Port addPort(String name, Class dataClass, Port.Cardinality cardinality) {
+        Port p = new Port(this, name, dataClass, cardinality);
+        ports.put(name, p);
+        if (parent != null) {
+            if (parent.childGraph == null)
+                parent.childGraph = new DependencyGraph<Port, Connection>();
+            parent.childGraph.addDependency(p, outputPort);
         }
+        return p;
+    }
+
+    public void removePort(String name) {
+        throw new UnsupportedOperationException("removePort is not implemented yet.");
+        // TODO: Implement, make sure to remove internal dependencies.
+        // parent.childGraph.removeDependency(p, outputPort);
+    }
+
+    public Port getPort(String name) {
+        return ports.get(name);
+    }
+
+    public boolean hasPort(String portName) {
+        return ports.containsKey(portName);
+    }
+
+    public List<Port> getPorts() {
+        return new ArrayList<Port>(ports.values());
+    }
+
+    public Port getOutputPort() {
+        return outputPort;
     }
 
     /**
-     * Set the value or fail silently.
+     * Get the value of a port.
      * <p/>
-     * The normal set method throws an error whenever the parameter is connected.
-     * This version silently discards the error.
+     * This only works for ports with single cardinality.
      *
-     * @param name  name of the parameter.
-     * @param value value of the parameter.
+     * @param name the name of the port
+     * @return the value of the port
      */
-    public void silentSet(String name, String value) {
-        try {
-            getParameter(name).set(value);
-        } catch (ValueError e) {
-        }
+    public Object getPortValue(String name) {
+        return ports.get(name).getValue();
     }
 
     /**
-     * Set the value or fail silently.
+     * Get the values of a port as a list of objects.
      * <p/>
-     * The normal set method throws an error whenever the parameter is connected.
-     * This version silently discards the error.
+     * This only works for ports with multiple cardinality.
      *
-     * @param name  name of the parameter.
-     * @param value value of the parameter.
+     * @param name the name of the port
+     * @return the values of the port
      */
-    public void silentSet(String name, Color value) {
-        try {
-            getParameter(name).set(value);
-        } catch (ValueError e) {
-        }
+    public List<Object> getPortValues(String name) {
+        return ports.get(name).getValues();
     }
-
-    /**
-     * Set the value or fail silently.
-     * <p/>
-     * The normal set method throws an error whenever the parameter is connected.
-     * This version silently discards the error.
-     *
-     * @param name  name of the parameter.
-     * @param value value of the parameter.
-     */
-    public void silentSet(String name, Object value) {
-        getParameter(name).setValue(value);
-    }
-
-    public void setValue(String name, Object value) {
-        getParameter(name).setValue(value);
-    }
-    //// Output value shortcuts ////
 
     public Object getOutputValue() {
-        return outputParameter.getValue();
+        return outputPort.getValue();
     }
 
-    public void setOutputValue(Object value) throws ValueError {
-        outputParameter.setValue(value);
+    public void setPortValue(String name, Object value) {
+        ports.get(name).setValue(value);
+    }
+
+    public void setOutputValue(Object value) {
+        outputPort.setValue(value);
+    }
+
+    //// Event handling ////
+
+    /**
+     * Add a listener that responds when this node is marked dirty.
+     *
+     * @param l the listener
+     */
+    public void addDirtyListener(DirtyListener l) {
+        listenerList.add(DirtyListener.class, l);
+    }
+
+    /**
+     * Remove a dirty listener.
+     *
+     * @param l the listener
+     */
+    public void removeDirtyListener(DirtyListener l) {
+        listenerList.remove(DirtyListener.class, l);
+    }
+
+    /**
+     * Invoked when the node is marked dirty.
+     */
+    public void fireNodeDirty() {
+        // Some event listeners remove themselves from the node as a
+        // result of handling the event. This modifies the listener list,
+        // and can cause some listeners to be skipped.
+        // By counting backwards, listeners can remove themselves
+        // without causing problems.
+        // This technique was adapted from Swing Hacks.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == DirtyListener.class) {
+                ((DirtyListener) listeners[i + 1]).nodeDirty(this);
+            }
+        }
+    }
+
+    /**
+     * Invoked when the node is updated.
+     */
+    public void fireNodeUpdated() {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == DirtyListener.class) {
+                ((DirtyListener) listeners[i + 1]).nodeUpdated(this);
+            }
+        }
+    }
+
+    /**
+     * Add a listener that responds to changes in the node's metadata.
+     *
+     * @param l the listener
+     */
+    public void addNodeAttributeListener(NodeAttributeListener l) {
+        listenerList.add(NodeAttributeListener.class, l);
+    }
+
+    /**
+     * Remove a node attribute listener.
+     *
+     * @param l the listener
+     */
+    public void removeNodeAttributeListener(NodeAttributeListener l) {
+        listenerList.remove(NodeAttributeListener.class, l);
+    }
+
+    /**
+     * Invoked when an attribute on the node was changed.
+     * <p/>
+     * Possible attributes are name, namespace, description, x, y.
+     */
+    public void fireNodeAttributeChanged() {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeAttributeListener.class) {
+                ((NodeAttributeListener) listeners[i + 1]).attributeChanged(this);
+            }
+        }
+        if (hasParent())
+            getParent().fireChildAttributeChanged(this);
+    }
+
+
+    /**
+     * Add a listener that responds to changes in the node's metadata.
+     *
+     * @param l the listener
+     */
+    public void addNodeChildListener(NodeChildListener l) {
+        listenerList.add(NodeChildListener.class, l);
+    }
+
+    /**
+     * Remove a node attribute listener.
+     *
+     * @param l the listener
+     */
+    public void removeNodeChildListener(NodeChildListener l) {
+        listenerList.remove(NodeChildListener.class, l);
+    }
+
+    /**
+     * Invoked when a child was added to this node.
+     *
+     * @param child the child node
+     */
+    public void fireChildAdded(Node child) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).childAdded(this, child);
+            }
+        }
+    }
+
+    /**
+     * Invoked when a child was removed from this node.
+     *
+     * @param child the child node
+     */
+    public void fireChildRemoved(Node child) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).childRemoved(this, child);
+            }
+        }
+    }
+
+    /**
+     * Invoked when a connection was added to this node.
+     *
+     * @param c the connection
+     */
+    public void fireConnectionAdded(Connection c) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).connectionAdded(this, c);
+            }
+        }
+    }
+
+    /**
+     * Invoked when a connection was removed from this node.
+     *
+     * @param c the connection
+     */
+    public void fireConnectionRemoved(Connection c) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).connectionRemoved(this, c);
+            }
+        }
+    }
+
+    /**
+     * Invoked when the rendered child was changed.
+     *
+     * @param child the child node
+     */
+    public void fireRenderedChildChanged(Node child) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).renderedChildChanged(this, child);
+            }
+        }
+    }
+
+    /**
+     * Invoked when an attribute on the child was changed.
+     * <p/>
+     * Possible attributes are name, namespace, description, x, y.
+     *
+     * @param child the child node
+     */
+    public void fireChildAttributeChanged(Node child) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == NodeChildListener.class) {
+                ((NodeChildListener) listeners[i + 1]).renderedChildChanged(this, child);
+            }
+        }
+    }
+
+    /**
+     * Add a listener that responds to changes in the value of a parameter.
+     *
+     * @param l the listener
+     */
+    public void addParameterValueListener(ParameterValueListener l) {
+        listenerList.add(ParameterValueListener.class, l);
+    }
+
+    /**
+     * Remove a parameter value listener.
+     *
+     * @param l the listener
+     */
+    public void removeParameterValueListener(ParameterValueListener l) {
+        listenerList.remove(ParameterValueListener.class, l);
+    }
+
+    /**
+     * Invoked when the value of the parameter was changed.
+     *
+     * @param source a Parameter
+     */
+    public void fireParameterValueChanged(Parameter source) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ParameterValueListener.class) {
+                ((ParameterValueListener) listeners[i + 1]).valueChanged(source);
+            }
+        }
+    }
+
+    /**
+     * Add a listener that responds to changes in the metadata of a parameter.
+     *
+     * @param l the listener
+     */
+    public void addParameterAttributeListener(ParameterAttributeListener l) {
+        listenerList.add(ParameterAttributeListener.class, l);
+    }
+
+    public void removeParameterAttributeListener(ParameterAttributeListener l) {
+        listenerList.remove(ParameterAttributeListener.class, l);
+    }
+
+    /**
+     * Invoked when an attribute on the parameter was changed.
+     *
+     * @param source a Parameter
+     */
+    public void fireParameterAttributeChanged(Parameter source) {
+        // See comment in #fireNodeDirty.
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ParameterAttributeListener.class) {
+                ((ParameterAttributeListener) listeners[i + 1]).attributeChanged(source);
+            }
+        }
     }
 
     //// Expression shortcuts ////
@@ -519,170 +975,364 @@ public class Node {
     //// Connection shortcuts ////
 
     /**
-     * Return a list of all parameters on this Node that can be connected to the given output node.
+     * Connect the port on the given (input) node to the output port of the given (output) node.
      *
-     * @param outputNode the output node
-     * @return a list of parameters.
+     * @param inputNode  the downstream node
+     * @param portName   the downstream (input) port
+     * @param outputNode the upstream node
+     * @return the Connection object.
      */
-    public List<Parameter> getCompatibleInputs(Node outputNode) {
-        ParameterType.Type outputType = outputNode.getOutputParameter().getType();
-        List<Parameter> compatibleParameters = new ArrayList<Parameter>();
-        for (Parameter p : getParameters()) {
-            if (p.canConnectTo(outputNode))
-                compatibleParameters.add(p);
-        }
-        return compatibleParameters;
-    }
-
-    public List<Connection> getInputConnections() {
-        List<Connection> inputConnections = new ArrayList<Connection>();
-        for (Parameter p : parameters.values()) {
-            List<Connection> connections = getNetwork().getUpstreamConnections(p);
-            if (connections != null)
-                inputConnections.addAll(connections);
-        }
-        return inputConnections;
-    }
-
-    public List<Connection> getOutputConnections() {
-        List<Connection> outputConnections = new ArrayList<Connection>();
-        outputConnections.addAll(getOutputParameter().getDownstreamConnections());
-        for (Parameter p : parameters.values()) {
-            List<Connection> connections = getNetwork().getDownstreamConnections(p);
-            if (connections != null)
-                outputConnections.addAll(connections);
-        }
-        return outputConnections;
-    }
-
-    public List<Connection> getConnections() {
-        List<Connection> connections = new ArrayList<Connection>();
-        connections.addAll(getInputConnections());
-        connections.addAll(getOutputConnections());
-        return connections;
+    public Connection connect(Node inputNode, String portName, Node outputNode) {
+        Port outputPort = outputNode.getOutputPort();
+        Port inputPort = inputNode.getPort(portName);
+        return connect(inputPort, outputPort);
     }
 
     /**
-     * Removes all connections from and to this node.
-     * This only removes explicit connections.
+     * Connect the downstream input port to the upstream output port.
+     * <p/>
+     * Both the output and input ports need to be on child nodes of this node.
+     * <p/>
+     * If the input port was already connected, and its cardinality is single, the connection is broken.
+     *
+     * @param input  the downstream port
+     * @param output the upstream port
+     * @return the connection object.
+     */
+    public Connection connect(Port input, Port output) {
+        // Sanity checks
+        if (output == null || input == null)
+            throw new IllegalArgumentException("The output and input ports cannot be null.");
+        if (output.getParentNode() == null)
+            throw new IllegalArgumentException("The output node does not have a parent.");
+        if (input.getParentNode() == null)
+            throw new IllegalArgumentException("The input node does not have a parent.");
+        if (output.getParentNode() != input.getParentNode())
+            throw new IllegalArgumentException("The output and input nodes do not have the same parent.");
+        if (!output.isOutputPort())
+            throw new IllegalArgumentException("The first argument is not an output port.");
+        if (!input.isInputPort())
+            throw new IllegalArgumentException("The second argument is not an input port.");
+        if (!input.canConnectTo(output))
+            throw new IllegalArgumentException("The input and output data classes are not compatible.");
+        // The child graph is lazily created.
+        if (parent.childGraph == null)
+            parent.childGraph = new DependencyGraph<Port, Connection>();
+        // If ports can have only one connection (cardinality == SINGLE), disconnect the port first.
+        Connection c;
+        if (input.getCardinality() == Port.Cardinality.SINGLE) {
+            disconnect(input);
+            c = new Connection(output, input);
+        } else {
+            // Ports with multiple cardinality will add output ports to an existing connection.
+            // See if we can find an existing connection and add a port, otherwise create a new connection.
+            c = (Connection) parent.childGraph.getInfo(input);
+            if (c == null) {
+                c = new Connection(output, input);
+            } else {
+                c.addOutput(output);
+            }
+        }
+        // It could be that the connection is already in there (for existing multi-connections),
+        // but replacing it with itself doesn't hurt.
+        parent.childGraph.addDependency(output, input, c);
+        input.getNode().markDirty();
+        return c;
+    }
+
+    /**
+     * Remove all connections to and from this node.
      *
      * @return true if connections were removed.
      */
     public boolean disconnect() {
+        if (parent == null) return false;
+        DependencyGraph<Port, Connection> dg = parent.childGraph;
+        if (dg == null) return false;
         boolean removedSomething = false;
-
         // Disconnect all my inputs.
-        for (Parameter p : parameters.values()) {
-            removedSomething = network.disconnect(p) | removedSomething;
+        for (Port p : getPorts()) {
+            // Due to lazy evaluation, removedSomething needs to be at the end.
+            removedSomething = disconnect(p) | removedSomething;
         }
-
         // Disconnect all my outputs.
-        // Copy the list of downstreams, since you will be removing elements
-        // from it while iterating.
-        List<Connection> downstreamConnections = new ArrayList<Connection>(getOutputParameter().getDownstreamConnections());
-        for (Connection c : downstreamConnections) {
-            removedSomething = network.disconnect(getOutputParameter(), c.getInputParameter(), Connection.Type.EXPLICIT) | removedSomething;
-        }
-
+        removedSomething = disconnect(outputPort) | removedSomething;
         return removedSomething;
     }
 
+    /**
+     * Removes all connection from the given (input or output) port.
+     *
+     * @param port the (input or output) port on this node.
+     * @return true if a connection was removed.
+     */
+    public boolean disconnect(Port port) {
+        if (port == null)
+            throw new IllegalArgumentException("The input port cannot be null.");
+        if (port.getNode() != this)
+            throw new IllegalArgumentException("The input port is not on this node.");
+        Node parent = port.getNode().getParent();
+        if (parent == null) return false;
+        DependencyGraph<Port, Connection> dg = parent.childGraph;
+        if (dg == null) return false;
+        if (!port.isConnected()) return false;
+        if (port.isInputPort()) {
+            boolean removedSomething = dg.removeDependencies(port);
+            dg.removeInfo(port);
+            if (removedSomething) {
+                port.reset();
+                // This port was changed. Mark the node as dirty.
+                port.getNode().markDirty();
+            }
+            return removedSomething;
+        } else { // Output port
+            boolean removedSomething = false;
+            // Remove internal connections.
+            dg.removeDependencies(port);
+            for (Port p : dg.getDependents(port)) {
+                Connection c = dg.getInfo(p);
+                c.removeOutput(port);
+                // If this output was the last output in the connection,
+                // remove the connection.
+                if (!c.hasOutputs())
+                    dg.removeInfo(p);
+                p.reset();
+                p.getNode().markDirty();
+                removedSomething = true;
+            }
+            dg.removeDependents(port);
+            return removedSomething;
+        }
+    }
+
+    /**
+     * Get a list of all parameters on this Node that can be connected to the given output node.
+     *
+     * @param outputNode the output (upstream) node
+     * @return a list of parameters.
+     */
+    public List<Port> getCompatibleInputs(Node outputNode) {
+        List<Port> compatiblePorts = new ArrayList<Port>();
+        for (Port p : getPorts()) {
+            if (p.canConnectTo(outputNode))
+                compatiblePorts.add(p);
+        }
+        return compatiblePorts;
+    }
+
+    public Connection getUpstreamConnection(Port input) {
+        if (childGraph == null) return null;
+        return childGraph.getInfo(input);
+    }
+
+    /**
+     * Get a list of all upstream connections on input ports of this node.
+     *
+     * @return a list of Connection objects. This list can safely be modified.
+     */
+    public Set<Connection> getUpstreamConnections() {
+        if (parent == null || parent.childGraph == null)
+            return new HashSet<Connection>(0);
+        Set<Connection> connections = new HashSet<Connection>();
+        for (Port p : ports.values()) {
+            connections.add(parent.childGraph.getInfo(p));
+        }
+        return connections;
+    }
+
+    /**
+     * Get a list of all downstream connections on the output port of this node.
+     *
+     * @return a list of Connections objects. This list can safely be modified.
+     */
+    public Set<Connection> getDownstreamConnections() {
+        if (parent == null || parent.childGraph == null)
+            return new HashSet<Connection>(0);
+        Set<Connection> connections = new HashSet<Connection>();
+        // Connections are stored on the dependent (downstream) port.
+        // Get all dependents for the output port, and add the info.
+        for (Port p : parent.childGraph.getDependents(outputPort)) {
+            connections.add(parent.childGraph.getInfo(p));
+        }
+        return connections;
+    }
+
+    /**
+     * Get a set of all child connection objects.
+     *
+     * @return a list of Connections objects. This list can safely be modified.
+     */
+    public Set<Connection> getConnections() {
+        if (childGraph == null) return new HashSet<Connection>(0);
+        return childGraph.getInfos();
+//        List<Connection> connections = new ArrayList<Connection>();
+//        connections.addAll(upstreams.values());
+//        connections.addAll(downstreams);
+//        return connections;
+    }
+
+
+    /**
+     * Checks if this node is connected.
+     * <p/>
+     * This method checks both input and output connections.
+     *
+     * @return true if this node is connected.
+     */
     public boolean isConnected() {
+        if (parent == null) return false;
+        if (parent.childGraph == null) return false;
+        // Check output port for downstream connections.
+        // We check this first because it goes fast.
+        if (parent.childGraph.getDependents(outputPort).size() > 0)
+            return true;
         // Check parameters for upstream connections.
-        for (Parameter p : parameters.values()) {
-            if (p.isConnected())
+        for (Port p : ports.values()) {
+            if (parent.childGraph.getDependencies(p).size() > 0)
                 return true;
         }
-
-        // Check output parameter for downstream connections.
-        return getOutputParameter().isConnected();
+        return false;
     }
 
+    /**
+     * Check if the given port on this node is connected.
+     *
+     * @param port a port on this node.
+     * @return true if this port is connected.
+     */
+    public boolean isConnected(Port port) {
+        if (port == null)
+            throw new IllegalArgumentException("Port cannot be null.");
+        if (port.getNode() != this)
+            throw new IllegalArgumentException("This node does not own the given port.");
+        // The port needs to be in a parent to be connected.
+        if (parent == null) return false;
+        if (parent.childGraph == null) return false;
+        if (port.isInputPort())
+            return parent.childGraph.getDependencies(port).size() > 0;
+        else
+            return parent.childGraph.getDependents(port).size() > 0;
+    }
+
+    /**
+     * Check if the two ports are connected together.
+     * At least one of these ports needs to be on this node.
+     *
+     * @param port1 input or output port
+     * @param port2 input or output port
+     * @return true if the two ports are connected.
+     * @throws IllegalArgumentException if neither of the ports are on this node.
+     */
+    public boolean isConnectedTo(Port port1, Port port2) throws IllegalArgumentException {
+        // The order of the ports is unimportant, but one needs to be
+        // an input and the other an output. If the two ports have
+        // the same direction, they can never be connected.
+        if (port1.getDirection() == port2.getDirection()) return false;
+        Port output = port1.isOutputPort() ? port1 : port2;
+        Port input = port1.isInputPort() ? port1 : port2;
+        return output.getNode().isConnectedTo(input.getNode());
+    }
+
+    /**
+     * Check if this node is connected to the given node.
+     * <p/>
+     * Both input and output connections are checked.
+     * Only connections are checked, not parameter dependencies.
+     *
+     * @param other the other node.
+     * @return true if the two nodes are connected.
+     */
+    public boolean isConnectedTo(Node other) {
+        if (other == null) return false;
+        if (other == this) return false;
+        if (this.isOutputConnectedTo(other)) {
+            return true;
+        } else if (other.isOutputConnectedTo(this)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check if one of the input ports are connected to the output port of the given node.
+     *
+     * @param outputNode the node whose output will be checked
+     * @return true if this node's output is connected to the given node.
+     */
     public boolean isInputConnectedTo(Node outputNode) {
-        // Check parameters for upstream connections.
-        for (Parameter p : parameters.values()) {
-            if (p.isConnectedTo(outputNode))
-                return true;
-        }
-        return false;
+        return outputNode.isOutputConnectedTo(this);
     }
 
+    /**
+     * Check if the output port is connected.
+     *
+     * @return true if the output port is connected.
+     */
     public boolean isOutputConnected() {
-        return getOutputParameter().isConnected();
+        return outputPort.isConnected();
     }
 
+    /**
+     * Check if the output port is connected to one of the inputs of the given node.
+     *
+     * @param inputNode the node whose inputs will be checked
+     * @return true if this node's output is connected to the given node.
+     */
     public boolean isOutputConnectedTo(Node inputNode) {
-        for (Connection c : getOutputParameter().getDownstreamConnections()) {
-            if (c.getInputNode() == inputNode)
+        if (inputNode == null)
+            throw new IllegalArgumentException("Input node cannot be null.");
+        // Both nodes need to have the same parent to be connected.
+        if (parent == null || inputNode.parent == null || parent != inputNode.parent) return false;
+        if (parent.childGraph == null) return false;
+        Port output = getOutputPort();
+        for (Port p : inputNode.ports.values()) {
+            if (parent.childGraph.hasDependency(output, p))
                 return true;
         }
         return false;
     }
 
-    public boolean isOutputConnectedTo(Parameter inputParameter) {
-        for (Connection c : getOutputParameter().getDownstreamConnections()) {
-            if (c.getInputParameter() == inputParameter)
-                return true;
-        }
-        return false;
+    /**
+     * Check if the output port is connected to the given input port.
+     *
+     * @param input the inpurt port
+     * @return true if this node's output port is connected to the given input port.
+     */
+    public boolean isOutputConnectedTo(Port input) {
+        if (input == null)
+            throw new IllegalArgumentException("Input port cannot be null.");
+        if (!input.isInputPort())
+            throw new IllegalArgumentException("The given port is not an input.");
+        return parent != null && parent.childGraph != null && parent.childGraph.hasDependency(outputPort, input);
     }
 
-    //// Change notification ////
+    //// Dirty handling ////
 
     public void markDirty() {
         if (dirty)
             return;
         dirty = true;
-        getOutputParameter().markDirtyDownstream();
-        if (inNetwork() && !network.isDirty()) {
-            // Only changes to the rendered node should make the network dirty.
-            // TODO: Check for corner cases.
-            if (network.getRenderedNode() == this) {
-                network.markDirty();
+        if (parent != null) {
+            // Mark all downstream connections dirty.
+            // These are stored in the child graph of the parent.
+            if (parent.childGraph != null) {
+                for (Port p : parent.childGraph.getDependents(outputPort)) {
+                    p.getNode().markDirty();
+                }
+            }
+            if (!parent.dirty) {
+                // Only changes to the rendered node should make the parent dirty.
+                // TODO: Check for corner cases.
+                if (parent.getRenderedChild() == this) {
+                    parent.markDirty();
+                }
             }
         }
+        fireNodeDirty();
     }
 
     public boolean isDirty() {
         return dirty;
-    }
-
-    //// Error handling ////
-
-    public void addDebug(String msg) {
-        messages.add(new Message(MessageLevel.DEBUG, msg));
-    }
-
-    public void addInfo(String msg) {
-        messages.add(new Message(MessageLevel.INFO, msg));
-    }
-
-    public void addWarning(String msg) {
-        messages.add(new Message(MessageLevel.WARNING, msg));
-    }
-
-    public void addError(String msg) {
-        messages.add(new Message(MessageLevel.ERROR, msg));
-    }
-
-    public boolean hasError() {
-        for (Message msg : messages) {
-            if (msg.isError())
-                return true;
-        }
-        return false;
-    }
-
-    public boolean hasWarning() {
-        for (Message msg : messages) {
-            if (msg.isWarning())
-                return true;
-        }
-        return false;
-    }
-
-    public List<Message> getMessages() {
-        return new ArrayList<Message>(messages);
     }
 
     //// Processing ////
@@ -693,10 +1343,11 @@ public class Node {
      * This method will process only dirty nodes.
      * This operation can take a long time, and should be run in a separate thread.
      *
-     * @return true if the operation was successful
+     * @throws net.nodebox.node.ProcessingError
+     *          when an error happened during procesing.
      */
-    public boolean update() {
-        return update(new ProcessingContext());
+    public void update() throws ProcessingError {
+        update(new ProcessingContext());
     }
 
     /**
@@ -706,62 +1357,120 @@ public class Node {
      * This operation can take a long time, and should be run in a separate thread.
      *
      * @param ctx meta-information about the processing operation.
-     * @return true if the operation was successful
+     * @throws net.nodebox.node.ProcessingError
+     *          when an error happened during procesing.
      */
-    public boolean update(ProcessingContext ctx) {
-        if (!dirty) return true;
-        for (Parameter p : parameters.values()) {
-            if (ctx.isUpdating(p) || ctx.hasProcessed(p)) continue;
-            ctx.beginUpdating(p);
-            try {
-                p.update(ctx);
-            } catch (Exception e) {
-                messages.add(new Message(MessageLevel.ERROR, p.getName() + ": " + e.getMessage()));
-                dirty = false;
-                return false;
+    public void update(ProcessingContext ctx) throws ProcessingError {
+        if (!dirty) return;
+        // Update all upstream nodes.
+        if (parent != null && parent.childGraph != null) {
+            for (Port port : ports.values()) {
+                Connection conn = parent.childGraph.getInfo(port);
+                if (conn == null) continue;
+                // Updating the connection sets the value of the corresponding input port.
+                conn.update(ctx);
             }
-            ctx.endUpdating(p);
         }
-        // Only after all parameters have been processed should we process the node.
-        // This happens if parameters depend on eachother, which causes recursion.
-        for (Parameter p : parameters.values()) {
-            if (!ctx.hasProcessed(p)) return false;
+        // Update all parameter expressions.
+        for (Parameter param : parameters.values()) {
+            try {
+                param.update(ctx);
+            } catch (Exception e) {
+                throw new ProcessingError(this, "Error occurred while updating parameter " + param + ": " + e.getMessage(), e);
+            }
         }
-        messages.clear();
-        boolean success = process(ctx);
+        // All dependencies are up-to-date. Process the node.
+        process(ctx);
+        // Because the dirty flag gets reset *after* the node has processed,
+        // nodes that throw a ProcessingError are not marked as clean.
         dirty = false;
-        return success;
+        fireNodeUpdated();
     }
 
     /**
      * This method does the actual functionality of the node.
      *
      * @param ctx meta-information about the processing operation.
-     * @return true if the evaluation succeeded.
+     * @throws net.nodebox.node.ProcessingError
+     *          when an error happened during procesing.
      */
-    public boolean process(ProcessingContext ctx) {
+    public void process(ProcessingContext ctx) throws ProcessingError {
         try {
-            return getNodeType().process(this, ctx);
+            NodeCode code = asCode("_code");
+            Object returnValue = code.cook(this, ctx);
+            outputPort.setValue(returnValue);
+            error = null;
+        } catch (ProcessingError e) {
+            error = e;
+            outputPort.setValue(null);
+            throw e;
         } catch (Exception e) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            e.printStackTrace(pw);
-            addError("Error while processing " + getAbsolutePath() + "\n" + sw.toString());
-            return false;
+            error = e;
+            outputPort.setValue(null);
+            throw new ProcessingError(this, e);
         }
     }
 
-    //// Path ////
+    /**
+     * This is the default implementation of the node. It does nothing and returns null.
+     *
+     * @param node    the node to process
+     * @param context the processing context
+     * @return null
+     */
+    public Object cook(Node node, ProcessingContext context) throws ProcessingError {
+        Node renderedChild = node.getRenderedChild();
+        if (renderedChild == null)
+            throw new ProcessingError(this, "No child node to render.");
+        renderedChild.update(context);
+        return renderedChild.getOutputValue();
+    }
 
-    public String getAbsolutePath() {
-        StringBuffer name = new StringBuffer("/");
-        Network parent = getNetwork();
-        while (parent != null) {
-            name.insert(1, parent.getName() + "/");
-            parent = parent.getNetwork();
-        }
-        name.append(getName());
-        return name.toString();
+    /**
+     * Get the source code for the root node.
+     *
+     * @return an empty string.
+     */
+    public String getSource() {
+        return "";
+    }
+
+    /**
+     * Get the code type for the root node.
+     *
+     * @return "java"
+     */
+    public String getType() {
+        return "java";
+    }
+
+    /**
+     * Checks if an error occurred during the last update of this node.
+     *
+     * @return true if this node is in an error state.
+     */
+    public boolean hasError() {
+        return error != null;
+    }
+
+    /**
+     * Get the error that occurred during the last update.
+     *
+     * @return the error or null if no error occurred.
+     */
+    public Throwable getError() {
+        return error;
+    }
+
+    /**
+     * Default operation. As the name implies, does nothing.
+     *
+     * @param n   the node to work on
+     * @param ctx the processing context
+     * @return the return value. In this case, null.
+     */
+    public static Object doNothing(Node n, ProcessingContext ctx) {
+        return null;
     }
 
     //// Handle support ////
@@ -775,22 +1484,103 @@ public class Node {
      * You should not override this method, but rather the createHandle method on the NodeType.
      *
      * @return a handle instance bound to this node, or null.
-     * @see net.nodebox.node.NodeType#createHandle(Node)
      */
     public Handle createHandle() {
-        return getNodeType().createHandle(this);
+        NodeCode handleCode = asCode("_handle");
+        if (handleCode == null) return null;
+        // TODO: Do we need the ProcessingContext in the handle or can we pass null?
+        Object handleObj = handleCode.cook(this, new ProcessingContext());
+        if (!(handleObj instanceof Handle))
+            throw new AssertionError("Handle code for node " + getName() + " does not return Handle object.");
+        return (Handle) handleObj;
     }
 
+
     //// Cloning ////
+
+    /**
+     * Creates a new instance with this node as the prototype.
+     *
+     * @param library the namespace of the new node.
+     * @param name    the name of the new node.
+     * @return a new Node with this node as the prototype.
+     */
+    public Node newInstance(NodeLibrary library, String name) {
+        return newInstance(library, name, outputPort.getDataClass());
+    }
+
+    /**
+     * Creates a new instance with this node as the prototype.
+     * <p/>
+     * When a new instance is created, all parameters and ports are copied to the new instance.
+     * That means that changes to the prototype don't automatically propagate to the children.
+     * If you want to get the changes from the prototype, you would need to do a revertToPrototype
+     * operation on the parameter.
+     * <p/>
+     * Connections are not cloned. If you want to this, you'll need to copy a node.
+     *
+     * @param library   the namespace of the new node.
+     * @param name      the name of the new node.
+     * @param dataClass the type of data from the output port. If null, the dataClass will be inherited.
+     * @return a new Node with this node as the prototype.
+     */
+    public Node newInstance(NodeLibrary library, String name, Class dataClass) {
+        Node n = rawInstance(library, name, dataClass);
+        library.add(n);
+        return n;
+//        if (library == null) throw new IllegalArgumentException("Library parameter cannot be null.");
+//        if (dataClass == null) dataClass = outputPort.getDataClass();
+//        Node n = new Node(library, name, dataClass);
+//        n.prototype = this;
+//        n.parent = this.parent;
+//        n.dirty = true;
+//        // Clone all parameters.
+//        for (Parameter p : parameters.values()) {
+//            n.parameters.put(p.getName(), p.clone(n));
+//        }
+//        // Clone all ports.
+//        for (Port p : ports.values()) {
+//            n.ports.put(p.getName(), p.clone(n));
+//        }
+        // Add the new instance to the library.
+    }
+
+    /**
+     * Create a raw instance. The node's parent is not set, and it is not added to the library.
+     *
+     * @param library   the namespace of the new node.
+     * @param name      the name of the new node.
+     * @param dataClass the type of data from the output port. If null, the dataClass will be inherited.
+     * @return a new Node with this node as the prototype.
+     * @see #newInstance
+     */
+    private Node rawInstance(NodeLibrary library, String name, Class dataClass) {
+        if (library == null) throw new IllegalArgumentException("Library parameter cannot be null.");
+        if (dataClass == null) dataClass = outputPort.getDataClass();
+        Node n = new Node(library, name, dataClass);
+        n.prototype = this;
+        n.dirty = true;
+        // Clone all parameters.
+        for (Parameter p : parameters.values()) {
+            n.parameters.put(p.getName(), p.clone(n));
+        }
+        // Clone all ports.
+        for (Port p : ports.values()) {
+            n.ports.put(p.getName(), p.clone(n));
+        }
+        return n;
+    }
 
     /**
      * Copy this node and all its upstream connections.
      * Used with deferreds.
      *
-     * @param newNetwork the new network that will be the parent of the newly cloned node.
+     * @param newParent the node that will be the parent of the newly cloned node.
      * @return a copy of the node with copies to all of its upstream connections.
      */
-    public Node copyWithUpstream(Network newNetwork) {
+    public Node copyWithUpstream(Node newParent) {
+        throw new UnsupportedOperationException("This method is not yet implemented.");
+        /*
         Constructor nodeConstructor;
         try {
             nodeConstructor = getClass().getConstructor(NodeType.class);
@@ -808,20 +1598,25 @@ public class Node {
             return null;
         }
         newNode.setName(getName());
-        newNode.setNetwork(newNetwork);
+        newNode.setParent(newNetwork);
 
         for (Parameter p : parameters.values()) {
             newNode.parameters.remove(p);
             newNode.parameters.put(p.getName(), p.copyWithUpstream(newNode));
         }
         return newNode;
+        */
     }
 
     //// Output ////
 
     @Override
     public String toString() {
-        return "<" + getClass().getSimpleName() + ": " + name + ">";
+        if (prototype == null) {
+            return String.format("<Node %s>", getIdentifier());
+        } else {
+            return String.format("<Node %s (%s)>", getIdentifier(), prototype.getIdentifier());
+        }
     }
 
     //// Persistence ////
@@ -831,37 +1626,40 @@ public class Node {
      *
      * @param xml    the StringBuffer to use when appending.
      * @param spaces the indentation.
-     * @see Network#toXml for returning the Network as a full xml document
      */
     public void toXml(StringBuffer xml, String spaces) {
-        // Build the node
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" type=\"").append(getNodeType().getQualifiedName()).append("\"");
-        xml.append(" version=\"").append(getNodeType().getVersionAsString()).append("\"");
+        xml.append(" prototype=\"").append(getPrototype().getIdentifier()).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
         if (isRendered())
             xml.append(" rendered=\"true\"");
         xml.append(">\n");
-        xml.append(spaces);
-        xml.append("  <data>\n");
-
-        // Build the parameter list
-        dataToXml(xml, spaces);
-
+        // Add the description
+        if (!getDescription().equals(getPrototype().getDescription()))
+            xml.append(spaces).append("<description>").append(getDescription()).append("</description>");
+        // Add the ports
+        for (Port port : getPorts()) {
+            port.toXml(xml, spaces + "  ");
+        }
+        // Add the parameters
+        for (Parameter param : getParameters()) {
+            param.toXml(xml, spaces + "  ");
+        }
+        // Add all child nodes
+        for (Node child : getChildren()) {
+            child.toXml(xml, spaces + "  ");
+        }
+        // Add all child connections
+        if (childGraph != null) {
+            for (Connection conn : childGraph.getInfos()) {
+                conn.toXml(xml, spaces + "  ");
+            }
+        }
         // End the node
-        xml.append(spaces);
-        xml.append("  </data>\n");
         xml.append(spaces);
         xml.append("</node>\n");
     }
-
-    public void dataToXml(StringBuffer xml, String spaces) {
-        for (Parameter p : getParameters()) {
-            p.toXml(xml, spaces + "  ");
-        }
-    }
-
 
 }

@@ -19,14 +19,10 @@
 package net.nodebox.node;
 
 import net.nodebox.graphics.Color;
-import net.nodebox.graphics.Grob;
-import net.nodebox.graphics.Group;
+import net.nodebox.util.StringUtils;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.lang.ref.WeakReference;
+import java.util.*;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -39,29 +35,125 @@ import java.util.logging.Logger;
  */
 public class Parameter {
 
-    private static Logger logger = Logger.getLogger("net.nodebox.node.Parameter");
+    /**
+     * The primitive type of a parameter. This is different from the control UI that is used to represent this parameter.
+     */
+    public enum Type {
+        /**
+         * An integer value
+         */
+        INT,
 
-    private ParameterType parameterType;
-    private Node node;
-    protected Object value;
-    private boolean valueSet = false;
-    private Expression expression;
-    private boolean expressionEnabled;
+        /**
+         * A floating-point value
+         */
+        FLOAT,
+
+        /**
+         * A string value
+         */
+        STRING,
+
+        /**
+         * A color
+         */
+        COLOR,
+
+        /**
+         * Executable code
+         */
+        CODE
+    }
 
     /**
-     * A list of listeners that want to be notified when my value changes.
+     * The UI control for this parameter. This defines how the parameter is represented in the user interface.
      */
-    private List<ParameterDataListener> listeners = new ArrayList<ParameterDataListener>();
+    public enum Widget {
+        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF, CODE
+    }
 
-    public Parameter(ParameterType parameterType, Node node) {
-        this.parameterType = parameterType;
-        this.node = node;
-        // This returns a clone of the default value.
-        if (getCardinality() == ParameterType.Cardinality.SINGLE) {
-            this.value = parameterType.getDefaultValue();
-        } else {
-            this.value = new ArrayList<Object>();
+    /**
+     * The way in which values will be bound to a minimum and maximum value. Only hard bounding enforces the
+     * minimum and maximum value.
+     */
+    public enum BoundingMethod {
+        NONE, SOFT, HARD
+    }
+
+    /**
+     * The steps where this parameter will be shown. If it is hidden, it will not be shown anywhere.
+     * If it is in the detail view, it will not show up in the HUD. The HUD is the highest level; this
+     * means that the control will be shown everywhere.
+     */
+    public enum DisplayLevel {
+        HIDDEN, DETAIL, HUD
+    }
+
+    public class MenuItem {
+        private String key;
+        private String label;
+
+        public MenuItem(String key, String label) {
+            this.key = key;
+            this.label = label;
         }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+    }
+
+    public static final HashMap<Type, Class> TYPE_MAPPING;
+    public static final HashMap<Type, Widget> WIDGET_MAPPING;
+    public static final NodeCode emptyCode = new EmptyCode();
+
+    static {
+        TYPE_MAPPING = new HashMap<Type, Class>();
+        TYPE_MAPPING.put(Type.INT, Integer.class);
+        TYPE_MAPPING.put(Type.FLOAT, Float.class);
+        TYPE_MAPPING.put(Type.STRING, String.class);
+        TYPE_MAPPING.put(Type.COLOR, Color.class);
+        TYPE_MAPPING.put(Type.CODE, NodeCode.class);
+        WIDGET_MAPPING = new HashMap<Type, Widget>();
+        WIDGET_MAPPING.put(Type.INT, Widget.INT);
+        WIDGET_MAPPING.put(Type.FLOAT, Widget.FLOAT);
+        WIDGET_MAPPING.put(Type.STRING, Widget.STRING);
+        WIDGET_MAPPING.put(Type.COLOR, Widget.COLOR);
+        WIDGET_MAPPING.put(Type.CODE, Widget.CODE);
+    }
+
+    private Node node;
+    private String name;
+    private String label;
+    private String helpText;
+    private Type type;
+    private Widget widget;
+    private Object value;
+    private boolean dirty;
+    private BoundingMethod boundingMethod = BoundingMethod.NONE;
+    private Float minimumValue, maximumValue; // Objects, because they can be null.
+    private DisplayLevel displayLevel = DisplayLevel.HUD;
+    private List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
+    private Set<WeakReference<Parameter>> dependencies = new HashSet<WeakReference<Parameter>>();
+    private Set<WeakReference<Parameter>> dependents = new HashSet<WeakReference<Parameter>>();
+
+    // TODO: Integrate these attributes
+    private boolean valueSet = false;
+    private Expression expression;
+
+    public Parameter(Node node, String name, Type type) {
+        this.node = node;
+        // Type needs to come first, because validateName can cause toString() to happen which requires the name.
+        this.type = type;
+        validateName(name);
+        this.name = name;
+        this.widget = getDefaultWidget(type);
+        this.label = StringUtils.humanizeName(name);
+        revertToDefault();
     }
 
     //// Basic operations ////
@@ -70,14 +162,38 @@ public class Parameter {
         return node;
     }
 
-    public Network getNetwork() {
-        return node == null ? null : node.getNetwork();
+    public NodeLibrary getLibrary() {
+        return node.getLibrary();
     }
 
     //// Naming ////
 
     public String getName() {
-        return parameterType.getName();
+        return name;
+    }
+
+    public void setName(String name) throws InvalidNameException {
+        if (name != null && getName().equals(name)) return;
+        validateName(name);
+        String oldName = this.name;
+        this.name = name;
+        node.renameParameter(this, oldName, name);
+        node.fireNodeAttributeChanged();
+    }
+
+    void _setName(String name) {
+        this.name = name;
+    }
+
+    public void validateName(String name) {
+        if (name == null || name.trim().length() == 0)
+            throw new InvalidNameException(this, name, "Name cannot be null or empty.");
+        if (node.hasParameter(name))
+            throw new InvalidNameException(this, name, "There is already a parameter named " + name + ".");
+        if (node.hasPort(name))
+            throw new InvalidNameException(this, name, "There is already a port named " + name + ".");
+        // Use the same validation as for nodes.
+        Node.validateName(name);
     }
 
     public String getAbsolutePath() {
@@ -85,125 +201,191 @@ public class Parameter {
     }
 
     public String getLabel() {
-        return parameterType.getLabel();
+        return label;
+    }
+
+    public void setLabel(String label) {
+        if (label == null || label.trim().length() == 0)
+            this.label = StringUtils.humanizeName(name);
+        else
+            this.label = label;
+        node.fireNodeAttributeChanged();
     }
 
     public String getHelpText() {
-        return parameterType.getDescription();
+        return helpText;
+    }
+
+    public void setHelpText(String helpText) {
+        this.helpText = helpText;
+        node.fireNodeAttributeChanged();
     }
 
     //// Type ////
 
-    public ParameterType getParameterType() {
-        return parameterType;
+    public Type getType() {
+        return type;
     }
 
-    public ParameterType.Type getType() {
-        return parameterType.getType();
-    }
-
-    public boolean isPrimitive() {
-        return parameterType.isPrimitive();
-    }
-
-    public ParameterType.CoreType getCoreType() {
-        return parameterType.getCoreType();
-    }
-
-    public ParameterType.Cardinality getCardinality() {
-        return parameterType.getCardinality();
-    }
-
-    public void setParameterType(ParameterType parameterType) {
-        ParameterType oldType = this.parameterType;
-        ParameterType newType = parameterType;
-        if (oldType.getCoreType() != newType.getCoreType()) {
-            if (isInputParameter() && isConnected()) {
-                disconnect();
-                value = newType.getDefaultValue();
+    public void setType(Type newType) {
+        Type oldType = this.type;
+        // Try to migrate to the new type
+        if (oldType != newType) {
+            if (hasExpression()) {
+                // Do nothing. It is too hard to change expressions to return a value of the new type.
             } else {
                 try {
-                    value = newType.parseValue(asString());
+                    value = parseValue(asString(), newType);
                 } catch (NumberFormatException e) {
                     // If the value could not be parsed, reset it to the default value.
-                    value = newType.getDefaultValue();
+                    value = getDefaultValue(newType);
                 }
             }
         }
-        this.parameterType = newType;
+        this.type = newType;
         clampToBounds();
-        // TODO: Check type info, bounding
+        fireAttributeChanged();
+    }
+
+    //// Widget ////
+
+    public Widget getWidget() {
+        return widget;
+    }
+
+    public void setWidget(Widget widget) {
+        this.widget = widget;
+        fireAttributeChanged();
+    }
+
+    public static Widget getDefaultWidget(Type type) {
+        return WIDGET_MAPPING.get(type);
     }
 
     //// Bounding ////
 
-    public void boundingChangedEvent(ParameterType source) {
-        if (source.getBoundingMethod() == ParameterType.BoundingMethod.HARD)
-            clampToBounds();
+    public BoundingMethod getBoundingMethod() {
+        return boundingMethod;
     }
 
+    public void setBoundingMethod(BoundingMethod boundingMethod) {
+        if (this.boundingMethod == boundingMethod) return;
+        this.boundingMethod = boundingMethod;
+        if (boundingMethod == BoundingMethod.HARD)
+            clampToBounds();
+        fireAttributeChanged();
+    }
+
+    public Float getMinimumValue() {
+        return minimumValue;
+    }
+
+    public void setMinimumValue(Float minimumValue) {
+        if (this.minimumValue != null && this.minimumValue.equals(minimumValue)) return;
+        this.minimumValue = minimumValue;
+        if (boundingMethod == BoundingMethod.HARD)
+            clampToBounds();
+        fireAttributeChanged();
+    }
+
+    public Float getMaximumValue() {
+        return maximumValue;
+    }
+
+    public void setMaximumValue(Float maximumValue) {
+        if (this.maximumValue != null && this.maximumValue.equals(maximumValue)) return;
+        this.maximumValue = maximumValue;
+        if (boundingMethod == BoundingMethod.HARD)
+            clampToBounds();
+        fireAttributeChanged();
+    }
+
+//    public void boundingChangedEvent(Parameter source) {
+//        if (source.getBoundingMethod() == ParameterType.BoundingMethod.HARD)
+//            clampToBounds();
+//    }
+
     private void clampToBounds() {
-        if (getCoreType() == ParameterType.CoreType.INT) {
+        if (type == Type.INT) {
             int v = (Integer) value;
-            if (parameterType.getMinimumValue() != null && v < parameterType.getMinimumValue()) {
-                set(parameterType.getMinimumValue().intValue());
-            } else if (parameterType.getMaximumValue() != null && v > parameterType.getMaximumValue()) {
-                set(parameterType.getMaximumValue().intValue());
+            if (minimumValue != null && v < minimumValue) {
+                set(minimumValue.intValue());
+            } else if (maximumValue != null && v > maximumValue) {
+                set(maximumValue.intValue());
             }
-        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
-            double v = (Double) value;
-            if (parameterType.getMinimumValue() != null && v < parameterType.getMinimumValue()) {
-                set(parameterType.getMinimumValue());
-            } else if (parameterType.getMaximumValue() != null && v > parameterType.getMaximumValue()) {
-                set(parameterType.getMaximumValue());
+        } else if (type == Type.FLOAT) {
+            float v = (Float) value;
+            if (minimumValue != null && v < minimumValue) {
+                set(minimumValue);
+            } else if (maximumValue != null && v > maximumValue) {
+                set(maximumValue);
             }
         }
     }
 
     //// Display level ////
 
-    public void displayLevelChanged(ParameterType source) {
-        // TODO: inform node of metadata changes so views can update.
+    public DisplayLevel getDisplayLevel() {
+        return displayLevel;
+    }
+
+    public void setDisplayLevel(DisplayLevel displayLevel) {
+        this.displayLevel = displayLevel;
+        fireAttributeChanged();
+    }
+
+    private void fireAttributeChanged() {
+        node.fireParameterAttributeChanged(this);
+    }
+
+    //// Menu items ////
+
+    public List<MenuItem> getMenuItems() {
+        return menuItems;
+    }
+
+    public void addMenuItem(String key, String label) {
+        menuItems.add(new MenuItem(key, label));
+        // TODO: fireMenuChanged();
     }
 
     //// Values ////
 
     public int asInt() {
-        assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.INT) {
+        if (type == Type.INT) {
             return (Integer) value;
-        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
-            double v = (Double) value;
+        } else if (type == Type.FLOAT) {
+            float v = (Float) value;
             return (int) v;
         } else {
             return 0;
         }
     }
 
-    public double asFloat() {
-        assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.FLOAT) {
-            return (Double) value;
-        } else if (getCoreType() == ParameterType.CoreType.INT) {
+    public float asFloat() {
+        if (type == Type.INT) {
             int v = (Integer) value;
-            return (double) v;
+            return (float) v;
+        } else if (type == Type.FLOAT) {
+            return (Float) value;
         } else {
             return 0;
         }
     }
 
     public String asString() {
-        assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.STRING) {
+        if (value == null) return null;
+        if (type == Type.STRING) {
             return (String) value;
+        } else if (type == Type.CODE) {
+            return ((NodeCode) value).getSource();
         } else {
             return value.toString();
         }
     }
 
     public boolean asBoolean() {
-        assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.INT) {
+        if (type == Type.INT) {
             int v = (Integer) value;
             return v == 1;
         } else {
@@ -212,69 +394,50 @@ public class Parameter {
     }
 
     public Color asColor() {
-        if (getCoreType() == ParameterType.CoreType.COLOR) {
+        if (type == Type.COLOR) {
             return (Color) getValue();
         } else {
             return new Color();
         }
     }
 
-    public Grob asGrob() {
-        if (getCoreType() == ParameterType.CoreType.GROB
-                || getCoreType() == ParameterType.CoreType.GROB_CANVAS
-                || getCoreType() == ParameterType.CoreType.GROB_GROUP
-                || getCoreType() == ParameterType.CoreType.GROB_IMAGE
-                || getCoreType() == ParameterType.CoreType.GROB_PATH
-                || getCoreType() == ParameterType.CoreType.GROB_TEXT) {
-            return (Grob) getValue();
+    public NodeCode asCode() {
+        if (type == Type.CODE) {
+            return (NodeCode) getValue();
         } else {
-            return new Group();
+            return null;
         }
     }
 
     public String asExpression() {
-        assertCardinality();
-        if (getCoreType() == ParameterType.CoreType.INT) {
+        if (type == Type.INT) {
             return String.valueOf((Integer) value);
-        } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
-            return String.valueOf((Double) value);
-        } else if (getCoreType() == ParameterType.CoreType.STRING) {
+        } else if (type == Type.FLOAT) {
+            return String.valueOf((Float) value);
+        } else if (type == Type.STRING) {
             String v = (String) value;
             // Quote the string
             v = v.replaceAll("\"", "\\\"");
             return "\"" + v + "\"";
-        } else if (getCoreType() == ParameterType.CoreType.COLOR) {
+        } else if (type == Type.COLOR) {
             Color v = (Color) value;
             return String.format("Color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
+        } else if (type == Type.CODE) {
+            return ((NodeCode) value).getSource();
         } else {
-            throw new AssertionError("Cannot convert parameter value " + asString() + " of type " + getCoreType() + " to expression.");
+            throw new AssertionError("Cannot convert parameter value " + asString() + " of type " + getType() + " to expression.");
         }
     }
 
     /**
-     * Returns a copy of the original value.
+     * Returns the value of this node. This is a safe copy and you can modify it at will.
      * <p/>
-     * This is only relevant for grobs and colors. Other value types are immutable, so they will not be cloned.
+     * Only Color objects are cloned. The other value types are immutable, so they do not need to be cloned.
      *
      * @return a clone of the original value.
      */
     public Object getValue() {
-        assertCardinality();
-        return clonedValue(value);
-    }
-
-    /**
-     * Creates a cloned value of this object, but only if the object is not immutable.
-     * <p/>
-     * This will create clones for Grobs and Colors.
-     *
-     * @param value the original value
-     * @return a cloned copy of the original value.
-     */
-    private Object clonedValue(Object value) {
-        if (value instanceof Grob) {
-            return ((Grob) value).clone();
-        } else if (value instanceof Color) {
+        if (value instanceof Color) {
             return ((Color) value).clone();
         } else {
             return value;
@@ -289,53 +452,94 @@ public class Parameter {
      * @return a reference to the original value stored in the parameter.
      */
     public Object getValueReference() {
-        assertCardinality();
         return value;
     }
 
-    public List<Object> getValues() {
-        if (getCardinality() == ParameterType.Cardinality.SINGLE)
-            throw new AssertionError("getValues() is not available for parameter types with single cardinality.");
-        assert (value instanceof List);
-        ArrayList<Object> clonedValues = new ArrayList<Object>();
-        List<Object> values = (List<Object>) value;
-        for (Object v : values) {
-            clonedValues.add(clonedValue(v));
-        }
-        return clonedValues;
-    }
-
-    public List<Object> getValueReferences() {
-        if (getCardinality() == ParameterType.Cardinality.SINGLE)
-            throw new AssertionError("getValues() is not available for parameter types with single cardinality.");
-        assert (value instanceof List);
-        return (List<Object>) value;
-    }
-
-    public void set(Object value) {
+    public void set(Object value) throws IllegalArgumentException {
         setValue(value);
     }
 
-    public void setValue(Object value) throws ValueError {
-        if (isConnected()) {
-            throw new ValueError("The parameter is connected.");
-        }
+    public void setValue(Object value) throws IllegalArgumentException {
         if (hasExpression()) {
-            throw new ValueError("The parameter has an expression set.");
+            throw new IllegalArgumentException("The parameter has an expression set.");
         }
-        parameterType.validate(value);
-        if (this.value != null && this.value.equals(value)) return;
-        if (value instanceof Integer && getCoreType() == ParameterType.CoreType.FLOAT) {
-            this.value = (double) ((Integer) value);
+        // validate throws IllegalArgumentException when the value fails validation.
+        validate(value);
+        if (this.value.equals(value)) return;
+        // As a special exception, integer values can be cast up to floating-point values.
+        if (value instanceof Integer && type == Type.FLOAT) {
+            this.value = (float) ((Integer) value);
         } else {
             this.value = value;
         }
+        markDirty();
+    }
+
+    /**
+     * Check if this parameter is dirty and needs to be updated.
+     *
+     * @return true if the parameter is dirty.
+     */
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    /**
+     * Mark this parameter and its node as dirty. Also notify dependent parameters.
+     */
+    private void markDirty() {
+        if (dirty) return;
+        dirty = true;
         fireValueChanged();
     }
 
-    private void assertCardinality() {
-        if (getCardinality() == ParameterType.Cardinality.MULTIPLE)
-            throw new AssertionError("You cannot retrieve multi-parameters this way. Use getValues().");
+    //// Validation ////
+
+    public void validate(Object value) throws IllegalArgumentException {
+        // Check null
+        if (value == null)
+            throw new IllegalArgumentException("Value for parameter " + getName() + " cannot be null.");
+        // Check if the type matches
+        switch (type) {
+            case INT:
+                if (!(value instanceof Integer))
+                    throw new IllegalArgumentException("Value is not an int.");
+                break;
+            case FLOAT:
+                // As a special exception, we accept integer values for float type parameters.
+                if (!(value instanceof Float || value instanceof Integer))
+                    throw new IllegalArgumentException("Value is not a float.");
+                break;
+            case STRING:
+                if (!(value instanceof String))
+                    throw new IllegalArgumentException("Value is not a String.");
+                break;
+            case COLOR:
+                if (!(value instanceof Color))
+                    throw new IllegalArgumentException("Value is not a Color.");
+                break;
+            case CODE:
+                if (!(value instanceof NodeCode))
+                    throw new IllegalArgumentException("Value is not a NodeCode object.");
+                break;
+        }
+        // If hard bounds are set, check if the value falls within the bounds.
+        if (getBoundingMethod() == BoundingMethod.HARD) {
+            float floatValue;
+            if (value instanceof Integer) {
+                floatValue = (Integer) value;
+            } else if (value instanceof Float) {
+                floatValue = (Float) value;
+            } else {
+                throw new AssertionError("Bounding set, but value is not integer or float. (type: " + this + " value: " + value + ")");
+            }
+            if (minimumValue != null && floatValue < minimumValue) {
+                throw new IllegalArgumentException("Parameter " + getName() + ": value " + value + " is too small. (minimum=" + minimumValue + ")");
+            }
+            if (maximumValue != null && floatValue > maximumValue) {
+                throw new IllegalArgumentException("Parameter " + getName() + ": value " + value + " is too big. (maximum=" + maximumValue + ")");
+            }
+        }
     }
 
     //// Expressions ////
@@ -350,12 +554,11 @@ public class Parameter {
 
     public void clearExpression() {
         this.expression = null;
-        setExpressionEnabled(false);
-        clearDependencies();
+        removeDependencies();
         fireValueChanged();
     }
 
-    public void setExpression(String expression) throws ConnectionError {
+    public void setExpression(String expression) throws ExpressionError {
         if (hasExpression() && getExpression().equals(expression)) {
             return;
         }
@@ -363,34 +566,21 @@ public class Parameter {
             clearExpression();
         } else {
             this.expression = new Expression(this, expression);
-            // Setting an expession automatically enables it and marks the node as dirty.
-            setExpressionEnabled(true);
+            // Evaluate the expression to see if it returns any errors.
+            this.expression.evaluate();
+            // Setting an expession automatically enables it and marks the parameter as dirty.
+            markDirty();
             try {
                 updateDependencies();
-            } catch (ConnectionError e) {
+            } catch (IllegalArgumentException e) {
                 // Whilst updating, we might catch a Connection error meaning you are connecting
                 // e.g. the parameter to itself. If that happens, we clear out the expression and all of its
                 // dependencies.
-                clearDependencies();
+                removeDependencies();
                 this.expression = null;
-                setExpressionEnabled(false);
-                throw (e);
+                throw new ExpressionError("This expression causes a cyclic dependency.", e);
             }
         }
-        fireValueChanged();
-    }
-
-    public void setExpressionEnabled(boolean enabled) {
-        if (this.expressionEnabled == enabled) {
-            return;
-            // Before you can enable the expression, you have to have one.
-        }
-        if (enabled && !hasExpression()) {
-            return;
-        }
-        this.expressionEnabled = enabled;
-        // Since the value of this parameter will change, we mark the node as dirty.
-        node.fireNodeChanged();
         fireValueChanged();
     }
 
@@ -401,54 +591,107 @@ public class Parameter {
      * Parameter depencies are created by setting expressions that refer to other parameters. Once these parameters
      * are changed, the dependent parameters need to be changed as well.
      *
-     * @throws ConnectionError when there is a connection error when creating the dependencies.
+     * @throws DependencyError when there is an error creating the dependencies.
      */
-    private void updateDependencies() throws ConnectionError {
-        if (getNetwork() == null)
-            throw new AssertionError("The node needs to be in a network to use expressions.");
-        clearDependencies();
+    private void updateDependencies() throws DependencyError {
+        removeDependencies();
         for (Parameter p : expression.getDependencies()) {
-            // Each expression depency functions as an output to which this parameter connects.
-            // This connection is implicit because it was not explicitly created by the user,
-            // but through the expression.
-            getNetwork().connect(p, this, Connection.Type.IMPLICIT);
+            // Add the parameter I depend on to as a dependency.
+            // This also makes the reverse connection in the dependency graph.
+            addDependency(p);
         }
     }
 
-    private void clearDependencies() {
-        if (getNetwork() == null) return;
-        List<Connection> connections = getNetwork().getUpstreamConnections(this);
-        for (Connection conn : connections) {
-            if (conn.getType() == Connection.Type.IMPLICIT) {
-                getNetwork().disconnect(conn.getOutputParameter(), this, Connection.Type.IMPLICIT);
-            }
-        }
+    /**
+     * Add the given parameter as a dependency.
+     * <p/>
+     * This means that whenever this parameter needs to be updated, it needs to update
+     * the given parameter.
+     *
+     * @param p the parameter this node depends on.
+     */
+    private void addDependency(Parameter p) {
+        getLibrary().addParameterDependency(p, this);
     }
 
-    public List<Parameter> getDependents() {
-        if (getNetwork() == null) return new ArrayList<Parameter>();
-        // My dependents are represented as implicit connections for which I am the output.
-        // The list of dependents is a list of input parameters on these connections.
-        List<Parameter> dependents = new ArrayList<Parameter>();
-        // Filter out explicit connections
-        for (Connection conn : getNetwork().getDownstreamConnections(this)) {
-            if (conn.getType() == Connection.Type.IMPLICIT)
-                dependents.add(conn.getInputParameter());
-        }
-        return dependents;
+    /**
+     * This method gets called whenever the expression was cleared. It removes all dependencies
+     * for this parameters.
+     * <p/>
+     * The dependents (parameters that rely on this parameter) are not changed. They only change
+     * when their dependencies are cleared.
+     */
+    private void removeDependencies() {
+        getLibrary().removeParameterDependencies(this);
+//
+//
+//        for (WeakReference<Parameter> ref : dependencies) {
+//            Parameter p = ref.get();
+//            if (p != null)
+//                p.removeDependent(this);
+//        }
+//        dependencies.clear();
     }
 
-    public List<Parameter> getDependencies() {
-        if (getNetwork() == null) return new ArrayList<Parameter>();
-        // My depencies are represented as implicit connections for which I am the input.
-        // The list of depencies is a list of output parameters on these connections.
-        List<Parameter> dependencies = new ArrayList<Parameter>();
-        // Filter out explicit connections
-        for (Connection conn : getNetwork().getUpstreamConnections(this)) {
-            if (conn.getType() == Connection.Type.IMPLICIT)
-                dependencies.add(conn.getOutputParameter());
+    /**
+     * This method gets called when the parameter is about to be removed. It signal all of its dependent nodes
+     * that the parameter will no longer be available.
+     * <p/>
+     * The dependent parameters will probably all have invalid expressions from now on.
+     */
+    private void removeDependents() {
+        // Before removing all dependents, inform them first of the fact that one of their dependencies has changed.
+        for (Parameter p : getDependents()) {
+            p.dependencyChangedEvent(this);
         }
-        return dependencies;
+        getLibrary().removeParameterDependents(this);
+//        for (WeakReference<Parameter> ref : dependents) {
+//            Parameter p = ref.get();
+//            if (p != null)
+//                p.removeDependency(this);
+//        }
+//        dependents.clear();
+    }
+
+    /**
+     * Get all parameters that rely on this parameter.
+     * <p/>
+     * These parameters all have expressions that point to this parameter. Whenever this parameter changes,
+     * they get notified.
+     * <p/>
+     * This list contains all "live" parameters when you call it. Please don't hold on to this list for too long,
+     * since parameters can be added and removed at will.
+     *
+     * @return a list of parameters that depend on this parameter. This list can safely be modified.
+     */
+    public Set<Parameter> getDependents() {
+        return getLibrary().getParameterDependents(this);
+//        Set<Parameter> set = new HashSet<Parameter>(dependents.size());
+//        for (WeakReference<Parameter> ref : dependents) {
+//            Parameter p = ref.get();
+//            if (p != null)
+//                set.add(p);
+//        }
+//        return set;
+    }
+
+    /**
+     * Get all parameters this parameter depends on.
+     * <p/>
+     * This list contains all "live" parameters when you call it. Please don't hold on to this list for too long,
+     * since parameters can be added and removed at will.
+     *
+     * @return a list of parameters this parameter depends on. This list can safely be modified.
+     */
+    public Set<Parameter> getDependencies() {
+        return getLibrary().getParameterDependencies(this);
+//        Set<Parameter> set = new HashSet<Parameter>(dependencies.size());
+//        for (WeakReference<Parameter> ref : dependencies) {
+//            Parameter p = ref.get();
+//            if (p != null)
+//                set.add(p);
+//        }
+//        return set;
     }
 
     /**
@@ -458,97 +701,31 @@ public class Parameter {
     protected void fireValueChanged() {
         getNode().markDirty();
         for (Parameter p : getDependents()) {
-            p.getNode().markDirty();
+            p.dependencyChangedEvent(this);
         }
-        for (ParameterDataListener l : listeners) {
-            l.valueChanged(this, value);
-        }
+//        for (WeakReference<Parameter> ref : dependents) {
+//            Parameter p = ref.get();
+//            if (p != null)
+//                p.dependencyChangedEvent(p);
+//        }
+//        for (ParameterValueListener l : listeners) {
+//            l.valueChanged(this, value);
+//        }
     }
 
-    //// Connections ////
-
-    public boolean isInputParameter() {
-        return true;
-    }
-
-    public boolean isOutputParameter() {
-        return !isInputParameter();
-    }
-
-    public Connection getExplicitConnection() {
-        if (getNetwork() == null) return null;
-        return getNetwork().getExplicitConnection(this);
-    }
-
-    public List<Connection> getConnections() {
-        if (getNetwork() == null) return new ArrayList<Connection>();
-        return getNetwork().getUpstreamConnections(this);
-    }
-
-    public boolean isCompatible(Node outputNode) {
-        return outputNode.getOutputParameter().getType().equals(getType());
-    }
-
-    private boolean hasExplicitConnection() {
-        return getExplicitConnection() != null;
-    }
-
-    public boolean isConnected() {
-        if (getNetwork() == null) return false;
-        return getNetwork().isConnected(this);
-    }
-
-    public boolean isConnectedTo(Parameter parameter) {
-        if (!isConnected()) return false;
-        // Since output and input parameters can be intermingled, check both sides of the connection.
-        return getNetwork().isConnectedTo(parameter, this) || getNetwork().isConnectedTo(this, parameter);
-    }
-
-    public boolean isConnectable() {
-        return true;
-    }
-
-    public boolean isConnectedTo(Node node) {
-        if (!isConnected()) return false;
-        return getNetwork().isConnectedTo(node.getOutputParameter(), this);
-    }
-
-    public boolean canConnectTo(Parameter parameter) {
-        // Parameters can only be connected to output parameters.
-        // TODO: No longer true for implicit connections
-        //if (!(parameter instanceof OutputParameter)) return false;
-        return getParameterType().canConnectTo(parameter.getParameterType());
-    }
-
-    public boolean canConnectTo(Node outputNode) {
-        if (!node.inNetwork()) return false;
-        if (!outputNode.inNetwork()) return false;
-        if (node.getNetwork() != outputNode.getNetwork()) return false;
-        return canConnectTo(outputNode.getOutputParameter());
+    private void dependencyChangedEvent(Parameter p) {
+        markDirty();
+        //getNode().markDirty();
     }
 
     /**
-     * Connects this (input) parameter to the given output node.
+     * This event happens when the parameter is about to be removed.
      * <p/>
-     * Once connected, the node is marked dirty.
-     *
-     * @param outputNode the upstream node to connect to.
-     * @return true if the connection succeeded.
+     * We remove all dependencies/dependents here.
      */
-    public Connection connect(Node outputNode) {
-        return getNetwork().connect(outputNode.getOutputParameter(), this);
-    }
-
-    /**
-     * Disconnects this (input) parameter from its output node.
-     * <p/>
-     * If no connection was present, this method does nothing.
-     *
-     * @return true if the connection was removed
-     */
-    public boolean disconnect() {
-        if (getNetwork() == null) return false;
-        return getNetwork().disconnect(this);
+    public void removedEvent() {
+        removeDependencies();
+        removeDependents();
     }
 
     /**
@@ -556,21 +733,22 @@ public class Parameter {
      * <p/>
      * This method can take a long time and should be run in a separate thread.
      *
-     * @param ctx the processing context
+     * @param context the processing context
+     * @throws ExpressionError if an expression fails
      */
-    public void update(ProcessingContext ctx) {
-        // Update all connections.
-        for (Connection conn : getConnections()) {
-            conn.update(ctx);
-        }
+    public void update(ProcessingContext context) throws ExpressionError {
+        if (!dirty) return;
+        // To avoid infinite recursion, we set dirty to false before processing
+        // any of the dependencies. If we come by this parameter again, we have
+        // already updated it.
+        dirty = false;
+        if (hasExpression()) {
+            // Update all dependencies.
+            for (Parameter p : getDependencies()) {
+                p.update(context);
+            }
 
-        if (hasExplicitConnection()) {
-            Connection conn = getExplicitConnection();
-            Object outputValue = conn.getOutputValue();
-            validate(outputValue);
-            value = outputValue;
-        } else if (hasExpression()) {
-            Object expressionValue = expression.evaluate();
+            Object expressionValue = expression.evaluate(context);
             validate(expressionValue);
             value = expressionValue;
         }
@@ -578,33 +756,96 @@ public class Parameter {
 
     //// Values ////
 
-    public void nullAllowedChanged(ParameterType source) {
-        if (!parameterType.isNullAllowed() && value == null) {
-            value = parameterType.getDefaultValue();
-        }
-    }
-
     public void revertToDefault() {
-        this.value = parameterType.getDefaultValue();
+        this.value = getDefaultValue();
         fireValueChanged();
     }
 
-    public Object parseValue(String valueAsString) {
-        return getParameterType().parseValue(valueAsString);
+    /**
+     * Get the default value for a Parameter.
+     * <p/>
+     * The default value is the value of the prototype of the Parameter.
+     * If the default value is not on the prototype, or does not have
+     * the correct type, the default value is the default value for the
+     * type.
+     *
+     * @return the default value for this type.
+     */
+    public Object getDefaultValue() {
+        Node prototypeNode = getNode().getPrototype();
+        if (prototypeNode != null) {
+            Parameter prototypeParameter = prototypeNode.getParameter(getName());
+            // Parameter needs to exist and be of the same type.
+            if (prototypeParameter != null && prototypeParameter.getType() == getType()) {
+                return prototypeParameter.getValue();
+            }
+        }
+        return getDefaultValue(type);
     }
 
-    public void validate(Object value) {
-        getParameterType().validate(value);
+    public static Object getDefaultValue(Type type) {
+        if (type == Type.INT) {
+            return 0;
+        } else if (type == Type.FLOAT) {
+            return 0F;
+        } else if (type == Type.STRING) {
+            return "";
+        } else if (type == Type.COLOR) {
+            return new Color();
+        } else if (type == Type.CODE) {
+            return emptyCode;
+        } else {
+            return null;
+        }
     }
 
-    //// Event handling ////
-
-    public void addDataListener(ParameterDataListener listener) {
-        listeners.add(listener);
+    /**
+     * Try to coerce the given string into a correct value for this parameter.
+     * <p/>
+     * This does not change the value for this parameter. Use the returned value with Node.setValue().
+     * <p/>
+     * This method throws a NumberFormatException if type value could not be parsed.
+     *
+     * @param value the value to parse
+     * @return the value converted to the correct type.
+     * @throws IllegalArgumentException when the given value could not be parsed.
+     * @see Node#setValue(String, Object) after parsing, use this method to set the value on the parameter.
+     */
+    public Object parseValue(String value) throws IllegalArgumentException {
+        return parseValue(value, type);
     }
 
-    public void removeDataListener(ParameterDataListener listener) {
-        listeners.remove(listener);
+    /**
+     * Try to coerce the string into a correct value of the given type.
+     * <p/>
+     * This does not change the value for this parameter. Use the returned value with Node.setValue().
+     * <p/>
+     * This method throws a NumberFormatException if type value could not be parsed.
+     *
+     * @param value the value to parse
+     * @param type  the type to convert to
+     * @return the value converted to the correct type.
+     * @throws IllegalArgumentException when the given value could not be parsed.
+     * @see Node#setValue(String, Object) after parsing, use this method to set the value on the parameter.
+     */
+    public static Object parseValue(String value, Type type) throws IllegalArgumentException {
+        if (type == Type.INT) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else if (type == Type.FLOAT) {
+            try {
+                return Float.parseFloat(value);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(e);
+            }
+        } else if (type == Type.CODE) {
+            throw new IllegalArgumentException("Cannot parse code objects.");
+        } else {
+            return value;
+        }
     }
 
     //// Persistence ////
@@ -614,28 +855,65 @@ public class Parameter {
      *
      * @param xml    the StringBuffer to use when appending.
      * @param spaces the indentation.
-     * @see Network#toXml for returning the Network as a full xml document
+     * @see Node#toXml
      */
     public void toXml(StringBuffer xml, String spaces) {
-        // Don't do non-primitive parameters.
-        if (!isPrimitive()) return;
-        // Write parameter name
-        xml.append(spaces).append("<key>").append(getName()).append("</key>\n");
+        // We only write out the attributes that have changed with regards to the prototype.
+        Node protoNode = getNode().getPrototype();
+        Parameter protoParam = null;
+        if (protoNode != null)
+            protoParam = protoNode.getParameter(getName());
+        // If the parameter and its prototype are completely equal, don't write anything.
+        if (prototypeEquals(protoParam)) return;
+        // The parameters are not equal, so we can start writing the name.
+        xml.append(spaces).append("<param name=\"").append(getName()).append("\"");
+        // Write parameter type
+        if (protoParam == null || getType().equals(protoParam.getType()))
+            xml.append(" type=\"").append(getType().toString().toLowerCase()).append("\"");
+        xml.append(">\n");
+        // Write parameter value / expression
         if (hasExpression()) {
             xml.append(spaces).append("<expression>").append(getExpression()).append("</expression>\n");
         } else {
-            if (getCoreType() == ParameterType.CoreType.INT) {
-                xml.append(spaces).append("<int>").append(asInt()).append("</int>\n");
-            } else if (getCoreType() == ParameterType.CoreType.FLOAT) {
-                xml.append(spaces).append("<float>").append(asFloat()).append("</float>\n");
-            } else if (getCoreType() == ParameterType.CoreType.STRING) {
-                xml.append(spaces).append("<string>").append(asString()).append("</string>\n");
-            } else if (getCoreType() == ParameterType.CoreType.COLOR) {
-                xml.append(spaces).append("<color>").append(asColor().toString()).append("</color>\n");
+            if (type == Type.INT) {
+                xml.append(spaces).append("  <value>").append(asInt()).append("</value>\n");
+            } else if (type == Type.FLOAT) {
+                xml.append(spaces).append("  <value>").append(asFloat()).append("</value>\n");
+            } else if (type == Type.STRING) {
+                xml.append(spaces).append("  <value>").append(asString()).append("</value>\n");
+            } else if (type == Type.COLOR) {
+                xml.append(spaces).append("  <value>").append(asColor().toString()).append("</value>\n");
+            } else if (type == Type.CODE) {
+                xml.append(spaces).append("  <value type=\"").append(asCode().getType()).append("\"><![CDATA[").append(asCode().getSource()).append("]]></value>\n");
             } else {
-                throw new AssertionError("Unknown value class " + getCoreType());
+                throw new AssertionError("Unknown value class " + type);
             }
         }
+        xml.append(spaces).append("</param>\n");
+    }
+
+    private boolean prototypeEquals(Parameter o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Parameter parameter = (Parameter) o;
+
+        if (boundingMethod != parameter.boundingMethod) return false;
+        if (displayLevel != parameter.displayLevel) return false;
+        if (expression != null ? !expression.equals(parameter.expression) : parameter.expression != null) return false;
+        if (helpText != null ? !helpText.equals(parameter.helpText) : parameter.helpText != null) return false;
+        if (!label.equals(parameter.label)) return false;
+        if (maximumValue != null ? !maximumValue.equals(parameter.maximumValue) : parameter.maximumValue != null)
+            return false;
+        if (!menuItems.equals(parameter.menuItems)) return false;
+        if (minimumValue != null ? !minimumValue.equals(parameter.minimumValue) : parameter.minimumValue != null)
+            return false;
+        if (!name.equals(parameter.name)) return false;
+        if (type != parameter.type) return false;
+        if (value != null ? !value.equals(parameter.value) : parameter.value != null) return false;
+        if (widget != parameter.widget) return false;
+
+        return true;
     }
 
     @Override
@@ -651,6 +929,8 @@ public class Parameter {
      * @return the new copy of this parameter.
      */
     public Parameter copyWithUpstream(Node newNode) {
+        throw new UnsupportedOperationException("Not yet supported.");
+        /*
         Constructor parameterConstructor;
         try {
             parameterConstructor = getClass().getConstructor(ParameterType.class, Node.class);
@@ -666,9 +946,9 @@ public class Parameter {
             return null;
         }
 
-        Connection conn = getNetwork().getExplicitConnection(this);
+        Connection conn = getParentNode().getExplicitConnection(this);
         if (conn != null) {
-            Node newOutputNode = conn.getOutputNode().copyWithUpstream(newNode.getNetwork());
+            Node newOutputNode = conn.getOutputNode().copyWithUpstream(newNode.getParent());
             newParameter.connect(newOutputNode);
         } else if (hasExpression()) {
             newParameter.setExpression(getExpression());
@@ -678,5 +958,54 @@ public class Parameter {
         }
 
         return newParameter;
+        */
+    }
+
+    public Parameter clone(Node n) {
+        Parameter p = new Parameter(n, getName(), getType());
+        p.setLabel(getLabel());
+        p.setHelpText(getHelpText());
+        p.setWidget(getWidget());
+        p.setValue(cloneValue(getValue()));
+        p.setBoundingMethod(getBoundingMethod());
+        p.setMinimumValue(getMinimumValue());
+        p.setMaximumValue(getMaximumValue());
+        p.setDisplayLevel(getDisplayLevel());
+        for (MenuItem item : getMenuItems()) {
+            p.addMenuItem(item.getKey(), item.getLabel());
+        }
+        // TODO: Rewrite expressions to point to new node.
+        p.setExpression(getExpression());
+        return p;
+    }
+
+    /**
+     * Return a clone of this value.
+     * <p/>
+     * This method only clones color objects, since other objects are immutable and therefore don't need to be cloned.
+     *
+     * @param value the original value
+     * @return a clone of this value.
+     */
+    private Object cloneValue(Object value) {
+        if (value instanceof Color) {
+            return new Color((Color) value);
+        } else {
+            return value;
+        }
+    }
+
+    private static class EmptyCode implements NodeCode {
+        public Object cook(Node node, ProcessingContext context) {
+            return null;
+        }
+
+        public String getSource() {
+            return "";
+        }
+
+        public String getType() {
+            return "";
+        }
     }
 }

@@ -24,12 +24,14 @@ import org.mvel2.CompileException;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
 import org.mvel2.UnresolveablePropertyException;
+import org.mvel2.ast.ASTNode;
 import org.mvel2.compiler.ExpressionCompiler;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
 import org.mvel2.optimizers.OptimizerFactory;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -64,6 +66,7 @@ public class Expression {
     private String expression = "";
     private boolean mutable = false;
     private transient Serializable compiledExpression;
+    private Set<WeakReference<Parameter>> markedParameterReferences;
 
     public Expression(String expression, boolean mutable) {
         this.mutable = mutable;
@@ -89,6 +92,7 @@ public class Expression {
     public void setExpression(String expression) {
         if (this.expression != null && this.expression.equals(expression)) return;
         this.expression = expression;
+        markedParameterReferences = null;
         ExpressionCompiler compiler = new ExpressionCompiler(expression);
         this.compiledExpression = compiler.compile(parserContext);
     }
@@ -112,7 +116,7 @@ public class Expression {
         if (value instanceof Number) {
             return (Integer) value;
         } else {
-            throw new ValueError("Value \"" + value + "\" for expression \"" + expression + "\" is not an integer.");
+            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not an integer.");
         }
     }
 
@@ -121,7 +125,7 @@ public class Expression {
         if (value instanceof Number) {
             return (Double) value;
         } else {
-            throw new ValueError("Value \"" + value + "\" for expression \"" + expression + "\" is not a floating-point value.");
+            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a floating-point value.");
         }
     }
 
@@ -130,7 +134,7 @@ public class Expression {
         if (value instanceof String) {
             return (String) value;
         } else {
-            throw new ValueError("Value \"" + value + "\" for expression \"" + expression + "\" is not a string.");
+            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a string.");
         }
     }
 
@@ -139,35 +143,62 @@ public class Expression {
         if (value instanceof Color) {
             return (Color) value;
         } else {
-            throw new ValueError("Value \"" + value + "\" for expression \"" + expression + "\" is not a color.");
+            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a color.");
         }
     }
 
     //// Evaluation ////
 
-    public Object evaluate() {
+    /**
+     * Evaluate the expression and return the result.
+     *
+     * @return the result of the expression
+     * @throws ExpressionError if an error occurs whilst evaluating the expression.
+     */
+    public Object evaluate() throws ExpressionError {
         return evaluate(new ProcessingContext());
     }
 
-    public Object evaluate(ProcessingContext context) {
-        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, mutable);
+    /**
+     * Evaluate the expression and return the result.
+     *
+     * @param context the context wherein evaluation happens.
+     * @return the result of the expression
+     * @throws ExpressionError if an error occurs whilst evaluating the expression.
+     */
+    public Object evaluate(ProcessingContext context) throws ExpressionError {
+        markedParameterReferences = new HashSet<WeakReference<Parameter>>();
+        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, mutable, markedParameterReferences);
         try {
             return MVEL.executeExpression(compiledExpression, prf);
         } catch (Exception e) {
-            throw new RuntimeException("Error with expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+            throw new ExpressionError("Error with expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
         }
     }
 
+    /**
+     * Returns all parameters this expression depends on
+     * <p/>
+     * If the expression contains an error, this method will return an empty set.
+     *
+     * @return a set of parameters
+     */
     public Set<Parameter> getDependencies() {
-        Set<Parameter> markedParameters = new HashSet<Parameter>();
-        // TODO: Since the mutable property gets passed on, getting dependencies might cause side effects.
-        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), new ProcessingContext(), mutable, markedParameters);
-        try {
-            MVEL.executeExpression(compiledExpression, prf);
-            return markedParameters;
-        } catch (Exception e) {
-            return new HashSet<Parameter>(0);
+        if (markedParameterReferences == null) {
+            try {
+                // TODO: Since the mutable property gets passed on, getting dependencies might cause side effects.
+                evaluate();
+            } catch (ExpressionError expressionError) {
+                return new HashSet<Parameter>(0);
+            }
         }
+        HashSet<Parameter> dependencies = new HashSet<Parameter>(markedParameterReferences.size());
+        for (WeakReference<Parameter> ref : markedParameterReferences) {
+            Parameter p = ref.get();
+            if (p != null)
+            dependencies.add(p);
+        }
+        return dependencies;
     }
 
     class ProxyResolverFactory extends BaseVariableResolverFactory {
@@ -183,9 +214,9 @@ public class Expression {
             this.context = context;
         }
 
-        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable, Set<Parameter> markedParameters) {
+        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable, Set<WeakReference<Parameter>> markedParameterReferences) {
             this.node = node;
-            proxy = new NodeAccessProxy(node, markedParameters);
+            proxy = new NodeAccessProxy(node, markedParameterReferences);
             proxy.setMutable(mutable);
             this.context = context;
         }

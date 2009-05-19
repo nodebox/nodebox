@@ -26,130 +26,199 @@ import java.util.List;
  * <p/>
  * Connections are made between ports on the nodes. The connection goes from the output port of the output node
  * (there is only one output port) to an input port on the input node.
+ * <p/>
+ * This class can only store the connection between one output and one input. Some nodes, such as the merge node,
+ * have multiple outputs that connect to the same input. These are connected using a MultiConnection.
  */
 public class Connection {
 
-    public enum Type {
-        EXPLICIT, IMPLICIT
-    }
-
-    private Parameter outputParameter;
-    private Parameter inputParameter;
-    private Type type;
-    protected Object outputValue;
+    private List<Port> outputs;
+    private Port input;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
      *
-     * @param outputParameter the output (upstream) parameter
-     * @param inputParameter  the input (downstream) parameter
+     * @param output the output (upstream) parameter
+     * @param input  the input (downstream) parameter
      */
-    public Connection(Parameter outputParameter, Parameter inputParameter) {
-        this(outputParameter, inputParameter, Type.EXPLICIT);
-    }
-
-    public Connection(Parameter outputParameter, Parameter inputParameter, Type type) {
-        this.outputParameter = outputParameter;
-        this.inputParameter = inputParameter;
-        this.type = type;
-    }
-
-    public void disconnect() {
-        inputParameter.getNetwork().disconnect(outputParameter, inputParameter, type);
-    }
-
-    public Parameter getOutputParameter() {
-        return outputParameter;
-    }
-
-    public boolean hasOutputParameter(Parameter parameter) {
-        return outputParameter == parameter;
+    public Connection(Port output, Port input) {
+        assert output != null;
+        assert input != null;
+        this.outputs = new ArrayList<Port>(1);
+        this.outputs.add(output);
+        this.input = input;
     }
 
     /**
-     * Convenience method that gets overriden in MultiConnection.
+     * Gets the first output (upstream) port.
      *
-     * @return
+     * @return the output port.
      */
-    public List<Parameter> getOutputParameters() {
-        List<Parameter> outputParameters = new ArrayList<Parameter>(1);
-        outputParameters.add(outputParameter);
-        return outputParameters;
+    public Port getOutput() {
+        assert outputs.size() > 0;
+        return outputs.get(0);
     }
 
+    public boolean hasOutput(Port port) {
+        return outputs.contains(port);
+    }
+
+    /**
+     * Get a list with all output ports in this connection.
+     *
+     * @return the list of output ports. This list can safely be modified.
+     */
+    public List<Port> getOutputs() {
+        return new ArrayList<Port>(outputs);
+    }
+
+    /**
+     * Check if this connection still has any output ports.
+     *
+     * @return true if this connection has output ports.
+     */
+    public boolean hasOutputs() {
+        return outputs.size() > 0;
+    }
+
+    /**
+     * Add the given output port to this connection.
+     *
+     * @param port the output port to add.
+     * @return true if the port was added, false if this connection already contains the output.
+     */
+    public boolean addOutput(Port port) {
+        if (port == null)
+            throw new IllegalArgumentException("The given port cannot be null.");
+        if (outputs.contains(port)) return false;
+        // Sanity check to see if the output and input ports are not the same,
+        // which would cause infinite recursion.
+        if (port.getNode() == input.getNode())
+            throw new IllegalArgumentException("The output port cannot be on the same node as the input port.");
+        outputs.add(port);
+        return true;
+    }
+
+    /**
+     * Remove the given output port from this connection.
+     *
+     * @param port the port to remove
+     * @return true if there are no ouputs remaining.
+     * @throws IllegalArgumentException if the given port is not in this connection
+     */
+    public boolean removeOutput(Port port) throws IllegalArgumentException {
+        if (!outputs.contains(port))
+            throw new IllegalArgumentException("The given port does not participate in this connection.");
+        outputs.remove(port);
+        return outputs.isEmpty();
+    }
+
+    /**
+     * Remove the given node from this connection.
+     *
+     * @param node the node to remove
+     * @return true if there are no ouputs remaining.
+     * @throws IllegalArgumentException if the given port is not in this connection
+     */
+    public boolean removeOutputNode(Node node) throws IllegalArgumentException {
+        return removeOutput(node.getOutputPort());
+    }
+
+    /**
+     * Return the node for the first output port in this connection.
+     *
+     * @return a Node or null if there are no output ports
+     */
     public Node getOutputNode() {
-        if (outputParameter == null) return null;
-        return outputParameter.getNode();
+        if (outputs.size() == 0) return null;
+        return outputs.get(0).getNode();
     }
 
     /**
-     * Convenience method that gets overriden in MultiConnection.
+     * Gets a list of all nodes for the output ports in this connection.
      *
-     * @return
+     * @return a list of nodes. This list can safely be modified.
      */
     public List<Node> getOutputNodes() {
-        List<Node> outputNodes = new ArrayList<Node>(1);
-        if (outputParameter != null)
-            outputNodes.add(outputParameter.getNode());
-        return outputNodes;
+        List<Node> nodes = new ArrayList<Node>(1);
+        for (Port p : outputs) {
+            nodes.add(p.getNode());
+        }
+        return nodes;
     }
 
+    /**
+     * Gets the input (downstream) port.
+     *
+     * @return the input port.
+     */
+    public Port getInput() {
+        return input;
+    }
 
+    /**
+     * Return the node for the input port in this connection.
+     *
+     * @return the Node for the input port.
+     */
     public Node getInputNode() {
-        if (inputParameter == null) return null;
-        return inputParameter.getNode();
-    }
-
-    public Parameter getInputParameter() {
-        return inputParameter;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public boolean isExplicit() {
-        return type == Type.EXPLICIT;
-    }
-
-    public boolean isImplicit() {
-        return type == Type.IMPLICIT;
+        if (input == null) return null;
+        return input.getNode();
     }
 
     public void markDirtyDownstream() {
         getInputNode().markDirty();
     }
 
+    /**
+     * Updates the connection.
+     * <p/>
+     * Updates all output nodes and combines the results, which is stored in the input port.
+     * <p/>
+     * Depending on the cardinality of the port, you can retrieve the value using getValue() or getValues().
+     *
+     * @param ctx the metadata about the update operation.
+     * @see net.nodebox.node.Port#getValue()
+     * @see net.nodebox.node.Port#getValues()
+     */
     public void update(ProcessingContext ctx) {
-        // Check if the output node on the connection is not the same as my node.
-        // In that case, we don't want to process the node, since it will eventually
-        // end up updating this parameter, causing infinite recursion.
-        //if (getOutputNode() == getInputNode()) return;
-        getOutputNode().update(ctx);
-        outputValue = getOutputNode().getOutputValue();
-    }
-
-    public Object getOutputValue() {
-        return outputValue;
+        // TODO: Check if we can break the system with infinite recursion.
+        // Clear out the value(s) of the port.
+        input.reset();
+        if (input.getCardinality() == Port.Cardinality.SINGLE) {
+            Node node = getOutputNode();
+            node.update(ctx);
+            // TODO: We should clone the value here.
+            input.setValue(node.getOutputValue());
+        } else {
+            for (Port output : outputs) {
+                Node node = output.getNode();
+                node.update(ctx);
+                // TODO: We should clone the value here.
+                input.addValue(node.getOutputValue());
+            }
+        }
     }
 
     @Override
     public String toString() {
-        return inputParameter + " => " + outputParameter;
+        return getOutputs() + " <= " + getInput();
     }
 
     //// Persistence ////
 
     public void toXml(StringBuffer xml, String spaces) {
-        toXml(xml, spaces, outputParameter);
+        for (Port output : outputs) {
+            toXml(xml, spaces, output);
+        }
     }
 
-    protected void toXml(StringBuffer xml, String spaces, Parameter outputParameter) {
+    protected void toXml(StringBuffer xml, String spaces, Port output) {
         xml.append(spaces);
-        xml.append("<connection");
-        xml.append(" outputNode=\"").append(outputParameter.getNode().getName()).append("\"");
-        xml.append(" inputNode=\"").append(getInputNode().getName()).append("\"");
-        xml.append(" inputParameter=\"").append(getInputParameter().getName()).append("\"");
+        xml.append("<conn");
+        xml.append(" output=\"").append(output.getNode().getName()).append("\"");
+        xml.append(" input=\"").append(getInputNode().getName()).append("\"");
+        xml.append(" port=\"").append(getInput().getName()).append("\"");
         xml.append("/>\n");
     }
 

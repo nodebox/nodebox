@@ -18,7 +18,7 @@
  */
 package net.nodebox.graphics;
 
-import net.nodebox.client.PlatformUtils;
+import net.nodebox.util.PlatformUtils;
 
 import java.awt.*;
 import java.io.File;

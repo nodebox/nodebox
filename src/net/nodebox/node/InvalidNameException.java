@@ -19,4 +19,8 @@ public class InvalidNameException extends RuntimeException {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return String.format("InvalidNameException on %s name %s: %s", source, name,  getMessage());
+    }
 }

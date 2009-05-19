@@ -18,126 +18,251 @@
  */
 package net.nodebox.node;
 
+import net.nodebox.graphics.Canvas;
+import net.nodebox.graphics.Color;
+
 public class ParameterTest extends NodeTestCase {
 
+    public void testNaming() {
+        Node n = numberNode.newInstance(testLibrary, "number1");
+
+        assertInvalidName(n, "1234", "names cannot start with a digit.");
+
+        assertInvalidName(n, "node", "names can not be one of the reserved words.");
+        assertInvalidName(n, "root", "names can not be one of the reserved words.");
+        assertInvalidName(n, "network", "names can not be one of the reserved words.");
+
+        assertInvalidName(n, "__reserved", "names cannot start with double underscores");
+        assertInvalidName(n, "what!", "Only lowercase, numbers and underscore are allowed");
+        assertInvalidName(n, "$-#34", "Only lowercase, numbers and underscore are allowed");
+        assertInvalidName(n, "", "names cannot be empty");
+        assertInvalidName(n, "very_very_very_very_very_very_long_name", "names cannot be longer than 30 characters");
+
+        assertValidName(n, "radius");
+        assertValidName(n, "_test");
+        assertValidName(n, "_");
+        assertValidName(n, "_1234");
+        assertValidName(n, "a1234");
+        assertValidName(n, "UPPERCASE");
+        assertValidName(n, "uPpercase");
+
+        assertInvalidName(n, "radius", "parameter names must be unique for the node");
+        n.addPort("myport", Integer.class);
+        assertInvalidName(n, "myport", "parameter names must be unique across parameters and ports");
+    }
+
+    public void testDefaultValue() {
+        Node n = numberNode.newInstance(testLibrary, "number1");
+        Parameter pInt = n.addParameter("int", Parameter.Type.INT);
+        Parameter pFloat = n.addParameter("float", Parameter.Type.FLOAT);
+        Parameter pString = n.addParameter("string", Parameter.Type.STRING);
+        Parameter pColor = n.addParameter("color", Parameter.Type.COLOR);
+        Parameter pCode = n.addParameter("code", Parameter.Type.CODE);
+
+        assertEquals(0, pInt.getDefaultValue());
+        assertEquals(0F, pFloat.getDefaultValue());
+        assertEquals("", pString.getDefaultValue());
+        assertEquals(new Color(), pColor.getDefaultValue());
+        assertEquals("EmptyCode", pCode.getDefaultValue().getClass().getSimpleName());
+    }
+
+    public void testValidate() {
+        Node customType = numberNode.newInstance(testLibrary, "number1");
+        Parameter pFloat = customType.addParameter("float", Parameter.Type.FLOAT);
+        assertInvalidValue(pFloat, "A");
+        assertInvalidValue(pFloat, new Color());
+        assertInvalidValue(pFloat, new Canvas());
+        assertValidValue(pFloat, 1F);
+        // As a special exception, floating-point parameters can also accept integers
+        assertValidValue(pFloat, 1);
+
+        Parameter pInt = customType.addParameter("int", Parameter.Type.INT);
+        assertInvalidValue(pInt, "A");
+        assertInvalidValue(pInt, new Color());
+        assertInvalidValue(pInt, new Canvas());
+        assertValidValue(pInt, 1);
+        // You cannot assign floating-point values to integers,
+        // so the above exception to the rule only works in one way.
+        assertInvalidValue(pInt, 1F);
+
+        Parameter pColor = customType.addParameter("color", Parameter.Type.COLOR);
+        assertInvalidValue(pColor, "A");
+        assertInvalidValue(pColor, 2);
+        assertValidValue(pColor, new Color());
+
+        // Toggle has a hard bounded range between 0 and 1.
+        Parameter ptToggle = customType.addParameter("toggle", Parameter.Type.INT);
+        ptToggle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        ptToggle.setMinimumValue(0F);
+        ptToggle.setMaximumValue(1F);
+        assertInvalidValue(ptToggle, "A");
+        assertInvalidValue(ptToggle, -1);
+        assertInvalidValue(ptToggle, 100);
+        assertValidValue(ptToggle, 0);
+        assertValidValue(ptToggle, 1);
+    }
+
+    public void testBounding() {
+        Node n = numberNode.newInstance(testLibrary, "number1");
+        Parameter pAngle = n.addParameter("angle", Parameter.Type.FLOAT);
+        pAngle.setBoundingMethod(Parameter.BoundingMethod.SOFT);
+        pAngle.setMinimumValue(-100F);
+        pAngle.setMaximumValue(100F);
+        assertValidValue(n, "angle", 0F);
+        assertValidValue(n, "angle", 1000F);
+        assertValidValue(n, "angle", -1000F);
+        pAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        assertEquals(-100F, n.asFloat("angle")); // Setting the bounding type to hard clamped the value
+        assertInvalidValue(n, "angle", 500F);
+        pAngle.setBoundingMethod(Parameter.BoundingMethod.NONE);
+        assertValidValue(n, "angle", 300F);
+        pAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        assertEquals(100F, n.asFloat("angle"));
+    }
+
     public void testCorrectType() {
-        Node number = numberType.createNode();
-        ParameterType valueType = number.getParameter("value").getParameterType();
-        assertEquals(ParameterType.Type.INT, valueType.getType());
-        assertEquals(ParameterType.CoreType.INT, valueType.getCoreType());
+        Node number = numberNode.newInstance(testLibrary, "number1");
+        Parameter pValue = number.getParameter("value");
+        assertEquals(Parameter.Type.INT, pValue.getType());
     }
 
     public void testDirectValue() {
-        Node num1 = numberType.createNode();
-        assertEquals(0, num1.getOutputValue());
-        Node num2 = numberType.createNode();
+        Node num1 = numberNode.newInstance(testLibrary, "number1");
+        assertEquals(null, num1.getOutputValue());
+        Node num2 = numberNode.newInstance(testLibrary, "number2");
         num2.setValue("value", 12);
-        assertEquals(0, num2.getOutputValue());
+        assertEquals(null, num2.getOutputValue());
         assertFalse(num2.getParameter("value").hasExpression());
-        assertFalse(num2.getParameter("value").isConnected());
+    }
+
+    public void testAsFloat() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "node");
+        n.addParameter("int", Parameter.Type.INT, 42);
+        assertEquals(42F, n.asFloat("int"));
+        n.addParameter("string", Parameter.Type.STRING, "hello");
+        try {
+            n.asFloat("string");
+            fail("Should have caused an exception.");
+        } catch (RuntimeException ignored) {
+        }
     }
 
     public void testAsString() {
-        NodeType allControlsType = new NodeType(null, "", ParameterType.Type.INT) {
-            public boolean process(Node node, ProcessingContext ctx) {
-                return false;
-            }
-        };
-        allControlsType.addParameterType("int", ParameterType.Type.INT);
-        allControlsType.addParameterType("float", ParameterType.Type.FLOAT);
-        allControlsType.addParameterType("string", ParameterType.Type.STRING);
-        allControlsType.addParameterType("color", ParameterType.Type.COLOR);
-        Node n = allControlsType.createNode();
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "allControls");
+        n.addParameter("int", Parameter.Type.INT);
+        n.addParameter("float", Parameter.Type.FLOAT);
+        n.addParameter("string", Parameter.Type.STRING);
+        n.addParameter("color", Parameter.Type.COLOR);
+        n.addParameter("code", Parameter.Type.CODE);
         assertEquals("0", n.asString("int"));
         assertEquals("0.0", n.asString("float"));
         assertEquals("", n.asString("string"));
         assertEquals("#000000ff", n.asString("color"));
+        assertEquals("", n.asString("code"));
     }
 
-    /*
-
     public void testInvalidName() {
-        Node n = new TestNode();
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "node1");
         Parameter pAlice = n.addParameter("alice", Parameter.Type.FLOAT);
         Parameter pBob = n.addParameter("bob", Parameter.Type.FLOAT);
         assertEquals(pAlice.getName(), "alice");
         assertEquals(pBob.getName(), "bob");
-        checkValidName(pBob, "joe");
+        assertValidName(pBob, "joe");
         assertEquals(pBob.getName(), "joe");
         assertFalse(n.hasParameter("bob"));
         assertTrue(n.hasParameter("joe"));
-        checkParameterNotFound(n, "bob");
+        assertParameterNotFound(n, "bob");
         assertEquals(pBob, n.getParameter("joe"));
-        checkInvalidName(pBob, "alice", "Can not take the name of an existing parameter.");
+        assertInvalidName(pBob, "alice", "Can not take the name of an existing parameter.");
         assertEquals(pBob, n.getParameter("joe")); // Check the previous setName hasn't affected the current name.
     }
 
     public void testLabel() {
-        Node n = new TestNode();
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "node1");
         Parameter p1 = n.addParameter("width", Parameter.Type.FLOAT);
         assertEquals("Width", p1.getLabel());
         Parameter p2 = n.addParameter("a_somewhat_longer_parameter", Parameter.Type.FLOAT);
         assertEquals("A Somewhat Longer Parameter", p2.getLabel());
-        Parameter p3 = n.addParameter("double__underscores__everywhere", Parameter.Type.FLOAT);
-        assertEquals("Double Underscores Everywhere", p3.getLabel());
+        Parameter p3 = n.addParameter("double__underscores__here", Parameter.Type.FLOAT);
+        assertEquals("Double Underscores Here", p3.getLabel());
     }
-*/
+
     public void testValues() {
-        ValueNodeType valueNodeType = new ValueNodeType(null);
-        Node n = valueNodeType.createNode();
-        assertEquals(ParameterType.Type.INT, valueNodeType.pInt.getType());
-        assertEquals(ParameterType.Type.FLOAT, valueNodeType.pFloat.getType());
-        assertEquals(ParameterType.Type.STRING, valueNodeType.pString.getType());
+        Node n = new ValueBuiltin().getInstance();
+        assertEquals(Parameter.Type.INT, n.getParameter("int").getType());
+        assertEquals(Parameter.Type.FLOAT, n.getParameter("float").getType());
+        assertEquals(Parameter.Type.STRING, n.getParameter("string").getType());
 
         assertEquals(0, n.asInt("int"));
-        assertEquals(0.0, n.asFloat("float"));
+        assertEquals(0F, n.asFloat("float"));
         assertEquals("", n.asString("string"));
 
-        n.set("int", 12);
-        n.set("float", 0.5);
-        n.set("string", "hello");
+        n.setValue("int", 12);
+        n.setValue("float", 0.5F);
+        n.setValue("string", "hello");
 
         assertEquals(12, n.asInt("int"));
-        assertEquals(0.5, n.asFloat("float"));
+        assertEquals(0.5F, n.asFloat("float"));
         assertEquals("hello", n.asString("string"));
     }
 
-    public void testExpressionConnections() {
-        Network net = (Network) manager.getNodeType("corevector.vecnet").createNode();
-        Node rect1 = net.create(manager.getNodeType("corevector.rect"));
-        Node ellipse1 = net.create(manager.getNodeType("corevector.ellipse"));
-        Node copy1 = net.create(manager.getNodeType("corevector.copy"));
-        copy1.getParameter("shape").connect(rect1);
-        copy1.getParameter("tx").setExpression("ellipse1.x");
-        Parameter xParam = ellipse1.getParameter("x");
-        assertEquals(1, xParam.getDependents().size());
-        assert (xParam.getDependents().contains(copy1.getParameter("tx")));
-        assertEquals(2, copy1.getConnections().size());
-        assertEquals(1, rect1.getConnections().size());
-        assertEquals(1, ellipse1.getConnections().size());
+    /**
+     * Test the strictness of setValue.
+     */
+    public void testLenientValues() {
+        Node n = new ValueBuiltin().getInstance();
+        // Set value of a float with an int.
+        n.setValue("float", 12);
+        assertEquals(12F, n.asFloat("float"));
+        // Set value of a float with a double.
+        try {
+            n.setValue("float", 0.5);
+            fail("Double value should not have been accepted.");
+        } catch (IllegalArgumentException ignored) {
+        }
+        // Value is still set to previous value.
+        assertEquals(12F, n.asFloat("float"));
     }
 
+    /**
+     * Test if creating expressions creates the correct dependencies.
+     */
+    public void testExpressionDependencies() {
+        Node polynet = Node.ROOT_NODE.newInstance(testLibrary, "polynet");
+        Node rect1 = polynet.create(manager.getNode("polygraph.rect"));
+        Node rect2 = polynet.create(manager.getNode("polygraph.rect"));
+        Node translate1 = polynet.create(manager.getNode("polygraph.translate"));
+        translate1.getPort("polygon").connect(rect1);
+        translate1.getParameter("tx").setExpression("rect2.x");
+        Parameter txParam = translate1.getParameter("tx");
+        Parameter xParam = rect2.getParameter("x");
+        assertEquals(1, xParam.getDependents().size());
+        assertTrue(xParam.getDependents().contains(txParam));
+        assertEquals(1, txParam.getDependencies().size());
+        assertTrue(txParam.getDependencies().contains(xParam));
+    }
+
+
     public void testMultiParameters() {
-        Network net = (Network) testNetworkType.createNode();
-        Node number1 = net.create(numberType);
-        number1.set("value", 1);
-        Node number2 = net.create(numberType);
-        number2.set("value", 2);
-        Node number3 = net.create(numberType);
-        number3.set("value", 3);
-        Node multiAdd = net.create(multiAddType);
-        Connection c1 = multiAdd.getParameter("values").connect(number1);
-        Connection c2 = multiAdd.getParameter("values").connect(number2);
-        Connection c3 = multiAdd.getParameter("values").connect(number3);
+        Node net1 = Node.ROOT_NODE.newInstance(testLibrary, "net1");
+        Node number1 = net1.create(numberNode);
+        number1.setValue("value", 1);
+        Node number2 = net1.create(numberNode);
+        number2.setValue("value", 2);
+        Node number3 = net1.create(numberNode);
+        number3.setValue("value", 3);
+        Node multiAdd = net1.create(multiAddNode);
+        Connection c1 = multiAdd.getPort("values").connect(number1);
+        Connection c2 = multiAdd.getPort("values").connect(number2);
+        Connection c3 = multiAdd.getPort("values").connect(number3);
         assertTrue(c1 == c2);
         assertTrue(c1 == c3);
-        assertTrue(c1 instanceof MultiConnection);
-        assertEquals(3, c1.getOutputParameters().size());
+        assertEquals(3, c1.getOutputs().size());
         multiAdd.update();
         assertEquals(1 + 2 + 3, multiAdd.getOutputValue());
         // Check dirty propagation
         assertFalse(multiAdd.isDirty());
-        number2.set("value", 200);
+        number2.setValue("value", 200);
         assertTrue(multiAdd.isDirty());
         multiAdd.update();
         assertEquals(1 + 200 + 3, multiAdd.getOutputValue());
@@ -156,21 +281,116 @@ public class ParameterTest extends NodeTestCase {
         assertFalse(multiAdd.isConnected());
     }
 
+    /**
+     * Test if all parameter attributes are cloned.
+     */
+    public void testParameterCloning() {
+        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "a");
+        Parameter aAngle = nodeA.addParameter("angle", Parameter.Type.FLOAT, 42F);
+        aAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        aAngle.setMinimumValue(0F);
+        aAngle.setMaximumValue(360F);
+        aAngle.setLabel("My Angle");
+        aAngle.setDisplayLevel(Parameter.DisplayLevel.HUD);
+        aAngle.setHelpText("The angle of the node.");
+        aAngle.setWidget(Parameter.Widget.ANGLE);
+        Node nodeB = nodeA.newInstance(testLibrary, "b");
+        Parameter bAngle = nodeB.getParameter("angle");
+        assertNotNull(bAngle);
+        assertNotSame(aAngle, bAngle);
+        assertEquals(aAngle.getBoundingMethod(), bAngle.getBoundingMethod());
+        assertEquals(aAngle.getMinimumValue(), bAngle.getMinimumValue());
+        assertEquals(aAngle.getMaximumValue(), bAngle.getMaximumValue());
+        assertEquals(aAngle.getLabel(), bAngle.getLabel());
+        assertEquals(aAngle.getDisplayLevel(), bAngle.getDisplayLevel());
+        assertEquals(aAngle.getHelpText(), bAngle.getHelpText());
+        assertEquals(aAngle.getWidget(), bAngle.getWidget());
+    }
+
     //// Helper functions ////
 
-    private class ValueNodeType extends NodeType {
-        public ParameterType pInt, pFloat, pString;
+    private void assertInvalidName(Node n, String newName, String reason) {
+        try {
+            n.addParameter(newName, Parameter.Type.INT);
+            fail("the following condition was not met: " + reason);
+        } catch (InvalidNameException ignored) {
+        }
+    }
 
-        private ValueNodeType(NodeTypeLibrary library) {
-            super(library, "test.value", ParameterType.Type.INT);
-            pInt = addParameterType("int", ParameterType.Type.INT);
-            pFloat = addParameterType("float", ParameterType.Type.FLOAT);
-            pString = addParameterType("string", ParameterType.Type.STRING);
+    private void assertValidName(Node n, String newName) {
+        try {
+            n.addParameter(newName, Parameter.Type.INT);
+        } catch (InvalidNameException e) {
+            fail("The name \"" + newName + "\" should have been accepted.");
+        }
+    }
+
+    private void assertValidValue(Parameter p, Object value) {
+        try {
+            p.validate(value);
+        } catch (IllegalArgumentException e) {
+            fail("The value '" + value + "' should have been accepted: " + e);
+        }
+    }
+
+    private void assertValidValue(Node n, String parameterName, Object value) {
+        try {
+            n.setValue(parameterName, value);
+        } catch (IllegalArgumentException e) {
+            fail("The value '" + value + "' should have been accepted: " + e);
+        }
+    }
+
+
+    private void assertInvalidValue(Parameter p, Object value) {
+        try {
+            p.validate(value);
+            fail("The value '" + value + "' should not have been accepted.");
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private void assertInvalidValue(Node n, String parameterName, Object value) {
+        try {
+            n.setValue(parameterName, value);
+            fail("The value '" + value + "' should not have been accepted.");
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    private class ValueBuiltin extends Builtin {
+
+        protected Node createInstance() {
+            Node n = Node.ROOT_NODE.newInstance(testLibrary, "value");
+            n.addParameter("int", Parameter.Type.INT);
+            n.addParameter("float", Parameter.Type.FLOAT);
+            n.addParameter("string", Parameter.Type.STRING);
+            return n;
         }
 
-        public boolean process(Node node, ProcessingContext ctx) {
-            node.setOutputValue(42);
-            return true;
+        public Object cook(Node node, ProcessingContext context) {
+            return 42;
         }
+
+    }
+
+    private void assertValidName(Parameter p, String newName) {
+        try {
+            p.setName(newName);
+        } catch (InvalidNameException e) {
+            fail("The name \"" + newName + "\" should have been accepted.");
+        }
+    }
+
+    private void assertInvalidName(Parameter p, String newName, String reason) {
+        try {
+            p.setName(newName);
+            fail("The name \"" + newName + "\" should not have been accepted: " + reason);
+        } catch (InvalidNameException ignored) {
+        }
+    }
+
+    private void assertParameterNotFound(Node n, String parameterName) {
+        assertNull("The parameter \"" + parameterName + "\" should not have been found.", n.getParameter(parameterName));
     }
 }

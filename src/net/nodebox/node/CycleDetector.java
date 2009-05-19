@@ -24,6 +24,7 @@ import java.util.Set;
  * rect1.x -> ellipse1.x and ellipse1.y -> rect1.y would cause a cycle, because on a node level this connection would be
  * cyclic. On a per-parameter basis, the example would not cause a cycle. This implementation works on a per-node basis.
  */
+// TODO: Remove, but copy comments to DependencyGraph first.
 public class CycleDetector {
 
     private enum Color {
@@ -34,19 +35,16 @@ public class CycleDetector {
     private Map<Node, Set<Node>> edges;
     private Map<Node, Color> marks;
 
-    public CycleDetector(Network network) {
+    public CycleDetector(Node node) {
         // If this code ever gets changed to a per-parameter basis, don't forget to create edges from the input
         // parameters to the output parameter.
         vertices = new HashSet<Node>();
         edges = new HashMap<Node, Set<Node>>();
         marks = new HashMap<Node, Color>();
-        vertices.addAll(network.getNodes());
-        for (Connection connection : network.getConnections()) {
+        vertices.addAll(node.getChildren());
+        for (Connection connection : node.getConnections()) {
             Node inputNode = connection.getInputNode();
             for (Node outputNode : connection.getOutputNodes()) {
-                // Connections to myself are allowed for implicit connections (expressions)
-                if (inputNode == outputNode && connection.getType() == Connection.Type.IMPLICIT)
-                    continue;
                 Set<Node> edgesForNode = edges.get(inputNode);
                 if (edgesForNode == null) {
                     edgesForNode = new HashSet<Node>();

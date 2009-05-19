@@ -1,6 +1,6 @@
 package net.nodebox.util;
 
-import net.nodebox.client.PlatformUtils;
+import net.nodebox.util.PlatformUtils;
 import org.python.core.Py;
 import org.python.core.PyString;
 import org.python.core.PySystemState;

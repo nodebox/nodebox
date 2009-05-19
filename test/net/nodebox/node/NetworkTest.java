@@ -1,34 +1,46 @@
 package net.nodebox.node;
 
+/**
+ * All tests that have to do with parent/child relationships between nodes.
+ */
 public class NetworkTest extends NodeTestCase {
 
-    class TestDataListener implements NetworkDataListener {
+    class TestDataListener implements DirtyListener {
         public int dirtyCounter = 0;
         public int updatedCounter = 0;
 
-        public void networkDirty(Network network) {
+        public void nodeDirty(Node node) {
             ++dirtyCounter;
         }
 
-        public void networkUpdated(Network network) {
+        public void nodeUpdated(Node node) {
             ++updatedCounter;
         }
     }
 
     public void testCreate() {
-        Network net = (Network) testNetworkType.createNode();
-        Node testNode = net.create(numberType);
-        assertTrue(net.contains(testNode));
-        assertTrue(testNode.inNetwork());
-        assertEquals(net, testNode.getNetwork());
+        Node grandParent = testNetworkNode.newInstance(testLibrary, "grandParent");
+        Node parent = grandParent.create(testNetworkNode, "parent");
+        Node child= parent.create(numberNode);
+        assertTrue(grandParent.contains(parent));
+        assertTrue(parent.contains(child));
+        // Contains doesn't go into child networks.
+        assertFalse(grandParent.contains(child));
+        assertTrue(child.hasParent());
+        assertTrue(grandParent.hasParent());
+        assertTrue(child.hasParent());
+        assertFalse(testLibrary.getRootNode().hasParent());
+        assertEquals(testLibrary.getRootNode(), grandParent.getParent());
+        assertEquals(grandParent, parent.getParent());
+        assertEquals(parent, child.getParent());
     }
 
     public void testDataEvent() {
         TestDataListener l = new TestDataListener();
-        Network net = (Network) testNetworkType.createNode();
-        net.addNetworkDataListener(l);
-        Node n1 = net.create(numberType);
-        Node n2 = net.create(numberType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        net.addDirtyListener(l);
+        Node n1 = net.create(numberNode);
+        Node n2 = net.create(numberNode);
         assertEquals(0, l.dirtyCounter);
         assertEquals(0, l.updatedCounter);
         n1.setRendered();
@@ -47,15 +59,13 @@ public class NetworkTest extends NodeTestCase {
     }
 
     public void testBasicProcessing() {
-        Network net = (Network) testNetworkType.createNode();
-        Node v1 = net.create(numberType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node v1 = net.create(numberNode);
         v1.setValue("value", 42);
-        net.update();
-        assertTrue(net.hasError());
-        assertEquals(0, net.getOutputValue());
+        assertProcessingError(net, "no child node to render");
+        assertEquals(null, net.getOutputValue());
         v1.setRendered();
         net.update();
-        assertFalse(net.hasError());
         assertEquals(42, net.getOutputValue());
     }
 
@@ -70,7 +80,7 @@ public class NetworkTest extends NodeTestCase {
         Parameter pSize = towerType.addParameter("buildingHeight", Parameter.Type.INT);
         pSize.setLabel("Building Height (in floors)");
         // Inner nodes
-        Node rect1 = towerType.create(RectType.class);
+        Node rect1 = towerType.create(RectNode.class);
         Node copy1 = towerType.create(CopyType.class);
         rect1.getParameter("width").set(50.0);
         rect1.getParameter("height").setExpression("network.floorHeight");
@@ -87,94 +97,93 @@ public class NetworkTest extends NodeTestCase {
         */
     }
 
-
     public void testPersistence() {
-        // Create network
-        Network rootNetwork = (Network) manager.getNodeType("corecanvas.canvasnet").createNode();
-        Network vecnet1 = (Network) rootNetwork.create(manager.getNodeType("corevector.vecnet"));
-        vecnet1.setPosition(10, 10);
-        assertEquals("vecnet1", vecnet1.getName());
-        vecnet1.setRendered();
-        Node ellipse1 = vecnet1.create(manager.getNodeType("corevector.ellipse"));
-        assertEquals("ellipse1", ellipse1.getName());
-        ellipse1.setRendered();
-        ellipse1.setPosition(100, 30);
-        Node transform1 = vecnet1.create(manager.getNodeType("corevector.transform"));
-        assertEquals("transform1", transform1.getName());
-        transform1.setPosition(40, 80);
-        transform1.setRendered();
-        transform1.getParameter("shape").connect(ellipse1);
-        Node rect1 = vecnet1.create(manager.getNodeType("corevector.rect"));
-        assertEquals("ellipse1", ellipse1.getName());
+        Node polynet1 = manager.getNode("polygraph.network").newInstance(testLibrary, "polynet1");
+        //Node polynet1 = testLibrary.getRootNode().create(manager.getNode("polygraph.network"), "polynet1");
+        polynet1.setPosition(10, 10);
+        assertEquals("polynet1", polynet1.getName());
+        polynet1.setRendered();
+        Node polygon1 = polynet1.create(manager.getNode("polygraph.polygon"));
+        assertEquals("polygon1", polygon1.getName());
+        polygon1.setRendered();
+        polygon1.setPosition(100, 30);
+        Node translate1 = polynet1.create(manager.getNode("polygraph.translate"));
+        assertEquals("translate1", translate1.getName());
+        translate1.setPosition(40, 80);
+        translate1.setRendered();
+        translate1.getPort("polygon").connect(polygon1);
+        Node rect1 = polynet1.create(manager.getNode("polygraph.rect"));
+        assertEquals("rect1", rect1.getName());
         rect1.setPosition(180, 30);
-        Node merge1 = vecnet1.create(manager.getNodeType("corevector.merge"));
+        Node merge1 = polynet1.create(manager.getNode("polygraph.merge"));
         assertEquals("merge1", merge1.getName());
-        merge1.getParameter("shapes").connect(transform1);
-        merge1.getParameter("shapes").connect(rect1);
+        merge1.getPort("polygons").connect(translate1);
+        merge1.getPort("polygons").connect(rect1);
 
-        // Write network
-        String xmlString = rootNetwork.toXml();
+        // Store/load library
+        String xml = testLibrary.toXml();
+        NodeLibrary newLibrary = manager.load("newLibrary", xml);
+        Node newRoot = newLibrary.getRootNode();
 
-        // Read network
-        Network newNetwork = Network.load(manager, xmlString);
-
-        // Perform tests on the network
-        assertEquals(rootNetwork.getName(), newNetwork.getName());
-        assertTrue(newNetwork.contains("vecnet1"));
-        Network nVector1 = (Network) newNetwork.getNode("vecnet1");
-        assertTrue(nVector1.contains("ellipse1"));
-        assertTrue(nVector1.contains("transform1"));
-        Node nEllipse1 = nVector1.getNode("ellipse1");
-        Node nTransform1 = nVector1.getNode("transform1");
-        Node nRect1 = nVector1.getNode("rect1");
-        Node nMerge1 = nVector1.getNode("merge1");
-        assertEquals(ellipse1.getValue("x"), nEllipse1.getValue("x"));
-        assertEquals(ellipse1.getValue("fill"), nEllipse1.getValue("fill"));
-        assertEquals(ellipse1.getValue("stroke"), nEllipse1.getValue("stroke"));
-        assertTrue(nEllipse1.isConnected());
-        assertTrue(nTransform1.isConnected());
-        assertTrue(nTransform1.getParameter("shape").isConnectedTo(nEllipse1));
-        assertTrue(nMerge1.getParameter("shapes").isConnectedTo(nRect1));
-        assertTrue(nMerge1.getParameter("shapes").isConnectedTo(nTransform1));
+        assertEquals("root", newRoot.getName());
+        assertTrue(newRoot.contains("polynet1"));
+        Node nPolynet1 = newRoot.getChild("polynet1");
+        assertTrue(nPolynet1.contains("polygon1"));
+        assertTrue(nPolynet1.contains("translate1"));
+        Node nPolygon1 = nPolynet1.getChild("polygon1");
+        Node nTranslate1 = nPolynet1.getChild("translate1");
+        Node nRect1 = nPolynet1.getChild("rect1");
+        Node nMerge1 = nPolynet1.getChild("merge1");
+        assertEquals(polygon1.getValue("x"), nPolygon1.getValue("x"));
+        assertEquals(polygon1.getValue("fill"), nPolygon1.getValue("fill"));
+        assertEquals(polygon1.getValue("stroke"), nPolygon1.getValue("stroke"));
+        assertTrue(nPolygon1.isConnected());
+        assertTrue(nTranslate1.isConnected());
+        assertTrue(nTranslate1.getPort("polygon").isConnectedTo(nPolygon1));
+        assertTrue(nMerge1.getPort("polygons").isConnectedTo(nRect1));
+        assertTrue(nMerge1.getPort("polygons").isConnectedTo(nTranslate1));
         // Check if this is the same connection
-        Parameter nShapes = nMerge1.getParameter("shapes");
-        Connection c1 = nVector1.getConnection(nTransform1, nShapes);
-        Connection c2 = nVector1.getConnection(nRect1, nShapes);
+        Port nPolygons = nMerge1.getPort("polygons");
+        assertEquals(1, nTranslate1.getDownstreamConnections().size());
+        assertEquals(1, nRect1.getDownstreamConnections().size());
+        Connection c1 = nTranslate1.getDownstreamConnections().iterator().next();
+        Connection c2 = nRect1.getDownstreamConnections().iterator().next();
         assertTrue(c1 == c2);
-        assertTrue(c1 instanceof MultiConnection);
         // This tests for a bug where the connection would be created twice.
-        nMerge1.getParameter("shapes").disconnect();
-        assertFalse(nShapes.isConnectedTo(nRect1));
-        assertFalse(nShapes.isConnectedTo(nTransform1));
+        nMerge1.getPort("polygons").disconnect();
+        assertFalse(nPolygons.isConnectedTo(nRect1));
+        assertFalse(nPolygons.isConnectedTo(nTranslate1));
     }
 
     /**
      * Tests whether the network does copy the output of the rendered node.
+     * <p/>
+     * Output values are not copied, since we have no reliable way to clone them.
      */
     public void testCopy() {
-        Network vector1 = (Network) manager.getNodeType("corevector.vecnet").createNode();
-        Node ellipse1 = vector1.create(manager.getNodeType("corevector.ellipse"));
-        ellipse1.setRendered();
-        vector1.update();
-        assertFalse(vector1.getOutputValue() == ellipse1.getOutputValue());
+        Node net1 = Node.ROOT_NODE.newInstance(testLibrary, "net");
+        Node rect1 = net1.create(rectNode);
+        rect1.setRendered();
+        net1.update();
+        assertTrue(net1.getOutputValue() == rect1.getOutputValue());
     }
 
     public void testCycles() {
-        Network net = (Network) testNetworkType.createNode();
-        Node n1 = net.create(numberType);
-        Node n2 = net.create(numberType);
-        Node n3 = net.create(numberType);
+        Node net = testNetworkNode.newInstance(testLibrary, "net1");
+        Node n1 = net.create(numberNode);
+        Node n2 = net.create(numberNode);
+        Node n3 = net.create(numberNode);
         assertFalse(n2.isConnected());
-        assertValidConnect(n2, "value", n1);
+        assertValidConnect(n2, "valuePort", n1);
         assertTrue(n2.isConnected());
         assertTrue(n2.isInputConnectedTo(n1));
         assertTrue(n1.isOutputConnectedTo(n2));
-        assertValidConnect(n3, "value", n2);
+        assertValidConnect(n3, "valuePort", n2);
         assertTrue(n3.isConnected());
         assertTrue(n3.isInputConnectedTo(n2));
         assertTrue(n2.isOutputConnectedTo(n3));
         // Try creating a 2-node cycle.
-        assertInvalidConnect(n1, "value", n2);
+        assertInvalidConnect(n1, "valuePort", n2);
         // The connection didn't go through, so n1's input is not connected to n2.
         assertFalse(n1.isInputConnectedTo(n2));
         // However the output of n2 is still connected to n1.
@@ -182,29 +191,54 @@ public class NetworkTest extends NodeTestCase {
         assertTrue(n1.isConnected());
         assertTrue(n2.isConnected());
         // Try creating a 3-node cycle.
-        assertInvalidConnect(n1, "value", n3);
+        assertInvalidConnect(n1, "valuePort", n3);
         // Test multi-input connections.
-        Node n4 = net.create(multiAddType);
+        Node n4 = net.create(multiAddNode);
         assertValidConnect(n4, "values", n1);
         assertValidConnect(n4, "values", n2);
         assertValidConnect(n4, "values", n3);
         assertInvalidConnect(n4, "values", n4);
-        assertInvalidConnect(n1, "value", n4);
+        assertInvalidConnect(n1, "valuePort", n4);
     }
 
-    private void assertValidConnect(Node inputNode, String inputParameterName, Node outputNode) {
+    public void testReparenting() {
+        Node net1 = Node.ROOT_NODE.newInstance(testLibrary, "net1");
+        Node net2 = Node.ROOT_NODE.newInstance(testLibrary, "net2");
+        Node number1 = net1.create(numberNode);
+        Node negate1 = net1.create(negateNode);
+        Node addConstant1 = net1.create(addConstantNode);
+        number1.setValue("value", 5);
+        negate1.getPort("value").connect(number1);
+        addConstant1.getPort("value").connect(negate1);
+        addConstant1.setValue("constant", -3);
+        addConstant1.setRendered();
+        assertTrue(negate1.isConnected());
+        assertTrue(number1.isConnected());
+        assertTrue(addConstant1.isConnected());
+        net1.update();
+        assertEquals(-8, net1.getOutputValue());
+        negate1.setParent(net2);
+        assertFalse(negate1.isConnected());
+        assertFalse(number1.isConnected());
+        assertFalse(addConstant1.isConnected());
+    }
+
+    private void assertValidConnect(Node inputNode, String inputPortName, Node outputNode) {
+        assert inputNode != null;
+        assert inputPortName != null;
+        assert outputNode != null;
         try {
-            inputNode.getParameter(inputParameterName).connect(outputNode);
-        } catch (ConnectionError e) {
-            fail("Should not have thrown ConnectionError: " + e);
+            inputNode.getPort(inputPortName).connect(outputNode);
+        } catch (IllegalArgumentException e) {
+            fail("Should not have thrown IllegalArgumentException: " + e);
         }
     }
 
-    private void assertInvalidConnect(Node inputNode, String inputParameterName, Node outputNode) {
+    private void assertInvalidConnect(Node inputNode, String inputPortName, Node outputNode) {
         try {
-            inputNode.getParameter(inputParameterName).connect(outputNode);
-            fail("Should have thrown ConnectionError.");
-        } catch (ConnectionError e) {
+            inputNode.getPort(inputPortName).connect(outputNode);
+            fail("Should have thrown IllegalArgumentException.");
+        } catch (IllegalArgumentException ignored) {
         }
     }
 

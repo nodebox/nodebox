@@ -41,11 +41,7 @@ public class PointHandle extends AbstractHandle {
         oy = node.asFloat(yName);
 
         Rect hitRect = createHitRectangle(ox, oy);
-        if (hitRect.contains(pt)) {
-            dragging = true;
-        } else {
-            dragging = false;
-        }
+        dragging = hitRect.contains(pt);
     }
 
     @Override
@@ -56,8 +52,9 @@ public class PointHandle extends AbstractHandle {
         double dx = x - px;
         double dy = y - py;
         if (dx == 0 && dy == 0) return;
-        node.set(xName, ox + dx);
-        node.set(yName, oy + dy);
+        // TODO: Temporary float fix to get a working compile. Doubles will be removed.
+        node.setValue(xName, (float) (ox + dx));
+        node.setValue(yName, (float) (oy + dy));
     }
 
     @Override

@@ -18,37 +18,38 @@
  */
 package net.nodebox.node;
 
+// TODO: No longer used. Can be removed.
 public class ConnectionError extends RuntimeException {
 
-    private Parameter outputParameter;
-    private Parameter inputParameter;
+    private Port output;
+    private Port input;
 
-    public ConnectionError(Parameter outputParameter, Parameter inputParameter, String message) {
+    public ConnectionError(Port output, Port input, String message) {
         super(message);
-        this.outputParameter = outputParameter;
-        this.inputParameter = inputParameter;
+        this.output = output;
+        this.input = input;
     }
 
-    public Parameter getOutputParameter() {
-        return outputParameter;
+    public Port getOutput() {
+        return output;
     }
 
     public Node getOutputNode() {
-        if (outputParameter == null) return null;
-        return outputParameter.getNode();
+        if (output == null) return null;
+        return output.getNode();
     }
 
-    public Parameter getInputParameter() {
-        return inputParameter;
+    public Port getInput() {
+        return input;
     }
 
     public Node getInputNode() {
-        if (inputParameter == null) return null;
-        return inputParameter.getNode();
+        if (input == null) return null;
+        return input.getNode();
     }
 
     @Override
     public String toString() {
-        return inputParameter + " => " + outputParameter + ": " + getMessage();
+        return output + " <= " + input + ": " + getMessage();
     }
 }

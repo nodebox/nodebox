@@ -1,5 +1,6 @@
 package net.nodebox.node;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class NodeAccessProxy implements Map {
     private boolean mutable = false;
     private Node node;
     private Set<String> keySet;
-    private Set<Parameter> markedParameters;
+    private Set<WeakReference<Parameter>> markedParameterReferences;
 
     public NodeAccessProxy(Node node) {
         this.node = node;
@@ -35,12 +36,12 @@ public class NodeAccessProxy implements Map {
      * Initialize the proxy with a access marker that notes which parameters were accessed.
      * This marker will be passed to recursive proxies.
      *
-     * @param node             the node
-     * @param markedParameters a list of parameters that were marked.
+     * @param node                      the node
+     * @param markedParameterReferences a list of parameters that were marked.
      */
-    public NodeAccessProxy(Node node, Set<Parameter> markedParameters) {
+    public NodeAccessProxy(Node node, Set<WeakReference<Parameter>> markedParameterReferences) {
         this(node);
-        this.markedParameters = markedParameters;
+        this.markedParameterReferences = markedParameterReferences;
     }
 
     public boolean isMutable() {
@@ -56,23 +57,20 @@ public class NodeAccessProxy implements Map {
         // keySet is created in reverse order; from global to local scope.
         // 1. Add nodes
         // 1.1 Add names of the sibling nodes (nodes in the same network as this node.)
-        if (node.inNetwork()) {
-            for (Node n : node.getNetwork().getNodes()) {
+        if (node.hasParent()) {
+            for (Node n : node.getParent().getChildren()) {
                 keySet.add(n.getName());
             }
         }
-        // 1.2 If this is a network, add its child nodes.
-        if (node instanceof Network) {
-            for (Node n : ((Network) node).getNodes()) {
-                keySet.add(n.getName());
-            }
+        // 1.2 Add its child nodes.
+        for (Node n : node.getChildren()) {
+            keySet.add(n.getName());
         }
         // 2. Add parameters
         for (Parameter p : node.getParameters()) {
             keySet.add(p.getName());
         }
         // 3. Add reserved words
-        keySet.add("output");
         keySet.add("root");
         keySet.add("network");
     }
@@ -103,7 +101,7 @@ public class NodeAccessProxy implements Map {
      * Retrieve the node or parameter value from the proxy.
      * Value retrieval happens in a specific order, from local to global:
      * <ul>
-     * <li>Search for reserved words (network, root, output).</li>
+     * <li>Search for reserved words (network, root).</li>
      * <li>Search for the name in the parameters of the current node.</li>
      * <li>If this node is a network, search in the nodes of the current network. (children)</li>
      * <li>If this node is in a network, search for other nodes in that network. (siblings)</li>
@@ -116,46 +114,46 @@ public class NodeAccessProxy implements Map {
         String k = key.toString();
 
         // First search for reserved words.
-        if (k.equals("network")) {
-            if (node.inNetwork()) {
-                NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork(), markedParameters);
+        if (k.equals("node")) {
+            return node;
+            // TODO: Rename this to "parent"
+        } else if (k.equals("network")) {
+            if (node.hasParent()) {
+                NodeAccessProxy proxy = new NodeAccessProxy(node.getParent(), markedParameterReferences);
                 proxy.setMutable(mutable);
                 return proxy;
             } else {
                 return null;
             }
         } else if (k.equals("root")) {
-            if (node.inNetwork()) {
-                NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork(), markedParameters);
+            if (node.hasParent()) {
+                NodeAccessProxy proxy = new NodeAccessProxy(node.getParent(), markedParameterReferences);
                 proxy.setMutable(mutable);
                 return proxy;
             } else {
-                return null;
+                // If the node does not have a parent, I am my own root node.
+                return this;
             }
-        } else if (k.equals("output")) {
-            if (markedParameters != null)
-                markedParameters.add(node.getOutputParameter());
-            return node.getOutputValue();
         }
 
         // Search the parameters
         if (node.hasParameter(k)) {
-            if (markedParameters != null)
-                markedParameters.add(node.getParameter(k));
+            if (markedParameterReferences != null)
+                markedParameterReferences.add(new WeakReference<Parameter>(node.getParameter(k)));
             return node.getValue(k);
         }
 
         // Network searches
         // If this is a network, search its nodes first.
-        if (node instanceof Network && ((Network) node).contains(k)) {
-            NodeAccessProxy proxy = new NodeAccessProxy(((Network) node).getNode(k), markedParameters);
+        if (node.contains(k)) {
+            NodeAccessProxy proxy = new NodeAccessProxy(node.getChild(k), markedParameterReferences);
             proxy.setMutable(mutable);
             return proxy;
         }
 
         // Check the siblings (nodes in this node's network).
-        if (node.inNetwork() && node.getNetwork().contains(k)) {
-            NodeAccessProxy proxy = new NodeAccessProxy(node.getNetwork().getNode(k), markedParameters);
+        if (node.hasParent() && node.getParent().contains(k)) {
+            NodeAccessProxy proxy = new NodeAccessProxy(node.getParent().getChild(k), markedParameterReferences);
             proxy.setMutable(mutable);
             return proxy;
         }
@@ -170,8 +168,8 @@ public class NodeAccessProxy implements Map {
         String k = key.toString();
         // Only search the parameters
         if (node.hasParameter(k)) {
-            if (markedParameters != null)
-                markedParameters.add(node.getParameter(k));
+            if (markedParameterReferences != null)
+                markedParameterReferences.add(new WeakReference<Parameter>(node.getParameter(k)));
             Object oldValue = node.getValue(k);
             node.setValue(k, value);
             return oldValue;

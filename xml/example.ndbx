@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="0.9">
+    <var name="version" value="1.0"/>
+    <code type="python"><![CDATA[def addpoints(p):
+    print p
+    return p]]></code>
+    <node name="rect1" prototype="polygraph.rect">
+        <param name="x">
+            <value>0.0</value>
+        </param>
+        <param name="y">
+            <value>0.0</value>
+        </param>
+        <param name="width">
+            <value>100.0</value>
+        </param>
+        <param name="height">
+            <expression>width</expression>
+        </param>
+        <param name="fill">
+            <value>#120044ff</value>
+        </param>
+    </node>
+    <node name="wiggle1" prototype="builtins.root" type="net.nodebox.node.polygraph.Polygon">
+        <description>Wiggles a polygon randomly.</description>
+        <port name="polygon" type="net.nodebox.node.polygraph.Polygon"/>
+        <param name="wx" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="wy" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[def process(self):
+    p = BezierPath()
+    for pt in self.shape:
+        pt.x += random(seed, -wx, wx)
+        pt.y += random(seed, -wy, wy)
+    return p]]></value>
+        </param>
+        <param name="_handle">
+            <value type="python"><![CDATA[def cook(self):
+    return PointHandle(self.node)]]></value>
+        </param>
+    </node>
+    <conn output="rect1" input="wiggle1" port="polygon"/>
+</ndbx>
