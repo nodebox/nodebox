@@ -6,9 +6,8 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.Icons;
 import net.nodebox.node.ConnectionError;
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
-import net.nodebox.node.Parameter;
+import net.nodebox.node.Port;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -176,8 +175,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             if (e.getClickCount() == 1) {
                 e.getInputManager().setKeyboardFocus(this);
                 networkView.singleSelect(NodeView.this);
-            } else if (e.getClickCount() == 2 && node instanceof Network) {
-                networkView.getPane().getDocument().setActiveNetwork((Network) node);
+            } else if (e.getClickCount() == 2) {
+                networkView.getPane().getDocument().setActiveNetwork(node);
             }
             e.setHandled(true);
         }
@@ -249,21 +248,21 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     connectTarget.repaint();
                 NodeView.this.repaint();
                 if (connectSource != null && connectTarget != null) {
-                    java.util.List<Parameter> compatibleParameters = connectTarget.getNode().getCompatibleInputs(connectSource.getNode());
-                    if (compatibleParameters.isEmpty()) {
+                    java.util.List<Port> compatiblePorts = connectTarget.getNode().getCompatibleInputs(connectSource.getNode());
+                    if (compatiblePorts.isEmpty()) {
                         // There are no compatible parameters.
-                    } else if (compatibleParameters.size() == 1) {
+                    } else if (compatiblePorts.size() == 1) {
                         // Only one possible connection, make it now.
-                        Parameter inputParameter = compatibleParameters.get(0);
+                        Port inputPort = compatiblePorts.get(0);
                         try {
-                            inputParameter.connect(connectSource.getNode());
+                            inputPort.connect(connectSource.getNode());
                         } catch (ConnectionError e) {
                             JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
                         }
                     } else {
                         JPopupMenu menu = new JPopupMenu("Select input");
-                        for (Parameter p : compatibleParameters) {
-                            Action a = new SelectCompatibleParameterAction(connectSource.getNode(), connectTarget.getNode(), p);
+                        for (Port p : compatiblePorts) {
+                            Action a = new SelectCompatiblePortAction(connectSource.getNode(), connectTarget.getNode(), p);
                             menu.add(a);
                         }
                         Point pt = getNetworkView().getMousePosition();
@@ -279,22 +278,22 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
     }
 
-    class SelectCompatibleParameterAction extends AbstractAction {
+    class SelectCompatiblePortAction extends AbstractAction {
 
         private Node outputNode;
         private Node inputNode;
-        private Parameter inputParameter;
+        private Port inputPort;
 
-        SelectCompatibleParameterAction(Node outputNode, Node inputNode, Parameter inputParameter) {
-            super(inputParameter.getName());
+        SelectCompatiblePortAction(Node outputNode, Node inputNode, Port inputPort) {
+            super(inputPort.getName());
             this.outputNode = outputNode;
             this.inputNode = inputNode;
-            this.inputParameter = inputParameter;
+            this.inputPort = inputPort;
         }
 
         public void actionPerformed(ActionEvent e) {
             try {
-                inputParameter.connect(outputNode);
+                inputPort.connect(outputNode);
             } catch (ConnectionError ce) {
                 JOptionPane.showMessageDialog(networkView, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
             }
@@ -332,7 +331,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            node.getNetwork().remove(node);
+            node.getParent().remove(node);
         }
     }
 }

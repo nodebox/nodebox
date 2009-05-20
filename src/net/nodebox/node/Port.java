@@ -216,6 +216,15 @@ public class Port {
     }
 
     /**
+     * Get the connection on this node, if it exists.
+     *
+     * @return a connection object or null.
+     */
+    public Connection getConnection() {
+        return node.getUpstreamConnection(this);
+    }
+
+    /**
      * Checks if this port can connect to the output port of the given node.
      * <p/>
      * This method does not check for cyclic dependencies.

@@ -2,33 +2,31 @@ package net.nodebox.client;
 
 import net.nodebox.Icons;
 import net.nodebox.node.Connection;
-import net.nodebox.node.Network;
-import net.nodebox.node.NodeTypeLibraryManager;
-import net.nodebox.node.Parameter;
+import net.nodebox.node.Node;
+import net.nodebox.node.Port;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 
 public class MultiConnectionPanel extends JPanel {
 
-    private Parameter parameter;
+    private Port input;
 
-    private ParameterListModel parameterListModel;
-    private JList outputParameterList;
+    private PortListModel portListModel;
+    private JList outputList;
 
-    public MultiConnectionPanel(Parameter parameter) {
+    public MultiConnectionPanel(Port input) {
         super(new BorderLayout(5, 0));
         setBackground(Theme.getInstance().getParameterViewBackgroundColor());
-        this.parameter = parameter;
-        parameterListModel = new ParameterListModel();
-        outputParameterList = new JList(parameterListModel);
+        this.input = input;
+        portListModel = new PortListModel();
+        outputList = new JList(portListModel);
         //outputParameterList.setPreferredSize(new Dimension(160, 200));
-        ParameterCellRenderer parameterCellRenderer = new ParameterCellRenderer();
-        outputParameterList.setCellRenderer(parameterCellRenderer);
-        outputParameterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        PortCellRenderer portCellRenderer = new PortCellRenderer();
+        outputList.setCellRenderer(portCellRenderer);
+        outputList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
         JButton upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH));
         upButton.addActionListener(new AbstractAction() {
@@ -52,21 +50,8 @@ public class MultiConnectionPanel extends JPanel {
         buttonPanel.add(downButton);
         buttonPanel.add(removeButton);
         buttonPanel.setPreferredSize(new Dimension(35, 100));
-        add(new JScrollPane(outputParameterList), BorderLayout.CENTER);
+        add(new JScrollPane(outputList), BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.EAST);
-    }
-
-    public static void main(String[] args) {
-        Network net = Network.load(new NodeTypeLibraryManager(), new File("/Users/fdb/Desktop/mergetest2.ndbx"));
-        Parameter p = net.getNode("merge1").getParameter("shapes");
-        JDialog d = new JDialog();
-        d.setModal(true);
-        d.getContentPane().setLayout(new BorderLayout());
-
-        MultiConnectionPanel panel = new MultiConnectionPanel(p);
-        d.getContentPane().add(panel, BorderLayout.CENTER);
-        d.setSize(400, 400);
-        d.setVisible(true);
     }
 
     @Override
@@ -75,68 +60,67 @@ public class MultiConnectionPanel extends JPanel {
     }
 
     public Connection getConnection() {
-        return parameter.getExplicitConnection();
+        return input.getConnection();
     }
 
     private void moveDown() {
         Connection c = getConnection();
         if (c == null) return;
-        Parameter selectedParameter = (Parameter) outputParameterList.getSelectedValue();
-        if (selectedParameter == null) return;
-        java.util.List<Parameter> parameters = c.getOutputParameters();
-        int index = parameters.indexOf(selectedParameter);
+        Port selectedPort = (Port) outputList.getSelectedValue();
+        if (selectedPort == null) return;
+        java.util.List<Port> ports = c.getOutputs();
+        int index = ports.indexOf(selectedPort);
         assert (index >= 0);
-        if (index >= parameters.size() - 1) return;
-        parameters.remove(selectedParameter);
-        parameters.add(index + 1, selectedParameter);
+        if (index >= ports.size() - 1) return;
+        ports.remove(selectedPort);
+        ports.add(index + 1, selectedPort);
         reloadList();
-        outputParameterList.setSelectedIndex(index + 1);
-        parameter.getNode().markDirty();
+        outputList.setSelectedIndex(index + 1);
+        input.getNode().markDirty();
     }
 
     private void moveUp() {
         Connection c = getConnection();
         if (c == null) return;
-        Parameter selectedParameter = (Parameter) outputParameterList.getSelectedValue();
-        if (selectedParameter == null) return;
-        java.util.List<Parameter> parameters = c.getOutputParameters();
-        int index = parameters.indexOf(selectedParameter);
+        Port selectedPort = (Port) outputList.getSelectedValue();
+        if (selectedPort == null) return;
+        java.util.List<Port> ports = c.getOutputs();
+        int index = ports.indexOf(selectedPort);
         assert (index >= 0);
         if (index == 0) return;
-        parameters.remove(selectedParameter);
-        parameters.add(index - 1, selectedParameter);
+        ports.remove(selectedPort);
+        ports.add(index - 1, selectedPort);
         reloadList();
-        outputParameterList.setSelectedIndex(index - 1);
-        parameter.getNode().markDirty();
+        outputList.setSelectedIndex(index - 1);
+        input.getNode().markDirty();
     }
 
 
     private void removeSelected() {
-        Parameter outputParameter = (Parameter) outputParameterList.getSelectedValue();
-        if (outputParameter == null) return;
-        Network network = parameter.getNetwork();
-        network.disconnect(outputParameter, parameter);
+        Port output = (Port) outputList.getSelectedValue();
+        if (output == null) return;
+        Node node = input.getNode();
+        node.disconnect(input, output.getNode());
         reloadList();
-        parameter.getNode().markDirty();
     }
 
     private void reloadList() {
-        outputParameterList.setModel(parameterListModel);
-        outputParameterList.repaint();
+        outputList.setModel(portListModel);
+        outputList.repaint();
     }
 
 
-    private class ParameterListModel implements ListModel {
+    private class PortListModel implements ListModel {
         public int getSize() {
             Connection c = getConnection();
             if (c == null) return 0;
-            return c.getOutputParameters().size();
+            return c.getOutputs().size();
         }
 
         public Object getElementAt(int index) {
             Connection c = getConnection();
             if (c == null) return 0;
-            return c.getOutputParameters().get(index);
+            return c.getOutputs().get(index);
         }
 
         public void addListDataListener(ListDataListener l) {
@@ -146,11 +130,11 @@ public class MultiConnectionPanel extends JPanel {
         }
     }
 
-    private class ParameterCellRenderer extends DefaultListCellRenderer {
+    private class PortCellRenderer extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            Parameter parameter = (Parameter) value;
-            String displayValue = parameter.getNode().getName();
+            Port port = (Port) value;
+            String displayValue = port.getNode().getName();
             return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
         }
     }

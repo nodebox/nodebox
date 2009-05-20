@@ -1,6 +1,5 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import javax.swing.*;
@@ -13,7 +12,7 @@ public class ViewerPane extends Pane {
     private PaneHeader paneHeader;
     private NetworkAddressBar networkAddressBar;
     private Viewer viewer;
-    private Network network;
+    private Node node;
 
 
     public ViewerPane(NodeBoxDocument document) {
@@ -45,17 +44,17 @@ public class ViewerPane extends Pane {
     public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);
         if (document == null) return;
-        setNetwork(document.getActiveNetwork());
+        setNode(document.getActiveNetwork());
     }
 
-    public Network getNetwork() {
-        return network;
+    public Node getNode() {
+        return node;
     }
 
-    public void setNetwork(Network network) {
-        this.network = network;
-        networkAddressBar.setNode(network);
-        viewer.setNetwork(network);
+    public void setNode(Node node) {
+        this.node = node;
+        networkAddressBar.setNode(node);
+        viewer.setNode(node);
     }
 
     public void setActiveNode(Node node) {
@@ -64,7 +63,7 @@ public class ViewerPane extends Pane {
 
     @Override
     public void currentNodeChanged(Node activeNetwork) {
-        setNetwork(activeNetwork);
+        setNode(activeNetwork);
     }
 
     @Override

@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-public class NetworkView extends PCanvas implements NetworkEventListener, NetworkDataListener {
+public class NetworkView extends PCanvas implements NodeChildListener, DirtyListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -25,7 +25,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     public static final String NETWORK_PROPERTY = "network";
 
     private Pane pane;
-    private Network network;
+    private Node node;
     private Set<NodeView> selection = new HashSet<NodeView>();
     private ConnectionLayer connectionLayer;
     private SelectionHandler selectionHandler = new SelectionHandler();
@@ -35,11 +35,11 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     private JPopupMenu networkMenu;
     private boolean networkError;
 
-    public NetworkView(Pane pane, Network network) {
+    public NetworkView(Pane pane, Node node) {
         this.pane = pane;
-        this.network = network;
-        if (network != null)
-            this.networkError = network.hasError();
+        this.node = node;
+        if (node != null)
+            this.networkError = node.hasError();
         setBackground(Theme.getInstance().getViewBackgroundColor());
         addInputEventListener(selectionHandler);
         // Remove default panning and zooming behaviour
@@ -91,31 +91,31 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
         return pane;
     }
 
-    public Network getNetwork() {
-        return network;
+    public Node getNode() {
+        return node;
     }
 
-    public void setNetwork(Network network) {
-        if (this.network == network) return;
-        Network oldNetwork = this.network;
-        if (oldNetwork != null) {
-            oldNetwork.removeNetworkEventListener(this);
-            oldNetwork.removeNetworkDataListener(this);
+    public void setNode(Node node) {
+        if (this.node == node) return;
+        Node oldNode = this.node;
+        if (oldNode != null) {
+            oldNode.removeDirtyListener(this);
+            oldNode.removeNodeChildListener(this);
         }
-        this.network = network;
+        this.node = node;
         getLayer().removeAllChildren();
         deselectAll();
-        if (network == null) return;
-        network.addNetworkEventListener(this);
-        network.addNetworkDataListener(this);
-        networkError = network.hasError();
+        if (node == null) return;
+        node.addDirtyListener(this);
+        node.addNodeChildListener(this);
+        networkError = node.hasError();
         // Add nodes
-        for (Node n : network.getNodes()) {
+        for (Node n : node.getChildren()) {
             NodeView nv = new NodeView(this, n);
             getLayer().addChild(nv);
         }
         validate();
-        firePropertyChange(NETWORK_PROPERTY, oldNetwork, network);
+        firePropertyChange(NETWORK_PROPERTY, oldNode, node);
     }
 
     //// View queries ////
@@ -234,12 +234,12 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
 
     //// Events ////
 
-    public void nodeAdded(Network source, Node node) {
+    public void childAdded(Node source, Node child) {
         NodeView nv = new NodeView(this, node);
         getLayer().addChild(nv);
     }
 
-    public void nodeRemoved(Network source, Node node) {
+    public void childRemoved(Node source, Node child) {
         NodeView nv = getNodeView(node);
         if (nv == null) return;
         getLayer().removeChild(nv);
@@ -248,39 +248,34 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
         }
     }
 
-    public void connectionAdded(Network source, Connection connection) {
+    public void connectionAdded(Node source, Connection connection) {
         connectionLayer.repaint();
     }
 
-    public void connectionRemoved(Network source, Connection connection) {
+    public void connectionRemoved(Node source, Connection connection) {
         connectionLayer.repaint();
     }
 
-    public void nodeChanged(Network source, Node node) {
+    public void childAttributeChanged(Node source, Node child) {
         // Maybe the name of the node was changed. Redraw the node view.
-        NodeView nv = getNodeView(node);
-        nv.repaint();
-    }
-
-    public void nodePositionChanged(Network source, Node node) {
-        // Find the NodeView related to this change event.
         NodeView nv = getNodeView(node);
         if (!nv.getOffset().equals(node.getPosition().getPoint2D())) {
             nv.setOffset(node.getX(), node.getY());
+            connectionLayer.repaint();
         }
-        connectionLayer.repaint();
+        nv.repaint();
     }
 
-    public void renderedNodeChanged(Network source, Node node) {
+    public void renderedChildChanged(Node source, Node child) {
         repaint();
     }
 
-    public void networkDirty(Network network) {
+    public void nodeDirty(Node node) {
     }
 
-    public void networkUpdated(Network network) {
-        if (!networkError && !network.hasError()) return;
-        networkError = network.hasError();
+    public void nodeUpdated(Node node) {
+        if (!networkError && !node.hasError()) return;
+        networkError = node.hasError();
         repaint();
     }
 
@@ -288,14 +283,14 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
 
     public void showNodeManagerDialog() {
         NodeBoxDocument doc = getPane().getDocument();
-        NodeTypeDialog dialog = new NodeTypeDialog(doc, doc.getManager());
+        NodeSelectionDialog dialog = new NodeSelectionDialog(doc, doc.getManager());
         Point pt = getMousePosition();
         if (pt == null) {
             pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));
         }
         dialog.setVisible(true);
-        if (dialog.getSelectedNodeType() != null) {
-            Node n = getNetwork().create(dialog.getSelectedNodeType());
+        if (dialog.getSelectedNode() != null) {
+            Node n = getNode().create(dialog.getSelectedNode());
             boolean success = smartConnect(getPane().getDocument().getActiveNode(), n);
             if (!success)
                 n.setPosition(new net.nodebox.graphics.Point(pt));
@@ -314,9 +309,9 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
     private boolean smartConnect(Node activeNode, Node newNode) {
         // Check if there is an active node.
         if (activeNode == null) return false;
-        // Check if there are compatible parameters on the new node that can be connected
+        // Check if there are compatible ports on the new node that can be connected
         // to the output of the active node.
-        List<Parameter> compatibles = newNode.getCompatibleInputs(activeNode);
+        List<Port> compatibles = newNode.getCompatibleInputs(activeNode);
         if (compatibles.size() == 0) return false;
         // Connect the output of the active node to the first compatible input of the new node.
         compatibles.get(0).connect(activeNode);
@@ -419,7 +414,7 @@ public class NetworkView extends PCanvas implements NetworkEventListener, Networ
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_DELETE || e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
                 for (NodeView nodeView : selection) {
-                    network.remove(nodeView.getNode());
+                    node.remove(nodeView.getNode());
                 }
             }
         }

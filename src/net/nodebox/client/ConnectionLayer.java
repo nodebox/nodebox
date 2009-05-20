@@ -3,7 +3,6 @@ package net.nodebox.client;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.node.Connection;
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import java.awt.*;
@@ -37,22 +36,19 @@ public class ConnectionLayer extends PLayer {
 
     @Override
     protected void paint(PPaintContext pPaintContext) {
+        // TODO: Draw parameter dependencies using implicitColor.
         super.paint(pPaintContext);
         Graphics2D g = pPaintContext.getGraphics();
-        Network net = networkView.getNetwork();
-        for (Node n : net.getNodes()) {
-            for (Connection c : n.getOutputConnections()) {
+        Node node = networkView.getNode();
+        for (Node n : node.getChildren()) {
+            for (Connection c : n.getDownstreamConnections()) {
                 GeneralPath p = new GeneralPath();
                 if (selections.contains(c)) {
                     g.setStroke(new BasicStroke(3));
                     g.setColor(Theme.getInstance().getActionColor());
                 } else {
                     g.setStroke(new BasicStroke(1));
-                    if (c.isExplicit()) {
-                        g.setColor(Theme.getInstance().getConnectionColor());
-                    } else {
-                        g.setColor(Theme.getInstance().getImplicitConnectionColor());
-                    }
+                    g.setColor(Theme.getInstance().getConnectionColor());
                 }
                 for (Node outputNode : c.getOutputNodes()) {
                     float x0 = (float) (outputNode.getX() + NodeView.NODE_WIDTH / 2);

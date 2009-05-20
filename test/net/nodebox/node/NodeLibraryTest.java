@@ -1,6 +1,10 @@
 package net.nodebox.node;
 
 import junit.framework.TestCase;
+import net.nodebox.node.polygraph.Polygon;
+import net.nodebox.node.polygraph.Rectangle;
+
+import java.io.File;
 
 public class NodeLibraryTest extends TestCase {
 
@@ -26,5 +30,26 @@ public class NodeLibraryTest extends TestCase {
         assertTrue(test.contains("alpha"));
 
     }
+
+    public void testLoading() {
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
+        assertTrue(library.contains("rect"));
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node rect = manager.getNode("polynodes.rect");
+        Parameter pX = rect.getParameter("x");
+        assertEquals(Parameter.Type.FLOAT, pX.getType());
+        Node rect1 = rect.newInstance(testLibrary, "rect1");
+        rect1.setValue("x", 20);
+        rect1.setValue("y", 30);
+        rect1.setValue("width", 40);
+        rect1.setValue("height", 50);
+        rect1.update();
+        Object value = rect1.getOutputValue();
+        assertEquals(Polygon.class, value.getClass());
+        Polygon polygon = (Polygon) value;
+        assertEquals(new Rectangle(20, 30, 40, 50), polygon.getBounds());
+    }
+
 
 }

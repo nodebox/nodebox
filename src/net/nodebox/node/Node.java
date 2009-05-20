@@ -504,8 +504,12 @@ public class Node implements NodeCode, NodeAttributeListener {
      *
      * @return a list of all the parameters for this node.
      */
-    public Collection<Parameter> getParameters() {
+    public List<Parameter> getParameters() {
         return new ArrayList<Parameter>(parameters.values());
+    }
+
+    public int getParameterCount() {
+        return parameters.size();
     }
 
     public Parameter addParameter(String name, Parameter.Type type) {
@@ -1106,6 +1110,36 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
+     * Removes the connection between the output port of the given node and the input port.
+     *
+     * @param input      the input port
+     * @param outputNode the output node
+     * @return true if a connection was found and removed.
+     */
+    public boolean disconnect(Port input, Node outputNode) {
+        if (input == null)
+            throw new IllegalArgumentException("The input port cannot be null.");
+        if (outputNode == null)
+            throw new IllegalArgumentException("The output node cannot be null.");
+        if (input.getParentNode() != outputNode.getParent())
+            throw new IllegalArgumentException("The input and output are not under the same parent.");
+        if (!input.isInputPort())
+            throw new IllegalArgumentException("The given port is not an input.");
+        Node parent = input.getParentNode();
+        if (parent == null) return false;
+        DependencyGraph<Port, Connection> dg = parent.childGraph;
+        if (dg == null) return false;
+        Port output = outputNode.outputPort;
+        boolean removedSomething = dg.removeDependency(output, input);
+        if (removedSomething) {
+            input.reset();
+            // This port was changed. Mark the node as dirty.
+            input.getNode().markDirty();
+        }
+        return removedSomething;
+    }
+
+    /**
      * Get a list of all parameters on this Node that can be connected to the given output node.
      *
      * @param outputNode the output (upstream) node
@@ -1158,19 +1192,16 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
-     * Get a set of all child connection objects.
+     * Get a set of all connection objects.
      *
-     * @return a list of Connections objects. This list can safely be modified.
+     * @return a set of Connections objects. This list can safely be modified.
      */
     public Set<Connection> getConnections() {
-        if (childGraph == null) return new HashSet<Connection>(0);
-        return childGraph.getInfos();
-//        List<Connection> connections = new ArrayList<Connection>();
-//        connections.addAll(upstreams.values());
-//        connections.addAll(downstreams);
-//        return connections;
+        Set<Connection> connections = new HashSet<Connection>();
+        connections.addAll(getUpstreamConnections());
+        connections.addAll(getDownstreamConnections());
+        return connections;
     }
-
 
     /**
      * Checks if this node is connected.

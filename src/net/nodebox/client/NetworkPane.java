@@ -1,6 +1,5 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Network;
 import net.nodebox.node.Node;
 
 import java.awt.*;
@@ -13,7 +12,7 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     private PaneHeader paneHeader;
     private NetworkAddressBar networkAddressBar;
     private NetworkView networkView;
-    private Network network;
+    private Node node;
 
 
     public NetworkPane(NodeBoxDocument document) {
@@ -36,27 +35,27 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);
         if (document == null) return;
-        setNetwork(document.getActiveNetwork());
+        setNode(document.getActiveNetwork());
     }
 
     public Pane clone() {
         return new NetworkPane(getDocument());
     }
 
-    public Network getNetwork() {
-        return network;
+    public Node getNode() {
+        return node;
     }
 
-    public void setNetwork(Network network) {
-        this.network = network;
-        networkAddressBar.setNode(network);
-        networkView.setNetwork(network);
+    public void setNode(Node node) {
+        this.node = node;
+        networkAddressBar.setNode(node);
+        networkView.setNode(node);
         networkView.select(getDocument().getActiveNode());
     }
 
     @Override
     public void currentNodeChanged(Node activeNetwork) {
-        setNetwork(activeNetwork);
+        setNode(activeNetwork);
     }
 
     @Override

@@ -16,7 +16,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
@@ -321,7 +320,11 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             setActiveNode(null);
         }
         if (activeNetwork != null) {
-            activeNetwork.update();
+            try {
+                activeNetwork.update();
+            } catch (ProcessingError processingError) {
+                processingError.printStackTrace();
+            }
         }
     }
 

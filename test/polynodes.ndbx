@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="0.9">
+    <var name="version" value="1.0"/>
+    <node name="rect" prototype="builtins.root" type="net.nodebox.node.polygraph.Polygon">
+        <description>Creates a rectangle.</description>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <expression>width</expression>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[from net.nodebox.node.polygraph import Polygon
+def cook(self):
+    return Polygon.rect(self.x, self.y, self.width, self.height)]]></value>
+        </param>
+    </node>
+</ndbx>

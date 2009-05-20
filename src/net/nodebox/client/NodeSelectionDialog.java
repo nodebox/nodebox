@@ -14,9 +14,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
-import com.sun.org.apache.xalan.internal.xsltc.compiler.util.NodeType;
-
-public class NodeTypeDialog extends JDialog {
+public class NodeSelectionDialog extends JDialog {
 
     private class FilteredNodeListModel implements ListModel {
 
@@ -68,7 +66,7 @@ public class NodeTypeDialog extends JDialog {
         }
     }
 
-    private class NodeTypeRenderer extends JLabel implements ListCellRenderer {
+    private class NodeRenderer extends JLabel implements ListCellRenderer {
 
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof Node);
@@ -93,18 +91,14 @@ public class NodeTypeDialog extends JDialog {
     private NodeLibraryManager manager;
     private JTextField searchField;
     private JList nodeList;
-    private NodeType selectedNodeType;
-    private DoubleClickListener doubleClickListener = new DoubleClickListener();
-    private EscapeListener escapeListener = new EscapeListener();
-    private ArrowKeysListener arrowKeysListener = new ArrowKeysListener();
-    private SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
+    private Node selectedNode;
     private FilteredNodeListModel filteredNodeListModel;
 
-    public NodeTypeDialog(NodeLibraryManager manager) {
+    public NodeSelectionDialog(NodeLibraryManager manager) {
         this(null, manager);
     }
 
-    public NodeTypeDialog(Frame owner, NodeLibraryManager manager) {
+    public NodeSelectionDialog(Frame owner, NodeLibraryManager manager) {
         super(owner, "Create node type", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
@@ -112,15 +106,19 @@ public class NodeTypeDialog extends JDialog {
         filteredNodeListModel = new FilteredNodeListModel(manager);
         searchField = new JTextField();
         searchField.putClientProperty("JTextField.variant", "search");
+        EscapeListener escapeListener = new EscapeListener();
         searchField.addKeyListener(escapeListener);
+        ArrowKeysListener arrowKeysListener = new ArrowKeysListener();
         searchField.addKeyListener(arrowKeysListener);
+        SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
         searchField.getDocument().addDocumentListener(searchFieldChangeListener);
         nodeList = new JList(filteredNodeListModel);
+        DoubleClickListener doubleClickListener = new DoubleClickListener();
         nodeList.addMouseListener(doubleClickListener);
         nodeList.addKeyListener(escapeListener);
         nodeList.addKeyListener(arrowKeysListener);
         nodeList.setSelectedIndex(0);
-        nodeList.setCellRenderer(new NodeTypeRenderer());
+        nodeList.setCellRenderer(new NodeRenderer());
         panel.add(searchField, BorderLayout.NORTH);
         panel.add(nodeList, BorderLayout.CENTER);
         setContentPane(panel);
@@ -128,8 +126,8 @@ public class NodeTypeDialog extends JDialog {
         SwingUtils.centerOnScreen(this);
     }
 
-    public NodeType getSelectedNodeType() {
-        return selectedNodeType;
+    public Node getSelectedNode() {
+        return selectedNode;
     }
 
     public NodeLibraryManager getManager() {
@@ -159,7 +157,7 @@ public class NodeTypeDialog extends JDialog {
     }
 
     private void selectAndClose() {
-        selectedNodeType = (NodeType) nodeList.getSelectedValue();
+        selectedNode = (Node) nodeList.getSelectedValue();
         closeDialog();
     }
 

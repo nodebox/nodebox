@@ -1,7 +1,8 @@
 package net.nodebox.client;
 
 import net.nodebox.Icons;
-import net.nodebox.node.*;
+import net.nodebox.node.Node;
+import net.nodebox.node.Parameter;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
@@ -13,12 +14,10 @@ import java.awt.event.ActionListener;
 
 public class NodeTypeEditor extends JPanel implements ListSelectionListener, ActionListener {
 
-    private NodeTypeLibrary library;
-    private NodeType nodeType;
+    private Node node;
 
     private ParameterListModel parameterListModel;
-    private ParameterCellRenderer parameterCellRenderer;
-    private ParameterType selectedParameterType = null;
+    private Parameter selectedParameter = null;
     private JList parameterList;
 
     private JButton removeButton;
@@ -28,7 +27,7 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     private JTextField labelField;
     private JTextField descriptionField;
     private JComboBox typeBox;
-    private JTextField defaultValueField;
+    private JTextField valueField;
     private JCheckBox nullAllowedCheck;
     private JComboBox boundingMethodBox;
     private JTextField minimumValueField;
@@ -37,24 +36,24 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     private JCheckBox maximumValueCheck;
     private JComboBox displayLevelBox;
 
-    public NodeTypeEditor() {
+    public NodeTypeEditor(Node node) {
         setLayout(new BorderLayout(0, 0));
-        library = new CoreNodeTypeLibrary("test", new Version(1, 0, 0));
-        nodeType = new NodeBoxDocument.AllControlsType(library);
-        parameterListModel = new ParameterListModel(nodeType);
-        parameterCellRenderer = new ParameterCellRenderer();
+        //library = new CoreNodeTypeLibrary("test", new Version(1, 0, 0));
+        this.node = node;
+        parameterListModel = new ParameterListModel(node);
+        ParameterCellRenderer parameterCellRenderer = new ParameterCellRenderer();
         parameterList = new JList(parameterListModel);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
         JButton addButton = new JButton(new Icons.PlusIcon());
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                addParameterType();
+                addParameter();
             }
         });
         removeButton = new JButton(new Icons.MinusIcon());
         removeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                removeSelectedParameterType();
+                removeSelectedParameter();
             }
         });
 
@@ -87,25 +86,25 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         add(split, BorderLayout.CENTER);
         clearForm();
         setFormEnabled(false);
-        if (nodeType.getParameterTypeCount() > 0)
+        if (node.getParameterCount() > 0)
             parameterList.setSelectedIndex(0);
     }
 
-    private void addParameterType() {
+    private void addParameter() {
         String parameterName = JOptionPane.showInputDialog("Enter parameter name");
         if (parameterName != null) {
-            ParameterType pType = nodeType.addParameterType(parameterName, ParameterType.Type.ANGLE);
-            reloadParameterTypeList();
-            parameterList.setSelectedValue(pType, true);
+            Parameter parameter = node.addParameter(parameterName, Parameter.Type.FLOAT);
+            reloadParameterList();
+            parameterList.setSelectedValue(parameter, true);
         }
     }
 
-    private void removeSelectedParameterType() {
-        if (selectedParameterType == null) return;
-        boolean success = nodeType.removeParameterType(selectedParameterType);
+    private void removeSelectedParameter() {
+        if (selectedParameter == null) return;
+        boolean success = node.removeParameter(selectedParameter.getName());
         System.out.println("success = " + success);
-        reloadParameterTypeList();
-        if (nodeType.getParameterTypeCount() > 0) {
+        reloadParameterList();
+        if (node.getParameterCount() > 0) {
             parameterList.setSelectedIndex(0);
         } else {
             parameterList.setSelectedValue(null, false);
@@ -113,45 +112,36 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     }
 
     private void moveDown() {
-        if (selectedParameterType == null) return;
-        java.util.List<ParameterType> parameterTypes = nodeType.getParameterTypes();
-        int index = parameterTypes.indexOf(selectedParameterType);
+        if (selectedParameter == null) return;
+        java.util.List<Parameter> parameterTypes = node.getParameters();
+        int index = parameterTypes.indexOf(selectedParameter);
         assert (index >= 0);
         if (index >= parameterTypes.size() - 1) return;
-        parameterTypes.remove(selectedParameterType);
-        parameterTypes.add(index + 1, selectedParameterType);
-        reloadParameterTypeList();
+        parameterTypes.remove(selectedParameter);
+        parameterTypes.add(index + 1, selectedParameter);
+        reloadParameterList();
         parameterList.setSelectedIndex(index + 1);
     }
 
     private void moveUp() {
-        if (selectedParameterType == null) return;
-        java.util.List<ParameterType> parameterTypes = nodeType.getParameterTypes();
-        int index = parameterTypes.indexOf(selectedParameterType);
+        if (selectedParameter == null) return;
+        java.util.List<Parameter> parameterTypes = node.getParameters();
+        int index = parameterTypes.indexOf(selectedParameter);
         assert (index >= 0);
         if (index == 0) return;
-        parameterTypes.remove(selectedParameterType);
-        parameterTypes.add(index - 1, selectedParameterType);
-        reloadParameterTypeList();
+        parameterTypes.remove(selectedParameter);
+        parameterTypes.add(index - 1, selectedParameter);
+        reloadParameterList();
         parameterList.setSelectedIndex(index - 1);
     }
 
-    private void reloadParameterTypeList() {
+    private void reloadParameterList() {
         parameterList.setModel(parameterListModel);
         parameterList.repaint();
     }
 
-    public static void main(String[] args) {
-        JFrame editorFrame = new JFrame();
-        editorFrame.getContentPane().add(new NodeTypeEditor());
-        editorFrame.setSize(800, 800);
-        editorFrame.setLocationByPlatform(true);
-        editorFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        editorFrame.setVisible(true);
-    }
-
-    public NodeType getNodeType() {
-        return nodeType;
+    public Node getNode() {
+        return node;
     }
 
     public void initParameterPanel() {
@@ -176,9 +166,9 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         typeBox.addActionListener(this);
         contentPanel.add(typeBox);
         contentPanel.add(new JLabel("Default Value"));
-        defaultValueField = new JTextField(20);
-        defaultValueField.addActionListener(this);
-        contentPanel.add(defaultValueField);
+        valueField = new JTextField(20);
+        valueField.addActionListener(this);
+        contentPanel.add(valueField);
         contentPanel.add(new JLabel(""));
         nullAllowedCheck = new JCheckBox("Null allowed");
         nullAllowedCheck.addActionListener(this);
@@ -218,7 +208,7 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         labelField.setEnabled(enabled);
         descriptionField.setEnabled(enabled);
         typeBox.setEnabled(enabled);
-        defaultValueField.setEnabled(enabled);
+        valueField.setEnabled(enabled);
         nullAllowedCheck.setEnabled(enabled);
         boundingMethodBox.setEnabled(enabled);
         minimumValueCheck.setEnabled(enabled);
@@ -233,7 +223,7 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         labelField.setText("");
         descriptionField.setText("");
         typeBox.setSelectedIndex(0);
-        defaultValueField.setText("");
+        valueField.setText("");
         nullAllowedCheck.setSelected(false);
         boundingMethodBox.setSelectedIndex(0);
         minimumValueCheck.setSelected(false);
@@ -244,55 +234,55 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     }
 
     public void valueChanged(ListSelectionEvent e) {
-        if (selectedParameterType == parameterList.getSelectedValue()) return;
-        selectedParameterType = (ParameterType) parameterList.getSelectedValue();
-        if (selectedParameterType == null) {
+        if (selectedParameter == parameterList.getSelectedValue()) return;
+        selectedParameter = (Parameter) parameterList.getSelectedValue();
+        if (selectedParameter == null) {
             setFormEnabled(false);
             clearForm();
             removeButton.setEnabled(false);
         } else {
             setFormEnabled(true);
             removeButton.setEnabled(true);
-            nameField.setText(selectedParameterType.getName());
-            labelField.setText(selectedParameterType.getLabel());
-            descriptionField.setText(selectedParameterType.getDescription());
-            typeBox.setSelectedItem(selectedParameterType.getType().toString().toLowerCase());
-            defaultValueField.setText(selectedParameterType.getDefaultValue().toString());
-            nullAllowedCheck.setSelected(selectedParameterType.isNullAllowed());
-            ParameterType.BoundingMethod boundingMethod = selectedParameterType.getBoundingMethod();
+            nameField.setText(selectedParameter.getName());
+            labelField.setText(selectedParameter.getLabel());
+            //descriptionField.setText(selectedParameter.getDescription());
+            typeBox.setSelectedItem(selectedParameter.getType().toString().toLowerCase());
+            valueField.setText(selectedParameter.getDefaultValue().toString());
+            //nullAllowedCheck.setSelected(selectedParameter.isNullAllowed());
+            Parameter.BoundingMethod boundingMethod = selectedParameter.getBoundingMethod();
             boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase());
-            Object minimumValue = selectedParameterType.getMinimumValue();
+            Object minimumValue = selectedParameter.getMinimumValue();
             String minimumValueString = minimumValue == null ? "" : minimumValue.toString();
             minimumValueCheck.setSelected(minimumValue != null);
             minimumValueField.setText(minimumValueString);
             minimumValueField.setEnabled(minimumValue != null);
-            Object maximumValue = selectedParameterType.getMaximumValue();
+            Object maximumValue = selectedParameter.getMaximumValue();
             String maximumValueString = maximumValue == null ? "" : maximumValue.toString();
             maximumValueCheck.setSelected(maximumValue != null);
             maximumValueField.setText(maximumValueString);
             maximumValueField.setEnabled(maximumValue != null);
-            displayLevelBox.setSelectedItem(selectedParameterType.getDisplayLevel().toString().toLowerCase());
+            displayLevelBox.setSelectedItem(selectedParameter.getDisplayLevel().toString().toLowerCase());
         }
         parameterPanel.revalidate();
     }
 
     public void actionPerformed(ActionEvent e) {
-        if (selectedParameterType == null) return;
+        if (selectedParameter == null) return;
         if (e.getSource() == labelField) {
-            selectedParameterType.setLabel(labelField.getText());
+            selectedParameter.setLabel(labelField.getText());
             parameterList.setModel(parameterListModel);
             parameterList.revalidate();
-        } else if (e.getSource() == descriptionField) {
-            selectedParameterType.setDescription(descriptionField.getText());
+            //} else if (e.getSource() == descriptionField) {
+            //selectedParameter.setDescription(descriptionField.getText());
         } else if (e.getSource() == typeBox) {
-            selectedParameterType.setType(ParameterType.Type.valueOf(typeBox.getSelectedItem().toString().toUpperCase()));
-        } else if (e.getSource() == defaultValueField) {
-            selectedParameterType.setDefaultValue(selectedParameterType.parseValue(defaultValueField.getText()));
-        } else if (e.getSource() == nullAllowedCheck) {
-            selectedParameterType.setNullAllowed(nullAllowedCheck.isEnabled());
+            selectedParameter.setType(Parameter.Type.valueOf(typeBox.getSelectedItem().toString().toUpperCase()));
+        } else if (e.getSource() == valueField) {
+            selectedParameter.setValue(selectedParameter.parseValue(valueField.getText()));
+            //} else if (e.getSource() == nullAllowedCheck) {
+            //selectedParameter.setNullAllowed(nullAllowedCheck.isEnabled());
         } else if (e.getSource() == boundingMethodBox) {
-            ParameterType.BoundingMethod method = ParameterType.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase());
-            selectedParameterType.setBoundingMethod(method);
+            Parameter.BoundingMethod method = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase());
+            selectedParameter.setBoundingMethod(method);
         } else if (e.getSource() == minimumValueCheck) {
             boolean checked = minimumValueCheck.isSelected();
             minimumValueField.setText(checked ? "0.0" : "");
@@ -302,8 +292,8 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
             maximumValueField.setText(checked ? "0.0" : "");
             maximumValueField.setEnabled(checked);
         } else if (e.getSource() == displayLevelBox) {
-            ParameterType.DisplayLevel displayLevel = ParameterType.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase());
-            selectedParameterType.setDisplayLevel(displayLevel);
+            Parameter.DisplayLevel displayLevel = Parameter.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase());
+            selectedParameter.setDisplayLevel(displayLevel);
         } else {
             throw new AssertionError("Unknown source " + e.getSource());
         }
@@ -311,18 +301,18 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
 
 
     private class ParameterListModel implements ListModel {
-        private NodeType nodeType;
+        private java.util.List<Parameter> parameters;
 
-        public ParameterListModel(NodeType nodeType) {
-            this.nodeType = nodeType;
+        public ParameterListModel(Node node) {
+            parameters = node.getParameters();
         }
 
         public int getSize() {
-            return nodeType.getParameterTypeCount();
+            return parameters.size();
         }
 
         public Object getElementAt(int index) {
-            return nodeType.getParameterTypes().get(index);
+            return parameters.get(index);
         }
 
         public void addListDataListener(ListDataListener l) {
@@ -337,9 +327,19 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     private class ParameterCellRenderer extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            ParameterType parameterType = (ParameterType) value;
-            String displayValue = parameterType.getLabel() + " (" + parameterType.getName() + ")";
+            Parameter parameter = (Parameter) value;
+            String displayValue = parameter.getLabel() + " (" + parameter.getName() + ")";
             return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
         }
+    }
+
+    public static void main(String[] args) {
+        JFrame editorFrame = new JFrame();
+        Node node = new NodeBoxDocument.AllControlsType().createInstance();
+        editorFrame.getContentPane().add(new NodeTypeEditor(node));
+        editorFrame.setSize(800, 800);
+        editorFrame.setLocationByPlatform(true);
+        editorFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        editorFrame.setVisible(true);
     }
 }

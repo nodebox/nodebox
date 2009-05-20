@@ -3,8 +3,7 @@ package net.nodebox.client;
 import net.nodebox.graphics.GraphicsContext;
 import net.nodebox.graphics.Grob;
 import net.nodebox.handle.Handle;
-import net.nodebox.node.Network;
-import net.nodebox.node.NetworkDataListener;
+import net.nodebox.node.DirtyListener;
 import net.nodebox.node.Node;
 
 import javax.swing.*;
@@ -14,18 +13,18 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 
-public class Viewer extends JComponent implements NetworkDataListener, MouseListener, MouseMotionListener {
+public class Viewer extends JComponent implements DirtyListener, MouseListener, MouseMotionListener {
 
     private Pane pane;
-    private Network network;
+    private Node node;
     private Node activeNode;
     private Handle handle;
     private BufferedImage canvasImage;
     private boolean showHandle;
 
-    public Viewer(Pane pane, Network network) {
+    public Viewer(Pane pane, Node node) {
         this.pane = pane;
-        this.network = network;
+        this.node = node;
         addMouseListener(this);
         addMouseMotionListener(this);
         showHandle = true;
@@ -40,19 +39,19 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         repaint();
     }
 
-    public Network getNetwork() {
-        return network;
+    public Node getNode() {
+        return node;
     }
 
-    public void setNetwork(Network network) {
-        if (this.network == network) return;
-        Network oldNetwork = this.network;
-        if (oldNetwork != null) {
-            oldNetwork.removeNetworkDataListener(this);
+    public void setNode(Node node) {
+        if (this.node == node) return;
+        Node oldNode = this.node;
+        if (oldNode != null) {
+            oldNode.removeDirtyListener(this);
         }
-        this.network = network;
-        if (this.network == null) return;
-        network.addNetworkDataListener(this);
+        this.node = node;
+        if (this.node == null) return;
+        node.addDirtyListener(this);
         repaint();
     }
 
@@ -75,8 +74,8 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
         //g2.drawImage(canvasImage,0, 0, null);
         g2.translate(getWidth() / 2.0, getHeight() / 2.0);
 
-        if (getNetwork() == null) return;
-        Object outputValue = getNetwork().getOutputParameter().getValueReference();
+        if (getNode() == null) return;
+        Object outputValue = getNode().getOutputValue();
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
         }
@@ -98,13 +97,13 @@ public class Viewer extends JComponent implements NetworkDataListener, MouseList
 
     //// Network data events ////
 
-    public void networkDirty(Network network) {
-        // The network is dirty, but we wait for the document to update the network.
-        // This will send the networkUpdated event.
+    public void nodeDirty(Node node) {
+        // The node is dirty, but we wait for the document to update the network.
+        // This will send the nodeUpdated event.
     }
 
-    public void networkUpdated(Network network) {
-        if (network == getNetwork()) {
+    public void nodeUpdated(Node node) {
+        if (node == getNode()) {
             repaint();
         }
         /*
