@@ -41,7 +41,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
     }
 
     public void setValueForControl(Object v) {
-        Double value = (Double) v;
+        Float value = (Float) v;
         draggable.setValue(value);
     }
 
@@ -61,8 +61,8 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         if (parameter.getMaximumValue() != null) {
             value = Math.max(parameter.getMaximumValue(), value);
         }
-        if (value != (Double) parameter.getValue()) {
-            parameter.setValue(value);
+        if (value != (Float) parameter.getValue()) {
+            parameter.setValue((float) value);
         }
     }
 
