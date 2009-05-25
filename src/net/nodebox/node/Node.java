@@ -1463,7 +1463,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @return an empty string.
      */
     public String getSource() {
-        return "";
+        return "# This is the root node.";
     }
 
     /**
@@ -1521,6 +1521,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (handleCode == null) return null;
         // TODO: Do we need the ProcessingContext in the handle or can we pass null?
         Object handleObj = handleCode.cook(this, new ProcessingContext());
+        if (handleObj == null) return null;
         if (!(handleObj instanceof Handle))
             throw new AssertionError("Handle code for node " + getName() + " does not return Handle object.");
         return (Handle) handleObj;
@@ -1669,13 +1670,15 @@ public class Node implements NodeCode, NodeAttributeListener {
         xml.append(">\n");
         // Add the description
         if (!getDescription().equals(getPrototype().getDescription()))
-            xml.append(spaces).append("<description>").append(getDescription()).append("</description>");
+            xml.append(spaces).append("<description>").append(getDescription()).append("</description>\n");
         // Add the ports
         for (Port port : getPorts()) {
             port.toXml(xml, spaces + "  ");
         }
         // Add the parameters
         for (Parameter param : getParameters()) {
+            // We've written the description above in the <description> tag.
+            if (param.getName().equals("_description")) continue;
             param.toXml(xml, spaces + "  ");
         }
         // Add all child nodes
