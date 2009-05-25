@@ -133,12 +133,12 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     public NodeBoxDocument() {
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
-        LoggingPane loggingPane = new LoggingPane(this);
+        EditorPane editorPane = new EditorPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
         NetworkPane networkPane = new NetworkPane(this);
-        PaneSplitter viewLoggingSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, viewPane, loggingPane);
+        PaneSplitter viewEditorSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, viewPane, editorPane);
         PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
-        PaneSplitter topSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewLoggingSplit, parameterNetworkSplit);
+        PaneSplitter topSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
         rootPanel.add(topSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setLocationByPlatform(true);
@@ -531,6 +531,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private void close() {
         if (shouldClose()) {
             //renderThread.shutdown();
+            Application.getInstance().getManager().remove(nodeLibrary);
             Application.getInstance().removeDocument(NodeBoxDocument.this);
             dispose();
             // TODO: On mac, the application doesn't quit after the last document is closed.
