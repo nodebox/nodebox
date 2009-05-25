@@ -78,6 +78,9 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         Object outputValue = getNode().getOutputValue();
         if (outputValue instanceof Grob) {
             ((Grob) outputValue).draw(g2);
+        } else if (outputValue != null) {
+            String s = outputValue.toString();
+            g2.drawString(s, 5, 20);
         }
 
         // Draw handle
