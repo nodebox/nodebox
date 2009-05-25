@@ -21,7 +21,7 @@ public class NetworkTest extends NodeTestCase {
     public void testCreate() {
         Node grandParent = testNetworkNode.newInstance(testLibrary, "grandParent");
         Node parent = grandParent.create(testNetworkNode, "parent");
-        Node child= parent.create(numberNode);
+        Node child = parent.create(numberNode);
         assertTrue(grandParent.contains(parent));
         assertTrue(parent.contains(child));
         // Contains doesn't go into child networks.
@@ -153,6 +153,23 @@ public class NetworkTest extends NodeTestCase {
         nMerge1.getPort("polygons").disconnect();
         assertFalse(nPolygons.isConnectedTo(nRect1));
         assertFalse(nPolygons.isConnectedTo(nTranslate1));
+    }
+
+    /**
+     * Test if code can be persisted correctly.
+     */
+    public void testCodeLoading() {
+        Node hello = Node.ROOT_NODE.newInstance(testLibrary, "hello");
+        String code = "def cook(self):\n  return 'hello'";
+        hello.setValue("_code", new PythonCode(code));
+        hello.update();
+        assertEquals("hello", hello.getOutputValue());
+        // Store/load library
+        String xml = testLibrary.toXml();
+        NodeLibrary newLibrary = manager.load("newLibrary", xml);
+        Node newHello = newLibrary.get("hello");
+        newHello.update();
+        assertEquals("hello", newHello.getOutputValue());
     }
 
     /**

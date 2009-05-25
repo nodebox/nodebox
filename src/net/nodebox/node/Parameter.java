@@ -868,7 +868,7 @@ public class Parameter {
         // The parameters are not equal, so we can start writing the name.
         xml.append(spaces).append("<param name=\"").append(getName()).append("\"");
         // Write parameter type
-        if (protoParam == null || getType().equals(protoParam.getType()))
+        if (protoParam == null || !getType().equals(protoParam.getType()))
             xml.append(" type=\"").append(getType().toString().toLowerCase()).append("\"");
         xml.append(">\n");
         // Write parameter value / expression
