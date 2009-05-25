@@ -183,6 +183,8 @@ public class NodeLibraryManager {
      */
     public List<Node> getNodes() {
         List<Node> nodes = new ArrayList<Node>();
+        // Add the root node separately.
+        nodes.add(Node.ROOT_NODE);
         for (NodeLibrary library : libraries.values()) {
             nodes.addAll(library.getRootNode().getChildren());
         }
