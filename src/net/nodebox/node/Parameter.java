@@ -178,7 +178,7 @@ public class Parameter {
         String oldName = this.name;
         this.name = name;
         node.renameParameter(this, oldName, name);
-        node.fireNodeAttributeChanged();
+        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
     }
 
     void _setName(String name) {
@@ -209,7 +209,7 @@ public class Parameter {
             this.label = StringUtils.humanizeName(name);
         else
             this.label = label;
-        node.fireNodeAttributeChanged();
+        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
     }
 
     public String getHelpText() {
@@ -218,7 +218,7 @@ public class Parameter {
 
     public void setHelpText(String helpText) {
         this.helpText = helpText;
-        node.fireNodeAttributeChanged();
+        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
     }
 
     //// Type ////

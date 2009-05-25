@@ -20,6 +20,39 @@ public class NetworkTest extends NodeTestCase {
         }
     }
 
+    class TestChildListener implements NodeChildListener {
+        public int childAddedCounter = 0;
+        public int childRemovedCounter = 0;
+        public int connectionAddedCounter = 0;
+        public int connectionRemovedCounter = 0;
+        public int renderedChildChangedCounter = 0;
+        public int childAttributeChangedCounter = 0;
+
+        public void childAdded(Node source, Node child) {
+            ++childAddedCounter;
+        }
+
+        public void childRemoved(Node source, Node child) {
+            ++childRemovedCounter;
+        }
+
+        public void connectionAdded(Node source, Connection connection) {
+            ++connectionAddedCounter;
+        }
+
+        public void connectionRemoved(Node source, Connection connection) {
+            ++connectionRemovedCounter;
+        }
+
+        public void renderedChildChanged(Node source, Node child) {
+            ++renderedChildChangedCounter;
+        }
+
+        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+            ++childAttributeChangedCounter;
+        }
+    }
+
     public void testCreate() {
         Node grandParent = testNetworkNode.newInstance(testLibrary, "grandParent");
         Node parent = grandParent.create(testNetworkNode, "parent");
@@ -58,6 +91,21 @@ public class NetworkTest extends NodeTestCase {
         net.update();
         assertEquals(1, l.dirtyCounter);
         assertEquals(2, l.updatedCounter);
+    }
+
+    public void testChildEvent() {
+        TestChildListener l1 = new TestChildListener();
+        TestChildListener l2 = new TestChildListener();
+        Node parent1 = Node.ROOT_NODE.newInstance(testLibrary, "parent1");
+        Node parent2 = Node.ROOT_NODE.newInstance(testLibrary, "parent2");
+        parent1.addNodeChildListener(l1);
+        parent2.addNodeChildListener(l2);
+        Node n1 = parent1.create(numberNode);
+        assertEquals(1, l1.childAddedCounter);
+        n1.setParent(parent2);
+        assertEquals(1, l1.childAddedCounter);
+        assertEquals(1, l2.childAddedCounter);
+        assertEquals(1, l1.childRemovedCounter);
     }
 
     public void testBasicProcessing() {

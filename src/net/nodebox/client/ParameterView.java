@@ -123,8 +123,8 @@ public class ParameterView extends JComponent {
     //// Node events ////
 
     private class NodeEventHandler implements NodeAttributeListener {
-        public void attributeChanged(Node source) {
-            if (source == getNode()) {
+        public void attributeChanged(Node source, Attribute attribute) {
+            if (source == getNode() && attribute == Attribute.PARAMETER) {
                 rebuildInterface();
             }
         }

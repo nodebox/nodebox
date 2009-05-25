@@ -24,7 +24,6 @@ import net.nodebox.handle.Handle;
 
 import javax.swing.event.EventListenerList;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -151,8 +150,6 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     private EventListenerList listenerList = new EventListenerList();
 
-    private static Logger logger = Logger.getLogger("net.nodebox.node.Node");
-
     //// Constructors ////
 
     private Node(NodeLibrary library, String name, Class dataClass) {
@@ -168,10 +165,11 @@ public class Node implements NodeCode, NodeAttributeListener {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name) throws InvalidNameException {
+        if (this.name.equals(name)) return;
         validateName(name);
         this.name = name;
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.NAME);
     }
 
     public NodeLibrary getLibrary() {
@@ -182,7 +180,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         this.library.remove(getName());
         this.library = library;
         this.library.add(this);
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.LIBRARY);
     }
 
     public String getIdentifier() {
@@ -195,7 +193,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setDescription(String description) {
         setValue("_description", description);
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.DESCRIPTION);
     }
 
     /**
@@ -209,7 +207,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
         Matcher m3 = RESERVED_WORD_PATTERN.matcher(name);
         if (!m1.matches()) {
-            throw new InvalidNameException(null, name, "Name does contain other characters than a-z0-9 or underscore, or is longer than 29 characters.");
+            throw new InvalidNameException(null, name, "Names can only contain lowercase letters, numbers, and the underscore. Names cannot be longer than 29 characters.");
         }
         if (m2.matches()) {
             throw new InvalidNameException(null, name, "Names starting with double underscore are reserved for internal use.");
@@ -262,6 +260,9 @@ public class Node implements NodeCode, NodeAttributeListener {
                     parent.childGraph = new DependencyGraph<Port, Connection>();
                 parent.childGraph.addDependency(p, outputPort);
             }
+            // We're on the child node, so we need to fire the child added event
+            // on the parent with this child as the argument.
+            parent.fireChildAdded(this);
         }
     }
 
@@ -356,7 +357,7 @@ public class Node implements NodeCode, NodeAttributeListener {
             setRenderedChild(null);
         }
         node.removeNodeAttributeListener(this);
-        // fireNodeRemoved(node);
+        fireChildRemoved(node);
         return true;
     }
 
@@ -407,9 +408,12 @@ public class Node implements NodeCode, NodeAttributeListener {
      * Whenever the name of a child node changes, this event gets called.
      * Make sure the child node is still stored under the correct name.
      *
-     * @param source the Node this event comes from
+     * @param source    the Node this event comes from
+     * @param attribute the changed attribute
      */
-    public void attributeChanged(Node source) {
+    public void attributeChanged(Node source, Attribute attribute) {
+        // We only need to react to name changes.
+        if (attribute != Attribute.NAME) return;
         // Check if the node exists and remove it in one operation.
         // If remove() returns true, the given node is not a child
         // and we should not store it.
@@ -469,7 +473,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setX(double x) {
         this.x = x;
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.POSITION);
     }
 
     public double getY() {
@@ -478,7 +482,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setY(double y) {
         this.y = y;
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.POSITION);
     }
 
     public Point getPosition() {
@@ -488,13 +492,13 @@ public class Node implements NodeCode, NodeAttributeListener {
     public void setPosition(Point p) {
         this.x = p.getX();
         this.y = p.getY();
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.POSITION);
     }
 
     public void setPosition(double x, double y) {
         this.x = x;
         this.y = y;
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.POSITION);
     }
 
     //// Parameters ////
@@ -515,12 +519,14 @@ public class Node implements NodeCode, NodeAttributeListener {
     public Parameter addParameter(String name, Parameter.Type type) {
         Parameter p = new Parameter(this, name, type);
         parameters.put(name, p);
+        fireNodeAttributeChanged(Attribute.PARAMETER);
         return p;
     }
 
     public Parameter addParameter(String name, Parameter.Type type, Object value) {
         Parameter p = addParameter(name, type);
         p.setValue(value);
+        fireNodeAttributeChanged(Attribute.PARAMETER);
         return p;
     }
 
@@ -539,8 +545,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (p == null) return false;
         p.removedEvent();
         parameters.remove(name);
-        // TODO: Fire some more stuff
-        fireNodeAttributeChanged();
+        fireNodeAttributeChanged(Attribute.PARAMETER);
         markDirty();
         return true;
     }
@@ -789,17 +794,19 @@ public class Node implements NodeCode, NodeAttributeListener {
      * Invoked when an attribute on the node was changed.
      * <p/>
      * Possible attributes are name, namespace, description, x, y.
+     *
+     * @param attribute the changed attribute
      */
-    public void fireNodeAttributeChanged() {
+    public void fireNodeAttributeChanged(Attribute attribute) {
         // See comment in #fireNodeDirty.
         Object[] listeners = listenerList.getListenerList();
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == NodeAttributeListener.class) {
-                ((NodeAttributeListener) listeners[i + 1]).attributeChanged(this);
+                ((NodeAttributeListener) listeners[i + 1]).attributeChanged(this, attribute);
             }
         }
         if (hasParent())
-            getParent().fireChildAttributeChanged(this);
+            getParent().fireChildAttributeChanged(this, attribute);
     }
 
 
@@ -898,17 +905,17 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     /**
      * Invoked when an attribute on the child was changed.
-     * <p/>
-     * Possible attributes are name, namespace, description, x, y.
      *
-     * @param child the child node
+     * @param child     the child node
+     * @param attribute the changed attribute
+     * @see net.nodebox.node.NodeAttributeListener.Attribute
      */
-    public void fireChildAttributeChanged(Node child) {
+    public void fireChildAttributeChanged(Node child, Attribute attribute) {
         // See comment in #fireNodeDirty.
         Object[] listeners = listenerList.getListenerList();
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).renderedChildChanged(this, child);
+                ((NodeChildListener) listeners[i + 1]).childAttributeChanged(this, child, attribute);
             }
         }
     }
@@ -1450,6 +1457,8 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @return null
      */
     public Object cook(Node node, ProcessingContext context) throws ProcessingError {
+        if (!node.hasChildren())
+            return null;
         Node renderedChild = node.getRenderedChild();
         if (renderedChild == null)
             throw new ProcessingError(this, "No child node to render.");
@@ -1463,7 +1472,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @return an empty string.
      */
     public String getSource() {
-        return "# This is the root node.";
+        return "def cook(self):\n    return None";
     }
 
     /**

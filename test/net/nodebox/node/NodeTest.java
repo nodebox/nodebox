@@ -22,6 +22,30 @@ import net.nodebox.graphics.BezierPath;
 
 public class NodeTest extends NodeTestCase {
 
+    private class TestAttributeListener implements NodeAttributeListener {
+        public int libraryCounter, nameCounter, positionCounter, descriptionCounter, parameterCounter;
+
+        public void attributeChanged(Node source, Attribute attribute) {
+            switch (attribute) {
+                case LIBRARY:
+                    ++libraryCounter;
+                    break;
+                case NAME:
+                    ++nameCounter;
+                    break;
+                case POSITION:
+                    ++positionCounter;
+                    break;
+                case DESCRIPTION:
+                    ++descriptionCounter;
+                    break;
+                case PARAMETER:
+                    ++parameterCounter;
+                    break;
+            }
+        }
+    }
+
     public void testBaseNode() {
         Node baseNode = Node.ROOT_NODE;
         Parameter pCode = baseNode.getParameter("_code");
@@ -30,7 +54,8 @@ public class NodeTest extends NodeTestCase {
         assertEquals(Parameter.Type.CODE, pCode.getType());
         assertEquals("_handle", pHandle.getName());
         assertEquals(Parameter.Type.CODE, pHandle.getType());
-        assertProcessingError(baseNode, "no child node to render");
+        baseNode.update();
+        assertNull(baseNode.getOutputValue());
     }
 
     public void testBasicClone() {
@@ -262,6 +287,34 @@ public class NodeTest extends NodeTestCase {
         assertEquals(0, multiAdd1.getPort("values").getValues().size());
         assertEquals(0, multiAdd1.getOutputValue());
     }
+
+    public void testNodeAttributeEvent() {
+        TestAttributeListener l = new TestAttributeListener();
+        Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        test.addNodeAttributeListener(l);
+        // Setting the name to itself does not trigger an event.
+        test.setName("test");
+        assertEquals(0, l.nameCounter);
+        test.setName("newname");
+        assertEquals(1, l.nameCounter);
+        Parameter p1 = test.addParameter("p1", Parameter.Type.FLOAT);
+        assertEquals(1, l.parameterCounter);
+        p1.setName("parameter1");
+        assertEquals(2, l.parameterCounter);
+        // TODO: These trigger ParameterAttributeChanged
+        //p1.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        //assertEquals(3, l.parameterCounter);
+        //p1.setMinimumValue(0F);
+        //assertEquals(4, l.parameterCounter);
+        // Changing the value does not trigger the event.
+        // The event only happens for metadata, not data.
+        // If you want to catch that, use DirtyListener.
+        p1.setValue(20F);
+        assertEquals(2, l.parameterCounter);
+        test.removeParameter("parameter1");
+        assertEquals(3, l.parameterCounter);
+    }
+
 
     //// Helper functions ////
 

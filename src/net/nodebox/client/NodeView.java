@@ -6,6 +6,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.Icons;
 import net.nodebox.node.ConnectionError;
+import net.nodebox.node.InvalidNameException;
 import net.nodebox.node.Node;
 import net.nodebox.node.Port;
 
@@ -175,7 +176,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             if (e.getClickCount() == 1) {
                 e.getInputManager().setKeyboardFocus(this);
                 networkView.singleSelect(NodeView.this);
-            } else if (e.getClickCount() == 2) {
+            } else if (e.getClickCount() == 2 && e.isLeftMouseButton()) {
                 networkView.getPane().getDocument().setActiveNetwork(node);
             }
             e.setHandled(true);
@@ -305,6 +306,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             if (!e.isPopupTrigger()) return;
             JPopupMenu menu = new JPopupMenu();
             menu.add(new SetRenderedAction());
+            menu.add(new RenameAction());
             menu.add(new DeleteAction());
             Point2D p = e.getCanvasPosition();
             menu.show(NodeView.this.networkView, (int) p.getX(), (int) p.getY());
@@ -322,6 +324,23 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
     }
 
+    private class RenameAction extends AbstractAction {
+        private RenameAction() {
+            super("Rename");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            String s = JOptionPane.showInputDialog(networkView, "New name:", node.getName());
+            if (s == null || s.length() == 0)
+                return;
+            try {
+                node.setName(s);
+            } catch (InvalidNameException ex) {
+                JOptionPane.showMessageDialog(networkView, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
 
     private class DeleteAction extends AbstractAction {
 
@@ -334,6 +353,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             node.getParent().remove(node);
         }
     }
+
 }
 
 

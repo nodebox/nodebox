@@ -31,6 +31,8 @@ public class EditorPane extends Pane {
         paneHeader.add(networkAddressBar);
         JButton reloadButton = new JButton(new ReloadAction());
         paneHeader.add(reloadButton);
+        reloadButton.setBorderPainted(false);
+        reloadButton.setText("");
         editor = new SimpleEditor();
         CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
@@ -75,6 +77,8 @@ public class EditorPane extends Pane {
     private class ReloadAction extends AbstractAction {
         private ReloadAction() {
             super("Reload");
+            ImageIcon icon = new ImageIcon("res/reload-16.png", "Reload");
+            putValue(LARGE_ICON_KEY, icon);
         }
 
         public void actionPerformed(ActionEvent e) {

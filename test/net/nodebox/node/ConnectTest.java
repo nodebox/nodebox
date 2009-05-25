@@ -18,7 +18,6 @@
  */
 package net.nodebox.node;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -240,6 +239,9 @@ public class ConnectTest extends NodeTestCase {
         // First add a node
         Node net = testNetworkNode.newInstance(testLibrary, "net1");
         Node number1 = net.create(numberNode);
+        // We add a second node to check for the processing error.
+        // If there are no nodes in the parent, the root will just return null.
+        net.create(numberNode);
         number1.setValue("value", 42);
         number1.setRendered();
         net.update();

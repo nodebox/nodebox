@@ -115,6 +115,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             getLayer().addChild(nv);
         }
         validate();
+        repaint();
         firePropertyChange(NETWORK_PROPERTY, oldNode, node);
     }
 
@@ -235,12 +236,12 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     //// Events ////
 
     public void childAdded(Node source, Node child) {
-        NodeView nv = new NodeView(this, node);
+        NodeView nv = new NodeView(this, child);
         getLayer().addChild(nv);
     }
 
     public void childRemoved(Node source, Node child) {
-        NodeView nv = getNodeView(node);
+        NodeView nv = getNodeView(child);
         if (nv == null) return;
         getLayer().removeChild(nv);
         if (selection.contains(nv)) {
@@ -256,14 +257,18 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         connectionLayer.repaint();
     }
 
-    public void childAttributeChanged(Node source, Node child) {
-        // Maybe the name of the node was changed. Redraw the node view.
-        NodeView nv = getNodeView(node);
-        if (!nv.getOffset().equals(node.getPosition().getPoint2D())) {
-            nv.setOffset(node.getX(), node.getY());
-            connectionLayer.repaint();
+    public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+        NodeView nv = getNodeView(child);
+        if (nv == null) return;
+        if (attribute == NodeAttributeListener.Attribute.NAME) {
+            nv.repaint();
+        } else if (attribute == NodeAttributeListener.Attribute.POSITION) {
+            if (!nv.getOffset().equals(child.getPosition().getPoint2D())) {
+                nv.setOffset(child.getX(), child.getY());
+                connectionLayer.repaint();
+            }
+            nv.repaint();
         }
-        nv.repaint();
     }
 
     public void renderedChildChanged(Node source, Node child) {

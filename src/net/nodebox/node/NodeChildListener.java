@@ -50,12 +50,13 @@ public interface NodeChildListener extends EventListener {
 
     /**
      * Invoked when an attribute change was made to the child.
-     *
+     * <p/>
      * This could happen when the node was renamed or one if its parameters was added or deleted.
      * This event does not fire when the value of a node was changed, only its metadata.
      *
-     * @param source the node this event comes from
-     * @param child the child that was changed
+     * @param source    the node this event comes from
+     * @param child     the child that was changed
+     * @param attribute the changed attribute
      */
-    public void childAttributeChanged(Node source, Node child);
+    public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute);
 }
