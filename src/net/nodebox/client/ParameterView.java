@@ -6,7 +6,6 @@ import net.nodebox.node.*;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -39,7 +38,6 @@ public class ParameterView extends JComponent {
 
     private Node node;
     private NodeEventHandler handler = new NodeEventHandler();
-    private ArrayList<ParameterControl> controls = new ArrayList<ParameterControl>();
 
     public ParameterView() {
         setLayout(new BorderLayout());
@@ -56,9 +54,11 @@ public class ParameterView extends JComponent {
 
     public void setNode(Node node) {
         Node oldNode = this.node;
-        oldNode.removeNodeAttributeListener(handler);
+        if (oldNode != null)
+            oldNode.removeNodeAttributeListener(handler);
         this.node = node;
-        node.addNodeAttributeListener(handler);
+        if (node != null)
+            node.addNodeAttributeListener(handler);
         rebuildInterface();
         validate();
         repaint();
@@ -69,11 +69,10 @@ public class ParameterView extends JComponent {
         if (node == null) return;
         int rowindex = 0;
         for (Parameter p : node.getParameters()) {
-            Class controlClass = CONTROL_MAP.get(p.getType());
+            Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
-            if (controlClass != null) {
-                control = (JComponent) constructControl(controlClass, p);
-                controls.add((ParameterControl) control);
+            if (widgetClass != null) {
+                control = (JComponent) constructControl(widgetClass, p);
 
             } else {
                 control = new JLabel("  ");
@@ -105,7 +104,7 @@ public class ParameterView extends JComponent {
             return (ParameterControl) constructor.newInstance(p);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Cannot construct control", e);
-            throw new AssertionError("Cannot construct control");
+            throw new AssertionError("Cannot construct control:" + e);
         }
     }
 
