@@ -1,5 +1,7 @@
 package net.nodebox.node;
 
+import net.nodebox.graphics.Color;
+
 /**
  * All tests that have to do with parent/child relationships between nodes.
  */
@@ -120,9 +122,7 @@ public class NetworkTest extends NodeTestCase {
         merge1.getPort("polygons").connect(translate1);
         merge1.getPort("polygons").connect(rect1);
 
-        // Store/load library
-        String xml = testLibrary.toXml();
-        NodeLibrary newLibrary = manager.load("newLibrary", xml);
+        NodeLibrary newLibrary = storeAndLoad(testLibrary);
         Node newRoot = newLibrary.getRootNode();
 
         assertEquals("root", newRoot.getName());
@@ -165,11 +165,37 @@ public class NetworkTest extends NodeTestCase {
         hello.update();
         assertEquals("hello", hello.getOutputValue());
         // Store/load library
-        String xml = testLibrary.toXml();
-        NodeLibrary newLibrary = manager.load("newLibrary", xml);
+        NodeLibrary newLibrary = storeAndLoad(testLibrary);
         Node newHello = newLibrary.get("hello");
         newHello.update();
         assertEquals("hello", newHello.getOutputValue());
+    }
+
+    /**
+     * Test if all types load correctly.
+     */
+    public void testTypeLoading() {
+        Node alltypes = Node.ROOT_NODE.newInstance(testLibrary, "alltypes");
+        alltypes.addParameter("i", Parameter.Type.INT, 42);
+        alltypes.addParameter("f", Parameter.Type.FLOAT, 42F);
+        alltypes.addParameter("s", Parameter.Type.STRING, "42");
+        alltypes.addParameter("c", Parameter.Type.COLOR, new Color(0.4, 0.2, 0.1, 0.9));
+        // TODO: You are here.
+        NodeLibrary newLibrary = storeAndLoad(testLibrary);
+        Node newAlltypes = newLibrary.get("alltypes");
+        Parameter pI = newAlltypes.getParameter("i");
+        Parameter pF = newAlltypes.getParameter("f");
+        Parameter pS = newAlltypes.getParameter("s");
+        Parameter pC = newAlltypes.getParameter("c");
+        assertEquals(Parameter.Type.INT, pI.getType());
+        assertEquals(Parameter.Type.FLOAT, pF.getType());
+        assertEquals(Parameter.Type.STRING, pS.getType());
+        assertEquals(Parameter.Type.COLOR, pC.getType());
+        assertEquals("i", pI.getName());
+        assertEquals(42, pI.getValue());
+        assertEquals(42F, pF.getValue());
+        assertEquals("42", pS.getValue());
+        assertEquals(new Color(0.4, 0.2, 0.1, 0.9), pC.getValue());
     }
 
     /**
@@ -238,6 +264,17 @@ public class NetworkTest extends NodeTestCase {
         assertFalse(negate1.isConnected());
         assertFalse(number1.isConnected());
         assertFalse(addConstant1.isConnected());
+    }
+
+    /**
+     * Store the library in XML, then load it under the name "newLibrary".
+     *
+     * @param lib the library to store.
+     * @return the new library object.
+     */
+    private NodeLibrary storeAndLoad(NodeLibrary lib) {
+        String xml = testLibrary.toXml();
+        return manager.load("newLibrary", xml);
     }
 
     private void assertValidConnect(Node inputNode, String inputPortName, Node outputNode) {
