@@ -841,6 +841,8 @@ public class Parameter {
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException(e);
             }
+        } else if (type == Type.COLOR) {
+            return Color.parseColor(value);
         } else if (type == Type.CODE) {
             throw new IllegalArgumentException("Cannot parse code objects.");
         } else {

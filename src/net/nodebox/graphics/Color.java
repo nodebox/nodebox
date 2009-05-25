@@ -19,7 +19,12 @@
 
 package net.nodebox.graphics;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Color implements Cloneable {
+
+    private static final Pattern HEX_STRING_PATTERN = Pattern.compile("^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$");
 
     private double r, g, b, a;
 
@@ -44,27 +49,18 @@ public class Color implements Cloneable {
     }
 
     public Color(String colorName) {
-        // RGB hex color.
-        if (colorName.startsWith("#")) {
-            if (colorName.length() == 9) { // #rrggbbaa
-                String rr = colorName.substring(1, 3);
-                String gg = colorName.substring(3, 5);
-                String bb = colorName.substring(5, 7);
-                String aa = colorName.substring(7);
-                int r = Integer.parseInt(rr, 16);
-                int g = Integer.parseInt(gg, 16);
-                int b = Integer.parseInt(bb, 16);
-                int a = Integer.parseInt(aa, 16);
-                this.r = r / 255.0;
-                this.g = g / 255.0;
-                this.b = b / 255.0;
-                this.a = a / 255.0;
-            } else {
-                throw new IllegalArgumentException("Inapropriate length for color value (" + colorName + ")");
-            }
-        } else {
-            throw new IllegalArgumentException("Only hexadecimal values (e.g. #337711ff) are accepted. (" + colorName + ")");
-        }
+        // We can only parse RGBA hex color values.
+        Matcher m = HEX_STRING_PATTERN.matcher(colorName);
+        if (!m.matches())
+            throw new IllegalArgumentException("The given value '" + colorName + "' is not of the format #112233ff.");
+        int r255 = Integer.parseInt(m.group(1), 16);
+        int g255 = Integer.parseInt(m.group(2), 16);
+        int b255 = Integer.parseInt(m.group(3), 16);
+        int a255 = Integer.parseInt(m.group(4), 16);
+        this.r = r255 / 255.0;
+        this.g = g255 / 255.0;
+        this.b = b255 / 255.0;
+        this.a = a255 / 255.0;
     }
 
     public Color(java.awt.Color color) {
@@ -114,7 +110,24 @@ public class Color implements Cloneable {
     public boolean equals(Object obj) {
         if (!(obj instanceof Color)) return false;
         Color other = (Color) obj;
-        return r == other.r && g == other.g && b == other.b && a == other.a;
+        // Because of the conversion to/from hex, we can have rounding errors.
+        // Therefore, we only compare what we can store, i.e. values in the 0-255 range.
+        return Math.round(r * 255) == Math.round(other.r * 255)
+                && Math.round(g * 255) == Math.round(other.g * 255)
+                && Math.round(b * 255) == Math.round(other.b * 255)
+                && Math.round(a * 255) == Math.round(other.a * 255);
+    }
+
+    /**
+     * Parse a hexadecimal value and return a Color object.
+     * <p/>
+     * The value needs to have four components. (R,G,B,A)
+     *
+     * @param value the hexadecimal color value, e.g. #995423ff
+     * @return a Color object.
+     */
+    public static Color parseColor(String value) {
+        return new Color(value);
     }
 
     private String paddedHexString(int v) {

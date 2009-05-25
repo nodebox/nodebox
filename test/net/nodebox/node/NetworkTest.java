@@ -180,7 +180,6 @@ public class NetworkTest extends NodeTestCase {
         alltypes.addParameter("f", Parameter.Type.FLOAT, 42F);
         alltypes.addParameter("s", Parameter.Type.STRING, "42");
         alltypes.addParameter("c", Parameter.Type.COLOR, new Color(0.4, 0.2, 0.1, 0.9));
-        // TODO: You are here.
         NodeLibrary newLibrary = storeAndLoad(testLibrary);
         Node newAlltypes = newLibrary.get("alltypes");
         Parameter pI = newAlltypes.getParameter("i");
