@@ -26,4 +26,8 @@ public class ConsolePane extends Pane {
     public Pane clone() {
         return new ConsolePane(getDocument());
     }
+
+    public String getPaneName() {
+        return "Console";
+    }
 }

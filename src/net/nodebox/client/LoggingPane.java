@@ -1,7 +1,7 @@
 package net.nodebox.client;
 
-import net.nodebox.node.Node;
 import net.nodebox.node.DirtyListener;
+import net.nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,4 +52,7 @@ public class LoggingPane extends Pane implements DirtyListener {
         return new LoggingPane(getDocument());
     }
 
+    public String getPaneName() {
+        return "Log";
+    }
 }

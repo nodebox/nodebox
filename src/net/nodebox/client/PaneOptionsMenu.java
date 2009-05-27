@@ -3,7 +3,7 @@ package net.nodebox.client;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 
-public class PaneMenu extends JPopupMenu {
+public class PaneOptionsMenu extends JPopupMenu {
 
     private Pane pane;
     private Action splitTopBottomAction;
@@ -25,7 +25,7 @@ public class PaneMenu extends JPopupMenu {
         }
     }
 
-    public PaneMenu(Pane pane) {
+    public PaneOptionsMenu(Pane pane) {
         this.pane = pane;
         add(new ChangePaneTypeAction("Network", NetworkPane.class));
         add(new ChangePaneTypeAction("Parameters", ParameterPane.class));

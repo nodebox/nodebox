@@ -70,4 +70,8 @@ public class ViewerPane extends Pane {
     public Pane clone() {
         return new ViewerPane(getDocument());
     }
+
+    public String getPaneName() {
+        return "Viewer";
+    }
 }

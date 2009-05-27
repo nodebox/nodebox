@@ -23,13 +23,18 @@ public class EditorPane extends Pane {
         setDocument(document);
     }
 
+
     public EditorPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         JButton reloadButton = new JButton(new ReloadAction());
-        paneHeader.add(reloadButton);
+        reloadButton.setSize(53, 21);
+        reloadButton.setForeground(SwingUtils.normalColor);
         reloadButton.setBorderPainted(false);
-        reloadButton.setText("");
+        reloadButton.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        reloadButton.setMargin(new Insets(0, 0, 0, 0));
+        reloadButton.setFont(SwingUtils.boldFont);
+        paneHeader.add(reloadButton);
         editor = new SimpleEditor();
         CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
@@ -47,21 +52,27 @@ public class EditorPane extends Pane {
         return new EditorPane(getDocument());
     }
 
+    public String getPaneName() {
+        return "Code";
+    }
+
     public Node getNode() {
         return node;
     }
 
     public void setNode(Node node) {
-        if (this.node == node) return;
+        if (this.node == node && node != null) return;
         this.node = node;
-        if (node == null) return;
-
-        Parameter pCode = node.getParameter("_code");
+        Parameter pCode = null;
+        if (node != null)
+            pCode = node.getParameter("_code");
         if (pCode == null) {
-            editor.setSource("# This node has no source code.");
+            editor.setSource("");
+            editor.setEnabled(false);
         } else {
             String code = pCode.asCode().getSource();
             editor.setSource(code);
+            editor.setEnabled(true);
         }
     }
 
@@ -73,11 +84,12 @@ public class EditorPane extends Pane {
     private class ReloadAction extends AbstractAction {
         private ReloadAction() {
             super("Reload");
-            ImageIcon icon = new ImageIcon("res/reload-16.png", "Reload");
+            ImageIcon icon = new ImageIcon("res/code-reload.png", "Reload");
             putValue(LARGE_ICON_KEY, icon);
         }
 
         public void actionPerformed(ActionEvent e) {
+            if (node == null) return;
             Parameter pCode = node.getParameter("_code");
             if (pCode == null) return;
             NodeCode code = new PythonCode(editor.getSource());

@@ -76,9 +76,9 @@ public class PlatformUtils {
 
     public static Font getEditorFont() {
         if (onMac()) {
-            return new Font("Monaco", Font.PLAIN, 12);
+            return new Font("Monaco", Font.PLAIN, 11);
         } else {
-            return new Font("Courier", Font.PLAIN, 12);
+            return new Font("Courier", Font.PLAIN, 11);
         }
     }
 

@@ -15,10 +15,6 @@ public class AddressBar extends JPanel implements MouseListener {
 
     public static Image addressGradient;
     public static Image addressArrow;
-    public static Font font = new Font("Lucida Grande", Font.BOLD, 11);
-    public static Color normalColor = new Color(60, 60, 60);
-    public static Color armedColor = new Color(0, 0, 0);
-    public static Color shadowColor = new Color(255, 255, 255);
 
     static {
         try {
@@ -38,9 +34,9 @@ public class AddressBar extends JPanel implements MouseListener {
 
     public AddressBar(NodeBoxDocument document) {
         addMouseListener(this);
-        setMinimumSize(new Dimension(0, 26));
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
-        setPreferredSize(new Dimension(Integer.MAX_VALUE, 26));
+        setMinimumSize(new Dimension(0, 25));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+        setPreferredSize(new Dimension(Integer.MAX_VALUE, 25));
         this.document = document;
     }
 
@@ -71,20 +67,20 @@ public class AddressBar extends JPanel implements MouseListener {
         positions = new int[nodes.size()];
         Graphics2D g2 = (Graphics2D) g;
 
-        g2.setFont(font);
+        g2.setFont(SwingUtils.boldFont);
 
-        g2.drawImage(addressGradient, 0, 0, getWidth(), 26, null);
+        g2.drawImage(addressGradient, 0, 0, getWidth(), 25, null);
 
-        int x = 6;
+        int x = 14;
 
         for (int i = 0; i < nodes.size(); i++) {
             Node part = nodes.get(i);
             if (i == armed) {
-                g2.setColor(armedColor);
+                g2.setColor(SwingUtils.armedColor);
             } else {
-                g2.setColor(normalColor);
+                g2.setColor(SwingUtils.normalColor);
             }
-            drawShadowText(g2, part.getName(), x, 16);
+            SwingUtils.drawShadowText(g2, part.getName(), x, 16);
 
             int width = (int) g2.getFontMetrics().stringWidth(part.getName());
             x += width + 5;
@@ -134,12 +130,5 @@ public class AddressBar extends JPanel implements MouseListener {
         return -1;
     }
 
-    public static void drawShadowText(Graphics2D g2, String s, int x, int y) {
-        Color c = g2.getColor();
-        g2.setColor(shadowColor);
-        g2.drawString(s, x, y + 1);
-        g2.setColor(c);
-        g2.drawString(s, x, y);
-    }
 
 }

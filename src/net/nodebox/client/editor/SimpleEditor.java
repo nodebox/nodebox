@@ -15,8 +15,10 @@ public class SimpleEditor extends JPanel implements DocumentListener {
     public SimpleEditor() {
         setLayout(new BorderLayout());
         codeArea = new CodeArea();
+        codeArea.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         codeArea.getDocument().addDocumentListener(this);
         JScrollPane codeScroll = new JScrollPane(codeArea);
+        codeScroll.setBorder(null);
         add(codeScroll, BorderLayout.CENTER);
     }
 
@@ -27,6 +29,17 @@ public class SimpleEditor extends JPanel implements DocumentListener {
     public void setSource(String source) {
         codeArea.setText(source);
         changed = false;
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        codeArea.setEnabled(enabled);
+        if (enabled) {
+            codeArea.setBackground(Color.white);
+        } else {
+            codeArea.setBackground(new Color(240, 240, 240));
+        }
     }
 
     public boolean isChanged() {

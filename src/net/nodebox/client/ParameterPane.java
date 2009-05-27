@@ -27,6 +27,10 @@ public class ParameterPane extends Pane {
         return new ParameterPane(getDocument());
     }
 
+    public String getPaneName() {
+        return "Parameters";
+    }
+
     @Override
     public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);

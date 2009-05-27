@@ -31,6 +31,8 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     public abstract Pane clone();
 
+    public abstract String getPaneName();
+
     public void currentNodeChanged(Node activeNetwork) {
     }
 

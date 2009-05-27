@@ -1,44 +1,43 @@
 package net.nodebox.client;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
 
 public class PaneHeader extends JPanel implements MouseListener {
 
-    private Pane pane;
-    private PaneMenu paneMenu;
+    public static Image paneHeaderBackground, paneHeaderOptions;
 
-    private class PaneHeaderBorder implements Border {
-        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-            g.setColor(Theme.getInstance().getBorderColor());
-            g.drawLine(x, y + height - 1, x + width, y + height - 1);
-        }
-
-        public Insets getBorderInsets(Component c) {
-            return new Insets(0, 0, 1, 0);
-        }
-
-        public boolean isBorderOpaque() {
-            return true;
+    static {
+        try {
+            paneHeaderBackground = ImageIO.read(new File("res/pane-header-background.png"));
+            paneHeaderOptions = ImageIO.read(new File("res/pane-header-options.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
+    private Pane pane;
+    private PaneOptionsMenu paneOptionsMenu;
 
     public PaneHeader(Pane pane) {
-        super(new FlowLayout(FlowLayout.LEADING, 5, 0));
-        setPreferredSize(new Dimension(100, 24));
-        setBackground(Theme.getInstance().getBackgroundColor());
+        super(new FlowLayout(FlowLayout.LEADING, 5, 2));
+        setPreferredSize(new Dimension(100, 25));
+        setMinimumSize(new Dimension(100, 25));
+        setMaximumSize(new Dimension(100, 25));
         this.pane = pane;
-        paneMenu = new PaneMenu(this.pane);
-        setBorder(new PaneHeaderBorder());
+        paneOptionsMenu = new PaneOptionsMenu(this.pane);
         addMouseListener(this);
+        add(new PaneTypeMenu(pane));
+        add(new Divider());
     }
 
-    public PaneMenu getPaneMenu() {
-        return paneMenu;
+    public PaneOptionsMenu getPaneMenu() {
+        return paneOptionsMenu;
     }
 
     public Pane getPane() {
@@ -50,7 +49,7 @@ public class PaneHeader extends JPanel implements MouseListener {
 
     public void mousePressed(MouseEvent e) {
         if (e.getX() < this.getWidth() - 20) return;
-        paneMenu.show(this, e.getX(), e.getY());
+        paneOptionsMenu.show(this, e.getX(), e.getY());
     }
 
     public void mouseReleased(MouseEvent e) {
@@ -63,8 +62,9 @@ public class PaneHeader extends JPanel implements MouseListener {
     }
 
     @Override
-    public void paint(Graphics g) {
-        super.paint(g);
-        Theme.getInstance().getArrowIcon().paintIcon(this, g, getWidth() - 15, 8);
+    protected void paintComponent(Graphics g) {
+        g.drawImage(paneHeaderBackground, 0, 0, getWidth(), 25, null);
+        g.drawImage(paneHeaderOptions, getWidth() - 20, 0, null);
+
     }
 }

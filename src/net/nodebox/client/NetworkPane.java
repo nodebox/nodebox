@@ -39,6 +39,10 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
         return new NetworkPane(getDocument());
     }
 
+    public String getPaneName() {
+        return "Network";
+    }
+
     public Node getNode() {
         return node;
     }
