@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 public class ViewerPane extends Pane {
 
     private PaneHeader paneHeader;
-    private NetworkAddressBar networkAddressBar;
     private Viewer viewer;
     private Node node;
 
@@ -23,8 +22,6 @@ public class ViewerPane extends Pane {
     public ViewerPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
-        networkAddressBar = new NetworkAddressBar(this);
-        paneHeader.add(networkAddressBar);
         JCheckBox showHandleBox = new JCheckBox("Handles");
         showHandleBox.setOpaque(false);
         showHandleBox.setSelected(true);
@@ -53,7 +50,6 @@ public class ViewerPane extends Pane {
 
     public void setNode(Node node) {
         this.node = node;
-        networkAddressBar.setNode(node);
         viewer.setNode(node);
     }
 

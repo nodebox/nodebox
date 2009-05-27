@@ -71,6 +71,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private static Logger logger = Logger.getLogger("net.nodebox.client.NodeBoxDocument");
     private EventListenerList documentFocusListeners = new EventListenerList();
     private UndoManager undo = new UndoManager();
+    private AddressBar addressBar;
     //private RenderThread renderThread;
 
     private class DocumentObservable extends Observable {
@@ -139,6 +140,8 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         PaneSplitter viewEditorSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, viewPane, editorPane);
         PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
         PaneSplitter topSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
+        addressBar = new AddressBar(this);
+        rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
         setContentPane(rootPanel);
         setLocationByPlatform(true);
@@ -326,6 +329,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
                 processingError.printStackTrace();
             }
         }
+        addressBar.setNode(activeNetwork);
     }
 
     public Node getActiveNode() {

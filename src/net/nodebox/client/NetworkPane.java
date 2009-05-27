@@ -10,7 +10,6 @@ import java.util.Set;
 public class NetworkPane extends Pane implements PropertyChangeListener {
 
     private PaneHeader paneHeader;
-    private NetworkAddressBar networkAddressBar;
     private NetworkView networkView;
     private Node node;
 
@@ -23,8 +22,6 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     public NetworkPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
-        networkAddressBar = new NetworkAddressBar(this);
-        paneHeader.add(networkAddressBar);
         networkView = new NetworkView(this, null);
         networkView.addPropertyChangeListener(this);
         add(paneHeader, BorderLayout.NORTH);
@@ -48,7 +45,6 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
 
     public void setNode(Node node) {
         this.node = node;
-        networkAddressBar.setNode(node);
         networkView.setNode(node);
         networkView.select(getDocument().getActiveNode());
     }

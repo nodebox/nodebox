@@ -14,7 +14,6 @@ import java.awt.event.KeyEvent;
 public class EditorPane extends Pane {
 
     private PaneHeader paneHeader;
-    private NetworkAddressBar networkAddressBar;
     private SimpleEditor editor;
     //private CodeArea codeArea;
     private Node node;
@@ -27,8 +26,6 @@ public class EditorPane extends Pane {
     public EditorPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
-        networkAddressBar = new NetworkAddressBar(this);
-        paneHeader.add(networkAddressBar);
         JButton reloadButton = new JButton(new ReloadAction());
         paneHeader.add(reloadButton);
         reloadButton.setBorderPainted(false);
@@ -57,7 +54,6 @@ public class EditorPane extends Pane {
     public void setNode(Node node) {
         if (this.node == node) return;
         this.node = node;
-        networkAddressBar.setNode(node);
         if (node == null) return;
 
         Parameter pCode = node.getParameter("_code");

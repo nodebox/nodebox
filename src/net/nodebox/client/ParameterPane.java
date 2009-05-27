@@ -7,7 +7,6 @@ import java.awt.*;
 public class ParameterPane extends Pane {
 
     private PaneHeader paneHeader;
-    private NetworkAddressBar networkAddressBar;
     private ParameterView parameterView;
     private Node node;
 
@@ -19,8 +18,6 @@ public class ParameterPane extends Pane {
     public ParameterPane() {
         setLayout(new BorderLayout());
         paneHeader = new PaneHeader(this);
-        networkAddressBar = new NetworkAddressBar(this);
-        paneHeader.add(networkAddressBar);
         parameterView = new ParameterView();
         add(paneHeader, BorderLayout.NORTH);
         add(parameterView, BorderLayout.CENTER);
@@ -44,7 +41,6 @@ public class ParameterPane extends Pane {
     public void setNode(Node node) {
         if (this.node == node) return;
         this.node = node;
-        networkAddressBar.setNode(node);
         parameterView.setNode(node);
     }
 
