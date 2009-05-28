@@ -3,6 +3,7 @@ package net.nodebox.client;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -23,6 +24,7 @@ public class PaneTypeMenu extends JComponent implements MouseListener {
     }
 
     private Pane pane;
+    private PaneTypePopup paneTypePopup;
 
     public PaneTypeMenu(Pane pane) {
         this.pane = pane;
@@ -30,6 +32,8 @@ public class PaneTypeMenu extends JComponent implements MouseListener {
         setMinimumSize(d);
         setMaximumSize(d);
         setPreferredSize(d);
+        addMouseListener(this);
+        paneTypePopup = new PaneTypePopup();
     }
 
     @Override
@@ -50,6 +54,8 @@ public class PaneTypeMenu extends JComponent implements MouseListener {
     }
 
     public void mousePressed(MouseEvent e) {
+        Rectangle bounds = getBounds();
+        paneTypePopup.show(this, bounds.x, bounds.y + bounds.height - 4);
     }
 
     public void mouseReleased(MouseEvent e) {
@@ -60,4 +66,31 @@ public class PaneTypeMenu extends JComponent implements MouseListener {
 
     public void mouseExited(MouseEvent e) {
     }
+
+    private class PaneTypePopup extends JPopupMenu {
+        public PaneTypePopup() {
+            add(new ChangePaneTypeAction("Network", NetworkPane.class));
+            add(new ChangePaneTypeAction("Parameters", ParameterPane.class));
+            add(new ChangePaneTypeAction("Viewer", ViewerPane.class));
+            add(new ChangePaneTypeAction("Source", EditorPane.class));
+            add(new ChangePaneTypeAction("Console", ConsolePane.class));
+            add(new ChangePaneTypeAction("Log", LoggingPane.class));
+        }
+    }
+
+    private class ChangePaneTypeAction extends AbstractAction {
+
+        private Class paneType;
+
+        private ChangePaneTypeAction(String name, Class paneType) {
+            super(name);
+            this.paneType = paneType;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            pane.changePaneType(paneType);
+        }
+    }
+
+
 }

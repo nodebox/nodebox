@@ -10,30 +10,8 @@ public class PaneOptionsMenu extends JPopupMenu {
     private Action splitLeftRightAction;
     private Action closePaneAction;
 
-    private class ChangePaneTypeAction extends AbstractAction {
-
-        private Class paneType;
-
-        private ChangePaneTypeAction(String name, Class paneType) {
-            super(name);
-            this.paneType = paneType;
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            getPane().changePaneType(paneType);
-
-        }
-    }
-
     public PaneOptionsMenu(Pane pane) {
         this.pane = pane;
-        add(new ChangePaneTypeAction("Network", NetworkPane.class));
-        add(new ChangePaneTypeAction("Parameters", ParameterPane.class));
-        add(new ChangePaneTypeAction("Viewer", ViewerPane.class));
-        add(new ChangePaneTypeAction("Source", EditorPane.class));
-        add(new ChangePaneTypeAction("Console", ConsolePane.class));
-        add(new ChangePaneTypeAction("Log", LoggingPane.class));
-        addSeparator();
         splitTopBottomAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 getPane().splitTopBottom();
