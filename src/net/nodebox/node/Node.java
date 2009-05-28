@@ -434,7 +434,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (this.renderedChild == renderedChild) return;
         this.renderedChild = renderedChild;
         markDirty();
-        //fireRenderedChildChanged(renderedChild);
+        fireRenderedChildChanged(renderedChild);
     }
 
     public boolean isRendered() {
