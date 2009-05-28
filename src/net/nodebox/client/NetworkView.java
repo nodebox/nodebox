@@ -2,7 +2,10 @@ package net.nodebox.client;
 
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.event.*;
+import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
+import edu.umd.cs.piccolo.event.PInputEvent;
+import edu.umd.cs.piccolo.event.PInputEventFilter;
+import edu.umd.cs.piccolo.event.PPanEventHandler;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import net.nodebox.node.*;
@@ -40,8 +43,10 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         this.node = node;
         if (node != null)
             this.networkError = node.hasError();
-        setBackground(Theme.getInstance().getViewBackgroundColor());
+        setBackground(new Color(69, 69, 69));
         addInputEventListener(selectionHandler);
+        setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
+        setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
         // Remove default panning and zooming behaviour
         removeInputEventListener(getPanEventHandler());
         removeInputEventListener(getZoomEventHandler());
@@ -53,6 +58,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         addInputEventListener(panHandler);
         connectionLayer = new ConnectionLayer(this);
         getCamera().addLayer(0, connectionLayer);
+        /*
         setZoomEventHandler(new PZoomEventHandler() {
             public void processEvent(final PInputEvent evt, final int i) {
                 if (evt.isMouseWheelEvent()) {
@@ -60,12 +66,13 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
                     double scaleDelta = 1D - 0.1 * evt.getWheelRotation();
                     double newScale = currentScale * scaleDelta;
                     final Point2D p = evt.getPosition();
-                    if (newScale > 0.2 && newScale < 2.0) {
+                    if (newScale > 0.2 && newScale <= 1.0) {
                         evt.getCamera().scaleViewAboutPoint(scaleDelta, p.getX(), p.getY());
                     }
                 }
             }
         });
+        */
         addKeyListener(dialogHandler);
         addKeyListener(new DeleteHandler());
         initMenus();

@@ -51,9 +51,9 @@ public class ConnectionLayer extends PLayer {
                     g.setColor(Theme.getInstance().getConnectionColor());
                 }
                 for (Node outputNode : c.getOutputNodes()) {
-                    float x0 = (float) (outputNode.getX() + NodeView.NODE_WIDTH / 2);
-                    float y0 = (float) (outputNode.getY() + NodeView.NODE_HEIGHT - 2); // Compensate for selection border
-                    float x1 = (float) (c.getInputNode().getX() + NodeView.NODE_WIDTH / 2);
+                    float x0 = (float) (outputNode.getX() + NodeView.NODE_FULL_SIZE / 2);
+                    float y0 = (float) (outputNode.getY() + NodeView.NODE_FULL_SIZE - 2); // Compensate for selection border
+                    float x1 = (float) (c.getInputNode().getX() + NodeView.NODE_FULL_SIZE / 2);
                     float y1 = (float) (c.getInputNode().getY() + 2); // Compensate for selection border
                     float dx = Math.abs(x1 - x0) / 2;
                     p.moveTo(x0, y0);
