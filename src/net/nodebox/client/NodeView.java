@@ -193,6 +193,17 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         repaint();
     }
 
+    private void doRename() {
+        String s = JOptionPane.showInputDialog(networkView, "New name:", node.getName());
+        if (s == null || s.length() == 0)
+            return;
+        try {
+            node.setName(s);
+        } catch (InvalidNameException ex) {
+            JOptionPane.showMessageDialog(networkView, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private class NodeHandler extends PBasicInputEventHandler {
 
         protected Point2D dragPoint;
@@ -203,8 +214,17 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 e.getInputManager().setKeyboardFocus(this);
                 networkView.singleSelect(NodeView.this);
             } else if (e.getClickCount() == 2 && e.isLeftMouseButton()) {
-                node.setRendered();
-                //networkView.getPane().getDocument().setActiveNetwork(node);
+
+                Point2D pt = NodeView.this.getOffset();
+                double y = e.getPosition().getY() - pt.getY();
+                // Check if we're clicking on the label, which is below the node.
+                // We give the user some space below to compensate for the glow.
+                if (y > NODE_FULL_SIZE - 4) {
+                    doRename();
+                } else {
+                    node.setRendered();
+                    //networkView.getPane().getDocument().setActiveNetwork(node);
+                }
             }
             e.setHandled(true);
         }
@@ -352,14 +372,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            String s = JOptionPane.showInputDialog(networkView, "New name:", node.getName());
-            if (s == null || s.length() == 0)
-                return;
-            try {
-                node.setName(s);
-            } catch (InvalidNameException ex) {
-                JOptionPane.showMessageDialog(networkView, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
-            }
+            doRename();
         }
     }
 
