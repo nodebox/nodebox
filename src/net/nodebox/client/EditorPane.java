@@ -27,13 +27,8 @@ public class EditorPane extends Pane {
     public EditorPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
-        JButton reloadButton = new JButton(new ReloadAction());
-        reloadButton.setSize(53, 21);
-        reloadButton.setForeground(SwingUtils.normalColor);
-        reloadButton.setBorderPainted(false);
-        reloadButton.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        reloadButton.setMargin(new Insets(0, 0, 0, 0));
-        reloadButton.setFont(SwingUtils.boldFont);
+        NButton reloadButton = new NButton("Reload", "res/code-reload.png");
+        reloadButton.setActionMethod(this, "reload");
         paneHeader.add(reloadButton);
         editor = new SimpleEditor();
         CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
@@ -74,6 +69,14 @@ public class EditorPane extends Pane {
             editor.setSource(code);
             editor.setEnabled(true);
         }
+    }
+
+    public void reload() {
+        if (node == null) return;
+        Parameter pCode = node.getParameter("_code");
+        if (pCode == null) return;
+        NodeCode code = new PythonCode(editor.getSource());
+        pCode.set(code);
     }
 
     @Override
