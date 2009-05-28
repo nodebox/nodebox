@@ -85,7 +85,7 @@ public class EditorPane extends Pane {
         private ReloadAction() {
             super("Reload");
             ImageIcon icon = new ImageIcon("res/code-reload.png", "Reload");
-            putValue(LARGE_ICON_KEY, icon);
+            putValue(Action.SMALL_ICON, icon);
         }
 
         public void actionPerformed(ActionEvent e) {
