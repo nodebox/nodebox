@@ -4,10 +4,10 @@ import java.awt.*;
 
 public class SwingUtils {
 
-    public static Color normalColor = new Color(60, 60, 60);
-    public static Color armedColor = new Color(0, 0, 0);
-    public static Color shadowColor = new Color(255, 255, 255);
-    public static Font boldFont = new Font("Lucida Grande", Font.BOLD, 11);
+    public static final Color COLOR_NORMAL = new Color(60, 60, 60);
+    public static final Color COLOR_ARMED = new Color(0, 0, 0);
+    public static final Color COLOR_SHADOW = new Color(255, 255, 255);
+    public static final Font FONT_BOLD = new Font("Lucida Grande", Font.BOLD, 11);
 
     public static void centerOnScreen(Window w) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -18,8 +18,12 @@ public class SwingUtils {
     }
 
     public static void drawShadowText(Graphics2D g2, String s, int x, int y) {
+        drawShadowText(g2, s, x, y, COLOR_SHADOW);
+    }
+
+    public static void drawShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor) {
         Color c = g2.getColor();
-        g2.setColor(brighter(c, 0.25));
+        g2.setColor(shadowColor);
         g2.drawString(s, x, y + 1);
         g2.setColor(c);
         g2.drawString(s, x, y);

@@ -173,11 +173,11 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.drawImage(nodeRim, 0, 0, null);
 
         // Draw the node name.
-        g.setFont(SwingUtils.boldFont);
-        g.setColor(new Color(22, 22, 22));
+        g.setFont(SwingUtils.FONT_BOLD);
+        g.setColor(new Color(20, 20, 20));
         int textWidth = g.getFontMetrics().stringWidth(node.getName());
         int x = (int) ((NODE_FULL_SIZE - textWidth) / 2f);
-        SwingUtils.drawShadowText(g, node.getName(), x, NODE_FULL_SIZE + 5);
+        SwingUtils.drawShadowText(g, node.getName(), x, NODE_FULL_SIZE + 5, new Color(133, 133, 133));
 
         // Reset the clipping.
         g.setClip(clip);

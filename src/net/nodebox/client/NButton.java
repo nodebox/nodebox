@@ -140,11 +140,11 @@ public class NButton extends JComponent implements MouseListener {
             g2.drawImage(normalImage, 0, 0, null);
         }
         int w = normalImage.getWidth(null);
-        g2.setFont(SwingUtils.boldFont);
+        g2.setFont(SwingUtils.FONT_BOLD);
         if (armed) {
-            g2.setColor(SwingUtils.armedColor);
+            g2.setColor(SwingUtils.COLOR_ARMED);
         } else {
-            g2.setColor(SwingUtils.normalColor);
+            g2.setColor(SwingUtils.COLOR_NORMAL);
         }
         SwingUtils.drawShadowText(g2, text, w + IMAGE_TEXT_MARGIN, TEXT_BASELINE);
     }

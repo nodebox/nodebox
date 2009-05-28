@@ -45,8 +45,8 @@ public class PaneTypeMenu extends JComponent implements MouseListener {
         g.drawImage(paneMenuBackground, 9, 0, contentWidth, 21, null);
         g.drawImage(paneMenuRight, 9 + contentWidth, 0, null);
 
-        g2.setFont(SwingUtils.boldFont);
-        g2.setColor(SwingUtils.normalColor);
+        g2.setFont(SwingUtils.FONT_BOLD);
+        g2.setColor(SwingUtils.COLOR_NORMAL);
         SwingUtils.drawShadowText(g2, pane.getPaneName(), 9, 14);
     }
 
