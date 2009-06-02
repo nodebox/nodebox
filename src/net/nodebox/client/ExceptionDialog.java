@@ -2,11 +2,18 @@ package net.nodebox.client;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-public class ExceptionDialog extends JDialog {
+public class ExceptionDialog extends JDialog implements ClipboardOwner {
 
     private Throwable exception;
+    private String log;
 
     public ExceptionDialog(Frame owner, Throwable exception) {
         this(owner, exception, "");
@@ -19,29 +26,38 @@ public class ExceptionDialog extends JDialog {
         JPanel innerPanel = new JPanel(new BorderLayout(10, 10));
         innerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.exception = exception;
-        JLabel messageLabel = new JLabel("<html><b>Error: </b>" + exception.getMessage() + " " + extraMessage + "</html>");
+        JLabel messageLabel = new JLabel("<html><b>Error: </b>" + exception.getClass().getName() + ": " + exception.getMessage() + " " + extraMessage + "</html>");
         messageLabel.setFont(PlatformUtils.getInfoFont());
         JTextArea textArea = new JTextArea();
         textArea.setFont(PlatformUtils.getEditorFont());
         StringBuffer sb = new StringBuffer();
+        StringWriter sw = new StringWriter();
+        exception.printStackTrace(new PrintWriter(sw));
+        sb.append(sw.toString());
+        sb.append(exception.getMessage());
+        sb.append("\n");
         for (StackTraceElement ste : exception.getStackTrace()) {
             sb.append(ste.toString());
             sb.append("\n");
         }
 
-
         Throwable cause = exception.getCause();
-        if (cause != null) {
+        while (cause != null) {
             sb.append("Caused by: \n");
             sb.append(cause.toString());
+            sb.append("\n");
+            sb.append(cause.getMessage());
             sb.append("\n");
             for (StackTraceElement ste : cause.getStackTrace()) {
                 sb.append(ste.toString());
                 sb.append("\n");
             }
+            cause = cause.getCause();
         }
+        log = sb.toString();
         textArea.setText(sb.toString());
         textArea.setEditable(false);
+        textArea.setCaretPosition(0);
         JScrollPane scrollPane = new JScrollPane(textArea);
         innerPanel.add(messageLabel, BorderLayout.NORTH);
         innerPanel.add(scrollPane, BorderLayout.CENTER);
@@ -50,6 +66,14 @@ public class ExceptionDialog extends JDialog {
         quitButton.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 System.exit(-1);
+            }
+        });
+        JButton copyButton = new JButton("Copy");
+        copyButton.addActionListener(new AbstractAction() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                Clipboard clipboard = getToolkit().getSystemClipboard();
+                StringSelection ss = new StringSelection(log);
+                clipboard.setContents(ss, ExceptionDialog.this);
             }
         });
 
@@ -62,6 +86,8 @@ public class ExceptionDialog extends JDialog {
         buttonPanel.add(quitButton);
         // Simple spacer hack
         buttonPanel.add(new JLabel("    "));
+        buttonPanel.add(copyButton);
+        buttonPanel.add(new JLabel("    "));
         buttonPanel.add(closeButton);
         innerPanel.add(buttonPanel, BorderLayout.SOUTH);
         container.add(innerPanel, BorderLayout.CENTER);
@@ -69,4 +95,7 @@ public class ExceptionDialog extends JDialog {
         SwingUtils.centerOnScreen(this);
     }
 
+    public void lostOwnership(Clipboard clipboard, Transferable transferable) {
+        // Do nothing
+    }
 }
