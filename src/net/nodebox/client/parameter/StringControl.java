@@ -16,13 +16,14 @@ public class StringControl extends JComponent implements ParameterControl, Actio
 
     public StringControl(Parameter parameter) {
         this.parameter = parameter;
-        setLayout(new FlowLayout(FlowLayout.LEADING));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         textField = new JTextField();
         textField.putClientProperty("Jcomponent.sizeVariant", "small");
         textField.setFont(PlatformUtils.getSmallFont());
         textField.setPreferredSize(new Dimension(150, 19));
         textField.addActionListener(this);
         add(textField);
+        setPreferredSize(new Dimension(150, 30));
         setValueForControl(parameter.getValue());
         parameter.getNode().addParameterValueListener(this);
     }

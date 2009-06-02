@@ -152,6 +152,10 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         initMenu();
         nodeLibrary = new NodeLibrary("untitled");
         setNodeLibrary(nodeLibrary);
+        Node n = new AllControlsType().createInstance();
+        n.newInstance(nodeLibrary, "allcontrols");
+        n.setRendered();
+        n.setPosition(50, 50);
         //renderThread = new RenderThread();
         //renderThread.start();
     }

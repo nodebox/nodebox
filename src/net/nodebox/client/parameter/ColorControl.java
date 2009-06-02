@@ -4,9 +4,9 @@ import net.nodebox.client.ColorDialog;
 import net.nodebox.client.DocumentFocusListener;
 import net.nodebox.client.NodeBoxDocument;
 import net.nodebox.client.SwingUtils;
-import net.nodebox.node.ParameterValueListener;
-import net.nodebox.node.Parameter;
 import net.nodebox.node.Node;
+import net.nodebox.node.Parameter;
+import net.nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -23,16 +23,13 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
     private ColorDialog colorDialog;
 
     public ColorControl(Parameter parameter) {
-        setLayout(new FlowLayout(FlowLayout.LEADING));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         this.parameter = parameter;
-
-//        colorWell = new ColorWell();
-//        colorWell.setColor(parameter.asColor());
-//        colorWell.addChangeListener(this);
-//        add(colorWell);
         colorButton = new ColorButton();
+        colorButton.setPreferredSize(new Dimension(40, 19));
         add(colorButton);
         setValueForControl(parameter.getValue());
+        setPreferredSize(new Dimension(80, 30));
         parameter.getNode().addParameterValueListener(this);
     }
 
@@ -93,32 +90,6 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
     public void focusedNodeChanged(Node node) {
         if (colorDialog != null) {
             colorDialog.dispose();
-        }
-    }
-
-    private class ColorSwatch extends JComponent {
-        private net.nodebox.graphics.Color color = new net.nodebox.graphics.Color();
-
-        private ColorSwatch(net.nodebox.graphics.Color color) {
-            setSize(30, 30);
-            setBounds(0, 0, 30, 30);
-            setPreferredSize(new Dimension(30, 30));
-            this.color = color;
-        }
-
-        public net.nodebox.graphics.Color getColor() {
-            return color;
-        }
-
-        public void setColor(net.nodebox.graphics.Color color) {
-            this.color = color;
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Rectangle r = g.getClipBounds();
-            g.setColor(color.getAwtColor());
-            g.fillRect(r.x, r.y, r.width, r.height);
         }
     }
 

@@ -204,7 +204,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(120, 25);
+        // The control is actually 20 pixels high, but setting the height to 30 will leave a nice margin.
+        return new Dimension(120, 30);
     }
 
     //// Component listeners

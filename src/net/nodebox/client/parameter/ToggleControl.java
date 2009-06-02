@@ -15,7 +15,7 @@ public class ToggleControl extends JComponent implements ParameterControl, Param
 
     public ToggleControl(Parameter parameter) {
         this.parameter = parameter;
-        setLayout(new FlowLayout(FlowLayout.LEADING));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         checkBox = new NButton(NButton.Mode.CHECK, parameter.getLabel());
         checkBox.setActionMethod(this, "toggle");
 //        checkBox = new JCheckBox(parameter.getLabel());
@@ -26,6 +26,7 @@ public class ToggleControl extends JComponent implements ParameterControl, Param
         //checkBox.addActionListener(this);
         add(checkBox);
         setValueForControl(parameter.getValue());
+        setPreferredSize(new Dimension(120, 30));
         parameter.getNode().addParameterValueListener(this);
     }
 
