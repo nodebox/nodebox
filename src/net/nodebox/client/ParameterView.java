@@ -17,6 +17,7 @@ public class ParameterView extends JComponent {
 
     private static final Map<Parameter.Widget, Class> CONTROL_MAP;
     private JPanel controlPanel;
+    private int labelWidth = 100;
 
     static {
         CONTROL_MAP = new HashMap<Parameter.Widget, Class>();
@@ -41,8 +42,10 @@ public class ParameterView extends JComponent {
 
     public ParameterView() {
         setLayout(new BorderLayout());
-        controlPanel = new JPanel(new GridBagLayout());
-        controlPanel.setBackground(Theme.getInstance().getParameterViewBackgroundColor());
+        controlPanel = new ControlPanel(new GridBagLayout());
+        // controlPanel = new JPanel(new GridBagLayout());
+        //controlPanel.setOpaque(false);
+        //controlPanel.setBackground(Theme.getInstance().getParameterViewBackgroundColor());
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
@@ -108,17 +111,23 @@ public class ParameterView extends JComponent {
         }
     }
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node n = manager.getNode("corevector.rect").newInstance(testLibrary, "myrect");
-        ParameterView p = new ParameterView();
-        p.setNode(n);
-        frame.setContentPane(p);
-        frame.setSize(500, 500);
-        frame.setVisible(true);
-    }
+//    @Override
+//    public void paint(Graphics g) {
+//        int height = getHeight();
+//        int width = getWidth();
+//        System.out.println("height = " + height);
+//        System.out.println("width = " + width);
+//        g.setColor(new Color(153, 153, 153));
+//        g.fillRect(0, 0, labelWidth - 2, height);
+//        g.setColor(new Color(146, 146, 146));
+//        g.fillRect(labelWidth - 2, 0, 1, height);
+//        g.setColor(new Color(133, 133, 133));
+//        g.fillRect(labelWidth - 1, 0, 1, height);
+//        g.setColor(new Color(112, 112, 112));
+//        g.fillRect(labelWidth, 0, 1, height);
+//        g.setColor(new Color(196, 196, 196));
+//        g.fillRect(labelWidth + 1, 0, width - labelWidth, height);
+//    }
 
     //// Node events ////
 
@@ -130,5 +139,38 @@ public class ParameterView extends JComponent {
         }
     }
 
+    private class ControlPanel extends JPanel {
+        private ControlPanel(LayoutManager layout) {
+            super(layout);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            int height = getHeight();
+            int width = getWidth();
+            g.setColor(new Color(153, 153, 153));
+            g.fillRect(0, 0, labelWidth - 2, height);
+            g.setColor(new Color(146, 146, 146));
+            g.fillRect(labelWidth - 2, 0, 1, height);
+            g.setColor(new Color(133, 133, 133));
+            g.fillRect(labelWidth - 1, 0, 1, height);
+            g.setColor(new Color(112, 112, 112));
+            g.fillRect(labelWidth, 0, 1, height);
+            g.setColor(new Color(196, 196, 196));
+            g.fillRect(labelWidth + 1, 0, width - labelWidth, height);
+        }
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node n = manager.getNode("corevector.rect").newInstance(testLibrary, "myrect");
+        ParameterView p = new ParameterView();
+        p.setNode(n);
+        frame.setContentPane(p);
+        frame.setSize(500, 500);
+        frame.setVisible(true);
+    }
 
 }

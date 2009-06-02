@@ -3,6 +3,7 @@ package net.nodebox.client;
 import net.nodebox.Icons;
 import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Parameter;
+import sun.swing.SwingUtilities2;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -28,15 +29,11 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
         setLayout(null);
 
-        label = new JLabel(parameter.getLabel());
-        label.setAlignmentX(JLabel.RIGHT_ALIGNMENT);
-        label.setHorizontalAlignment(JLabel.RIGHT);
-        label.setHorizontalTextPosition(JLabel.RIGHT);
-        label.putClientProperty("JComponent.sizeVariant", "small");
-        label.setFont(PlatformUtils.getSmallBoldFont());
+        label = new ShadowLabel(parameter.getLabel());
         label.setToolTipText(parameter.getName());
 
         this.control = control;
+        control.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
         popupButton = new JButton();
         popupButton.putClientProperty("JButton.buttonType", "roundRect");
@@ -71,12 +68,22 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
         setBorder(new Border() {
             public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                int labelWidth = 100;
+                // Draw border on the side of the label
+                g.setColor(new Color(140, 140, 140));
+                g.fillRect(x, y + height - 2, labelWidth - 2, 1);
+                g.setColor(new Color(166, 166, 166));
+                g.fillRect(x, y + height - 1, labelWidth - 2, 1);
+                // Draw border on parameter side
+                g.setColor(new Color(179, 179, 179));
+                g.fillRect(x + labelWidth + 1, y + height - 2, width - labelWidth - 1, 1);
+                g.setColor(new Color(213, 213, 213));
+                g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
                 g.setColor(borderColor);
-                g.fillRect(x, y + height - 1, width, 1);
             }
 
             public Insets getBorderInsets(Component c) {
-                return new Insets(0, 0, 1, 0);
+                return new Insets(5, 0, 7, 0);
             }
 
             public boolean isBorderOpaque() {
@@ -85,13 +92,7 @@ public class ParameterRow extends JComponent implements ComponentListener {
         });
     }
 
-//
-//    @Override
-//    public Insets getInsets() {
-//        return new Insets(TOP_PADDING, 0, BOTTOM_PADDING, 0);
-//    }
-
-    //// Component listeners ////
+//// Component listeners ////
 
     public void componentResized(ComponentEvent e) {
         Dimension controlSize = control.getPreferredSize();
@@ -103,12 +104,6 @@ public class ParameterRow extends JComponent implements ComponentListener {
         expressionField.setBounds(110, TOP_PADDING, 200, h);
         popupButton.setBounds(bounds.width - 30, TOP_PADDING, 30, h);
         repaint();
-    }
-
-    @Override
-    public void paintComponent(Graphics g) {
-        g.setColor(borderColor);
-        g.fillRect(105, 0, 1, getPreferredSize().height);
     }
 
     public void componentMoved(ComponentEvent e) {
@@ -174,6 +169,23 @@ public class ParameterRow extends JComponent implements ComponentListener {
             } catch (ConnectionError ce) {
                 JOptionPane.showMessageDialog(ParameterRow.this, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private class ShadowLabel extends JLabel {
+        public ShadowLabel(String text) {
+            super(text);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g;
+            FontMetrics fm = SwingUtilities2.getFontMetrics(this, g);
+            int textX = getWidth() - fm.stringWidth(getText()) - 10;
+            int textY = fm.getAscent();
+            g.setColor(SwingUtils.COLOR_NORMAL);
+            g.setFont(SwingUtils.FONT_BOLD);
+            SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176));
         }
     }
 
