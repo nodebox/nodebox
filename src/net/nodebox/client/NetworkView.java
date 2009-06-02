@@ -267,7 +267,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
         NodeView nv = getNodeView(child);
         if (nv == null) return;
-        if (attribute == NodeAttributeListener.Attribute.NAME) {
+        if (attribute == NodeAttributeListener.Attribute.NAME || attribute == NodeAttributeListener.Attribute.IMAGE) {
             nv.repaint();
         } else if (attribute == NodeAttributeListener.Attribute.POSITION) {
             if (!nv.getOffset().equals(child.getPosition().getPoint2D())) {

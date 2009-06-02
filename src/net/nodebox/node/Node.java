@@ -52,6 +52,8 @@ public class Node implements NodeCode, NodeAttributeListener {
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
 
+    public static final String IMAGE_GENERIC = "__generic";
+
     public static final String OUTPUT_PORT_NAME = "output";
 
     public static final Node ROOT_NODE;
@@ -61,6 +63,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         ROOT_NODE.addParameter("_code", Parameter.Type.CODE, ROOT_NODE);
         ROOT_NODE.addParameter("_handle", Parameter.Type.CODE, new JavaMethodWrapper(Node.class, "doNothing"));
         ROOT_NODE.addParameter("_description", Parameter.Type.STRING, "Base node instance");
+        ROOT_NODE.addParameter("_image", Parameter.Type.STRING, IMAGE_GENERIC);
         NodeLibrary.BUILTINS.add(ROOT_NODE);
     }
 
@@ -194,6 +197,15 @@ public class Node implements NodeCode, NodeAttributeListener {
     public void setDescription(String description) {
         setValue("_description", description);
         fireNodeAttributeChanged(Attribute.DESCRIPTION);
+    }
+
+    public String getImage() {
+        return asString("_image");
+    }
+
+    public void setImage(String image) {
+        setValue("_image", image);
+        fireNodeAttributeChanged(Attribute.IMAGE);
     }
 
     /**

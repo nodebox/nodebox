@@ -113,12 +113,12 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
      * @return an Image object.
      */
     private Image getImageForNode(Node node) {
-        if (node == null) return nodeGeneric;
+        if (node == null || node.getImage() == null || node.getImage().equals(Node.IMAGE_GENERIC)) return nodeGeneric;
         File libraryFile = node.getLibrary().getFile();
         if (libraryFile != null) {
             File libraryDirectory = libraryFile.getParentFile();
             if (libraryDirectory != null) {
-                File nodeImageFile = new File(libraryDirectory, node.getName() + ".png");
+                File nodeImageFile = new File(libraryDirectory, node.getImage());
                 if (nodeImageFile.exists()) {
                     try {
                         return ImageIO.read(nodeImageFile);
