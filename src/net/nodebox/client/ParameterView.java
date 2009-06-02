@@ -17,7 +17,8 @@ public class ParameterView extends JComponent {
 
     private static final Map<Parameter.Widget, Class> CONTROL_MAP;
     private JPanel controlPanel;
-    private int labelWidth = 100;
+    // At this width, the label background lines out with the pane header divider.
+    public static final int LABEL_WIDTH = 106;
 
     static {
         CONTROL_MAP = new HashMap<Parameter.Widget, Class>();
@@ -72,6 +73,8 @@ public class ParameterView extends JComponent {
         if (node == null) return;
         int rowindex = 0;
         for (Parameter p : node.getParameters()) {
+            // Parameters starting with underscores are hidden.
+            if (p.getName().startsWith("_")) continue;
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
             if (widgetClass != null) {
@@ -90,6 +93,12 @@ public class ParameterView extends JComponent {
             rowindex++;
         }
 
+        if (rowindex == 0) {
+            JLabel noParameters = new JLabel("No parameters");
+            noParameters.setFont(SwingUtils.FONT_BOLD);
+            noParameters.setForeground(SwingUtils.COLOR_NORMAL);
+            controlPanel.add(noParameters);
+        }
         JLabel filler = new JLabel();
         GridBagConstraints fillerConstraints = new GridBagConstraints();
         fillerConstraints.gridx = 0;
@@ -111,24 +120,6 @@ public class ParameterView extends JComponent {
         }
     }
 
-//    @Override
-//    public void paint(Graphics g) {
-//        int height = getHeight();
-//        int width = getWidth();
-//        System.out.println("height = " + height);
-//        System.out.println("width = " + width);
-//        g.setColor(new Color(153, 153, 153));
-//        g.fillRect(0, 0, labelWidth - 2, height);
-//        g.setColor(new Color(146, 146, 146));
-//        g.fillRect(labelWidth - 2, 0, 1, height);
-//        g.setColor(new Color(133, 133, 133));
-//        g.fillRect(labelWidth - 1, 0, 1, height);
-//        g.setColor(new Color(112, 112, 112));
-//        g.fillRect(labelWidth, 0, 1, height);
-//        g.setColor(new Color(196, 196, 196));
-//        g.fillRect(labelWidth + 1, 0, width - labelWidth, height);
-//    }
-
     //// Node events ////
 
     private class NodeEventHandler implements NodeAttributeListener {
@@ -149,15 +140,15 @@ public class ParameterView extends JComponent {
             int height = getHeight();
             int width = getWidth();
             g.setColor(new Color(153, 153, 153));
-            g.fillRect(0, 0, labelWidth - 2, height);
+            g.fillRect(0, 0, LABEL_WIDTH - 3, height);
             g.setColor(new Color(146, 146, 146));
-            g.fillRect(labelWidth - 2, 0, 1, height);
+            g.fillRect(LABEL_WIDTH - 3, 0, 1, height);
             g.setColor(new Color(133, 133, 133));
-            g.fillRect(labelWidth - 1, 0, 1, height);
+            g.fillRect(LABEL_WIDTH - 2, 0, 1, height);
             g.setColor(new Color(112, 112, 112));
-            g.fillRect(labelWidth, 0, 1, height);
+            g.fillRect(LABEL_WIDTH - 1, 0, 1, height);
             g.setColor(new Color(196, 196, 196));
-            g.fillRect(labelWidth + 1, 0, width - labelWidth, height);
+            g.fillRect(LABEL_WIDTH, 0, width - LABEL_WIDTH, height);
         }
     }
 

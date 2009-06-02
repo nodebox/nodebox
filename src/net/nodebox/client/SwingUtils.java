@@ -1,6 +1,8 @@
 package net.nodebox.client;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.geom.Rectangle2D;
 
 public class SwingUtils {
 
@@ -27,6 +29,17 @@ public class SwingUtils {
         g2.drawString(s, x, y + 1);
         g2.setColor(c);
         g2.drawString(s, x, y);
+    }
+
+    public static void drawCenteredShadowText(Graphics2D g2, String s, int x, int y) {
+        drawCenteredShadowText(g2, s, x, y, COLOR_SHADOW);
+    }
+
+    public static void drawCenteredShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor) {
+        FontRenderContext frc = g2.getFontRenderContext();
+        Rectangle2D bounds = g2.getFont().getStringBounds(s, frc);
+        int leftX = (int) (x - (float) bounds.getWidth() / 2);
+        drawShadowText(g2, s, leftX, y, shadowColor);
     }
 
     /**

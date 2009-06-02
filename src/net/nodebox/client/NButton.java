@@ -52,6 +52,10 @@ public class NButton extends JComponent implements MouseListener {
         this(Mode.PUSH, text, imageFile, null);
     }
 
+    public NButton(String text, Image image) {
+        init(Mode.PUSH, text, image, null);
+    }
+
     /**
      * Create a check button.
      *
@@ -129,6 +133,12 @@ public class NButton extends JComponent implements MouseListener {
 
     public boolean isChecked() {
         return checked;
+    }
+
+    public void setChecked(boolean v) {
+        if (v == checked) return;
+        checked = v;
+        repaint();
     }
 
     @Override

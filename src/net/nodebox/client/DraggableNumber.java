@@ -1,15 +1,13 @@
 package net.nodebox.client;
 
-import net.nodebox.Icons;
-
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.LineMetrics;
-import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 
 /**
@@ -18,12 +16,28 @@ import java.text.NumberFormat;
  */
 public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener {
 
+    private static Image draggerLeft, draggerRight, draggerBackground;
+    private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
+    private static Color highlightColor;
+
+    static {
+        try {
+            draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
+            draggerRight = ImageIO.read(new File("res/dragger-right.png"));
+            draggerBackground = ImageIO.read(new File("res/dragger-background.png"));
+            draggerLeftWidth = draggerLeft.getWidth(null);
+            draggerRightWidth = draggerRight.getWidth(null);
+            draggerHeight = draggerBackground.getHeight(null);
+            highlightColor = new Color(223, 223, 223);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     // todo: could use something like BoundedRangeModel (but then for floats) for checking bounds.
 
     private JTextField numberField;
     private double oldValue, value;
-    private Icon leftIcon;
-    private Icon rightIcon;
     private int previousX;
 
     private Double minimumValue;
@@ -46,13 +60,12 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         addMouseListener(this);
         addMouseMotionListener(this);
         addComponentListener(this);
-        leftIcon = new Icons.ArrowIcon(Icons.ArrowIcon.WEST, Color.GRAY);
-        rightIcon = new Icons.ArrowIcon(Icons.ArrowIcon.EAST, Color.GRAY);
+        Dimension d = new Dimension(87, 20);
+        setPreferredSize(d);
 
         numberField = new JTextField();
         numberField.putClientProperty("JComponent.sizeVariant", "small");
         numberField.setFont(PlatformUtils.getSmallBoldFont());
-        numberField.setBounds(12, 1, 100, 30);
         numberField.setHorizontalAlignment(JTextField.CENTER);
         numberField.setVisible(false);
         numberField.addKeyListener(new EscapeListener());
@@ -68,6 +81,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         numberFormat.setMaximumFractionDigits(2);
 
         setValue(0);
+        // Set the correct size for the numberField.
+        componentResized(null);
     }
 
     //// Value ranges ////
@@ -162,50 +177,27 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private Rectangle getLeftButtonRect(Rectangle r) {
         if (r == null)
             r = getBounds();
-        return new Rectangle(r.x + 2, r.y + 1, 15, r.height - 2);
+        return new Rectangle(r.x, r.y, draggerLeftWidth, draggerHeight);
     }
 
     private Rectangle getRightButtonRect(Rectangle r) {
-        r = getLeftButtonRect(r);
-        r.setRect(getWidth() - 15, r.y, 15, r.height);
-        return r;
+        if (r == null)
+            r = getBounds();
+        return new Rectangle(r.width - draggerRightWidth, r.y, draggerRightWidth, draggerHeight);
     }
 
     @Override
     public void paintComponent(Graphics g) {
-        paintDraggableNumber(g);
-    }
-
-    protected void paintDraggableNumber(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        // g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         Rectangle r = getBounds();
-        int radius = r.height / 2;
-        int halfradius = (radius / 2) - 2;
-        r.setRect(2, 2, r.width - 8, r.height - 8);
-        g2.setColor(new Color(215, 215, 215));
-        g2.fillRoundRect(r.x, r.y, r.width, r.height, radius, radius);
-        g2.setColor(new Color(150, 150, 150));
-        g2.drawRoundRect(r.x, r.y, r.width, r.height, radius, radius);
-        g2.setColor(new Color(187, 187, 187));
-        g2.drawLine(r.x + halfradius, r.y + 1, r.width - halfradius, r.y + 1);
-        g2.setColor(new Color(223, 223, 223));
-        g2.drawLine(r.x + halfradius, r.y + r.height - 1, r.width - halfradius, r.y + r.height - 1);
-        g2.setColor(new Color(0, 0, 0));
-        g2.setFont(PlatformUtils.getSmallBoldFont());
-        paintCenteredString(g2, valueAsString(), r.x + r.width / 2F, r.y + r.height / 2F);
-        // TODO: The "-2" at the end is a hack. 
-        leftIcon.paintIcon(this, g, r.x + 2, r.y + r.height / 2 - 2);
-        rightIcon.paintIcon(this, g, r.x + r.width - 8, r.y + r.height / 2 - 2);
-    }
-
-    private void paintCenteredString(Graphics2D g2, String s, float centerX, float centerY) {
-        FontRenderContext frc = g2.getFontRenderContext();
-        Rectangle2D bounds = g2.getFont().getStringBounds(s, frc);
-        float leftX = centerX - (float) bounds.getWidth() / 2;
-        LineMetrics lm = g2.getFont().getLineMetrics(s, frc);
-        float baselineY = centerY - lm.getHeight() / 2 + lm.getAscent();
-        g2.drawString(s, leftX, baselineY);
+        int centerWidth = r.width - draggerLeftWidth - draggerRightWidth;
+        g2.drawImage(draggerLeft, 0, 0, null);
+        g2.drawImage(draggerRight, r.width - draggerRightWidth, 0, null);
+        g2.drawImage(draggerBackground, draggerLeftWidth, 0, centerWidth, draggerHeight, null);
+        g2.setFont(SwingUtils.FONT_BOLD);
+        g2.setColor(SwingUtils.COLOR_NORMAL);
+        SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, highlightColor);
     }
 
     //// Component size ////
@@ -218,7 +210,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     //// Component listeners
 
     public void componentResized(ComponentEvent e) {
-        numberField.setBounds(12, 1, getWidth() - 24, getHeight() - 2);
+        numberField.setBounds(draggerLeftWidth, 1, getWidth() - draggerLeftWidth - draggerRightWidth, draggerHeight - 2);
     }
 
     public void componentMoved(ComponentEvent e) {

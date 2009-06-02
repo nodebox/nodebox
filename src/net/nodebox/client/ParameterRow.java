@@ -1,30 +1,45 @@
 package net.nodebox.client;
 
-import net.nodebox.Icons;
 import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Parameter;
 import sun.swing.SwingUtilities2;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 
-public class ParameterRow extends JComponent implements ComponentListener {
+public class ParameterRow extends JComponent implements ComponentListener, MouseListener {
+
+    private static Image popupButtonImage;
+    private static int popupButtonHeight;
+    private static Border rowBorder = new RowBorder();
+
+    static {
+        try {
+            popupButtonImage = ImageIO.read(new File("res/options-button.png"));
+            popupButtonHeight = popupButtonImage.getHeight(null);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private Parameter parameter;
     private JLabel label;
     private JComponent control;
     private JTextField expressionField;
-    private JButton popupButton;
+    private JPopupMenu popupMenu;
     private JCheckBoxMenuItem expressionMenuItem;
-    private Color borderColor = new Color(170, 170, 170);
 
     private static final int TOP_PADDING = 2;
     private static final int BOTTOM_PADDING = 2;
 
     public ParameterRow(Parameter parameter, JComponent control) {
         addComponentListener(this);
+        addMouseListener(this);
         this.parameter = parameter;
 
         setLayout(null);
@@ -35,23 +50,10 @@ public class ParameterRow extends JComponent implements ComponentListener {
         this.control = control;
         control.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-        popupButton = new JButton();
-        popupButton.putClientProperty("JButton.buttonType", "roundRect");
-        popupButton.putClientProperty("JComponent.sizeVariant", "mini");
-        popupButton.setFocusable(false);
-        popupButton.setIcon(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH, new Color(180, 180, 180)));
-        JPopupMenu menu = new JPopupMenu();
+        popupMenu = new JPopupMenu();
         expressionMenuItem = new JCheckBoxMenuItem(new ToggleExpressionAction());
-        menu.add(expressionMenuItem);
-        menu.add(new RevertToDefaultAction());
-        popupButton.setComponentPopupMenu(menu);
-        popupButton.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                JButton b = (JButton) e.getSource();
-                Point p = e.getPoint();
-                b.getComponentPopupMenu().show(b, p.x, p.y);
-            }
-        });
+        popupMenu.add(expressionMenuItem);
+        popupMenu.add(new RevertToDefaultAction());
 
         expressionField = new JTextField();
         expressionField.setVisible(false);
@@ -61,48 +63,23 @@ public class ParameterRow extends JComponent implements ComponentListener {
 
         add(this.label);
         add(this.control);
-        add(this.popupButton);
         add(this.expressionField);
         componentResized(null);
         setExpressionStatus();
 
-        setBorder(new Border() {
-            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                int labelWidth = 100;
-                // Draw border on the side of the label
-                g.setColor(new Color(140, 140, 140));
-                g.fillRect(x, y + height - 2, labelWidth - 2, 1);
-                g.setColor(new Color(166, 166, 166));
-                g.fillRect(x, y + height - 1, labelWidth - 2, 1);
-                // Draw border on parameter side
-                g.setColor(new Color(179, 179, 179));
-                g.fillRect(x + labelWidth + 1, y + height - 2, width - labelWidth - 1, 1);
-                g.setColor(new Color(213, 213, 213));
-                g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
-                g.setColor(borderColor);
-            }
-
-            public Insets getBorderInsets(Component c) {
-                return new Insets(5, 0, 7, 0);
-            }
-
-            public boolean isBorderOpaque() {
-                return true;
-            }
-        });
+        setBorder(rowBorder);
     }
 
-//// Component listeners ////
+    //// Component listeners ////
 
     public void componentResized(ComponentEvent e) {
         Dimension controlSize = control.getPreferredSize();
         Rectangle bounds = getBounds();
         int h = bounds.height - TOP_PADDING - BOTTOM_PADDING;
-        label.setBounds(0, TOP_PADDING, 100, h);
-        control.setBounds(110, TOP_PADDING, controlSize.width, h);
+        label.setBounds(0, TOP_PADDING, ParameterView.LABEL_WIDTH, h);
+        control.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, controlSize.width, h);
         control.doLayout();
-        expressionField.setBounds(110, TOP_PADDING, 200, h);
-        popupButton.setBounds(bounds.width - 30, TOP_PADDING, 30, h);
+        expressionField.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, 200, h);
         repaint();
     }
 
@@ -118,6 +95,31 @@ public class ParameterRow extends JComponent implements ComponentListener {
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(400, control.getPreferredSize().height + TOP_PADDING + BOTTOM_PADDING);
+    }
+
+    //// Mouse listeners ////
+
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    public void mousePressed(MouseEvent e) {
+        if (e.getX() < this.getWidth() - 20) return;
+        popupMenu.show(this, this.getWidth() - 20, 20);
+    }
+
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        g.drawImage(popupButtonImage, getWidth() - 20, 0, null);
+
     }
 
     //// Parameter context menu ////
@@ -172,6 +174,8 @@ public class ParameterRow extends JComponent implements ComponentListener {
         }
     }
 
+    //// Draw classes ////
+
     private class ShadowLabel extends JLabel {
         public ShadowLabel(String text) {
             super(text);
@@ -186,6 +190,35 @@ public class ParameterRow extends JComponent implements ComponentListener {
             g.setColor(SwingUtils.COLOR_NORMAL);
             g.setFont(SwingUtils.FONT_BOLD);
             SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176));
+        }
+    }
+
+    private static class RowBorder implements Border {
+        private static Color labelUp = new Color(140, 140, 140);
+        private static Color labelDown = new Color(166, 166, 166);
+        private static Color parameterUp = new Color(179, 179, 179);
+        private static Color parameterDown = new Color(213, 213, 213);
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            int labelWidth = ParameterView.LABEL_WIDTH;
+            // Draw border on the side of the label
+            g.setColor(labelUp);
+            g.fillRect(x, y + height - 2, labelWidth - 2, 1);
+            g.setColor(labelDown);
+            g.fillRect(x, y + height - 1, labelWidth - 2, 1);
+            // Draw border on parameter side
+            g.setColor(parameterUp);
+            g.fillRect(x + labelWidth + 1, y + height - 2, width - labelWidth - 1, 1);
+            g.setColor(parameterDown);
+            g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(5, 0, 7, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
         }
     }
 
