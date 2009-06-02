@@ -1,6 +1,5 @@
 package net.nodebox.util;
 
-import net.nodebox.util.PlatformUtils;
 import org.python.core.Py;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
@@ -12,7 +11,7 @@ public class PythonUtils {
 
     public static void initializePython() {
         Properties jythonProperties = new Properties();
-        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
+        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "_jythoncache";
         jythonProperties.put("python.cachedir", jythonCacheDir);
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
         String workingDirectory = System.getProperty("user.dir");
