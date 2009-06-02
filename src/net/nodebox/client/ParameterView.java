@@ -137,18 +137,24 @@ public class ParameterView extends JComponent {
 
         @Override
         protected void paintComponent(Graphics g) {
-            int height = getHeight();
-            int width = getWidth();
-            g.setColor(new Color(153, 153, 153));
-            g.fillRect(0, 0, LABEL_WIDTH - 3, height);
-            g.setColor(new Color(146, 146, 146));
-            g.fillRect(LABEL_WIDTH - 3, 0, 1, height);
-            g.setColor(new Color(133, 133, 133));
-            g.fillRect(LABEL_WIDTH - 2, 0, 1, height);
-            g.setColor(new Color(112, 112, 112));
-            g.fillRect(LABEL_WIDTH - 1, 0, 1, height);
-            g.setColor(new Color(196, 196, 196));
-            g.fillRect(LABEL_WIDTH, 0, width - LABEL_WIDTH, height);
+            if (node == null) {
+                Rectangle clip = g.getClipBounds();
+                g.setColor(new Color(196, 196, 196));
+                g.fillRect(clip.x, clip.y, clip.width, clip.height);
+            } else {
+                int height = getHeight();
+                int width = getWidth();
+                g.setColor(new Color(153, 153, 153));
+                g.fillRect(0, 0, LABEL_WIDTH - 3, height);
+                g.setColor(new Color(146, 146, 146));
+                g.fillRect(LABEL_WIDTH - 3, 0, 1, height);
+                g.setColor(new Color(133, 133, 133));
+                g.fillRect(LABEL_WIDTH - 2, 0, 1, height);
+                g.setColor(new Color(112, 112, 112));
+                g.fillRect(LABEL_WIDTH - 1, 0, 1, height);
+                g.setColor(new Color(196, 196, 196));
+                g.fillRect(LABEL_WIDTH, 0, width - LABEL_WIDTH, height);
+            }
         }
     }
 

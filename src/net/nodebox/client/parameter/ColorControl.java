@@ -18,12 +18,11 @@ import java.awt.event.ActionListener;
 public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ActionListener, DocumentFocusListener, ParameterValueListener {
 
     private Parameter parameter;
-    //private ColorWell colorWell;
     private ColorButton colorButton;
     private ColorDialog colorDialog;
 
     public ColorControl(Parameter parameter) {
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
         this.parameter = parameter;
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));

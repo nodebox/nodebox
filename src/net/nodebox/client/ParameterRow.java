@@ -186,7 +186,8 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
             Graphics2D g2 = (Graphics2D) g;
             FontMetrics fm = SwingUtilities2.getFontMetrics(this, g);
             int textX = getWidth() - fm.stringWidth(getText()) - 10;
-            int textY = fm.getAscent();
+            // Add some padding to align it to 30px high components.
+            int textY = fm.getAscent() + 6;
             g.setColor(SwingUtils.COLOR_NORMAL);
             g.setFont(SwingUtils.FONT_BOLD);
             SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176));
