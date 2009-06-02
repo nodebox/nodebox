@@ -403,6 +403,8 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             return true;
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error while parsing" + file, e);
+            ExceptionDialog d = new ExceptionDialog(this, e);
+            d.setVisible(true);
         }
         return false;
     }
