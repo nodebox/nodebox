@@ -70,6 +70,12 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Fill the background with a neutral grey.
+        g2.setColor(new Color(232, 232, 232));
+        Rectangle clip = g.getClipBounds();
+        g2.fillRect(clip.x, clip.y, clip.width, clip.height);
+
         //if (canvasImage != null)
         //g2.drawImage(canvasImage,0, 0, null);
         g2.translate(getWidth() / 2.0, getHeight() / 2.0);
