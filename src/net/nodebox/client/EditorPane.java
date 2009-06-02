@@ -1,22 +1,25 @@
 package net.nodebox.client;
 
 import net.nodebox.client.editor.SimpleEditor;
-import net.nodebox.node.Node;
-import net.nodebox.node.NodeCode;
-import net.nodebox.node.Parameter;
-import net.nodebox.node.PythonCode;
+import net.nodebox.node.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-public class EditorPane extends Pane {
+public class EditorPane extends Pane implements DirtyListener, ComponentListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
-    //private CodeArea codeArea;
     private Node node;
+    private EditorSplitter splitter;
+    private JTextArea messages;
+    private NButton messagesCheck;
 
     public EditorPane(NodeBoxDocument document) {
         this();
@@ -29,11 +32,24 @@ public class EditorPane extends Pane {
         paneHeader = new PaneHeader(this);
         NButton reloadButton = new NButton("Reload", "res/code-reload.png");
         reloadButton.setActionMethod(this, "reload");
+        messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
+        messagesCheck.setActionMethod(this, "toggleMessages");
         paneHeader.add(reloadButton);
+        paneHeader.add(new Divider());
+        paneHeader.add(messagesCheck);
         editor = new SimpleEditor();
         CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
-        add(editor, BorderLayout.CENTER);
+        messages = new JTextArea();
+        messages.setEditable(false);
+        messages.setFont(PlatformUtils.getEditorFont());
+        messages.setMargin(new Insets(0, 5, 0, 5));
+        JScrollPane messagesScroll = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        messagesScroll.setBorder(BorderFactory.createEmptyBorder());
+        splitter = new EditorSplitter(JSplitPane.VERTICAL_SPLIT, editor, messagesScroll);
+        splitter.setEnabled(false);
+        add(splitter, BorderLayout.CENTER);
+        addComponentListener(this);
     }
 
     @Override
@@ -48,7 +64,7 @@ public class EditorPane extends Pane {
     }
 
     public String getPaneName() {
-        return "Code";
+        return "Source";
     }
 
     public Node getNode() {
@@ -57,17 +73,30 @@ public class EditorPane extends Pane {
 
     public void setNode(Node node) {
         if (this.node == node && node != null) return;
+        Node oldNode = this.node;
+        if (oldNode != null) {
+            oldNode.removeDirtyListener(this);
+        }
         this.node = node;
         Parameter pCode = null;
-        if (node != null)
+        if (node != null) {
             pCode = node.getParameter("_code");
+            node.addDirtyListener(this);
+        }
         if (pCode == null) {
             editor.setSource("");
             editor.setEnabled(false);
+            messages.setEnabled(false);
+            messages.setBackground(new Color(240, 240, 240));
+            splitter.setDividerLocation(1.0);
+            updateMessages(node);
         } else {
             String code = pCode.asCode().getSource();
             editor.setSource(code);
             editor.setEnabled(true);
+            messages.setEnabled(true);
+            messages.setBackground(Color.white);
+            updateMessages(node);
         }
     }
 
@@ -79,9 +108,73 @@ public class EditorPane extends Pane {
         pCode.set(code);
     }
 
+    public void toggleMessages() {
+        setMessages(messagesCheck.isChecked());
+    }
+
+    private void setMessages(boolean v) {
+        if (v) {
+            splitter.setEnabled(true);
+            splitter.setDividerLocation(getHeight() - 200);
+        } else {
+            splitter.setEnabled(false);
+            splitter.setDividerLocation(1.0);
+        }
+        messagesCheck.setChecked(v);
+    }
+
     @Override
     public void focusedNodeChanged(Node activeNode) {
         setNode(activeNode);
+    }
+
+    public void nodeDirty(Node node) {
+        // Ignore this event.
+    }
+
+    public void nodeUpdated(Node node) {
+        updateMessages(node);
+    }
+
+    private void updateMessages(Node node) {
+        // See if any errors happened.
+        if (node != null && node.hasError()) {
+            StringBuffer sb = new StringBuffer();
+            StringWriter sw = new StringWriter();
+            Throwable t = node.getError();
+            t.printStackTrace(new PrintWriter(sw));
+            sb.append(t.toString());
+            //sb.append(t.getMessage()).append("\n");
+            Throwable cause = t.getCause();
+            while (cause != null) {
+                sb.append("Caused by: \n");
+                sb.append(cause.toString()).append("\n");
+                cause = t.getCause();
+            }
+            messages.setText(sb.toString());
+            setMessages(true);
+            // Ensure messages are visible
+            if (splitter.getHeight() - splitter.getDividerLocation() < 100) {
+                splitter.setDividerLocation(0.6);
+            }
+        } else {
+            messages.setText("");
+        }
+    }
+
+    //// Component events /////
+
+    public void componentResized(ComponentEvent e) {
+        splitter.setDividerLocation(splitter.getHeight());
+    }
+
+    public void componentMoved(ComponentEvent e) {
+    }
+
+    public void componentShown(ComponentEvent e) {
+    }
+
+    public void componentHidden(ComponentEvent e) {
     }
 
     private class ReloadAction extends AbstractAction {

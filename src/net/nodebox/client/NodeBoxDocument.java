@@ -581,7 +581,11 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         markChanged();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                activeNetwork.update();
+                try {
+                    activeNetwork.update();
+                } catch (ProcessingError processingError) {
+                    Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
+                }
             }
         });
         //doRender();
