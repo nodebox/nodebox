@@ -26,7 +26,7 @@ public class NButton extends JComponent implements MouseListener {
             checkOn = ImageIO.read(new File("res/check-on.png"));
             checkOff = ImageIO.read(new File("res/check-off.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

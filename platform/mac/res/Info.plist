@@ -53,8 +53,6 @@
         <string>true</string>
         <key>com.apple.mrj.application.apple.menu.about.name</key>
         <string>NodeBox</string>
-        <key>apple.awt.graphics.UseQuartz</key>
-        <string>true</string>
       </dict>
       <key>VMOptions</key>
       <string>-Xms40m -Xmx512m -XX:MaxPermSize=256m</string>

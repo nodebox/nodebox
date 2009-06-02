@@ -18,10 +18,20 @@ public class NodeLibraryManager {
     public static final Pattern FLOAT_PATTERN = Pattern.compile("^\\-?[0-9]+\\.[0-9]+$");
     public static final Pattern CODE_PATTERN = Pattern.compile("^(java):(([\\w_]+\\.?)+)\\.([\\w_]+)$");
 
+    private List<File> searchPaths = new ArrayList<File>();
     private Map<String, NodeLibrary> libraries = new HashMap<String, NodeLibrary>();
+    private boolean lookedForLibraries = false;
 
     public NodeLibraryManager() {
         add(NodeLibrary.BUILTINS);
+    }
+
+    //// Search paths ////
+
+    public void addSearchPath(File f) {
+        if (!f.isDirectory())
+            throw new IllegalArgumentException("The given file should be a directory.");
+        searchPaths.add(f);
     }
 
     //// Library management ////
@@ -48,6 +58,30 @@ public class NodeLibraryManager {
 
     public int size() {
         return libraries.size();
+    }
+
+    //// Loading ////
+
+    public void lookForLibraries() {
+        if (lookedForLibraries) return;
+        refreshLibraries();
+    }
+
+    private void refreshLibraries() {
+        lookedForLibraries = true;
+        for (File path : searchPaths) {
+            lookForLibraries(path);
+        }
+    }
+
+    private void lookForLibraries(File dir) {
+        for (File f : dir.listFiles()) {
+            if (f.isDirectory()) {
+                lookForLibraries(f);
+            } else if (f.getName().endsWith(".ndbx")) {
+                load(f);
+            }
+        }
     }
 
     //// Node shortcuts ////
@@ -182,6 +216,7 @@ public class NodeLibraryManager {
      * @return a list of all nodes
      */
     public List<Node> getNodes() {
+        lookForLibraries();
         List<Node> nodes = new ArrayList<Node>();
         // Add the root node separately.
         nodes.add(Node.ROOT_NODE);
@@ -189,5 +224,13 @@ public class NodeLibraryManager {
             nodes.addAll(library.getRootNode().getChildren());
         }
         return nodes;
+    }
+
+    private class FileTraversal {
+        public final void traverse(File f) {
+            if (f.isDirectory()) {
+
+            }
+        }
     }
 }

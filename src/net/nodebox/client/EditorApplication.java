@@ -32,13 +32,13 @@ public class EditorApplication {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         // Initialize Jython
         Properties jythonProperties = new Properties();
-        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "jythoncache";
-        jythonProperties.put("python.cachedir", jythonCacheDir);
+        File jythonCacheDir = new File(PlatformUtils.getUserDataDirectory(), "_jythoncache");
+        jythonProperties.put("python.cachedir", jythonCacheDir.getAbsolutePath());
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
         String workingDirectory = System.getProperty("user.dir");
         File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
-        Py.getSystemState().path.add(new PyString(PlatformUtils.getUserDataDirectory()));
+        Py.getSystemState().path.add(new PyString(PlatformUtils.getUserDataDirectory().getAbsolutePath()));
         createNewDocument();
     }
 

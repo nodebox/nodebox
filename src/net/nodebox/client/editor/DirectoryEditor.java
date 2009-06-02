@@ -57,7 +57,7 @@ public class DirectoryEditor extends JPanel implements TreeSelectionListener {
     }
 
     public static void main(String[] args) {
-        File editorDirectory = new File(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        File editorDirectory = PlatformUtils.getUserNodeTypeLibraryDirectory();
         JFrame frame = new JFrame("Simple Editor");
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

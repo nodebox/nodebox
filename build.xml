@@ -4,14 +4,16 @@
 
     <target name="properties">
         <property name="src" value="src"/>
-        <property name="test" value="test"/>
+        <property name="res" value="res"/>
+        <property name="test" value="test/java"/>
         <property name="lib" value="lib"/>
+        <property name="libraries" value="libraries"/>
         <property name="examples" value="examples"/>
         <property name="build" value="build"/>
         <property name="build.prod" location="${build}/prod"/>
         <property name="build.test" location="${build}/test"/>
         <property name="dist" value="dist"/>
-        <property name="dist.nodebox" value="${dist}/mac"/>
+        <property name="dist.nodebox" value="${dist}/NodeBox"/>
         <property name="dist.nodebox.examples" value="${dist.nodebox}/Examples"/>
         <property name="apple.appstub"
                   location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
@@ -21,6 +23,9 @@
         <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
         <property name="mac.application.resources" location="${mac.application.contents}/Resources"/>
         <property name="mac.application.resources.java" location="${mac.application.resources}/Java"/>
+        <property name="mac.application.plugins" location="${mac.application.resources.java}/plugins"/>
+        <property name="mac.application.libraries" location="${mac.application.resources.java}/libraries"/>
+        <property name="mac.application.res" location="${mac.application.resources.java}/res"/>
 
         <!-- Determine the platform family: windows, mac or linux. -->
         <condition property="platform.windows" value="true">
@@ -31,7 +36,7 @@
         <condition property="platform.mac" value="true">
             <equals arg1="${os.name}" arg2="Mac OS X"/>
         </condition>
-        <condition property="platform.unix" value="true">
+        <condition property="platform.linux" value="true">
             <equals arg1="${os.name}" arg2="Linux"/>
         </condition>
         <condition property="platform" value="mac">
@@ -94,11 +99,6 @@
         <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
     </target>
 
-    <target name="run-jar" depends="jar">
-        <java jar="${jars}/${ant.project.name}.jar" classpath="${bin}" fork="true">
-        </java>
-    </target>
-
     <target name="dist-win" depends="jar">
     </target>
 
@@ -106,6 +106,9 @@
         <mkdir dir="${dist.nodebox}"/>
         <mkdir dir="${mac.application.resources.java}"/>
         <mkdir dir="${mac.application.macos}"/>
+        <mkdir dir="${mac.application.plugins}"/>
+        <mkdir dir="${mac.application.libraries}"/>
+        <mkdir dir="${mac.application.res}"/>
         <!-- Copy program jar and library jars -->
         <copy file="${dist}/lib/nodebox.jar"
               todir="${mac.application.resources.java}"/>
@@ -123,13 +126,22 @@
                 <include name="*.properties"/>
             </fileset>
         </copy>
+        <!-- Copy resources-->
+        <copy todir="${mac.application.res}">
+            <fileset dir="${res}"/>
+        </copy>
+        <!-- Copy bundled libraries -->
+        <copy todir="${mac.application.libraries}">
+            <fileset dir="${libraries}"/>
+        </copy>
+
         <copy todir="${dist.nodebox.examples}">
             <fileset dir="${examples}"/>
         </copy>
         <!-- Copy application stub -->
         <copy file="${apple.appstub}" toFile="${mac.application.macos}/${ant.project.name}"/>
         <!-- fix stub permissions -->
-        <chmod file="${mac.application.macos.stub}" perm="755"/>
+        <chmod file="${mac.application.macos}/${ant.project.name}" perm="755"/>
         <!-- copy additional Mac contents -->
         <copy todir="${mac.application.contents}">
             <fileset dir="${platform.res}"/>
@@ -144,14 +156,20 @@
     <target name="install" depends="dist-mac" description="Create application">
     </target>
 
-    <target name="run" depends="install" description="Run the double-clickable application">
+    <target name="run" depends="compile">
+        <java classname="net.nodebox.client.Application" fork="true">
+            <classpath refid="project.classpath"/>
+        </java>
+    </target>
+
+    <target name="run-mac" depends="install" description="Run the double-clickable application">
         <!-- Use the exec task to open the application -->
-        <exec dir="${dist}" executable="/usr/bin/open" os="Mac OS X">
+        <exec dir="${dist.nodebox}" executable="/usr/bin/open" os="Mac OS X">
             <arg line="${ant.project.name}.app"/>
         </exec>
     </target>
 
-    <target name="clean">
+    <target name="clean" depends="properties">
         <delete dir="${build}"/>
         <delete dir="${dist}"/>
     </target>

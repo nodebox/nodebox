@@ -3,6 +3,7 @@ package net.nodebox.client;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
+import java.io.File;
 
 public class PlatformUtils {
     public static int WIN = 1;
@@ -39,8 +40,10 @@ public class PlatformUtils {
         return current_platform == OTHER;
     }
 
-    public static String getHomeDirectory() {
-        return System.getProperty("user.home");
+    //// Application directories ////
+
+    public static File getHomeDirectory() {
+        return new File(System.getProperty("user.home"));
 
     }
 
@@ -52,19 +55,26 @@ public class PlatformUtils {
      *
      * @return the user's data directory.
      */
-    public static String getUserDataDirectory() {
+    public static File getUserDataDirectory() {
         if (onMac()) {
-            return getHomeDirectory() + SEP + "Library" + SEP + "Application Support" + SEP + Application.NAME;
+            return new File(getHomeDirectory(), "Library/Application Support/" + Application.NAME);
         } else if (onWindows()) {
-            return getHomeDirectory() + SEP + "Application Data" + SEP + Application.NAME;
+            return new File(getHomeDirectory(), "Application Data/" + Application.NAME);
         } else {
-            return getHomeDirectory() + SEP + Application.NAME.toLowerCase();
+            return new File(getHomeDirectory(), Application.NAME.toLowerCase());
         }
     }
 
-    public static String getUserNodeTypeLibraryDirectory() {
+    public static File getUserNodeTypeLibraryDirectory() {
         return getUserDataDirectory();
     }
+
+    public static File getApplicationNodeLibraryDirectory() {
+        // TODO: This only works in debug mode.
+        return new File("libraries");
+    }
+
+    //// Keystrokes ////
 
     public static KeyStroke getKeyStroke(int key) {
         return KeyStroke.getKeyStroke(key, platformSpecificModifier);

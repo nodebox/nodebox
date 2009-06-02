@@ -24,7 +24,6 @@ import net.nodebox.util.PythonUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -56,7 +55,7 @@ public class Application {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
-        new File(PlatformUtils.getUserDataDirectory()).mkdir();
+        PlatformUtils.getUserDataDirectory().mkdir();
         registerForMacOSXEvents();
     }
 
@@ -106,7 +105,9 @@ public class Application {
 
     private void load() {
         manager = new NodeLibraryManager();
-        // TODO: manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        manager.addSearchPath(PlatformUtils.getApplicationNodeLibraryDirectory());
+        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        manager.lookForLibraries();
         int tasks = manager.getLibraries().size() + 1;
         startupDialog = new ProgressDialog(null, "Starting NodeBox", tasks);
         startupDialog.setVisible(true);
