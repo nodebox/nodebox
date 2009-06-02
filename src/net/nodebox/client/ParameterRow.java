@@ -2,7 +2,6 @@ package net.nodebox.client;
 
 import net.nodebox.node.ConnectionError;
 import net.nodebox.node.Parameter;
-import sun.swing.SwingUtilities2;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -118,7 +117,8 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
 
     @Override
     protected void paintComponent(Graphics g) {
-        g.drawImage(popupButtonImage, getWidth() - 20, 0, null);
+        // Height aligns to 30px high control, such as float, string, color, etc.
+        g.drawImage(popupButtonImage, getWidth() - 20, 4, null);
 
     }
 
@@ -184,12 +184,11 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g;
-            FontMetrics fm = SwingUtilities2.getFontMetrics(this, g);
-            int textX = getWidth() - fm.stringWidth(getText()) - 10;
+            g2.setColor(SwingUtils.COLOR_NORMAL);
+            g2.setFont(SwingUtils.FONT_BOLD);
+            int textX = ParameterView.LABEL_WIDTH - g2.getFontMetrics().stringWidth(getText()) - 10;
             // Add some padding to align it to 30px high components.
-            int textY = fm.getAscent() + 6;
-            g.setColor(SwingUtils.COLOR_NORMAL);
-            g.setFont(SwingUtils.FONT_BOLD);
+            int textY = 19;
             SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176));
         }
     }
