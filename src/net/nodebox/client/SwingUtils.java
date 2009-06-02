@@ -20,13 +20,13 @@ public class SwingUtils {
     }
 
     public static void drawShadowText(Graphics2D g2, String s, int x, int y) {
-        drawShadowText(g2, s, x, y, COLOR_SHADOW);
+        drawShadowText(g2, s, x, y, COLOR_SHADOW, 1);
     }
 
-    public static void drawShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor) {
+    public static void drawShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor, int offset) {
         Color c = g2.getColor();
         g2.setColor(shadowColor);
-        g2.drawString(s, x, y + 1);
+        g2.drawString(s, x, y + offset);
         g2.setColor(c);
         g2.drawString(s, x, y);
     }
@@ -39,7 +39,7 @@ public class SwingUtils {
         FontRenderContext frc = g2.getFontRenderContext();
         Rectangle2D bounds = g2.getFont().getStringBounds(s, frc);
         int leftX = (int) (x - (float) bounds.getWidth() / 2);
-        drawShadowText(g2, s, leftX, y, shadowColor);
+        drawShadowText(g2, s, leftX, y, shadowColor, 1);
     }
 
     /**

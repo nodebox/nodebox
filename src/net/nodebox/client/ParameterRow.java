@@ -189,7 +189,7 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
             int textX = ParameterView.LABEL_WIDTH - g2.getFontMetrics().stringWidth(getText()) - 10;
             // Add some padding to align it to 30px high components.
             int textY = 19;
-            SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176));
+            SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176), 1);
         }
     }
 
