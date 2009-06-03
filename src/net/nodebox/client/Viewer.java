@@ -78,14 +78,16 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
         //if (canvasImage != null)
         //g2.drawImage(canvasImage,0, 0, null);
-        g2.translate(getWidth() / 2.0, getHeight() / 2.0);
 
         if (getNode() == null) return;
         Object outputValue = getNode().getOutputValue();
         if (outputValue instanceof Grob) {
+            g2.translate(getWidth() / 2.0, getHeight() / 2.0);
             ((Grob) outputValue).draw(g2);
         } else if (outputValue != null) {
             String s = outputValue.toString();
+            g2.setColor(SwingUtils.COLOR_NORMAL);
+            g2.setFont(PlatformUtils.getEditorFont());
             g2.drawString(s, 5, 20);
         }
 
