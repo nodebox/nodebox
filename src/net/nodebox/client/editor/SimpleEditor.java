@@ -3,6 +3,7 @@ package net.nodebox.client.editor;
 import net.nodebox.client.CodeArea;
 
 import javax.swing.*;
+import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -62,4 +63,11 @@ public class SimpleEditor extends JPanel implements DocumentListener {
         setChanged(true);
     }
 
+    public void addCaretListener(CaretListener l) {
+        codeArea.addCaretListener(l);
+    }
+
+    public void removeCaretListener(CaretListener l) {
+        codeArea.removeCaretListener(l);
+    }
 }

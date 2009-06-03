@@ -4,6 +4,9 @@ import net.nodebox.client.editor.SimpleEditor;
 import net.nodebox.node.*;
 
 import javax.swing.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
@@ -12,7 +15,7 @@ import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class EditorPane extends Pane implements DirtyListener, ComponentListener {
+public class EditorPane extends Pane implements DirtyListener, ComponentListener, CaretListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
@@ -26,7 +29,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         setDocument(document);
     }
 
-
     public EditorPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
@@ -38,6 +40,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
         editor = new SimpleEditor();
+        editor.addCaretListener(this);
         CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
@@ -175,6 +178,21 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     }
 
     public void componentHidden(ComponentEvent e) {
+    }
+
+    public void caretUpdate(CaretEvent e) {
+        JEditorPane editArea = (JEditorPane) e.getSource();
+        int caretpos = editArea.getCaretPosition();
+        Element root = editArea.getDocument().getDefaultRootElement();
+        int linenum = root.getElementIndex(caretpos) + 1;
+        // Subtract the offset of the start of the line from the caret position.
+        // Add one because line numbers are zero-based.
+        int columnnum = 1 + caretpos - root.getElement(linenum - 1).getStartOffset();
+        updatePosition(linenum, columnnum);
+    }
+
+    private void updatePosition(int linenum, int columnnum) {
+        splitter.setLocation(linenum, columnnum);
     }
 
     private class ReloadAction extends AbstractAction {

@@ -25,6 +25,8 @@ public class EditorSplitter extends JSplitPane {
         }
     }
 
+    private String positionString;
+
     public EditorSplitter(int orientation, Component newLeftComponent, Component newRightComponent) {
         super(orientation, newLeftComponent, newRightComponent);
         if (orientation != JSplitPane.VERTICAL_SPLIT)
@@ -35,6 +37,12 @@ public class EditorSplitter extends JSplitPane {
         setDividerSize(DIVIDER_SIZE);
         setUI(new EditorSplitterUI());
         setBorder(BorderFactory.createEmptyBorder());
+        positionString = "";
+    }
+
+    public void setLocation(int line, int column) {
+        positionString = String.format("Line: %4d  Column: %4d", line, column);
+        repaint();
     }
 
     private class EditorSpliterDivider extends BasicSplitPaneDivider {
@@ -59,6 +67,9 @@ public class EditorSplitter extends JSplitPane {
                     g.setColor(new Color(210, 210, 210));
                     g.fillRect(r.x, r.y + r.height - 1, r.width, 1);
                 }
+                g.setFont(SwingUtils.FONT_BOLD);
+                g.setColor(SwingUtils.COLOR_NORMAL);
+                SwingUtils.drawShadowText((Graphics2D) g, positionString, r.x + 5, r.y + 13);
             }
         }
     }
