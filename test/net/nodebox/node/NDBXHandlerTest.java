@@ -44,6 +44,19 @@ public class NDBXHandlerTest extends TestCase {
     }
 
     /**
+     * Test if node position is persisted.
+     */
+    public void testPosition() {
+        NodeLibrary l = new NodeLibrary("test");
+        Node n = Node.ROOT_NODE.newInstance(l, "test");
+        n.setPosition(25, 50);
+        NodeLibrary lib = parseXml(l.toXml());
+        Node test = lib.get("test");
+        assertEquals(25.0, test.getX());
+        assertEquals(50.0, test.getY());
+    }
+
+    /**
      * Test required attributes for node.
      */
     public void testInvalidNodeFormat() {

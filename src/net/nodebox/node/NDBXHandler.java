@@ -191,6 +191,12 @@ public class NDBXHandler extends DefaultHandler {
             currentNode.add(newNode);
         }
         // Parse additional node flags.
+        String x = attributes.getValue("x");
+        String y = attributes.getValue("y");
+        if (x != null)
+            newNode.setX(Double.parseDouble(x));
+        if (y != null)
+            newNode.setY(Double.parseDouble(y));
         if ("true".equals(attributes.getValue("rendered")))
             newNode.setRendered();
         // Go down into the current node; this will now become the current network.
