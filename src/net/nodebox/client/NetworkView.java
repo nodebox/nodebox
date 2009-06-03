@@ -31,12 +31,11 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     private Node node;
     private Set<NodeView> selection = new HashSet<NodeView>();
     private ConnectionLayer connectionLayer;
-    private SelectionHandler selectionHandler = new SelectionHandler();
     private SelectionMarker selectionMarker;
-    private DialogHandler dialogHandler = new DialogHandler();
-    private PopupHandler popupHandler;
     private JPopupMenu networkMenu;
     private boolean networkError;
+    private NodeView connectionSource, connectionTarget;
+    private Point2D connectionPoint;
 
     public NetworkView(Pane pane, Node node) {
         this.pane = pane;
@@ -44,6 +43,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         if (node != null)
             this.networkError = node.hasError();
         setBackground(new Color(69, 69, 69));
+        SelectionHandler selectionHandler = new SelectionHandler();
         addInputEventListener(selectionHandler);
         setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
         setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
@@ -73,6 +73,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             }
         });
         */
+        DialogHandler dialogHandler = new DialogHandler();
         addKeyListener(dialogHandler);
         addKeyListener(new DeleteHandler());
         initMenus();
@@ -84,13 +85,13 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         networkMenu = new JPopupMenu();
         networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
-        popupHandler = new PopupHandler();
+        PopupHandler popupHandler = new PopupHandler();
         addInputEventListener(popupHandler);
     }
 
     @Override
-    public void setBounds(int i, int i1, int i2, int i3) {
-        super.setBounds(i, i1, i2, i3);
+    public void setBounds(int x, int y, int width, int height) {
+        super.setBounds(x, y, width, height);
         connectionLayer.setBounds(getBounds());
     }
 
@@ -147,8 +148,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     }
 
     public boolean isSelected(NodeView nodeView) {
-        if (nodeView == null) return false;
-        return selection.contains(nodeView);
+        return nodeView != null && selection.contains(nodeView);
     }
 
     public void select(Node node) {
@@ -157,9 +157,11 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     }
 
     /**
-     * Only select this node.
+     * Select this node, and only this node.
+     * <p/>
+     * All other selected nodes will be deselected.
      *
-     * @param node
+     * @param node the node to select.
      */
     public void singleSelect(Node node) {
         if (node == null) return;
@@ -167,6 +169,13 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         singleSelect(nodeView);
     }
 
+    /**
+     * Select this node view, and only this node view.
+     * <p/>
+     * All other selected nodes will be deselected.
+     *
+     * @param nodeView the node view to select.
+     */
     public void singleSelect(NodeView nodeView) {
         if (nodeView == null) return;
         if (selection.size() == 1 && selection.contains(nodeView)) return;
@@ -272,9 +281,9 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         } else if (attribute == NodeAttributeListener.Attribute.POSITION) {
             if (!nv.getOffset().equals(child.getPosition().getPoint2D())) {
                 nv.setOffset(child.getX(), child.getY());
-                connectionLayer.repaint();
             }
             nv.repaint();
+            connectionLayer.repaint();
         }
     }
 
@@ -348,6 +357,80 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         }
     }
 
+    //// Connections ////
+
+    /**
+     * This method gets called when we start dragging a connection line from a node view.
+     *
+     * @param connectionSource the node view where we start from.
+     */
+    public void startConnection(NodeView connectionSource) {
+        this.connectionSource = connectionSource;
+    }
+
+    /**
+     * This method gets called when a dragging operation ends.
+     * <p/>
+     * We don't care if a connection was established or not.
+     */
+    public void endConnection() {
+        NodeView oldTarget = this.connectionTarget;
+        this.connectionSource = null;
+        connectionTarget = null;
+        connectionPoint = null;
+        if (oldTarget != null)
+            oldTarget.repaint();
+        connectionLayer.repaint();
+    }
+
+    /**
+     * Return true if we are in the middle of a connection drag operation.
+     *
+     * @return true if we are connecting nodes together.
+     */
+    public boolean isConnecting() {
+        return connectionSource != null;
+    }
+
+    /**
+     * NodeView calls this method to indicate that the mouse was dragged while connecting.
+     * <p/>
+     * This method updates the point and redraws the connection layer.
+     *
+     * @param pt the new mouse location.
+     */
+    public void dragConnectionPoint(Point2D pt) {
+        assert isConnecting();
+        this.connectionPoint = pt;
+        connectionLayer.repaint();
+    }
+
+    /**
+     * NodeView calls this method to indicate that the new target is now the given node view.
+     *
+     * @param target the new NodeView target.
+     */
+    public void setTemporaryConnectionTarget(NodeView target) {
+        NodeView oldTarget = this.connectionTarget;
+        this.connectionTarget = target;
+        if (oldTarget != null)
+            oldTarget.repaint();
+        if (connectionTarget != null)
+            connectionTarget.repaint();
+    }
+
+    public NodeView getConnectionSource() {
+        return connectionSource;
+    }
+
+    public NodeView getConnectionTarget() {
+        return connectionTarget;
+    }
+
+    public Point2D getConnectionPoint() {
+        return connectionPoint;
+    }
+
     //// Inner classes ////
 
     private class SelectionMarker extends PNode {
@@ -359,6 +442,8 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             Graphics2D g = c.getGraphics();
             g.setColor(new Color(200, 200, 200, 100));
             PBounds b = getBounds();
+            // Inset the bounds so we don't draw outside the refresh region.
+            b.inset(1, 1);
             g.fill(b);
             g.setColor(new Color(100, 100, 100, 100));
             g.draw(b);
@@ -404,7 +489,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             }
         }
 
-        public void mouseReleased(PInputEvent pInputEvent) {
+        public void mouseReleased(PInputEvent e) {
             if (selectionMarker == null) return;
             getLayer().removeChild(selectionMarker);
             selectionMarker = null;

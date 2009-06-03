@@ -7,6 +7,7 @@ import net.nodebox.node.Node;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 public class ConnectionLayer extends PLayer {
@@ -42,26 +43,42 @@ public class ConnectionLayer extends PLayer {
         Node node = networkView.getNode();
         for (Node n : node.getChildren()) {
             for (Connection c : n.getDownstreamConnections()) {
-                GeneralPath p = new GeneralPath();
                 if (selections.contains(c)) {
-                    g.setStroke(new BasicStroke(3));
                     g.setColor(Theme.getInstance().getActionColor());
                 } else {
-                    g.setStroke(new BasicStroke(1));
                     g.setColor(Theme.getInstance().getConnectionColor());
                 }
                 for (Node outputNode : c.getOutputNodes()) {
-                    float x0 = (float) (outputNode.getX() + NodeView.NODE_FULL_SIZE / 2);
-                    float y0 = (float) (outputNode.getY() + NodeView.NODE_FULL_SIZE - 2); // Compensate for selection border
-                    float x1 = (float) (c.getInputNode().getX() + NodeView.NODE_FULL_SIZE / 2);
-                    float y1 = (float) (c.getInputNode().getY() + 2); // Compensate for selection border
-                    float dx = Math.abs(x1 - x0) / 2;
-                    p.moveTo(x0, y0);
-                    p.curveTo(x0, y0 + dx, x1, y1 - dx, x1, y1);
-                    g.draw(p);
+                    paintConnection(g, outputNode, c.getInputNode());
                 }
             }
         }
+        // Draw temporary connection
+        if (networkView.isConnecting() && networkView.getConnectionPoint() != null) {
+            // Set the color to some kind of yellow
+            g.setColor(new Color(170, 167, 18));
+            Point2D pt = networkView.getConnectionPoint();
+            ConnectionLayer.paintConnection(g, networkView.getConnectionSource().getNode(), (float) pt.getX(), (float) pt.getY());
+        }
+    }
+
+    public static void paintConnection(Graphics2D g, Node outputNode, Node inputNode) {
+        float x1 = (float) (inputNode.getX() + 1); // Compensate for selection border
+        float y1 = (float) (inputNode.getY() + NodeView.NODE_FULL_SIZE / 2);
+        paintConnection(g, outputNode, x1, y1);
+    }
+
+    public static void paintConnection(Graphics2D g, Node outputNode, float x1, float y1) {
+        g.setStroke(new BasicStroke(2));
+        GeneralPath p = new GeneralPath();
+        // Start position is at the middle right of the node.
+        float x0 = (float) (outputNode.getX() + NodeView.NODE_FULL_SIZE - 1); // Compensate for selection border
+        float y0 = (float) (outputNode.getY() + NodeView.NODE_FULL_SIZE / 2);
+        // End position is at the middle left of the node.
+        float dx = Math.abs(y1 - y0) / 2;
+        p.moveTo(x0, y0);
+        p.curveTo(x0 + dx, y0, x1 - dx, y1, x1, y1);
+        g.draw(p);
     }
 
 }

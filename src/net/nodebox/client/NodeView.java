@@ -33,16 +33,16 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public static final int NODE_PORT_HEIGHT = 10;
 
 
-    private static Image nodeMask, nodeGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeReflection, nodeError, nodeRendered, nodeRim;
+    private static Image nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeRim;
 
     static {
         try {
             nodeMask = ImageIO.read(new File("res/node-mask.png"));
             nodeGlow = ImageIO.read(new File("res/node-glow.png"));
+            nodeConnectionGlow = ImageIO.read(new File("res/node-connection-glow.png"));
             nodeInPort = ImageIO.read(new File("res/node-in-port.png"));
             nodeOutPort = ImageIO.read(new File("res/node-out-port.png"));
             nodeGeneric = ImageIO.read(new File("res/node-generic.png"));
-            nodeReflection = ImageIO.read(new File("res/node-reflection.png"));
             nodeError = ImageIO.read(new File("res/node-error.png"));
             nodeRendered = ImageIO.read(new File("res/node-rendered.png"));
             nodeRim = ImageIO.read(new File("res/node-rim.png"));
@@ -58,10 +58,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private Border border;
 
     private boolean selected;
-
-    private static boolean isConnecting;
-    private static NodeView connectSource;
-    private static NodeView connectTarget;
 
     public NodeView(NetworkView networkView, Node node) {
         this.networkView = networkView;
@@ -163,8 +159,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 
         // Draw the selection/connection border
-        if (connectTarget == this || selected)
+        if (selected && networkView.getConnectionTarget() != this)
             g.drawImage(nodeGlow, 0, 0, null);
+        if (networkView.getConnectionTarget() == this)
+            g.drawImage(nodeConnectionGlow, 0, 0, null);
         g.drawImage(fullIcon, 0, 0, null);
         if (node.hasError())
             g.drawImage(nodeError, 0, 0, null);
@@ -204,6 +202,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
     }
 
+
     private class NodeHandler extends PBasicInputEventHandler {
 
         protected Point2D dragPoint;
@@ -214,7 +213,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 e.getInputManager().setKeyboardFocus(this);
                 networkView.singleSelect(NodeView.this);
             } else if (e.getClickCount() == 2 && e.isLeftMouseButton()) {
-
                 Point2D pt = NodeView.this.getOffset();
                 double y = e.getPosition().getY() - pt.getY();
                 // Check if we're clicking on the label, which is below the node.
@@ -239,8 +237,9 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 // Find the area where the mouse is pressed
                 // Possible areas are the output connector and the node itself.
                 if (OUTPUT_BOUNDS.contains(x, y)) {
-                    isConnecting = true;
-                    connectSource = NodeView.this;
+                    isDragging = false;
+                    System.out.println("Start connection " + node);
+                    networkView.startConnection(NodeView.this);
                 } else {
                     isDragging = true;
                     // Make sure that this node is also selected.
@@ -255,21 +254,16 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void mouseEntered(PInputEvent e) {
-            if (isConnecting) {
-                NodeView oldTarget = connectTarget;
-                connectTarget = NodeView.this;
-                if (oldTarget != null)
-                    oldTarget.repaint();
-                connectTarget.repaint();
+            if (networkView.isConnecting() && networkView.getConnectionSource() != NodeView.this) {
+                System.out.println("NV target " + node);
+                networkView.setTemporaryConnectionTarget(NodeView.this);
             }
         }
 
         public void mouseExited(PInputEvent e) {
-            if (isConnecting) {
-                NodeView oldTarget = connectTarget;
-                connectTarget = null;
-                if (oldTarget != null)
-                    oldTarget.repaint();
+            if (networkView.isConnecting()) {
+                System.out.println("NV end target" + node);
+                networkView.setTemporaryConnectionTarget(null);
             }
         }
 
@@ -280,42 +274,48 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 double dy = pt.getY() - dragPoint.getY();
                 getNetworkView().dragSelection(dx, dy);
                 dragPoint = pt;
+            } else if (networkView.isConnecting()) {
+                Point2D p = e.getPosition();
+                networkView.dragConnectionPoint(p);
             }
             e.setHandled(true);
         }
 
         public void mouseReleased(PInputEvent event) {
-            if (isConnecting) {
-                if (connectTarget != null)
-                    connectTarget.repaint();
-                NodeView.this.repaint();
-                if (connectSource != null && connectTarget != null) {
-                    java.util.List<Port> compatiblePorts = connectTarget.getNode().getCompatibleInputs(connectSource.getNode());
+            System.out.println("NV RELEASED");
+            if (networkView.isConnecting()) {
+
+                // Check if both source and target are set.
+                if (networkView.getConnectionSource() != null && networkView.getConnectionTarget() != null) {
+                    Node source = networkView.getConnectionSource().getNode();
+                    Node target = networkView.getConnectionTarget().getNode();
+                    // Look for compatible ports.
+                    java.util.List<Port> compatiblePorts = target.getCompatibleInputs(source);
                     if (compatiblePorts.isEmpty()) {
                         // There are no compatible parameters.
                     } else if (compatiblePorts.size() == 1) {
                         // Only one possible connection, make it now.
                         Port inputPort = compatiblePorts.get(0);
                         try {
-                            inputPort.connect(connectSource.getNode());
+                            inputPort.connect(source);
                         } catch (ConnectionError e) {
                             JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
                         }
                     } else {
                         JPopupMenu menu = new JPopupMenu("Select input");
                         for (Port p : compatiblePorts) {
-                            Action a = new SelectCompatiblePortAction(connectSource.getNode(), connectTarget.getNode(), p);
+                            Action a = new SelectCompatiblePortAction(source, p);
                             menu.add(a);
                         }
                         Point pt = getNetworkView().getMousePosition();
                         menu.show(getNetworkView(), pt.x, pt.y);
                     }
                 }
+
+
+                networkView.endConnection();
+
             }
-            isDragging = false;
-            isConnecting = false;
-            connectSource = null;
-            connectTarget = null;
         }
 
     }
@@ -323,13 +323,11 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     class SelectCompatiblePortAction extends AbstractAction {
 
         private Node outputNode;
-        private Node inputNode;
         private Port inputPort;
 
-        SelectCompatiblePortAction(Node outputNode, Node inputNode, Port inputPort) {
+        SelectCompatiblePortAction(Node outputNode, Port inputPort) {
             super(inputPort.getName());
             this.outputNode = outputNode;
-            this.inputNode = inputNode;
             this.inputPort = inputPort;
         }
 
