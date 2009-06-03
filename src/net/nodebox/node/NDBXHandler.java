@@ -170,15 +170,15 @@ public class NDBXHandler extends DefaultHandler {
     private void startNodeTag(Attributes attributes) throws SAXException {
         String name = attributes.getValue("name");
         String prototypeId = attributes.getValue("prototype");
-        String dataClassAsString = attributes.getValue("dataClass");
+        String typeAsString = attributes.getValue("type");
         if (name == null) throw new SAXException("Name attribute is required in node tags.");
         if (prototypeId == null) throw new SAXException("Prototype attribute is required in node tags.");
         Class dataClass = null;
-        if (dataClassAsString != null) {
+        if (typeAsString != null) {
             try {
-                dataClass = Class.forName(dataClassAsString);
+                dataClass = Class.forName(typeAsString);
             } catch (ClassNotFoundException e) {
-                throw new SAXException("Given dataclass " + dataClassAsString + " not found.");
+                throw new SAXException("Given type " + typeAsString + " not found.");
             }
         }
         Node prototype = manager.getNode(prototypeId);

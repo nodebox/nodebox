@@ -2,6 +2,7 @@ package net.nodebox.node;
 
 import junit.framework.TestCase;
 import net.nodebox.graphics.BezierPath;
+import net.nodebox.node.polygraph.Polygon;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -118,7 +119,7 @@ public class NDBXHandlerTest extends TestCase {
         NodeLibrary library = parseXml(xml);
         Node protoDot = manager.getNode("testlib.dot");
         assertTrue(library.contains("dot1"));
-        Node dot1 = library .get("dot1");
+        Node dot1 = library.get("dot1");
         assertEquals(protoDot, dot1.getPrototype());
         // Since dot1 inherits from the prototype, it has all the parameters of the prototype.
         assertTrue(dot1.hasParameter("x"));
@@ -129,6 +130,33 @@ public class NDBXHandlerTest extends TestCase {
         assertEquals(0F, dot1.getValue("y"));
     }
 
+    /**
+     * Test if port types are stored/loaded correctly.
+     */
+    public void testPortTypes() {
+        NodeLibrary typeLib = new NodeLibrary("typeLib");
+        Node.ROOT_NODE.newInstance(typeLib, "alpha", Polygon.class);
+        String xml = typeLib.toXml();
+        NodeLibrary library = parseXml(xml);
+        Node alpha = library.get("alpha");
+        assertEquals(Polygon.class, alpha.getOutputPort().getDataClass());
+        // Create a new instance with the same output type.
+        // Store it in a temporary node library.
+        Node beta = alpha.newInstance(new NodeLibrary("xxx"), "beta");
+        StringBuffer sb = new StringBuffer();
+        beta.toXml(sb, "");
+        // The output type is the same, so should not be persisted.
+        assertFalse(sb.toString().contains("Polygon"));
+        // Check if ports have their types persisted.
+        Node n = Node.ROOT_NODE.newInstance(typeLib, "gamma");
+        n.addPort("string", String.class);
+        n.addPort("polygon", Polygon.class);
+        xml = typeLib.toXml();
+        library = parseXml(xml);
+        Node gamma = library.get("gamma");
+        assertEquals(String.class, gamma.getPort("string").getDataClass());
+        assertEquals(Polygon.class, gamma.getPort("polygon").getDataClass());
+    }
 
     //// Helper methods ////
 

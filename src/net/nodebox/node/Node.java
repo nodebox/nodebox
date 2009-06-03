@@ -1688,6 +1688,9 @@ public class Node implements NodeCode, NodeAttributeListener {
         xml.append(" y=\"").append(getY()).append("\"");
         if (isRendered())
             xml.append(" rendered=\"true\"");
+        // Add the output type if it is different from the prototype.
+        if (getOutputPort().getDataClass() != getPrototype().getOutputPort().getDataClass())
+            xml.append(" type=\"").append(getOutputPort().getDataClass().getName()).append("\"");
         xml.append(">\n");
         // Add the description
         if (!getDescription().equals(getPrototype().getDescription()))
