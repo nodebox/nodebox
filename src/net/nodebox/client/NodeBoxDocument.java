@@ -496,7 +496,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private void updateTitle() {
         String postfix = "";
         if (!PlatformUtils.onMac()) { // todo: mac only code
-            postfix = (documentChanged ? " *" : "") + " - PNA";
+            postfix = (documentChanged ? " *" : "");
         } else {
             getRootPane().putClientProperty("Window.documentModified", documentChanged);
         }
