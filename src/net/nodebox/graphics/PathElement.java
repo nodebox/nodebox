@@ -114,6 +114,14 @@ public class PathElement {
         this.point = point;
     }
 
+    public void setX(double x) {
+        point.setX(x);
+    }
+
+    public void setY(double y) {
+        point.setY(y);
+    }
+
     public Point getControl1() {
         return control1;
     }
