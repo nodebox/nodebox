@@ -52,5 +52,20 @@ public class NodeLibraryTest extends TestCase {
         assertEquals(new Rectangle(20, 30, 40, 50), polygon.getBounds());
     }
 
+    /**
+     * There is a difference between loading a library using a static method on NodeLibrary
+     * and using the NodeManager.load(). NodeManager.load() automatically adds the library
+     * to the manager, whereas NodeLibrary only uses the given manager to look up prototypes.
+     * <p/>
+     * This method tests the differences.
+     */
+    public void testStoreInLibrary() {
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
+        assertTrue(library.contains("rect"));
+        //manager.
+
+    }
+
 
 }

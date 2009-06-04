@@ -21,7 +21,7 @@ public class AddressBar extends JPanel implements MouseListener {
             addressGradient = ImageIO.read(new File("res/address-gradient.png"));
             addressArrow = ImageIO.read(new File("res/address-arrow.png"));
         } catch (IOException e) {
-            System.out.println("e = " + e);
+            throw new RuntimeException(e);
         }
     }
 

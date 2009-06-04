@@ -238,7 +238,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 // Possible areas are the output connector and the node itself.
                 if (OUTPUT_BOUNDS.contains(x, y)) {
                     isDragging = false;
-                    System.out.println("Start connection " + node);
                     networkView.startConnection(NodeView.this);
                 } else {
                     isDragging = true;
@@ -255,14 +254,12 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void mouseEntered(PInputEvent e) {
             if (networkView.isConnecting() && networkView.getConnectionSource() != NodeView.this) {
-                System.out.println("NV target " + node);
                 networkView.setTemporaryConnectionTarget(NodeView.this);
             }
         }
 
         public void mouseExited(PInputEvent e) {
             if (networkView.isConnecting()) {
-                System.out.println("NV end target" + node);
                 networkView.setTemporaryConnectionTarget(null);
             }
         }
@@ -282,9 +279,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void mouseReleased(PInputEvent event) {
-            System.out.println("NV RELEASED");
             if (networkView.isConnecting()) {
-
                 // Check if both source and target are set.
                 if (networkView.getConnectionSource() != null && networkView.getConnectionTarget() != null) {
                     Node source = networkView.getConnectionSource().getNode();
@@ -311,7 +306,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                         menu.show(getNetworkView(), pt.x, pt.y);
                     }
                 }
-
 
                 networkView.endConnection();
 
