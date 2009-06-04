@@ -24,6 +24,7 @@
         <property name="mac.application.resources" location="${mac.application.contents}/Resources"/>
         <property name="mac.application.resources.java" location="${mac.application.resources}/Java"/>
         <property name="mac.application.plugins" location="${mac.application.resources.java}/plugins"/>
+        <property name="mac.application.lib" location="${mac.application.resources.java}/lib"/>
         <property name="mac.application.libraries" location="${mac.application.resources.java}/libraries"/>
         <property name="mac.application.res" location="${mac.application.resources.java}/res"/>
 
@@ -106,13 +107,14 @@
         <mkdir dir="${dist.nodebox}"/>
         <mkdir dir="${mac.application.resources.java}"/>
         <mkdir dir="${mac.application.macos}"/>
+        <mkdir dir="${mac.application.lib}"/>
         <mkdir dir="${mac.application.plugins}"/>
         <mkdir dir="${mac.application.libraries}"/>
         <mkdir dir="${mac.application.res}"/>
         <!-- Copy program jar and library jars -->
         <copy file="${dist}/lib/nodebox.jar"
-              todir="${mac.application.resources.java}"/>
-        <copy todir="${mac.application.resources.java}">
+              todir="${mac.application.lib}"/>
+        <copy todir="${mac.application.lib}">
             <fileset dir="${lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>

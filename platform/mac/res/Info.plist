@@ -32,15 +32,15 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleGetInfoString</key>
-    <string>2.0a1 (713), Copyright NodeBox, (c) 2004-2005</string>
+    <string>2.0a1 (935), Copyright NodeBox, (c) 2004-2009</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0a1 (713)</string>
+    <string>2.0a1 (935)</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>Java</key>
    <dict>
       <key>ClassPath</key>
-      <string>$APP_PACKAGE/Contents/Resources/Java/nodebox.jar:$APP_PACKAGE/Contents/Resources/Java/jython-complete.jar:$APP_PACKAGE/Contents/Resources/Java/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/piccolo.jar:$APP_PACKAGE/Contents/Resources/Java/asm.jar:$APP_PACKAGE/Contents/Resources/Java/iText.jar</string>
+      <string>$APP_PACKAGE/Contents/Resources/Java/lib/nodebox.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jython.jar:$APP_PACKAGE/Contents/Resources/Java/lib/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/lib/piccolo.jar:$APP_PACKAGE/Contents/Resources/Java/asm.jar:$APP_PACKAGE/Contents/Resources/Java/lib/iText.jar:$APP_PACKAGE/Contents/Resources/Java/lib/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/lib/xercesImpl.jar</string>
       <key>JVMVersion</key>
       <string>1.5+</string>
       <key>MainClass</key>
