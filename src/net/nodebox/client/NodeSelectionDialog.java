@@ -1,6 +1,7 @@
 package net.nodebox.client;
 
 import net.nodebox.node.Node;
+import net.nodebox.node.NodeLibrary;
 import net.nodebox.node.NodeLibraryManager;
 
 import javax.swing.*;
@@ -18,11 +19,13 @@ public class NodeSelectionDialog extends JDialog {
 
     private class FilteredNodeListModel implements ListModel {
 
+        private NodeLibrary library;
         private NodeLibraryManager manager;
         private java.util.List<Node> filteredNodes;
         private String searchString;
 
-        private FilteredNodeListModel(NodeLibraryManager manager) {
+        private FilteredNodeListModel(NodeLibrary library, NodeLibraryManager manager) {
+            this.library = library;
             this.manager = manager;
             this.searchString = "";
             this.filteredNodes = manager.getNodes();
@@ -35,18 +38,28 @@ public class NodeSelectionDialog extends JDialog {
         public void setSearchString(String searchString) {
             this.searchString = searchString.trim();
             if (searchString.length() == 0) {
+                // Add all the nodes from the manager.
                 filteredNodes = manager.getNodes();
-
+                // Add all the nodes from the current library.
+                filteredNodes.addAll(library.getRootNode().getChildren());
             } else {
                 filteredNodes = new ArrayList<Node>();
-                for (Node type : manager.getNodes()) {
-                    String description = type.getDescription() == null ? "" : type.getDescription();
-                    if (type.getName().contains(searchString) ||
-                            description.contains(searchString)) {
-                        filteredNodes.add(type);
-                    }
+                // Add all the nodes from the manager.
+                for (Node node : manager.getNodes()) {
+                    if (contains(node, searchString))
+                        filteredNodes.add(node);
+                }
+                // Add all the nodes from the current library.
+                for (Node node : library.getRootNode().getChildren()) {
+                    if (contains(node, searchString))
+                        filteredNodes.add(node);
                 }
             }
+        }
+
+        private boolean contains(Node node, String searchString) {
+            String description = node.getDescription() == null ? "" : node.getDescription();
+            return node.getName().contains(searchString) || description.contains(searchString);
         }
 
         public int getSize() {
@@ -71,7 +84,7 @@ public class NodeSelectionDialog extends JDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof Node);
             Node node = (Node) value;
-            String html = "<html>" + node.getName() + "<font color=#666666> - " + node.getDescription() + "</font></html>";
+            String html = "<html><b>" + node.getName() + "</b><br><font color=#333333>" + node.getDescription() + "</font></html>";
             setText(html);
             if (isSelected) {
                 setBackground(list.getSelectionBackground());
@@ -82,28 +95,31 @@ public class NodeSelectionDialog extends JDialog {
             }
             setEnabled(list.isEnabled());
             setFont(list.getFont());
+            setIcon(new ImageIcon(NodeView.getImageForNode(node)));
             setOpaque(true);
             return this;
         }
 
     }
 
+    private NodeLibrary library;
     private NodeLibraryManager manager;
     private JTextField searchField;
     private JList nodeList;
     private Node selectedNode;
     private FilteredNodeListModel filteredNodeListModel;
 
-    public NodeSelectionDialog(NodeLibraryManager manager) {
-        this(null, manager);
+    public NodeSelectionDialog(NodeLibrary library, NodeLibraryManager manager) {
+        this(null, library, manager);
     }
 
-    public NodeSelectionDialog(Frame owner, NodeLibraryManager manager) {
+    public NodeSelectionDialog(Frame owner, NodeLibrary library, NodeLibraryManager manager) {
         super(owner, "Create node type", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
+        this.library = library;
         this.manager = manager;
-        filteredNodeListModel = new FilteredNodeListModel(manager);
+        filteredNodeListModel = new FilteredNodeListModel(library, manager);
         searchField = new JTextField();
         searchField.putClientProperty("JTextField.variant", "search");
         EscapeListener escapeListener = new EscapeListener();

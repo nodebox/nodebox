@@ -302,9 +302,9 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
     //// Node manager ////
 
-    public void showNodeManagerDialog() {
+    public void showNodeSelectionDialog() {
         NodeBoxDocument doc = getPane().getDocument();
-        NodeSelectionDialog dialog = new NodeSelectionDialog(doc, doc.getManager());
+        NodeSelectionDialog dialog = new NodeSelectionDialog(doc, doc.getNodeLibrary(), doc.getManager());
         Point pt = getMousePosition();
         if (pt == null) {
             pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));
@@ -502,7 +502,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                showNodeManagerDialog();
+                showNodeSelectionDialog();
             }
         }
     }
@@ -533,7 +533,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         }
 
         public void actionPerformed(ActionEvent e) {
-            showNodeManagerDialog();
+            showNodeSelectionDialog();
         }
     }
 
