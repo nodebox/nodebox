@@ -1,5 +1,6 @@
 package net.nodebox.client;
 
+import net.nodebox.node.Parameter;
 import org.python.util.PythonInterpreter;
 
 import javax.swing.*;
@@ -70,6 +71,11 @@ public class Console extends JTextPane {
         interpreter.setOut(outputStream);
         interpreter.setErr(errorStream);
         interpreter.set("document", pane.getDocument());
+        interpreter.set("root", pane.getDocument().getActiveNetwork().getRoot());
+        interpreter.set("parent", pane.getDocument().getActiveNetwork());
+        interpreter.set("node", pane.getDocument().getActiveNode());
+        for (Parameter.Type t : Parameter.Type.values())
+            interpreter.set(t.name(), t);
         Exception pythonException = null;
         try {
             interpreter.exec(lastLine);
@@ -79,10 +85,11 @@ public class Console extends JTextPane {
         }
         addString("\n");
         String os = outputStream.toString();
-        if (os.length() > 0)
+        if (os.length() > 0) {
             addString(os);
-        if (!os.endsWith("\n"))
-            addString("\n");
+            if (!os.endsWith("\n"))
+                addString("\n");
+        }
         if (pythonException != null)
             addString(pythonException.toString() + "\n");
         newPrompt();
