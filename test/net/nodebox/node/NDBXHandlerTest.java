@@ -128,7 +128,7 @@ public class NDBXHandlerTest extends TestCase {
      * Load a test file that contains only instances, not new nodes, and no parameters.
      */
     public void testOnlyDefaults() {
-        String xml = NDBX_HEADER + "<node name=\"dot1\" prototype=\"testlib.dot\" type=\"vector\"></node>" + NDBX_FOOTER;
+        String xml = NDBX_HEADER + "<node name=\"dot1\" prototype=\"testlib.dot\" type=\"net.nodebox.node.polygraph.Polygon\"></node>" + NDBX_FOOTER;
         NodeLibrary library = parseXml(xml);
         Node protoDot = manager.getNode("testlib.dot");
         assertTrue(library.contains("dot1"));
