@@ -12,7 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class NodeTypeEditor extends JPanel implements ListSelectionListener, ActionListener {
+public class NodeMetaEditor extends JPanel implements ListSelectionListener, ActionListener {
 
     private Node node;
 
@@ -27,8 +27,8 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     private JTextField labelField;
     private JTextField descriptionField;
     private JComboBox typeBox;
+    private JComboBox widgetBox;
     private JTextField valueField;
-    private JCheckBox nullAllowedCheck;
     private JComboBox boundingMethodBox;
     private JTextField minimumValueField;
     private JCheckBox minimumValueCheck;
@@ -36,13 +36,14 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     private JCheckBox maximumValueCheck;
     private JComboBox displayLevelBox;
 
-    public NodeTypeEditor(Node node) {
+    public NodeMetaEditor(Node node) {
         setLayout(new BorderLayout(0, 0));
         //library = new CoreNodeTypeLibrary("test", new Version(1, 0, 0));
         this.node = node;
         parameterListModel = new ParameterListModel(node);
         ParameterCellRenderer parameterCellRenderer = new ParameterCellRenderer();
         parameterList = new JList(parameterListModel);
+        parameterList.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
         JButton addButton = new JButton(new Icons.PlusIcon());
         addButton.addActionListener(new ActionListener() {
@@ -80,7 +81,7 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         leftPanel.add(parameterList, BorderLayout.CENTER);
         leftPanel.add(buttonPanel, BorderLayout.SOUTH);
         initParameterPanel();
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, parameterPanel);
+        PaneSplitter split = new PaneSplitter(JSplitPane.HORIZONTAL_SPLIT, leftPanel, parameterPanel);
         split.setDividerLocation(0.5);
         split.setResizeWeight(1.0);
         add(split, BorderLayout.CENTER);
@@ -147,32 +148,39 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     public void initParameterPanel() {
         parameterPanel = new JPanel();
         parameterPanel.setLayout(new BoxLayout(parameterPanel, BoxLayout.Y_AXIS));
+        parameterPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         JPanel contentPanel = new JPanel(new GridLayout(10, 2, 10, 5));
+        // Name
         contentPanel.add(new JLabel("Name"));
         nameField = new JTextField(20);
         nameField.setEditable(false);
         contentPanel.add(nameField);
+        // Label
         contentPanel.add(new JLabel("Label"));
         labelField = new JTextField(20);
         labelField.addActionListener(this);
         contentPanel.add(labelField);
+        // Description
         contentPanel.add(new JLabel("Description"));
         descriptionField = new JTextField(20);
         descriptionField.addActionListener(this);
         contentPanel.add(descriptionField);
+        // Type
         contentPanel.add(new JLabel("Type"));
-        typeBox = new JComboBox(new String[]{"angle", "color", "file", "float", "font", "gradient", "image",
-                "int", "menu", "seed", "string", "text", "toggle", "noderef", "grob_canvas", "grob_vector", "grob_image"});
+        typeBox = new JComboBox(Parameter.Type.values());
         typeBox.addActionListener(this);
         contentPanel.add(typeBox);
-        contentPanel.add(new JLabel("Default Value"));
+        // Widget
+        contentPanel.add(new JLabel("Widget"));
+        widgetBox = new JComboBox(Parameter.Widget.values());
+        widgetBox.addActionListener(this);
+        contentPanel.add(widgetBox);
+        // Value
+        contentPanel.add(new JLabel("Value"));
         valueField = new JTextField(20);
         valueField.addActionListener(this);
         contentPanel.add(valueField);
-        contentPanel.add(new JLabel(""));
-        nullAllowedCheck = new JCheckBox("Null allowed");
-        nullAllowedCheck.addActionListener(this);
-        contentPanel.add(nullAllowedCheck);
+        // Bounding Method
         contentPanel.add(new JLabel("Bounding"));
         boundingMethodBox = new JComboBox(new String[]{"none", "soft", "hard"});
         boundingMethodBox.addActionListener(this);
@@ -208,8 +216,8 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         labelField.setEnabled(enabled);
         descriptionField.setEnabled(enabled);
         typeBox.setEnabled(enabled);
+        widgetBox.setEnabled(enabled);
         valueField.setEnabled(enabled);
-        nullAllowedCheck.setEnabled(enabled);
         boundingMethodBox.setEnabled(enabled);
         minimumValueCheck.setEnabled(enabled);
         minimumValueField.setEnabled(enabled);
@@ -222,9 +230,9 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
         nameField.setText("");
         labelField.setText("");
         descriptionField.setText("");
-        typeBox.setSelectedIndex(0);
+        typeBox.setSelectedItem(Parameter.Type.INT);
+        widgetBox.setSelectedItem(Parameter.Widget.INT);
         valueField.setText("");
-        nullAllowedCheck.setSelected(false);
         boundingMethodBox.setSelectedIndex(0);
         minimumValueCheck.setSelected(false);
         minimumValueField.setText("");
@@ -246,9 +254,9 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
             nameField.setText(selectedParameter.getName());
             labelField.setText(selectedParameter.getLabel());
             //descriptionField.setText(selectedParameter.getDescription());
-            typeBox.setSelectedItem(selectedParameter.getType().toString().toLowerCase());
-            valueField.setText(selectedParameter.getDefaultValue().toString());
-            //nullAllowedCheck.setSelected(selectedParameter.isNullAllowed());
+            typeBox.setSelectedItem(selectedParameter.getType());
+            widgetBox.setSelectedItem(selectedParameter.getWidget());
+            valueField.setText(selectedParameter.getValue().toString());
             Parameter.BoundingMethod boundingMethod = selectedParameter.getBoundingMethod();
             boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase());
             Object minimumValue = selectedParameter.getMinimumValue();
@@ -275,11 +283,11 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
             //} else if (e.getSource() == descriptionField) {
             //selectedParameter.setDescription(descriptionField.getText());
         } else if (e.getSource() == typeBox) {
-            selectedParameter.setType(Parameter.Type.valueOf(typeBox.getSelectedItem().toString().toUpperCase()));
+            selectedParameter.setType((Parameter.Type) typeBox.getSelectedItem());
+        } else if (e.getSource() == widgetBox) {
+            selectedParameter.setWidget((Parameter.Widget) widgetBox.getSelectedItem());
         } else if (e.getSource() == valueField) {
             selectedParameter.setValue(selectedParameter.parseValue(valueField.getText()));
-            //} else if (e.getSource() == nullAllowedCheck) {
-            //selectedParameter.setNullAllowed(nullAllowedCheck.isEnabled());
         } else if (e.getSource() == boundingMethodBox) {
             Parameter.BoundingMethod method = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase());
             selectedParameter.setBoundingMethod(method);
@@ -336,7 +344,7 @@ public class NodeTypeEditor extends JPanel implements ListSelectionListener, Act
     public static void main(String[] args) {
         JFrame editorFrame = new JFrame();
         Node node = new NodeBoxDocument.AllControlsType().createInstance();
-        editorFrame.getContentPane().add(new NodeTypeEditor(node));
+        editorFrame.getContentPane().add(new NodeMetaEditor(node));
         editorFrame.setSize(800, 800);
         editorFrame.setLocationByPlatform(true);
         editorFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

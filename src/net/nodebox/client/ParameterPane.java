@@ -2,6 +2,7 @@ package net.nodebox.client;
 
 import net.nodebox.node.Node;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class ParameterPane extends Pane {
@@ -18,6 +19,9 @@ public class ParameterPane extends Pane {
     public ParameterPane() {
         setLayout(new BorderLayout());
         paneHeader = new PaneHeader(this);
+        NButton metadataButton = new NButton("Metadata", "res/parameter-metadata.png");
+        metadataButton.setActionMethod(this, "editMetadata");
+        paneHeader.add(metadataButton);
         parameterView = new ParameterView();
         add(paneHeader, BorderLayout.NORTH);
         add(parameterView, BorderLayout.CENTER);
@@ -51,5 +55,15 @@ public class ParameterPane extends Pane {
     @Override
     public void focusedNodeChanged(Node activeNode) {
         setNode(activeNode);
+    }
+
+    public void editMetadata() {
+        if (node == null) return;
+        NodeMetaEditor editor = new NodeMetaEditor(node);
+        JFrame editorFrame = new JFrame(node.getName() + " Metadata");
+        editorFrame.getContentPane().add(editor);
+        editorFrame.setSize(800, 800);
+        editorFrame.setLocationByPlatform(true);
+        editorFrame.setVisible(true);
     }
 }
