@@ -36,7 +36,7 @@ public class NDBXHandler extends DefaultHandler {
     private ParseState state = ParseState.INVALID;
     private StringBuffer characterData;
 
-    public NDBXHandler(NodeLibraryManager manager, NodeLibrary library) {
+    public NDBXHandler(NodeLibrary library, NodeLibraryManager manager) {
         this.manager = manager;
         this.library = library;
         this.rootNode = library.getRootNode();
@@ -181,7 +181,18 @@ public class NDBXHandler extends DefaultHandler {
                 throw new SAXException("Given type " + typeAsString + " not found.");
             }
         }
-        Node prototype = manager.getNode(prototypeId);
+        // Switch between relative and long identifiers.
+        // Long identifiers (e.g. "polygraph.rect") contain both a library and name and should be looked up using the manager.
+        // Short identifiers (e.g. "beta") contain only a name and are in the same library as this node.
+        // They should be looked up using the library.
+        Node prototype = null;
+        if (prototypeId.contains(".")) {
+            // Long identifier
+            prototype = manager.getNode(prototypeId);
+        } else {
+            // Short identifier
+            prototype = library.get(prototypeId);
+        }
         if (prototype == null) throw new SAXException("Unknown prototype " + prototypeId + " for node " + name);
         Node newNode = prototype.newInstance(library, name, dataClass);
         // Add the child to the node library or its parent

@@ -1,12 +1,6 @@
 package net.nodebox.node;
 
-import net.nodebox.util.FileUtils;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.*;
+import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +35,8 @@ public class NodeLibraryManager {
     }
 
     public void add(NodeLibrary library) {
+        if (contains(library.getName()))
+            throw new RuntimeException("The manager already has a node library called " + library.getName());
         libraries.put(library.getName(), library);
     }
 
@@ -124,52 +120,31 @@ public class NodeLibraryManager {
 //        library.add(node);
 //    }
 
-    public NodeLibrary load(String libraryName, String xml) {
-        try {
-            if (contains(libraryName))
-                throw new RuntimeException("The manager already has a node library called " + libraryName);
-            NodeLibrary library = new NodeLibrary(libraryName);
-            load(library, new ByteArrayInputStream(xml.getBytes("UTF8")));
-            return library;
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Error in the XML parser configuration", e);
-        } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing.", e);
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while parsing.", e);
-        }
-    }
-
-    public NodeLibrary load(File f) throws RuntimeException {
-        try {
-            // The library name is the file name without the ".ndbx" extension.
-            // Chop off the .ndbx
-            String libraryName = FileUtils.stripExtension(f);
-            if (contains(libraryName))
-                throw new RuntimeException("The manager already has a node library called " + libraryName);
-            NodeLibrary library = new NodeLibrary(libraryName, f);
-            load(library, new FileInputStream(f));
-            return library;
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Error in the XML parser configuration", e);
-        } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing: " + e.getMessage(), e);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found " + f, e);
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while parsing " + f, e);
-        }
-    }
-
-    private void load(NodeLibrary library, InputStream is) throws IOException, ParserConfigurationException, SAXException {
-        // Because the library can define both prototypes and instances that use these prototypes, we need to be
-        // able to retrieve nodes from this library as well. The handler uses manager.getNode() to retrieve a prototype,
-        // so we need to add the library in advance to be able to load nodes from it.
+    /**
+     * Loads the given XML string as a library and adds it to the manager.
+     *
+     * @param libraryName the name of the library
+     * @param xml         the XML data
+     * @return a new NodeLibrary
+     * @throws RuntimeException if the XML data could not be parsed
+     */
+    public NodeLibrary load(String libraryName, String xml) throws RuntimeException {
+        NodeLibrary library = NodeLibrary.load(libraryName, xml, this);
         add(library);
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        SAXParser parser = spf.newSAXParser();
-        NDBXHandler handler = new NDBXHandler(this, library);
-        parser.parse(is, handler);
+        return library;
+    }
+
+    /**
+     * Loads the given file as a node library and adds it to the manager.
+     *
+     * @param f the file
+     * @return a new NodeLibrary
+     * @throws RuntimeException if the file is invalid or the XML data could not be parsed
+     */
+    public NodeLibrary load(File f) throws RuntimeException {
+        NodeLibrary library = NodeLibrary.load(f, this);
+        add(library);
+        return library;
     }
 
     /**

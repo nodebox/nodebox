@@ -190,6 +190,23 @@ public class Node implements NodeCode, NodeAttributeListener {
         return library + "." + name;
     }
 
+    /**
+     * Get an identifier that is relative to the given node.
+     * <p/>
+     * This means that if the node and prototype are in the same library, the identifier
+     * is just the name of the prototype. Otherwise, the library name is added.
+     *
+     * @param relativeTo the instance this prototype is relative to
+     * @return a short or long identifier
+     */
+    public String getRelativeIdentifier(Node relativeTo) {
+        if (relativeTo.library == library) {
+            return name;
+        } else {
+            return getIdentifier();
+        }
+    }
+
     public String getDescription() {
         return asString("_description");
     }
@@ -1188,7 +1205,9 @@ public class Node implements NodeCode, NodeAttributeListener {
             return new HashSet<Connection>(0);
         Set<Connection> connections = new HashSet<Connection>();
         for (Port p : ports.values()) {
-            connections.add(parent.childGraph.getInfo(p));
+            Connection c = parent.childGraph.getInfo(p);
+            if (c != null)
+                connections.add(c);
         }
         return connections;
     }
@@ -1683,7 +1702,7 @@ public class Node implements NodeCode, NodeAttributeListener {
     public void toXml(StringBuffer xml, String spaces) {
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" prototype=\"").append(getPrototype().getIdentifier()).append("\"");
+        xml.append(" prototype=\"").append(getPrototype().getRelativeIdentifier(this)).append("\"");
         xml.append(" x=\"").append(getX()).append("\"");
         xml.append(" y=\"").append(getY()).append("\"");
         if (isRendered())

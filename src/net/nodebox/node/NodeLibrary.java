@@ -1,8 +1,12 @@
 package net.nodebox.node;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import net.nodebox.util.FileUtils;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,88 @@ public class NodeLibrary {
     private NodeCode code;
 
     private DependencyGraph<Parameter, Object> parameterGraph = new DependencyGraph<Parameter, Object>();
+
+
+    /**
+     * Load a library from the given XML.
+     * <p/>
+     * This library is not added to the manager. The manager is used only to look up prototypes.
+     * You can add the library to the manager yourself using manager.add(), or by calling
+     * manager.load().
+     *
+     * @param libraryName the name of the new library
+     * @param xml         the xml data of the library
+     * @param manager     the manager used to look up node prototypes.
+     * @return a new node library
+     * @throws RuntimeException When the string could not be parsed.
+     * @see net.nodebox.node.NodeLibraryManager#add(NodeLibrary)
+     * @see net.nodebox.node.NodeLibraryManager#load(String, String)
+     */
+    public static NodeLibrary load(String libraryName, String xml, NodeLibraryManager manager) throws RuntimeException {
+        try {
+            NodeLibrary library = new NodeLibrary(libraryName);
+            load(library, new ByteArrayInputStream(xml.getBytes("UTF8")), manager);
+            return library;
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error in the XML parser configuration", e);
+        } catch (SAXException e) {
+            throw new RuntimeException("Error while parsing.", e);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while parsing.", e);
+        }
+    }
+
+    /**
+     * Load a library from the given file.
+     * <p/>
+     * This library is not added to the manager. The manager is used only to look up prototypes.
+     * You can add the library to the manager yourself using manager.add(), or by calling
+     * manager.load().
+     *
+     * @param f       the file to load
+     * @param manager the manager used to look up node prototypes.
+     * @return a new node library
+     * @throws RuntimeException When the file could not be found, or parsing failed.
+     * @see net.nodebox.node.NodeLibraryManager#add(NodeLibrary)
+     * @see net.nodebox.node.NodeLibraryManager#load(File)
+     */
+    public static NodeLibrary load(File f, NodeLibraryManager manager) throws RuntimeException {
+        try {
+            // The library name is the file name without the ".ndbx" extension.
+            // Chop off the .ndbx
+            String libraryName = FileUtils.stripExtension(f);
+            NodeLibrary library = new NodeLibrary(libraryName, f);
+            load(library, new FileInputStream(f), manager);
+            return library;
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error in the XML parser configuration", e);
+        } catch (SAXException e) {
+            throw new RuntimeException("Error while parsing: " + e.getMessage(), e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found " + f, e);
+        } catch (IOException e) {
+            throw new RuntimeException("I/O error while parsing " + f, e);
+        }
+    }
+
+    /**
+     * This method gets called from the public load method and does the actual parsing.
+     * <p/>
+     * The method requires a newly created (empty) library. Nodes are added to this library.
+     *
+     * @param library the newly created library
+     * @param is      the input stream data
+     * @param manager the manager used for looking up prototypes.
+     * @throws IOException                  when the data could not be loaded
+     * @throws ParserConfigurationException when the parser is incorrectly configured
+     * @throws SAXException                 when the data could not be parsed
+     */
+    private static void load(NodeLibrary library, InputStream is, NodeLibraryManager manager) throws IOException, ParserConfigurationException, SAXException {
+        SAXParserFactory spf = SAXParserFactory.newInstance();
+        SAXParser parser = spf.newSAXParser();
+        NDBXHandler handler = new NDBXHandler(library, manager);
+        parser.parse(is, handler);
+    }
 
     private NodeLibrary() {
         this.name = "builtins";
@@ -157,7 +243,7 @@ public class NodeLibrary {
             writeOrderedChild(xml, children, child);
         }
         // Add the child connections
-        for (Node child : children) {
+        for (Node child : getRootNode().getChildren()) {
             for (Connection conn : child.getUpstreamConnections()) {
                 conn.toXml(xml, "  ");
             }

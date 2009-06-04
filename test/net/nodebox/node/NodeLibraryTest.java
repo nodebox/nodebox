@@ -60,11 +60,40 @@ public class NodeLibraryTest extends TestCase {
      * This method tests the differences.
      */
     public void testStoreInLibrary() {
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
+        NodeLibraryManager manager;
+        NodeLibrary library;
+        // First try loading from within the manager
+        manager = new NodeLibraryManager();
+        library = manager.load(new File("test/polynodes.ndbx"));
+        assertTrue(manager.contains("polynodes"));
         assertTrue(library.contains("rect"));
-        //manager.
+        // Now try loading using the NodeLibrary.load static method.
+        manager = new NodeLibraryManager();
+        // We pass in the manager to figure out the prototypes.
+        library = NodeLibrary.load(new File("test/polynodes.ndbx"), manager);
+        assertFalse(manager.contains("polynodes"));
+        // You can add the library yourself.
+        manager.add(library);
+        assertTrue(manager.contains("polynodes"));
+    }
 
+    /**
+     * Test if connections are persisted.
+     */
+    public void testStoreConnections() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
+        Node beta = Node.ROOT_NODE.newInstance(library, "beta", Polygon.class);
+        beta.addPort("polygon", Polygon.class);
+        beta.getPort("polygon").connect(alpha);
+        assertTrue(alpha.isConnectedTo(beta));
+        assertTrue(beta.isConnectedTo(alpha));
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
+        Node newAlpha = newLibrary.get("alpha");
+        Node newBeta = newLibrary.get("beta");
+        assertTrue(newAlpha.isConnectedTo(newBeta));
+        assertTrue(newBeta.isConnectedTo(newAlpha));
     }
 
 

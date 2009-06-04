@@ -395,7 +395,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     public boolean readFromFile(File file) {
         try {
-            NodeLibrary library = getManager().load(file);
+            NodeLibrary library = NodeLibrary.load(file, getManager());
             setNodeLibrary(library);
             setDocumentFile(file);
             // The parsed network is now stored in the reader

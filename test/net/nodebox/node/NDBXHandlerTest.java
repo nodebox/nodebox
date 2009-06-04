@@ -232,7 +232,7 @@ public class NDBXHandlerTest extends TestCase {
             SAXParserFactory spf = SAXParserFactory.newInstance();
             SAXParser parser = spf.newSAXParser();
             NodeLibrary testLibrary = new NodeLibrary("test");
-            NDBXHandler handler = new NDBXHandler(manager, testLibrary);
+            NDBXHandler handler = new NDBXHandler(testLibrary, manager);
             InputStream in = new ByteArrayInputStream(xml.getBytes("UTF8"));
             parser.parse(in, handler);
             return testLibrary;
