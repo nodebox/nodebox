@@ -76,4 +76,17 @@ public class SwingUtils {
                 Math.min((int) (b / factor), 255));
     }
 
+    /**
+     * Find the Pane that the given component is in.
+     *
+     * @param c an AWT component.
+     * @return a Pane, or null if this component is not in a pane.
+     */
+    public static Pane getPaneForComponent(Component c) {
+        while (c != null) {
+            if (c instanceof Pane) break;
+            c = c.getParent();
+        }
+        return (Pane) c;
+    }
 }

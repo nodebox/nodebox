@@ -11,7 +11,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -41,7 +40,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         paneHeader.add(messagesCheck);
         editor = new SimpleEditor();
         editor.addCaretListener(this);
-        CodeArea.defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), new ReloadAction());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
@@ -103,12 +101,13 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         }
     }
 
-    public void reload() {
-        if (node == null) return;
+    public boolean reload() {
+        if (node == null) return false;
         Parameter pCode = node.getParameter("_code");
-        if (pCode == null) return;
+        if (pCode == null) return false;
         NodeCode code = new PythonCode(editor.getSource());
         pCode.set(code);
+        return true;
     }
 
     public void toggleMessages() {

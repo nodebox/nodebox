@@ -519,9 +519,9 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     public boolean reloadActiveNode() {
         if (activeNode == null) return false;
-        // TODO: What should reloading do?
-        //return activeNode.reload();
-        return false;
+        Pane p = SwingUtils.getPaneForComponent(getFocusOwner());
+        if (p == null || !(p instanceof EditorPane)) return false;
+        return ((EditorPane) p).reload();
     }
 
 //    public void createNewLibrary(String libraryName) {
