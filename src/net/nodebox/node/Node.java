@@ -1449,11 +1449,21 @@ public class Node implements NodeCode, NodeAttributeListener {
             }
         }
         // All dependencies are up-to-date. Process the node.
-        process(ctx);
-        // Because the dirty flag gets reset *after* the node has processed,
-        // nodes that throw a ProcessingError are not marked as clean.
+        ProcessingError pe = null;
+        try {
+            process(ctx);
+        } catch (ProcessingError e) {
+            pe = e;
+        }
+        // Even if an error occurred the node is still marked as clean, and events are fired.
+        // Only after these steps is the error thrown.
+        // It is important to mark the node as clean so that subsequent changes to the node mark it as dirty,
+        // triggering an event. This allows you to fix the node.
         dirty = false;
         fireNodeUpdated();
+        // If exception occurs, throw it.
+        if (pe != null)
+            throw pe;
     }
 
     /**

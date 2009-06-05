@@ -46,6 +46,18 @@ public class NodeTest extends NodeTestCase {
         }
     }
 
+    private class TestDirtyListener implements DirtyListener {
+        public int dirtyCounter, updatedCounter;
+
+        public void nodeDirty(Node node) {
+            ++dirtyCounter;
+        }
+
+        public void nodeUpdated(Node node) {
+            ++updatedCounter;
+        }
+    }
+
     public void testBaseNode() {
         Node baseNode = Node.ROOT_NODE;
         Parameter pCode = baseNode.getParameter("_code");
@@ -238,6 +250,36 @@ public class NodeTest extends NodeTestCase {
         assertTrue(n.isDirty());
         n.update();
         assertFalse(n.isDirty());
+    }
+
+    public void testError() {
+        Node bad = addDirectNode.newInstance(testLibrary, "bad");
+        TestDirtyListener listener = new TestDirtyListener();
+        bad.addDirtyListener(listener);
+        bad.setValue("v1", 12);
+        bad.setValue("v2", 3);
+        // Since the node starts out as dirty, setting values doesn't increase the counter.
+        assertEquals(0, listener.dirtyCounter);
+        // This code inherits the default code, which doesn't throw an error.
+        bad.update();
+        assertEquals(15, bad.getOutputValue());
+        // Updating the code marks it as clean.
+        assertFalse(bad.isDirty());
+        assertEquals(1, listener.updatedCounter);
+        assertEquals(0, listener.dirtyCounter);
+        // This code causes a division by zero.
+        bad.setValue("_code", new PythonCode("def cook(self):\n  return 1 / 0"));
+        assertEquals(1, listener.dirtyCounter);
+        // We just changed a parameter value, so the node is dirty.
+        assertTrue(bad.isDirty());
+        // Processing will fail.
+        assertProcessingError(bad, "integer division or modulo by zero");
+        // After processing failed, events are still called,
+        // and the node is marked clean. Output is set to null.
+        assertFalse(bad.isDirty());
+        assertNull(bad.getOutputValue());
+        assertEquals(2, listener.updatedCounter);
+        assertEquals(1, listener.dirtyCounter);
     }
 
     public void testCopyWithUpstream() {

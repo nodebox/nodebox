@@ -119,8 +119,8 @@ public class ConnectTest extends NodeTestCase {
         // addConstant1 will throw an error since it needs input.
         assertProcessingError(addConstant1, NullPointerException.class);
         assertFalse(number1.isDirty());
-        // When a node throws an error it is not clean.
-        assertTrue(addConstant1.isDirty());
+        // When a node throws an error it is still marked as clean.
+        assertFalse(addConstant1.isDirty());
         // Connecting the add constant to another node makes it dirty.
         // The output (upstream) node doesn't become dirty.
         addConstant1.getPort("value").connect(number1);
