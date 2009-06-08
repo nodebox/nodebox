@@ -80,6 +80,25 @@ public class BezierPathTest extends TestCase {
         assertEquals(Rect.centeredRect(60, 70, 80, 90), p2.getBounds());
     }
 
+    public void testNullBounds() {
+        BezierPath p;
+        // Check what happens without any initialization.
+        p = new BezierPath();
+        assertEquals(new Rect(0, 0, 0, 0), p.getBounds());
+        // Getting general path will construct an internal path,
+        // and markt the BezierPath as not dirty.
+        p = new BezierPath();
+        p.getGeneralPath();
+        assertEquals(new Rect(0, 0, 0, 0), p.getBounds());
+        p = new BezierPath();
+        p.getGeneralPath(); // Now clean
+        // Get bounds. This will fill in the internal bounds attribute.
+        assertEquals(new Rect(0, 0, 0, 0), p.getBounds());
+        p.rect(0, 0, 100, 100); // Make it dirty again
+        // Check if bounds were updated.
+        assertEquals(Rect.centeredRect(0, 0, 100, 100), p.getBounds());
+    }
+
     public void testFrame() {
         BezierPath p1 = new BezierPath();
         p1.rect(20, 30, 40, 50);

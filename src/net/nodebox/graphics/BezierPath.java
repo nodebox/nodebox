@@ -769,7 +769,7 @@ public class BezierPath extends Grob {
     }
 
     public Rect getBounds() {
-        if (!dirty) return bounds;
+        if (!dirty && bounds != null) return bounds;
         bounds = new Rect(getGeneralPath().getBounds2D());
         return bounds;
     }
