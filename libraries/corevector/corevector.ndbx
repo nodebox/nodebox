@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx type="file" formatVersion="0.9">
+    <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="net.nodebox.graphics.Grob">
+        <description>Creates ellipses.</description>
+        <param name="_image">
+            <value>ellipse.png</value>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[from net.nodebox.graphics import BezierPath
+
+def cook(self):
+    p = BezierPath()
+    p.ellipse(self.x, self.y, self.width, self.height)
+    p.fillColor = self.fill
+    if p.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p]]></value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="fill" type="color">
+        </param>
+        <param name="stroke" type="color">
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
+    <node name="test" prototype="builtins.root" x="206.2887381060354" y="93.01492552100638">
+        <description>This description</description>
+        <param name="_code">
+            <value type="python"><![CDATA[def cook(self):
+    print "hello"
+    return self.node.name]]></value>
+        </param>
+        <param name="text" type="string">
+            <value>hello</value>
+        </param>
+    </node>
+    <node name="rect" prototype="builtins.root" x="65.99058103241903" y="49.11378030429748" rendered="true"
+          type="net.nodebox.graphics.Grob">
+        <description>Creates rectangles and rounded rectangles.</description>
+        <param name="_image">
+            <value>rect.png</value>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[from net.nodebox.graphics import BezierPath
+
+def cook(self):
+    p = BezierPath()
+    p.rect(self.x, self.y, self.width, self.height)
+    p.fillColor = self.fill
+    if p.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p]]></value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="fill" type="color">
+        </param>
+        <param name="stroke" type="color">
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>4.0</value>
+        </param>
+    </node>
+</ndbx>
