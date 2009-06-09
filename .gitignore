@@ -1,0 +1,13 @@
+# Build directories
+build
+dist
+out
+
+# Mac OS X custom attribute files
+.DS_Store
+
+# IntelliJ project files
+*.i[mpw][lrs]
+
+# Jython package cache
+lib/cachedir
