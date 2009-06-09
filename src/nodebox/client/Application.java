@@ -20,7 +20,6 @@ package nodebox.client;
 
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeLibraryManager;
-import nodebox.util.PythonUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -42,7 +41,7 @@ public class Application {
     private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
 
-    public static final String NAME = "NodeBox 2";
+    public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
 
 
@@ -55,7 +54,12 @@ public class Application {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
+
+        // Create the user's NodeBox library directories. 
         PlatformUtils.getUserDataDirectory().mkdir();
+        PlatformUtils.getUserScriptsDirectory().mkdir();
+        PlatformUtils.getUserPythonDirectory().mkdir();
+
         registerForMacOSXEvents();
     }
 
@@ -105,8 +109,8 @@ public class Application {
 
     private void load() {
         manager = new NodeLibraryManager();
-        manager.addSearchPath(PlatformUtils.getApplicationNodeLibraryDirectory());
-        manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
+        manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
+        manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
         manager.lookForLibraries();
         int tasks = manager.getLibraries().size() + 1;
         startupDialog = new ProgressDialog(null, "Starting NodeBox", tasks);

@@ -48,16 +48,20 @@ public class PlatformUtils {
     }
 
     /**
-     * Returns the full path to the user's data directory.
-     * Under Unix, this is usually "~/nodebox"
-     * Under Windows, this is usually "Documents and Settings/username/Application Data/NodeBox"
-     * Under Mac OS X, this is usually "/Users/username/Library/Application Support/NodeBox"
+     * Get the directory that contains the user's NodeBox library directory.
+     * <p/>
+     * <p/>
+     * <ul>
+     * <li>Mac: <code>/Users/username/Library/NodeBox</code></li>
+     * <li>Windows: <code>/Users/username/Application Data/NodeBox</code></li>
+     * <li>Other: <code>~/nodebox</code></li>
+     * </ul>
      *
-     * @return the user's data directory.
+     * @return the user's library directory.
      */
     public static File getUserDataDirectory() {
         if (onMac()) {
-            return new File(getHomeDirectory(), "Library/Application Support/" + Application.NAME);
+            return new File(getHomeDirectory(), "Library/" + Application.NAME);
         } else if (onWindows()) {
             return new File(getHomeDirectory(), "Application Data/" + Application.NAME);
         } else {
@@ -65,12 +69,50 @@ public class PlatformUtils {
         }
     }
 
-    public static File getUserNodeTypeLibraryDirectory() {
-        return getUserDataDirectory();
+    /**
+     * Get the directory that contains NodeBox scripts the user has installed.
+     * <p/>
+     * <ul>
+     * <li>Mac: <code>/Users/username/Library/NodeBox/Scripts</code></li>
+     * <li>Windows: <code>/Users/username/Application Data/NodeBox/Scripts</code></li>
+     * <li>Other: <code>~/nodebox/scripts</code></li>
+     * </ul>
+     *
+     * @return the user's NodeBox scripts directory.
+     */
+    public static File getUserScriptsDirectory() {
+        if (onMac() || onWindows())
+            return new File(getUserDataDirectory(), "Scripts");
+        else
+            return new File(getUserDataDirectory(), "scripts");
     }
 
-    public static File getApplicationNodeLibraryDirectory() {
-        // TODO: This only works in debug mode.
+    /**
+     * Get the directory that contains Pythhon libraries the user has installed.
+     * <p/>
+     * This directory is added to the PYTHONPATH; anything below it can be used in scripts.
+     * <p/>
+     * <ul>
+     * <li>Mac: <code>/Users/username/Library/NodeBox/Python</code></li>
+     * <li>Windows: <code>/Users/username/Application Data/NodeBox/Python</code></li>
+     * <li>Other: <code>~/nodebox/python</code></li>
+     * </ul>
+     *
+     * @return the user's Python directory.
+     */
+    public static File getUserPythonDirectory() {
+        if (onMac() || onWindows())
+            return new File(getUserDataDirectory(), "Python");
+        else
+            return new File(getUserDataDirectory(), "python");
+    }
+
+    /**
+     * Get the directory that contains the application's builtin NodeBox scripts.
+     *
+     * @return the application's NodeBox scripts directory.
+     */
+    public static File getApplicationScriptsDirectory() {
         return new File("libraries");
     }
 

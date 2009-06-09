@@ -1,10 +1,6 @@
 package nodebox.client.editor;
 
-import nodebox.client.CodeArea;
-import nodebox.client.FileUtils;
-import nodebox.client.PlatformUtils;
-import nodebox.client.SaveDialog;
-import nodebox.util.PythonUtils;
+import nodebox.client.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
@@ -57,7 +53,7 @@ public class DirectoryEditor extends JPanel implements TreeSelectionListener {
     }
 
     public static void main(String[] args) {
-        File editorDirectory = PlatformUtils.getUserNodeTypeLibraryDirectory();
+        File editorDirectory = PlatformUtils.getUserScriptsDirectory();
         JFrame frame = new JFrame("Simple Editor");
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

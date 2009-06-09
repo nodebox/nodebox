@@ -18,14 +18,29 @@
  */
 package nodebox.graphics;
 
-import nodebox.util.PlatformUtils;
-
 import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public class Canvas extends Group {
+
+    private static com.lowagie.text.pdf.DefaultFontMapper fontMapper;
+
+    static {
+        fontMapper = new com.lowagie.text.pdf.DefaultFontMapper();
+        String osName = System.getProperty("os.name");
+        if (osName.startsWith("Windows")) {
+            // TODO: Windows is not installed under C:\Windows all the time.
+            fontMapper.insertDirectory("C:\\windows\\fonts");
+        } else if (osName.startsWith("Mac OS X")) {
+            fontMapper.insertDirectory("/Library/Fonts");
+            String userHome = System.getProperty("user.home");
+            fontMapper.insertDirectory(userHome + "/Fonts");
+        } else {
+            // Where are the fonts in a UNIX install?
+        }
+    }
 
     public static final double DEFAULT_WIDTH = 1000;
     public static final double DEFAULT_HEIGHT = 1000;
@@ -128,14 +143,6 @@ public class Canvas extends Group {
                 throw new RuntimeException("An error occurred while creating a PdfWriter object.", e);
             }
             document.open();
-            com.lowagie.text.pdf.DefaultFontMapper fontMapper = new com.lowagie.text.pdf.DefaultFontMapper();
-            if (PlatformUtils.onWindows()) {
-                fontMapper.insertDirectory("C:\\windows\\fonts");
-            } else if (PlatformUtils.onMac()) {
-                fontMapper.insertDirectory("/Library/Fonts");
-            } else {
-                // Where are the fonts in a UNIX install?
-            }
             com.lowagie.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
             Graphics2D graphics = contentByte.createGraphics(size.getWidth(), size.getHeight(), fontMapper);
             graphics.translate(width / 2, height / 2);
