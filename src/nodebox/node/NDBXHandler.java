@@ -19,18 +19,47 @@ import java.util.Map;
 public class NDBXHandler extends DefaultHandler {
 
     enum ParseState {
-        INVALID, IN_CODE, IN_DESCRIPTION, IN_VALUE, IN_EXPRESSION
+        INVALID, IN_CODE, IN_DESCRIPTION, IN_VALUE, IN_MENU, IN_EXPRESSION
     }
 
     enum CodeType {
         INVALID, PYTHON, JAVA
     }
 
+    public static final String NDBX_FORMAT_VERSION = "formatVersion";
+    public static final String VAR_NAME = "name";
+    public static final String VAR_VALUE = "value";
+    public static final String CODE_TYPE = "type";
+    public static final String NODE_NAME = "name";
+    public static final String NODE_PROTOTYPE = "prototype";
+    public static final String NODE_TYPE = "type";
+    public static final String NODE_X = "x";
+    public static final String NODE_Y = "y";
+    public static final String NODE_RENDERED = "rendered";
+    public static final String MENU_KEY = "key";
+    public static final String PARAMETER_NAME = "name";
+    public static final String PARAMETER_TYPE = "type";
+    public static final String PARAMETER_WIDGET = "widget";
+    public static final String PARAMETER_LABEL = "label";
+    public static final String PARAMETER_HELP_TEXT = "help";
+    public static final String PARAMETER_DISPLAY_LEVEL = "display";
+    public static final String PARAMETER_BOUNDING_METHOD = "bounding";
+    public static final String PARAMETER_MINIMUM_VALUE = "min";
+    public static final String PARAMETER_MAXIMUM_VALUE = "max";
+    public static final String VALUE_TYPE = "type";
+    public static final String PORT_NAME = "name";
+    public static final String PORT_TYPE = "type";
+    public static final String PORT_CARDINALITY = "cardinality";
+    public static final String CONNECTION_OUTPUT = "output";
+    public static final String CONNECTION_INPUT = "input";
+    public static final String CONNECTION_PORT = "port";
+
     private NodeLibraryManager manager;
     private NodeLibrary library;
     private Node rootNode;
     private Node currentNode;
     private Parameter currentParameter;
+    private String currentMenuKey;
     private CodeType currentCodeType = CodeType.INVALID;
     private Map<Parameter, String> expressionMap = new HashMap<Parameter, String>();
     private ParseState state = ParseState.INVALID;
@@ -65,6 +94,8 @@ public class NDBXHandler extends DefaultHandler {
             startValueTag(attributes);
         } else if (qName.equals("expression")) {
             startExpressionTag(attributes);
+        } else if (qName.equals("menu")) {
+            startMenuTag(attributes);
         } else if (qName.equals("port")) {
             startPortTag(attributes);
         } else if (qName.equals("conn")) {
@@ -100,6 +131,10 @@ public class NDBXHandler extends DefaultHandler {
         } else if (qName.equals("expression")) {
             setTemporaryExpression(characterData.toString());
             resetState();
+        } else if (qName.equals("menu")) {
+            setMenuItem(characterData.toString());
+            resetState();
+            currentMenuKey = null;
         } else if (qName.equals("port")) {
             // Do nothing after port tag
         } else if (qName.equals("conn")) {
@@ -119,6 +154,7 @@ public class NDBXHandler extends DefaultHandler {
     private void resetState() {
         state = ParseState.INVALID;
         characterData = null;
+        currentMenuKey = null;
     }
 
     @Override
@@ -135,7 +171,7 @@ public class NDBXHandler extends DefaultHandler {
 
     private void startNdbxTag(Attributes attributes) throws SAXException {
         // Make sure we use the correct format and file type.
-        String formatVersion = attributes.getValue("formatVersion");
+        String formatVersion = attributes.getValue(NDBX_FORMAT_VERSION);
         if (formatVersion == null)
             throw new SAXException("NodeBox file does not have required attribute formatVersion.");
         if (!formatVersion.equals("0.9"))
@@ -144,15 +180,15 @@ public class NDBXHandler extends DefaultHandler {
 
     private void startVarTag(Attributes attributes) throws SAXException {
         // Variables that get stored in the NodeBox library.
-        String name = attributes.getValue("name");
-        String value = attributes.getValue("value");
+        String name = attributes.getValue(VAR_NAME);
+        String value = attributes.getValue(VAR_VALUE);
         if (name == null) throw new SAXException("Name attribute is required in var tags.");
         if (value == null) throw new SAXException("Value attribute is required in var tags.");
         library.setVariable(name, value);
     }
 
     private void startCodeTag(Attributes attributes) throws SAXException {
-        String type = attributes.getValue("type");
+        String type = attributes.getValue(CODE_TYPE);
         if (type == null) throw new SAXException("Type attribute is required in code tags.");
         try {
             currentCodeType = CodeType.valueOf(type.toUpperCase());
@@ -168,9 +204,9 @@ public class NDBXHandler extends DefaultHandler {
     }
 
     private void startNodeTag(Attributes attributes) throws SAXException {
-        String name = attributes.getValue("name");
-        String prototypeId = attributes.getValue("prototype");
-        String typeAsString = attributes.getValue("type");
+        String name = attributes.getValue(NODE_NAME);
+        String prototypeId = attributes.getValue(NODE_PROTOTYPE);
+        String typeAsString = attributes.getValue(NODE_TYPE);
         if (name == null) throw new SAXException("Name attribute is required in node tags.");
         if (prototypeId == null) throw new SAXException("Prototype attribute is required in node tags.");
         Class dataClass = null;
@@ -185,7 +221,7 @@ public class NDBXHandler extends DefaultHandler {
         // Long identifiers (e.g. "polygraph.rect") contain both a library and name and should be looked up using the manager.
         // Short identifiers (e.g. "beta") contain only a name and are in the same library as this node.
         // They should be looked up using the library.
-        Node prototype = null;
+        Node prototype;
         if (prototypeId.contains(".")) {
             // Long identifier
             prototype = manager.getNode(prototypeId);
@@ -202,13 +238,13 @@ public class NDBXHandler extends DefaultHandler {
             currentNode.add(newNode);
         }
         // Parse additional node flags.
-        String x = attributes.getValue("x");
-        String y = attributes.getValue("y");
+        String x = attributes.getValue(NODE_X);
+        String y = attributes.getValue(NODE_Y);
         if (x != null)
             newNode.setX(Double.parseDouble(x));
         if (y != null)
             newNode.setY(Double.parseDouble(y));
-        if ("true".equals(attributes.getValue("rendered")))
+        if ("true".equals(attributes.getValue(NODE_RENDERED)))
             newNode.setRendered();
         // Go down into the current node; this will now become the current network.
         currentNode = newNode;
@@ -226,8 +262,8 @@ public class NDBXHandler extends DefaultHandler {
     }
 
     private void startParameterTag(Attributes attributes) throws SAXException {
-        String name = attributes.getValue("name");
-        String typeAsString = attributes.getValue("type");
+        String name = attributes.getValue(PARAMETER_NAME);
+        String typeAsString = attributes.getValue(PARAMETER_TYPE);
 
         if (currentNode == null) throw new SAXException("Parameter tag encountered without a current node.");
         if (name == null)
@@ -246,6 +282,28 @@ public class NDBXHandler extends DefaultHandler {
             Parameter.Type type = Parameter.Type.valueOf(typeAsString.toUpperCase());
             currentParameter = currentNode.addParameter(name, type);
         }
+        // Parse parameter attributes.
+        String widget = attributes.getValue(PARAMETER_WIDGET);
+        String label = attributes.getValue(PARAMETER_LABEL);
+        String helpText = attributes.getValue(PARAMETER_HELP_TEXT);
+        String displayLevel = attributes.getValue(PARAMETER_DISPLAY_LEVEL);
+        String boundingMethod = attributes.getValue(PARAMETER_BOUNDING_METHOD);
+        String minimumValue = attributes.getValue(PARAMETER_MINIMUM_VALUE);
+        String maximumValue = attributes.getValue(PARAMETER_MAXIMUM_VALUE);
+        if (widget != null)
+            currentParameter.setWidget(Parameter.Widget.valueOf(widget.toUpperCase()));
+        if (label != null)
+            currentParameter.setLabel(label);
+        if (helpText != null)
+            currentParameter.setHelpText(helpText);
+        if (displayLevel!= null)
+            currentParameter.setDisplayLevel(Parameter.DisplayLevel.valueOf(displayLevel.toUpperCase()));
+        if (boundingMethod != null)
+            currentParameter.setBoundingMethod(Parameter.BoundingMethod.valueOf(boundingMethod.toUpperCase()));
+        if (minimumValue != null)
+            currentParameter.setMinimumValue(Float.parseFloat(minimumValue));
+        if (maximumValue != null)
+            currentParameter.setMaximumValue(Float.parseFloat(maximumValue));
     }
 
     /**
@@ -261,8 +319,8 @@ public class NDBXHandler extends DefaultHandler {
         // The value tag should be empty except when the parameter type is code.
         // Then the value tag has a type attribute that specifies the code type.
         if (currentParameter.getType() != Parameter.Type.CODE) return;
-        String type = attributes.getValue("type");
-        if (type == null) throw new SAXException("Type attribute is required in code tags.");
+        String type = attributes.getValue(VALUE_TYPE);
+        if (type == null) throw new SAXException("Type attribute is required in code type parameters.");
         try {
             currentCodeType = CodeType.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -309,6 +367,34 @@ public class NDBXHandler extends DefaultHandler {
     }
 
     /**
+     * Parse the expression tag. This tag is inside of the param tag.
+     *
+     * @param attributes tag attributes
+     * @throws SAXException if the current parameter is null or a code parameter has no or invalid value type.
+     */
+    private void startMenuTag(Attributes attributes) throws SAXException {
+        if (currentParameter == null) throw new SAXException("Menu tag encountered without current parameter.");
+        state = ParseState.IN_MENU;
+        String key = attributes.getValue(MENU_KEY);
+        if (key == null)
+            throw new SAXException("Attribute key for menu tag cannot be null.");
+        currentMenuKey = key;
+        characterData = new StringBuffer();
+    }
+
+    /**
+     * Sets the menu item on the current parameter.
+     * <p/>
+     * The menu key was already set as an attribute on the menu start tag.
+     *
+     * @param label the character data for the menu label.
+     */
+    private void setMenuItem(String label) {
+        if (currentMenuKey == null) throw new AssertionError("Menu tag ends, but menu key is null.");
+        currentParameter.addMenuItem(currentMenuKey, label);
+    }
+
+    /**
      * Parses the given source code and returns a new NodeCode object of the correct type.
      * <p/>
      * This method assumes that the currentCodeType is set.
@@ -343,9 +429,9 @@ public class NDBXHandler extends DefaultHandler {
     }
 
     private void startPortTag(Attributes attributes) throws SAXException {
-        String name = attributes.getValue("name");
-        String typeAsString = attributes.getValue("type");
-        String cardinalityAsString = attributes.getValue("cardinality");
+        String name = attributes.getValue(PORT_NAME);
+        String typeAsString = attributes.getValue(PORT_TYPE);
+        String cardinalityAsString = attributes.getValue(PORT_CARDINALITY);
         if (name == null)
             throw new SAXException("Name is required for port on node '" + currentNode.getName() + "'.");
         if (typeAsString == null)
@@ -369,11 +455,11 @@ public class NDBXHandler extends DefaultHandler {
 
     private void startConnectionTag(Attributes attributes) throws SAXException {
         // output node identifier, without package
-        String outputAsString = attributes.getValue("output");
+        String outputAsString = attributes.getValue(CONNECTION_OUTPUT);
         // input node identifier, without package
-        String inputAsString = attributes.getValue("input");
+        String inputAsString = attributes.getValue(CONNECTION_INPUT);
         // input port identifier
-        String portAsString = attributes.getValue("port");
+        String portAsString = attributes.getValue(CONNECTION_PORT);
 
         String currentNodeString = currentNode == null ? "<null>" : currentNode.getName();
 
@@ -421,37 +507,17 @@ public class NDBXHandler extends DefaultHandler {
             case IN_EXPRESSION:
                 if (currentParameter == null)
                     throw new SAXException("Expression encountered, but no current parameter.");
+                break;
+            case IN_MENU:
+                if (currentParameter == null)
+                    throw new SAXException("Menu encountered, but no current parameter.");
+                break;
             default:
                 // Bail out when we don't recognize this state.
                 return;
         }
         // We have a valid character state, so we can safely append to characterData.
         characterData.append(ch, start, length);
-    }
-
-    /**
-     * Temporary solution for NodeCode objects.
-     */
-    public class DummyNodeCode implements NodeCode {
-        private String type;
-        private String source;
-
-        public DummyNodeCode(String type, String source) {
-            this.type = type;
-            this.source = source;
-        }
-
-        public Object cook(Node node, ProcessingContext context) {
-            return null;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getSource() {
-            return source;
-        }
     }
 
 }

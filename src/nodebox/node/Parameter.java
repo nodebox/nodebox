@@ -21,7 +21,7 @@ package nodebox.node;
 import nodebox.graphics.Color;
 import nodebox.util.StringUtils;
 
-import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -133,17 +133,12 @@ public class Parameter {
     private Type type;
     private Widget widget;
     private Object value;
-    private boolean dirty;
+    private Expression expression;
     private BoundingMethod boundingMethod = BoundingMethod.NONE;
     private Float minimumValue, maximumValue; // Objects, because they can be null.
     private DisplayLevel displayLevel = DisplayLevel.HUD;
     private List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
-    private Set<WeakReference<Parameter>> dependencies = new HashSet<WeakReference<Parameter>>();
-    private Set<WeakReference<Parameter>> dependents = new HashSet<WeakReference<Parameter>>();
-
-    // TODO: Integrate these attributes
-    private boolean valueSet = false;
-    private Expression expression;
+    private transient boolean dirty;
 
     public Parameter(Node node, String name, Type type) {
         this.node = node;
@@ -164,6 +159,12 @@ public class Parameter {
 
     public NodeLibrary getLibrary() {
         return node.getLibrary();
+    }
+
+    public Parameter getPrototype() {
+        Node pn = node.getPrototype();
+        if (pn == null) return null;
+        return pn.getParameter(name);
     }
 
     //// Naming ////
@@ -861,21 +862,26 @@ public class Parameter {
      */
     public void toXml(StringBuffer xml, String spaces) {
         // We only write out the attributes that have changed with regards to the prototype.
-        Node protoNode = getNode().getPrototype();
-        Parameter protoParam = null;
-        if (protoNode != null)
-            protoParam = protoNode.getParameter(getName());
+        Parameter protoParam = getPrototype();
         // If the parameter and its prototype are completely equal, don't write anything.
         if (prototypeEquals(protoParam)) return;
         // The parameters are not equal, so we can start writing the name.
         xml.append(spaces).append("<param name=\"").append(getName()).append("\"");
         // Write parameter type
         if (protoParam == null || !getType().equals(protoParam.getType()))
-            xml.append(" type=\"").append(getType().toString().toLowerCase()).append("\"");
+            xml.append(" ").append(NDBXHandler.PARAMETER_TYPE).append("=\"").append(getType().toString().toLowerCase()).append("\"");
+        // Write parameter attributes
+        attributeToXml(xml, "widget", NDBXHandler.PARAMETER_WIDGET, protoParam, WIDGET_MAPPING.get(type));
+        attributeToXml(xml, "label", NDBXHandler.PARAMETER_LABEL, protoParam, StringUtils.humanizeName(name));
+        attributeToXml(xml, "helpText", NDBXHandler.PARAMETER_HELP_TEXT, protoParam, null);
+        attributeToXml(xml, "displayLevel", NDBXHandler.PARAMETER_DISPLAY_LEVEL, protoParam, null);
+        attributeToXml(xml, "boundingMethod", NDBXHandler.PARAMETER_BOUNDING_METHOD, protoParam, BoundingMethod.NONE);
+        attributeToXml(xml, "minimumValue", NDBXHandler.PARAMETER_MINIMUM_VALUE, protoParam, null);
+        attributeToXml(xml, "maximumValue", NDBXHandler.PARAMETER_MAXIMUM_VALUE, protoParam, null);
         xml.append(">\n");
         // Write parameter value / expression
         if (hasExpression()) {
-            xml.append(spaces).append("<expression>").append(getExpression()).append("</expression>\n");
+            xml.append(spaces).append("  <expression>").append(getExpression()).append("</expression>\n");
         } else {
             if (type == Type.INT) {
                 xml.append(spaces).append("  <value>").append(asInt()).append("</value>\n");
@@ -891,7 +897,29 @@ public class Parameter {
                 throw new AssertionError("Unknown value class " + type);
             }
         }
+        // Write menu items
+        for (MenuItem item : menuItems) {
+            xml.append(spaces).append("  <menu key=\"").append(item.getKey()).append("\">").append(item.getLabel()).append("</menu>\n");
+        }
         xml.append(spaces).append("</param>\n");
+    }
+
+    private void attributeToXml(StringBuffer xml, String attrName, String xmlName, Parameter protoParam, Object defaultValue) {
+        try {
+            String methodName = "get" + attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
+            Method m = getClass().getMethod(methodName);
+            Object myValue = m.invoke(this);
+            if (myValue == null) return;
+            Object protoValue = protoParam != null ? m.invoke(protoParam) : null;
+            if (!myValue.equals(protoValue) && !myValue.equals(defaultValue)) {
+                // Values that are already strings are written as is.
+                // Other values, such as enums, are written as lowercase.
+                String stringValue = myValue instanceof String ? (String) myValue : myValue.toString().toLowerCase();
+                xml.append(" ").append(xmlName).append("=\"").append(stringValue).append("\"");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Exception while trying to get " + attrName + " for parameter " + this, e);
+        }
     }
 
     private boolean prototypeEquals(Parameter o) {

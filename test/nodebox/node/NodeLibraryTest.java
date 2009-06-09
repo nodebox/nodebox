@@ -44,7 +44,13 @@ public class NodeLibraryTest extends TestCase {
         rect1.setValue("x", 20);
         rect1.setValue("y", 30);
         rect1.setValue("width", 40);
-        rect1.setValue("height", 50);
+        try {
+            rect1.setValue("height", 50);
+            fail("Height has an expression set.");
+        } catch (IllegalArgumentException e) {
+            rect1.getParameter("height").clearExpression();
+            rect1.setValue("height", 50);
+        }
         rect1.update();
         Object value = rect1.getOutputValue();
         assertEquals(Polygon.class, value.getClass());
@@ -94,6 +100,71 @@ public class NodeLibraryTest extends TestCase {
         Node newBeta = newLibrary.get("beta");
         assertTrue(newAlpha.isConnectedTo(newBeta));
         assertTrue(newBeta.isConnectedTo(newAlpha));
+    }
+
+    /**
+     * Test if expressions are persisted.
+     */
+    public void testStoreExpressions() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
+        alpha.addParameter("v", Parameter.Type.INT);
+        alpha.setValue("v", 10);
+        alpha.getParameter("v").setExpression("44 - 2");
+
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
+        Node newAlpha = newLibrary.get("alpha");
+        assertEquals("44 - 2", newAlpha.getParameter("v").getExpression());
+        newAlpha.update();
+        assertEquals(42, newAlpha.getValue("v"));
+    }
+
+    /**
+     * Test if all attributes are persisted.
+     */
+    public void testStoreParameterAttributes() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
+        Parameter pAngle = alpha.addParameter("angle", Parameter.Type.FLOAT, 42);
+        pAngle.setWidget(Parameter.Widget.ANGLE);
+        pAngle.setMinimumValue(-360f);
+        pAngle.setMaximumValue(360f);
+        pAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        Parameter pMenu = alpha.addParameter("menu", Parameter.Type.STRING, "es");
+        pMenu.setWidget(Parameter.Widget.MENU);
+        pMenu.addMenuItem("en", "English");
+        pMenu.addMenuItem("es", "Spanish");
+        Parameter pHidden = alpha.addParameter("hidden", Parameter.Type.STRING, "invisible");
+        pHidden.setDisplayLevel(Parameter.DisplayLevel.HIDDEN);
+        Parameter pLabel = alpha.addParameter("label", Parameter.Type.STRING, "label + help text");
+        pLabel.setLabel("My Label");
+        pLabel.setHelpText("My Help Text");
+
+        System.out.println(library.toXml());
+
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
+        Node newAlpha = newLibrary.get("alpha");
+        Parameter newAngle = newAlpha.getParameter("angle");
+        assertEquals(Parameter.Widget.ANGLE, newAngle.getWidget());
+        assertEquals(Parameter.BoundingMethod.HARD, newAngle.getBoundingMethod());
+        assertEquals(-360f, newAngle.getMinimumValue());
+        assertEquals(360f, newAngle.getMaximumValue());
+        Parameter newMenu = newAlpha.getParameter("menu");
+        assertEquals(Parameter.Widget.MENU, newMenu.getWidget());
+        Parameter.MenuItem item0 = newMenu.getMenuItems().get(0);
+        Parameter.MenuItem item1 = newMenu.getMenuItems().get(1);
+        assertEquals("en", item0.getKey());
+        assertEquals("English", item0.getLabel());
+        assertEquals("es", item1.getKey());
+        assertEquals("Spanish", item1.getLabel());
+        Parameter newHidden = newAlpha.getParameter("hidden");
+        assertEquals(Parameter.DisplayLevel.HIDDEN, newHidden.getDisplayLevel());
+        assertEquals("invisible", newHidden.getValue());
+        Parameter newLabel = newAlpha.getParameter("label");
+        assertEquals("My Label", newLabel.getLabel());
+        assertEquals("My Help Text", newLabel.getHelpText());
     }
 
 
