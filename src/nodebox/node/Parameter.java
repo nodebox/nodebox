@@ -347,7 +347,7 @@ public class Parameter {
 
     public void addMenuItem(String key, String label) {
         menuItems.add(new MenuItem(key, label));
-        // TODO: fireMenuChanged();
+        fireAttributeChanged();
     }
 
     //// Values ////

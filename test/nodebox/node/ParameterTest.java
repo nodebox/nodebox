@@ -23,6 +23,14 @@ import nodebox.graphics.Color;
 
 public class ParameterTest extends NodeTestCase {
 
+    private static class MyParameterAttributeListener implements ParameterAttributeListener {
+        public int changeCounter = 0;
+
+        public void attributeChanged(Parameter source) {
+            ++changeCounter;
+        }
+    }
+
     public void testNaming() {
         Node n = numberNode.newInstance(testLibrary, "number1");
 
@@ -305,6 +313,33 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(aAngle.getDisplayLevel(), bAngle.getDisplayLevel());
         assertEquals(aAngle.getHelpText(), bAngle.getHelpText());
         assertEquals(aAngle.getWidget(), bAngle.getWidget());
+    }
+
+    /**
+     * Test if changes to the parameter metadata throw the correct event.
+     */
+    public void testParameterEvents() {
+        MyParameterAttributeListener l;
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pMenu = alpha.addParameter("menu", Parameter.Type.STRING);
+        l = new MyParameterAttributeListener();
+        alpha.addParameterAttributeListener(l);
+        assertEquals(0, l.changeCounter);
+        pMenu.setWidget(Parameter.Widget.MENU);
+        assertEquals(1, l.changeCounter);
+        pMenu.addMenuItem("en", "English");
+        pMenu.addMenuItem("es", "Spanis");
+        assertEquals(3, l.changeCounter);
+
+        Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
+        l = new MyParameterAttributeListener();
+        alpha.addParameterAttributeListener(l);
+        assertEquals(0, l.changeCounter);
+        pFloat.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        assertEquals(1, l.changeCounter);
+        pFloat.setMinimumValue(-100f);
+        pFloat.setMaximumValue(100f);
+        assertEquals(3, l.changeCounter);
     }
 
     //// Helper functions ////
