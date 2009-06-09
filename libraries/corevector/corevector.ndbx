@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" formatVersion="0.9">
+    <node name="generator" prototype="builtins.root" x="300.0" y="41.0" type="nodebox.graphics.Grob">
+        <description>Template for creating nodes that generator vector data.</description>
+        <param name="_image">
+            <value>generator.png</value>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+
+def cook(self):
+    # Replace the code below
+    p = BezierPath()
+    p.rect(0, 0, 100, 100)
+    return p]]></value>
+        </param>
+    </node>
+    <node name="filter" prototype="builtins.root" x="300.0" y="41.0" type="nodebox.graphics.Grob">
+        <description>Template for creating nodes that manipulate vector data.</description>
+        <port name="shape" type="nodebox.graphics.Grob"/>
+        <param name="_image">
+            <value>filter.png</value>
+        </param>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+
+def cook(self):
+    # Replace the code below
+    clone = self.shape.clone()
+    clone.translate(20, 20)
+    return clone]]></value>
+        </param>
+    </node>
     <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="nodebox.graphics.Grob">
         <description>Creates ellipses.</description>
         <param name="_image">
