@@ -1,0 +1,178 @@
+package nodebox.util;
+
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
+import java.io.*;
+import java.util.StringTokenizer;
+
+public class FileUtils {
+
+    /**
+     * Returns the file name without its path and extension.
+     * <p/>
+     * If the file has no extension, the file name is returned as is.
+     *
+     * @param f the file
+     * @return the file name without extension
+     */
+    public static String stripExtension(File f) {
+        return stripExtension(f.getName());
+    }
+
+    /**
+     * Returns the file name without its path and extension.
+     * <p/>
+     * If the file has no extension, the file name is returned as is.
+     *
+     * @param fileName the file name
+     * @return the file name without extension
+     */
+    public static String stripExtension(String fileName) {
+        int i = fileName.lastIndexOf('.');
+        if (i == -1) return fileName;
+        return fileName.substring(0, i);
+    }
+
+    /**
+     * Gets the extension of a file in lowercase.
+     *
+     * @param f the file
+     * @return the extension of the file.
+     */
+    public static String getExtension(File f) {
+        return getExtension(f.getName());
+    }
+
+    /**
+     * Gets the extension of a file in lowercase.
+     *
+     * @param fileName the file name
+     * @return the extension of the file.
+     */
+    public static String getExtension(String fileName) {
+        int i = fileName.lastIndexOf('.');
+        if (i == -1) return "";
+        return fileName.substring(i + 1).toLowerCase();
+    }
+
+
+    public static File showOpenDialog(Frame owner, String pathName, String extensions, String description) {
+        return showFileDialog(owner, pathName, extensions, description, FileDialog.LOAD);
+    }
+
+    public static File showSaveDialog(Frame owner, String pathName, String extensions, String description) {
+        return showFileDialog(owner, pathName, extensions, description, FileDialog.SAVE);
+    }
+
+    private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
+        FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
+        fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
+        fileDialog.setVisible(true);
+        String chosenFile = fileDialog.getFile();
+        String dir = fileDialog.getDirectory();
+        if (chosenFile != null) {
+            return new File(dir + chosenFile);
+        } else {
+            return null;
+        }
+
+    }
+
+    public static String[] parseExtensions(String extensions) {
+        StringTokenizer st = new StringTokenizer(extensions, ",");
+        String[] ext = new String[st.countTokens()];
+        int i = 0;
+        while (st.hasMoreTokens()) {
+            ext[i++] = st.nextToken();
+        }
+        return ext;
+    }
+
+    public static class FileExtensionFilter extends FileFilter implements FilenameFilter {
+        String[] extensions;
+        String desc;
+
+        public FileExtensionFilter(String extensions, String desc) {
+            this.extensions = parseExtensions(extensions);
+            this.desc = desc;
+        }
+
+        public boolean accept(File f) {
+            return f.isDirectory() || accept(null, f.getName());
+        }
+
+        public boolean accept(File f, String s) {
+            String extension = FileUtils.getExtension(s);
+            if (extension != null) {
+                for (String extension1 : extensions) {
+                    if (extension1.equals("*") || extension1.equalsIgnoreCase(extension)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public String getDescription() {
+            return desc;
+        }
+    }
+
+    public static String readFile(File file) {
+        StringBuffer contents = new StringBuffer();
+        try {
+            FileInputStream fstream = new FileInputStream(file);
+            DataInputStream in = new DataInputStream(fstream);
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = br.readLine()) != null) {
+                contents.append(line);
+                contents.append("\n");
+            }
+            in.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read file " + file, e);
+        }
+        return contents.toString();
+    }
+
+    public static void writeFile(File file, String s) {
+        try {
+            Writer out = new BufferedWriter(new FileWriter(file));
+            out.write(s);
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write file " + file, e);
+        }
+    }
+
+    public static File createTemporaryDirectory(String prefix) {
+        File tempDir = null;
+        try {
+            tempDir = File.createTempFile(prefix, "");
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create temporary file " + prefix);
+        }
+        boolean success = tempDir.delete();
+        if (!success) throw new RuntimeException("Could not delete temporary file " + tempDir);
+        success = tempDir.mkdir();
+        if (!success) throw new RuntimeException("Could not create temporary directory " + tempDir);
+        return tempDir;
+    }
+
+    public static boolean deleteDirectory(File directory) {
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
+                }
+            }
+        }
+        return (directory.delete());
+    }
+
+}

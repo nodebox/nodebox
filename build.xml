@@ -5,7 +5,7 @@
     <target name="properties">
         <property name="src" value="src"/>
         <property name="res" value="res"/>
-        <property name="test" value="test/java"/>
+        <property name="test" value="test"/>
         <property name="lib" value="lib"/>
         <property name="libraries" value="libraries"/>
         <property name="examples" value="examples"/>
@@ -121,12 +121,14 @@
                 <include name="*.py"/>
                 <include name="*.properties"/>
             </fileset>
+            <!-- Currently there are no files in platform.lib.
             <fileset dir="${platform.lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
                 <include name="*.py"/>
                 <include name="*.properties"/>
             </fileset>
+            -->
         </copy>
         <!-- Copy resources-->
         <copy todir="${mac.application.res}">
@@ -159,7 +161,7 @@
     </target>
 
     <target name="run" depends="compile">
-        <java classname="net.nodebox.client.Application" fork="true">
+        <java classname="nodebox.client.Application" fork="true">
             <classpath refid="project.classpath"/>
         </java>
     </target>

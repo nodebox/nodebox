@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" formatVersion="0.9">
-    <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="net.nodebox.graphics.Grob">
+    <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="nodebox.graphics.Grob">
         <description>Creates ellipses.</description>
         <param name="_image">
             <value>ellipse.png</value>
         </param>
         <param name="_code">
-            <value type="python"><![CDATA[from net.nodebox.graphics import BezierPath
+            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
 
 def cook(self):
     p = BezierPath()
@@ -51,13 +51,13 @@ def cook(self):
         </param>
     </node>
     <node name="rect" prototype="builtins.root" x="65.99058103241903" y="49.11378030429748" rendered="true"
-          type="net.nodebox.graphics.Grob">
+          type="nodebox.graphics.Grob">
         <description>Creates rectangles and rounded rectangles.</description>
         <param name="_image">
             <value>rect.png</value>
         </param>
         <param name="_code">
-            <value type="python"><![CDATA[from net.nodebox.graphics import BezierPath
+            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
 
 def cook(self):
     p = BezierPath()

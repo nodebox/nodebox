@@ -23,9 +23,9 @@
         </param>
         -->
     </node>
-    <node name="move1" prototype="builtins.root" type="net.nodebox.node.polygraph.Polygon">
+    <node name="move1" prototype="builtins.root" type="nodebox.node.polygraph.Polygon">
         <description>Moves a polygon.</description>
-        <port name="polygon" type="net.nodebox.node.polygraph.Polygon"/>
+        <port name="polygon" type="nodebox.node.polygraph.Polygon"/>
         <param name="tx" type="float">
             <value>15.0</value>
         </param>

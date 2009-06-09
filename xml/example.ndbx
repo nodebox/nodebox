@@ -21,9 +21,9 @@
             <value>#120044ff</value>
         </param>
     </node>
-    <node name="wiggle1" prototype="builtins.root" type="net.nodebox.node.polygraph.Polygon">
+    <node name="wiggle1" prototype="builtins.root" type="nodebox.node.polygraph.Polygon">
         <description>Wiggles a polygon randomly.</description>
-        <port name="polygon" type="net.nodebox.node.polygraph.Polygon"/>
+        <port name="polygon" type="nodebox.node.polygraph.Polygon"/>
         <param name="wx" type="float">
             <value>0.0</value>
         </param>

@@ -44,7 +44,7 @@
       <key>JVMVersion</key>
       <string>1.5+</string>
       <key>MainClass</key>
-      <string>net.nodebox.client.Application</string>
+      <string>nodebox.client.Application</string>
       <key>Properties</key>
       <dict>
         <key>com.apple.mrj.application.live-resize</key>
