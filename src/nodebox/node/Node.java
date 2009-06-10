@@ -1610,21 +1610,6 @@ public class Node implements NodeCode, NodeAttributeListener {
         Node n = rawInstance(library, name, dataClass);
         library.add(n);
         return n;
-//        if (library == null) throw new IllegalArgumentException("Library parameter cannot be null.");
-//        if (dataClass == null) dataClass = outputPort.getDataClass();
-//        Node n = new Node(library, name, dataClass);
-//        n.prototype = this;
-//        n.parent = this.parent;
-//        n.dirty = true;
-//        // Clone all parameters.
-//        for (Parameter p : parameters.values()) {
-//            n.parameters.put(p.getName(), p.clone(n));
-//        }
-//        // Clone all ports.
-//        for (Port p : ports.values()) {
-//            n.ports.put(p.getName(), p.clone(n));
-//        }
-        // Add the new instance to the library.
     }
 
     /**

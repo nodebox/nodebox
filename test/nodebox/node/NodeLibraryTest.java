@@ -141,8 +141,6 @@ public class NodeLibraryTest extends TestCase {
         pLabel.setLabel("My Label");
         pLabel.setHelpText("My Help Text");
 
-        System.out.println(library.toXml());
-
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
         Node newAlpha = newLibrary.get("alpha");
