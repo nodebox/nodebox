@@ -32,7 +32,7 @@ def cook(self):
         </param>
     </node>
     <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="nodebox.graphics.Grob">
-        <description>Creates ellipses.</description>
+        <description>Creates ellipses and circles.</description>
         <param name="_image">
             <value>ellipse.png</value>
         </param>
@@ -68,17 +68,6 @@ def cook(self):
         </param>
         <param name="strokeWidth" type="float">
             <value>0.0</value>
-        </param>
-    </node>
-    <node name="test" prototype="builtins.root" x="206.2887381060354" y="93.01492552100638">
-        <description>This description</description>
-        <param name="_code">
-            <value type="python"><![CDATA[def cook(self):
-    print "hello"
-    return self.node.name]]></value>
-        </param>
-        <param name="text" type="string">
-            <value>hello</value>
         </param>
     </node>
     <node name="rect" prototype="builtins.root" x="65.99058103241903" y="49.11378030429748" rendered="true"
@@ -118,13 +107,17 @@ def cook(self):
         <param name="stroke" type="color">
         </param>
         <param name="strokeWidth" type="float">
-            <value>4.0</value>
+            <value>0.0</value>
         </param>
     </node>
-  <node name="copy" prototype="builtins.root" x="202.0" y="67.0" type="nodebox.graphics.Grob">
-    <port name="shape" type="nodebox.graphics.Grob"/>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Group
+    <node name="copy" prototype="builtins.root" x="202.0" y="67.0" type="nodebox.graphics.Grob">
+      <port name="shape" type="nodebox.graphics.Grob"/>
+      <description>Creates multiple copies of the input.</description>
+      <param name="_image">
+        <value>copy.png</value>
+      </param>
+      <param name="_code">
+        <value type="python"><![CDATA[from nodebox.graphics import Group
 
 def cook(self):
     if self.shape is None:
@@ -149,33 +142,33 @@ def cook(self):
         sx += self.sx / 100.0
         sy += self.sy / 100.0
     return g]]></value>
-    </param>
-    <param name="copies" type="int" display="hud">
-      <value>1</value>
-    </param>
-    <param name="order" type="string" widget="menu" display="hud">
-      <value>srt</value>
-      <menu key="srt">Scale Rot Trans</menu>
-      <menu key="str">Scale Trans Rot</menu>
-      <menu key="rst">Rot Scale Trans</menu>
-      <menu key="rts">Rot Trans Scale</menu>
-      <menu key="tsr">Trans Scale Rot</menu>
-      <menu key="trs">Trans Rot Scale</menu>
-    </param>
-    <param name="tx" type="float" label="Translate X" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="ty" type="float" label="Translate Y" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="r" type="float" label="Rotate" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="sx" type="float" label="Scale X" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="sy" type="float" label="Scale Y" display="hud">
-      <value>0.0</value>
-    </param>
-  </node>
+      </param>
+      <param name="copies" type="int" display="hud">
+        <value>1</value>
+      </param>
+      <param name="order" type="string" widget="menu" display="hud">
+        <value>srt</value>
+        <menu key="srt">Scale Rot Trans</menu>
+        <menu key="str">Scale Trans Rot</menu>
+        <menu key="rst">Rot Scale Trans</menu>
+        <menu key="rts">Rot Trans Scale</menu>
+        <menu key="tsr">Trans Scale Rot</menu>
+        <menu key="trs">Trans Rot Scale</menu>
+      </param>
+      <param name="tx" type="float" label="Translate X" display="hud">
+        <value>0.0</value>
+      </param>
+      <param name="ty" type="float" label="Translate Y" display="hud">
+        <value>0.0</value>
+      </param>
+      <param name="r" type="float" label="Rotate" display="hud">
+        <value>0.0</value>
+      </param>
+      <param name="sx" type="float" label="Scale X" display="hud">
+        <value>0.0</value>
+      </param>
+      <param name="sy" type="float" label="Scale Y" display="hud">
+        <value>0.0</value>
+      </param>
+    </node>
 </ndbx>

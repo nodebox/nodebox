@@ -62,7 +62,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         ROOT_NODE = new Node(NodeLibrary.BUILTINS, "root", Object.class);
         ROOT_NODE.addParameter("_code", Parameter.Type.CODE, ROOT_NODE);
         ROOT_NODE.addParameter("_handle", Parameter.Type.CODE, new JavaMethodWrapper(Node.class, "doNothing"));
-        ROOT_NODE.addParameter("_description", Parameter.Type.STRING, "Base node instance");
+        ROOT_NODE.addParameter("_description", Parameter.Type.STRING, "Base node instance.");
         ROOT_NODE.addParameter("_image", Parameter.Type.STRING, IMAGE_GENERIC);
         NodeLibrary.BUILTINS.add(ROOT_NODE);
     }
