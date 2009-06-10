@@ -121,4 +121,61 @@ def cook(self):
             <value>4.0</value>
         </param>
     </node>
+  <node name="copy" prototype="builtins.root" x="202.0" y="67.0" type="nodebox.graphics.Grob">
+    <port name="shape" type="nodebox.graphics.Grob"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Group
+
+def cook(self):
+    if self.shape is None:
+        return None
+    g = Group()
+    tx = ty = r = 0.0
+    sx = sy = 1.0
+    for i in range(self.copies):
+        newShape = self.shape.clone()
+        # Each letter of the order describes an operation.
+        for op in self.order:
+            if op == 't':
+                newShape.translate(tx, ty)
+            elif op == 'r':
+                newShape.rotate(r)
+            elif op == 's':
+                newShape.scale(sx, sy)
+        g.add(newShape)
+        tx += self.tx
+        ty += self.ty
+        r += self.r
+        sx += self.sx / 100.0
+        sy += self.sy / 100.0
+    return g]]></value>
+    </param>
+    <param name="copies" type="int" display="hud">
+      <value>1</value>
+    </param>
+    <param name="order" type="string" widget="menu" display="hud">
+      <value>srt</value>
+      <menu key="srt">Scale Rot Trans</menu>
+      <menu key="str">Scale Trans Rot</menu>
+      <menu key="rst">Rot Scale Trans</menu>
+      <menu key="rts">Rot Trans Scale</menu>
+      <menu key="tsr">Trans Scale Rot</menu>
+      <menu key="trs">Trans Rot Scale</menu>
+    </param>
+    <param name="tx" type="float" label="Translate X" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="ty" type="float" label="Translate Y" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="r" type="float" label="Rotate" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="sx" type="float" label="Scale X" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="sy" type="float" label="Scale Y" display="hud">
+      <value>0.0</value>
+    </param>
+  </node>
 </ndbx>
