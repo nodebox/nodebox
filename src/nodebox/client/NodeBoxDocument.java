@@ -317,8 +317,13 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             activeNetwork.addDirtyListener(this);
         fireActiveNetworkChanged();
         if (activeNetwork != null && !activeNetwork.isEmpty()) {
-            // Get the first node.
-            setActiveNode(activeNetwork.getChildAt(0));
+            // Set the active node to the rendered child if available.
+            if (activeNetwork.getRenderedChild() != null) {
+                setActiveNode(activeNetwork.getRenderedChild());
+            } else {
+                // Otherwise set it to the first node.
+                setActiveNode(activeNetwork.getChildAt(0));
+            }
         } else {
             setActiveNode(null);
         }

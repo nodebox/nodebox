@@ -135,8 +135,10 @@ public class NodeSelectionDialog extends JDialog {
         nodeList.addKeyListener(arrowKeysListener);
         nodeList.setSelectedIndex(0);
         nodeList.setCellRenderer(new NodeRenderer());
+        JScrollPane nodeScroll = new JScrollPane(nodeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        nodeScroll.setBorder(null);
         panel.add(searchField, BorderLayout.NORTH);
-        panel.add(nodeList, BorderLayout.CENTER);
+        panel.add(nodeScroll, BorderLayout.CENTER);
         setContentPane(panel);
         setSize(346, 382);
         SwingUtils.centerOnScreen(this);
