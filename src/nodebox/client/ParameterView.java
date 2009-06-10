@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ParameterView extends JComponent {
+public class ParameterView extends JComponent implements ParameterAttributeListener {
 
     private static Logger logger = Logger.getLogger("nodebox.client.ParameterView");
 
@@ -58,11 +58,15 @@ public class ParameterView extends JComponent {
 
     public void setNode(Node node) {
         Node oldNode = this.node;
-        if (oldNode != null)
+        if (oldNode != null) {
             oldNode.removeNodeAttributeListener(handler);
+            oldNode.removeParameterAttributeListener(this);
+        }
         this.node = node;
-        if (node != null)
+        if (node != null) {
             node.addNodeAttributeListener(handler);
+            node.addParameterAttributeListener(this);
+        }
         rebuildInterface();
         validate();
         repaint();
@@ -118,6 +122,10 @@ public class ParameterView extends JComponent {
             logger.log(Level.SEVERE, "Cannot construct control", e);
             throw new AssertionError("Cannot construct control:" + e);
         }
+    }
+
+    public void attributeChanged(Parameter source) {
+        rebuildInterface();
     }
 
     //// Node events ////
