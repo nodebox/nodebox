@@ -469,7 +469,7 @@ public class Parameter {
         }
         // validate throws IllegalArgumentException when the value fails validation.
         validate(value);
-        if (this.value.equals(value)) return;
+        if (this.value != null && this.value.equals(value)) return;
         // As a special exception, integer values can be cast up to floating-point values,
         // and double values can be cast down (losing precision).
         if (value instanceof Integer && type == Type.FLOAT) {
@@ -564,7 +564,7 @@ public class Parameter {
     public void clearExpression() {
         this.expression = null;
         removeDependencies();
-        fireValueChanged();
+        markDirty();
     }
 
     public void setExpression(String expression) throws ExpressionError {
@@ -766,7 +766,7 @@ public class Parameter {
 
     /**
      * Convert the given value to the correct type for this parameter.
-     *
+     * <p/>
      * This method assumes the value has already been validated, and is only used to convert int and doubles
      * to their correct float representation.
      *
@@ -783,33 +783,60 @@ public class Parameter {
 
     //// Values ////
 
+    /**
+     * Revert the value to its default value.
+     * <p/>
+     * If this parameter has a prototype, set the value/expression
+     * to the value/expression of the prototype.
+     */
     public void revertToDefault() {
-        this.value = getDefaultValue();
-        fireValueChanged();
+        Parameter protoParam = getPrototype();
+        // Check if we have a prototype parameter and if it is of the same type.
+        // Otherwise, use the default value for the Type.
+        if (protoParam == null || protoParam.getType() != getType()) {
+            // The default is to not have expressions, so they get removed.
+            clearExpression();
+            setValue(getDefaultValue(type));
+        } else if (protoParam.hasExpression()) {
+            // If the prototype has an expression, we need to have an expression too.
+            // TODO: Inheriting the prototype expression is simple, but likely wrong.
+            // It can refer to other parameters that are not in our namespace.
+            // Better is to rewrite the expression, which we should also do in clone.
+            setExpression(protoParam.getExpression());
+        } else {
+            // If the prototype does not have an expression, we shouldn't have on either.
+            // Clear it and set the default value to that of the prototype.
+            clearExpression();
+            setValue(protoParam.getValue());
+        }
     }
 
     /**
      * Get the default value for a Parameter.
      * <p/>
      * The default value is the value of the prototype of the Parameter.
-     * If the default value is not on the prototype, or does not have
-     * the correct type, the default value is the default value for the
-     * type.
+     * If the prototype does not have this parameter or if the prototype
+     * parameter is of a different type, return the default value for the Type.
      *
      * @return the default value for this type.
+     * @see #getDefaultValue(Type)
      */
     public Object getDefaultValue() {
-        Node prototypeNode = getNode().getPrototype();
-        if (prototypeNode != null) {
-            Parameter prototypeParameter = prototypeNode.getParameter(getName());
-            // Parameter needs to exist and be of the same type.
-            if (prototypeParameter != null && prototypeParameter.getType() == getType()) {
-                return prototypeParameter.getValue();
-            }
-        }
-        return getDefaultValue(type);
+        Parameter protoParam = getPrototype();
+        // If this parameter has no prototype or if the prototype is of a different type,
+        // return the default value for this type.
+        if (protoParam == null || protoParam.getType() != getType()) return getDefaultValue(type);
+        return protoParam.getValue();
     }
 
+    /**
+     * Get the default value for the given Type.
+     * <p/>
+     * This returns a sane default.
+     *
+     * @param type the type to lookup
+     * @return the default value for this type.
+     */
     public static Object getDefaultValue(Type type) {
         if (type == Type.INT) {
             return 0;
@@ -1017,12 +1044,26 @@ public class Parameter {
         */
     }
 
+    /**
+     * Clone the parameter so that it can be added to the given node.
+     * <p/>
+     * The value/expression of the new parameter will match the value/parameter
+     * of its prototype, if that exists, otherwise the value will be set to the
+     * default value for the Type.
+     *
+     * Do not use this method directly. This method is only used by Node to create a new instance
+     * based on a prototype.
+     *
+     * @param n the new node this parameter should be under.
+     * @return a new Parameter.
+     * @see Node#newInstance(NodeLibrary, String, Class) 
+     */
     public Parameter clone(Node n) {
+        // This will call revertToDefault, which will set the value/expression to that of the prototype.
         Parameter p = new Parameter(n, getName(), getType());
         p.setLabel(getLabel());
         p.setHelpText(getHelpText());
         p.setWidget(getWidget());
-        p.setValue(cloneValue(getValue()));
         p.setBoundingMethod(getBoundingMethod());
         p.setMinimumValue(getMinimumValue());
         p.setMaximumValue(getMaximumValue());
@@ -1030,8 +1071,6 @@ public class Parameter {
         for (MenuItem item : getMenuItems()) {
             p.addMenuItem(item.getKey(), item.getLabel());
         }
-        // TODO: Rewrite expressions to point to new node.
-        p.setExpression(getExpression());
         return p;
     }
 

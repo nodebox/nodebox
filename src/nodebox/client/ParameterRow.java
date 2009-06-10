@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.node.ConnectionError;
 import nodebox.node.Parameter;
+import nodebox.node.ParameterValueListener;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -11,7 +12,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements ComponentListener, MouseListener {
+public class ParameterRow extends JComponent implements ComponentListener, MouseListener, ParameterValueListener {
 
     private static Image popupButtonImage;
     private static int popupButtonHeight;
@@ -40,6 +41,7 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         addComponentListener(this);
         addMouseListener(this);
         this.parameter = parameter;
+        parameter.getNode().addParameterValueListener(this);
 
         setLayout(null);
 
@@ -125,6 +127,9 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     //// Parameter context menu ////
 
     private void setExpressionStatus() {
+        // Check if the current state is already correct.
+        if (parameter.hasExpression() && !control.isVisible()
+                && expressionField.getText().equals(parameter.getExpression())) return;
         if (parameter.hasExpression()) {
             control.setVisible(false);
             expressionField.setVisible(true);
@@ -135,6 +140,20 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
             expressionField.setVisible(false);
         }
         expressionMenuItem.setState(parameter.hasExpression());
+    }
+
+    /**
+     * Check if the value change triggered a change in expression status.
+     * <p/>
+     * This can happen if revert to default switches from value to expression
+     * or vice versa.
+     *
+     * @param source the Parameter this event comes from
+     */
+    public void valueChanged(Parameter source) {
+        if (parameter != source) return;
+        setExpressionStatus();
+
     }
 
     //// Action classes ////
@@ -150,7 +169,9 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
             } else {
                 parameter.setExpression(parameter.asExpression());
             }
-            setExpressionStatus();
+            // We don't have to change the expression status here.
+            // Instead, we respond to the valueChanged event to update our status.
+            // This makes the handling consistent even with multiple parameter views.
         }
     }
 
@@ -161,6 +182,9 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
 
         public void actionPerformed(ActionEvent e) {
             parameter.revertToDefault();
+            // Reverting to default could cause an expression to be set/cleared.
+            // This triggers an valueChanged event, where we check if our expression field is
+            // still up-to-date.
         }
     }
 

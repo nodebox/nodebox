@@ -344,6 +344,8 @@ public class ParameterTest extends NodeTestCase {
         // Initialization has triggered the parameter value event.
         assertEquals(1, l.getCounter(pAlpha));
         assertEquals(1, l.getCounter(pBeta));
+        // Update the node so new events will get fired.
+        n.update();
         pAlpha.setValue(100);
         assertEquals(2, l.getCounter(pAlpha));
         assertEquals(1, l.getCounter(pBeta));
@@ -411,6 +413,43 @@ public class ParameterTest extends NodeTestCase {
         alpha.update();
         // Since this is a float parameter, getValue should always return a float.
         assertEquals(12f, pFloat.getValue());
+    }
+
+    /**
+     * Test corner cases with revertToDefault.
+     */
+    public void testRevertToDefault() {
+        // Create a prototype node with an int parameter with an expression.
+        Node proto = Node.ROOT_NODE.newInstance(testLibrary, "proto");
+        Parameter pAlpha = proto.addParameter("alpha", Parameter.Type.INT);
+        pAlpha.setExpression("40 + 2");
+        Parameter pBeta = proto.addParameter("beta", Parameter.Type.INT, 88);
+        // Create an instance of this prototype.
+        Node test = proto.newInstance(testLibrary, "test");
+        Parameter tAlpha = test.getParameter("alpha");
+        // Check if the instance inherits the expression.
+        assertTrue(tAlpha.hasExpression());
+        assertEquals("40 + 2", tAlpha.getExpression());
+        // Update the node so the expression gets evaluated.
+        test.update();
+        // Remove the expression.
+        tAlpha.clearExpression();
+        assertEquals(42, tAlpha.getValue());
+        // Revert to default. The expression should be restored.
+        tAlpha.revertToDefault();
+        assertTrue(tAlpha.hasExpression());
+        assertEquals("40 + 2", tAlpha.getExpression());
+        // Now test the other way around. If the prototype has no expression, but the instance does,
+        // remove the expression and set the value.
+        Parameter tBeta = test.getParameter("beta");
+        assertFalse(tBeta.hasExpression());
+        tBeta.setExpression("3 - 2");
+        test.update();
+        assertEquals(1, tBeta.getValue());
+        // Revert to default. The beta parameter should have a regular value instead of an expression.
+        tBeta.revertToDefault();
+        assertFalse(tBeta.hasExpression());
+        assertEquals(88, tBeta.getValue());        
     }
 
     //// Helper functions ////
