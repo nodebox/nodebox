@@ -1,43 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" formatVersion="0.9">
-    <node name="generator" prototype="builtins.root" x="300.0" y="41.0" type="nodebox.graphics.Grob">
-        <description>Template for creating nodes that generator vector data.</description>
-        <param name="_image">
-            <value>generator.png</value>
-        </param>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
-
-def cook(self):
-    # Replace the code below
-    p = BezierPath()
-    p.rect(0, 0, 100, 100)
-    return p]]></value>
-        </param>
-    </node>
-    <node name="filter" prototype="builtins.root" x="300.0" y="41.0" type="nodebox.graphics.Grob">
-        <description>Template for creating nodes that manipulate vector data.</description>
-        <port name="shape" type="nodebox.graphics.Grob"/>
-        <param name="_image">
-            <value>filter.png</value>
-        </param>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
-
-def cook(self):
-    # Replace the code below
-    clone = self.shape.clone()
-    clone.translate(20, 20)
-    return clone]]></value>
-        </param>
-    </node>
-    <node name="ellipse" prototype="builtins.root" x="300.16632836146215" y="41.0" type="nodebox.graphics.Grob">
-        <description>Creates ellipses and circles.</description>
-        <param name="_image">
-            <value>ellipse.png</value>
-        </param>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+  <node name="ellipse" prototype="builtins.root" x="180.16632836146215" y="109.0" type="nodebox.graphics.Grob">
+  <description>Creates ellipses and circles.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import BezierPath
 
 def cook(self):
     p = BezierPath()
@@ -49,35 +15,56 @@ def cook(self):
     else:
         p.strokeColor = None
     return p]]></value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="fill" type="color">
-        </param>
-        <param name="stroke" type="color">
-        </param>
-        <param name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node name="rect" prototype="builtins.root" x="65.99058103241903" y="49.11378030429748" rendered="true"
-          type="nodebox.graphics.Grob">
-        <description>Creates rectangles and rounded rectangles.</description>
-        <param name="_image">
-            <value>rect.png</value>
-        </param>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+    </param>
+    <param name="_image">
+      <value>ellipse.png</value>
+    </param>
+    <param name="x" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float" display="hud">
+      <value>100.0</value>
+    </param>
+    <param name="height" type="float" display="hud">
+      <value>100.0</value>
+    </param>
+    <param name="fill" type="color" display="hud">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color" display="hud">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="generator" prototype="builtins.root" x="53.0" y="28.0" rendered="true" type="nodebox.graphics.Grob">
+  <description>Template for creating nodes that generator vector data.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
+# Read the code in cook and replace it with your own.
+from nodebox.graphics import BezierPath
+
+def cook(self):
+    # Replace the code below.
+    # Create a new path object.
+    p = BezierPath()
+    # Call the rect method to draw something within the path.
+    p.rect(-50, -50, 100, 100)
+    # Return the path object.
+    return p]]></value>
+    </param>
+    <param name="_image">
+      <value>generator.png</value>
+    </param>
+  </node>
+  <node name="rect" prototype="builtins.root" x="180.99058103241902" y="29.113780304297478" type="nodebox.graphics.Grob">
+  <description>Creates rectangles and rounded rectangles.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import BezierPath
 
 def cook(self):
     p = BezierPath()
@@ -89,35 +76,60 @@ def cook(self):
     else:
         p.strokeColor = None
     return p]]></value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="fill" type="color">
-        </param>
-        <param name="stroke" type="color">
-        </param>
-        <param name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node name="copy" prototype="builtins.root" x="202.0" y="67.0" type="nodebox.graphics.Grob">
-      <port name="shape" type="nodebox.graphics.Grob"/>
-      <description>Creates multiple copies of the input.</description>
-      <param name="_image">
-        <value>copy.png</value>
-      </param>
-      <param name="_code">
-        <value type="python"><![CDATA[from nodebox.graphics import Group
+    </param>
+    <param name="_image">
+      <value>rect.png</value>
+    </param>
+    <param name="x" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float" display="hud">
+      <value>100.0</value>
+    </param>
+    <param name="height" type="float" display="hud">
+      <value>100.0</value>
+    </param>
+    <param name="fill" type="color" display="hud">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color" display="hud">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float" display="hud">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="filter" prototype="builtins.root" x="53.0" y="116.0" type="nodebox.graphics.Grob">
+  <description>Template for creating nodes that manipulate vector data.</description>
+    <port name="shape" type="nodebox.graphics.Grob"/>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
+# Read the code in cook() and replace it with your own.
+from nodebox.graphics import BezierPath
+
+def cook(self):
+    # Replace the code below
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    # If you're changing the shape, make sure to clone it.
+    clone = self.shape.clone()
+    # Do something with the cloned copy.
+    clone.rotate(45)
+    # Return the transformed shape.
+    return clone]]></value>
+    </param>
+    <param name="_image">
+      <value>filter.png</value>
+    </param>
+  </node>
+  <node name="copy" prototype="builtins.root" x="299.0" y="30.0" type="nodebox.graphics.Grob">
+  <description>Creates multiple copies of the input.</description>
+    <port name="shape" type="nodebox.graphics.Grob"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Group
 
 def cook(self):
     if self.shape is None:
@@ -142,33 +154,36 @@ def cook(self):
         sx += self.sx / 100.0
         sy += self.sy / 100.0
     return g]]></value>
-      </param>
-      <param name="copies" type="int" display="hud">
-        <value>1</value>
-      </param>
-      <param name="order" type="string" widget="menu" display="hud">
-        <value>srt</value>
-        <menu key="srt">Scale Rot Trans</menu>
-        <menu key="str">Scale Trans Rot</menu>
-        <menu key="rst">Rot Scale Trans</menu>
-        <menu key="rts">Rot Trans Scale</menu>
-        <menu key="tsr">Trans Scale Rot</menu>
-        <menu key="trs">Trans Rot Scale</menu>
-      </param>
-      <param name="tx" type="float" label="Translate X" display="hud">
-        <value>0.0</value>
-      </param>
-      <param name="ty" type="float" label="Translate Y" display="hud">
-        <value>0.0</value>
-      </param>
-      <param name="r" type="float" label="Rotate" display="hud">
-        <value>0.0</value>
-      </param>
-      <param name="sx" type="float" label="Scale X" display="hud">
-        <value>0.0</value>
-      </param>
-      <param name="sy" type="float" label="Scale Y" display="hud">
-        <value>0.0</value>
-      </param>
-    </node>
+    </param>
+    <param name="_image">
+      <value>copy.png</value>
+    </param>
+    <param name="copies" type="int" display="hud">
+      <value>1</value>
+    </param>
+    <param name="order" type="string" widget="menu" display="hud">
+      <value>srt</value>
+      <menu key="srt">Scale Rot Trans</menu>
+      <menu key="str">Scale Trans Rot</menu>
+      <menu key="rst">Rot Scale Trans</menu>
+      <menu key="rts">Rot Trans Scale</menu>
+      <menu key="tsr">Trans Scale Rot</menu>
+      <menu key="trs">Trans Rot Scale</menu>
+    </param>
+    <param name="tx" type="float" label="Translate X" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="ty" type="float" label="Translate Y" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="r" type="float" label="Rotate" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="sx" type="float" label="Scale X" display="hud">
+      <value>0.0</value>
+    </param>
+    <param name="sy" type="float" label="Scale Y" display="hud">
+      <value>0.0</value>
+    </param>
+  </node>
 </ndbx>
