@@ -51,6 +51,7 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 

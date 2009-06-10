@@ -21,9 +21,29 @@ package nodebox.node;
 import nodebox.graphics.Canvas;
 import nodebox.graphics.Color;
 
+import java.util.Map;
+import java.util.HashMap;
+
 public class ParameterTest extends NodeTestCase {
 
-    private static class MyParameterAttributeListener implements ParameterAttributeListener {
+    private static class TestParameterValueListener implements ParameterValueListener {
+        public Map<Parameter, Integer> valueMap = new HashMap<Parameter, Integer>();
+
+        public void valueChanged(Parameter source) {
+            Integer counter = valueMap.get(source);
+            if (counter == null) counter = 0;
+            ++counter;
+            valueMap.put(source, counter);
+        }
+
+        public int getCounter(Parameter source) {
+            Integer counter = valueMap.get(source);
+            if (counter == null) counter = 0;
+            return counter;
+        }
+    }
+
+    private static class TestParameterAttributeListener implements ParameterAttributeListener {
         public int changeCounter = 0;
 
         public void attributeChanged(Parameter source) {
@@ -223,13 +243,9 @@ public class ParameterTest extends NodeTestCase {
         n.setValue("float", 12);
         assertEquals(12F, n.asFloat("float"));
         // Set value of a float with a double.
-        try {
-            n.setValue("float", 0.5);
-            fail("Double value should not have been accepted.");
-        } catch (IllegalArgumentException ignored) {
-        }
+        n.setValue("float", 0.5);
         // Value is still set to previous value.
-        assertEquals(12F, n.asFloat("float"));
+        assertEquals(0.5f, n.asFloat("float"));
     }
 
     /**
@@ -316,13 +332,50 @@ public class ParameterTest extends NodeTestCase {
     }
 
     /**
-     * Test if changes to the parameter metadata throw the correct event.
+     * Test if changes to the parameter value fire the correct event.
      */
-    public void testParameterEvents() {
-        MyParameterAttributeListener l;
+    public void testParameterValueEvents() {
+    TestParameterValueListener l;
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        l = new TestParameterValueListener();
+        n.addParameterValueListener(l);
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        Parameter pBeta = n.addParameter("beta", Parameter.Type.FLOAT);
+        // Initialization has triggered the parameter value event.
+        assertEquals(1, l.getCounter(pAlpha));
+        assertEquals(1, l.getCounter(pBeta));
+        pAlpha.setValue(100);
+        assertEquals(2, l.getCounter(pAlpha));
+        assertEquals(1, l.getCounter(pBeta));
+        // Change the value to the current value.
+        // This should not trigger the event.
+        pAlpha.setValue(100);
+        assertEquals(2, l.getCounter(pAlpha));
+        assertEquals(1, l.getCounter(pBeta));
+        // The node is already dirty, and parameters will not receive any new events.
+        // Update the node so it becomes clean again.
+        // Set an expression for beta. This triggers the event.
+        n.update();
+        pAlpha.setValue(3);
+        pBeta.setExpression("alpha + 1");
+        assertEquals(2, l.getCounter(pBeta));
+        // Now change alpha. This will not trigger beta, since the node is not updated yet.
+        assertEquals(3, l.getCounter(pAlpha));
+        assertEquals(2, l.getCounter(pBeta));
+        // Update the node, which will trigger the value changed event.
+        n.update();
+        assertEquals(3, l.getCounter(pAlpha));
+        assertEquals(3, l.getCounter(pBeta));
+    }
+
+    /**
+     * Test if changes to the parameter metadata fire the correct event.
+     */
+    public void testParameterMetaEvents() {
+        TestParameterAttributeListener l;
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         Parameter pMenu = alpha.addParameter("menu", Parameter.Type.STRING);
-        l = new MyParameterAttributeListener();
+        l = new TestParameterAttributeListener();
         alpha.addParameterAttributeListener(l);
         assertEquals(0, l.changeCounter);
         pMenu.setWidget(Parameter.Widget.MENU);
@@ -332,7 +385,7 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(3, l.changeCounter);
 
         Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
-        l = new MyParameterAttributeListener();
+        l = new TestParameterAttributeListener();
         alpha.addParameterAttributeListener(l);
         assertEquals(0, l.changeCounter);
         pFloat.setBoundingMethod(Parameter.BoundingMethod.HARD);
@@ -340,6 +393,24 @@ public class ParameterTest extends NodeTestCase {
         pFloat.setMinimumValue(-100f);
         pFloat.setMaximumValue(100f);
         assertEquals(3, l.changeCounter);
+    }
+
+    /**
+     * Test if the internal type is converted correctly so as to remain consistent.
+     */
+    public void testInternalType() {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
+        // We can set a double or integer value to a float parameter.
+        pFloat.set(33);
+        // However, getValue() should always return a float.
+        assertEquals(33f, pFloat.getValue());
+        // Now try the same with expressions.
+        // Set an expression that returns an integer.
+        pFloat.setExpression("12");
+        alpha.update();
+        // Since this is a float parameter, getValue should always return a float.
+        assertEquals(12f, pFloat.getValue());
     }
 
     //// Helper functions ////

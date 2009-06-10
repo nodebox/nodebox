@@ -45,6 +45,7 @@ public class StringControl extends JComponent implements ParameterControl, Actio
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }

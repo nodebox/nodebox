@@ -47,6 +47,7 @@ public class ToggleControl extends JComponent implements ParameterControl, Param
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }

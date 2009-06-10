@@ -22,7 +22,10 @@ import nodebox.graphics.Color;
 import nodebox.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -467,9 +470,12 @@ public class Parameter {
         // validate throws IllegalArgumentException when the value fails validation.
         validate(value);
         if (this.value.equals(value)) return;
-        // As a special exception, integer values can be cast up to floating-point values.
+        // As a special exception, integer values can be cast up to floating-point values,
+        // and double values can be cast down (losing precision).
         if (value instanceof Integer && type == Type.FLOAT) {
             this.value = (float) ((Integer) value);
+        } else if (value instanceof Double && type == Type.FLOAT) {
+            this.value = (float) ((Double) value).doubleValue();
         } else {
             this.value = value;
         }
@@ -507,8 +513,8 @@ public class Parameter {
                     throw new IllegalArgumentException("Value is not an int.");
                 break;
             case FLOAT:
-                // As a special exception, we accept integer values for float type parameters.
-                if (!(value instanceof Float || value instanceof Integer))
+                // As a special exception, we accept integer and double values for float type parameters.
+                if (!(value instanceof Float || value instanceof Double || value instanceof Integer))
                     throw new IllegalArgumentException("Value is not a float.");
                 break;
             case STRING:
@@ -531,6 +537,8 @@ public class Parameter {
                 floatValue = (Integer) value;
             } else if (value instanceof Float) {
                 floatValue = (Float) value;
+            } else if (value instanceof Double) {
+                floatValue = (float) ((Double) value).doubleValue();
             } else {
                 throw new AssertionError("Bounding set, but value is not integer or float. (type: " + this + " value: " + value + ")");
             }
@@ -582,7 +590,6 @@ public class Parameter {
                 throw new ExpressionError("This expression causes a cyclic dependency.", e);
             }
         }
-        fireValueChanged();
     }
 
     //// Expression dependencies ////
@@ -700,6 +707,7 @@ public class Parameter {
      * has changed.
      */
     protected void fireValueChanged() {
+        getNode().fireParameterValueChanged(this);
         getNode().markDirty();
         for (Parameter p : getDependents()) {
             p.dependencyChangedEvent(this);
@@ -751,8 +759,26 @@ public class Parameter {
 
             Object expressionValue = expression.evaluate(context);
             validate(expressionValue);
-            value = expressionValue;
+            value = convertToType(expressionValue);
+            fireValueChanged();
         }
+    }
+
+    /**
+     * Convert the given value to the correct type for this parameter.
+     *
+     * This method assumes the value has already been validated, and is only used to convert int and doubles
+     * to their correct float representation.
+     *
+     * @param value a value
+     * @return the unchanged object, or the value converted to float for parameters with FLOAT type.
+     */
+    private Object convertToType(Object value) {
+        if (type != Type.FLOAT) return value;
+        if (value instanceof Float) return value;
+        if (value instanceof Integer) return ((Integer) value).floatValue();
+        if (value instanceof Double) return ((Double) value).floatValue();
+        throw new IllegalArgumentException("Value " + value + " cannot be converted to float.");
     }
 
     //// Values ////

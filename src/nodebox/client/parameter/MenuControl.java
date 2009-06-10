@@ -55,6 +55,7 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         Object newValue = source.getValue();
         if (value != null && value.equals(newValue)) return;
         setValueForControl(newValue);

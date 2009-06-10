@@ -73,6 +73,7 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }

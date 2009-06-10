@@ -60,6 +60,7 @@ public class FileControl extends JComponent implements ParameterControl, ActionL
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }

@@ -16,7 +16,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
     private static Logger logger = Logger.getLogger("nodebox.client.ParameterView");
 
     private static final Map<Parameter.Widget, Class> CONTROL_MAP;
-    private JPanel controlPanel;
+
     // At this width, the label background lines out with the pane header divider.
     public static final int LABEL_WIDTH = 106;
 
@@ -39,7 +39,10 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
     }
 
     private Node node;
+
     private NodeEventHandler handler = new NodeEventHandler();
+
+    private JPanel controlPanel;
 
     public ParameterView() {
         setLayout(new BorderLayout());
@@ -83,7 +86,6 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
             JComponent control;
             if (widgetClass != null) {
                 control = (JComponent) constructControl(widgetClass, p);
-
             } else {
                 control = new JLabel("  ");
             }

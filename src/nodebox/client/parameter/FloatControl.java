@@ -68,6 +68,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
     }
 
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }

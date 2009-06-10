@@ -46,6 +46,7 @@ public class NoderefControl extends JComponent implements ParameterControl, Acti
         parameter.setValue(newPath);
     }
     public void valueChanged(Parameter source) {
+        if (parameter != source) return;
         setValueForControl(source.getValue());
     }
 }
