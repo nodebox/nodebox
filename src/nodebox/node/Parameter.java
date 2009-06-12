@@ -231,23 +231,34 @@ public class Parameter {
         return type;
     }
 
+    /**
+     * Change the type of this parameter.
+     * <p/>
+     * The existing value will be migrated to the new type. Changing the type to code will
+     * not try to parse the value, since this can given unexpected results.
+     * <p/>
+     * The new value will be clamped to bounds (if bounding method is set to hard), and
+     * the widget will be set to the default widget for this type.
+     *
+     * @param newType
+     */
     public void setType(Type newType) {
-        Type oldType = this.type;
-        // Try to migrate to the new type
-        if (oldType != newType) {
-            if (hasExpression()) {
-                // Do nothing. It is too hard to change expressions to return a value of the new type.
-            } else {
-                try {
-                    value = parseValue(asString(), newType);
-                } catch (NumberFormatException e) {
-                    // If the value could not be parsed, reset it to the default value.
-                    value = getDefaultValue(newType);
-                }
+        if (this.type == newType) return;
+        // Try to migrate the value to the new type
+        if (hasExpression()) {
+            // Do nothing. It is too hard to change expressions to return a value of the new type.
+        } else {
+            try {
+                value = parseValue(asString(), newType);
+            } catch (IllegalArgumentException e) {
+                // If the value could not be parsed, reset it to the default value.
+                value = getDefaultValue(newType);
             }
         }
         this.type = newType;
         clampToBounds();
+        // The old widget most likely doesn't make any sense for the new type.
+        this.widget = getDefaultWidget(newType);
         fireAttributeChanged();
     }
 
@@ -286,6 +297,8 @@ public class Parameter {
 
     public void setMinimumValue(Float minimumValue) {
         if (this.minimumValue != null && this.minimumValue.equals(minimumValue)) return;
+        if (minimumValue != null && this.maximumValue != null && minimumValue > this.maximumValue)
+            minimumValue = maximumValue;
         this.minimumValue = minimumValue;
         if (boundingMethod == BoundingMethod.HARD)
             clampToBounds();
@@ -298,16 +311,13 @@ public class Parameter {
 
     public void setMaximumValue(Float maximumValue) {
         if (this.maximumValue != null && this.maximumValue.equals(maximumValue)) return;
+        if (maximumValue != null && this.minimumValue != null && maximumValue < this.minimumValue)
+            maximumValue = minimumValue;
         this.maximumValue = maximumValue;
         if (boundingMethod == BoundingMethod.HARD)
             clampToBounds();
         fireAttributeChanged();
     }
-
-//    public void boundingChangedEvent(Parameter source) {
-//        if (source.getBoundingMethod() == ParameterType.BoundingMethod.HARD)
-//            clampToBounds();
-//    }
 
     private void clampToBounds() {
         if (type == Type.INT) {
@@ -874,7 +884,9 @@ public class Parameter {
      * <p/>
      * This does not change the value for this parameter. Use the returned value with Node.setValue().
      * <p/>
-     * This method throws a NumberFormatException if type value could not be parsed.
+     * This method throws a IllegalArgumentException if type value could not be parsed.
+     * <p/>
+     * Code objects cannot be parsed.
      *
      * @param value the value to parse
      * @param type  the type to convert to
@@ -1050,13 +1062,13 @@ public class Parameter {
      * The value/expression of the new parameter will match the value/parameter
      * of its prototype, if that exists, otherwise the value will be set to the
      * default value for the Type.
-     *
+     * <p/>
      * Do not use this method directly. This method is only used by Node to create a new instance
      * based on a prototype.
      *
      * @param n the new node this parameter should be under.
      * @return a new Parameter.
-     * @see Node#newInstance(NodeLibrary, String, Class) 
+     * @see Node#newInstance(NodeLibrary, String, Class)
      */
     public Parameter clone(Node n) {
         // This will call revertToDefault, which will set the value/expression to that of the prototype.

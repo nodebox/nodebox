@@ -14,26 +14,21 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 
-public class ColorControl extends JComponent implements ChangeListener, ParameterControl, ActionListener, DocumentFocusListener, ParameterValueListener {
+public class ColorControl extends AbstractParameterControl implements ChangeListener, ActionListener, DocumentFocusListener {
 
-    private Parameter parameter;
     private ColorButton colorButton;
     private ColorDialog colorDialog;
 
     public ColorControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
-        this.parameter = parameter;
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));
         add(colorButton);
         setValueForControl(parameter.getValue());
         setPreferredSize(new Dimension(80, 30));
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void stateChanged(ChangeEvent e) {
@@ -48,11 +43,6 @@ public class ColorControl extends JComponent implements ChangeListener, Paramete
     public void setValueForControl(Object v) {
         colorButton.repaint();
         //colorWell.setColor((nodebox.graphics.Color) v);
-    }
-
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
     }
 
     public void actionPerformed(ActionEvent e) {

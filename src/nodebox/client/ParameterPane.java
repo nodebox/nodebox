@@ -59,7 +59,7 @@ public class ParameterPane extends Pane {
 
     public void editMetadata() {
         if (node == null) return;
-        NodeMetaEditor editor = new NodeMetaEditor(node);
+        NodeAttributesEditor editor = new NodeAttributesEditor(node);
         JFrame editorFrame = new JFrame(node.getName() + " Metadata");
         editorFrame.getContentPane().add(editor);
         editorFrame.setSize(800, 800);

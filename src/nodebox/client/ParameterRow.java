@@ -41,7 +41,6 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         addComponentListener(this);
         addMouseListener(this);
         this.parameter = parameter;
-        parameter.getNode().addParameterValueListener(this);
 
         setLayout(null);
 
@@ -50,6 +49,8 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
 
         this.control = control;
         control.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        //if (control instanceof ContainerListener)
+        //    addContainerListener((ContainerListener) control);
 
         popupMenu = new JPopupMenu();
         expressionMenuItem = new JCheckBoxMenuItem(new ToggleExpressionAction());
@@ -69,6 +70,18 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         setExpressionStatus();
 
         setBorder(rowBorder);
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        parameter.getNode().addParameterValueListener(this);
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        parameter.getNode().removeParameterValueListener(this);
     }
 
     //// Component listeners ////
@@ -153,7 +166,6 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     public void valueChanged(Parameter source) {
         if (parameter != source) return;
         setExpressionStatus();
-
     }
 
     //// Action classes ////

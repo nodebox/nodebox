@@ -9,6 +9,8 @@ public class SwingUtils {
     public static final Color COLOR_NORMAL = new Color(60, 60, 60);
     public static final Color COLOR_ARMED = new Color(0, 0, 0);
     public static final Color COLOR_SHADOW = new Color(255, 255, 255);
+    public static final Color COLOR_DISABLED = new Color(98, 112, 130);
+    public static final Font FONT_REGULAR = new Font("Lucida Grande", Font.PLAIN, 11);
     public static final Font FONT_BOLD = new Font("Lucida Grande", Font.BOLD, 11);
 
     public static void centerOnScreen(Window w) {

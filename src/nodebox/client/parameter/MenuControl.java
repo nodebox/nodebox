@@ -9,16 +9,16 @@ import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 
-public class MenuControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
+public class MenuControl extends AbstractParameterControl implements ActionListener {
 
-    private Parameter parameter;
     private String value;
     private JComboBox menuBox;
     private MenuDataModel menuModel;
 
     public MenuControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         menuBox = new JComboBox();
         menuModel = new MenuDataModel(parameter);
@@ -31,11 +31,6 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
         menuBox.addActionListener(this);
         add(menuBox);
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -52,13 +47,6 @@ public class MenuControl extends JComponent implements ParameterControl, ActionL
     public void actionPerformed(ActionEvent e) {
         Parameter.MenuItem item = (Parameter.MenuItem) menuBox.getSelectedItem();
         parameter.setValue(item.getKey());
-    }
-
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        Object newValue = source.getValue();
-        if (value != null && value.equals(newValue)) return;
-        setValueForControl(newValue);
     }
 
     private class MenuDataModel implements ComboBoxModel {

@@ -9,16 +9,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 import java.io.File;
 
-public class FileControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
+public class FileControl extends AbstractParameterControl implements ActionListener {
 
-    private Parameter parameter;
     private JTextField fileField;
     private JButton chooseButton;
 
     public FileControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fileField = new JTextField();
         fileField.putClientProperty("Jcomponent.sizeVariant", "small");
@@ -32,11 +32,6 @@ public class FileControl extends JComponent implements ParameterControl, ActionL
         add(fileField);
         add(chooseButton);
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -59,8 +54,4 @@ public class FileControl extends JComponent implements ParameterControl, ActionL
         }
     }
 
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
-    }
 }

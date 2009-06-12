@@ -416,6 +416,50 @@ public class ParameterTest extends NodeTestCase {
     }
 
     /**
+     * Test if types are migrated correctly.
+     *
+     * Also checks if widgets set to this type follow along. Some
+     * widgets don't make sense for a certain type.
+     */
+    public void testTypeMigration() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        // Parameter alpha will be converted from float to string.
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        pAlpha.setValue(12.5f);
+        // Change the type to string.
+        pAlpha.setType(Parameter.Type.STRING);
+        assertEquals("12.5", pAlpha.getValue());
+        // String types can't use a float widget, so
+        // the widget should revert to the default widget for that type.
+        assertEquals(Parameter.Widget.STRING, pAlpha.getWidget());
+
+        // Parameter beta will be converted from color to int.
+        Parameter pBeta = n.addParameter("beta", Parameter.Type.COLOR);
+        assertEquals(Parameter.Widget.COLOR, pBeta.getWidget());
+        pBeta.setValue(new Color(0.1, 0.2, 0.3, 0.4));
+        // Change the type to int.
+        pBeta.setType(Parameter.Type.INT);
+        // The value can't be migrated sensibly, so the default value for int is used.
+        assertEquals(Parameter.getDefaultValue(Parameter.Type.INT), pBeta.getValue());
+        // The widget also defaults to the correct widget.
+        assertEquals(Parameter.Widget.INT, pBeta.getWidget());
+
+        // Parameter gamma will be converted from string to code.
+        Parameter pGamma = n.addParameter("gamma", Parameter.Type.STRING);
+        assertEquals(Parameter.Widget.STRING, pGamma.getWidget());
+        // Set the value to something. This value will not be parsed as code.
+        String source = "print 'hello'";
+        pGamma.setValue(source);
+        // Change the type to code.
+        pGamma.setType(Parameter.Type.CODE);
+        // The code will not be migrated.
+        assertEquals(Parameter.emptyCode, pGamma.getValue());
+        NodeCode code = (NodeCode) pGamma.getValue();
+        assertEquals("", code.getSource());
+        assertNull(code.cook(n, new ProcessingContext()));
+    }
+
+    /**
      * Test corner cases with revertToDefault.
      */
     public void testRevertToDefault() {

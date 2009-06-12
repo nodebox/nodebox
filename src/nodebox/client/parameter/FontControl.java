@@ -14,21 +14,21 @@ import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 
 /**
  * Provides a control for fonts.
  * <p/>
  * Note that we use the java.awt.Font object as the model object. The displayed name is fontName.
  */
-public class FontControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
+public class FontControl extends AbstractParameterControl implements ActionListener {
 
-    private Parameter parameter;
     private JComboBox fontChooser;
     private FontDataModel fontModel;
     private String value;
 
     public FontControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fontChooser = new JComboBox();
         fontModel = new FontDataModel();
@@ -41,11 +41,6 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
         fontChooser.addActionListener(this);
         add(fontChooser);
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -60,11 +55,6 @@ public class FontControl extends JComponent implements ParameterControl, ActionL
         Font font = (Font) fontChooser.getSelectedItem();
         if (font == null) return;
         parameter.setValue(font.getFontName());
-    }
-
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
     }
 
     private class FontDataModel implements ComboBoxModel {

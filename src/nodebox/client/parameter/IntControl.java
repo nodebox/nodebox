@@ -10,16 +10,16 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 import java.text.NumberFormat;
 
-public class IntControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterValueListener {
+public class IntControl extends AbstractParameterControl implements ChangeListener, ActionListener {
 
-    private Parameter parameter;
     private DraggableNumber draggable;
 
     public IntControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        this.parameter = parameter;
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
         NumberFormat intFormat = NumberFormat.getNumberInstance();
@@ -38,11 +38,6 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         add(draggable);
         setPreferredSize(draggable.getPreferredSize());
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -72,8 +67,4 @@ public class IntControl extends JComponent implements ChangeListener, ActionList
         }
     }
 
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
-    }
 }

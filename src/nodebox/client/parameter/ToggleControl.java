@@ -6,15 +6,15 @@ import nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ContainerEvent;
 
-public class ToggleControl extends JComponent implements ParameterControl, ParameterValueListener {
+public class ToggleControl extends AbstractParameterControl {
 
-    private Parameter parameter;
     //private JCheckBox checkBox;
     private NButton checkBox;
 
     public ToggleControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         checkBox = new NButton(NButton.Mode.CHECK, parameter.getLabel());
         checkBox.setActionMethod(this, "toggle");
@@ -27,11 +27,6 @@ public class ToggleControl extends JComponent implements ParameterControl, Param
         add(checkBox);
         setValueForControl(parameter.getValue());
         setPreferredSize(new Dimension(120, 30));
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -46,8 +41,4 @@ public class ToggleControl extends JComponent implements ParameterControl, Param
 
     }
 
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
-    }
 }

@@ -8,15 +8,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 
-public class TextControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
+public class TextControl extends AbstractParameterControl implements ActionListener {
 
-    private Parameter parameter;
     private JTextField textField;
     private JButton externalWindowButton;
 
     public TextControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         textField = new JTextField();
         textField.putClientProperty("Jcomponent.sizeVariant", "small");
@@ -31,11 +31,6 @@ public class TextControl extends JComponent implements ParameterControl, ActionL
         add(textField);
         add(externalWindowButton);
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -48,11 +43,6 @@ public class TextControl extends JComponent implements ParameterControl, ActionL
         } else if (e.getSource() == externalWindowButton) {
             // TODO: Implement
         }
-    }
-
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
     }
 
 }

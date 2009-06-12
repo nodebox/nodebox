@@ -8,14 +8,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
 
-public class StringControl extends JComponent implements ParameterControl, ActionListener, ParameterValueListener {
+public class StringControl extends AbstractParameterControl implements ActionListener {
 
-    private Parameter parameter;
     private JTextField textField;
 
     public StringControl(Parameter parameter) {
-        this.parameter = parameter;
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         textField = new JTextField();
         textField.putClientProperty("Jcomponent.sizeVariant", "small");
@@ -25,11 +25,6 @@ public class StringControl extends JComponent implements ParameterControl, Actio
         add(textField);
         setPreferredSize(new Dimension(150, 30));
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
-    }
-
-    public Parameter getParameter() {
-        return parameter;
     }
 
     public void setValueForControl(Object v) {
@@ -44,8 +39,4 @@ public class StringControl extends JComponent implements ParameterControl, Actio
         }
     }
 
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
-    }
 }

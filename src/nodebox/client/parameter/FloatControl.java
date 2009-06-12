@@ -8,18 +8,16 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
-public class FloatControl extends JComponent implements ChangeListener, ActionListener, ParameterControl, ParameterValueListener {
+public class FloatControl extends AbstractParameterControl implements ChangeListener, ActionListener {
 
-    private Parameter parameter;
     private DraggableNumber draggable;
 
     public FloatControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-        this.parameter = parameter;
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
         setPreferredSize(draggable.getPreferredSize());
@@ -34,13 +32,7 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         }
         add(draggable);
         setValueForControl(parameter.getValue());
-        parameter.getNode().addParameterValueListener(this);
     }
-
-    public Parameter getParameter() {
-        return parameter;
-    }
-
     public void setValueForControl(Object v) {
         Float value = (Float) v;
         draggable.setValue(value);
@@ -67,8 +59,4 @@ public class FloatControl extends JComponent implements ChangeListener, ActionLi
         }
     }
 
-    public void valueChanged(Parameter source) {
-        if (parameter != source) return;
-        setValueForControl(source.getValue());
-    }
 }
