@@ -50,7 +50,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
-    private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root)$");
+    private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root|context)$");
 
     public static final String IMAGE_GENERIC = "__generic";
 

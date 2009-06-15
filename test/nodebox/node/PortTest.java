@@ -11,6 +11,7 @@ public class PortTest extends NodeTestCase {
         Node n = numberNode.newInstance(testLibrary, "number1");
         assertInvalidName(n, "1234", "names cannot start with a digit.");
         assertInvalidName(n, "node", "names can not be one of the reserved words.");
+        assertInvalidName(n, "context", "names can not be one of the reserved words.");
         assertValidName(n, "radius");
         assertInvalidName(n, "radius", "port  names must be unique for the node");
         n.addParameter("myparam", Parameter.Type.INT);

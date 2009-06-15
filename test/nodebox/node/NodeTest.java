@@ -220,6 +220,7 @@ public class NodeTest extends NodeTestCase {
         assertInvalidName(n, "node", "names can not be one of the reserved words.");
         assertInvalidName(n, "root", "names can not be one of the reserved words.");
         assertInvalidName(n, "network", "names can not be one of the reserved words.");
+        assertInvalidName(n, "context", "names can not be one of the reserved words.");
 
         assertInvalidName(n, "__reserved", "names cannot start with double underscores");
         assertInvalidName(n, "what!", "Only lowercase, numbers and underscore are allowed");
