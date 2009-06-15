@@ -14,8 +14,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class NodeAttributesEditor extends JPanel implements ListSelectionListener {
 
@@ -23,10 +23,12 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private ParameterListModel parameterListModel;
     private Parameter selectedParameter = null;
+    private Port selectedPort = null;
     private ParameterList parameterList;
     private JPanel editorPanel;
 
     private JButton removeButton;
+    private JButton addButton;
 
     public NodeAttributesEditor(Node node) {
         setLayout(new BorderLayout(0, 0));
@@ -38,16 +40,16 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         reloadParameterList();
         //parameterList.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
-        JButton addButton = new JButton(new Icons.PlusIcon());
+        addButton = new JButton(new Icons.PlusIcon());
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                addParameter();
+                addEvent();
             }
         });
         removeButton = new JButton(new Icons.MinusIcon());
         removeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                removeSelectedParameter();
+                removeEvent();
             }
         });
 
@@ -107,6 +109,8 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         PortAttributesEditor editor = new PortAttributesEditor(p);
         editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
+        selectedPort = p;
+        selectedParameter = null;
     }
 
     private void parameterSelected(Parameter p) {
@@ -114,6 +118,26 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         ParameterAttributesEditor editor = new ParameterAttributesEditor(p);
         editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
+        selectedParameter = p;
+        selectedPort = null;
+    }
+
+    private void addEvent() {
+        JMenuItem item;
+        JPopupMenu menu = new JPopupMenu();
+        item = menu.add("Parameter");
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addParameter();
+            }
+        });
+        item = menu.add("Port");
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addPort();
+            }
+        });
+        menu.show(addButton, 0, addButton.getHeight());
     }
 
     private void addParameter() {
@@ -123,6 +147,23 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             reloadParameterList();
             parameterList.setSelectedValue(parameter, true);
         }
+    }
+
+    private void addPort() {
+        JOptionPane.showMessageDialog(this, "Sorry, adding ports is not implemented yet.");
+    }
+
+    private void removeEvent() {
+        if (selectedParameter != null) {
+            removeSelectedParameter();
+        } else if (selectedPort != null) {
+            removeSelectedPort();
+        }
+    }
+
+    private void removeSelectedPort() {
+        node.removePort(selectedPort.getName());
+        reloadParameterList();
     }
 
     private void removeSelectedParameter() {

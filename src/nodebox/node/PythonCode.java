@@ -1,10 +1,10 @@
 package nodebox.node;
 
-import org.python.core.Py;
-import org.python.core.PyDictionary;
-import org.python.core.PyFunction;
-import org.python.core.PyObject;
+import org.python.core.*;
 import org.python.util.PythonInterpreter;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 /**
  * Python source code is in this form:
@@ -53,6 +53,7 @@ public class PythonCode implements NodeCode {
 
     public Object cook(Node node, ProcessingContext context) throws RuntimeException {
         if (cookFunction == null) preCook();
+
         // Add globals into the function namespace.
         namespace.put("FRAME", context.getFrame());
         PyObject self;
@@ -61,7 +62,30 @@ public class PythonCode implements NodeCode {
         } else {
             self = new SelfWrapper(node);
         }
-        PyObject pyResult = cookFunction.__call__(self);
+
+        // Reassign the output and error streams.
+        PrintStream oldOutStream = System.out;
+        PrintStream oldErrStream = System.err;
+        System.setOut(context.getOutputStream());
+        System.setErr(context.getErrorStream());
+        PySystemState ss = Py.getSystemState();
+        PyObject oldStdout = ss.stdout;
+        PyObject oldStderr = ss.stderr;
+        ss.stdout = Py.java2py(context.getOutputStream());
+        ss.stderr = Py.java2py(context.getErrorStream());
+
+        // Run the Python function.
+        PyObject pyResult;
+        try {
+            pyResult = cookFunction.__call__(self);
+        } finally {
+            // Reset the output streams.
+            System.setOut(oldOutStream);
+            System.setErr(oldErrStream);
+            ss.stdout = oldStdout;
+            ss.stderr = oldStderr;
+        }
+
         // Unwrap the result.
         Object result = pyResult.__tojava__(Object.class);
         if (result == Py.NoConversion) {

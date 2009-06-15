@@ -18,7 +18,8 @@ public interface DirtyListener extends EventListener {
      * Invoked when the node gets updated.
      *
      * @param node the newly updated node
+     * @param context the processing context
      */
-    public void nodeUpdated(Node node);
+    public void nodeUpdated(Node node, ProcessingContext context);
 
 }

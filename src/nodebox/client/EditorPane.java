@@ -90,14 +90,14 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
             messages.setEnabled(false);
             messages.setBackground(new Color(240, 240, 240));
             splitter.setDividerLocation(1.0);
-            updateMessages(node);
+            updateMessages(node, null);
         } else {
             String code = pCode.asCode().getSource();
             editor.setSource(code);
             editor.setEnabled(true);
             messages.setEnabled(true);
             messages.setBackground(Color.white);
-            updateMessages(node);
+            updateMessages(node, null);
         }
     }
 
@@ -134,25 +134,34 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         // Ignore this event.
     }
 
-    public void nodeUpdated(Node node) {
-        updateMessages(node);
+    public void nodeUpdated(Node node, ProcessingContext context) {
+        updateMessages(node, context);
     }
 
-    private void updateMessages(Node node) {
-        // See if any errors happened.
-        if (node != null && node.hasError()) {
-            StringBuffer sb = new StringBuffer();
-            StringWriter sw = new StringWriter();
-            Throwable t = node.getError();
-            t.printStackTrace(new PrintWriter(sw));
-            sb.append(t.toString());
-            //sb.append(t.getMessage()).append("\n");
-            Throwable cause = t.getCause();
-            while (cause != null) {
-                sb.append("Caused by: \n");
-                sb.append(cause.toString()).append("\n");
-                cause = t.getCause();
+    private void updateMessages(Node node, ProcessingContext context) {
+        StringBuffer sb = new StringBuffer();
+
+        if (node != null) {
+            // Add the error messages.
+            if (node.hasError()) {
+                StringWriter sw = new StringWriter();
+                Throwable t = node.getError();
+                t.printStackTrace(new PrintWriter(sw));
+                sb.append(t.toString());
+                //sb.append(t.getMessage()).append("\n");
+                Throwable cause = t.getCause();
+                while (cause != null) {
+                    sb.append("Caused by: \n");
+                    sb.append(cause.toString()).append("\n");
+                    cause = t.getCause();
+                }
             }
+            // Add the stdout messages.
+            if (context != null && context.getOutput().length() > 0) {
+                sb.append(context.getOutput());
+            }
+        }
+        if (sb.length() > 0) {
             messages.setText(sb.toString());
             setMessages(true);
             // Ensure messages are visible

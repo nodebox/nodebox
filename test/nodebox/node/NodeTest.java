@@ -53,7 +53,7 @@ public class NodeTest extends NodeTestCase {
             ++dirtyCounter;
         }
 
-        public void nodeUpdated(Node node) {
+        public void nodeUpdated(Node node, ProcessingContext context) {
             ++updatedCounter;
         }
     }
@@ -355,6 +355,28 @@ public class NodeTest extends NodeTestCase {
         assertEquals(2, l.parameterCounter);
         test.removeParameter("parameter1");
         assertEquals(3, l.parameterCounter);
+    }
+
+    /**
+     * Test if print messages get output.
+     */
+    public void testOutput() {
+        ProcessingContext ctx;
+        PythonCode helloCode = new PythonCode("def cook(self): print 'hello'");
+        Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        test.setValue("_code", helloCode);
+        ctx = new ProcessingContext();
+        test.update(ctx);
+        assertEquals("hello\n", ctx.getOutput());
+
+        // Try this in a network. All the output of the nodes should be merged.
+        Node parent = Node.ROOT_NODE.newInstance(testLibrary, "parent");
+        Node child = parent.create(Node.ROOT_NODE, "child");
+        child.setValue("_code", helloCode);
+        child.setRendered();
+        ctx = new ProcessingContext();
+        parent.update(ctx);
+        assertEquals("hello\n", ctx.getOutput());
     }
 
 

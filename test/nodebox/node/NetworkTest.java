@@ -15,7 +15,7 @@ public class NetworkTest extends NodeTestCase {
             ++dirtyCounter;
         }
 
-        public void nodeUpdated(Node node) {
+        public void nodeUpdated(Node node, ProcessingContext context) {
             ++updatedCounter;
         }
     }

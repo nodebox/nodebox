@@ -5,6 +5,7 @@ import nodebox.graphics.Grob;
 import nodebox.handle.Handle;
 import nodebox.node.DirtyListener;
 import nodebox.node.Node;
+import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -113,7 +114,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         // This will send the nodeUpdated event.
     }
 
-    public void nodeUpdated(Node node) {
+    public void nodeUpdated(Node node, ProcessingContext context) {
         if (node == getNode()) {
             repaint();
         }

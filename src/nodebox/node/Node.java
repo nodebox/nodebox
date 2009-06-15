@@ -790,13 +790,15 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     /**
      * Invoked when the node is updated.
+     *
+     * @param context the processing context.
      */
-    public void fireNodeUpdated() {
+    public void fireNodeUpdated(ProcessingContext context) {
         // See comment in #fireNodeDirty.
         Object[] listeners = listenerList.getListenerList();
         for (int i = listeners.length - 2; i >= 0; i -= 2) {
             if (listeners[i] == DirtyListener.class) {
-                ((DirtyListener) listeners[i + 1]).nodeUpdated(this);
+                ((DirtyListener) listeners[i + 1]).nodeUpdated(this, context);
             }
         }
     }
@@ -1412,8 +1414,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * This method will process only dirty nodes.
      * This operation can take a long time, and should be run in a separate thread.
      *
-     * @throws nodebox.node.ProcessingError
-     *          when an error happened during procesing.
+     * @throws nodebox.node.ProcessingError when an error happened during procesing.
      */
     public void update() throws ProcessingError {
         update(new ProcessingContext());
@@ -1426,8 +1427,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * This operation can take a long time, and should be run in a separate thread.
      *
      * @param ctx meta-information about the processing operation.
-     * @throws nodebox.node.ProcessingError
-     *          when an error happened during procesing.
+     * @throws nodebox.node.ProcessingError when an error happened during procesing.
      */
     public void update(ProcessingContext ctx) throws ProcessingError {
         if (!dirty) return;
@@ -1460,7 +1460,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         // It is important to mark the node as clean so that subsequent changes to the node mark it as dirty,
         // triggering an event. This allows you to fix the node.
         dirty = false;
-        fireNodeUpdated();
+        fireNodeUpdated(ctx);
         // If exception occurs, throw it.
         if (pe != null)
             throw pe;
@@ -1470,8 +1470,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * This method does the actual functionality of the node.
      *
      * @param ctx meta-information about the processing operation.
-     * @throws nodebox.node.ProcessingError
-     *          when an error happened during procesing.
+     * @throws nodebox.node.ProcessingError when an error happened during procesing.
      */
     public void process(ProcessingContext ctx) throws ProcessingError {
         try {

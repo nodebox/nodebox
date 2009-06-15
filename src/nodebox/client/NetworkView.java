@@ -294,7 +294,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     public void nodeDirty(Node node) {
     }
 
-    public void nodeUpdated(Node node) {
+    public void nodeUpdated(Node node, ProcessingContext context) {
         if (!networkError && !node.hasError()) return;
         networkError = node.hasError();
         repaint();

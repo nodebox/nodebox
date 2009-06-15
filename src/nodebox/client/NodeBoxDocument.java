@@ -328,11 +328,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             setActiveNode(null);
         }
         if (activeNetwork != null) {
-            try {
-                activeNetwork.update();
-            } catch (ProcessingError processingError) {
-                processingError.printStackTrace();
-            }
+            updateActiveNetwork();
         }
         addressBar.setNode(activeNetwork);
     }
@@ -584,23 +580,22 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     public void nodeDirty(Node node) {
         if (node != activeNetwork) return;
         markChanged();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    activeNetwork.update();
-                } catch (ProcessingError processingError) {
-                    Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
-                }
-            }
-        });
-        //doRender();
+        updateActiveNetwork();
+    }
+
+    private void updateActiveNetwork() {
+        try {
+            activeNetwork.update();
+        } catch (ProcessingError processingError) {
+            Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
+        }
     }
 
     private void doRender() {
         //renderThread.render(activeNetwork);
     }
 
-    public void nodeUpdated(Node node) {
+    public void nodeUpdated(Node node, ProcessingContext context) {
         // Just here to statisfy DirtyListener interface.
     }
 

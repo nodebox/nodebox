@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.node.DirtyListener;
 import nodebox.node.Node;
+import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +41,7 @@ public class LoggingPane extends Pane implements DirtyListener {
     public void nodeDirty(Node node) {
     }
 
-    public void nodeUpdated(Node node) {
+    public void nodeUpdated(Node node, ProcessingContext context) {
         StringBuffer sb = new StringBuffer();
         if (node.hasError()) {
             sb.append(node.getError().toString());

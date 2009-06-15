@@ -2,6 +2,8 @@ package nodebox.node;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.io.PrintStream;
+import java.io.ByteArrayOutputStream;
 
 /**
  * The processing context contains metadata about the processing operation.
@@ -9,6 +11,11 @@ import java.util.Map;
  * Note: the context is currently empty. Later on, we will add the frame number etc.
  */
 public class ProcessingContext extends HashMap<String, Object> {
+
+    private ByteArrayOutputStream outputBytes;
+    private ByteArrayOutputStream errorBytes;
+    private PrintStream outputStream;
+    private PrintStream errorStream;
 
     private enum State {
         UPDATING, PROCESSED
@@ -22,10 +29,30 @@ public class ProcessingContext extends HashMap<String, Object> {
 
     public ProcessingContext() {
         put("FRAME", 1);
+        outputBytes = new ByteArrayOutputStream();
+        outputStream = new PrintStream(outputBytes);
+        errorBytes = new ByteArrayOutputStream();
+        errorStream = new PrintStream(errorBytes);
     }
 
     public int getFrame() {
         return (Integer) get("FRAME");
+    }
+
+    public PrintStream getOutputStream() {
+        return outputStream;
+    }
+
+    public PrintStream getErrorStream() {
+        return errorStream;
+    }
+
+    public String getOutput() {
+        return outputBytes.toString();
+    }
+
+    public String getError() {
+        return errorBytes.toString();
     }
 
     public void beginUpdating(Parameter parameter) {
