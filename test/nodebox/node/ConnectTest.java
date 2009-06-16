@@ -220,6 +220,20 @@ public class ConnectTest extends NodeTestCase {
         assertNull(m.getOutputValue());
     }
 
+    /**
+     * Check if all connections are destroyed when removing a node.
+     */
+    public void testRemoveNode() {
+        // Create a basic connection.
+        Node number1 = numberNode.newInstance(testLibrary, "number1");
+        Node negate1 = negateNode.newInstance(testLibrary, "negate1");
+        negate1.getPort("value").connect(number1);
+        // Remove the node. This should also remove all connections.
+        testLibrary.getRootNode().remove(number1);
+        assertFalse(number1.isConnected());
+        assertFalse(negate1.isConnected());
+    }
+
     public void testOnlyOneConnect() {
         Node number1 = numberNode.newInstance(testLibrary, "number1");
         Node number2 = numberNode.newInstance(testLibrary, "number2");

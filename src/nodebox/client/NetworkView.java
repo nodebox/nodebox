@@ -263,6 +263,9 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         if (selection.contains(nv)) {
             deselect(nv);
         }
+        // If this child was connected, it is now disconnected.
+        // This means we should repaint the connection layer.
+        connectionLayer.repaint();
     }
 
     public void connectionAdded(Node source, Connection connection) {

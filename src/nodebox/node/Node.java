@@ -378,8 +378,8 @@ public class Node implements NodeCode, NodeAttributeListener {
         assert (node != null);
         if (!contains(node))
             return false;
-        // node.markDirty();
-        // node.disconnect();
+        node.markDirty();
+        node.disconnect();
         node.parent = null;
         children.remove(node.getName());
         if (node == renderedChild) {
