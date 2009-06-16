@@ -29,6 +29,7 @@ public class NodeSelectionDialog extends JDialog {
             this.manager = manager;
             this.searchString = "";
             this.filteredNodes = manager.getNodes();
+            this.filteredNodes.addAll(library.getRootNode().getChildren());
         }
 
         public String getSearchString() {
