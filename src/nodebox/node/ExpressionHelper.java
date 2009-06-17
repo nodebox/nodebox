@@ -1,13 +1,23 @@
-package nodebox.util;
+package nodebox.node;
 
 import nodebox.graphics.Color;
+import nodebox.node.ProcessingContext;
+import nodebox.node.Parameter;
 
 import java.util.Random;
 
-public class ExpressionUtils {
+/**
+ * Class containing static method used in Expression.
+ *
+ * @see nodebox.node.Expression
+ */
+public class ExpressionHelper {
+
+    // TODO: Expression system is not thread-safe.
+    public static ProcessingContext currentContext;
+    public static Parameter currentParameter;
 
     public static Random randomGenerator = new Random();
-
 
     public static double random(long seed, double... minmax) {
         switch (minmax.length) {
@@ -32,7 +42,6 @@ public class ExpressionUtils {
     public static double random(long seed, double min, double max) {
         return min + random(seed) * (max - min);
     }
-
 
     public static Color color(double... values) {
         switch (values.length) {
@@ -65,6 +74,13 @@ public class ExpressionUtils {
 
     public static Color color(double red, double green, double blue, double alpha) {
         return new Color(red, green, blue, alpha);
+    }
+
+    public static Object stamp(String key, Object defaultValue) {
+        if (currentContext == null) return defaultValue;
+        currentParameter.markStampExpression();
+        Object v = currentContext.get(key);
+        return v != null ? v : defaultValue;
     }
 
 }

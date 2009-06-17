@@ -1014,6 +1014,35 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     //// Expression shortcuts ////
 
+    public void setExpression(String parameterName, String expression) {
+        Parameter p = parameters.get(parameterName);
+        if (p == null)
+            throw new IllegalArgumentException("Parameter " + parameterName + " does not exist.");
+        p.setExpression(expression);
+    }
+
+    public void clearExpression(String parameterName) {
+        Parameter p = parameters.get(parameterName);
+        if (p == null)
+            throw new IllegalArgumentException("Parameter " + parameterName + " does not exist.");
+        p.clearExpression();
+    }
+
+    /**
+     * Check if one of my parameters uses a stamp expression.
+     * <p/>
+     * This method is used to determine if parameters and nodes should be marked as dirty when re-evaluating upstream,
+     * which is what happens in the copy node.
+     *
+     * @return true if one of my parameters uses a stamp expression.
+     */
+    public boolean hasStampExpression() {
+        for (Parameter p : parameters.values()) {
+            if (p.hasStampExpression()) return true;
+        }
+        return false;
+    }
+
     //// Connection shortcuts ////
 
     /**
@@ -1406,6 +1435,42 @@ public class Node implements NodeCode, NodeAttributeListener {
         return dirty;
     }
 
+    /**
+     * Mark all upstream nodes that have stamp expressions dirty.
+     *
+     * This method is used for the copy node, where nodes that have parameters with stamp expressions should
+     * be marked dirty so the expressions can re-evaluate based on new stamp key/values set in the processing
+     * context.
+     */
+    public void stampDirty() {
+        stampDirty(false);
+    }
+
+    /**
+     * Mark all upstream nodes that have stamp expressions dirty, recursive.
+     * This method does the actual upstream marking.
+     *
+     * @param upstream if true, we're beyond the first node and can start marking parameters dirty.
+     */
+    private void stampDirty(boolean upstream) {
+        if (parent != null && parent.childGraph != null) {
+            for (Port port : ports.values()) {
+                Connection conn = parent.childGraph.getInfo(port);
+                if (conn == null) continue;
+                for (Node n : conn.getOutputNodes()) {
+                    n.stampDirty(true);
+                }
+            }
+        }
+        if (upstream) {
+            for (Parameter p : parameters.values()) {
+                if (p.hasStampExpression())
+                    p.markDirty();
+
+            }
+        }
+    }
+
     //// Processing ////
 
     /**
@@ -1431,23 +1496,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     public void update(ProcessingContext ctx) throws ProcessingError {
         if (!dirty) return;
-        // Update all upstream nodes.
-        if (parent != null && parent.childGraph != null) {
-            for (Port port : ports.values()) {
-                Connection conn = parent.childGraph.getInfo(port);
-                if (conn == null) continue;
-                // Updating the connection sets the value of the corresponding input port.
-                conn.update(ctx);
-            }
-        }
-        // Update all parameter expressions.
-        for (Parameter param : parameters.values()) {
-            try {
-                param.update(ctx);
-            } catch (Exception e) {
-                throw new ProcessingError(this, "Error occurred while updating parameter " + param + ": " + e.getMessage(), e);
-            }
-        }
+        updateDependencies(ctx);
         // All dependencies are up-to-date. Process the node.
         ProcessingError pe = null;
         try {
@@ -1467,6 +1516,34 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
+     * Update everything this node depends on.
+     * <p/>
+     * This method will update all upstream node and all parameter expressions.
+     *
+     * @param ctx meta-information about the processing operation.
+     * @throws nodebox.node.ProcessingError when an error happened during procesing.
+     */
+    public void updateDependencies(ProcessingContext ctx) throws ProcessingError {
+        // Update all upstream nodes.
+        if (parent != null && parent.childGraph != null) {
+            for (Port port : ports.values()) {
+                Connection conn = parent.childGraph.getInfo(port);
+                if (conn == null) continue;
+                // Updating the connection sets the value of the corresponding input port.
+                conn.update(ctx);
+            }
+        }
+        // Update all parameter expressions.
+        for (Parameter param : parameters.values()) {
+            try {
+                param.update(ctx);
+            } catch (Exception e) {
+                throw new ProcessingError(this, "Error occurred while updating parameter " + param + ": " + e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
      * This method does the actual functionality of the node.
      *
      * @param ctx meta-information about the processing operation.
@@ -1476,6 +1553,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         try {
             NodeCode code = asCode("_code");
             Object returnValue = code.cook(this, ctx);
+            // TODO: Adjust for cardinality
             outputPort.setValue(returnValue);
             error = null;
         } catch (ProcessingError e) {
@@ -1490,11 +1568,17 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
-     * This is the default implementation of the node. It does nothing and returns null.
+     * This is the default cook implementation of the node.
+     * <p/>
+     * If this node has children, it will look up the rendered child and update it. The return value will be the
+     * return value of the rendered child.
+     * <p/>
+     * If the node doesn't have children, this method returns null.
      *
      * @param node    the node to process
      * @param context the processing context
-     * @return null
+     * @return the return value of the rendered child or null if the node doesn't have children
+     * @throws ProcessingError if there are children, but no child note to render, or if the update of the child failed.
      */
     public Object cook(Node node, ProcessingContext context) throws ProcessingError {
         if (!node.hasChildren())

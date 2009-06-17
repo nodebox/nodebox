@@ -380,6 +380,115 @@ public class NodeTest extends NodeTestCase {
         assertEquals("hello\n", ctx.getOutput());
     }
 
+    /**
+     * Test the hasStampExpression on the node.
+     *
+     * This method is used to determine if parameters/nodes should be marked as dirty when re-evaluating upstream,
+     * which is what happens in the copy node.
+     */
+    public void testHasStampExpression() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        Parameter pBeta = n.addParameter("beta", Parameter.Type.FLOAT);
+        assertFalse(n.hasStampExpression());
+        // Set the parameters to expressions that do not use the stamp function.
+        pAlpha.setExpression(" 12 + 5");
+        pBeta.setExpression("random(1, 5, 10)");
+        assertFalse(n.hasStampExpression());
+        // Set one of the parameters to the stamp function.
+        pBeta.setExpression("stamp(\"mybeta\", 42)");
+        assertTrue(n.hasStampExpression());
+        // Set the other parameter expression to a stamp function as well.
+        pAlpha.setExpression("stamp(\"myalpha\", 0) * 5");
+        assertTrue(n.hasStampExpression());
+        // Clear out the expressions one by one.
+        pAlpha.clearExpression();
+        assertTrue(n.hasStampExpression());
+        // Change the beta parameter to some other expression.
+        pBeta.setExpression("85 - 6");
+        assertFalse(n.hasStampExpression());
+    }
+
+    /**
+     * Test if setting a stamp expressions marks the correct nodes as dirty.
+     */
+    public void testStampExpression() {
+        Node number1 = numberNode.newInstance(testLibrary, "number1");
+        Node stamp1 = Node.ROOT_NODE.newInstance(testLibrary, "stamp1", Integer.class);
+        stamp1.addPort("value", Integer.class);
+        stamp1.getPort("value").connect(number1);
+        // The code prepares upstream dependencies for stamping, processes them and negates the output.
+        String stampCode = "def cook(self):\n" +
+                "  context.put('my_a', 99)\n" +
+                "  self.node.stampDirty()\n" +
+                "  self.node.updateDependencies(context)\n" +
+                "  return -self.value # Negate the output";
+        stamp1.setValue("_code", new PythonCode(stampCode));
+        Parameter pValue = number1.getParameter("value");
+        // Set number1 to a regular value. This should not influence the stamp operation.
+        pValue.set(12);
+        stamp1.update();
+        assertEquals(-12, stamp1.getOutputValue());
+        // Set number1 to an expression. Since we're not using stamp, nothing strange should happen to the output.
+        pValue.setExpression("2 + 1");
+        stamp1.update();
+        assertEquals(-3, stamp1.getOutputValue());
+        // Set number1 to an unknown stamp expression. The default value will be picked.
+        pValue.setExpression("stamp(\"xxx\", 19)");
+        stamp1.update();
+        assertEquals(-19, stamp1.getOutputValue());
+        // Set number1 to the my_a stamp expression. The expression will be picked up.
+        pValue.setExpression("stamp(\"my_a\", 33)");
+        stamp1.update();
+        assertEquals(-99, stamp1.getOutputValue());
+    }
+
+    /**
+     * Test the behaviour of {@link Node#stampDirty()}.
+     */
+    public void testMarkStampedDirty() {
+        // Setup a graph where a <- b <- c.
+        Node a = Node.ROOT_NODE.newInstance(testLibrary, "a", Integer.class);
+        Node b = Node.ROOT_NODE.newInstance(testLibrary, "b", Integer.class);
+        Node c = Node.ROOT_NODE.newInstance(testLibrary, "c", Integer.class);
+        a.addParameter("a", Parameter.Type.INT);
+        b.addParameter("b", Parameter.Type.INT);
+        Port bIn = b.addPort("in", Integer.class);
+        Port cIn = c.addPort("in", Integer.class);
+        bIn.connect(a);
+        cIn.connect(b);
+        // Update the graph. This will make a, b and c clean.
+        c.update();
+        assertFalse(a.isDirty());
+        assertFalse(b.isDirty());
+        assertFalse(c.isDirty());
+        // Set b to a stamped expression. This will make node b, and all of its dependencies, dirty.
+        b.setExpression("b", "stamp(\"my_b\", 55)");
+        assertTrue(b.hasStampExpression());
+        assertFalse(a.isDirty());
+        assertTrue(b.isDirty());
+        assertTrue(c.isDirty());
+        // Update the graph, cleaning all of the nodes.
+        c.update();
+        assertFalse(a.isDirty());
+        assertFalse(b.isDirty());
+        assertFalse(c.isDirty());
+        // Mark only stamped upstream nodes as dirty. This will make b dirty, and all of its dependencies.
+        c.stampDirty();
+        assertFalse(a.isDirty());
+        assertTrue(b.isDirty());
+        assertTrue(c.isDirty());
+        // Remove the expression and update. This will make all nodes clean again.
+        b.clearExpression("b");
+        c.update();
+        // Node b will not be dirty, since everything was updated.
+        assertFalse(b.isDirty());
+        // Since there are no nodes with stamp expressions, marking the stamped upstream nodes will have no effect.
+        c.stampDirty();
+        assertFalse(a.isDirty());
+        assertFalse(b.isDirty());
+        assertFalse(c.isDirty());
+    }
 
     //// Helper functions ////
 

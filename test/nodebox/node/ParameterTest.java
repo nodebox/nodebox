@@ -497,6 +497,34 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(88, tBeta.getValue());        
     }
 
+    /**
+     * Test if the parameter needs to be marked dirty every time we ask for upstream data.
+     */
+    public void testHasStampExpression() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        // No expression is set, so the stamp flag should be off.
+        assertFalse(pAlpha.hasStampExpression());
+        // The expression doesn't reference te stamp function.
+        pAlpha.setExpression("12 + 3");
+        assertFalse(pAlpha.hasStampExpression());
+        // Updating the node shouldn't make any difference in the stamp expression flag.
+        n.update();
+        assertFalse(pAlpha.hasStampExpression());
+        // Now set an expression that does use the stamp function.
+        pAlpha.setExpression("stamp(\"myalpha\", 12)");
+        assertTrue(pAlpha.hasStampExpression());
+        // Again, updating the node shouldn't make any difference.
+        n.update();
+        assertTrue(pAlpha.hasStampExpression());
+        // Set the parameter to the *same* expression.
+        pAlpha.setExpression("stamp(\"myalpha\", 12)");
+        assertTrue(pAlpha.hasStampExpression());
+        // Clear out the expression.
+        pAlpha.clearExpression();
+        assertFalse(pAlpha.hasStampExpression());
+    }
+
     //// Helper functions ////
 
     private void assertInvalidName(Node n, String newName, String reason) {

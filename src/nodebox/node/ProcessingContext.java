@@ -1,17 +1,19 @@
 package nodebox.node;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.PrintStream;
-import java.io.ByteArrayOutputStream;
+import java.util.Set;
 
 /**
  * The processing context contains metadata about the processing operation.
  * <p/>
  * Note: the context is currently empty. Later on, we will add the frame number etc.
  */
-public class ProcessingContext extends HashMap<String, Object> {
+public class ProcessingContext {
 
+    private HashMap<String, Object> valueMap = new HashMap<String, Object>();
     private ByteArrayOutputStream outputBytes;
     private ByteArrayOutputStream errorBytes;
     private PrintStream outputStream;
@@ -35,9 +37,31 @@ public class ProcessingContext extends HashMap<String, Object> {
         errorStream = new PrintStream(errorBytes);
     }
 
+    //// Map operations ////
+
+    public void put(String key, Object value) {
+        valueMap.put(key, value);
+    }
+
+    public Object get(String key) {
+        return valueMap.get(key);
+    }
+
+    public boolean containsKey(String key) {
+        return valueMap.containsKey(key);
+    }
+
+    public Set<String> keySet() {
+        return valueMap.keySet();
+    }
+
+    //// Map shortcuts ////
+
     public int getFrame() {
         return (Integer) get("FRAME");
     }
+
+    //// Output/error streams  ////
 
     public PrintStream getOutputStream() {
         return outputStream;
@@ -55,6 +79,7 @@ public class ProcessingContext extends HashMap<String, Object> {
         return errorBytes.toString();
     }
 
+    // TODO: These are no longer used. Check and remove.
     public void beginUpdating(Parameter parameter) {
         State state = updatedParameters.get(parameter);
         if (state == null) {

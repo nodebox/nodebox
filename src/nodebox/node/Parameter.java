@@ -142,6 +142,7 @@ public class Parameter {
     private DisplayLevel displayLevel = DisplayLevel.HUD;
     private List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
     private transient boolean dirty;
+    private transient boolean hasStampExpression;
 
     public Parameter(Node node, String name, Type type) {
         this.node = node;
@@ -504,7 +505,7 @@ public class Parameter {
     /**
      * Mark this parameter and its node as dirty. Also notify dependent parameters.
      */
-    private void markDirty() {
+    /* package private */ void markDirty() {
         if (dirty) return;
         dirty = true;
         fireValueChanged();
@@ -573,6 +574,7 @@ public class Parameter {
 
     public void clearExpression() {
         this.expression = null;
+        hasStampExpression = false;
         removeDependencies();
         markDirty();
     }
@@ -585,6 +587,9 @@ public class Parameter {
             clearExpression();
         } else {
             this.expression = new Expression(this, expression);
+            // Reset the stamp flag. It will be set by markStampExpression(), which will be called
+            // from the expression helper while evaluating the expression.
+            hasStampExpression = false;
             // Evaluate the expression to see if it returns any errors.
             this.expression.evaluate();
             // Setting an expession automatically enables it and marks the parameter as dirty.
@@ -600,6 +605,25 @@ public class Parameter {
                 throw new ExpressionError("This expression causes a cyclic dependency.", e);
             }
         }
+    }
+
+    /**
+     * Check if the parameter has an expression containing the stamp function.
+     *
+     * @return true if the parameter has a stamp expression.
+     */
+    public boolean hasStampExpression() {
+        return hasStampExpression;
+    }
+
+    /**
+     * Marks this parameter as using the stamp expression.
+     * <p/>
+     * Do not call this method yourself. This method is only used by ExpressionUtils.stamp() to indicate
+     * that the stamp expression was used.
+     */
+    /* package private */ void markStampExpression() {
+        this.hasStampExpression = true;
     }
 
     //// Expression dependencies ////

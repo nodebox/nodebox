@@ -18,6 +18,9 @@
  */
 package nodebox.node;
 
+import nodebox.node.polygraph.Polygon;
+import nodebox.node.polygraph.Rectangle;
+
 import java.util.Set;
 
 public class ExpressionTest extends NodeTestCase {
@@ -212,6 +215,41 @@ public class ExpressionTest extends NodeTestCase {
         assertEquals(2, dependencies.size());
         assertTrue(dependencies.contains(translate1.getParameter("ty")));
         assertTrue(dependencies.contains(rect1.getParameter("x")));
+    }
+
+    public void testStamp() {
+        Polygon p;
+
+        Node rect1 = rectNode.newInstance(testLibrary, "rect1");
+        // Sets the width to a stamp expression. If this node gets executed, it retrieves
+        // "mywidth" from the context and uses that. If mywidth could not be found, it uses
+        // the default value of 20 for this parameter.
+        rect1.getParameter("width").setExpression("stamp(\"mywidth\", 20)");
+        // Update the node to see if it works.
+        rect1.update();
+        p = (Polygon) rect1.getOutputValue();
+        assertEquals(new Rectangle(0, 0,  20, 100), p.getBounds());
+
+        // The stamper is a node that relies on copy stamping to replace
+        // one of the parameters of the connected node. The connected node (rect1)
+        // still needs to use the "stamp" expression.
+        Node stamper = translateNode.newInstance(testLibrary, "stamper");
+        // Nodes are automatically evaluated once, even though we do not use the output.
+        // TODO: Set a flag on the node that allows control over cooking. 
+        String code = "def cook(self):\n" +
+                "  context.put(self.key, self.value)\n" +
+                "  self.node.stampDirty()\n" +
+                "  self.node.updateDependencies(context)\n" +
+                "  return self.polygon\n";
+        stamper.setValue("_code", new PythonCode(code));
+        stamper.addParameter("key", Parameter.Type.STRING);
+        stamper.addParameter("value", Parameter.Type.FLOAT);
+        stamper.setValue("key", "mywidth");
+        stamper.setValue("value", 50);
+        stamper.getPort("polygon").connect(rect1);
+        stamper.update();
+        p = (Polygon) stamper.getOutputValue();
+        assertEquals(new Rectangle(0, 0,  50, 100), p.getBounds());
     }
 
     public void assertExpressionEquals(Object expected, Parameter p, String expression) {

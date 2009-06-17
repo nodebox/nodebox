@@ -19,7 +19,7 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
-import nodebox.util.ExpressionUtils;
+import nodebox.node.ExpressionHelper;
 import org.mvel2.CompileException;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
@@ -52,10 +52,11 @@ public class Expression {
         parserContext = new ParserContext();
         try {
             // MVEL has a bug where it accepts methods with varargs, but only executes the method with
-            // non-varargs. So in our ExpressionUtils we have both the varargs and non-varargs methods.
+            // non-varargs. So in our ExpressionHelper we have both the varargs and non-varargs methods.
             // We lookup the varargs version here, but only the non-varargs will get called.
-            parserContext.addImport("random", ExpressionUtils.class.getMethod("random", long.class, double[].class));
-            parserContext.addImport("color", ExpressionUtils.class.getMethod("color", double[].class));
+            parserContext.addImport("random", ExpressionHelper.class.getMethod("random", long.class, double[].class));
+            parserContext.addImport("color", ExpressionHelper.class.getMethod("color", double[].class));
+            parserContext.addImport("stamp", ExpressionHelper.class.getMethod("stamp", String.class, Object.class));
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Unknown static method for expression." + e);
         }
@@ -67,17 +68,14 @@ public class Expression {
     private transient Serializable compiledExpression;
     private Set<WeakReference<Parameter>> markedParameterReferences;
 
-    public Expression(String expression, boolean mutable) {
-        this.mutable = mutable;
-        setExpression(expression);
-    }
-
     public Expression(Parameter parameter, String expression) {
         this(parameter, expression, false);
     }
 
     public Expression(Parameter parameter, String expression, boolean mutable) {
+        assert parameter != null; // We need the current parameter for stamp expressions.
         this.parameter = parameter;
+        // TODO: Make expressions immutable.
         this.mutable = mutable;
         setExpression(expression);
     }
@@ -94,10 +92,6 @@ public class Expression {
         markedParameterReferences = null;
         ExpressionCompiler compiler = new ExpressionCompiler(expression);
         this.compiledExpression = compiler.compile(parserContext);
-    }
-
-    public void setParameter(Parameter parameter) {
-        this.parameter = parameter;
     }
 
     public Parameter getParameter() {
@@ -166,6 +160,11 @@ public class Expression {
      * @throws ExpressionError if an error occurs whilst evaluating the expression.
      */
     public Object evaluate(ProcessingContext context) throws ExpressionError {
+        // Set up state variables in the expression utilities class.
+        // This is not thread-safe.
+        ExpressionHelper.currentContext = context;
+        ExpressionHelper.currentParameter = parameter;
+        // Marked parameter references are used to find which parameters this expression references.
         markedParameterReferences = new HashSet<WeakReference<Parameter>>();
         ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, mutable, markedParameterReferences);
         try {

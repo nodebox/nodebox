@@ -55,6 +55,7 @@ public class PythonCode implements NodeCode {
         if (cookFunction == null) preCook();
 
         // Add globals into the function namespace.
+        namespace.put("context", context);
         namespace.put("FRAME", context.getFrame());
         PyObject self;
         if (node == null) {
