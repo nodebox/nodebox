@@ -22,7 +22,6 @@ import java.util.Set;
  */
 public class NodeAccessProxy implements Map {
 
-    private boolean mutable = false;
     private Node node;
     private Set<String> keySet;
     private Set<WeakReference<Parameter>> markedParameterReferences;
@@ -42,14 +41,6 @@ public class NodeAccessProxy implements Map {
     public NodeAccessProxy(Node node, Set<WeakReference<Parameter>> markedParameterReferences) {
         this(node);
         this.markedParameterReferences = markedParameterReferences;
-    }
-
-    public boolean isMutable() {
-        return mutable;
-    }
-
-    public void setMutable(boolean mutable) {
-        this.mutable = mutable;
     }
 
     private void updateKeys() {
@@ -105,6 +96,7 @@ public class NodeAccessProxy implements Map {
      * <li>Search for the name in the parameters of the current node.</li>
      * <li>If this node is a network, search in the nodes of the current network. (children)</li>
      * <li>If this node is in a network, search for other nodes in that network. (siblings)</li>
+     * </ul>
      *
      * @param key the key to search for
      * @return a Parameter value or a NodeProxy object.
@@ -119,17 +111,13 @@ public class NodeAccessProxy implements Map {
             // TODO: Rename this to "parent"
         } else if (k.equals("network")) {
             if (node.hasParent()) {
-                NodeAccessProxy proxy = new NodeAccessProxy(node.getParent(), markedParameterReferences);
-                proxy.setMutable(mutable);
-                return proxy;
+                return new NodeAccessProxy(node.getParent(), markedParameterReferences);
             } else {
                 return null;
             }
         } else if (k.equals("root")) {
             if (node.hasParent()) {
-                NodeAccessProxy proxy = new NodeAccessProxy(node.getParent(), markedParameterReferences);
-                proxy.setMutable(mutable);
-                return proxy;
+                return new NodeAccessProxy(node.getParent(), markedParameterReferences);
             } else {
                 // If the node does not have a parent, I am my own root node.
                 return this;
@@ -146,16 +134,12 @@ public class NodeAccessProxy implements Map {
         // Network searches
         // If this is a network, search its nodes first.
         if (node.contains(k)) {
-            NodeAccessProxy proxy = new NodeAccessProxy(node.getChild(k), markedParameterReferences);
-            proxy.setMutable(mutable);
-            return proxy;
+            return new NodeAccessProxy(node.getChild(k), markedParameterReferences);
         }
 
         // Check the siblings (nodes in this node's network).
         if (node.hasParent() && node.getParent().contains(k)) {
-            NodeAccessProxy proxy = new NodeAccessProxy(node.getParent().getChild(k), markedParameterReferences);
-            proxy.setMutable(mutable);
-            return proxy;
+            return new NodeAccessProxy(node.getParent().getChild(k), markedParameterReferences);
         }
 
         // Don't know what to return.
@@ -163,18 +147,7 @@ public class NodeAccessProxy implements Map {
     }
 
     public Object put(Object key, Object value) {
-        if (!mutable)
-            throw new AssertionError("You cannot change the node access proxy.");
-        String k = key.toString();
-        // Only search the parameters
-        if (node.hasParameter(k)) {
-            if (markedParameterReferences != null)
-                markedParameterReferences.add(new WeakReference<Parameter>(node.getParameter(k)));
-            Object oldValue = node.getValue(k);
-            node.setValue(k, value);
-            return oldValue;
-        }
-        throw new RuntimeException("Parameter " + k + " not found on node " + node.getName());
+        throw new AssertionError("You cannot change the node access proxy.");
     }
 
     public Object remove(Object key) {

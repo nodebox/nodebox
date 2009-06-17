@@ -64,19 +64,12 @@ public class Expression {
 
     private Parameter parameter;
     private String expression = "";
-    private boolean mutable = false;
     private transient Serializable compiledExpression;
     private Set<WeakReference<Parameter>> markedParameterReferences;
 
     public Expression(Parameter parameter, String expression) {
-        this(parameter, expression, false);
-    }
-
-    public Expression(Parameter parameter, String expression, boolean mutable) {
         assert parameter != null; // We need the current parameter for stamp expressions.
         this.parameter = parameter;
-        // TODO: Make expressions immutable.
-        this.mutable = mutable;
         setExpression(expression);
     }
 
@@ -96,10 +89,6 @@ public class Expression {
 
     public Parameter getParameter() {
         return parameter;
-    }
-
-    public boolean isMutable() {
-        return mutable;
     }
 
     //// Values ////
@@ -166,7 +155,7 @@ public class Expression {
         ExpressionHelper.currentParameter = parameter;
         // Marked parameter references are used to find which parameters this expression references.
         markedParameterReferences = new HashSet<WeakReference<Parameter>>();
-        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, mutable, markedParameterReferences);
+        ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, markedParameterReferences);
         try {
             return MVEL.executeExpression(compiledExpression, prf);
         } catch (Exception e) {
@@ -184,7 +173,6 @@ public class Expression {
     public Set<Parameter> getDependencies() {
         if (markedParameterReferences == null) {
             try {
-                // TODO: Since the mutable property gets passed on, getting dependencies might cause side effects.
                 evaluate();
             } catch (ExpressionError expressionError) {
                 return new HashSet<Parameter>(0);
@@ -205,17 +193,15 @@ public class Expression {
         private NodeAccessProxy proxy;
         private ProcessingContext context;
 
-        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable) {
+        public ProxyResolverFactory(Node node, ProcessingContext context) {
             this.node = node;
             proxy = new NodeAccessProxy(node);
-            proxy.setMutable(mutable);
             this.context = context;
         }
 
-        public ProxyResolverFactory(Node node, ProcessingContext context, boolean mutable, Set<WeakReference<Parameter>> markedParameterReferences) {
+        public ProxyResolverFactory(Node node, ProcessingContext context, Set<WeakReference<Parameter>> markedParameterReferences) {
             this.node = node;
             proxy = new NodeAccessProxy(node, markedParameterReferences);
-            proxy.setMutable(mutable);
             this.context = context;
         }
 
