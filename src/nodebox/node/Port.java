@@ -221,7 +221,8 @@ public class Port {
      * @return a connection object or null.
      */
     public Connection getConnection() {
-        return node.getUpstreamConnection(this);
+        Node parent = getParentNode();
+        return parent == null ? null : parent.getUpstreamConnection(this);
     }
 
     /**

@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import nodebox.graphics.*;
+import nodebox.node.polygraph.Polygon;
 
 public class PortTest extends NodeTestCase {
 
@@ -111,6 +112,19 @@ public class PortTest extends NodeTestCase {
         Node cloned = test.newInstance(testLibrary, "cloned");
         assertEquals(Port.Cardinality.SINGLE, cloned.getPort("single").getCardinality());
         assertEquals(Port.Cardinality.MULTIPLE, cloned.getPort("multiple").getCardinality());
+    }
+
+    public void testAccessors() {
+        Node rect1 = rectNode.newInstance(testLibrary, "rect1");
+        Node trans1 = translateNode.newInstance(testLibrary, "trans1");
+        Port pPolygon = trans1.getPort("polygon");
+        assertNull(pPolygon.getConnection());
+        pPolygon.connect(rect1);
+        Connection c = pPolygon.getConnection();
+        assertNotNull(c);
+        assertEquals(rect1, c.getOutputNode());
+        assertEquals(trans1, c.getInputNode());
+        assertEquals(pPolygon, c.getInput());
     }
 
 
