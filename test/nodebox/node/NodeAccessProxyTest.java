@@ -3,6 +3,7 @@ package nodebox.node;
 public class NodeAccessProxyTest extends NodeTestCase {
 
     public void testGet() {
+        Node root = testLibrary.getRootNode();
         Node trunk = Node.ROOT_NODE.newInstance(testLibrary, "trunk");
         Node branch = Node.ROOT_NODE.newInstance(testLibrary, "branch");
         Node leaf1 = Node.ROOT_NODE.newInstance(testLibrary, "leaf1");
@@ -16,8 +17,9 @@ public class NodeAccessProxyTest extends NodeTestCase {
         leaf2.addParameter("width", Parameter.Type.INT, 7);
 
         // Check reserved keywords.
-        assertProxyEquals(testLibrary.getRootNode(), trunk, "root");
-        assertProxyNull(trunk, "parent");
+        assertProxyEquals(root, trunk, "root");
+        assertProxyEquals(root, trunk, "parent");
+        assertProxyNull(root, "parent");
 
         // Check children
         assertProxyEquals(branch, trunk, "branch");

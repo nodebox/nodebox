@@ -63,7 +63,7 @@ public class NodeAccessProxy implements Map {
         }
         // 3. Add reserved words
         keySet.add("root");
-        keySet.add("network");
+        keySet.add("parent");
     }
 
     public Node getNode() {
@@ -108,8 +108,7 @@ public class NodeAccessProxy implements Map {
         // First search for reserved words.
         if (k.equals("node")) {
             return node;
-            // TODO: Rename this to "parent"
-        } else if (k.equals("network")) {
+        } else if (k.equals("parent")) {
             if (node.hasParent()) {
                 return new NodeAccessProxy(node.getParent(), markedParameterReferences);
             } else {

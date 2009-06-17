@@ -196,9 +196,9 @@ public class ExpressionTest extends NodeTestCase {
         // Access p2 through the node name.
         assertExpressionEquals(12, pValue1, "number2.value");
         // Access p2 through the network.
-        assertExpressionEquals(12, pValue1, "network.number2.value");
+        assertExpressionEquals(12, pValue1, "parent.number2.value");
         // Access the pn Parameter on the network.
-        assertExpressionEquals(33, pValue1, "network.pn");
+        assertExpressionEquals(33, pValue1, "parent.pn");
     }
 
     public void testDependencies() {
