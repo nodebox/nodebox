@@ -1108,6 +1108,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         // but replacing it with itself doesn't hurt.
         parent.childGraph.addDependency(output, input, c);
         input.getNode().markDirty();
+        parent.fireConnectionAdded(c);
         return c;
     }
 
@@ -1149,11 +1150,13 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (!port.isConnected()) return false;
         if (port.isInputPort()) {
             boolean removedSomething = dg.removeDependencies(port);
+            Connection c = dg.getInfo(port);
             dg.removeInfo(port);
             if (removedSomething) {
                 port.reset();
                 // This port was changed. Mark the node as dirty.
                 port.getNode().markDirty();
+                parent.fireConnectionRemoved(c);
             }
             return removedSomething;
         } else { // Output port
@@ -1170,6 +1173,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 p.reset();
                 p.getNode().markDirty();
                 removedSomething = true;
+                parent.fireConnectionRemoved(c);
             }
             dg.removeDependents(port);
             return removedSomething;
@@ -1196,12 +1200,14 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (parent == null) return false;
         DependencyGraph<Port, Connection> dg = parent.childGraph;
         if (dg == null) return false;
+        Connection c = dg.getInfo(input);
         Port output = outputNode.outputPort;
         boolean removedSomething = dg.removeDependency(output, input);
         if (removedSomething) {
             input.reset();
             // This port was changed. Mark the node as dirty.
             input.getNode().markDirty();
+            parent.fireConnectionRemoved(c);
         }
         return removedSomething;
     }

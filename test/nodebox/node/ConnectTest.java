@@ -24,6 +24,31 @@ import java.util.Map;
 
 public class ConnectTest extends NodeTestCase {
 
+    private class ConnectListener implements NodeChildListener {
+        public int connectCounter = 0;
+        public int disconnectCounter = 0;
+
+        public void childAdded(Node source, Node child) {
+        }
+
+        public void childRemoved(Node source, Node child) {
+        }
+
+        public void connectionAdded(Node source, Connection connection) {
+            ++connectCounter;
+        }
+
+        public void connectionRemoved(Node source, Connection connection) {
+            ++disconnectCounter;
+        }
+
+        public void renderedChildChanged(Node source, Node child) {
+        }
+
+        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+        }
+    }
+
     public void testDirty() {
         Node ng = numberNode.newInstance(testLibrary, "number1");
         assertTrue(ng.isDirty());
@@ -298,6 +323,34 @@ public class ConnectTest extends NodeTestCase {
         assertTrue(multiAdd1.isDirty());
         net.update();
         assertEquals(7, net.getOutputValue());
+    }
+
+    public void testConnectionEvents() {
+        ConnectListener l = new ConnectListener();
+        // Setup a basic network with number1 <- addConstant1
+        Node root = testLibrary.getRootNode();
+        root.addNodeChildListener(l);
+        Node number1 = root.create(numberNode);
+        Node addConstant1 = root.create(addConstantNode);
+        // No connect/disconnect events have been fired.
+        assertEquals(0, l.connectCounter);
+        assertEquals(0, l.disconnectCounter);
+        // Creating a connection fires the event.
+        addConstant1.getPort("value").connect(number1);
+        assertEquals(1, l.connectCounter);
+        assertEquals(0, l.disconnectCounter);
+        // Create a second number and connect it to the add constant.
+        // This should fire a disconnect event from number1, and a connect
+        // event to number2.
+        Node number2 = root.create(numberNode);
+        addConstant1.getPort("value").connect(number2);
+        assertEquals(2, l.connectCounter);
+        assertEquals(1, l.disconnectCounter);
+        // Disconnect the constant node. This should remove all (1) connections,
+        // and cause one disconnect event.
+        addConstant1.disconnect();
+        assertEquals(2, l.connectCounter);
+        assertEquals(2, l.disconnectCounter);
     }
 
 }
