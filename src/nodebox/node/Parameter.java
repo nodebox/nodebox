@@ -108,6 +108,26 @@ public class Parameter {
         public String getLabel() {
             return label;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            MenuItem menuItem = (MenuItem) o;
+
+            if (!key.equals(menuItem.key)) return false;
+            if (!label.equals(menuItem.label)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key.hashCode();
+            result = 31 * result + label.hashCode();
+            return result;
+        }
     }
 
     public static final HashMap<Type, Class> TYPE_MAPPING;
@@ -963,7 +983,7 @@ public class Parameter {
         attributeToXml(xml, "widget", NDBXHandler.PARAMETER_WIDGET, protoParam, WIDGET_MAPPING.get(type));
         attributeToXml(xml, "label", NDBXHandler.PARAMETER_LABEL, protoParam, StringUtils.humanizeName(name));
         attributeToXml(xml, "helpText", NDBXHandler.PARAMETER_HELP_TEXT, protoParam, null);
-        attributeToXml(xml, "displayLevel", NDBXHandler.PARAMETER_DISPLAY_LEVEL, protoParam, null);
+        attributeToXml(xml, "displayLevel", NDBXHandler.PARAMETER_DISPLAY_LEVEL, protoParam, DisplayLevel.HUD);
         attributeToXml(xml, "boundingMethod", NDBXHandler.PARAMETER_BOUNDING_METHOD, protoParam, BoundingMethod.NONE);
         attributeToXml(xml, "minimumValue", NDBXHandler.PARAMETER_MINIMUM_VALUE, protoParam, null);
         attributeToXml(xml, "maximumValue", NDBXHandler.PARAMETER_MAXIMUM_VALUE, protoParam, null);
@@ -987,8 +1007,13 @@ public class Parameter {
             }
         }
         // Write menu items
-        for (MenuItem item : menuItems) {
-            xml.append(spaces).append("  <menu key=\"").append(item.getKey()).append("\">").append(item.getLabel()).append("</menu>\n");
+        if (menuItems.size() > 0) {
+            List<Parameter.MenuItem> protoItems = protoParam == null ? null : protoParam.getMenuItems();
+            if (!menuItems.equals(protoItems)) {
+                for (MenuItem item : menuItems) {
+                    xml.append(spaces).append("  <menu key=\"").append(item.getKey()).append("\">").append(item.getLabel()).append("</menu>\n");
+                }
+            }
         }
         xml.append(spaces).append("</param>\n");
     }

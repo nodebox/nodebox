@@ -103,7 +103,7 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
-     * Test if expressions are persisted.
+     * Test if expressions are persisted correctly.
      */
     public void testStoreExpressions() {
         NodeLibrary library = new NodeLibrary("test");
@@ -114,13 +114,12 @@ public class NodeLibraryTest extends TestCase {
         // Inherit from alpha.
         Node beta = alpha.newInstance(library, "beta");
 
-        // Roundabout way to check if the expression tag only appears once.
-        // If the first position where it appears == the last position, it only appears once.
+        // Check if the expression tag only appears once.
         String xml = library.toXml();
-        assertTrue(xml.indexOf("<expression>") == xml.lastIndexOf("<expression>"));
+        assertOnlyOnce(xml, "<expression>");
 
         NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
         Node newAlpha = newLibrary.get("alpha");
         assertEquals("44 - 2", newAlpha.getParameter("v").getExpression());
         newAlpha.update();
@@ -147,9 +146,14 @@ public class NodeLibraryTest extends TestCase {
         Parameter pLabel = alpha.addParameter("label", Parameter.Type.STRING, "label + help text");
         pLabel.setLabel("My Label");
         pLabel.setHelpText("My Help Text");
+        // Inherit from alpha. This is used to test if prototype data is stored only once.
+        Node beta = alpha.newInstance(library, "beta");
+
+        String xml = library.toXml();
+        assertOnlyOnce(xml, "<param name=\"menu\"");
 
         NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
         Node newAlpha = newLibrary.get("alpha");
         Parameter newAngle = newAlpha.getParameter("angle");
         assertEquals(Parameter.Widget.ANGLE, newAngle.getWidget());
@@ -170,6 +174,17 @@ public class NodeLibraryTest extends TestCase {
         Parameter newLabel = newAlpha.getParameter("label");
         assertEquals("My Label", newLabel.getLabel());
         assertEquals("My Help Text", newLabel.getHelpText());
+    }
+
+    /**
+     * Assert that the search string only appears once in the source.
+     *
+     * @param source       the source string to search in
+     * @param searchString the string to search for
+     */
+    public void assertOnlyOnce(String source, String searchString) {
+        // If the first position where it appears == the last position, it only appears once.
+        assertTrue(source.indexOf(searchString) >= 0 && source.indexOf(searchString) == source.lastIndexOf(searchString));
     }
 
 
