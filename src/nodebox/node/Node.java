@@ -1204,6 +1204,11 @@ public class Node implements NodeCode, NodeAttributeListener {
         Port output = outputNode.outputPort;
         boolean removedSomething = dg.removeDependency(output, input);
         if (removedSomething) {
+            // We remove the output port from the connection.
+            c.removeOutput(output);
+            // If the connection has no more output ports, remove the connection entirely.
+            if (!c.hasOutputs())
+                dg.removeInfo(input);
             input.reset();
             // This port was changed. Mark the node as dirty.
             input.getNode().markDirty();
@@ -1443,7 +1448,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     /**
      * Mark all upstream nodes that have stamp expressions dirty.
-     *
+     * <p/>
      * This method is used for the copy node, where nodes that have parameters with stamp expressions should
      * be marked dirty so the expressions can re-evaluate based on new stamp key/values set in the processing
      * context.

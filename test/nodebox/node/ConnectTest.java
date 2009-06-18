@@ -230,6 +230,7 @@ public class ConnectTest extends NodeTestCase {
         m.update();
         assertEquals(5, m.getPort("v1").getValue());
         assertEquals(10, m.getOutputValue());
+        assertNotNull(m.getPort("v1").getConnection());
 
         // Disconnecting a port makes the dependent nodes dirty, but not the upstream nodes.
         // "Dirt flows downstream"
@@ -238,11 +239,29 @@ public class ConnectTest extends NodeTestCase {
         assertFalse(number1.isDirty());
         assertFalse(m.getPort("v1").isConnected());
         assertFalse(number1.isOutputConnected());
+        assertNull(m.getPort("v1").getConnection());
         // The value of the input port is set to null after disconnection.
         // Since our simple multiply node doesn't handle null, it throws
         // a NullPointerException, which gets wrapped in a ProcessingError.
         assertProcessingError(m, NullPointerException.class);
         assertNull(m.getOutputValue());
+    }
+
+    /**
+     * Disconnect a specific output node.
+     */
+    public void testDisconnectOutputNode() {
+        // Setup a simple network where number1 <- addConstant1.
+        Node root = testLibrary.getRootNode();
+        Node number1 = root.create(numberNode);
+        Node addConstant1 = root.create(addConstantNode);
+        Port pValue =addConstant1.getPort("value");
+        pValue.connect(number1);
+        // Remove the specific connection and check if everything was removed.
+        addConstant1.disconnect(pValue, number1);
+        assertFalse(number1.isConnected());
+        assertFalse(addConstant1.isConnected());
+        assertNull(pValue.getConnection());
     }
 
     /**
