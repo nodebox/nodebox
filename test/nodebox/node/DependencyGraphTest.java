@@ -150,6 +150,20 @@ public class DependencyGraphTest extends TestCase {
         assertFalse(dg.hasDependency('Z', 'Y'));
     }
 
+    public void testRemoveDependency() {
+        DependencyGraph<Character, Object> dg;
+        dg = new DependencyGraph<Character, Object>();
+        // Z depends on A.
+        dg.addDependency('A', 'Z');
+        assertEquals(1, dg.getDependencies('Z').size());
+        assertEquals(1, dg.getDependents('A').size());
+        // Remove the dependency.
+        assertTrue(dg.removeDependency('A', 'Z'));
+        assertFalse(dg.hasDependency('A', 'Z'));
+        assertEquals(0, dg.getDependencies('Z').size());
+        assertEquals(0, dg.getDependents('A').size());
+    }
+
     public void assertInvalidDependency(DependencyGraph<Character, Object> dg, Character dependency, Character dependent) {
         try {
             dg.addDependency(dependency, dependent);

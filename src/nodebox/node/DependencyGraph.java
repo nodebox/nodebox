@@ -112,7 +112,7 @@ public class DependencyGraph<T, I> {
         if (dependencies != null)
             removedSomething = dependencies.remove(dependency);
         if (dependents != null)
-            removedSomething = dependents.remove(dependency) | removedSomething;
+            removedSomething = dependents.remove(dependent) | removedSomething;
         return removedSomething;
     }
 
