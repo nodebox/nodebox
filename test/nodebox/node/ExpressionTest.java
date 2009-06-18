@@ -83,7 +83,7 @@ public class ExpressionTest extends NodeTestCase {
     /**
      * Test the same as testDeadDependencies, but in the reverse. (What happens if a parameter that depends on this
      * parameter gets removed).
-     *
+     * <p/>
      * This is less dramatic than the other case; we just need to make sure that we don't accidentally dereference
      * a dead Parameter.
      */
@@ -110,7 +110,7 @@ public class ExpressionTest extends NodeTestCase {
 
     /**
      * You can only reference other parameters and the built-in functions.
-     *
+     * <p/>
      * Test what happens if you break this rule.
      */
     public void testOnlyReferenceParameters() {
@@ -228,7 +228,7 @@ public class ExpressionTest extends NodeTestCase {
         // Update the node to see if it works.
         rect1.update();
         p = (Polygon) rect1.getOutputValue();
-        assertEquals(new Rectangle(0, 0,  20, 100), p.getBounds());
+        assertEquals(new Rectangle(0, 0, 20, 100), p.getBounds());
 
         // The stamper is a node that relies on copy stamping to replace
         // one of the parameters of the connected node. The connected node (rect1)
@@ -249,7 +249,22 @@ public class ExpressionTest extends NodeTestCase {
         stamper.getPort("polygon").connect(rect1);
         stamper.update();
         p = (Polygon) stamper.getOutputValue();
-        assertEquals(new Rectangle(0, 0,  50, 100), p.getBounds());
+        assertEquals(new Rectangle(0, 0, 50, 100), p.getBounds());
+    }
+
+    /**
+     * Test the equals method on Expression.
+     * Two expressions are equal if their expression strings are equal.
+     */
+    public void testEquals() {
+        Node a = Node.ROOT_NODE.newInstance(testLibrary, "a");
+        Node b = Node.ROOT_NODE.newInstance(testLibrary, "b");
+        Parameter pA = a.addParameter("a", Parameter.Type.INT);
+        Parameter pB = b.addParameter("b", Parameter.Type.INT);
+        String expr1 = "random(1, 2, 3)";
+        Expression eA = new Expression(pA, expr1);
+        Expression eB = new Expression(pB, expr1);
+        assertEquals(eA, eB);
     }
 
     public void assertExpressionEquals(Object expected, Parameter p, String expression) {

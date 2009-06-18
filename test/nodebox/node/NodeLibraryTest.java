@@ -111,6 +111,13 @@ public class NodeLibraryTest extends TestCase {
         alpha.addParameter("v", Parameter.Type.INT);
         alpha.setValue("v", 10);
         alpha.getParameter("v").setExpression("44 - 2");
+        // Inherit from alpha.
+        Node beta = alpha.newInstance(library, "beta");
+
+        // Roundabout way to check if the expression tag only appears once.
+        // If the first position where it appears == the last position, it only appears once.
+        String xml = library.toXml();
+        assertTrue(xml.indexOf("<expression>") == xml.lastIndexOf("<expression>"));
 
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);

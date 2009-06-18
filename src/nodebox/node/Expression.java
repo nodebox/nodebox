@@ -339,4 +339,20 @@ public class Expression {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Expression that = (Expression) o;
+
+        if (!expression.equals(that.expression)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return expression.hashCode();
+    }
 }

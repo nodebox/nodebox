@@ -1029,7 +1029,8 @@ public class Parameter {
             return false;
         if (!name.equals(parameter.name)) return false;
         if (type != parameter.type) return false;
-        if (value != null ? !value.equals(parameter.value) : parameter.value != null) return false;
+        if (expression == null)
+            if (value != null ? !value.equals(parameter.value) : parameter.value != null) return false;
         if (widget != parameter.widget) return false;
 
         return true;
