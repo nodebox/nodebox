@@ -169,6 +169,26 @@ public class NodeTest extends NodeTestCase {
     }
 
     /**
+     * Test if parameters with expressions are inherited correctly.
+     */
+    public void testExpressionPropagation() {
+        // Inheritance: A <- B
+        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A");
+        Parameter pF  =nodeA.addParameter("f", Parameter.Type.INT, 0);
+        String expr1="12 + 5";
+        pF.setExpression(expr1);
+        Node nodeB = nodeA.newInstance(testLibrary, "B");
+        assertEquals(expr1, nodeB.getParameter("f").getExpression());
+        // Changing the expression of A does not automatically change that of B.
+        String expr2 = "4 * 2";
+        pF.setExpression(expr2);
+        assertEquals(expr1, nodeB.getParameter("f").getExpression());
+        // Reverting to default does.
+        nodeB.getParameter("f").revertToDefault();
+        assertEquals(expr2, nodeB.getParameter("f").getExpression());
+    }
+
+    /**
      * Test if the attributes on ports are set correctly.
      */
     public void testPortAttributes() {
