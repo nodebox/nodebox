@@ -182,6 +182,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         for (NodeView nv : selection) {
             nv.setSelected(false);
         }
+        connectionLayer.deselect();
         selection.clear();
         selection.add(nodeView);
         nodeView.setSelected(true);
@@ -246,6 +247,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             nodeView.setSelected(false);
         }
         selection.clear();
+        connectionLayer.deselect();
         firePropertyChange(SELECT_PROPERTY, null, selection);
     }
 
@@ -459,6 +461,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         public void mouseClicked(PInputEvent e) {
             if (e.getButton() != MouseEvent.BUTTON1) return;
             deselectAll();
+            connectionLayer.mouseClickedEvent(e);
         }
 
         public void mousePressed(PInputEvent e) {
@@ -476,6 +479,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             selectionMarker.setWidth(p.getX() - prev.getX());
             selectionMarker.setHeight(p.getY() - prev.getY());
             ListIterator childIter = getLayer().getChildrenIterator();
+            connectionLayer.deselect();
             temporarySelection.clear();
             while (childIter.hasNext()) {
                 Object o = childIter.next();
@@ -516,6 +520,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
                 for (NodeView nodeView : selection) {
                     node.remove(nodeView.getNode());
                 }
+                connectionLayer.deleteSelected();
             }
         }
     }
