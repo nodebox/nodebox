@@ -6,11 +6,11 @@ import java.awt.*;
 
 public class GrobTest extends TestCase {
 
-    public class TestGrob extends Grob {
+    public class TestGrob extends AbstractGrob {
 
-        private double x, y, width, height;
+        private float x, y, width, height;
 
-        public TestGrob(double x, double y, double width, double height) {
+        public TestGrob(float x, float y, float width, float height) {
             this.x = x;
             this.y = y;
             this.width = width;
@@ -21,7 +21,7 @@ public class GrobTest extends TestCase {
         }
 
         public Rect getBounds() {
-            return new Rect(x, y, width, height);
+            return getTransform().map(new Rect(x, y, width, height));
         }
 
         public Grob clone() {
@@ -29,13 +29,11 @@ public class GrobTest extends TestCase {
         }
     }
 
-    public void testFrame() {
+    public void testTransform() {
         TestGrob tg = new TestGrob(1, 2, 3, 4);
         assertEquals(new Rect(1, 2, 3, 4), tg.getBounds());
         tg.translate(200, 300);
-        // Bounds don't change, but frame does.
-        assertEquals(new Rect(1, 2, 3, 4), tg.getBounds());
-        assertEquals(new Rect(201, 302, 3, 4), tg.getFrame());
+        assertEquals(new Rect(201, 302, 3, 4), tg.getBounds());
 
     }
 }

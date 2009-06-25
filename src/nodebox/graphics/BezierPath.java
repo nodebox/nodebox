@@ -29,25 +29,25 @@ import java.util.List;
 /**
  * @author Frederik
  */
-public class BezierPath extends Grob {
+public class BezierPath extends AbstractGrob {
 
     // Magic number used for drawing bezier circles.
     // 4 *(sqrt(2) -1)/3
     private static final float KAPPA = 0.5522847498f;
 
     // To simulate a quarter of a circle.
-    private static final double ONE_MINUS_QUARTER = 1.0 - 0.552;
+    private static final float ONE_MINUS_QUARTER = 1.0f - 0.552f;
 
     private ArrayList<PathElement> elements = new ArrayList<PathElement>();
     private Color fillColor;
     private Color strokeColor;
-    private double strokeWidth;
+    private float strokeWidth;
     private boolean dirty = true;
     private boolean needsMoveto = true; // Flag to check if we already moved to a start point.
     private transient java.awt.geom.GeneralPath awtPath;
     private transient Rect bounds;
-    private double[] segmentLengths;
-    private double pathLength = -1;
+    private float[] segmentLengths;
+    private float pathLength = -1;
 
     public BezierPath() {
         fillColor = new Color();
@@ -63,7 +63,6 @@ public class BezierPath extends Grob {
     }
 
     public BezierPath(BezierPath other) {
-        super(other);
         fillColor = other.fillColor == null ? null : other.fillColor.clone();
         strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
         strokeWidth = other.strokeWidth;
@@ -88,11 +87,11 @@ public class BezierPath extends Grob {
         this.strokeColor = strokeColor;
     }
 
-    public double getStrokeWidth() {
+    public float getStrokeWidth() {
         return strokeWidth;
     }
 
-    public void setStrokeWidth(double strokeWidth) {
+    public void setStrokeWidth(float strokeWidth) {
         this.strokeWidth = strokeWidth;
     }
 
@@ -102,7 +101,7 @@ public class BezierPath extends Grob {
         moveto(pt.getX(), pt.getY());
     }
 
-    public void moveto(double x, double y) {
+    public void moveto(float x, float y) {
         elements.add(new PathElement(PathElement.MOVETO, x, y));
         needsMoveto = false;
         dirty = true;
@@ -112,7 +111,7 @@ public class BezierPath extends Grob {
         lineto(pt.getX(), pt.getY());
     }
 
-    public void lineto(double x, double y) {
+    public void lineto(float x, float y) {
         if (needsMoveto)
             throw new NodeBoxError("Lineto without first doing moveto.");
         elements.add(new PathElement(PathElement.LINETO, x, y));
@@ -123,17 +122,17 @@ public class BezierPath extends Grob {
         quadto(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY());
     }
 
-    public void quadto(double x1, double y1, double x2, double y2) {
+    public void quadto(float x1, float y1, float x2, float y2) {
         if (needsMoveto)
             throw new NodeBoxError("Quadto without first doing moveto.");
         PathElement lastElement = elements.get(elements.size() - 1);
         // We don't support quads natively, but we accept them and convert them to a cubic bezier.
-        double lastX = lastElement.getX();
-        double lastY = lastElement.getY();
-        double c1x = lastX + (x1 - lastX) * 2 / 3;
-        double c1y = lastY + (y1 - lastY) * 2 / 3;
-        double c2x = x2 - (x2 - x1) * 2 / 3;
-        double c2y = y2 - (y2 - y1) * 2 / 3;
+        float lastX = lastElement.getX();
+        float lastY = lastElement.getY();
+        float c1x = lastX + (x1 - lastX) * 2 / 3;
+        float c1y = lastY + (y1 - lastY) * 2 / 3;
+        float c2x = x2 - (x2 - x1) * 2 / 3;
+        float c2y = y2 - (y2 - y1) * 2 / 3;
         curveto(c1x, c1y, c2x, c2y, x2, y2);
     }
 
@@ -141,7 +140,7 @@ public class BezierPath extends Grob {
         curveto(pt1.getX(), pt1.getY(), pt2.getX(), pt2.getY(), pt3.getX(), pt3.getY());
     }
 
-    public void curveto(double x1, double y1, double x2, double y2, double x3, double y3) {
+    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3) {
         if (needsMoveto)
             throw new NodeBoxError("Curveto without first doing moveto.");
         elements.add(new PathElement(PathElement.CURVETO, x1, y1, x2, y2, x3, y3));
@@ -165,9 +164,9 @@ public class BezierPath extends Grob {
         rect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
-    public void rect(double cx, double cy, double width, double height) {
-        double halfWidth = width / 2;
-        double halfHeight = height / 2;
+    public void rect(float cx, float cy, float width, float height) {
+        float halfWidth = width / 2;
+        float halfHeight = height / 2;
         moveto(cx - halfWidth, cy - halfHeight);
         lineto(cx + halfWidth, cy - halfHeight);
         lineto(cx + halfWidth, cy + halfHeight);
@@ -175,48 +174,48 @@ public class BezierPath extends Grob {
         close();
     }
 
-    public void rect(Rect r, double roundness) {
+    public void rect(Rect r, float roundness) {
         roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), roundness);
     }
 
-    public void rect(Rect r, double rx, double ry) {
+    public void rect(Rect r, float rx, float ry) {
         roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
     }
 
-    public void rect(double cx, double cy, double width, double height, double r) {
+    public void rect(float cx, float cy, float width, float height, float r) {
         roundedRect(cx, cy, width, height, r);
     }
 
-    public void rect(double cx, double cy, double width, double height, double rx, double ry) {
+    public void rect(float cx, float cy, float width, float height, float rx, float ry) {
         roundedRect(cx, cy, width, height, rx, ry);
     }
 
-    public void roundedRect(Rect r, double roundness) {
+    public void roundedRect(Rect r, float roundness) {
         roundedRect(r, roundness, roundness);
     }
 
-    public void roundedRect(Rect r, double rx, double ry) {
+    public void roundedRect(Rect r, float rx, float ry) {
         roundedRect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), rx, ry);
     }
 
-    public void roundedRect(double cx, double cy, double width, double height, double r) {
+    public void roundedRect(float cx, float cy, float width, float height, float r) {
         roundedRect(cx, cy, width, height, r, r);
     }
 
-    public void roundedRect(double cx, double cy, double width, double height, double rx, double ry) {
-        double halfWidth = width / 2.0;
-        double halfHeight = height / 2.0;
-        double dx = rx;
-        double dy = ry;
+    public void roundedRect(float cx, float cy, float width, float height, float rx, float ry) {
+        float halfWidth = width / 2f;
+        float halfHeight = height / 2f;
+        float dx = rx;
+        float dy = ry;
 
-        double left = cx - halfWidth;
-        double right = cx + halfWidth;
-        double top = cy - halfHeight;
-        double bottom = cy + halfHeight;
+        float left = cx - halfWidth;
+        float right = cx + halfWidth;
+        float top = cy - halfHeight;
+        float bottom = cy + halfHeight;
         // rx/ry cannot be greater than half of the width of the retoctangle
         // (required by SVG spec)
-        dx = Math.min(dx, width * 0.5);
-        dy = Math.min(dy, height * 0.5);
+        dx = Math.min(dx, width * 0.5f);
+        dy = Math.min(dy, height * 0.5f);
         moveto(left + dx, top);
         if (dx < width * 0.5)
             lineto(right - rx, top);
@@ -233,25 +232,25 @@ public class BezierPath extends Grob {
         close();
     }
 
-    public void ellipse(double cx, double cy, double width, double height) {
-        Ellipse2D.Double e = new Ellipse2D.Double(cx - width / 2, cy - height / 2, width, height);
+    public void ellipse(float cx, float cy, float width, float height) {
+        Ellipse2D.Float e = new Ellipse2D.Float(cx - width / 2, cy - height / 2, width, height);
         extend(e);
     }
 
-    public void line(double x1, double y1, double x2, double y2) {
+    public void line(float x1, float y1, float x2, float y2) {
         moveto(x1, y1);
         lineto(x2, y2);
     }
 
-    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y) {
-        text(text, fontName, fontSize, lineHeight, align, x, y, Double.MAX_VALUE, Double.MAX_VALUE);
+    public void text(String text, String fontName, float fontSize, float lineHeight, Text.Align align, float x, float y) {
+        text(text, fontName, fontSize, lineHeight, align, x, y, Float.MAX_VALUE, Float.MAX_VALUE);
     }
 
-    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width) {
-        text(text, fontName, fontSize, lineHeight, align, x, y, width, Double.MAX_VALUE);
+    public void text(String text, String fontName, float fontSize, float lineHeight, Text.Align align, float x, float y, float width) {
+        text(text, fontName, fontSize, lineHeight, align, x, y, width, Float.MAX_VALUE);
     }
 
-    public void text(String text, String fontName, double fontSize, double lineHeight, Text.Align align, double x, double y, double width, double height) {
+    public void text(String text, String fontName, float fontSize, float lineHeight, Text.Align align, float x, float y, float width, float height) {
         Text t = new Text(text, x, y, width, height);
         t.setFontName(fontName);
         t.setFontSize(fontSize);
@@ -317,12 +316,12 @@ public class BezierPath extends Grob {
      * @param y1 Y end coordinate
      * @return the length of the line
      */
-    public static double lineLength(double x0, double y0, double x1, double y1) {
+    public static float lineLength(float x0, float y0, float x1, float y1) {
         x0 = Math.abs(x0 - x1);
         x0 *= x0;
         y0 = Math.abs(y0 - y1);
         y0 *= y0;
-        return Math.sqrt(x0 + y0);
+        return (float) Math.sqrt(x0 + y0);
     }
 
     /**
@@ -342,7 +341,7 @@ public class BezierPath extends Grob {
      * @param y1 Y end coordinate
      * @return a Point at position t on the line.
      */
-    public static Point linePoint(double t, double x0, double y0, double x1, double y1) {
+    public static Point linePoint(float t, float x0, float y0, float x1, float y1) {
         return new Point(
                 x0 + t * (x1 - x0),
                 y0 + t * (y1 - y0));
@@ -372,7 +371,7 @@ public class BezierPath extends Grob {
      * @param y3 Y end coordinate
      * @return the length of the spline.
      */
-    public static double curveLength(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
+    public static float curveLength(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) {
         return curveLength(x0, y0, x1, y1, x2, y2, x3, y3, 20);
     }
 
@@ -398,15 +397,15 @@ public class BezierPath extends Grob {
      * @param n  accuracy
      * @return the length of the spline.
      */
-    public static double curveLength(double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3, int n) {
-        double length = 0;
-        double xi = x0;
-        double yi = y0;
-        double t;
-        double px, py;
-        double tmpX, tmpY;
+    public static float curveLength(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, int n) {
+        float length = 0;
+        float xi = x0;
+        float yi = y0;
+        float t;
+        float px, py;
+        float tmpX, tmpY;
         for (int i = 0; i < n; i++) {
-            t = (i + 1) / (double) n;
+            t = (i + 1) / (float) n;
             Point pt = curvePoint(t, x0, y0, x1, y1, x2, y2, x3, y3);
             px = pt.getX();
             py = pt.getY();
@@ -439,37 +438,37 @@ public class BezierPath extends Grob {
      * @param y3 Y end coordinate
      * @return a Point at position t on the spline.
      */
-    public static Point curvePoint(double t, double x0, double y0, double x1, double y1, double x2, double y2, double x3, double y3) {
-        double mint = 1 - t;
-        double x01 = x0 * mint + x1 * t;
-        double y01 = y0 * mint + y1 * t;
-        double x12 = x1 * mint + x2 * t;
-        double y12 = y1 * mint + y2 * t;
-        double x23 = x2 * mint + x3 * t;
-        double y23 = y2 * mint + y3 * t;
+    public static Point curvePoint(float t, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) {
+        float mint = 1 - t;
+        float x01 = x0 * mint + x1 * t;
+        float y01 = y0 * mint + y1 * t;
+        float x12 = x1 * mint + x2 * t;
+        float y12 = y1 * mint + y2 * t;
+        float x23 = x2 * mint + x3 * t;
+        float y23 = y2 * mint + y3 * t;
 
-        double out_c1x = x01 * mint + x12 * t;
-        double out_c1y = y01 * mint + y12 * t;
-        double out_c2x = x12 * mint + x23 * t;
-        double out_c2y = y12 * mint + y23 * t;
-        double out_x = out_c1x * mint + out_c2x * t;
-        double out_y = out_c1y * mint + out_c2y * t;
+        float out_c1x = x01 * mint + x12 * t;
+        float out_c1y = y01 * mint + y12 * t;
+        float out_c2x = x12 * mint + x23 * t;
+        float out_c2y = y12 * mint + y23 * t;
+        float out_x = out_c1x * mint + out_c2x * t;
+        float out_y = out_c1y * mint + out_c2y * t;
         return new Point(out_x, out_y);
     }
 
-    public double[] getSegmentLengths() {
+    public float[] getSegmentLengths() {
         return getSegmentLengths(20);
     }
 
-    public double[] getSegmentLengths(int n) {
+    public float[] getSegmentLengths(int n) {
         if (segmentLengths != null) return segmentLengths;
-        segmentLengths = new double[elements.size() - 1];
-        double length;
+        segmentLengths = new float[elements.size() - 1];
+        float length;
         pathLength = 0;
-        double closeX = 0;
-        double closeY = 0;
-        double x0 = 0;
-        double y0 = 0;
+        float closeX = 0;
+        float closeY = 0;
+        float x0 = 0;
+        float y0 = 0;
         boolean first = true;
         int i = 0;
         for (PathElement el : elements) {
@@ -482,7 +481,7 @@ public class BezierPath extends Grob {
             } else if (el.getCommand() == PathElement.MOVETO) {
                 closeX = el.getX();
                 closeY = el.getY();
-                segmentLengths[i] = 0.0;
+                segmentLengths[i] = 0;
             } else if (el.getCommand() == PathElement.CLOSE) {
                 length = lineLength(x0, y0, closeX, closeY);
                 segmentLengths[i] = length;
@@ -514,7 +513,7 @@ public class BezierPath extends Grob {
      *
      * @return the length of the path.
      */
-    public double getLength() {
+    public float getLength() {
         if (segmentLengths == null)
             getSegmentLengths();
         assert (pathLength != -1);
@@ -532,7 +531,7 @@ public class BezierPath extends Grob {
      * @param t relative coordinate of the point (between 0.0 and 1.0)
      * @return coordinates for point at t.
      */
-    public Point getPoint(double t) {
+    public Point getPoint(float t) {
         if (segmentLengths == null)
             getSegmentLengths();
 
@@ -541,14 +540,14 @@ public class BezierPath extends Grob {
             throw new NodeBoxError("The path is empty.");
 
         // Since t is relative, convert it to the absolute length.
-        double absT = t * pathLength;
+        float absT = t * pathLength;
         // The resT is what remains of t after we traversed all segments.
-        double resT = t;
+        float resT = t;
 
         // Find the segment that contains t.
         int i = 0;
-        double closeX = 0;
-        double closeY = 0;
+        float closeX = 0;
+        float closeY = 0;
         for (PathElement el : elements) {
             if (i == 0 || el.getCommand() == PathElement.MOVETO) {
                 closeX = el.getX();
@@ -572,7 +571,7 @@ public class BezierPath extends Grob {
         PathElement el0 = elements.get(i);
         PathElement el1 = elements.get(i + 1);
         // The resT is what remains of t after we traversed all segments.
-        //double resT = absT / pathLength;
+        //float resT = absT / pathLength;
         switch (el1.getCommand()) {
             case PathElement.CLOSE:
                 return linePoint(resT, el0.getX(), el0.getY(), closeX, closeY);
@@ -599,9 +598,9 @@ public class BezierPath extends Grob {
         // If I wouldn't use amount - 1, I fall one point short of the end.
         // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
         // if amount = 2, I want point at t 0.0 and t 1.0
-        double delta = 1.0;
+        float delta = 1;
         if (amount > 2) {
-            delta = 1.0 / (amount - 1);
+            delta = 1f / (amount - 1f);
         }
         for (int i = 0; i < amount; i++) {
             points[i] = getPoint(delta * i);
@@ -615,7 +614,7 @@ public class BezierPath extends Grob {
         return getGeneralPath().contains(p.getPoint2D());
     }
 
-    public boolean contains(double x, double y) {
+    public boolean contains(float x, float y) {
         return getGeneralPath().contains(x, y);
     }
 
@@ -732,7 +731,7 @@ public class BezierPath extends Grob {
     }
 
 
-    //// Geometry ////
+    //// Path ////
 
     public java.awt.geom.GeneralPath getGeneralPath() {
         if (!dirty) {
@@ -774,8 +773,15 @@ public class BezierPath extends Grob {
         return bounds;
     }
 
+    public void transform(Transform t) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void inheritFromContext(GraphicsContext ctx) {
+        throw new UnsupportedOperationException();
+    }
+
     public void draw(Graphics2D g) {
-        setupTransform(g);
         if (fillColor != null && fillColor.isVisible()) {
             g.setColor(fillColor.getAwtColor());
             g.fill(getGeneralPath());
@@ -791,7 +797,6 @@ public class BezierPath extends Grob {
                 // The path would be too small to be displayed anyway.
             }
         }
-        restoreTransform(g);
     }
 
     @Override
@@ -813,7 +818,6 @@ public class BezierPath extends Grob {
      */
     public BezierPath cloneAndClear() {
         BezierPath cloned = new BezierPath();
-        cloned.setTransform(getTransform().clone());
         cloned.fillColor = fillColor == null ? null : fillColor.clone();
         cloned.strokeColor = strokeColor == null ? null : strokeColor.clone();
         cloned.strokeWidth = strokeWidth;

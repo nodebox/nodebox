@@ -140,7 +140,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     private nodebox.graphics.Point pointForEvent(MouseEvent e) {
         double cx = -getWidth() / 2.0 + e.getX();
         double cy = -getHeight() / 2.0 + e.getY();
-        return new nodebox.graphics.Point(cx, cy);
+        return new nodebox.graphics.Point((float)cx, (float)cy);
     }
 
     public void mouseClicked(MouseEvent e) {

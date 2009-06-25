@@ -26,50 +26,80 @@ import java.awt.geom.Point2D;
  */
 public class Point {
 
-    private double x, y;
+    public static final int LINE_TO = 1;
+    public static final int CURVE_TO = 2;
+    public static final int CURVE_DATA = 3;
+
+    public float x, y;
+    public int type;
 
     public Point() {
         this(0, 0);
     }
 
-    public Point(double x, double y) {
+    public Point(float x, float y) {
         this.x = x;
         this.y = y;
+        this.type = LINE_TO;
+    }
+
+    public Point(float x, float y, int type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
     }
 
     public Point(Point pt) {
         this.x = pt.x;
         this.y = pt.y;
+        this.type = pt.type;
     }
 
     public Point(Point2D pt) {
-        this.x = pt.getX();
-        this.y = pt.getY();
+        this.x = (float) pt.getX();
+        this.y = (float) pt.getY();
+        this.type = LINE_TO;
     }
 
-    public double getX() {
+    public float getX() {
         return x;
     }
 
-    public double getY() {
+    public float getY() {
         return y;
     }
 
-    public void setX(double x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public void setY(double y) {
+    public void setY(float y) {
         this.y = y;
     }
 
-    public void move(double x, double y) {
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public boolean isLineTo() {
+        return type == LINE_TO;
+    }
+
+    public boolean isCurveTo() {
+        return type == CURVE_TO;
+    }
+
+    public void move(float x, float y) {
         this.x += x;
         this.y += y;
     }
 
     public Point2D getPoint2D() {
-        return new Point2D.Double(x, y);
+        return new Point2D.Float(x, y);
     }
 
     @Override
@@ -77,7 +107,7 @@ public class Point {
         if (this == o) return true;
         if (!(o instanceof Point)) return false;
         Point p = (Point) o;
-        return x == p.x && y == p.y;
+        return x == p.x && y == p.y && type == p.type;
     }
 
     @Override

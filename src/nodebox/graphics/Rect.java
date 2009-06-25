@@ -22,13 +22,13 @@ import java.awt.geom.Rectangle2D;
 
 public class Rect {
 
-    private double x, y, width, height;
+    private float x, y, width, height;
 
     public Rect() {
         this(0, 0, 0, 0);
     }
 
-    public Rect(double x, double y, double width, double height) {
+    public Rect(float x, float y, float width, float height) {
         this.x = x;
         this.y = y;
         this.width = width;
@@ -43,29 +43,29 @@ public class Rect {
     }
 
     public Rect(java.awt.geom.Rectangle2D r) {
-        this.x = r.getX();
-        this.y = r.getY();
-        this.width = r.getWidth();
-        this.height = r.getHeight();
+        this.x = (float) r.getX();
+        this.y = (float) r.getY();
+        this.width = (float) r.getWidth();
+        this.height = (float) r.getHeight();
     }
 
-    public static Rect centeredRect(double cx, double cy, double width, double height) {
+    public static Rect centeredRect(float cx, float cy, float width, float height) {
         return new Rect(cx - width / 2, cy - height / 2, width, height);
     }
 
-    public double getHeight() {
+    public float getHeight() {
         return height;
     }
 
-    public double getWidth() {
+    public float getWidth() {
         return width;
     }
 
-    public double getX() {
+    public float getX() {
         return x;
     }
 
-    public double getY() {
+    public float getY() {
         return y;
     }
 
@@ -132,7 +132,7 @@ public class Rect {
     }
 
     public Rectangle2D getRectangle2D() {
-        return new Rectangle2D.Double(x, y, width, height);
+        return new Rectangle2D.Float(x, y, width, height);
     }
 
     @Override

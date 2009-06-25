@@ -5,19 +5,20 @@ import nodebox.util.MathUtils;
 import javax.imageio.ImageIO;
 import javax.management.RuntimeErrorException;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class Image extends Grob {
+public class Image extends AbstractGrob {
 
     private static HashMap<String, RenderedImage> imageCache = new HashMap<String, RenderedImage>();
 
-    private double x, y;
-    private double desiredWidth, desiredHeight;
-    private double alpha = 1.0F;
+    private float x, y;
+    private float desiredWidth, desiredHeight;
+    private float alpha = 1.0F;
 
     private RenderedImage image;
     private static BufferedImage blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
@@ -47,7 +48,7 @@ public class Image extends Grob {
         this(new File(fname));
     }
 
-    public Image(String fname, double cx, double cy) {
+    public Image(String fname, float cx, float cy) {
         this(new File(fname));
         this.x = cx;
         this.y = cy;
@@ -69,53 +70,53 @@ public class Image extends Grob {
 
     //// Attribute access ////
 
-    public double getOriginalWidth() {
+    public float getOriginalWidth() {
         if (image == null) return 0;
         return image.getWidth();
     }
 
-    public double getOriginalHeight() {
+    public float getOriginalHeight() {
         if (image == null) return 0;
         return image.getHeight();
     }
 
-    public double getWidth() {
+    public float getWidth() {
         return getOriginalWidth() * getScaleFactor();
     }
 
-    public void setWidth(double width) {
+    public void setWidth(float width) {
         this.desiredWidth = width;
     }
 
-    public double getHeight() {
+    public float getHeight() {
         return getOriginalHeight() * getScaleFactor();
     }
 
-    public void setHeight(double height) {
+    public void setHeight(float height) {
         this.desiredHeight = height;
     }
 
-    public double getX() {
+    public float getX() {
         return x;
     }
 
-    public void setX(double x) {
+    public void setX(float x) {
         this.x = x;
     }
 
-    public double getY() {
+    public float getY() {
         return y;
     }
 
-    public void setY(double y) {
+    public void setY(float y) {
         this.y = y;
     }
 
-    public double getAlpha() {
+    public float getAlpha() {
         return alpha;
     }
 
-    public void setAlpha(double alpha) {
+    public void setAlpha(float alpha) {
         this.alpha = alpha;
     }
 
@@ -126,21 +127,41 @@ public class Image extends Grob {
     public Size getSize() {
         return new Size(image.getWidth(), image.getHeight());
     }
+    
+    //// Transformations ////
+
+    public Transform getCenteredTransform() {
+        Rect bounds = getBounds();
+        Transform t = new Transform();
+        float dx = bounds.getX() + bounds.getWidth() / 2;
+        float dy = bounds.getY() + bounds.getHeight() / 2;
+        t.translate(dx, dy);
+        t.append(getTransform());
+        t.translate(-dx, -dy);
+        return t;
+    }
+
+    protected void setupTransform(Graphics2D g) {
+        saveTransform(g);
+        AffineTransform trans = g.getTransform();
+        trans.concatenate(getCenteredTransform().getAffineTransform());
+        g.setTransform(trans);
+    }
 
     //// Grob support ////
 
     public Rect getBounds() {
         if (image == null) return new Rect();
-        double factor = getScaleFactor();
-        double finalWidth = image.getWidth() * factor;
-        double finalHeight = image.getHeight() * factor;
+        float factor = getScaleFactor();
+        float finalWidth = image.getWidth() * factor;
+        float finalHeight = image.getHeight() * factor;
         return new Rect(x - finalWidth / 2, y - finalHeight / 2, finalWidth, finalHeight);
     }
 
-    public double getScaleFactor() {
+    public float getScaleFactor() {
         if (desiredWidth != 0 || desiredHeight != 0) {
-            double srcW = image.getWidth();
-            double srcH = image.getHeight();
+            float srcW = image.getWidth();
+            float srcH = image.getHeight();
             if (desiredWidth != 0 && desiredHeight != 0) {
                 // Both width and height were given, constrain to smallest
                 return Math.min(desiredWidth / srcW, desiredHeight / srcH);
@@ -154,6 +175,10 @@ public class Image extends Grob {
         }
     }
 
+    public void inheritFromContext(GraphicsContext ctx) {
+        // TODO: Implement
+    }
+
     public void draw(Graphics2D g) {
         setupTransform(g);
         // You can only position an image using an affine transformation.
@@ -162,15 +187,15 @@ public class Image extends Grob {
         Transform imageTrans = new Transform();
         // Move to the image position. Convert x, y, which are centered coordinates,
         // to "real" coordinates. 
-        double factor = getScaleFactor();
-        double finalWidth = image.getWidth() * factor;
-        double finalHeight = image.getHeight() * factor;
+        float factor = getScaleFactor();
+        float finalWidth = image.getWidth() * factor;
+        float finalHeight = image.getHeight() * factor;
         imageTrans.translate(x - finalWidth / 2, y - finalHeight / 2);
         // Scaling only applies to image that have their desired width and/or height set.
         // However, getScaleFactor return 1 if height/width are not set, in effect negating
         // the effect of the scale.
         imageTrans.scale(getScaleFactor());
-        double a = MathUtils.clamp(alpha);
+        float a = MathUtils.clamp(alpha);
         Composite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) a);
         Composite oldComposite = g.getComposite();
         g.setComposite(composite);

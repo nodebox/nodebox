@@ -14,14 +14,17 @@ public class DisplayPointsHandle extends AbstractHandle {
     public void draw(GraphicsContext ctx) {
         BezierPath dots = new BezierPath();
         dots.setFillColor(HANDLE_COLOR);
-        dots.setStrokeWidth(0.0);
+        dots.setStrokeWidth(0f);
         if (node.getOutputValue() instanceof BezierPath) {
             drawDots(ctx, (BezierPath) node.getOutputValue(), dots);
         } else {
             Grob grob = (Grob) node.getOutputValue();
+            // TODO: Fix this
+            /*
             for (Grob child : grob.getChildren(BezierPath.class)) {
                 drawDots(ctx, (BezierPath) child, dots);
             }
+            */
         }
         ctx.draw(dots);
     }

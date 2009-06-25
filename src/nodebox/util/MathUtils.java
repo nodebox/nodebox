@@ -12,7 +12,7 @@ public class MathUtils {
      * @param v the value to clamp
      * @return a value between 0.0 and 1.0.
      */
-    public static double clamp(double v) {
+    public static float clamp(float v) {
         return 0 > v ? 0 : 1 < v ? 1 : v;
     }
 
@@ -28,7 +28,7 @@ public class MathUtils {
      * @param max the maximum value
      * @return a value between min and max.
      */
-    public static double clamp(double v, double min, double max) {
+    public static float clamp(float v, float min, float max) {
         return min > v ? min : max < v ? max : v;
     }
 }

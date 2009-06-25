@@ -1,7 +1,6 @@
 package nodebox.node;
 
 import nodebox.graphics.*;
-import nodebox.node.polygraph.Polygon;
 
 public class PortTest extends NodeTestCase {
 
@@ -36,13 +35,13 @@ public class PortTest extends NodeTestCase {
         Node n = numberNode.newInstance(testLibrary, "number1");
         Port ptGrob = n.addPort("grob", Grob.class);
         Port ptCanvas = n.addPort("canvas", Canvas.class);
-        Port ptGroup = n.addPort("group", Group.class);
+        Port ptGroup = n.addPort("group", OldGroup.class);
         Port ptImage = n.addPort("image", Image.class);
         Port ptPath = n.addPort("path", BezierPath.class);
         Port ptText = n.addPort("text", Text.class);
 
         Canvas canvas = new Canvas();
-        Group group = new Group();
+        OldGroup group = new OldGroup();
         Image image = new Image();
         BezierPath path = new BezierPath();
         Text text = new Text("", 0, 0);

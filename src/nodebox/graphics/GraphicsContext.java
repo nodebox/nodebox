@@ -28,15 +28,15 @@ public class GraphicsContext {
     // TODO: Support color mode
     private Color fillColor;
     private Color strokeColor;
-    private double strokeWidth;
+    private float strokeWidth;
     private BezierPath path;
     private boolean autoClosePath;
     private boolean pathClosed;
     private Transform transform = new Transform();
     private ArrayList<Transform> transformStack;
     private String fontName;
-    private double fontSize;
-    private double lineHeight;
+    private float fontSize;
+    private float lineHeight;
     private Text.Align align;
 
     //// Initialization ////
@@ -58,7 +58,7 @@ public class GraphicsContext {
     public void resetContext(boolean resetBackground) {
         fillColor = new Color();
         strokeColor = null;
-        strokeWidth = 1.0;
+        strokeWidth = 1f;
         if (resetBackground)
             canvas.setBackground(new Color(1, 1, 1));
         path = null;
@@ -66,22 +66,22 @@ public class GraphicsContext {
         transformStack = new ArrayList<Transform>();
         fontName = "Helvetica";
         fontSize = 24;
-        lineHeight = 1.2;
+        lineHeight = 1.2f;
         align = Text.Align.CENTER;
     }
 
     //// Setup methods ////
 
-    public void size(double width, double height) {
+    public void size(float width, float height) {
         canvas.setWidth(width);
         canvas.setHeight(height);
     }
 
-    public double getWidth() {
+    public float getWidth() {
         return canvas.getWidth();
     }
 
-    public double getHeight() {
+    public float getHeight() {
         return canvas.getHeight();
     }
 
@@ -113,7 +113,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath rect(double x, double y, double width, double height) {
+    public BezierPath rect(float x, float y, float width, float height) {
         BezierPath p = new BezierPath();
         p.rect(x, y, width, height);
         inheritFromContext(p);
@@ -121,7 +121,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath rect(Rect r, double roundness) {
+    public BezierPath rect(Rect r, float roundness) {
         BezierPath p = new BezierPath();
         p.rect(r, roundness);
         inheritFromContext(p);
@@ -129,7 +129,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath rect(double x, double y, double width, double height, double roundness) {
+    public BezierPath rect(float x, float y, float width, float height, float roundness) {
         BezierPath p = new BezierPath();
         p.rect(x, y, width, height, roundness);
         inheritFromContext(p);
@@ -137,7 +137,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath rect(double x, double y, double width, double height, double rx, double ry) {
+    public BezierPath rect(float x, float y, float width, float height, float rx, float ry) {
         BezierPath p = new BezierPath();
         p.rect(x, y, width, height, rx, ry);
         inheritFromContext(p);
@@ -145,12 +145,12 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath oval(double x, double y, double width, double height) {
+    public BezierPath oval(float x, float y, float width, float height) {
         // TODO: Deprecation warning
         return ellipse(x, y, width, height);
     }
 
-    public BezierPath ellipse(double x, double y, double width, double height) {
+    public BezierPath ellipse(float x, float y, float width, float height) {
         BezierPath p = new BezierPath();
         p.ellipse(x, y, width, height);
         inheritFromContext(p);
@@ -158,7 +158,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public BezierPath line(double x1, double y1, double x2, double y2) {
+    public BezierPath line(float x1, float y1, float x2, float y2) {
         BezierPath p = new BezierPath();
         p.line(x1, y1, x2, y2);
         inheritFromContext(p);
@@ -173,24 +173,24 @@ public class GraphicsContext {
         pathClosed = false;
     }
 
-    public void beginPath(double x, double y) {
+    public void beginPath(float x, float y) {
         beginPath();
         moveto(x, y);
     }
 
-    public void moveto(double x, double y) {
+    public void moveto(float x, float y) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginPath() first.");
         path.moveto(x, y);
     }
 
-    public void lineto(double x, double y) {
+    public void lineto(float x, float y) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginPath() first.");
         path.lineto(x, y);
     }
 
-    public void curveto(double x1, double y1, double x2, double y2, double x3, double y3) {
+    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginPath() first.");
         path.curveto(x1, y1, x2, y2, x3, y3);
@@ -241,7 +241,7 @@ public class GraphicsContext {
         return findPath(points, 1);
     }
 
-    public BezierPath findPath(List<Point> points, double curvature) {
+    public BezierPath findPath(List<Point> points, float curvature) {
         throw new RuntimeException("Not implemented yet");
     }
 
@@ -266,27 +266,27 @@ public class GraphicsContext {
         transform = new Transform();
     }
 
-    public void translate(double tx, double ty) {
+    public void translate(float tx, float ty) {
         transform.translate(tx, ty);
     }
 
-    public void rotate(double r) {
+    public void rotate(float r) {
         transform.rotate(r);
     }
 
-    public void scale(double scale) {
+    public void scale(float scale) {
         transform.scale(scale);
     }
 
-    public void scale(double sx, double sy) {
+    public void scale(float sx, float sy) {
         transform.scale(sx, sy);
     }
 
-    public void skew(double skew) {
+    public void skew(float skew) {
         transform.skew(skew);
     }
 
-    public void skew(double kx, double ky) {
+    public void skew(float kx, float ky) {
         transform.skew(kx, ky);
     }
 
@@ -324,17 +324,17 @@ public class GraphicsContext {
         this.strokeColor = strokeColor == null ? null : strokeColor.clone();
     }
 
-    public double getStrokeWidth() {
+    public float getStrokeWidth() {
         return strokeWidth;
     }
 
-    public void setStrokeWidth(double strokeWidth) {
+    public void setStrokeWidth(float strokeWidth) {
         this.strokeWidth = strokeWidth;
     }
 
     //// Font commands ////
 
-    public void setFont(String fontName, double fontSize) {
+    public void setFont(String fontName, float fontSize) {
         setFontName(fontName);
         setFontSize(fontSize);
     }
@@ -349,19 +349,19 @@ public class GraphicsContext {
         this.fontName = fontName;
     }
 
-    public double getFontSize() {
+    public float getFontSize() {
         return fontSize;
     }
 
-    public void setFontSize(double fontSize) {
+    public void setFontSize(float fontSize) {
         this.fontSize = fontSize;
     }
 
-    public double getLineHeight() {
+    public float getLineHeight() {
         return lineHeight;
     }
 
-    public void setLineHeight(double lineHeight) {
+    public void setLineHeight(float lineHeight) {
         this.lineHeight = lineHeight;
     }
 
@@ -373,30 +373,30 @@ public class GraphicsContext {
         this.align = align;
     }
 
-    public Text text(String text, double x, double y) {
+    public Text text(String text, float x, float y) {
         return text(text, x, y, 0, 0);
     }
 
-    public Text text(String text, double x, double y, double width) {
+    public Text text(String text, float x, float y, float width) {
         return text(text, x, y, width, 0);
     }
 
-    public Text text(String text, double x, double y, double width, double height) {
+    public Text text(String text, float x, float y, float width, float height) {
         Text t = new Text(text, x, y, width, height);
         inheritFromContext(t);
         canvas.add(t);
         return t;
     }
 
-    public BezierPath textPath(String text, double x, double y) {
+    public BezierPath textPath(String text, float x, float y) {
         return textPath(text, x, y, 0, 0);
     }
 
-    public BezierPath textPath(String text, double x, double y, double width) {
+    public BezierPath textPath(String text, float x, float y, float width) {
         return textPath(text, x, y, width, 0);
     }
 
-    public BezierPath textPath(String text, double x, double y, double width, double height) {
+    public BezierPath textPath(String text, float x, float y, float width, float height) {
         BezierPath p = new BezierPath();
         p.text(text, fontName, fontSize, lineHeight, align, x, y, width, height);
         inheritFromContext(p);
@@ -407,11 +407,11 @@ public class GraphicsContext {
         return textMetrics(text, 0, 0);
     }
 
-    public Rect textMetrics(String text, double width) {
+    public Rect textMetrics(String text, float width) {
         return textMetrics(text, width, 0);
     }
 
-    public Rect textMetrics(String text, double width, double height) {
+    public Rect textMetrics(String text, float width, float height) {
         Text t = new Text(text, 0, 0, width, height);
         inheritFromContext(t);
         return t.getMetrics();
@@ -419,7 +419,7 @@ public class GraphicsContext {
 
     //// Image methods ////
 
-    public Image image(String path, double x, double y) {
+    public Image image(String path, float x, float y) {
         Image img = new Image(path);
         img.setX(x);
         img.setY(y);
@@ -448,14 +448,12 @@ public class GraphicsContext {
     //// Context inheritance ////
 
     private void inheritFromContext(BezierPath p) {
-        p.setTransform(transform.clone());
         p.setFillColor(fillColor == null ? null : fillColor.clone());
         p.setStrokeColor(strokeColor == null ? null : strokeColor.clone());
         p.setStrokeWidth(strokeWidth);
     }
 
     private void inheritFromContext(Text t) {
-        t.setTransform(transform.clone());
         t.setFillColor(fillColor == null ? null : fillColor.clone());
         t.setFontName(fontName);
         t.setFontSize(fontSize);

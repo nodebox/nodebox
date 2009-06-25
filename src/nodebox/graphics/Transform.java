@@ -9,6 +9,12 @@ public class Transform implements Cloneable {
 
     private AffineTransform affineTransform;
 
+    public static Transform translated(float tx, float ty) {
+        Transform t = new Transform();
+        t.translate(tx, ty);
+        return t;
+    }
+
     public Transform() {
         affineTransform = new AffineTransform();
     }
@@ -91,12 +97,30 @@ public class Transform implements Cloneable {
         Point2D transformedSize = new Point2D.Double();
         affineTransform.transform(origin, transformedOrigin);
         affineTransform.deltaTransform(size, transformedSize);
-        return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
+        return new Rect((float) transformedOrigin.getX(), (float) transformedOrigin.getY(), (float) transformedSize.getX(), (float) transformedSize.getY());
     }
 
     public BezierPath map(BezierPath p) {
         // TODO: Implement
         return p;
+    }
+
+    /**
+     * Transforms all the given points in place.
+     *
+     * @param points the point array to transform.
+     */
+    public void map(Point[] points) {
+        float[] coords = new float[points.length * 2];
+        for (int i = 0; i < points.length; i++) {
+            coords[i * 2] = points[i].x;
+            coords[i * 2 + 1] = points[i].y;
+        }
+        affineTransform.transform(coords, 0, coords, 0, points.length);
+        for (int i = 0; i < points.length; i ++) {
+            points[i].x = coords[i * 2];
+            points[i].y = coords[i * 2 + 1];
+        }
     }
 
     public Rect convertBoundsToFrame(Rect bounds) {
@@ -105,7 +129,7 @@ public class Transform implements Cloneable {
         Point2D transformedSize = new Point2D.Double();
         t.transform(new Point2D.Double(bounds.getX(), bounds.getY()), transformedOrigin);
         t.deltaTransform(new Point2D.Double(bounds.getWidth(), bounds.getHeight()), transformedSize);
-        return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
+        return new Rect((float) transformedOrigin.getX(), (float) transformedOrigin.getY(), (float) transformedSize.getX(), (float) transformedSize.getY());
     }
 
     private AffineTransform fullTransform(Rect bounds) {

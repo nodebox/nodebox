@@ -10,7 +10,7 @@ import java.awt.geom.Rectangle2D;
 import java.text.AttributedString;
 import java.util.Iterator;
 
-public class Text extends Grob {
+public class Text extends AbstractGrob {
 
     public enum Align {
         LEFT, RIGHT, CENTER, JUSTIFY
@@ -199,9 +199,13 @@ public class Text extends Grob {
 
     //// Drawing ////
 
+    public void inheritFromContext(GraphicsContext ctx) {
+        // TODO: Implement
+    }
+
     public void draw(Graphics2D g) {
         if (fillColor == null) return;
-        setupTransform(g);
+        saveTransform(g);
         if (text == null || text.length() == 0) return;
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
@@ -214,7 +218,7 @@ public class Text extends Grob {
 
     public BezierPath getPath() {
         BezierPath p = new BezierPath();
-        p.setTransform(getTransform().clone());
+        // TODO: p.setTransform(getTransform().clone());
         p.setFillColor(fillColor == null ? null : fillColor.clone());
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {

@@ -44,7 +44,7 @@ public class PathElement {
         this.control2 = new Point(0, 0);
     }
 
-    public PathElement(int command, double x, double y) {
+    public PathElement(int command, float x, float y) {
         assert (command == MOVETO || command == LINETO);
         this.command = command;
         this.point = new Point(x, y);
@@ -52,7 +52,7 @@ public class PathElement {
         this.control2 = new Point(0, 0);
     }
 
-    public PathElement(int command, double x1, double y1, double x2, double y2, double x3, double y3) {
+    public PathElement(int command, float x1, float y1, float x2, float y2, float x3, float y3) {
         assert (command == CURVETO);
         this.command = command;
         this.control1 = new Point(x1, y1);
@@ -102,11 +102,11 @@ public class PathElement {
         return point;
     }
 
-    public double getX() {
+    public float getX() {
         return point.getX();
     }
 
-    public double getY() {
+    public float getY() {
         return point.getY();
     }
 
@@ -114,11 +114,11 @@ public class PathElement {
         this.point = point;
     }
 
-    public void setX(double x) {
+    public void setX(float x) {
         point.setX(x);
     }
 
-    public void setY(double y) {
+    public void setY(float y) {
         point.setY(y);
     }
 

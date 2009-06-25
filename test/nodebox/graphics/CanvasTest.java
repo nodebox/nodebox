@@ -9,9 +9,8 @@ public class CanvasTest extends TestCase {
         Canvas c = new Canvas(200, 300);
         c.setBackground(backgroundColor);
         Canvas c2 = c.clone();
-        assertEquals(c, c2);
-        assertEquals(200.0, c2.getWidth());
-        assertEquals(300.0, c2.getHeight());
+        assertEquals(200f, c2.getWidth());
+        assertEquals(300f, c2.getHeight());
         assertEquals(backgroundColor, c.getBackground());
     }
 

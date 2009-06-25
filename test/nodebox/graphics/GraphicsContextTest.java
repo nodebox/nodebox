@@ -9,7 +9,7 @@ public class GraphicsContextTest extends TestCase {
         Color c = new Color();
         assertEquals(c, ctx.getFillColor());
         ctx.rect(0, 0, 100, 100);
-        BezierPath p = (BezierPath) ctx.getCanvas().getGrobs().get(0);
+        BezierPath p = (BezierPath) ctx.getCanvas().getItems().get(0);
         assertEquals(c, p.getFillColor());
 
         Color red = new Color(1, 0, 0);

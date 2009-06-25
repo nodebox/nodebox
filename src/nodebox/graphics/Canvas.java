@@ -23,36 +23,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-public class Canvas extends Group {
+public class Canvas extends OldGroup {
 
-    private static com.lowagie.text.pdf.DefaultFontMapper fontMapper;
-
-    static {
-        fontMapper = new com.lowagie.text.pdf.DefaultFontMapper();
-        String osName = System.getProperty("os.name");
-        if (osName.startsWith("Windows")) {
-            // TODO: Windows is not installed under C:\Windows all the time.
-            fontMapper.insertDirectory("C:\\windows\\fonts");
-        } else if (osName.startsWith("Mac OS X")) {
-            fontMapper.insertDirectory("/Library/Fonts");
-            String userHome = System.getProperty("user.home");
-            fontMapper.insertDirectory(userHome + "/Fonts");
-        } else {
-            // Where are the fonts in a UNIX install?
-        }
-    }
-
-    public static final double DEFAULT_WIDTH = 1000;
-    public static final double DEFAULT_HEIGHT = 1000;
+    public static final float DEFAULT_WIDTH = 1000;
+    public static final float DEFAULT_HEIGHT = 1000;
 
     private Color background = new Color(1, 1, 1);
-    private double width, height;
+    private float width, height;
 
     public Canvas() {
         this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
-    public Canvas(double width, double height) {
+    public Canvas(float width, float height) {
         setSize(width, height);
     }
 
@@ -71,23 +54,23 @@ public class Canvas extends Group {
         this.background = background;
     }
 
-    public double getWidth() {
+    public float getWidth() {
         return width;
     }
 
-    public void setWidth(double width) {
+    public void setWidth(float width) {
         this.width = width;
     }
 
-    public double getHeight() {
+    public float getHeight() {
         return height;
     }
 
-    public void setHeight(double height) {
+    public void setHeight(float height) {
         this.height = height;
     }
 
-    public void setSize(double width, double height) {
+    public void setSize(float width, float height) {
         this.width = width;
         this.height = height;
     }
@@ -110,12 +93,16 @@ public class Canvas extends Group {
 
     //// Drawing ////
 
+    public void inheritFromContext(GraphicsContext ctx) {
+        // TODO: Implement
+    }
+
     @Override
     public void draw(Graphics2D g) {
-        double halfWidth = width / 2;
-        double halfHeight = height / 2;
-        double left = -halfWidth;
-        double top = -halfHeight;
+        float halfWidth = width / 2;
+        float halfHeight = height / 2;
+        float left = -halfWidth;
+        float top = -halfHeight;
         g.setColor(background.getAwtColor());
         g.fillRect((int) left, (int) top, (int) width, (int) height);
         //Rectangle clip = g.getClipBounds();
@@ -127,28 +114,7 @@ public class Canvas extends Group {
 
     public void save(File file) {
         if (file.getName().endsWith(".pdf")) {
-            // I'm using fully qualified class names here so as not to polute the class' namespace.
-            com.lowagie.text.Rectangle size = new com.lowagie.text.Rectangle((float) width, (float) height);
-            com.lowagie.text.Document document = new com.lowagie.text.Document(size);
-            FileOutputStream fos;
-            try {
-                fos = new FileOutputStream(file);
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException("The file " + file + "could not be created", e);
-            }
-            com.lowagie.text.pdf.PdfWriter writer;
-            try {
-                writer = com.lowagie.text.pdf.PdfWriter.getInstance(document, fos);
-            } catch (com.lowagie.text.DocumentException e) {
-                throw new RuntimeException("An error occurred while creating a PdfWriter object.", e);
-            }
-            document.open();
-            com.lowagie.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
-            Graphics2D graphics = contentByte.createGraphics(size.getWidth(), size.getHeight(), fontMapper);
-            graphics.translate(width / 2, height / 2);
-            draw(graphics);
-            graphics.dispose();
-            document.close();
+            PDFRenderer.render(this, file);
         } else {
             throw new UnsupportedOperationException("Unsupported file extension " + file);
         }

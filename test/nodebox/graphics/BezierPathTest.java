@@ -56,21 +56,6 @@ public class BezierPathTest extends TestCase {
         assertEquals(new PathElement(PathElement.CLOSE), p.getElementAt(2));
     }
 
-    public void testEquality() {
-        BezierPath p1 = new BezierPath();
-        assertEquals(p1, p1);
-        BezierPath p2 = new BezierPath();
-        assertEquals(p1, p2);
-        BezierPath p3 = new BezierPath();
-        p1.moveto(1, 2);
-        p2.moveto(1, 2);
-        assertEquals(p1, p2);
-        assertNotSame(p1, p3);
-        p1.lineto(3, 4);
-        assertNotSame(p1, p2);
-        assertNotSame(p1, p3);
-    }
-
     public void testBounds() {
         BezierPath p1 = new BezierPath();
         p1.rect(20, 30, 40, 50);
@@ -98,11 +83,5 @@ public class BezierPathTest extends TestCase {
         // Check if bounds were updated.
         assertEquals(Rect.centeredRect(0, 0, 100, 100), p.getBounds());
     }
-
-    public void testFrame() {
-        BezierPath p1 = new BezierPath();
-        p1.rect(20, 30, 40, 50);
-        p1.translate(200, 300);
-        assertEquals(Rect.centeredRect(220, 330, 40, 50), p1.getFrame());
-    }
+    
 }

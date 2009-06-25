@@ -515,7 +515,7 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     public Point getPosition() {
-        return new Point(x, y);
+        return new Point((float)x, (float)y);
     }
 
     public void setPosition(Point p) {
