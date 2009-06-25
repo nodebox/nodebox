@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import java.util.List;
+
 public interface IGeometry extends Grob {
 
     //// Point operations ////
@@ -14,7 +16,7 @@ public interface IGeometry extends Grob {
      *
      * @return a list of Points.
      */
-    public Point[] getPoints();
+    public List<Point> getPoints();
 
     /**
      * Add the given point to the geometry. The point is cloned.

@@ -108,18 +108,20 @@ public class Transform implements Cloneable {
     /**
      * Transforms all the given points in place.
      *
-     * @param points the point array to transform.
+     * @param points the point list to transform.
      */
-    public void map(Point[] points) {
-        float[] coords = new float[points.length * 2];
-        for (int i = 0; i < points.length; i++) {
-            coords[i * 2] = points[i].x;
-            coords[i * 2 + 1] = points[i].y;
+    public void map(java.util.List<Point> points) {
+        float[] coords = new float[points.size() * 2];
+        int i = 0;
+        for(Point pt: points) {
+            coords[i++] = pt.x;
+            coords[i++] = pt.y;
         }
-        affineTransform.transform(coords, 0, coords, 0, points.length);
-        for (int i = 0; i < points.length; i ++) {
-            points[i].x = coords[i * 2];
-            points[i].y = coords[i * 2 + 1];
+        affineTransform.transform(coords, 0, coords, 0, points.size());
+        i = 0;
+        for(Point pt: points) {
+            pt.x = coords[i++];
+            pt.y = coords[i++];
         }
     }
 

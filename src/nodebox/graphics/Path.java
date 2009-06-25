@@ -5,6 +5,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
 import java.awt.geom.PathIterator;
+import java.util.ArrayList;
 
 /**
  * Base class for all geometric (vector) data.
@@ -14,14 +15,14 @@ public class Path implements IGeometry, Colorizable {
     private Color fillColor = null;
     private Color strokeColor = null;
     private float strokeWidth = 1f;
-    private Contour[] contours = null;
+    private ArrayList<Contour> contours;
     private Contour currentContour = null;
 
     public Path() {
         fillColor = new Color();
         strokeColor = null;
         strokeWidth = 1f;
-        contours = null;
+        contours = new ArrayList<Contour>();
         currentContour = null;
     }
 
@@ -29,12 +30,12 @@ public class Path implements IGeometry, Colorizable {
         fillColor = other.fillColor == null ? null : other.fillColor.clone();
         strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
         strokeWidth = other.strokeWidth;
-        contours = new Contour[other.contours.length];
-        for (int i = 0; i < other.contours.length; i++) {
-            contours[i] = other.contours[i].clone();
+        contours = new ArrayList<Contour>(other.contours.size());
+        for (Contour c: other.contours) {
+            contours.add(c.clone());
         }
         // Set the current contour to the last contour.
-        currentContour = contours[contours.length - 1];
+        currentContour = contours.get(contours.size()- 1);
     }
 
     public Path(Contour c) {
@@ -81,24 +82,16 @@ public class Path implements IGeometry, Colorizable {
      * @param c the contour to add.
      */
     public void add(Contour c) {
-        if (contours == null) {
-            contours = new Contour[1];
-            contours[0] = c;
-        } else {
-            Contour[] newContours = new Contour[contours.length + 1];
-            System.arraycopy(contours, 0, newContours, 0, contours.length);
-            newContours[contours.length] = c;
-            contours = newContours;
-        }
+        contours.add(c);
         currentContour = c;
     }
 
     public int size() {
-        return contours.length;
+        return contours.size();
     }
 
     public void clear() {
-        contours = null;
+        contours.clear();
         currentContour = null;
     }
 
@@ -110,7 +103,7 @@ public class Path implements IGeometry, Colorizable {
      *
      * @return a list of contours
      */
-    public Contour[] getContours() {
+    public java.util.List<Contour> getContours() {
         return contours;
     }
 
@@ -166,23 +159,11 @@ public class Path implements IGeometry, Colorizable {
      *
      * @return a list of Points.
      */
-    public Point[] getPoints() {
-        if (contours == null) return new Point[0];
-        Point[] points = null;
-        Point[] cPoints = null;
+    public java.util.List<Point> getPoints() {
+        if (contours.isEmpty()) return new ArrayList<Point>(0);
+        ArrayList<Point> points = new ArrayList<Point>();
         for (Contour c : contours) {
-            cPoints = c.getPoints();
-            // Add them to the points array.
-            if (points == null) {
-                points = new Point[cPoints.length];
-                System.arraycopy(cPoints, 0, points, 0, cPoints.length);
-            } else {
-                // Create a new array that can include the original points and the points from the contour.
-                Point[] newPoints = new Point[points.length + cPoints.length];
-                System.arraycopy(points, 0, newPoints, 0, points.length);
-                System.arraycopy(cPoints, 0, newPoints, points.length, cPoints.length);
-                points = newPoints;
-            }
+            points.addAll(c.getPoints());
         }
         return points;
     }
@@ -217,7 +198,7 @@ public class Path implements IGeometry, Colorizable {
 //    }
 
     public Rect getBounds() {
-        if (contours.length == 0) return new Rect();
+        if (contours.size()== 0) return new Rect();
         float minX = Float.MAX_VALUE;
         float minY = Float.MAX_VALUE;
         float maxX = Float.MIN_VALUE;

@@ -3,59 +3,49 @@ package nodebox.graphics;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Path2D;
+import java.util.ArrayList;
 
 public class Contour implements IGeometry {
 
     private static final int DEFAULT_CAPACITY = 10;
     private static final BasicStroke DEFAULT_STROKE = new BasicStroke(1f);
 
-    private Point[] points;
+    private ArrayList<Point> points;
     private int pointCount = 0;
 
     public Contour() {
-        points = new Point[0];
+        points = new ArrayList<Point>();
     }
 
     public Contour(Contour other) {
-        points = new Point[other.points.length];
-        // The copy constructor creates clones of the original points.
-        for (int i=0;i<other.points.length;i++) {
-            points[i] = other.points[i].clone();
+        points = new ArrayList<Point>(other.points.size());
+        for (Point p : other.points) {
+            points.add(p.clone());
         }
     }
 
     //// Point operations ////
 
     public int getPointCount() {
-        return points.length;
+        return points.size();
     }
 
-    public Point[] getPoints() {
+    public java.util.List<Point> getPoints() {
         return points;
     }
 
     public void addPoint(Point pt) {
-        ensureLength(pointCount + 1);
-        points[pointCount++] = pt.clone();
+        points.add(pt.clone());
     }
 
     public void addPoint(float x, float y) {
-        ensureLength(pointCount + 1);
-        points[pointCount++] = new Point(x, y);
-    }
-
-    private void ensureLength(int length) {
-        if (points.length >= length) return;
-        // Copy everything over into new array.
-        Point[] newPoints = new Point[length];
-        System.arraycopy(points, 0, newPoints, 0, points.length);
-        points = newPoints;
+        points.add(new Point(x, y));
     }
 
     //// Geometric queries ////
 
     public Rect getBounds() {
-        if (points.length == 0) {
+        if (points.size() == 0) {
             return new Rect();
         }
         float minX = Float.MAX_VALUE;
@@ -105,16 +95,16 @@ public class Contour implements IGeometry {
     }
 
     void _extendPath(GeneralPath gp) {
-        Point pt = points[0];
+        Point pt = points.get(0);
         Point ctrl1, ctrl2;
         gp.moveTo(pt.x, pt.y);
         for (int i = 1; i < pointCount; i++) {
-            pt = points[i];
+            pt = points.get(i);
             if (pt.isLineTo()) {
                 gp.lineTo(pt.x, pt.y);
             } else if (pt.isCurveTo()) {
-                ctrl1 = points[i - 2];
-                ctrl2 = points[i - 1];
+                ctrl1 = points.get(i - 2);
+                ctrl2 = points.get(i - 1);
                 gp.curveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
                 // We used up two extra points.
                 i += 2;

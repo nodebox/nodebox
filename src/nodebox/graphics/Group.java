@@ -1,21 +1,22 @@
 package nodebox.graphics;
 
+import java.util.ArrayList;
 import java.awt.*;
 
 public class Group implements IGeometry, Colorizable {
 
-    private IGeometry[] items;
+    private ArrayList<IGeometry> items;
     private Path currentPath;
 
     public Group() {
-        items = null;
+        items = new ArrayList<IGeometry>();
         currentPath = null;
     }
 
     public Group(Group other) {
-        items = new IGeometry[other.items.length];
-        for (int i = 0; i < other.items.length; i++) {
-            items[i] = other.items[i].clone();
+        items = new ArrayList<IGeometry>(other.items.size());
+        for (IGeometry item : other.items) {
+            items.add(item.clone());
         }
         // TODO: We might want to refer to the latest Path object in the items.
         currentPath = null;
@@ -62,29 +63,22 @@ public class Group implements IGeometry, Colorizable {
      * @param g the geometry to add.
      */
     public void add(IGeometry g) {
-        if (items == null) {
-            items = new IGeometry[1];
-            items[0] = g;
-        } else {
-            IGeometry[] newItems = new IGeometry[items.length + 1];
-            System.arraycopy(items, 0, newItems, 0, items.length);
-            newItems[items.length] = g;
-            items = newItems;
-        }
+        items.add(g);
         if (g instanceof Path) {
             currentPath = (Path) g;
         }
     }
 
     public int size() {
-        return items.length;
+        return items.size();
     }
 
     public void clear() {
-        items = null;
+        items.clear();
+        currentPath = null;
     }
 
-    public IGeometry[] getItems() {
+    public java.util.List<IGeometry> getItems() {
         return items;
     }
 
@@ -94,14 +88,9 @@ public class Group implements IGeometry, Colorizable {
      * @param g the group whose elements are appended.
      */
     public void extend(Group g) {
-        IGeometry[] groupItems = g.getItems();
-        IGeometry[] newItems = new Path[items.length + groupItems.length];
-        System.arraycopy(items, 0, newItems, 0, items.length);
-        int i = items.length;
-        for (IGeometry item : groupItems) {
-            newItems[i++] = item.clone();
+        for (IGeometry item : g.items) {
+            items.add(item.clone());
         }
-        items = newItems;
     }
 
     //// Color operations ////
@@ -155,20 +144,10 @@ public class Group implements IGeometry, Colorizable {
      *
      * @return a list of Points.
      */
-    public Point[] getPoints() {
-        Point[] points = null;
+    public java.util.List<Point> getPoints() {
+        ArrayList<Point> points = new ArrayList<Point>();
         for (IGeometry item : items) {
-            Point[] itemPoints = item.getPoints();
-            if (points == null) {
-                points = new Point[itemPoints.length];
-                System.arraycopy(itemPoints, 0, points, 0, itemPoints.length);
-            } else {
-                // Create a new array that can include the original points and the points from the subitem.
-                Point[] newPoints = new Point[points.length + itemPoints.length];
-                System.arraycopy(points, 0, newPoints, 0, points.length);
-                System.arraycopy(itemPoints, 0, newPoints, points.length, itemPoints.length);
-                points = newPoints;
-            }
+            points.addAll(item.getPoints());
         }
         return points;
     }

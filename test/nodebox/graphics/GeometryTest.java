@@ -9,7 +9,7 @@ public class GeometryTest extends TestCase {
 
     public void testEmptyPath() {
         Path p = new Path();
-        assertEquals(0, p.getPoints().length);
+        assertEquals(0, p.getPoints().size());
     }
 
 
