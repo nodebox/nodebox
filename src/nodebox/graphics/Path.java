@@ -136,6 +136,8 @@ public class Path implements IGeometry, Colorizable {
     }
 
     public void close() {
+        if (currentContour != null)
+            currentContour.close();
         currentContour = null;
         pathDirty = true;
         lengthDirty = true;
@@ -665,7 +667,6 @@ public class Path implements IGeometry, Colorizable {
         GeneralPath gp = new GeneralPath(Path2D.WIND_EVEN_ODD, getPointCount());
         for (Contour c : contours) {
             c._extendPath(gp);
-            gp.closePath();
         }
         awtPath = gp;
         pathDirty = false;

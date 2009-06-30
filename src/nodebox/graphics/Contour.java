@@ -11,6 +11,7 @@ public class Contour implements IGeometry {
     private static final int SEGMENT_ACCURACY = 20;
 
     private ArrayList<Point> points;
+    private boolean closed;
     private transient ArrayList<Float> segmentLengths;
     private transient float length = -1;
 
@@ -41,6 +42,20 @@ public class Contour implements IGeometry {
 
     public void addPoint(float x, float y) {
         points.add(new Point(x, y));
+    }
+
+    //// Close ////
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    public void setClosed(boolean closed) {
+        this.closed = closed;
+    }
+
+    public void close() {
+        this.closed = true;
     }
 
     //// Geometric queries ////
@@ -138,7 +153,7 @@ public class Contour implements IGeometry {
         int segnum = -1;
         for (Float seglength : segmentLengths) {
             segnum++;
-            if (absT <= seglength || segnum == segmentLengths.size()-1)
+            if (absT <= seglength || segnum == segmentLengths.size() - 1)
                 break;
             absT -= seglength;
             resT -= seglength / length;
@@ -232,11 +247,12 @@ public class Contour implements IGeometry {
                 i += 2;
             }
         }
-        gp.closePath();
+        if (closed)
+            gp.closePath();
     }
 
     public void transform(Transform t) {
-        throw new UnsupportedOperationException();
+        t.map(getPoints());
     }
 
     //// Conversions ////
