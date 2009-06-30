@@ -216,9 +216,8 @@ public class Text extends AbstractGrob {
     }
 
 
-    public BezierPath getPath() {
-        BezierPath p = new BezierPath();
-        // TODO: p.setTransform(getTransform().clone());
+    public Path getPath() {
+        Path p = new Path();
         p.setFillColor(fillColor == null ? null : fillColor.clone());
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
@@ -228,6 +227,7 @@ public class Text extends AbstractGrob {
             Shape shape = layout.getOutline(trans);
             p.extend(shape);
         }
+        p.transform(getTransform());
         return p;
     }
 

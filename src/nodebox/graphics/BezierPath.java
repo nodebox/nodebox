@@ -256,7 +256,7 @@ public class BezierPath extends AbstractGrob {
         t.setFontSize(fontSize);
         t.setLineHeight(lineHeight);
         t.setAlign(align);
-        extend(t.getPath());
+        // TODO extend(t.getPath());
     }
 
     //// Contours ////

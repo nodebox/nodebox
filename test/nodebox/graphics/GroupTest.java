@@ -9,7 +9,7 @@ public class GroupTest extends TestCase {
         r1.rect(10, 20, 30, 40);
         Group g1 = new Group();
         g1.add(r1);
-        assertEquals(new Rect(10, 20, 30, 40), g1.getBounds());
+        assertEquals(Rect.centeredRect(10, 20, 30, 40), g1.getBounds());
     }
 
     public void testTransformedBounds() {
@@ -20,7 +20,7 @@ public class GroupTest extends TestCase {
         r1.transform(t);
         Group g = new Group();
         g.add(r1);
-        assertEquals(new Rect(210, 320, 30, 40), g.getBounds());
+        assertEquals(Rect.centeredRect(210, 320, 30, 40), g.getBounds());
     }
 
     public void testTransformedElements() {
@@ -31,8 +31,8 @@ public class GroupTest extends TestCase {
         Group g = new Group();
         g.add(r1);
         g.add(r2);
-        Rect rect1 = new Rect(10, 20, 30, 40);
-        Rect rect2 = new Rect(10, 120, 30, 40);
+        Rect rect1 = Rect.centeredRect(10, 20, 30, 40);
+        Rect rect2 = Rect.centeredRect(10, 120, 30, 40);
         assertEquals(rect1.united(rect2), g.getBounds());
     }
 
@@ -48,7 +48,7 @@ public class GroupTest extends TestCase {
         p.transform(Transform.translated(5, 7));
         // Since the path is in the group and not cloned,
         // the bounds of the group will be those of the translated path.
-        assertEquals(new Rect(15, 27, 30, 40), g.getBounds());
+        assertEquals(Rect.centeredRect(15, 27, 30, 40), g.getBounds());
     }
 
     public void testGetPaths() {
@@ -69,5 +69,36 @@ public class GroupTest extends TestCase {
         assertSame(p2, root.getPaths()[1]);
     }
 
+    public void testTranslatePointsOfGroup() {
+        Path p1 = new Path();
+        Path p2 = new Path();
+        p1.rect(10, 20, 30, 40);
+        p2.rect(40, 20, 30, 40);
+        Group g = new Group();
+        g.add(p1);
+        g.add(p2);
+        assertEquals(Rect.centeredRect((40 - 10) / 2 + 10, 20, 60, 40), g.getBounds());
+        for (Point pt : g.getPoints()) {
+            pt.move(5, 7);
+        }
+        assertEquals(Rect.centeredRect(30, 27, 60, 40), g.getBounds());
+    }
+
+    public void testColors() {
+        Path p1 = new Path();
+        Path p2 = new Path();
+        p1.rect(0, 0, 100, 100);
+        p2.rect(150, 150, 100, 100);
+        Group g = new Group();
+        g.add(p1);
+        g.add(p2);
+        assertEquals(2, g.size());
+        // Each path has 4 points.
+        assertEquals(8, g.getPointCount());
+        Color red = new Color(1, 0, 0);
+        g.setFill(red);
+        assertEquals(red, p1.getFillColor());
+        assertEquals(red, p2.getFillColor());
+    }
 
 }
