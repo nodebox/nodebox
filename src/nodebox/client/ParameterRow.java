@@ -38,7 +38,6 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
 
     private static final int TOP_PADDING = 2;
     private static final int BOTTOM_PADDING = 2;
-    private ExpressionWindow window;
 
     public ParameterRow(Parameter parameter, JComponent control) {
         addMouseListener(this);
@@ -166,9 +165,12 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
      * @param e the event
      */
     public void actionPerformed(ActionEvent e) {
-        window = new ExpressionWindow(parameter);
+        NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
+        if (doc == null) throw new RuntimeException("No current active document.");
+        ExpressionWindow window = new ExpressionWindow(parameter);
         window.setLocationRelativeTo(this);
         window.setVisible(true);
+        doc.addParameterEditor(window);
     }
 
     //// Action classes ////

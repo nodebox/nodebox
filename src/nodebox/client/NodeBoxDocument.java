@@ -73,6 +73,16 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private UndoManager undo = new UndoManager();
     private AddressBar addressBar;
     //private RenderThread renderThread;
+    private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
+
+    public static NodeBoxDocument getCurrentDocument() {
+        for (Frame f : JFrame.getFrames()) {
+            if (f.isActive() && f instanceof NodeBoxDocument) {
+                return (NodeBoxDocument) f;
+            }
+        }
+        return null;
+    }
 
     private class DocumentObservable extends Observable {
         public void setChanged() {
@@ -346,6 +356,17 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         return Application.getInstance().getManager();
     }
 
+    //// Parameter editor actions ////
+
+    public void addParameterEditor(ParameterEditor editor) {
+        if (parameterEditors.contains(editor)) return;
+        parameterEditors.add(editor);
+    }
+
+    public void removeParameterEditor(ParameterEditor editor) {
+        parameterEditors.remove(editor);
+    }
+
     //// Document actions ////
 
     public File getDocumentFile() {
@@ -540,6 +561,9 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             //renderThread.shutdown();
             Application.getInstance().getManager().remove(nodeLibrary);
             Application.getInstance().removeDocument(NodeBoxDocument.this);
+            for (ParameterEditor editor : parameterEditors) {
+                editor.dispose();
+            }
             dispose();
             // TODO: On mac, the application doesn't quit after the last document is closed.
             if (!PlatformUtils.onMac()) {
