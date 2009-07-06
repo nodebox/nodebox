@@ -79,12 +79,16 @@ public class Expression {
         return expression;
     }
 
-    public void setExpression(String expression) {
+    public void setExpression(String expression) throws ExpressionError {
         if (this.expression != null && this.expression.equals(expression)) return;
         this.expression = expression;
         markedParameterReferences = null;
         ExpressionCompiler compiler = new ExpressionCompiler(expression);
-        this.compiledExpression = compiler.compile(parserContext);
+        try {
+            this.compiledExpression = compiler.compile(parserContext);
+        } catch (Exception e) {
+            throw new ExpressionError("Error with expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+        }
     }
 
     public Parameter getParameter() {

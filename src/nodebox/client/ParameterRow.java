@@ -12,7 +12,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements ComponentListener, MouseListener, ParameterValueListener {
+public class ParameterRow extends JComponent implements ComponentListener, MouseListener, ParameterValueListener, ActionListener {
 
     private static Image popupButtonImage;
     private static int popupButtonHeight;
@@ -30,12 +30,14 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     private Parameter parameter;
     private JLabel label;
     private JComponent control;
+    private JPanel expressionPanel;
     private JTextField expressionField;
     private JPopupMenu popupMenu;
     private JCheckBoxMenuItem expressionMenuItem;
 
     private static final int TOP_PADDING = 2;
     private static final int BOTTOM_PADDING = 2;
+    private ExpressionWindow window;
 
     public ParameterRow(Parameter parameter, JComponent control) {
         addComponentListener(this);
@@ -57,15 +59,23 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         popupMenu.add(expressionMenuItem);
         popupMenu.add(new RevertToDefaultAction());
 
+        expressionPanel = new JPanel(new BorderLayout(5, 0));
+        expressionPanel.setOpaque(false);
+        expressionPanel.setVisible(false);
         expressionField = new JTextField();
-        expressionField.setVisible(false);
         expressionField.setAction(new ExpressionFieldChangedAction());
         expressionField.putClientProperty("JComponent.sizeVariant", "small");
         expressionField.setFont(PlatformUtils.getSmallBoldFont());
+        JButton expressionButton = new JButton("...");
+        expressionButton.putClientProperty("JButton.buttonType", "gradient");
+        expressionButton.setPreferredSize(new Dimension(30, 27));
+        expressionButton.addActionListener(this);
+        expressionPanel.add(expressionField, BorderLayout.CENTER);
+        expressionPanel.add(expressionButton, BorderLayout.EAST);
 
         add(this.label);
         add(this.control);
-        add(this.expressionField);
+        add(this.expressionPanel);
         componentResized(null);
         setExpressionStatus();
 
@@ -93,7 +103,7 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         label.setBounds(0, TOP_PADDING, ParameterView.LABEL_WIDTH, h);
         control.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, controlSize.width, h);
         control.doLayout();
-        expressionField.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, 200, h);
+        expressionPanel.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, 200, h);
         repaint();
     }
 
@@ -145,12 +155,12 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
                 && expressionField.getText().equals(parameter.getExpression())) return;
         if (parameter.hasExpression()) {
             control.setVisible(false);
-            expressionField.setVisible(true);
+            expressionPanel.setVisible(true);
             expressionField.setText(parameter.getExpression());
 
         } else {
             control.setVisible(true);
-            expressionField.setVisible(false);
+            expressionPanel.setVisible(false);
         }
         expressionMenuItem.setState(parameter.hasExpression());
     }
@@ -166,6 +176,17 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     public void valueChanged(Parameter source) {
         if (parameter != source) return;
         setExpressionStatus();
+    }
+
+    /**
+     * A user clicked the expression editor button. Show the expression window.
+     *
+     * @param e the event
+     */
+    public void actionPerformed(ActionEvent e) {
+        window = new ExpressionWindow(parameter);
+        window.setLocationRelativeTo(this);
+        window.setVisible(true);
     }
 
     //// Action classes ////
