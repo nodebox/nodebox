@@ -17,7 +17,6 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
     public FloatControl(Parameter parameter) {
         super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
         setPreferredSize(draggable.getPreferredSize());

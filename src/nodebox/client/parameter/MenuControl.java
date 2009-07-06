@@ -25,9 +25,9 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
         MenuItemRenderer menuItemRenderer = new MenuItemRenderer();
         menuBox.setModel(menuModel);
         menuBox.setRenderer(menuItemRenderer);
-        menuBox.putClientProperty("Jcomponent.sizeVariant", "small");
-        menuBox.setPreferredSize(new Dimension(150, 22));
+        menuBox.putClientProperty("JComponent.sizeVariant", "small");
         menuBox.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
+        menuBox.setFont(PlatformUtils.getSmallBoldFont());
         menuBox.addActionListener(this);
         add(menuBox);
         setValueForControl(parameter.getValue());
@@ -100,7 +100,7 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
             Parameter.MenuItem item = (Parameter.MenuItem) value;
             if (item == null) return label;
             label.setText(item.getLabel());
-            label.setFont(PlatformUtils.getSmallFont());
+            label.setFont(PlatformUtils.getSmallBoldFont());
             return label;
         }
     }

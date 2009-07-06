@@ -8,20 +8,21 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements ComponentListener, MouseListener, ParameterValueListener, ActionListener {
+public class ParameterRow extends JComponent implements MouseListener, ParameterValueListener, ActionListener {
 
     private static Image popupButtonImage;
-    private static int popupButtonHeight;
     private static Border rowBorder = new RowBorder();
 
     static {
         try {
             popupButtonImage = ImageIO.read(new File("res/options-button.png"));
-            popupButtonHeight = popupButtonImage.getHeight(null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -40,26 +41,25 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     private ExpressionWindow window;
 
     public ParameterRow(Parameter parameter, JComponent control) {
-        addComponentListener(this);
         addMouseListener(this);
         this.parameter = parameter;
 
-        setLayout(null);
+        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
         label = new ShadowLabel(parameter.getLabel());
         label.setToolTipText(parameter.getName());
+        label.setBorder(null);
+        label.setPreferredSize(new Dimension(ParameterView.LABEL_WIDTH, 16));
 
         this.control = control;
-        control.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-        //if (control instanceof ContainerListener)
-        //    addContainerListener((ContainerListener) control);
+        control.setBorder(BorderFactory.createEmptyBorder(TOP_PADDING, 0, BOTTOM_PADDING, 0));
 
         popupMenu = new JPopupMenu();
         expressionMenuItem = new JCheckBoxMenuItem(new ToggleExpressionAction());
         popupMenu.add(expressionMenuItem);
         popupMenu.add(new RevertToDefaultAction());
 
-        expressionPanel = new JPanel(new BorderLayout(5, 0));
+        expressionPanel = new JPanel(new BorderLayout(0, 0));
         expressionPanel.setOpaque(false);
         expressionPanel.setVisible(false);
         expressionField = new JTextField();
@@ -68,17 +68,19 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         expressionField.setFont(PlatformUtils.getSmallBoldFont());
         JButton expressionButton = new JButton("...");
         expressionButton.putClientProperty("JButton.buttonType", "gradient");
-        expressionButton.setPreferredSize(new Dimension(30, 27));
+        expressionButton.setPreferredSize(new Dimension(30, 30));
         expressionButton.addActionListener(this);
         expressionPanel.add(expressionField, BorderLayout.CENTER);
         expressionPanel.add(expressionButton, BorderLayout.EAST);
 
         add(this.label);
+        add(Box.createHorizontalStrut(10));
         add(this.control);
         add(this.expressionPanel);
-        componentResized(null);
+        add(Box.createHorizontalGlue());
+        // Compensate for the popup button.
+        add(Box.createHorizontalStrut(30));
         setExpressionStatus();
-
         setBorder(rowBorder);
     }
 
@@ -92,28 +94,8 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
     public void removeNotify() {
         super.removeNotify();
         parameter.getNode().removeParameterValueListener(this);
-    }
-
-    //// Component listeners ////
-
-    public void componentResized(ComponentEvent e) {
-        Dimension controlSize = control.getPreferredSize();
-        Rectangle bounds = getBounds();
-        int h = bounds.height - TOP_PADDING - BOTTOM_PADDING;
-        label.setBounds(0, TOP_PADDING, ParameterView.LABEL_WIDTH, h);
-        control.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, controlSize.width, h);
-        control.doLayout();
-        expressionPanel.setBounds(ParameterView.LABEL_WIDTH + 10, TOP_PADDING, 200, h);
-        repaint();
-    }
-
-    public void componentMoved(ComponentEvent e) {
-    }
-
-    public void componentShown(ComponentEvent e) {
-    }
-
-    public void componentHidden(ComponentEvent e) {
+        if (window != null)
+            window.dispose();
     }
 
     @Override
@@ -245,7 +227,7 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
             g2.setFont(SwingUtils.FONT_BOLD);
             int textX = ParameterView.LABEL_WIDTH - g2.getFontMetrics().stringWidth(getText()) - 10;
             // Add some padding to align it to 30px high components.
-            int textY = 19;
+            int textY = (getHeight() - g2.getFont().getSize()) / 2 + g2.getFont().getSize();
             SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176), 1);
         }
     }
@@ -271,7 +253,7 @@ public class ParameterRow extends JComponent implements ComponentListener, Mouse
         }
 
         public Insets getBorderInsets(Component c) {
-            return new Insets(5, 0, 7, 0);
+            return new Insets(4, 0, 5, 0);
         }
 
         public boolean isBorderOpaque() {
