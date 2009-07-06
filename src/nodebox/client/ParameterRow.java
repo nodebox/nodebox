@@ -59,16 +59,18 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         popupMenu.add(expressionMenuItem);
         popupMenu.add(new RevertToDefaultAction());
 
-        expressionPanel = new JPanel(new BorderLayout(0, 0));
+        expressionPanel = new JPanel(new BorderLayout());
         expressionPanel.setOpaque(false);
         expressionPanel.setVisible(false);
         expressionField = new JTextField();
         expressionField.setAction(new ExpressionFieldChangedAction());
+        expressionField.setBackground(new Color(255, 255, 240));
         expressionField.putClientProperty("JComponent.sizeVariant", "small");
         expressionField.setFont(PlatformUtils.getSmallBoldFont());
         JButton expressionButton = new JButton("...");
+        expressionButton.putClientProperty("JComponent.sizeVariant", "small");
         expressionButton.putClientProperty("JButton.buttonType", "gradient");
-        expressionButton.setPreferredSize(new Dimension(30, 30));
+        expressionButton.setFont(PlatformUtils.getSmallBoldFont());
         expressionButton.addActionListener(this);
         expressionPanel.add(expressionField, BorderLayout.CENTER);
         expressionPanel.add(expressionButton, BorderLayout.EAST);
@@ -94,8 +96,6 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
     public void removeNotify() {
         super.removeNotify();
         parameter.getNode().removeParameterValueListener(this);
-        if (window != null)
-            window.dispose();
     }
 
     @Override
@@ -227,7 +227,7 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
             g2.setFont(SwingUtils.FONT_BOLD);
             int textX = ParameterView.LABEL_WIDTH - g2.getFontMetrics().stringWidth(getText()) - 10;
             // Add some padding to align it to 30px high components.
-            int textY = (getHeight() - g2.getFont().getSize()) / 2 + g2.getFont().getSize();
+            int textY = (getHeight() - g2.getFont().getSize()) / 2 + 10;
             SwingUtils.drawShadowText(g2, getText(), textX, textY, new Color(176, 176, 176), 1);
         }
     }
@@ -253,7 +253,7 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         }
 
         public Insets getBorderInsets(Component c) {
-            return new Insets(4, 0, 5, 0);
+            return new Insets(4, 0, 4, 0);
         }
 
         public boolean isBorderOpaque() {

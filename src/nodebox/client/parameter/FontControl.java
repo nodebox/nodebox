@@ -35,10 +35,11 @@ public class FontControl extends AbstractParameterControl implements ActionListe
         FontCellRenderer fontCellRenderer = new FontCellRenderer();
         fontChooser.setModel(fontModel);
         fontChooser.setRenderer(fontCellRenderer);
-        fontChooser.putClientProperty("Jcomponent.sizeVariant", "small");
+        fontChooser.putClientProperty("JComponent.sizeVariant", "small");
         fontChooser.setPreferredSize(new Dimension(150, 22));
         fontChooser.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
         fontChooser.addActionListener(this);
+        fontChooser.setFont(PlatformUtils.getSmallBoldFont());
         add(fontChooser);
         setValueForControl(parameter.getValue());
     }
@@ -108,7 +109,7 @@ public class FontControl extends AbstractParameterControl implements ActionListe
             Font f = (Font) value;
             if (f == null) return label;
             label.setText(f.getFontName());
-            label.setFont(PlatformUtils.getSmallFont());
+            label.setFont(PlatformUtils.getSmallBoldFont());
             return label;
         }
     }

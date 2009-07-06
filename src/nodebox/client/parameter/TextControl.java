@@ -17,19 +17,18 @@ public class TextControl extends AbstractParameterControl implements ActionListe
 
     public TextControl(Parameter parameter) {
         super(parameter);
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        setLayout(new BorderLayout(0, 0));
         textField = new JTextField();
-        textField.putClientProperty("Jcomponent.sizeVariant", "small");
-        textField.setPreferredSize(new Dimension(150, 19));
-        textField.setEditable(true);
+        textField.putClientProperty("JComponent.sizeVariant", "small");
+        textField.setFont(PlatformUtils.getSmallBoldFont());
         textField.addActionListener(this);
-        textField.setFont(PlatformUtils.getSmallFont());
         externalWindowButton = new JButton("...");
+        externalWindowButton.putClientProperty("JComponent.sizeVariant", "small");
         externalWindowButton.putClientProperty("JButton.buttonType", "gradient");
-        externalWindowButton.setPreferredSize(new Dimension(30, 27));
+        externalWindowButton.setFont(PlatformUtils.getSmallBoldFont());
         externalWindowButton.addActionListener(this);
-        add(textField);
-        add(externalWindowButton);
+        add(textField, BorderLayout.CENTER);
+        add(externalWindowButton, BorderLayout.EAST);
         setValueForControl(parameter.getValue());
     }
 

@@ -19,10 +19,10 @@ public class NoderefControl extends AbstractParameterControl implements ActionLi
         super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         pathField = new JTextField();
-        pathField.putClientProperty("Jcomponent.sizeVariant", "small");
+        pathField.putClientProperty("JComponent.sizeVariant", "small");
         pathField.setPreferredSize(new Dimension(150, 19));
         pathField.setEditable(false);
-        pathField.setFont(PlatformUtils.getSmallFont());
+        pathField.setFont(PlatformUtils.getSmallBoldFont());
         JButton chooseButton = new JButton("...");
         chooseButton.putClientProperty("JButton.buttonType", "gradient");
         chooseButton.setPreferredSize(new Dimension(30, 27));

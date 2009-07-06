@@ -16,14 +16,12 @@ public class StringControl extends AbstractParameterControl implements ActionLis
 
     public StringControl(Parameter parameter) {
         super(parameter);
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        setLayout(new BorderLayout());
         textField = new JTextField();
-        textField.putClientProperty("Jcomponent.sizeVariant", "small");
-        textField.setFont(PlatformUtils.getSmallFont());
-        textField.setPreferredSize(new Dimension(150, 19));
+        textField.putClientProperty("JComponent.sizeVariant", "small");
+        textField.setFont(PlatformUtils.getSmallBoldFont());
         textField.addActionListener(this);
-        add(textField);
-        setPreferredSize(new Dimension(150, 30));
+        add(textField, BorderLayout.CENTER);
         setValueForControl(parameter.getValue());
     }
 

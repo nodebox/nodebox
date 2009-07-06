@@ -21,10 +21,10 @@ public class FileControl extends AbstractParameterControl implements ActionListe
         super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fileField = new JTextField();
-        fileField.putClientProperty("Jcomponent.sizeVariant", "small");
+        fileField.putClientProperty("JComponent.sizeVariant", "small");
         fileField.setPreferredSize(new Dimension(150, 19));
         fileField.setEditable(false);
-        fileField.setFont(PlatformUtils.getSmallFont());
+        fileField.setFont(PlatformUtils.getSmallBoldFont());
         chooseButton = new JButton("...");
         chooseButton.putClientProperty("JButton.buttonType", "gradient");
         chooseButton.setPreferredSize(new Dimension(30, 27));
