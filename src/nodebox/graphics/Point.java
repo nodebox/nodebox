@@ -46,6 +46,9 @@ public class Point {
     public Point(float x, float y, int type) {
         this.x = x;
         this.y = y;
+        if (type < LINE_TO || type > CURVE_DATA) {
+            throw new IllegalArgumentException("Invalid point type.");
+        }
         this.type = type;
     }
 
@@ -82,6 +85,9 @@ public class Point {
     }
 
     public void setType(int type) {
+        if (type < LINE_TO || type > CURVE_DATA) {
+            throw new IllegalArgumentException("Invalid point type.");
+        }
         this.type = type;
     }
 
@@ -91,6 +97,14 @@ public class Point {
 
     public boolean isCurveTo() {
         return type == CURVE_TO;
+    }
+
+    public boolean isOnCurve() {
+        return type != CURVE_DATA;
+    }
+
+    public boolean isOffCurve() {
+        return type == CURVE_DATA;
     }
 
     public void move(float x, float y) {

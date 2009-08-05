@@ -100,9 +100,10 @@ public class Transform implements Cloneable {
         return new Rect((float) transformedOrigin.getX(), (float) transformedOrigin.getY(), (float) transformedSize.getX(), (float) transformedSize.getY());
     }
 
-    public BezierPath map(BezierPath p) {
-        // TODO: Implement
-        return p;
+    public Path map(Path p) {
+        Path newPath = new Path(p);
+        map(newPath.getPoints());
+        return newPath;
     }
 
     /**

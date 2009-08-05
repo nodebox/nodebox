@@ -1,9 +1,6 @@
 package nodebox.handle;
 
-import nodebox.graphics.BezierPath;
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Point;
-import nodebox.graphics.Rect;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 
 public class FourPointHandle extends AbstractHandle {
@@ -38,7 +35,7 @@ public class FourPointHandle extends AbstractHandle {
         float right = cx + width / 2;
         float top = cy - height / 2;
         float bottom = cy + height / 2;
-        BezierPath cornerPath = new BezierPath();
+        Path cornerPath = new Path();
         cornerPath.setFillColor(HANDLE_COLOR);
         cornerPath.setStrokeWidth(0);
         drawDot(cornerPath, left, top);
@@ -47,7 +44,7 @@ public class FourPointHandle extends AbstractHandle {
         drawDot(cornerPath, left, bottom);
         drawDot(cornerPath, cx, cy);
         ctx.getCanvas().add(cornerPath);
-        BezierPath strokePath = new BezierPath();
+        Path strokePath = new Path();
         strokePath.setFillColor(null);
         strokePath.setStrokeColor(HANDLE_COLOR);
         strokePath.rect(cx, cy, width, height);

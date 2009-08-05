@@ -37,13 +37,13 @@ public class PortTest extends NodeTestCase {
         Port ptCanvas = n.addPort("canvas", Canvas.class);
         Port ptGroup = n.addPort("group", OldGroup.class);
         Port ptImage = n.addPort("image", Image.class);
-        Port ptPath = n.addPort("path", BezierPath.class);
+        Port ptPath = n.addPort("path", Path.class);
         Port ptText = n.addPort("text", Text.class);
 
         Canvas canvas = new Canvas();
         OldGroup group = new OldGroup();
         Image image = new Image();
-        BezierPath path = new BezierPath();
+        Path path = new Path();
         Text text = new Text("", 0, 0);
 
         assertValidValue(ptGrob, canvas);

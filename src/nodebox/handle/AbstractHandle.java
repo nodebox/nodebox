@@ -50,15 +50,15 @@ public abstract class AbstractHandle implements Handle {
 
     //// Utility methods ////
 
-    protected void drawDot(GraphicsContext ctx, double x, double y) {
-        BezierPath p = new BezierPath();
+    protected void drawDot(GraphicsContext ctx, float x, float y) {
+        Path p = new Path();
         p.setFillColor(HANDLE_COLOR);
-        p.rect((float) x, (float) y, HANDLE_SIZE, HANDLE_SIZE);
+        p.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
         ctx.draw(p);
     }
 
-    protected void drawDot(BezierPath p, double x, double y) {
-        p.rect((float) x, (float) y, HANDLE_SIZE, HANDLE_SIZE);
+    protected void drawDot(Path p, float x, float y) {
+        p.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
     }
 
     /**

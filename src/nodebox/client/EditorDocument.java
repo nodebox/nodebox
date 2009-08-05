@@ -114,7 +114,7 @@ public class EditorDocument extends JFrame {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
             interpreter.set("g", context);
-            interpreter.set("BezierPath", nodebox.graphics.BezierPath.class);
+            interpreter.set("Path", nodebox.graphics.Path.class);
             interpreter.set("Canvas", nodebox.graphics.Canvas.class);
             interpreter.set("Color", nodebox.graphics.Color.class);
             interpreter.set("GraphicsContext", nodebox.graphics.GraphicsContext.class);

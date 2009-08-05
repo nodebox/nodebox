@@ -29,7 +29,7 @@ public class GraphicsContext {
     private Color fillColor;
     private Color strokeColor;
     private float strokeWidth;
-    private BezierPath path;
+    private Path path;
     private boolean autoClosePath;
     private boolean pathClosed;
     private Transform transform = new Transform();
@@ -105,61 +105,61 @@ public class GraphicsContext {
 
     //// Primitives ////
 
-    public BezierPath rect(Rect r) {
-        BezierPath p = new BezierPath();
+    public Path rect(Rect r) {
+        Path p = new Path();
         p.rect(r);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath rect(float x, float y, float width, float height) {
-        BezierPath p = new BezierPath();
+    public Path rect(float x, float y, float width, float height) {
+        Path p = new Path();
         p.rect(x, y, width, height);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath rect(Rect r, float roundness) {
-        BezierPath p = new BezierPath();
+    public Path rect(Rect r, float roundness) {
+        Path p = new Path();
         p.rect(r, roundness);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath rect(float x, float y, float width, float height, float roundness) {
-        BezierPath p = new BezierPath();
+    public Path rect(float x, float y, float width, float height, float roundness) {
+        Path p = new Path();
         p.rect(x, y, width, height, roundness);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath rect(float x, float y, float width, float height, float rx, float ry) {
-        BezierPath p = new BezierPath();
+    public Path rect(float x, float y, float width, float height, float rx, float ry) {
+        Path p = new Path();
         p.rect(x, y, width, height, rx, ry);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath oval(float x, float y, float width, float height) {
+    public Path oval(float x, float y, float width, float height) {
         // TODO: Deprecation warning
         return ellipse(x, y, width, height);
     }
 
-    public BezierPath ellipse(float x, float y, float width, float height) {
-        BezierPath p = new BezierPath();
+    public Path ellipse(float x, float y, float width, float height) {
+        Path p = new Path();
         p.ellipse(x, y, width, height);
         inheritFromContext(p);
         canvas.add(p);
         return p;
     }
 
-    public BezierPath line(float x1, float y1, float x2, float y2) {
-        BezierPath p = new BezierPath();
+    public Path line(float x1, float y1, float x2, float y2) {
+        Path p = new Path();
         p.line(x1, y1, x2, y2);
         inheritFromContext(p);
         canvas.add(p);
@@ -169,7 +169,7 @@ public class GraphicsContext {
     //// Path commands ////
 
     public void beginPath() {
-        path = new BezierPath();
+        path = new Path();
         pathClosed = false;
     }
 
@@ -205,16 +205,16 @@ public class GraphicsContext {
         }
     }
 
-    public BezierPath endPath() {
+    public Path endPath() {
         return endPath(true);
     }
 
-    public BezierPath endPath(boolean draw) {
+    public Path endPath(boolean draw) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginPath() first.");
         if (autoClosePath)
             closePath();
-        BezierPath p = path;
+        Path p = path;
         inheritFromContext(p);
         if (draw)
             canvas.add(p);
@@ -224,7 +224,7 @@ public class GraphicsContext {
         return p;
     }
 
-    public void drawPath(BezierPath path) {
+    public void drawPath(Path path) {
         inheritFromContext(path);
         canvas.add(path);
     }
@@ -237,11 +237,11 @@ public class GraphicsContext {
         this.autoClosePath = autoClosePath;
     }
 
-    public BezierPath findPath(List<Point> points) {
+    public Path findPath(List<Point> points) {
         return findPath(points, 1);
     }
 
-    public BezierPath findPath(List<Point> points, float curvature) {
+    public Path findPath(List<Point> points, float curvature) {
         throw new RuntimeException("Not implemented yet");
     }
 
@@ -388,17 +388,18 @@ public class GraphicsContext {
         return t;
     }
 
-    public BezierPath textPath(String text, float x, float y) {
+    public Path textPath(String text, float x, float y) {
         return textPath(text, x, y, 0, 0);
     }
 
-    public BezierPath textPath(String text, float x, float y, float width) {
+    public Path textPath(String text, float x, float y, float width) {
         return textPath(text, x, y, width, 0);
     }
 
-    public BezierPath textPath(String text, float x, float y, float width, float height) {
-        BezierPath p = new BezierPath();
-        p.text(text, fontName, fontSize, lineHeight, align, x, y, width, height);
+    public Path textPath(String text, float x, float y, float width, float height) {
+        Text t = new Text(text, x, y, width, height);
+        Path p = new Path();
+        p.text(t);
         inheritFromContext(p);
         return p;
     }
@@ -447,7 +448,7 @@ public class GraphicsContext {
 
     //// Context inheritance ////
 
-    private void inheritFromContext(BezierPath p) {
+    private void inheritFromContext(Path p) {
         p.setFillColor(fillColor == null ? null : fillColor.clone());
         p.setStrokeColor(strokeColor == null ? null : strokeColor.clone());
         p.setStrokeWidth(strokeWidth);

@@ -74,7 +74,6 @@ public class PathTest extends TestCase {
         }
     }
 
-
     public void testLength() {
         Path p = new Path();
         p.line(0, 0, 50, 0);
@@ -96,5 +95,23 @@ public class PathTest extends TestCase {
         assertEquals(new Point(100, 0), p.pointAt(1f));
     }
 
+    private Path cornerRect(float x, float y, float width, float height) {
+        Path p = new Path();
+        p.rect(x+width/2, y+height/2, width, height);
+        return p;
+    }
+
+    public void testIntersected() {
+        // Create two non-overlapping rectangles.
+        Path p1 = cornerRect(0, 0, 100, 100);
+        Path p2 = cornerRect(100, 0, 100, 100);
+        // The intersection of the two is empty.
+        assertEquals(new Rect(), p1.intersected(p2).getBounds());
+        // Create two paths were one is entirely enclosed within the other.
+        p1 = cornerRect(0, 0, 100, 100);
+        p2 = cornerRect(20, 30, 10, 10);
+        // The intersection is the smaller path.
+        assertEquals(p2.getBounds(), p1.intersected(p2).getBounds());
+    }
 
 }

@@ -3,10 +3,10 @@
   <node name="ellipse" prototype="builtins.root" x="180.16632836146215" y="109.0" type="nodebox.graphics.Grob">
   <description>Creates ellipses and circles.</description>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def cook(self):
-    p = BezierPath()
+    p = Path()
     p.ellipse(self.x, self.y, self.width, self.height)
     p.fillColor = self.fill
     if p.strokeWidth > 0:
@@ -46,12 +46,12 @@ def cook(self):
     <param name="_code">
       <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
 # Read the code in cook and replace it with your own.
-from nodebox.graphics import BezierPath
+from nodebox.graphics import Path
 
 def cook(self):
     # Replace the code below.
     # Create a new path object.
-    p = BezierPath()
+    p = Path()
     # Call the rect method to draw something within the path.
     p.rect(-50, -50, 100, 100)
     # Return the path object.
@@ -64,10 +64,10 @@ def cook(self):
   <node name="rect" prototype="builtins.root" x="180.99058103241902" y="29.113780304297478" type="nodebox.graphics.Grob">
   <description>Creates rectangles and rounded rectangles.</description>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import BezierPath
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def cook(self):
-    p = BezierPath()
+    p = Path()
     p.rect(self.x, self.y, self.width, self.height)
     p.fillColor = self.fill
     if p.strokeWidth > 0:
@@ -108,7 +108,7 @@ def cook(self):
     <param name="_code">
       <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
 # Read the code in cook() and replace it with your own.
-from nodebox.graphics import BezierPath
+from nodebox.graphics import Path
 
 def cook(self):
     # Replace the code below

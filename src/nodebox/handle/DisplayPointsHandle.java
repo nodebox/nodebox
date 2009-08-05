@@ -1,6 +1,9 @@
 package nodebox.handle;
 
-import nodebox.graphics.*;
+import nodebox.graphics.GraphicsContext;
+import nodebox.graphics.Path;
+import nodebox.graphics.Point;
+import nodebox.graphics.Text;
 import nodebox.node.Node;
 
 public class DisplayPointsHandle extends AbstractHandle {
@@ -12,20 +15,11 @@ public class DisplayPointsHandle extends AbstractHandle {
     }
 
     public void draw(GraphicsContext ctx) {
-        BezierPath dots = new BezierPath();
+        if (!(node.getOutputValue() instanceof Path)) return;
+        Path dots = new Path();
         dots.setFillColor(HANDLE_COLOR);
         dots.setStrokeWidth(0f);
-        if (node.getOutputValue() instanceof BezierPath) {
-            drawDots(ctx, (BezierPath) node.getOutputValue(), dots);
-        } else {
-            Grob grob = (Grob) node.getOutputValue();
-            // TODO: Fix this
-            /*
-            for (Grob child : grob.getChildren(BezierPath.class)) {
-                drawDots(ctx, (BezierPath) child, dots);
-            }
-            */
-        }
+        drawDots(ctx, (Path) node.getOutputValue(), dots);
         ctx.draw(dots);
     }
 
@@ -37,13 +31,13 @@ public class DisplayPointsHandle extends AbstractHandle {
         this.displayPointNumbers = displayPointNumbers;
     }
 
-    private void drawDots(GraphicsContext ctx, BezierPath path, BezierPath dots) {
+    private void drawDots(GraphicsContext ctx, Path path, Path dots) {
         boolean displayPointNumbers = this.displayPointNumbers;
         int i = 0;
-        for (PathElement el : path.getElements()) {
-            drawDot(dots, el.getX(), el.getY());
+        for (Point pt : path.getPoints()) {
+            drawDot(dots, pt.x, pt.y);
             if (displayPointNumbers) {
-                Text t = ctx.text(String.valueOf(i), el.getX() + 7, el.getY());
+                Text t = ctx.text(String.valueOf(i), pt.x + 7, pt.y);
                 t.setFontSize(10);
             }
             i++;

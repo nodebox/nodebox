@@ -28,8 +28,8 @@ public class PointHandle extends AbstractHandle {
     }
 
     public void draw(GraphicsContext ctx) {
-        double x = node.asFloat(xName);
-        double y = node.asFloat(yName);
+        float x = node.asFloat(xName);
+        float y = node.asFloat(yName);
         drawDot(ctx, x, y);
     }
 

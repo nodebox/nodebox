@@ -18,7 +18,7 @@
  */
 package nodebox.node;
 
-import nodebox.graphics.BezierPath;
+import nodebox.graphics.Path;
 
 public class NodeTest extends NodeTestCase {
 
@@ -174,8 +174,8 @@ public class NodeTest extends NodeTestCase {
     public void testExpressionPropagation() {
         // Inheritance: A <- B
         Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A");
-        Parameter pF  =nodeA.addParameter("f", Parameter.Type.INT, 0);
-        String expr1="12 + 5";
+        Parameter pF = nodeA.addParameter("f", Parameter.Type.INT, 0);
+        String expr1 = "12 + 5";
         pF.setExpression(expr1);
         Node nodeB = nodeA.newInstance(testLibrary, "B");
         assertEquals(expr1, nodeB.getParameter("f").getExpression());
@@ -210,7 +210,7 @@ public class NodeTest extends NodeTestCase {
      */
     public void testPortPropagation() {
         Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A");
-        nodeA.addPort("path", BezierPath.class);
+        nodeA.addPort("path", Path.class);
         Node nodeB = nodeA.newInstance(testLibrary, "B");
         assertTrue(nodeB.hasPort("path"));
     }
@@ -402,7 +402,7 @@ public class NodeTest extends NodeTestCase {
 
     /**
      * Test the hasStampExpression on the node.
-     *
+     * <p/>
      * This method is used to determine if parameters/nodes should be marked as dirty when re-evaluating upstream,
      * which is what happens in the copy node.
      */

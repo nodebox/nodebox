@@ -17,6 +17,7 @@ public class Contour implements IGeometry {
 
     public Contour() {
         points = new ArrayList<Point>();
+        closed = false;
     }
 
     public Contour(Contour other) {
@@ -24,6 +25,7 @@ public class Contour implements IGeometry {
         for (Point p : other.points) {
             points.add(p.clone());
         }
+        closed = other.closed;
     }
 
     //// Point operations ////
@@ -38,10 +40,12 @@ public class Contour implements IGeometry {
 
     public void addPoint(Point pt) {
         points.add(pt.clone());
+        markDirty();
     }
 
     public void addPoint(float x, float y) {
         points.add(new Point(x, y));
+        markDirty();
     }
 
     //// Close ////
@@ -52,10 +56,12 @@ public class Contour implements IGeometry {
 
     public void setClosed(boolean closed) {
         this.closed = closed;
+        markDirty();
     }
 
     public void close() {
         this.closed = true;
+        markDirty();
     }
 
     //// Geometric queries ////
@@ -78,6 +84,10 @@ public class Contour implements IGeometry {
             if (py > maxY) maxY = py;
         }
         return new Rect(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    private void markDirty() {
+        segmentLengths = null;
     }
 
     public float updateSegmentLengths() {
@@ -107,6 +117,14 @@ public class Contour implements IGeometry {
                 segmentLengths.add(length);
                 totalLength += length;
             }
+        }
+        // If the path is closed, add the closing segment.
+        if (closed && !points.isEmpty()) {
+            Point pt0 = points.get(points.size() - 1);
+            Point pt1 = points.get(0);
+            float length = Path.lineLength(pt0.x, pt0.y, pt1.x, pt1.y);
+            segmentLengths.add(length);
+            totalLength += length;
         }
 
         this.length = totalLength;
@@ -202,6 +220,32 @@ public class Contour implements IGeometry {
 
     //// Geometric operations ////
 
+    public Point[] resample() {
+        return resample(100);
+    }
+
+    public Point[] resample(int amount) {
+        Point[] points = new Point[amount];
+        float delta = 1;
+        if (closed) {
+            if (amount > 0) {
+                delta = 1f / amount;
+            }
+        } else {
+            // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
+            // If I wouldn't use amount - 1, I fall one point short of the end.
+            // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
+            // if amount = 2, I want point at t 0.0 and t 1.0
+            if (amount > 2) {
+                delta = 1f / (amount - 1f);
+            }
+        }
+        for (int i = 0; i < amount; i++) {
+            points[i] = pointAt(delta * i);
+        }
+        return points;
+    }
+
     public void flatten() {
         throw new UnsupportedOperationException();
     }
@@ -253,6 +297,7 @@ public class Contour implements IGeometry {
 
     public void transform(Transform t) {
         t.map(getPoints());
+        markDirty();
     }
 
     //// Conversions ////

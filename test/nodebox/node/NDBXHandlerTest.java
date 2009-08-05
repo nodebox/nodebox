@@ -1,7 +1,7 @@
 package nodebox.node;
 
 import junit.framework.TestCase;
-import nodebox.graphics.BezierPath;
+import nodebox.graphics.Path;
 import nodebox.node.polygraph.Polygon;
 import org.xml.sax.SAXException;
 
@@ -183,13 +183,13 @@ public class NDBXHandlerTest extends TestCase {
 
     private void loadBasicTypes() {
         NodeLibrary testlib = new NodeLibrary("testlib");
-        Node dot = Node.ROOT_NODE.newInstance(testlib, "dot", BezierPath.class);
+        Node dot = Node.ROOT_NODE.newInstance(testlib, "dot", Path.class);
         testlib.add(dot);
         dot.addParameter("x", Parameter.Type.FLOAT, 0F);
         dot.addParameter("y", Parameter.Type.FLOAT, 0F);
-        Node rotate = Node.ROOT_NODE.newInstance(testlib, "rotate", BezierPath.class);
+        Node rotate = Node.ROOT_NODE.newInstance(testlib, "rotate", Path.class);
         testlib.add(rotate);
-        rotate.addPort("shape", BezierPath.class);
+        rotate.addPort("shape", Path.class);
         rotate.addParameter("rotation", Parameter.Type.FLOAT, 0F);
         manager.add(testlib);
     }

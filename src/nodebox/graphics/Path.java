@@ -305,18 +305,31 @@ public class Path implements IGeometry, Colorizable {
 
     public void extend(Shape s) {
         PathIterator pi = s.getPathIterator(new AffineTransform());
+        float px = 0;
+        float py = 0;
         while (!pi.isDone()) {
             float[] points = new float[6];
             int cmd = pi.currentSegment(points);
             if (cmd == PathIterator.SEG_MOVETO) {
-                moveto(points[0], points[1]);
+                px = points[0];
+                py = points[1];
+                moveto(px, py);
             } else if (cmd == PathIterator.SEG_LINETO) {
-                lineto(points[0], points[1]);
+                px = points[0];
+                py = points[1];
+                lineto(px, py);
             } else if (cmd == PathIterator.SEG_QUADTO) {
-                throw new RuntimeException("Can't handle quad to segments.");
+                float c1x = px + 2f/3f * (points[0] - px);
+                float c1y = py + 2f/3f * (points[1] - py);
+                float c2x = c1x + 1f / 3f * (points[2] - px);
+                float c2y = c1y + 1f / 3f * (points[3] - py);
+                curveto(c1x, c1y, c2x, c2y, points[2], points[3]);
             } else if (cmd == PathIterator.SEG_CUBICTO) {
-                curveto(points[0], points[1], points[2], points[3], points[4], points[5]);
+                px = points[4];
+                py = points[5];
+                curveto(points[0], points[1], points[2], points[3], px, py);
             } else if (cmd == PathIterator.SEG_CLOSE) {
+                px = py = 0;
                 close();
             } else {
                 throw new AssertionError("Unknown path command " + cmd);
@@ -571,20 +584,14 @@ public class Path implements IGeometry, Colorizable {
     }
 
     public Point[] resample() {
-        return resample(100, true);
-    }
-
-    public Point[] resample(boolean closed) {
-        return resample(100, closed);
+        return resample(100);
     }
 
     public Point[] resample(int amount) {
-        return resample(amount, true);
-    }
-
-    public Point[] resample(int amount, boolean closed) {
         Point[] points = new Point[amount];
         float delta = 1;
+        // TODO: Check each contour to see if it's open or not.
+        boolean closed = true;
         if (closed) {
             if (amount > 0) {
                 delta = 1f / amount;
@@ -632,32 +639,32 @@ public class Path implements IGeometry, Colorizable {
         return getGeneralPath().intersects(r.getRectangle2D());
     }
 
-    public boolean intersects(BezierPath p) {
+    public boolean intersects(Path p) {
         Area a1 = new Area(getGeneralPath());
         Area a2 = new Area(p.getGeneralPath());
         a1.intersect(a2);
         return !a1.isEmpty();
     }
 
-    public BezierPath intersected(BezierPath p) {
+    public Path intersected(Path p) {
         Area a1 = new Area(getGeneralPath());
         Area a2 = new Area(p.getGeneralPath());
         a1.intersect(a2);
-        return new BezierPath(a1);
+        return new Path(a1);
     }
 
-    public BezierPath subtracted(BezierPath p) {
+    public Path subtracted(Path p) {
         Area a1 = new Area(getGeneralPath());
         Area a2 = new Area(p.getGeneralPath());
         a1.subtract(a2);
-        return new BezierPath(a1);
+        return new Path(a1);
     }
 
-    public BezierPath united(BezierPath p) {
+    public Path united(Path p) {
         Area a1 = new Area(getGeneralPath());
         Area a2 = new Area(p.getGeneralPath());
         a1.add(a2);
-        return new BezierPath(a1);
+        return new Path(a1);
     }
 
     //// Path ////
