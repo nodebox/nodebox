@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 public class Application {
 
     private static Application instance;
+    private JFrame hiddenFrame;
 
     public static Application getInstance() {
         return instance;
@@ -64,19 +65,25 @@ public class Application {
     }
 
     private void registerForMacOSXEvents() {
-        if (PlatformUtils.onMac()) {
-            try {
-                // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
-                // use as delegates for various com.apple.eawt.ApplicationListener methods
-                OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
-                OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
-                OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
-                OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
-            } catch (Exception e) {
-                System.err.println("Error while loading the OSXAdapter:");
-                e.printStackTrace();
-            }
+        if (!PlatformUtils.onMac()) return;
+        try {
+            // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
+            // use as delegates for various com.apple.eawt.ApplicationListener methods
+            OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
+            OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
+            OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
+            OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
+        } catch (Exception e) {
+            System.err.println("Error while loading the OSXAdapter:");
+            e.printStackTrace();
         }
+        // Create hidden window.
+        hiddenFrame = new JFrame();
+        hiddenFrame.setJMenuBar(new NodeBoxMenuBar(false));
+        hiddenFrame.setUndecorated(true);
+        hiddenFrame.setSize(0, 0);
+        hiddenFrame.pack();
+        hiddenFrame.setVisible(true);
     }
 
     public boolean quit() {
