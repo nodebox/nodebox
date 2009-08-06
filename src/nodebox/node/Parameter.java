@@ -92,7 +92,7 @@ public class Parameter {
         HIDDEN, DETAIL, HUD
     }
 
-    public class MenuItem {
+    public static class MenuItem {
         private String key;
         private String label;
 
@@ -369,7 +369,7 @@ public class Parameter {
         fireAttributeChanged();
     }
 
-    private void fireAttributeChanged() {
+    public void fireAttributeChanged() {
         node.fireParameterAttributeChanged(this);
     }
 
@@ -381,6 +381,24 @@ public class Parameter {
 
     public void addMenuItem(String key, String label) {
         menuItems.add(new MenuItem(key, label));
+        fireAttributeChanged();
+    }
+
+    public void removeMenuItem(String key) {
+        MenuItem itemToRemove = null;
+        for (MenuItem item : menuItems) {
+            if (item.getKey().equals(key)) {
+                itemToRemove = item;
+                break;
+            }
+        }
+        if (itemToRemove == null) return;
+        menuItems.remove(itemToRemove);
+        fireAttributeChanged();
+    }
+
+    public void removeMenuItem(MenuItem item) {
+        menuItems.remove(item);
         fireAttributeChanged();
     }
 

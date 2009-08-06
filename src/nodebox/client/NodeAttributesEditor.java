@@ -180,24 +180,24 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private void moveDown() {
         if (selectedParameter == null) return;
-        java.util.List<Parameter> parameterTypes = node.getParameters();
-        int index = parameterTypes.indexOf(selectedParameter);
+        java.util.List<Parameter> parameters = node.getParameters();
+        int index = parameters.indexOf(selectedParameter);
         assert (index >= 0);
-        if (index >= parameterTypes.size() - 1) return;
-        parameterTypes.remove(selectedParameter);
-        parameterTypes.add(index + 1, selectedParameter);
+        if (index >= parameters.size() - 1) return;
+        parameters.remove(selectedParameter);
+        parameters.add(index + 1, selectedParameter);
         reloadParameterList();
         parameterList.setSelectedIndex(index + 1);
     }
 
     private void moveUp() {
         if (selectedParameter == null) return;
-        java.util.List<Parameter> parameterTypes = node.getParameters();
-        int index = parameterTypes.indexOf(selectedParameter);
+        java.util.List<Parameter> parameters = node.getParameters();
+        int index = parameters.indexOf(selectedParameter);
         assert (index >= 0);
         if (index == 0) return;
-        parameterTypes.remove(selectedParameter);
-        parameterTypes.add(index - 1, selectedParameter);
+        parameters.remove(selectedParameter);
+        parameters.add(index - 1, selectedParameter);
         reloadParameterList();
         parameterList.setSelectedIndex(index - 1);
     }
@@ -397,7 +397,6 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             return null;
         }
     }
-
 
     public static void main(String[] args) {
         JFrame editorFrame = new JFrame();

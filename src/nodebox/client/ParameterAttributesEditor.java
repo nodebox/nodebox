@@ -1,13 +1,13 @@
 package nodebox.client;
 
+import nodebox.Icons;
 import nodebox.node.Parameter;
 
 import javax.swing.*;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import java.awt.event.*;
 
 public class ParameterAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
@@ -23,6 +23,11 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
     private JTextField maximumValueField;
     private JCheckBox maximumValueCheck;
     private JComboBox displayLevelBox;
+    private JTable menuItemsTable;
+    private JButton addButton;
+    private JButton removeButton;
+    private JButton upButton;
+    private JButton downButton;
 
     private boolean focusLostEvents = true;
 
@@ -35,48 +40,59 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
     }
 
     public void initPanel() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout(0, 0));
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        JPanel contentPanel = new JPanel(new GridLayout(10, 2, 10, 5));
+        FormPanel form = new FormPanel();
+
+        //contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.PAGE_AXIS));
         // Name
-        contentPanel.add(new JLabel("Name"));
+        //contentPanel.add(new JLabel("Name"));
         nameField = new JFormattedTextField(20);
         nameField.setEditable(false);
-        contentPanel.add(nameField);
+        form.addRow("Name", nameField);
+        //contentPanel.add(nameField);
         // Label
-        contentPanel.add(new JLabel("Label"));
+        //contentPanel.add(new JLabel("Label"));
         labelField = new JTextField(20);
         labelField.addActionListener(this);
         labelField.addFocusListener(this);
-        contentPanel.add(labelField);
+        form.addRow("Label", labelField);
+        //contentPanel.add(labelField);
         // Help Text
-        contentPanel.add(new JLabel("Help Text"));
+        //contentPanel.add(new JLabel("Help Text"));
         helpTextField = new JTextField(20);
         helpTextField.addActionListener(this);
         helpTextField.addFocusListener(this);
-        contentPanel.add(helpTextField);
+        //contentPanel.add(helpTextField);
+        form.addRow("Help Text", helpTextField);
         // Type
-        contentPanel.add(new JLabel("Type"));
+        //contentPanel.add(new JLabel("Type"));
         typeBox = new JComboBox(Parameter.Type.values());
         typeBox.addActionListener(this);
-        contentPanel.add(typeBox);
+        //contentPanel.add(typeBox);
+        form.addRow("Type", typeBox);
         // Widget
-        contentPanel.add(new JLabel("Widget"));
+        //contentPanel.add(new JLabel("Widget"));
         widgetBox = new JComboBox(Parameter.Widget.values());
         widgetBox.addActionListener(this);
-        contentPanel.add(widgetBox);
+        //contentPanel.add(widgetBox);
+        form.addRow("Widget", widgetBox);
         // Value
-        contentPanel.add(new JLabel("Value"));
+        //contentPanel.add(new JLabel("Value"));
         valueField = new JTextField(20);
         valueField.addActionListener(this);
         valueField.addFocusListener(this);
-        contentPanel.add(valueField);
+        //contentPanel.add(valueField);
+        form.addRow("Value", valueField);
         // Bounding Method
-        contentPanel.add(new JLabel("Bounding"));
+        //contentPanel.add(new JLabel("Bounding"));
         boundingMethodBox = new JComboBox(new String[]{"none", "soft", "hard"});
         boundingMethodBox.addActionListener(this);
-        contentPanel.add(boundingMethodBox);
-        contentPanel.add(new JLabel("Minimum"));
+        //contentPanel.add(boundingMethodBox);
+        form.addRow("Bounding", boundingMethodBox);
+        // Minimum Value
+        //contentPanel.add(new JLabel("Minimum"));
         minimumValueCheck = new JCheckBox();
         minimumValueCheck.addActionListener(this);
         minimumValueField = new JTextField(10);
@@ -85,8 +101,10 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         JPanel minimumValuePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 0));
         minimumValuePanel.add(minimumValueCheck);
         minimumValuePanel.add(minimumValueField);
-        contentPanel.add(minimumValuePanel);
-        contentPanel.add(new JLabel("Maximum"));
+        //contentPanel.add(minimumValuePanel);
+        form.addRow("Minimum", minimumValuePanel);
+        // Maximum Value
+        //contentPanel.add(new JLabel("Maximum"));
         maximumValueCheck = new JCheckBox();
         maximumValueCheck.addActionListener(this);
         maximumValueField = new JTextField(10);
@@ -95,14 +113,45 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         JPanel maximumValuePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 0));
         maximumValuePanel.add(maximumValueCheck);
         maximumValuePanel.add(maximumValueField);
-        contentPanel.add(maximumValuePanel);
-        contentPanel.add(new JLabel("Display Level"));
+        //contentPanel.add(maximumValuePanel);
+        form.addRow("Maximum", maximumValuePanel);
+        // Display Level
+        //contentPanel.add(new JLabel("Display Level"));
         displayLevelBox = new JComboBox(new String[]{"hud", "detail", "hidden"});
         displayLevelBox.addActionListener(this);
-        contentPanel.add(displayLevelBox);
-        add(contentPanel);
-        Dimension fillDimension = new Dimension(0, Integer.MAX_VALUE);
-        add(new Box.Filler(fillDimension, fillDimension, fillDimension));
+        //contentPanel.add(displayLevelBox);
+        form.addRow("Display Level", displayLevelBox);
+        // Menu Items
+        //contentPanel.add(new JLabel("Menu Items"));
+        menuItemsTable = new JTable(new MenuItemsModel());
+        menuItemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JPanel tablePanel = new JPanel(new BorderLayout(5, 5));
+        JScrollPane tableScroll = new JScrollPane(menuItemsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        tableScroll.setSize(200, 200);
+        tableScroll.setPreferredSize(new Dimension(200, 200));
+        tableScroll.setMaximumSize(new Dimension(200, 200));
+        tableScroll.setMinimumSize(new Dimension(200, 200));
+        tablePanel.add(tableScroll, BorderLayout.CENTER);
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
+        addButton = new JButton(new Icons.PlusIcon());
+        addButton.addActionListener(this);
+        removeButton = new JButton(new Icons.MinusIcon());
+        removeButton.addActionListener(this);
+        upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH));
+        upButton.addActionListener(this);
+        downButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH));
+        downButton.addActionListener(this);
+        buttonPanel.add(addButton);
+        buttonPanel.add(removeButton);
+        buttonPanel.add(upButton);
+        buttonPanel.add(downButton);
+        tablePanel.add(buttonPanel, BorderLayout.SOUTH);
+        form.addRow("Menu Items", tablePanel);
+        add(form, BorderLayout.CENTER);
+
+        //Dimension fillDimension = new Dimension(0, Integer.MAX_VALUE);
+        //add(Box.createVerticalGlue());
+        //add(new Box.Filler(fillDimension, fillDimension, fillDimension));
     }
 
     public void updateValues() {
@@ -125,6 +174,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         maximumValueField.setText(maximumValueString);
         maximumValueField.setEnabled(maximumValue != null);
         displayLevelBox.setSelectedItem(parameter.getDisplayLevel().toString().toLowerCase());
+        menuItemsTable.tableChanged(new TableModelEvent(menuItemsTable.getModel()));
         revalidate();
     }
 
@@ -183,6 +233,20 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             Parameter.DisplayLevel newDisplayLevel = Parameter.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase());
             if (parameter.getDisplayLevel() == newDisplayLevel) return;
             parameter.setDisplayLevel(newDisplayLevel);
+        } else if (e.getSource() == addButton) {
+            MenuItemDialog dialog = new MenuItemDialog(SwingUtilities.getWindowAncestor(this));
+            dialog.setVisible(true);
+            if (dialog.isSuccessful()) {
+                parameter.addMenuItem(dialog.getKey(), dialog.getLabel());
+                menuItemsTable.tableChanged(new TableModelEvent(menuItemsTable.getModel()));
+            }
+        } else if (e.getSource() == removeButton) {
+            Parameter.MenuItem item = parameter.getMenuItems().get(menuItemsTable.getSelectedRow());
+            parameter.removeMenuItem(item);
+        } else if (e.getSource() == upButton) {
+            moveItemUp();
+        } else if (e.getSource() == downButton) {
+            moveItemDown();
         } else {
             throw new AssertionError("Unknown source " + e.getSource());
         }
@@ -207,4 +271,166 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         if (!focusLostEvents) return;
         actionPerformed(new ActionEvent(e.getSource(), 0, "focusLost"));
     }
+
+    private void moveItemDown() {
+        int index = menuItemsTable.getSelectedRow();
+        // Return if nothing was selected.
+        if (index == -1) return;
+        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
+        // Return if the last item is selected.
+        if (index >= items.size() - 1) return;
+        Parameter.MenuItem selectedItem = items.get(index);
+        items.remove(selectedItem);
+        items.add(index + 1, selectedItem);
+        parameter.fireAttributeChanged();
+        // TODO: Changing the selection doesn't have any effect on Mac.
+        menuItemsTable.changeSelection(index + 1, 1, false, false);
+    }
+
+    private void moveItemUp() {
+        int index = menuItemsTable.getSelectedRow();
+        // Return if nothing was selected.
+        if (index == -1) return;
+        // Return if the first item is selected.
+        if (index == 0) return;
+        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
+        Parameter.MenuItem selectedItem = items.get(index);
+        items.remove(selectedItem);
+        items.add(index - 1, selectedItem);
+        parameter.fireAttributeChanged();
+        // TODO: Changing the selection doesn't have any effect on Mac.
+        menuItemsTable.changeSelection(index - 1, 1, false, false);
+    }
+
+    private class MenuItemsModel extends AbstractTableModel {
+        public int getRowCount() {
+            return parameter.getMenuItems().size();
+        }
+
+        public int getColumnCount() {
+            return 2;
+        }
+
+        public Object getValueAt(int row, int column) {
+            Parameter.MenuItem item = parameter.getMenuItems().get(row);
+            if (column == 0) {
+                return item.getKey();
+            } else {
+                return item.getLabel();
+            }
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            if (column == 0) {
+                return "Key";
+            } else {
+                return "Label";
+            }
+        }
+    }
+
+    private class FormPanel extends JPanel {
+        GridBagLayout layout = new GridBagLayout();
+        private int rowCount = 0;
+
+        private FormPanel() {
+            setLayout(layout);
+        }
+
+        public void addRow(String label, JComponent component) {
+            GridBagConstraints labelConstraints = new GridBagConstraints();
+            labelConstraints.gridx = 0;
+            labelConstraints.gridy = rowCount;
+            labelConstraints.insets = new Insets(0, 0, 5, 5);
+            labelConstraints.anchor = GridBagConstraints.BASELINE_TRAILING;
+
+            GridBagConstraints componentConstraints = new GridBagConstraints();
+            componentConstraints.gridx = 1;
+            componentConstraints.gridy = rowCount;
+            componentConstraints.gridwidth = GridBagConstraints.REMAINDER;
+            componentConstraints.fill = GridBagConstraints.HORIZONTAL;
+            componentConstraints.insets = new Insets(0, 0, 5, 0);
+            componentConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+
+            JLabel l = new JLabel(label + ":");
+            add(l, labelConstraints);
+            add(component, componentConstraints);
+            rowCount++;
+
+            // Add another column/row that takes up all available space.
+            // This moves the layout to the top-left corner.
+            layout.columnWidths = new int[]{0, 0, 0};
+            layout.columnWeights = new double[]{0.0, 0.0, 1.0E-4};
+            layout.rowHeights = new int[rowCount + 1];
+            layout.rowWeights = new double[rowCount + 1];
+            layout.rowWeights[rowCount] = 1.0E-4;
+        }
+    }
+
+    private class MenuItemDialog extends JDialog {
+        private boolean successful = false;
+        private JTextField keyField;
+        private JTextField labelField;
+        private JButton okButton, cancelButton;
+
+        private MenuItemDialog(Window window) {
+            this(window, new Parameter.MenuItem("", ""));
+        }
+
+        private MenuItemDialog(Window window, Parameter.MenuItem item) {
+            super(window, "Menu Item", ModalityType.DOCUMENT_MODAL);
+            setResizable(false);
+            setLocationByPlatform(true);
+            JPanel content = new JPanel(new BorderLayout());
+            FormPanel form = new FormPanel();
+            keyField = new JTextField(item.getKey());
+            labelField = new JTextField(item.getLabel());
+            form.addRow("Key", keyField);
+            form.addRow("Label", labelField);
+            content.add(form, BorderLayout.CENTER);
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 0));
+            okButton = new JButton("OK");
+            okButton.addActionListener(new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    // Commit key and label.
+                    successful = true;
+                    MenuItemDialog.this.setVisible(false);
+                }
+            });
+            cancelButton = new JButton("Cancel");
+            cancelButton.addActionListener(new AbstractAction() {
+                public void actionPerformed(ActionEvent e) {
+                    MenuItemDialog.this.setVisible(false);
+                }
+            });
+            buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+            buttonPanel.add(cancelButton);
+            buttonPanel.add(okButton);
+            content.add(buttonPanel, BorderLayout.SOUTH);
+            setContentPane(content);
+            content.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 20));
+            getRootPane().setDefaultButton(okButton);
+            // Close window when escape key is pressed.
+            getRootPane().registerKeyboardAction(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    setVisible(false);
+                }
+            }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+            pack();
+        }
+
+        public String getKey() {
+            return keyField.getText();
+        }
+
+        public String getLabel() {
+            return labelField.getText();
+        }
+
+        public boolean isSuccessful() {
+            return successful;
+        }
+    }
+
 }
