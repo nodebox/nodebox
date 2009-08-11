@@ -319,11 +319,14 @@ public class Path implements IGeometry, Colorizable {
                 py = points[1];
                 lineto(px, py);
             } else if (cmd == PathIterator.SEG_QUADTO) {
-                float c1x = px + 2f/3f * (points[0] - px);
-                float c1y = py + 2f/3f * (points[1] - py);
-                float c2x = c1x + 1f / 3f * (points[2] - px);
-                float c2y = c1y + 1f / 3f * (points[3] - py);
+                // Convert the quadratic bezier to a cubic bezier.
+                float c1x = px + (points[0] - px) * 2f / 3f;
+                float c1y = py + (points[1] - py) * 2f / 3f;
+                float c2x = points[0] + (points[2] - points[0]) / 3f;
+                float c2y = points[1] + (points[3] - points[1]) / 3f;
                 curveto(c1x, c1y, c2x, c2y, points[2], points[3]);
+                px = points[2];
+                py = points[3];
             } else if (cmd == PathIterator.SEG_CUBICTO) {
                 px = points[4];
                 py = points[5];
@@ -732,6 +735,7 @@ public class Path implements IGeometry, Colorizable {
     //// Operations on the current context. ////
 
     public void draw(Graphics2D g) {
+
         // If we can't fill or stroke the path, there's nothing to draw.
         if (fillColor == null && strokeColor == null) return;
         GeneralPath gp = getGeneralPath();

@@ -215,7 +215,6 @@ public class Text extends AbstractGrob {
         restoreTransform(g);
     }
 
-
     public Path getPath() {
         Path p = new Path();
         p.setFillColor(fillColor == null ? null : fillColor.clone());

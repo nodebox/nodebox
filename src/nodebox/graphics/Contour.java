@@ -287,8 +287,6 @@ public class Contour implements IGeometry {
                 ctrl1 = points.get(i - 2);
                 ctrl2 = points.get(i - 1);
                 gp.curveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
-                // We used up two extra points.
-                i += 2;
             }
         }
         if (closed)
