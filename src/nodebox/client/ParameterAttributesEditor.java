@@ -234,7 +234,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             if (parameter.getDisplayLevel() == newDisplayLevel) return;
             parameter.setDisplayLevel(newDisplayLevel);
         } else if (e.getSource() == addButton) {
-            MenuItemDialog dialog = new MenuItemDialog(SwingUtilities.getWindowAncestor(this));
+            MenuItemDialog dialog = new MenuItemDialog((Frame) SwingUtilities.getRoot(this));
             dialog.setVisible(true);
             if (dialog.isSuccessful()) {
                 parameter.addMenuItem(dialog.getKey(), dialog.getLabel());
@@ -343,7 +343,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             labelConstraints.gridx = 0;
             labelConstraints.gridy = rowCount;
             labelConstraints.insets = new Insets(0, 0, 5, 5);
-            labelConstraints.anchor = GridBagConstraints.BASELINE_TRAILING;
+            labelConstraints.anchor = GridBagConstraints.LINE_END;
 
             GridBagConstraints componentConstraints = new GridBagConstraints();
             componentConstraints.gridx = 1;
@@ -351,7 +351,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             componentConstraints.gridwidth = GridBagConstraints.REMAINDER;
             componentConstraints.fill = GridBagConstraints.HORIZONTAL;
             componentConstraints.insets = new Insets(0, 0, 5, 0);
-            componentConstraints.anchor = GridBagConstraints.BASELINE_LEADING;
+            componentConstraints.anchor = GridBagConstraints.LINE_START;
 
             JLabel l = new JLabel(label + ":");
             add(l, labelConstraints);
@@ -374,12 +374,12 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         private JTextField labelField;
         private JButton okButton, cancelButton;
 
-        private MenuItemDialog(Window window) {
-            this(window, new Parameter.MenuItem("", ""));
+        private MenuItemDialog(Frame frame) {
+            this(frame, new Parameter.MenuItem("", ""));
         }
 
-        private MenuItemDialog(Window window, Parameter.MenuItem item) {
-            super(window, "Menu Item", ModalityType.DOCUMENT_MODAL);
+        private MenuItemDialog(Frame frame, Parameter.MenuItem item) {
+            super(frame, "Menu Item", true);
             setResizable(false);
             setLocationByPlatform(true);
             JPanel content = new JPanel(new BorderLayout());

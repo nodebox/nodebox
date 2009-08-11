@@ -2,7 +2,6 @@ package nodebox.graphics;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.Path2D;
 import java.util.ArrayList;
 
 public class Contour implements IGeometry {
@@ -265,7 +264,7 @@ public class Contour implements IGeometry {
         // We save the current color so as not to disrupt the context.
         java.awt.Color savedColor = g.getColor();
         Stroke savedStroke = g.getStroke();
-        GeneralPath gp = new GeneralPath(Path2D.WIND_EVEN_ODD, getPointCount());
+        GeneralPath gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, getPointCount());
         _extendPath(gp);
         g.setColor(java.awt.Color.BLACK);
         g.setStroke(DEFAULT_STROKE);

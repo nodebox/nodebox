@@ -674,7 +674,7 @@ public class Path implements IGeometry, Colorizable {
 
     public java.awt.geom.GeneralPath getGeneralPath() {
         if (!pathDirty) return awtPath;
-        GeneralPath gp = new GeneralPath(Path2D.WIND_EVEN_ODD, getPointCount());
+        GeneralPath gp = new GeneralPath(GeneralPath.WIND_EVEN_ODD, getPointCount());
         for (Contour c : contours) {
             c._extendPath(gp);
         }
