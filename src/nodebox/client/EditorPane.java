@@ -153,7 +153,12 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
                 while (cause != null) {
                     sb.append("Caused by: \n");
                     sb.append(cause.toString()).append("\n");
-                    cause = t.getCause();
+                    // Sometimes the cause is stored recursively.
+                    // Break out of the loop instead of triggering infinite recursion.
+                    if (cause.getCause() == cause) {
+                        break;
+                    }
+                    cause = cause.getCause();
                 }
             }
             // Add the stdout messages.
