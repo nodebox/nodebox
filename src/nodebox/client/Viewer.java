@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Grob;
+import nodebox.graphics.Path;
 import nodebox.handle.Handle;
 import nodebox.node.DirtyListener;
 import nodebox.node.Node;
@@ -16,12 +17,15 @@ import java.awt.image.BufferedImage;
 
 public class Viewer extends JComponent implements DirtyListener, MouseListener, MouseMotionListener {
 
+    public static final float POINT_SIZE = 4f;
+
     private Pane pane;
     private Node node;
     private Node activeNode;
     private Handle handle;
     private BufferedImage canvasImage;
     private boolean showHandle;
+    private boolean showPoints;
 
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
@@ -29,6 +33,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         addMouseListener(this);
         addMouseMotionListener(this);
         showHandle = true;
+        showPoints = false;
     }
 
     public boolean isShowHandle() {
@@ -37,6 +42,15 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
     public void setShowHandle(boolean showHandle) {
         this.showHandle = showHandle;
+        repaint();
+    }
+
+    public boolean isShowPoints() {
+        return showPoints;
+    }
+
+    public void setShowPoints(boolean showPoints) {
+        this.showPoints = showPoints;
         repaint();
     }
 
@@ -92,7 +106,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             g2.drawString(s, 5, 20);
         }
 
-        // Draw handle
+        // Draw the handle.
         if (handle != null && showHandle) {
             // Create a canvas with a transparent background
             nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
@@ -100,6 +114,25 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             GraphicsContext ctx = new GraphicsContext(canvas);
             handle.draw(ctx);
             ctx.getCanvas().draw(g2);
+        }
+
+        // Draw the points.
+        if (showPoints && outputValue instanceof Path) {
+            // Create a canvas with a transparent background
+            Path onCurves = new Path();
+            Path offCurves = new Path();
+            onCurves.setFill(new nodebox.graphics.Color(0f, 0f, 1f));
+            offCurves.setFill(new nodebox.graphics.Color(1f, 0f, 0f));
+            Path p = (Path) outputValue;
+            for (nodebox.graphics.Point pt : p.getPoints()) {
+                if (pt.isOnCurve()) {
+                    onCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
+                } else {
+                    offCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
+                }
+            }
+            onCurves.draw(g2);
+            offCurves.draw(g2);
         }
         // Draw center
         //g.setColor(new Color(240, 240, 240));
@@ -140,7 +173,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     private nodebox.graphics.Point pointForEvent(MouseEvent e) {
         double cx = -getWidth() / 2.0 + e.getX();
         double cy = -getHeight() / 2.0 + e.getY();
-        return new nodebox.graphics.Point((float)cx, (float)cy);
+        return new nodebox.graphics.Point((float) cx, (float) cy);
     }
 
     public void mouseClicked(MouseEvent e) {

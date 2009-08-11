@@ -25,9 +25,7 @@ public class ViewerPane extends Pane {
         pointsCheck = new NButton(NButton.Mode.CHECK, "Points");
         pointsCheck.setActionMethod(this, "togglePoints");
         paneHeader.add(handlesCheck);
-        // TODO: Add the following lines when viewer implements showPoints.
-        //paneHeader.add(new Divider());
-        //paneHeader.add(pointsCheck);
+        paneHeader.add(pointsCheck);
         viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
@@ -38,7 +36,7 @@ public class ViewerPane extends Pane {
     }
 
     public void togglePoints() {
-        // TODO: setShowPoints not implemented in viewer yet
+        viewer.setShowPoints(pointsCheck.isChecked());
     }
 
     @Override
