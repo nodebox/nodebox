@@ -1,112 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" formatVersion="0.9">
-  <node name="ellipse" prototype="builtins.root" x="180.16632836146215" y="109.0" type="nodebox.graphics.Grob">
-  <description>Creates ellipses and circles.</description>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.ellipse(self.x, self.y, self.width, self.height)
-    p.fillColor = self.fill
-    if p.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p]]></value>
-    </param>
-    <param name="_image">
-      <value>ellipse.png</value>
-    </param>
-    <param name="x" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="y" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="width" type="float" display="hud">
-      <value>100.0</value>
-    </param>
-    <param name="height" type="float" display="hud">
-      <value>100.0</value>
-    </param>
-    <param name="fill" type="color" display="hud">
-      <value>#000000ff</value>
-    </param>
-    <param name="stroke" type="color" display="hud">
-      <value>#000000ff</value>
-    </param>
-    <param name="strokeWidth" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-  </node>
-  <node name="generator" prototype="builtins.root" x="53.0" y="28.0" rendered="true" type="nodebox.graphics.Grob">
-  <description>Template for creating nodes that generator vector data.</description>
-    <param name="_code">
-      <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
-# Read the code in cook and replace it with your own.
+    <node name="grid" prototype="builtins.root" x="301.0" y="113.0" type="nodebox.graphics.Grob">
+        <description>Creates a grid of points.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[
 from nodebox.graphics import Path
 
 def cook(self):
-    # Replace the code below.
-    # Create a new path object.
     p = Path()
-    # Call the rect method to draw something within the path.
-    p.rect(-50, -50, 100, 100)
-    # Return the path object.
+    p.fill = None
+    column_size = 0
+    left = 0
+    if self.columns > 1:
+        column_size = self.width / self.columns - 1
+        left = self.x - self.width / 2
+    row_size = 0
+    top = 0
+    if self.rows > 1:
+        row_size = self.height / self.rows - 1
+        top = self.y - self.height / 2
+    for ri in xrange(self.rows):
+        for ci in xrange(self.columns):
+            p.addPoint(left + ci * column_size, top + ri * row_size)
     return p]]></value>
-    </param>
-    <param name="_image">
-      <value>generator.png</value>
-    </param>
-  </node>
-  <node name="rect" prototype="builtins.root" x="180.99058103241902" y="29.113780304297478" type="nodebox.graphics.Grob">
-  <description>Creates rectangles and rounded rectangles.</description>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.rect(self.x, self.y, self.width, self.height)
-    p.fillColor = self.fill
-    if p.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p]]></value>
-    </param>
-    <param name="_image">
-      <value>rect.png</value>
-    </param>
-    <param name="x" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="y" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="width" type="float" display="hud">
-      <value>100.0</value>
-    </param>
-    <param name="height" type="float" display="hud">
-      <value>100.0</value>
-    </param>
-    <param name="fill" type="color" display="hud">
-      <value>#000000ff</value>
-    </param>
-    <param name="stroke" type="color" display="hud">
-      <value>#000000ff</value>
-    </param>
-    <param name="strokeWidth" type="float" display="hud">
-      <value>0.0</value>
-    </param>
-  </node>
-  <node name="filter" prototype="builtins.root" x="53.0" y="116.0" type="nodebox.graphics.Grob">
-  <description>Template for creating nodes that manipulate vector data.</description>
-    <port name="shape" type="nodebox.graphics.Grob"/>
-    <param name="_code">
-      <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
+        </param>
+        <param name="_image">
+            <value>grid.png</value>
+        </param>
+        <param name="width" type="float" help="">
+            <value>300.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>300.0</value>
+        </param>
+        <param name="rows" type="int">
+            <value>10</value>
+        </param>
+        <param name="columns" type="int">
+            <value>10</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
+    <node name="filter" prototype="builtins.root" x="53.0" y="116.0" type="nodebox.graphics.Grob">
+        <description>Template for creating nodes that manipulate vector data.</description>
+        <port name="shape" type="nodebox.graphics.Grob"/>
+        <param name="_code">
+            <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
 # Read the code in cook() and replace it with your own.
 from nodebox.graphics import Path
 
@@ -120,16 +64,74 @@ def cook(self):
     clone.rotate(45)
     # Return the transformed shape.
     return clone]]></value>
-    </param>
-    <param name="_image">
-      <value>filter.png</value>
-    </param>
-  </node>
-  <node name="copy" prototype="builtins.root" x="299.0" y="30.0" type="nodebox.graphics.Grob">
-  <description>Creates multiple copies of the input.</description>
-    <port name="shape" type="nodebox.graphics.Grob"/>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Group
+        </param>
+        <param name="_image">
+            <value>filter.png</value>
+        </param>
+    </node>
+    <node name="ellipse" prototype="builtins.root" x="182.16632080078125" y="115.0" type="nodebox.graphics.Grob">
+        <description>Creates ellipses and circles.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    p = Path()
+    p.ellipse(self.x, self.y, self.width, self.height)
+    p.fillColor = self.fill
+    if p.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p]]></value>
+        </param>
+        <param name="_image">
+            <value>ellipse.png</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="fill" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
+    <node name="resample" prototype="builtins.root" x="52.0" y="203.0" rendered="true" type="nodebox.graphics.Grob">
+        <description>Creates a new set of points based on the original shape.</description>
+        <port name="shape" type="nodebox.graphics.Grob"/>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    p = Path()
+    p.extend(self.shape.resample(self.points))
+    return p]]></value>
+        </param>
+        <param name="points" type="int" bounding="hard" min="1.0">
+            <value>25</value>
+        </param>
+    </node>
+    <node name="copy" prototype="builtins.root" x="299.0" y="30.0" type="nodebox.graphics.Grob">
+        <description>Creates multiple copies of the input.</description>
+        <port name="shape" type="nodebox.graphics.Grob"/>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Group, Transform
 
 def cook(self):
     if self.shape is None:
@@ -138,15 +140,16 @@ def cook(self):
     tx = ty = r = 0.0
     sx = sy = 1.0
     for i in range(self.copies):
-        newShape = self.shape.clone()
+        t = Transform()
         # Each letter of the order describes an operation.
         for op in self.order:
             if op == 't':
-                newShape.translate(tx, ty)
+                t.translate(tx, ty)
             elif op == 'r':
-                newShape.rotate(r)
+                t.rotate(r)
             elif op == 's':
-                newShape.scale(sx, sy)
+                t.scale(sx, sy)
+        newShape = t.map(self.shape)
         g.add(newShape)
         tx += self.tx
         ty += self.ty
@@ -154,36 +157,98 @@ def cook(self):
         sx += self.sx / 100.0
         sy += self.sy / 100.0
     return g]]></value>
-    </param>
-    <param name="_image">
-      <value>copy.png</value>
-    </param>
-    <param name="copies" type="int" display="hud">
-      <value>1</value>
-    </param>
-    <param name="order" type="string" widget="menu" display="hud">
-      <value>srt</value>
-      <menu key="srt">Scale Rot Trans</menu>
-      <menu key="str">Scale Trans Rot</menu>
-      <menu key="rst">Rot Scale Trans</menu>
-      <menu key="rts">Rot Trans Scale</menu>
-      <menu key="tsr">Trans Scale Rot</menu>
-      <menu key="trs">Trans Rot Scale</menu>
-    </param>
-    <param name="tx" type="float" label="Translate X" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="ty" type="float" label="Translate Y" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="r" type="float" label="Rotate" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="sx" type="float" label="Scale X" display="hud">
-      <value>0.0</value>
-    </param>
-    <param name="sy" type="float" label="Scale Y" display="hud">
-      <value>0.0</value>
-    </param>
-  </node>
+        </param>
+        <param name="_image">
+            <value>copy.png</value>
+        </param>
+        <param name="copies" type="int">
+            <value>1</value>
+        </param>
+        <param name="order" type="string" widget="menu">
+            <value>srt</value>
+            <menu key="srt">Scale Rot Trans</menu>
+            <menu key="str">Scale Trans Rot</menu>
+            <menu key="rst">Rot Scale Trans</menu>
+            <menu key="rts">Rot Trans Scale</menu>
+            <menu key="tsr">Trans Scale Rot</menu>
+            <menu key="trs">Trans Rot Scale</menu>
+        </param>
+        <param name="tx" type="float" label="Translate X">
+            <value>0.0</value>
+        </param>
+        <param name="ty" type="float" label="Translate Y">
+            <value>0.0</value>
+        </param>
+        <param name="r" type="float" label="Rotate">
+            <value>0.0</value>
+        </param>
+        <param name="sx" type="float" label="Scale X">
+            <value>0.0</value>
+        </param>
+        <param name="sy" type="float" label="Scale Y">
+            <value>0.0</value>
+        </param>
+    </node>
+    <node name="rect" prototype="builtins.root" x="180.99058103241902" y="29.113780304297478"
+          type="nodebox.graphics.Grob">
+        <description>Creates rectangles and rounded rectangles.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    p = Path()
+    p.rect(self.x, self.y, self.width, self.height)
+    p.fillColor = self.fill
+    if p.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p]]></value>
+        </param>
+        <param name="_image">
+            <value>rect.png</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="fill" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
+    <node name="generator" prototype="builtins.root" x="53.0" y="28.0" type="nodebox.graphics.Grob">
+        <description>Template for creating nodes that generator vector data.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
+# Read the code in cook and replace it with your own.
+from nodebox.graphics import Path
+
+def cook(self):
+    # Replace the code below.
+    # Create a new path object.
+    p = Path()
+    # Call the rect method to draw something within the path.
+    p.rect(-50, -50, 100, 100)
+    # Return the path object.
+    return p]]></value>
+        </param>
+        <param name="_image">
+            <value>generator.png</value>
+        </param>
+    </node>
 </ndbx>
