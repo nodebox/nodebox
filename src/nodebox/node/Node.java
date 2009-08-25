@@ -515,16 +515,15 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     public Point getPosition() {
-        return new Point((float)x, (float)y);
+        return new Point((float) x, (float) y);
     }
 
     public void setPosition(Point p) {
-        this.x = p.getX();
-        this.y = p.getY();
-        fireNodeAttributeChanged(Attribute.POSITION);
+        setPosition(p.getX(), p.getY());
     }
 
     public void setPosition(double x, double y) {
+        if (this.x == x && this.y == y) return;
         this.x = x;
         this.y = y;
         fireNodeAttributeChanged(Attribute.POSITION);
@@ -1789,11 +1788,13 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @param spaces the indentation.
      */
     public void toXml(StringBuffer xml, String spaces) {
+        String xPosition = String.format("%.0f", getX());
+        String yPosition = String.format("%.0f", getY());
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
         xml.append(" prototype=\"").append(getPrototype().getRelativeIdentifier(this)).append("\"");
-        xml.append(" x=\"").append(getX()).append("\"");
-        xml.append(" y=\"").append(getY()).append("\"");
+        xml.append(" x=\"").append(xPosition).append("\"");
+        xml.append(" y=\"").append(yPosition).append("\"");
         if (isRendered())
             xml.append(" rendered=\"true\"");
         // Add the output type if it is different from the prototype.

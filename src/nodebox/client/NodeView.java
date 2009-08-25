@@ -31,6 +31,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public static final Rectangle OUTPUT_BOUNDS = new Rectangle(60, 29, 10, 12);
     public static final int NODE_PORT_WIDTH = 10;
     public static final int NODE_PORT_HEIGHT = 10;
+    public static final int GRID_SIZE = 10;
 
 
     private static Image nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeRim;
@@ -58,6 +59,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private Border border;
 
     private boolean selected;
+    private transient double fakeX, fakeY;
 
     public NodeView(NetworkView networkView, Node node) {
         this.networkView = networkView;
@@ -85,7 +87,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         // Count the input ports and draw them.
         java.util.List<Port> inputs = node.getPorts();
         if (inputs.size() > 0) {
-            int portY = (NODE_FULL_SIZE - NODE_PORT_HEIGHT) / 2;
+            int portY = (NODE_FULL_SIZE - NODE_PORT_HEIGHT) / 2 - 1;
             fg.drawImage(nodeInPort, 0, portY, null);
         }
         // Draw the other layers.
@@ -130,7 +132,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(PROPERTY_TRANSFORM)) {
-            node.setPosition(new nodebox.graphics.Point(getOffset()));
+            node.setPosition(new nodebox.graphics.Point(super.getOffset()));
         }
     }
 
@@ -202,6 +204,27 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
     }
 
+    @Override
+    public Point2D getOffset() {
+        return new Point2D.Double(fakeX, fakeY);
+    }
+
+    @Override
+    public void setOffset(Point2D pt) {
+        setOffset(pt.getX(), pt.getY());
+    }
+
+    @Override
+    public void setOffset(double x, double y) {
+        fakeX = x;
+        fakeY = y;
+        super.setOffset(snap(fakeX), snap(fakeY));
+    }
+
+    private static double snap(double value) {
+        value = Math.round(value);
+        return Math.round(value / GRID_SIZE) * GRID_SIZE;
+    }
 
     private class NodeHandler extends PBasicInputEventHandler {
 
