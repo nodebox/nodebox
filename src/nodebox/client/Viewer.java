@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Grob;
+import nodebox.graphics.IGeometry;
 import nodebox.graphics.Path;
 import nodebox.handle.Handle;
 import nodebox.node.DirtyListener;
@@ -26,6 +27,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     private BufferedImage canvasImage;
     private boolean showHandle;
     private boolean showPoints;
+    private boolean showPointNumbers;
 
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
@@ -51,6 +53,15 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
     public void setShowPoints(boolean showPoints) {
         this.showPoints = showPoints;
+        repaint();
+    }
+
+    public boolean isShowPointNumbers() {
+        return showPointNumbers;
+    }
+
+    public void setShowPointNumbers(boolean showPointNumbers) {
+        this.showPointNumbers = showPointNumbers;
         repaint();
     }
 
@@ -117,13 +128,13 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         }
 
         // Draw the points.
-        if (showPoints && outputValue instanceof Path) {
+        if (showPoints && outputValue instanceof IGeometry) {
             // Create a canvas with a transparent background
             Path onCurves = new Path();
             Path offCurves = new Path();
             onCurves.setFill(new nodebox.graphics.Color(0f, 0f, 1f));
             offCurves.setFill(new nodebox.graphics.Color(1f, 0f, 0f));
-            Path p = (Path) outputValue;
+            IGeometry p = (IGeometry) outputValue;
             for (nodebox.graphics.Point pt : p.getPoints()) {
                 if (pt.isOnCurve()) {
                     onCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
@@ -133,6 +144,23 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             }
             onCurves.draw(g2);
             offCurves.draw(g2);
+        }
+        // Draw the points numbers.
+        if (showPointNumbers && outputValue instanceof IGeometry) {
+            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            g2.setColor(Color.BLUE);
+            // Create a canvas with a transparent background
+            IGeometry p = (IGeometry) outputValue;
+            int index = 0;
+            for (nodebox.graphics.Point pt : p.getPoints()) {
+                if (pt.isOnCurve()) {
+                    g2.setColor(Color.BLUE);
+                } else {
+                    g2.setColor(Color.RED);
+                }
+                g2.drawString(index + "", pt.x + 3, pt.y - 2);
+                index++;
+            }
         }
         // Draw center
         //g.setColor(new Color(240, 240, 240));
