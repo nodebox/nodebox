@@ -22,14 +22,16 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.*;
 
-public class Canvas extends OldGroup {
+public class Canvas extends AbstractTransformable {
 
     public static final float DEFAULT_WIDTH = 1000;
     public static final float DEFAULT_HEIGHT = 1000;
 
     private Color background = new Color(1, 1, 1);
     private float width, height;
+    private ArrayList<Grob> items = new ArrayList<Grob>();
 
     public Canvas() {
         this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
@@ -40,10 +42,12 @@ public class Canvas extends OldGroup {
     }
 
     public Canvas(Canvas other) {
-        super(other);
         this.width = other.width;
         this.height = other.height;
         this.background = other.background == null ? null : other.background.clone();
+        for (Grob g : other.items) {
+            add(g.clone());
+        }
     }
 
     public Color getBackground() {
@@ -75,7 +79,69 @@ public class Canvas extends OldGroup {
         this.height = height;
     }
 
-    @Override
+    //// Container operations ////
+
+    public void add(Grob g) {
+        items.add(g);
+    }
+
+    public int size() {
+        return items.size();
+    }
+
+    public void clear() {
+        items.clear();
+    }
+
+    public java.util.List<Grob> getItems() {
+        return items;
+    }
+
+    public Grob get(int index) {
+        try {
+            return items.get(index);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Create copies of all grobs of the given group and append them to myself.
+     *
+     * @param c the canvas whose elements are appended.
+     */
+    public void extend(Canvas c) {
+        for (Grob grob : c.getItems()) {
+            add(grob.clone());
+        }
+    }
+
+    public void transform(Transform t) {
+        for (Grob g : items) {
+            g.transform(t);
+        }
+    }
+
+    //// Geometry ////
+
+    /**
+     * Returns the bounding box of all elements in the group.
+     *
+     * @return a bounding box that contains all elements in the group.
+     */
+    public Rect getBounds() {
+        if (items.isEmpty()) return new Rect();
+        Rect r = null;
+        for (Grob g : items) {
+            if (r == null) {
+                r = g.getBounds();
+            } else {
+                r = r.united(g.getBounds());
+            }
+        }
+        return r;
+    }
+
     public Canvas clone() {
         return new Canvas(this);
     }
@@ -97,7 +163,6 @@ public class Canvas extends OldGroup {
         // TODO: Implement
     }
 
-    @Override
     public void draw(Graphics2D g) {
         float halfWidth = width / 2;
         float halfHeight = height / 2;
@@ -109,7 +174,9 @@ public class Canvas extends OldGroup {
         //int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
         //int clipheight = clip != null && height > clip.height ? clip.height : (int) width;
         //g.setClip(clip != null ? clip.x : 0, clip != null ? clip.y : 0, clipwidth, clipheight);
-        super.draw(g);
+        for (Grob grob : items) {
+            grob.draw(g);
+        }
     }
 
     public void save(File file) {

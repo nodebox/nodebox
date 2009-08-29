@@ -3,7 +3,7 @@ package nodebox.graphics;
 import java.util.ArrayList;
 import java.awt.*;
 
-public class Group implements IGeometry, Colorizable {
+public class Group extends AbstractGeometry implements Colorizable {
 
     private ArrayList<IGeometry> items;
     private Path currentPath;
@@ -186,6 +186,24 @@ public class Group implements IGeometry, Colorizable {
             }
         }
         return r;
+    }
+
+    //// Geometric operations ////
+
+    public Point[] makePoints() {
+        return new Point[0];
+    }
+
+    public Point[] makePoints(int amount) {
+        return new Point[0];
+    }
+
+    public IGeometry resampleByAmount(int amount, boolean perContour) {
+        return null;
+    }
+
+    public IGeometry resampleByLength(float segmentLength) {
+        return null;
     }
 
     //// Transformations ////

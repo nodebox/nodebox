@@ -15,6 +15,42 @@ public class Transform implements Cloneable {
         return t;
     }
 
+    public static Transform rotated(float degrees) {
+        Transform t = new Transform();
+        t.rotate(degrees);
+        return t;
+    }
+
+    public static Transform rotatedRadians(float radians) {
+        Transform t = new Transform();
+        t.rotateRadians(radians);
+        return t;
+    }
+
+    public static Transform scaled(float scale) {
+        Transform t = new Transform();
+        t.scale(scale);
+        return t;
+    }
+
+    public static Transform scaled(float sx, float sy) {
+        Transform t = new Transform();
+        t.scale(sx, sy);
+        return t;
+    }
+
+    public static Transform skewed(float skew) {
+        Transform t = new Transform();
+        t.skew(skew);
+        return t;
+    }
+
+    public static Transform skewed(float kx, float ky) {
+        Transform t = new Transform();
+        t.skew(kx, ky);
+        return t;
+    }
+
     public Transform() {
         affineTransform = new AffineTransform();
     }

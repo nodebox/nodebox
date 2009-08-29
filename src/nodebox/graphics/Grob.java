@@ -42,4 +42,17 @@ public interface Grob extends Cloneable {
 
     public Grob clone();
 
+    void translate(float tx, float ty);
+
+    void rotate(float degrees);
+
+    void rotateRadians(float radians);
+
+    void scale(float scale);
+
+    void scale(float sx, float sy);
+
+    void skew(float skew);
+
+    void skew(float kx, float ky);
 }

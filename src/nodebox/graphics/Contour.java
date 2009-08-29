@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 
-public class Contour implements IGeometry {
+public class Contour extends AbstractGeometry {
 
     private static final BasicStroke DEFAULT_STROKE = new BasicStroke(1f);
     private static final int SEGMENT_ACCURACY = 20;
@@ -158,8 +158,12 @@ public class Contour implements IGeometry {
             updateSegmentLengths();
 
         // Check if there is a path.
-        if (length <= 0)
+        if (points.isEmpty())
             throw new NodeBoxError("The path is empty.");
+
+        // If the path has no length, return the position of the first point.
+        if (length == 0)
+            return points.get(0).clone();
 
         // Since t is relative, convert it to the absolute length.
         float absT = t * length;
@@ -180,6 +184,11 @@ public class Contour implements IGeometry {
         // Find the point index for the segment.
         int pi = pointIndexForSegment(segnum + 1);
         Point pt1 = points.get(pi);
+        // If the path is closed, the point index is set to zero.
+        // Set the index to the last point to get the one-but-last point for pt0. 
+        if (pi == 0) {
+            pi = points.size();
+        }
 
         if (pt1.isLineTo()) {
             Point pt0 = points.get(pi - 1);
@@ -214,16 +223,27 @@ public class Contour implements IGeometry {
             }
             pointIndex++;
         }
-        return pointIndex < points.size() ? pointIndex : points.size() - 1;
+        int pointCount = points.size();
+        if (pointIndex < pointCount) {
+            return pointIndex;
+        } else if (closed) {
+            return 0;
+        } else {
+            return pointCount - 1;
+        }
     }
 
     //// Geometric operations ////
 
-    public Point[] resample() {
-        return resample(100);
-    }
-
-    public Point[] resample(int amount) {
+    /**
+     * Make new points along the contours of the existing path.
+     *
+     * @param amount the number of points to create.
+     * @return a list with "amount" points or zero points if the contour is empty.
+     */
+    public Point[] makePoints(int amount) {
+        // If the contour is empty, pointAt will fail. Return an empty array.
+        if (points.isEmpty()) return new Point[0];
         Point[] points = new Point[amount];
         float delta = 1;
         if (closed) {
@@ -243,6 +263,57 @@ public class Contour implements IGeometry {
             points[i] = pointAt(delta * i);
         }
         return points;
+    }
+
+    /**
+     * Generate new geometry with the given amount of points along the shape of the original geometry.
+     * <p/>
+     * The length of each segment is not given and will be determined based on the required number of points.
+     *
+     * @param amount     the number of points to generate.
+     * @param perContour this parameter is ignored since we're at the contour level.
+     * @return a new Contour with the given number of points.
+     */
+    public Contour resampleByAmount(int amount, boolean perContour) {
+        return resampleByAmount(amount);
+    }
+
+
+    /**
+     * Generate new geometry with the given amount of points along the shape of the original geometry.
+     * <p/>
+     * The length of each segment is not given and will be determined based on the required number of points.
+     *
+     * @param amount the number of points to generate.
+     * @return a new Contour with the given number of points.
+     */
+    public Contour resampleByAmount(int amount) {
+        Contour c = new Contour();
+        c.extend(makePoints(amount));
+        c.closed = closed;
+        return c;
+    }
+
+    /**
+     * Generate new geometry with points along the shape of the original geometry, spaced at the given length.
+     * <p/>
+     * The number of points is not given and will be determined by the system based on the segment length.
+     * Note that the last segment may be shorter than the given segment length.
+     *
+     * @param segmentLength the maximum length of each resampled segment.
+     * @return a new Contour with segments of the given length.
+     */
+    public Contour resampleByLength(float segmentLength) {
+        if (segmentLength <= 0.0000001f) {
+            throw new IllegalArgumentException("Segment length must be greater than zero.");
+        }
+        float contourLength = getLength();
+        int amount = (int) Math.ceil(contourLength / segmentLength);
+        if (closed) {
+            return resampleByAmount(amount);
+        } else {
+            return resampleByAmount(amount + 1);
+        }
     }
 
     public void flatten() {
@@ -274,6 +345,7 @@ public class Contour implements IGeometry {
     }
 
     /* package private */ void _extendPath(GeneralPath gp) {
+        if (points.size() == 0) return;
         Point pt = points.get(0);
         Point ctrl1, ctrl2;
         gp.moveTo(pt.x, pt.y);

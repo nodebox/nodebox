@@ -48,6 +48,10 @@ public abstract class AbstractGrob implements Grob {
         transform.rotate(degrees);
     }
 
+    public void rotateRadians(float radians) {
+        transform.rotateRadians(radians);
+    }
+
     public void scale(float scale) {
         transform.scale(scale);
     }

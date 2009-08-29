@@ -7,7 +7,7 @@ import java.util.ArrayList;
 /**
  * Base class for all geometric (vector) data.
  */
-public class Path implements IGeometry, Colorizable {
+public class Path extends AbstractGeometry implements Colorizable {
 
     // Simulate a quarter of a circle.
     private static final float ONE_MINUS_QUARTER = 1.0f - 0.552f;
@@ -33,13 +33,22 @@ public class Path implements IGeometry, Colorizable {
     }
 
     public Path(Path other) {
+        this(other, true);
+    }
+
+    public Path(Path other, boolean cloneContours) {
         fillColor = other.fillColor == null ? null : other.fillColor.clone();
         strokeColor = other.strokeColor == null ? null : other.strokeColor.clone();
         strokeWidth = other.strokeWidth;
-        contours = new ArrayList<Contour>(other.contours.size());
-        extend(other);
-        // Set the current contour to the last contour.
-        currentContour = contours.get(contours.size() - 1);
+        if (cloneContours) {
+            contours = new ArrayList<Contour>(other.contours.size());
+            extend(other);
+            // Set the current contour to the last contour.
+            currentContour = contours.get(contours.size() - 1);
+        } else {
+            contours = new ArrayList<Contour>();
+            currentContour = null;
+        }
     }
 
     public Path(Shape s) {
@@ -116,7 +125,7 @@ public class Path implements IGeometry, Colorizable {
     //// Primitives ////
 
     public void moveto(float x, float y) {
-        // Close the current path.
+        // Stop using the current contour. addPoint will automatically create a new contour.
         currentContour = null;
         addPoint(x, y);
     }
@@ -141,6 +150,15 @@ public class Path implements IGeometry, Colorizable {
         currentContour = null;
         pathDirty = true;
         lengthDirty = true;
+    }
+
+    /**
+     * Start a new contour without closing the current contour first.
+     * <p/>
+     * You can call this method even when there is no current contour.
+     */
+    public void newContour() {
+        currentContour = null;
     }
 
     public void addPoint(Point pt) {
@@ -338,18 +356,6 @@ public class Path implements IGeometry, Colorizable {
                 throw new AssertionError("Unknown path command " + cmd);
             }
             pi.next();
-        }
-    }
-
-    public void extend(java.util.List<Point> points) {
-        for (Point pt : points) {
-            addPoint(pt.clone());
-        }
-    }
-
-    public void extend(Point[] points) {
-        for (Point pt : points) {
-            addPoint(pt.clone());
         }
     }
 
@@ -586,43 +592,84 @@ public class Path implements IGeometry, Colorizable {
         return currentContour.pointAt(resT);
     }
 
-    public Point[] resample() {
-        return resample(100);
+    //// Geometric operations ////
+
+    public Point[] makePoints(int amount) {
+        return makePoints(amount, false);
     }
 
-    public Point[] resample(int amount) {
-        Point[] points = new Point[amount];
-        float delta = 1;
-        // TODO: Check each contour to see if it's open or not.
-        boolean closed = true;
-        if (closed) {
-            if (amount > 0) {
-                delta = 1f / amount;
+    /**
+     * Make new points along the contours of the existing path.
+     * <p/>
+     * Points are evenly distributed according to the length of each contour.
+     *
+     * @param amount     the number of points to create.
+     * @param perContour if true, the amount of points is generated per contour, otherwise the amount
+     *                   is for the entire path.
+     * @return a list of Points.
+     */
+    public Point[] makePoints(int amount, boolean perContour) {
+        if (perContour) {
+            Point[] points = new Point[amount * contours.size()];
+            int index = 0;
+            for (Contour c : contours) {
+                Point[] pointsFromContour = c.makePoints(amount);
+                System.arraycopy(pointsFromContour, 0, points, index, amount);
+                index += amount;
             }
+            return points;
         } else {
-            // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
-            // If I wouldn't use amount - 1, I fall one point short of the end.
-            // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
-            // if amount = 2, I want point at t 0.0 and t 1.0
-            if (amount > 2) {
-                delta = 1f / (amount - 1f);
+            // Distribute all points evenly along the combined length of the contours.
+            float delta = 1;
+            Contour lastContour = contours.get(contours.size() - 1);
+            boolean closed = lastContour.isClosed();
+            if (closed) {
+                if (amount > 0) {
+                    delta = 1f / amount;
+                }
+            } else {
+                // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
+                // If I wouldn't use amount - 1, I fall one point short of the end.
+                // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
+                // if amount = 2, I want point at t 0.0 and t 1.0
+                if (amount > 2) {
+                    delta = 1f / (amount - 1f);
+                }
             }
+            Point[] points = new Point[amount];
+            for (int i = 0; i < amount; i++) {
+                points[i] = pointAt(delta * i);
+            }
+            return points;
         }
-        for (int i = 0; i < amount; i++) {
-            points[i] = pointAt(delta * i);
+    }
+
+    public IGeometry resampleByAmount(int amount, boolean perContour) {
+        if (perContour) {
+            Path p = cloneAndClear();
+            for (Contour c : contours) {
+                p.add(c.resampleByAmount(amount));
+            }
+            return p;
+        } else {
+            Path p = cloneAndClear();
+            float delta = 1f / amount;
+            for (int i = 0; i < amount; i++) {
+                p.addPoint(pointAt(delta * i));
+            }
+            return p;
         }
-        return points;
+    }
+
+    public IGeometry resampleByLength(float segmentLength) {
+        Path p = cloneAndClear();
+        for (Contour c : contours) {
+            p.add(c.resampleByLength(segmentLength));
+        }
+        return p;
     }
 
     //// Geometric queries ////
-
-//    public static Path load(InputStream is) {
-//        throw new UnsupportedOperationException("Not implemented.");
-//    }
-//
-//    public void save(OutputStream os) {
-//        throw new UnsupportedOperationException("Not implemented.");
-//    }
 
     public boolean contains(Point p) {
         return getGeneralPath().contains(p.getPoint2D());
@@ -761,5 +808,9 @@ public class Path implements IGeometry, Colorizable {
 
     public Path clone() {
         return new Path(this);
+    }
+
+    public Path cloneAndClear() {
+        return new Path(this, false);
     }
 }

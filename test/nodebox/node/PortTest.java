@@ -35,49 +35,36 @@ public class PortTest extends NodeTestCase {
         Node n = numberNode.newInstance(testLibrary, "number1");
         Port ptGrob = n.addPort("grob", Grob.class);
         Port ptCanvas = n.addPort("canvas", Canvas.class);
-        Port ptGroup = n.addPort("group", OldGroup.class);
         Port ptImage = n.addPort("image", Image.class);
         Port ptPath = n.addPort("path", Path.class);
         Port ptText = n.addPort("text", Text.class);
 
         Canvas canvas = new Canvas();
-        OldGroup group = new OldGroup();
         Image image = new Image();
         Path path = new Path();
         Text text = new Text("", 0, 0);
 
         assertValidValue(ptGrob, canvas);
-        assertValidValue(ptGrob, group);
         assertValidValue(ptGrob, image);
         assertValidValue(ptGrob, path);
         assertValidValue(ptGrob, text);
 
         assertValidValue(ptCanvas, canvas);
-        assertInvalidValue(ptCanvas, group);
         assertInvalidValue(ptCanvas, image);
         assertInvalidValue(ptCanvas, path);
         assertInvalidValue(ptCanvas, text);
 
-        assertValidValue(ptGroup, canvas);
-        assertValidValue(ptGroup, group);
-        assertInvalidValue(ptGroup, image);
-        assertInvalidValue(ptGroup, path);
-        assertInvalidValue(ptGroup, text);
-
         assertInvalidValue(ptImage, canvas);
-        assertInvalidValue(ptImage, group);
         assertValidValue(ptImage, image);
         assertInvalidValue(ptImage, path);
         assertInvalidValue(ptImage, text);
 
         assertInvalidValue(ptPath, canvas);
-        assertInvalidValue(ptPath, group);
         assertInvalidValue(ptPath, image);
         assertValidValue(ptPath, path);
         assertInvalidValue(ptPath, text);
 
         assertInvalidValue(ptText, canvas);
-        assertInvalidValue(ptText, group);
         assertInvalidValue(ptText, image);
         assertInvalidValue(ptText, path);
         assertValidValue(ptText, text);
