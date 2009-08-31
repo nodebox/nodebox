@@ -150,13 +150,13 @@ public class Transform implements Cloneable {
     public void map(java.util.List<Point> points) {
         float[] coords = new float[points.size() * 2];
         int i = 0;
-        for(Point pt: points) {
+        for (Point pt : points) {
             coords[i++] = pt.x;
             coords[i++] = pt.y;
         }
         affineTransform.transform(coords, 0, coords, 0, points.size());
         i = 0;
-        for(Point pt: points) {
+        for (Point pt : points) {
             pt.x = coords[i++];
             pt.y = coords[i++];
         }

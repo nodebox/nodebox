@@ -127,7 +127,7 @@ public class Image extends AbstractGrob {
     public Size getSize() {
         return new Size(image.getWidth(), image.getHeight());
     }
-    
+
     //// Transformations ////
 
     public Transform getCenteredTransform() {

@@ -19,8 +19,6 @@
 package nodebox.graphics;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
 
 public interface Grob extends Cloneable {
 

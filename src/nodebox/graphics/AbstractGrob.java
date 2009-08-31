@@ -1,7 +1,7 @@
 package nodebox.graphics;
 
-import java.awt.geom.AffineTransform;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 
 public abstract class AbstractGrob implements Grob {
 
@@ -67,9 +67,9 @@ public abstract class AbstractGrob implements Grob {
     public void skew(float kx, float ky) {
         transform.skew(kx, ky);
     }
-    
+
     //// Graphics context ////
-    
+
     protected void saveTransform(Graphics2D g) {
         assert (savedTransform == null);
         savedTransform = new AffineTransform(g.getTransform());
@@ -82,8 +82,8 @@ public abstract class AbstractGrob implements Grob {
     }
 
     public void inheritFromContext(GraphicsContext ctx) {
-    }    
-    
+    }
+
     //// Object methods ////
 
     public abstract Grob clone();
