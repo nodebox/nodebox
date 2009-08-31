@@ -29,7 +29,7 @@ public class PathTest extends GraphicsTestCase {
 //        Text t = new Text("A", 0, 20);
 //        Path p = t.getPath();
 //        // The letter "A" has 2 contours: the outer shape and the "hole".
-//        assertEquals(2, p.getContours().length);
+//        assertEquals(2, p.getContours().size());
 //    }
 
 //    public void testBooleanOperations() {
@@ -104,20 +104,20 @@ public class PathTest extends GraphicsTestCase {
     }
 
     public void testPointAtMultipleContours() {
+        // Create two contours that look like a single line.
         Path p = new Path();
-        float x1 = 0;
-        float y1 = 0;
-        float x2 = 200;
-        float y2 = 0;
-        addRect(p, x1, y1, SIDE, SIDE);
+        p.addPoint(0, 0);
+        p.addPoint(50, 0);
         p.newContour();
-        addRect(p, x2, y2, SIDE, SIDE);
+        p.addPoint(50, 0);
+        p.addPoint(100, 0);
         assertEquals(2, p.getContours().size());
-        assertEquals(8, p.getPointCount());
-        assertPointEquals(x1, y1, p.pointAt(0f));
-        // At the beginning of the second contour.
-        assertPointEquals(x2, y2, p.pointAt(1f / 8f));
-        assertPointEquals(x2, y2 + SIDE, p.pointAt(1f));
+        assertEquals(4, p.getPointCount());
+        assertEquals(100f, p.getLength());
+        assertPointEquals(0, 0, p.pointAt(0f));
+        assertPointEquals(25, 0, p.pointAt(0.25f));
+        assertPointEquals(50, 0, p.pointAt(0.5f));
+        assertPointEquals(100, 0, p.pointAt(1.0f));
     }
 
     public void testContour() {
@@ -145,38 +145,24 @@ public class PathTest extends GraphicsTestCase {
     }
 
     public void testMultipleContours() {
-        final float SIDE = 50;
-        final float x2 = 200;
-        final float y2 = 300;
         Point[] points;
+        // Create a path with separate contours.
+        // Each contour describes a side of a rectangle.
         Path p1 = new Path();
-        // Build the path using separate contours.
-        // You can also build two contours using moveto/lineto/lineto/lineto/moveto/...
-        Contour c1 = new Contour();
-        Contour c2 = new Contour();
-        addRect(c1, 0, 0, SIDE, SIDE);
-        addRect(c2, x2, y2, SIDE, SIDE);
-        p1.add(c1);
-        p1.add(c2);
-        assertEquals(SIDE * 6, p1.getLength());
-        points = p1.makePoints(14);
+        p1.addPoint(0, 0);
+        p1.addPoint(SIDE, 0);
+        p1.newContour();
+        p1.addPoint(SIDE, 0);
+        p1.addPoint(SIDE, SIDE);
+        p1.newContour();
+        p1.addPoint(SIDE, SIDE);
+        p1.addPoint(0, SIDE);
+        assertEquals(SIDE * 3, p1.getLength());
+        points = p1.makePoints(4);
         assertPointEquals(0, 0, points[0]);
-        assertPointEquals(SIDE / 2, 0, points[1]);
-        assertPointEquals(SIDE, 0, points[2]);
-        assertPointEquals(0, SIDE, points[6]);
-        assertPointEquals(x2, y2, points[7]);
-
-        // Create a path with two closed contours.
-        Path p2 = new Path();
-        c1 = new Contour();
-        c2 = new Contour();
-        addRect(c1, 0, 0, SIDE, SIDE);
-        addRect(c2, x2, y2, SIDE, SIDE);
-        c1.close();
-        c2.close();
-        p2.add(c1);
-        p2.add(c2);
-        assertEquals(SIDE * 8, p2.getLength());
+        assertPointEquals(SIDE, 0, points[1]);
+        assertPointEquals(SIDE, SIDE, points[2]);
+        assertPointEquals(0, SIDE, points[3]);
     }
 
     private Path cornerRect(float x, float y, float width, float height) {
