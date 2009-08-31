@@ -111,4 +111,35 @@ public class GroupTest extends GraphicsTestCase {
         assertPointEquals(75, 0, resampledPoints.get(3));
         assertPointEquals(100, 0, resampledPoints.get(4));
     }
+
+    /**
+     * Group uses a path length cache to speed up pointAt, makePoints and resample operations.
+     * Check if the cache is properly invalidated.
+     */
+    public void testCacheInvalidation() {
+        Group g = new Group();
+        assertEquals(0f, g.getLength());
+        Path p1 = new Path();
+        p1.line(0, 0, 50, 0);
+        g.add(p1);
+        assertEquals(50f, g.getLength());
+        // Change the Path after it was added to the Group.
+        p1.line(50, 0, 75, 0);
+        // This change is not detected by the Group, and thus the length is not updated.
+        assertEquals(50f, g.getLength());
+        // Manually invalidate the group.
+        g.invalidate();
+        // This time, the length is correct.
+        assertEquals(75f, g.getLength());
+        // Manually change the position of the last point.
+        Point pt = g.getPoints().get(3);
+        pt.x = 100;
+        // This change is not detected by the Path, and thus the length is not updated.
+        assertEquals(75f, g.getLength());
+        // Manually invalidate the path.
+        g.invalidate();
+        // This time, the length is correct.
+        assertEquals(100f, g.getLength());
+    }
+
 }

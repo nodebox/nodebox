@@ -50,6 +50,7 @@ public class Group extends AbstractGeometry implements Colorizable {
     public void add(Path path) {
         paths.add(path);
         currentPath = path;
+        invalidate(false);
     }
 
     public int size() {
@@ -69,6 +70,7 @@ public class Group extends AbstractGeometry implements Colorizable {
     public void clear() {
         paths.clear();
         currentPath = null;
+        invalidate(false);
     }
 
     /**
@@ -80,6 +82,7 @@ public class Group extends AbstractGeometry implements Colorizable {
         for (Path path : g.paths) {
             paths.add(path.clone());
         }
+        invalidate(false);
     }
 
     /**
@@ -153,17 +156,44 @@ public class Group extends AbstractGeometry implements Colorizable {
     public void addPoint(Point pt) {
         ensureCurrentPath();
         currentPath.addPoint(pt);
+        invalidate(false);
     }
 
     public void addPoint(float x, float y) {
         ensureCurrentPath();
         currentPath.addPoint(x, y);
+        invalidate(false);
     }
 
     private void ensureCurrentPath() {
         if (currentPath != null) return;
         currentPath = new Path();
         add(currentPath);
+    }
+
+    /**
+     * Invalidates the cache. Querying the path length or asking for getGeneralPath will return an up-to-date result.
+     * <p/>
+     * This operation recursively invalidates all underlying geometry.
+     * <p/>
+     * Cache invalidation happens automatically when using the Path methods, such as rect/ellipse,
+     * or container operations such as add/extend/clear. You should invalidate the cache when manually changing the
+     * point positions or adding points to the underlying contours.
+     * <p/>
+     * Invalidating the cache is a lightweight operation; it doesn't recalculate anything. Only when querying the
+     * new length will the values be recalculated.
+     */
+    public void invalidate() {
+        invalidate(true);
+    }
+
+    private void invalidate(boolean recursive) {
+        lengthDirty = true;
+        if (recursive) {
+            for (Path path : paths) {
+                path.invalidate();
+            }
+        }
     }
 
     //// Geometric queries ////
@@ -297,9 +327,10 @@ public class Group extends AbstractGeometry implements Colorizable {
     //// Transformations ////
 
     public void transform(Transform t) {
-        for (Grob grob : paths) {
-            grob.transform(t);
+        for (Path path : paths) {
+            path.transform(t);
         }
+        invalidate(true);
     }
 
     //// Drawing operations ////

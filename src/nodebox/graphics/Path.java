@@ -148,8 +148,7 @@ public class Path extends AbstractGeometry implements Colorizable {
         if (currentContour != null)
             currentContour.close();
         currentContour = null;
-        pathDirty = true;
-        lengthDirty = true;
+        invalidate(false);
     }
 
     /**
@@ -164,15 +163,39 @@ public class Path extends AbstractGeometry implements Colorizable {
     public void addPoint(Point pt) {
         ensureCurrentContour();
         currentContour.addPoint(pt);
-        pathDirty = true;
-        lengthDirty = true;
+        invalidate(false);
     }
 
     public void addPoint(float x, float y) {
         ensureCurrentContour();
         currentContour.addPoint(x, y);
+        invalidate(false);
+    }
+
+    /**
+     * Invalidates the cache. Querying the path length or asking for getGeneralPath will return an up-to-date result.
+     * <p/>
+     * This operation recursively invalidates all underlying geometry.
+     * <p/>
+     * Cache invalidation happens automatically when using the Path methods, such as rect/ellipse,
+     * or container operations such as add/extend/clear. You should invalidate the cache when manually changing the
+     * point positions or adding points to the underlying contours.
+     * <p/>
+     * Invalidating the cache is a lightweight operation; it doesn't recalculate anything. Only when querying the
+     * new length will the values be recalculated.
+     */
+    public void invalidate() {
+        invalidate(true);
+    }
+
+    private void invalidate(boolean recursive) {
         pathDirty = true;
         lengthDirty = true;
+        if (recursive) {
+            for (Contour c : contours) {
+                c.invalidate();
+            }
+        }
     }
 
     /**
@@ -182,8 +205,6 @@ public class Path extends AbstractGeometry implements Colorizable {
         if (currentContour != null) return;
         currentContour = new Contour();
         add(currentContour);
-        pathDirty = true;
-        lengthDirty = true;
     }
 
     //// Basic shapes ////
@@ -304,6 +325,7 @@ public class Path extends AbstractGeometry implements Colorizable {
     public void add(Contour c) {
         contours.add(c);
         currentContour = c;
+        invalidate(false);
     }
 
     public int size() {
@@ -317,12 +339,14 @@ public class Path extends AbstractGeometry implements Colorizable {
     public void clear() {
         contours.clear();
         currentContour = null;
+        invalidate(false);
     }
 
     public void extend(Path p) {
         for (Contour c : p.contours) {
             contours.add(c.clone());
         }
+        invalidate(false);
     }
 
     public void extend(Shape s) {
@@ -361,6 +385,7 @@ public class Path extends AbstractGeometry implements Colorizable {
             }
             pi.next();
         }
+        invalidate(false);
     }
 
     /**
@@ -760,6 +785,7 @@ public class Path extends AbstractGeometry implements Colorizable {
 
     public void transform(Transform t) {
         t.map(getPoints());
+        invalidate(true);
     }
 
     //// Path math ////
@@ -814,4 +840,5 @@ public class Path extends AbstractGeometry implements Colorizable {
     public Path cloneAndClear() {
         return new Path(this, false);
     }
+
 }

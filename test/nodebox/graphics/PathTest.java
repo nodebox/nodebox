@@ -193,4 +193,28 @@ public class PathTest extends GraphicsTestCase {
         assertEquals(p2.getBounds(), p1.intersected(p2).getBounds());
     }
 
+    /**
+     * Path uses a contour length cache to speed up pointAt, makePoints and resample operations.
+     * Check if the cache is properly invalidated.
+     */
+    public void testCacheInvalidation() {
+        Path p = new Path();
+        assertEquals(0f, p.getLength());
+        p.line(0, 0, 50, 0);
+        assertEquals(50f, p.getLength());
+        Contour c = new Contour();
+        c.addPoint(50, 0);
+        c.addPoint(75, 0);
+        p.add(c);
+        assertEquals(75f, p.getLength());
+        // Manually change the position of the last point.
+        Point pt = c.getPoints().get(1);
+        pt.x = 100;
+        // This change is not detected by the Path, and thus the length is not updated.
+        assertEquals(75f, p.getLength());
+        // Manually invalidate the path.
+        p.invalidate();
+        // This time, the length is correct.
+        assertEquals(100f, p.getLength());
+    }
 }

@@ -39,12 +39,12 @@ public class Contour extends AbstractGeometry {
 
     public void addPoint(Point pt) {
         points.add(pt.clone());
-        markDirty();
+        invalidate();
     }
 
     public void addPoint(float x, float y) {
         points.add(new Point(x, y));
-        markDirty();
+        invalidate();
     }
 
     //// Close ////
@@ -55,12 +55,12 @@ public class Contour extends AbstractGeometry {
 
     public void setClosed(boolean closed) {
         this.closed = closed;
-        markDirty();
+        invalidate();
     }
 
     public void close() {
         this.closed = true;
-        markDirty();
+        invalidate();
     }
 
     //// Geometric queries ////
@@ -85,7 +85,17 @@ public class Contour extends AbstractGeometry {
         return new Rect(minX, minY, maxX - minX, maxY - minY);
     }
 
-    private void markDirty() {
+    /**
+     * Invalidates the cache. Querying the contour length or calling makePoints/resample will an up-to-date result.
+     *
+     * Cache invalidation happens automatically when using the Contour methods, such as addPoint/close. You should
+     * invalidate the cache only after manually changing the point positions.
+     *
+     * Invalidating the cache is a lightweight operation; it doesn't recalculate anything. Only when querying the
+     * new length will the values be recalculated.
+     */
+
+    public void invalidate() {
         segmentLengths = null;
     }
 
@@ -379,7 +389,7 @@ public class Contour extends AbstractGeometry {
 
     public void transform(Transform t) {
         t.map(getPoints());
-        markDirty();
+        invalidate();
     }
 
     //// Conversions ////

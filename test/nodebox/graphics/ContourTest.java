@@ -196,6 +196,26 @@ public class ContourTest extends GraphicsTestCase {
         assertRectPoints(r, 0, 0, SIDE, SIDE);
     }
 
+    /**
+     * Contour uses a length cache to speed up pointAt, makePoints and resample operations.
+     * Check if the cache is properly invalidated.
+     */
+    public void testCacheInvalidation() {
+        Contour c = new Contour();
+        c.addPoint(0, 0);
+        c.addPoint(50, 0);
+        assertEquals(50f, c.getLength());
+        // Manually change the last point.
+        Point lastPoint = c.getPoints().get(1);
+        lastPoint.x = 100;
+        // This change is not detected by the contour and thus the length is not updated.
+        assertEquals(50f, c.getLength());
+        // Manually invalidate the contour.
+        c.invalidate();
+        // This time, the length is correct.
+        assertEquals(100f, c.getLength());
+    }
+
     private void assertRectPoints(IGeometry g, float x, float y, float width, float height) {
         assertEquals(4, g.getPointCount());
         List<Point> points = g.getPoints();
