@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import java.util.List;
+
 /**
  * Use cases for geometric operations.
  */
@@ -148,21 +150,28 @@ public class PathTest extends GraphicsTestCase {
         Point[] points;
         // Create a path with separate contours.
         // Each contour describes a side of a rectangle.
-        Path p1 = new Path();
-        p1.addPoint(0, 0);
-        p1.addPoint(SIDE, 0);
-        p1.newContour();
-        p1.addPoint(SIDE, 0);
-        p1.addPoint(SIDE, SIDE);
-        p1.newContour();
-        p1.addPoint(SIDE, SIDE);
-        p1.addPoint(0, SIDE);
-        assertEquals(SIDE * 3, p1.getLength());
-        points = p1.makePoints(4);
+        Path path = new Path();
+        path.addPoint(0, 0);
+        path.addPoint(SIDE, 0);
+        path.newContour();
+        path.addPoint(SIDE, 0);
+        path.addPoint(SIDE, SIDE);
+        path.newContour();
+        path.addPoint(SIDE, SIDE);
+        path.addPoint(0, SIDE);
+        assertEquals(SIDE * 3, path.getLength());
+        points = path.makePoints(4);
         assertPointEquals(0, 0, points[0]);
         assertPointEquals(SIDE, 0, points[1]);
         assertPointEquals(SIDE, SIDE, points[2]);
         assertPointEquals(0, SIDE, points[3]);
+        // Get the same result by resampling the path.
+        Path resampled = path.resampleByAmount(4, false);
+        List<Point> resampledPoints = resampled.getPoints();
+        assertPointEquals(0, 0, resampledPoints.get(0));
+        assertPointEquals(SIDE, 0, resampledPoints.get(1));
+        assertPointEquals(SIDE, SIDE, resampledPoints.get(2));
+        assertPointEquals(0, SIDE, resampledPoints.get(3));
     }
 
     private Path cornerRect(float x, float y, float width, float height) {

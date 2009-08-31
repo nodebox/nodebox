@@ -1,22 +1,26 @@
 package nodebox.graphics;
 
-import java.util.ArrayList;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Group extends AbstractGeometry implements Colorizable {
 
-    private ArrayList<IGeometry> items;
+    private ArrayList<Path> paths;
     private Path currentPath;
+    private boolean lengthDirty = true;
+    private ArrayList<Float> pathLengths;
+    private float groupLength;
 
     public Group() {
-        items = new ArrayList<IGeometry>();
+        paths = new ArrayList<Path>();
         currentPath = null;
     }
 
     public Group(Group other) {
-        items = new ArrayList<IGeometry>(other.items.size());
-        for (IGeometry item : other.items) {
-            items.add(item.clone());
+        paths = new ArrayList<Path>(other.paths.size());
+        for (Path path : other.paths) {
+            paths.add(path.clone());
         }
         // TODO: We might want to refer to the latest Path object in the items.
         currentPath = null;
@@ -32,26 +36,7 @@ public class Group extends AbstractGeometry implements Colorizable {
      *
      * @return a list of primitives
      */
-    public Path[] getPaths() {
-        if (items == null) return new Path[0];
-        Path[] paths = new Path[0];
-        int pathCount = 0;
-        for (IGeometry item : items) {
-            if (item instanceof Group) {
-                Path[] groupPaths = ((Group) item).getPaths();
-                Path[] newPaths = new Path[paths.length + groupPaths.length];
-                System.arraycopy(paths, 0, newPaths, 0, paths.length);
-                System.arraycopy(groupPaths, 0, newPaths, paths.length, groupPaths.length);
-                paths = newPaths;
-            } else if (item instanceof Path) {
-                if (pathCount + 1 > paths.length) {
-                    Path[] newPaths = new Path[paths.length + 1];
-                    System.arraycopy(paths, 0, newPaths, 0, paths.length);
-                    paths = newPaths;
-                }
-                paths[pathCount++] = (Path) item;
-            }
-        }
+    public java.util.List<Path> getPaths() {
         return paths;
     }
 
@@ -60,46 +45,63 @@ public class Group extends AbstractGeometry implements Colorizable {
      * <p/>
      * Added geometry is not cloned.
      *
-     * @param g the geometry to add.
+     * @param path the geometry to add.
      */
-    public void add(IGeometry g) {
-        items.add(g);
-        if (g instanceof Path) {
-            currentPath = (Path) g;
-        }
+    public void add(Path path) {
+        paths.add(path);
+        currentPath = path;
     }
 
     public int size() {
-        return items.size();
-    }
-
-    public void clear() {
-        items.clear();
-        currentPath = null;
-    }
-
-    public java.util.List<IGeometry> getItems() {
-        return items;
+        return paths.size();
     }
 
     /**
-     * Create copies of all grobs of the given group and append them to myself.
+     * Check if the group contains any paths.
+     * This method does not check if the paths themselves are empty.
      *
-     * @param g the group whose elements are appended.
+     * @return true if the group contains no paths.
+     */
+    public boolean isEmpty() {
+        return paths.isEmpty();
+    }
+
+    public void clear() {
+        paths.clear();
+        currentPath = null;
+    }
+
+    /**
+     * Create copies of all paths in the given group and append them to myself.
+     *
+     * @param g the group whose paths are appended.
      */
     public void extend(Group g) {
-        for (IGeometry item : g.items) {
-            items.add(item.clone());
+        for (Path path : g.paths) {
+            paths.add(path.clone());
         }
+    }
+
+    /**
+     * Check if the last path in this group is closed.
+     * <p/>
+     * A group (or path) can't technically be called "closed", only specific contours in the path can.
+     * This method provides a reasonable heuristic for a "closed" group by checking the closed state
+     * of the last contour on the last path. It returns false if this path contains no contours.
+     *
+     * @return true if the last contour on the last path is closed.
+     */
+    public boolean isClosed() {
+        if (isEmpty()) return false;
+        Path lastPath = paths.get(paths.size() - 1);
+        return lastPath.isClosed();
     }
 
     //// Color operations ////
 
     public void setFillColor(Color fillColor) {
-        for (IGeometry item : items) {
-            if (item instanceof Colorizable) {
-                ((Colorizable) item).setFillColor(fillColor);
-            }
+        for (Path path : paths) {
+            path.setFillColor(fillColor);
         }
     }
 
@@ -108,10 +110,8 @@ public class Group extends AbstractGeometry implements Colorizable {
     }
 
     public void setStrokeColor(Color strokeColor) {
-        for (IGeometry item : items) {
-            if (item instanceof Colorizable) {
-                ((Colorizable) item).setStrokeColor(strokeColor);
-            }
+        for (Path path : paths) {
+            path.setStrokeColor(strokeColor);
         }
     }
 
@@ -120,10 +120,8 @@ public class Group extends AbstractGeometry implements Colorizable {
     }
 
     public void setStrokeWidth(float strokeWidth) {
-        for (IGeometry item : items) {
-            if (item instanceof Colorizable) {
-                ((Colorizable) item).setStrokeWidth(strokeWidth);
-            }
+        for (Path path : paths) {
+            path.setStrokeWidth(strokeWidth);
         }
     }
 
@@ -131,8 +129,8 @@ public class Group extends AbstractGeometry implements Colorizable {
 
     public int getPointCount() {
         int pointCount = 0;
-        for (IGeometry item : items) {
-            pointCount += item.getPointCount();
+        for (Path path : paths) {
+            pointCount += path.getPointCount();
         }
         return pointCount;
     }
@@ -146,8 +144,8 @@ public class Group extends AbstractGeometry implements Colorizable {
      */
     public java.util.List<Point> getPoints() {
         ArrayList<Point> points = new ArrayList<Point>();
-        for (IGeometry item : items) {
-            points.addAll(item.getPoints());
+        for (Path path : paths) {
+            points.addAll(path.getPoints());
         }
         return points;
     }
@@ -176,9 +174,9 @@ public class Group extends AbstractGeometry implements Colorizable {
      * @return a bounding box that contains all elements in the group.
      */
     public Rect getBounds() {
-        if (items == null) return new Rect();
+        if (isEmpty()) return new Rect();
         Rect r = null;
-        for (Grob g : items) {
+        for (Grob g : paths) {
             if (r == null) {
                 r = g.getBounds();
             } else {
@@ -188,28 +186,118 @@ public class Group extends AbstractGeometry implements Colorizable {
         return r;
     }
 
+    //// Geometric math ////
+
+    /**
+     * Calculate the length of the path. This is not the number of segments, but rather the sum of all segment lengths.
+     *
+     * @return the length of the path.
+     */
+    public float getLength() {
+        if (lengthDirty) {
+            updatePathLengths();
+        }
+        return groupLength;
+    }
+
+    private void updatePathLengths() {
+        pathLengths = new ArrayList<Float>(paths.size());
+        groupLength = 0;
+        float length;
+        for (Path p : paths) {
+            length = p.getLength();
+            pathLengths.add(length);
+            groupLength += length;
+        }
+        lengthDirty = false;
+    }
+
+    /**
+     * Returns coordinates for point at t on the group.
+     * <p/>
+     * Gets the length of the group, based on the length
+     * of each path in the group.
+     * Determines in what path t falls.
+     * Gets the point on that path.
+     *
+     * @param t relative coordinate of the point (between 0.0 and 1.0).
+     *          Results outside of this range are undefined.
+     * @return coordinates for point at t.
+     */
+    public Point pointAt(float t) {
+        float length = getLength();
+        // Since t is relative, convert it to the absolute length.
+        float absT = t * length;
+        // The resT is what remains of t after we traversed all segments.
+        float resT = t;
+        // Find the contour that contains t.
+        float cLength;
+        Path currentPath = null;
+        for (Path p : paths) {
+            currentPath = p;
+            cLength = p.getLength();
+            if (absT <= cLength) break;
+            absT -= cLength;
+            resT -= cLength / length;
+        }
+        if (currentPath == null) return new Point();
+        resT /= (currentPath.getLength() / length);
+        return currentPath.pointAt(resT);
+    }
+
+
     //// Geometric operations ////
 
-    public Point[] makePoints() {
-        return new Point[0];
+    public Point[] makePoints(int amount, boolean perContour) {
+        if (perContour) {
+            ArrayList<Point> points = new ArrayList<Point>();
+            for (Path p : getPaths()) {
+                for (Contour c : p.getContours()) {
+                    Point[] pointsFromContour = c.makePoints(amount);
+                    points.addAll(Arrays.asList(pointsFromContour));
+                }
+            }
+            return (Point[]) points.toArray();
+        } else {
+            // Distribute all points evenly along the combined length of the contours.
+            float delta = pointDelta(amount, isClosed());
+            Point[] points = new Point[amount];
+            for (int i = 0; i < amount; i++) {
+                points[i] = pointAt(delta * i);
+            }
+            return points;
+        }
     }
 
-    public Point[] makePoints(int amount) {
-        return new Point[0];
+    public Group resampleByAmount(int amount, boolean perContour) {
+        if (perContour) {
+            Group g = new Group();
+            for (Path p : paths) {
+                g.add(p.resampleByAmount(amount, true));
+            }
+            return g;
+        } else {
+            Group g = new Group();
+            float delta = pointDelta(amount, isClosed());
+            for (int i = 0; i < amount; i++) {
+                g.addPoint(pointAt(delta * i));
+            }
+            return g;
+        }
     }
 
-    public IGeometry resampleByAmount(int amount, boolean perContour) {
-        return null;
-    }
-
-    public IGeometry resampleByLength(float segmentLength) {
-        return null;
+    public Group resampleByLength(float segmentLength) {
+        Group g = new Group();
+        for (Path p : paths) {
+            g.add(p.resampleByLength(segmentLength));
+        }
+        return g;
     }
 
     //// Transformations ////
 
     public void transform(Transform t) {
-        for (Grob grob : items) {
+        for (Grob grob : paths) {
             grob.transform(t);
         }
     }
@@ -221,7 +309,7 @@ public class Group extends AbstractGeometry implements Colorizable {
     }
 
     public void draw(Graphics2D g) {
-        for (Grob grob : items) {
+        for (Grob grob : paths) {
             grob.draw(g);
         }
     }

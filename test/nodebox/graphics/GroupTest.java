@@ -1,8 +1,8 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import java.util.List;
 
-public class GroupTest extends TestCase {
+public class GroupTest extends GraphicsTestCase {
 
     public void testBounds() {
         Path r1 = new Path();
@@ -51,24 +51,6 @@ public class GroupTest extends TestCase {
         assertEquals(Rect.centeredRect(15, 27, 30, 40), g.getBounds());
     }
 
-    public void testGetPaths() {
-        Group root = new Group();
-        Group parent1 = new Group();
-        Group parent2 = new Group();
-        root.add(parent1);
-        root.add(parent2);
-        assertEquals(0, root.getPaths().length);
-        Path p1 = new Path();
-        parent1.add(p1);
-        assertEquals(1, root.getPaths().length);
-        assertSame(p1, root.getPaths()[0]);
-        Path p2 = new Path();
-        parent2.add(p2);
-        assertEquals(2, root.getPaths().length);
-        assertSame(p1, root.getPaths()[0]);
-        assertSame(p2, root.getPaths()[1]);
-    }
-
     public void testTranslatePointsOfGroup() {
         Path p1 = new Path();
         Path p2 = new Path();
@@ -101,4 +83,32 @@ public class GroupTest extends TestCase {
         assertEquals(red, p2.getFillColor());
     }
 
+    public void testMakePoints() {
+        // Create a continuous line from 0,0 to 100,0.
+        // The line is composed of one path from 0-50
+        // and another path with two contours, from 50-75 and 75-100.
+        Path p1 = new Path();
+        p1.line(0, 0, 50, 0);
+        Path p2 = new Path();
+        p2.line(50, 0, 75, 0);
+        p2.line(75, 0, 100, 0);
+        Group g = new Group();
+        g.add(p1);
+        g.add(p2);
+        assertEquals(100f, g.getLength());
+        Point[] points = g.makePoints(5);
+        assertPointEquals(0, 0, points[0]);
+        assertPointEquals(25, 0, points[1]);
+        assertPointEquals(50, 0, points[2]);
+        assertPointEquals(75, 0, points[3]);
+        assertPointEquals(100, 0, points[4]);
+        // Achieve the same result using resampleByAmount.
+        Group resampledGroup = g.resampleByAmount(5, false);
+        List<Point> resampledPoints = resampledGroup.getPoints();
+        assertPointEquals(0, 0, resampledPoints.get(0));
+        assertPointEquals(25, 0, resampledPoints.get(1));
+        assertPointEquals(50, 0, resampledPoints.get(2));
+        assertPointEquals(75, 0, resampledPoints.get(3));
+        assertPointEquals(100, 0, resampledPoints.get(4));
+    }
 }

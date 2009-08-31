@@ -310,6 +310,10 @@ public class Path extends AbstractGeometry implements Colorizable {
         return contours.size();
     }
 
+    public boolean isEmpty() {
+        return contours.isEmpty();
+    }
+
     public void clear() {
         contours.clear();
         currentContour = null;
@@ -369,6 +373,21 @@ public class Path extends AbstractGeometry implements Colorizable {
      */
     public java.util.List<Contour> getContours() {
         return contours;
+    }
+
+    /**
+     * Check if the last contour on this path is closed.
+     * <p/>
+     * A path can't technically be called "closed", only specific contours in the path can.
+     * This method provides a reasonable heuristic for a "closed" path by checking the closed state
+     * of the last contour. It returns false if this path contains no contours.
+     *
+     * @return true if the last contour is closed.
+     */
+    public boolean isClosed() {
+        if (isEmpty()) return false;
+        Contour lastContour = contours.get(contours.size() - 1);
+        return lastContour.isClosed();
     }
 
     //// Geometric math ////
@@ -569,6 +588,7 @@ public class Path extends AbstractGeometry implements Colorizable {
      * Gets the point on that segment.
      *
      * @param t relative coordinate of the point (between 0.0 and 1.0)
+     *          Results outside of this range are undefined.
      * @return coordinates for point at t.
      */
     public Point pointAt(float t) {
@@ -594,10 +614,6 @@ public class Path extends AbstractGeometry implements Colorizable {
 
     //// Geometric operations ////
 
-    public Point[] makePoints(int amount) {
-        return makePoints(amount, false);
-    }
-
     /**
      * Make new points along the contours of the existing path.
      * <p/>
@@ -620,22 +636,7 @@ public class Path extends AbstractGeometry implements Colorizable {
             return points;
         } else {
             // Distribute all points evenly along the combined length of the contours.
-            float delta = 1;
-            Contour lastContour = contours.get(contours.size() - 1);
-            boolean closed = lastContour.isClosed();
-            if (closed) {
-                if (amount > 0) {
-                    delta = 1f / amount;
-                }
-            } else {
-                // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
-                // If I wouldn't use amount - 1, I fall one point short of the end.
-                // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
-                // if amount = 2, I want point at t 0.0 and t 1.0
-                if (amount > 2) {
-                    delta = 1f / (amount - 1f);
-                }
-            }
+            float delta = pointDelta(amount, isClosed());
             Point[] points = new Point[amount];
             for (int i = 0; i < amount; i++) {
                 points[i] = pointAt(delta * i);
@@ -644,7 +645,7 @@ public class Path extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public IGeometry resampleByAmount(int amount, boolean perContour) {
+    public Path resampleByAmount(int amount, boolean perContour) {
         if (perContour) {
             Path p = cloneAndClear();
             for (Contour c : contours) {
@@ -653,7 +654,7 @@ public class Path extends AbstractGeometry implements Colorizable {
             return p;
         } else {
             Path p = cloneAndClear();
-            float delta = 1f / amount;
+            float delta = pointDelta(amount, isClosed());
             for (int i = 0; i < amount; i++) {
                 p.addPoint(pointAt(delta * i));
             }
@@ -661,7 +662,7 @@ public class Path extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public IGeometry resampleByLength(float segmentLength) {
+    public Path resampleByLength(float segmentLength) {
         Path p = cloneAndClear();
         for (Contour c : contours) {
             p.add(c.resampleByLength(segmentLength));

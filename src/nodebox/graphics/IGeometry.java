@@ -1,9 +1,11 @@
 package nodebox.graphics;
 
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 public interface IGeometry extends Grob {
+
+    public static final int DEFAULT_POINT_AMOUNT = 100;
 
     //// Container operations ////
 
@@ -36,12 +38,14 @@ public interface IGeometry extends Grob {
 
     /**
      * Extend the current geometry with the given list of points.
+     *
      * @param points the points to add to the geometry.
      */
     public void extend(Iterator<Point> points);
 
     /**
      * Extend the current geometry with the given list of points.
+     *
      * @param points the points to add to the geometry.
      */
     public void extend(Point[] points);
@@ -58,7 +62,7 @@ public interface IGeometry extends Grob {
     public Point[] makePoints();
 
     /**
-     * Make new points along the contours of the existing path.
+     * Make 100 new points along the contours of the existing path.
      * <p/>
      * Points are evenly distributed according to the length of each geometric object.
      *
@@ -68,8 +72,20 @@ public interface IGeometry extends Grob {
     public Point[] makePoints(int amount);
 
     /**
-     * Generate new geometry with the given amount of points along the shape of the original geometry.
+     * Make new points along the contours of the existing path.
+     * <p/>
+     * Points are evenly distributed according to the length of each geometric object.
      *
+     * @param amount     the amount of points to distribute.
+     * @param perContour if true, the points are distributed per contour. The amount of points returned will then be
+     *                   number of contours * amount.
+     * @return a list of Points.
+     */
+    public Point[] makePoints(int amount, boolean perContour);
+
+    /**
+     * Generate new geometry with the given amount of points along the shape of the original geometry.
+     * <p/>
      * The length of each segment is not given and will be determined based on the required number of points.
      *
      * @param amount     the number of points to generate.
@@ -104,6 +120,7 @@ public interface IGeometry extends Grob {
 
     /**
      * Clone the geometry, returning a new copy that is totally independent from the original.
+     *
      * @return the new geometry object.
      */
     public IGeometry clone();

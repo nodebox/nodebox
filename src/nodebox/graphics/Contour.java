@@ -151,6 +151,7 @@ public class Contour extends AbstractGeometry {
      * Gets the point on that segment.
      *
      * @param t relative coordinate of the point (between 0.0 and 1.0)
+     *          Results outside of this range are undefined.
      * @return coordinates for point at t.
      */
     public Point pointAt(float t) {
@@ -263,6 +264,18 @@ public class Contour extends AbstractGeometry {
             points[i] = pointAt(delta * i);
         }
         return points;
+    }
+
+    /**
+     * Make new points along the contours of the existing path.
+     *
+     * @param amount     the amount of points to distribute.
+     * @param perContour this parameter was added to comply with the IGeometry interface, but is ignored since
+     *                   we're at the contour level.
+     * @return a list with "amount" points or zero points if the contour is empty.
+     */
+    public Point[] makePoints(int amount, boolean perContour) {
+        return makePoints(amount);
     }
 
     /**
