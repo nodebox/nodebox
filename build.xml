@@ -12,6 +12,7 @@
         <property name="build" value="build"/>
         <property name="build.prod" location="${build}/prod"/>
         <property name="build.test" location="${build}/test"/>
+        <property name="build.doc" location="${build}/doc"/>
         <property name="dist" value="dist"/>
         <property name="dist.nodebox" value="${dist}/NodeBox"/>
         <property name="dist.nodebox.examples" value="${dist.nodebox}/Examples"/>
@@ -68,6 +69,7 @@
     <target name="init" depends="properties">
         <mkdir dir="${build.prod}"/>
         <mkdir dir="${build.test}"/>
+        <mkdir dir="${build.doc}"/>
         <mkdir dir="${dist}"/>
     </target>
 
@@ -171,6 +173,18 @@
         <exec dir="${dist.nodebox}" executable="/usr/bin/open" os="Mac OS X">
             <arg line="${ant.project.name}.app"/>
         </exec>
+    </target>
+
+    <target name="javadoc" depends="properties" description="Generates API documentation">
+        <javadoc destdir="${build.doc}">
+            <packageset dir="${src}">
+                <include name="nodebox/node/**"/>
+                <include name="nodebox/graphics/**"/>
+                <include name="nodebox/util/**"/>
+                <include name="nodebox/handle/**"/>
+            </packageset>
+            <doctitle><![CDATA[<h1>NodeBox</h1>]]></doctitle>
+        </javadoc>
     </target>
 
     <target name="clean" depends="properties">
