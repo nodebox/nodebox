@@ -115,7 +115,7 @@ public class NodeSelectionDialog extends JDialog {
     }
 
     public NodeSelectionDialog(Frame owner, NodeLibrary library, NodeLibraryManager manager) {
-        super(owner, "Create node type", true);
+        super(owner, "New Node", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
         this.library = library;

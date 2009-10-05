@@ -545,7 +545,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
     private class NewNodeAction extends AbstractAction {
         public NewNodeAction() {
-            super("Create New Node...");
+            super("New Node...");
         }
 
         public void actionPerformed(ActionEvent e) {
