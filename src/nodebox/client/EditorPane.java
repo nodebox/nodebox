@@ -22,6 +22,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     private EditorSplitter splitter;
     private JTextArea messages;
     private NButton messagesCheck;
+    private String codeName, codeType;
 
     public EditorPane(NodeBoxDocument document) {
         this();
@@ -38,6 +39,8 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         paneHeader.add(reloadButton);
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
+        paneHeader.add(new Divider());
+        paneHeader.add(new PaneCodeMenu(this));
         editor = new SimpleEditor();
         editor.addCaretListener(this);
         add(paneHeader, BorderLayout.NORTH);
@@ -68,6 +71,18 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         return "Source";
     }
 
+    public void setCodeType(String name, String codeType) {
+        this.codeName = name;
+        this.codeType = codeType;
+        paneHeader.repaint();
+        if (node != null) {
+            setCode(); }
+    }
+
+    public String getCodeName() {
+        return codeName;
+    }
+
     public Node getNode() {
         return node;
     }
@@ -79,9 +94,14 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
             oldNode.removeDirtyListener(this);
         }
         this.node = node;
+        setCode();
+    }
+
+    private void setCode() {
         Parameter pCode = null;
         if (node != null) {
-            pCode = node.getParameter("_code");
+            pCode = node.getParameter(codeType);
+//            pCode = node.getParameter("_code");
             node.addDirtyListener(this);
         }
         if (pCode == null) {
@@ -103,10 +123,13 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
 
     public boolean reload() {
         if (node == null) return false;
-        Parameter pCode = node.getParameter("_code");
+        Parameter pCode = node.getParameter(codeType);
+//        Parameter pCode = node.getParameter("_code");
         if (pCode == null) return false;
         NodeCode code = new PythonCode(editor.getSource());
         pCode.set(code);
+        if (codeType.equals("_handle"))
+            getDocument().setActiveNode(node); // to make Viewer reload handle
         return true;
     }
 
