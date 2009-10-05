@@ -1774,9 +1774,9 @@ public class Node implements NodeCode, NodeAttributeListener {
     @Override
     public String toString() {
         if (prototype == null) {
-            return String.format("<Node %s>", getIdentifier());
+            return String.format(Locale.US, "<Node %s>", getIdentifier());
         } else {
-            return String.format("<Node %s (%s)>", getIdentifier(), prototype.getIdentifier());
+            return String.format(Locale.US, "<Node %s (%s)>", getIdentifier(), prototype.getIdentifier());
         }
     }
 
@@ -1789,8 +1789,8 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @param spaces the indentation.
      */
     public void toXml(StringBuffer xml, String spaces) {
-        String xPosition = String.format("%.0f", getX());
-        String yPosition = String.format("%.0f", getY());
+        String xPosition = String.format(Locale.US, "%.0f", getX());
+        String yPosition = String.format(Locale.US, "%.0f", getY());
         xml.append(spaces).append("<node");
         xml.append(" name=\"").append(getName()).append("\"");
         xml.append(" prototype=\"").append(getPrototype().getRelativeIdentifier(this)).append("\"");

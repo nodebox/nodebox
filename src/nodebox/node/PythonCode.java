@@ -5,6 +5,7 @@ import org.python.util.PythonInterpreter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Locale;
 
 /**
  * Python source code is in this form:
@@ -154,7 +155,7 @@ public class PythonCode implements NodeCode {
          * @param name the name of the parameter
          */
         public void noParameterOrPortError(String name) {
-            throw Py.AttributeError(String.format("Node '%.50s' has no parameter or port '%.400s'",
+            throw Py.AttributeError(String.format(Locale.US, "Node '%.50s' has no parameter or port '%.400s'",
                     node.getIdentifier(), name));
         }
 

@@ -7,6 +7,7 @@ import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 public class EditorSplitter extends JSplitPane {
 
@@ -41,7 +42,7 @@ public class EditorSplitter extends JSplitPane {
     }
 
     public void setLocation(int line, int column) {
-        positionString = String.format("Line: %4d  Column: %4d", line, column);
+        positionString = String.format(Locale.US, "Line: %4d  Column: %4d", line, column);
         repaint();
     }
 

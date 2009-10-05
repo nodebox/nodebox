@@ -1,6 +1,7 @@
 package nodebox.client;
 
 import javax.swing.*;
+import java.util.Locale;
 
 public class LastResortHandler implements Thread.UncaughtExceptionHandler {
 
@@ -22,7 +23,7 @@ public class LastResortHandler implements Thread.UncaughtExceptionHandler {
     }
 
     private static void showException(Thread t, Throwable e) {
-        String msg = String.format("Unexpected problem on thread %s: %s",
+        String msg = String.format(Locale.US, "Unexpected problem on thread %s: %s",
                 t.getName(), e.getMessage());
 
         logException(t, e);

@@ -22,10 +22,7 @@ import nodebox.graphics.Color;
 import nodebox.util.StringUtils;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -505,7 +502,7 @@ public class Parameter {
             return "\"" + v + "\"";
         } else if (type == Type.COLOR) {
             Color v = (Color) value;
-            return String.format("color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
+            return String.format(Locale.US, "color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
         } else if (type == Type.CODE) {
             return ((NodeCode) value).getSource();
         } else {

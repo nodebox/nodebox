@@ -23,6 +23,7 @@ import nodebox.graphics.Color;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class ParameterTest extends NodeTestCase {
 
@@ -188,6 +189,22 @@ public class ParameterTest extends NodeTestCase {
         assertEquals("", n.asString("string"));
         assertEquals("#000000ff", n.asString("color"));
         assertEquals("", n.asString("code"));
+    }
+
+    /**
+     * Test if the expression is independent from the locale.
+     *
+     * We use String.format in asExpression, which is locale-dependent.
+     * Having the "wrong" locale would mean that the returned expression was invalid.
+     */
+    public void testLocale() {
+        Locale savedLocale = Locale.getDefault();
+        // The german locale uses a comma to separate the decimals, which makes expressions fail.
+        Locale.setDefault(Locale.GERMAN);
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "allControls");
+        Parameter pColor = n.addParameter("color", Parameter.Type.COLOR);
+        assertEquals("color(0.00, 0.00, 0.00, 1.00)", pColor.asExpression());
+        Locale.setDefault(savedLocale);
     }
 
     public void testInvalidName() {

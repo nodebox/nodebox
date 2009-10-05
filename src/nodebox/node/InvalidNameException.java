@@ -1,5 +1,7 @@
 package nodebox.node;
 
+import java.util.Locale;
+
 public class InvalidNameException extends RuntimeException {
 
     private Object source;
@@ -21,6 +23,6 @@ public class InvalidNameException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format("InvalidNameException on %s name %s: %s", source, name,  getMessage());
+        return String.format(Locale.US, "InvalidNameException on %s name %s: %s", source, name,  getMessage());
     }
 }
