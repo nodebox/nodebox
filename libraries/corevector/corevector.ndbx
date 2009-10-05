@@ -819,4 +819,49 @@ def cook(self):
       <value>0.0</value>
     </param>
   </node>
+  <node name="merge" prototype="builtins.root" x="50" y="110" type="nodebox.graphics.Grob">
+  <description>Merges multiple vector nodes together.</description>
+    <port name="shapes" type="nodebox.graphics.Grob" cardinality="multiple"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Group
+
+def cook(self):
+  g = Group()
+  if self.shapes is None: return g
+  for shape in self.shapes:
+      if isinstance(shape, Group):
+          g.extend(shape)
+      else:
+          g.add(shape.clone())
+  return g]]></value>
+    </param>
+    <param name="_image">
+      <value>merge.png</value>
+    </param>
+  </node>
+  <node name="place" prototype="builtins.root" x="300" y="190">
+    <port name="shape" type="nodebox.graphics.Grob" />
+    <port name="template" type="nodebox.graphics.Grob" />
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Group, Transform
+
+def cook(self):
+  if self.shape is None: return None
+  if self.template is None: return self.shape.clone()
+
+  g = Group()
+
+  for point in self.template.points:
+      t = Transform()
+      t.translate(point.x, point.y)
+      newShape = self.shape.clone()
+      newShape.transform(t)
+      try:
+        g.extend(newShape)
+      except:
+        g.add(newShape)
+
+  return g]]></value>
+    </param>
+  </node>
 </ndbx>
