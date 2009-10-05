@@ -14,9 +14,11 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 
-public class Viewer extends JComponent implements DirtyListener, MouseListener, MouseMotionListener {
+public class Viewer extends JComponent implements DirtyListener, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float POINT_SIZE = 4f;
 
@@ -36,6 +38,8 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         addMouseMotionListener(this);
         showHandle = true;
         showPoints = false;
+        setFocusable(true);
+        addKeyListener(this);
     }
 
     public boolean isShowHandle() {
@@ -205,37 +209,64 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     }
 
     public void mouseClicked(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseClicked(pointForEvent(e));
     }
 
     public void mousePressed(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mousePressed(pointForEvent(e));
     }
 
     public void mouseReleased(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseReleased(pointForEvent(e));
     }
 
     public void mouseEntered(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseEntered(pointForEvent(e));
     }
 
     public void mouseExited(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseExited(pointForEvent(e));
     }
 
     public void mouseDragged(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseDragged(pointForEvent(e));
     }
 
     public void mouseMoved(MouseEvent e) {
+        requestFocus();
         if (handle == null) return;
         handle.mouseMoved(pointForEvent(e));
+    }
+
+    public void keyTyped(KeyEvent e) {
+        if (handle == null) return;
+        handle.keyTyped(e.getKeyCode(), e.getModifiersEx());
+    }
+
+    public void keyPressed(KeyEvent e) {
+        if (handle == null) return;
+        handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
+    }
+
+    public void keyReleased(KeyEvent e) {
+        if (handle == null) return;
+        handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
+    }
+
+    @Override
+    public boolean isFocusTraversable() {
+        return true;
     }
 }

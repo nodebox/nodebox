@@ -29,5 +29,10 @@ public interface Handle {
 
     public void mouseMoved(Point pt);
 
+    public void keyTyped(int keyCode, int modifiers);
+
+    public void keyPressed(int keyCode, int modifiers);
+
+    public void keyReleased(int keyCode, int modifiers);
 
 }

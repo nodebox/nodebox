@@ -2,12 +2,19 @@ package nodebox.handle;
 
 import nodebox.graphics.*;
 import nodebox.node.Node;
+import java.awt.event.KeyEvent;
+
 
 public abstract class AbstractHandle implements Handle {
 
     public static final int HANDLE_SIZE = 6;
     public static final int HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
     public static final Color HANDLE_COLOR = new Color(0.41, 0.39, 0.68);
+
+    public static final int SHIFT_DOWN = KeyEvent.SHIFT_DOWN_MASK;
+    public static final int CTRL_DOWN = KeyEvent.CTRL_DOWN_MASK;
+    public static final int ALT_DOWN = KeyEvent.ALT_DOWN_MASK;
+    public static final int META_DOWN = KeyEvent.META_DOWN_MASK;
 
     protected Node node;
 
@@ -46,6 +53,17 @@ public abstract class AbstractHandle implements Handle {
 
     public void mouseMoved(Point pt) {
 
+    }
+
+    public void keyTyped(int keyCode, int modifiers) {
+
+    }
+
+    public void keyPressed(int keyCode, int modifiers) {
+
+    }
+
+    public void keyReleased(int keyCode, int modifiers) {
     }
 
     //// Utility methods ////

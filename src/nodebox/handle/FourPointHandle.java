@@ -125,4 +125,8 @@ public class FourPointHandle extends AbstractHandle {
     public void mouseReleased(Point pt) {
         dragState = DragState.NONE;
     }
+
+    public boolean hasDragState() {
+        return dragState != DragState.NONE;
+    }
 }
