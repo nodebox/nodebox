@@ -505,7 +505,7 @@ public class Parameter {
             return "\"" + v + "\"";
         } else if (type == Type.COLOR) {
             Color v = (Color) value;
-            return String.format("Color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
+            return String.format("color(%.2f, %.2f, %.2f, %.2f)", v.getRed(), v.getGreen(), v.getBlue(), v.getAlpha());
         } else if (type == Type.CODE) {
             return ((NodeCode) value).getSource();
         } else {
