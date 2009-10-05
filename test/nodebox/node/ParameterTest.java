@@ -461,6 +461,35 @@ public class ParameterTest extends NodeTestCase {
     }
 
     /**
+     * Test that changing the widget changes the type.
+     */
+    public void testWidgetChanges() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        // Parameter alpha will be converted from a float to a string widget.
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        pAlpha.setValue(12.5f);
+        assertEquals(Parameter.Widget.FLOAT, pAlpha.getWidget());
+        // Change the widget to a string.
+        pAlpha.setWidget(Parameter.Widget.STRING);
+        // This should change the underlying type and value.
+        assertEquals(Parameter.Type.STRING, pAlpha.getType());
+        assertEquals(String.class, pAlpha.getValue().getClass());
+        assertEquals("12.5", pAlpha.getValue());
+
+        // Parameter beta will be converted from color to int.
+        Parameter pBeta = n.addParameter("beta", Parameter.Type.COLOR);
+        assertEquals(Parameter.Widget.COLOR, pBeta.getWidget());
+        pBeta.setValue(new Color(0.1, 0.2, 0.3, 0.4));
+        // Change the widget to int.
+        pBeta.setWidget(Parameter.Widget.INT);
+        // This will change the type and widget to int.
+        assertEquals(Parameter.Type.INT, pBeta.getType());
+        assertEquals(Parameter.Widget.INT, pBeta.getWidget());
+        // The value can't be migrated, so the default value for int is used.
+        assertEquals(Parameter.getDefaultValue(Parameter.Type.INT), pBeta.getValue());
+    }
+
+    /**
      * Test corner cases with revertToDefault.
      */
     public void testRevertToDefault() {

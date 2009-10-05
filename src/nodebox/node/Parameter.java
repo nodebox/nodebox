@@ -132,6 +132,7 @@ public class Parameter {
 
     public static final HashMap<Type, Class> TYPE_MAPPING;
     public static final HashMap<Type, Widget> WIDGET_MAPPING;
+    public static final HashMap<Widget, Type> REVERSE_WIDGET_MAPPING;
     public static final NodeCode emptyCode = new EmptyCode();
 
     static {
@@ -147,6 +148,22 @@ public class Parameter {
         WIDGET_MAPPING.put(Type.STRING, Widget.STRING);
         WIDGET_MAPPING.put(Type.COLOR, Widget.COLOR);
         WIDGET_MAPPING.put(Type.CODE, Widget.CODE);
+        REVERSE_WIDGET_MAPPING = new HashMap<Widget, Type>();
+        REVERSE_WIDGET_MAPPING.put(Widget.ANGLE, Type.FLOAT);
+        REVERSE_WIDGET_MAPPING.put(Widget.COLOR, Type.COLOR);
+        REVERSE_WIDGET_MAPPING.put(Widget.FILE, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.FLOAT, Type.FLOAT);
+        REVERSE_WIDGET_MAPPING.put(Widget.FONT, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.GRADIENT, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.IMAGE, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.INT, Type.INT);
+        REVERSE_WIDGET_MAPPING.put(Widget.MENU, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.SEED, Type.INT);
+        REVERSE_WIDGET_MAPPING.put(Widget.STRING, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.TEXT, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.TOGGLE, Type.INT);
+        REVERSE_WIDGET_MAPPING.put(Widget.NODEREF, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.CODE, Type.CODE);
     }
 
     private Node node;
@@ -290,12 +307,26 @@ public class Parameter {
     }
 
     public void setWidget(Widget widget) {
+        if (this.widget == widget) return;
+        // Changing the widget mostly means changing the type.
+        Type oldType = getTypeForWidget(this.widget);
+        Type newType = getTypeForWidget(widget);
+        // If the old and new type are the same, we don't need to migrate the type.
+        if (oldType != newType) {
+            // Setting the type will change the widget to the default widget, so the widget
+            // will be set *after* the type is migrated.
+            setType(newType);
+        }
         this.widget = widget;
         fireAttributeChanged();
     }
 
     public static Widget getDefaultWidget(Type type) {
         return WIDGET_MAPPING.get(type);
+    }
+
+    public static Type getTypeForWidget(Widget widget) {
+        return REVERSE_WIDGET_MAPPING.get(widget);
     }
 
     //// Bounding ////
