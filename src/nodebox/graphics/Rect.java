@@ -19,8 +19,9 @@
 package nodebox.graphics;
 
 import java.awt.geom.Rectangle2D;
+import java.util.*;
 
-public class Rect {
+public class Rect implements Iterable {
 
     private float x, y, width, height;
 
@@ -133,6 +134,15 @@ public class Rect {
 
     public Rectangle2D getRectangle2D() {
         return new Rectangle2D.Float(x, y, width, height);
+    }
+
+    public Iterator iterator() {
+        List list = new ArrayList();
+        list.add(x);
+        list.add(y);
+        list.add(width);
+        list.add(height);
+        return list.iterator();
     }
 
     @Override
