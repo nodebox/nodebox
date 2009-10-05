@@ -8,7 +8,7 @@ import java.util.EventListener;
 public interface NodeAttributeListener extends EventListener {
 
     public enum Attribute {
-        LIBRARY, NAME, POSITION, DESCRIPTION, IMAGE, PARAMETER
+        LIBRARY, NAME, POSITION, DESCRIPTION, IMAGE, PARAMETER, PORT
     }
 
     /**

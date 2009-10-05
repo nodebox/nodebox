@@ -688,6 +688,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 parent.childGraph = new DependencyGraph<Port, Connection>();
             parent.childGraph.addDependency(p, outputPort);
         }
+        fireNodeAttributeChanged(Attribute.PORT);
         return p;
     }
 

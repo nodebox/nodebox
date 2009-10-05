@@ -281,9 +281,17 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
         NodeView nv = getNodeView(child);
         if (nv == null) return;
-        if (attribute == NodeAttributeListener.Attribute.NAME || attribute == NodeAttributeListener.Attribute.IMAGE) {
+        // The port is part of the icon. If a port was added or removed, also update the icon.
+        if (attribute == NodeAttributeListener.Attribute.PORT) {
+            nv.updateIcon();
+        }
+        if (attribute == NodeAttributeListener.Attribute.NAME
+                || attribute == NodeAttributeListener.Attribute.IMAGE
+                || attribute == NodeAttributeListener.Attribute.PORT) {
+            // When visual attributes change, repaint the node view.
             nv.repaint();
         } else if (attribute == NodeAttributeListener.Attribute.POSITION) {
+            // When the position changes, change the node view offset, and also repaint the connections.
             if (!nv.getOffset().equals(child.getPosition().getPoint2D())) {
                 nv.setOffset(child.getX(), child.getY());
             }
