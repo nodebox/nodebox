@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx type="file" formatVersion="0.9">
+  <node name="text" prototype="corevector.generator" x="82.0" y="36.0">
+  <description>Creates a text object.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
+# Read the code in cook and replace it with your own.
+from nodebox.graphics import Text
+
+def cook(self):
+    # Replace the code below.
+    # Create a new path object.
+    # Call the rect method to draw something within the path.
+    t = Text(self.text, self.x, self.y)
+    t.width = self.width
+    t.height = self.height
+    t.fontName = self.fontName
+    t.fontSize = self.fontSize
+    t.lineHeight = self.lineHeight
+    if self.align == "left":
+        t.align = Text.Align.LEFT
+    elif self.align == "right":
+        t.align = Text.Align.RIGHT
+    elif self.align == "center":
+        t.align = Text.Align.CENTER
+    elif self.align == "justify":
+        t.align = Text.Align.JUSTIFY
+    t.fillColor = self.fillColor
+    # Return the path object.
+    return t]]></value>
+    </param>
+    <param name="text" type="string" widget="text">
+      <value>hello</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float" bounding="hard" min="0.0">
+      <value>0.0</value>
+    </param>
+    <param name="height" type="float" bounding="hard" min="0.0">
+      <value>0.0</value>
+    </param>
+    <param name="fontName" type="string" widget="font">
+      <value>Helvetica</value>
+    </param>
+    <param name="fontSize" type="float" bounding="hard" min="0.0">
+      <value>24.0</value>
+    </param>
+    <param name="lineHeight" type="float">
+      <value>1.200001</value>
+    </param>
+    <param name="align" type="string" widget="menu">
+      <value>left</value>
+      <menu key="left">Left</menu>
+      <menu key="center">Center</menu>
+      <menu key="right">Right</menu>
+      <menu key="justify">Justify</menu>
+    </param>
+    <param name="fillColor" type="color">
+      <value>#000000ff</value>
+    </param>
+  </node>
+  <node name="textpath" prototype="text" x="192.0" y="33.0" rendered="true">
+  <description>Creates a path out of a given text.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
+# Read the code in cook and replace it with your own.
+from nodebox.graphics import Path, Text
+
+def cook(self):
+    # Replace the code below.
+    # Create a new path object.
+    # Call the rect method to draw something within the path.
+    t = Text(self.text, self.x, self.y)
+    t.width = self.width
+    t.height = self.height
+    t.fontName = self.fontName
+    t.fontSize = self.fontSize
+    t.lineHeight = self.lineHeight
+    if self.align == "left":
+        t.align = Text.Align.LEFT
+    elif self.align == "right":
+        t.align = Text.Align.RIGHT
+    elif self.align == "center":
+        t.align = Text.Align.CENTER
+    elif self.align == "justify":
+        t.align = Text.Align.JUSTIFY
+    p = Path()
+    p.text(t)
+    p.fillColor = self.fillColor
+    p.strokeColor = self.strokeColor
+    p.strokeWidth = self.strokeWidth
+    # Return the path object.
+    return p]]></value>
+    </param>
+    <param name="strokeColor" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float" min="0.0">
+      <value>0.0</value>
+    </param>
+  </node>
+</ndbx>
