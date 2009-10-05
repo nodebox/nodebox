@@ -62,8 +62,20 @@ public class ParameterPane extends Pane {
         NodeAttributesEditor editor = new NodeAttributesEditor(node);
         JFrame editorFrame = new JFrame(node.getName() + " Metadata");
         editorFrame.getContentPane().add(editor);
-        editorFrame.setSize(800, 800);
-        editorFrame.setLocationByPlatform(true);
+        editorFrame.setSize(580, 710);
+        editorFrame.setResizable(false);
+        // Center the frame based on the current window.
+        Window w = SwingUtilities.getWindowAncestor(this);
+        if (w == null) {
+            // If the current window could not be found, set to the default location.
+            editorFrame.setLocationByPlatform(true);
+        } else {
+            int ancestorCenterX = w.getX() + w.getWidth() / 2;
+            int ancestorCenterY = w.getY() + w.getHeight() / 2;
+            int x = ancestorCenterX - editorFrame.getWidth() / 2;
+            int y = ancestorCenterY - editorFrame.getHeight() / 2;
+            editorFrame.setLocation(x, y);
+        }
         editorFrame.setVisible(true);
     }
 }
