@@ -87,6 +87,31 @@ def cook(self):
       <value>100.0</value>
     </param>
   </node>
+  <node name="place" prototype="builtins.root" x="320" y="200">
+    <port name="shape" type="nodebox.graphics.Grob"/>
+    <port name="template" type="nodebox.graphics.Grob"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Group, Transform
+
+def cook(self):
+  if self.shape is None: return None
+  if self.template is None: return self.shape.clone()
+
+  g = Group()
+
+  for point in self.template.points:
+      t = Transform()
+      t.translate(point.x, point.y)
+      newShape = self.shape.clone()
+      newShape.transform(t)
+      try:
+        g.extend(newShape)
+      except:
+        g.add(newShape)
+
+  return g]]></value>
+    </param>
+  </node>
   <node name="copy" prototype="builtins.root" x="140" y="110" type="nodebox.graphics.Grob">
   <description>Creates multiple copies of the input.</description>
     <port name="shape" type="nodebox.graphics.Grob"/>
@@ -207,6 +232,49 @@ def cook(self):
       <value>3.0</value>
     </param>
   </node>
+  <node name="import" prototype="builtins.root" x="320" y="290" type="nodebox.graphics.Grob">
+  <description>Imports input geometry (currently only SVG) and places it in a Group instance.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[import svg
+from nodebox.graphics import Group, Transform
+
+def cook(self):
+    if not self.file:
+        return None
+    f = file(self.file, 'r')
+    s = f.read()
+    f.close()
+    g = Group()
+    paths = svg.parse(s)
+    for path in paths:
+        g.add(path)
+    return g
+]]></value>
+    </param>
+    <param name="file" type="string" widget="file">
+      <value></value>
+    </param>
+  </node>
+  <node name="merge" prototype="builtins.root" x="50" y="110" type="nodebox.graphics.Grob">
+  <description>Merges multiple vector nodes together.</description>
+    <port name="shapes" type="nodebox.graphics.Grob" cardinality="multiple"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Group
+
+def cook(self):
+  g = Group()
+  if self.shapes is None: return g
+  for shape in self.shapes:
+      if isinstance(shape, Group):
+          g.extend(shape)
+      else:
+          g.add(shape.clone())
+  return g]]></value>
+    </param>
+    <param name="_image">
+      <value>merge.png</value>
+    </param>
+  </node>
   <node name="scatter" prototype="builtins.root" x="140" y="200" type="nodebox.graphics.Grob">
   <description>Generates points within shape boundaries</description>
     <port name="shape" type="nodebox.graphics.Grob"/>
@@ -313,6 +381,7 @@ def cook(self):
     </param>
   </node>
   <node name="null" prototype="builtins.root" x="140" y="290">
+  <description>Does nothing.</description>
     <port name="shape" type="nodebox.graphics.Grob"/>
     <param name="_code">
       <value type="python"><![CDATA[def cook(self):
@@ -347,6 +416,38 @@ def cook(self):
     </param>
     <param name="strokeWidth" type="float" label="Stroke Width" bounding="hard" min="0.0">
       <value>0.0</value>
+    </param>
+  </node>
+  <node name="resample" prototype="builtins.root" x="230" y="110" type="nodebox.graphics.Grob">
+  <description>Creates a new set of points based on the original shape.</description>
+    <port name="shape" type="nodebox.graphics.Grob"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    if self.method == 'length':
+        return self.shape.resampleByLength(self.length)
+    else:
+        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
+    </param>
+    <param name="_image">
+      <value>resample.png</value>
+    </param>
+    <param name="method" type="string" widget="menu">
+      <value>length</value>
+      <menu key="length">By Length</menu>
+      <menu key="amount">By Amount</menu>
+    </param>
+    <param name="length" type="float" bounding="hard" min="0.01">
+      <value>10.0</value>
+    </param>
+    <param name="points" type="int" bounding="hard" min="1.0">
+      <value>10</value>
+    </param>
+    <param name="perContour" type="int" widget="toggle" label="Per Contour">
+      <value>0</value>
     </param>
   </node>
   <node name="star" prototype="builtins.root" x="410" y="30" type="nodebox.graphics.Grob">
@@ -445,38 +546,6 @@ def cook(self):
     </param>
     <param name="strokeWidth" type="float" bounding="hard" min="0.0">
       <value>0.0</value>
-    </param>
-  </node>
-  <node name="resample" prototype="builtins.root" x="230" y="110" type="nodebox.graphics.Grob">
-  <description>Creates a new set of points based on the original shape.</description>
-    <port name="shape" type="nodebox.graphics.Grob"/>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    if self.method == 'length':
-        return self.shape.resampleByLength(self.length)
-    else:
-        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
-    </param>
-    <param name="_image">
-      <value>resample.png</value>
-    </param>
-    <param name="method" type="string" widget="menu">
-      <value>length</value>
-      <menu key="length">By Length</menu>
-      <menu key="amount">By Amount</menu>
-    </param>
-    <param name="length" type="float" bounding="hard" min="0.01">
-      <value>10.0</value>
-    </param>
-    <param name="points" type="int" bounding="hard" min="1.0">
-      <value>10</value>
-    </param>
-    <param name="perContour" type="int" widget="toggle" label="Per Contour">
-      <value>0</value>
     </param>
   </node>
   <node name="fit" prototype="builtins.root" x="410" y="200" type="nodebox.graphics.Grob">
@@ -711,7 +780,7 @@ def cook(self):
       <value>0.0</value>
     </param>
   </node>
-  <node name="wiggle" prototype="builtins.root" x="320" y="200" type="nodebox.graphics.Grob">
+  <node name="wiggle" prototype="builtins.root" x="230" y="290" type="nodebox.graphics.Grob">
   <description>Relocates points based on original points with a margin.</description>
     <port name="shape" type="nodebox.graphics.Grob"/>
     <param name="_code">
@@ -817,51 +886,6 @@ def cook(self):
     </param>
     <param name="strokeWidth" type="float">
       <value>0.0</value>
-    </param>
-  </node>
-  <node name="merge" prototype="builtins.root" x="50" y="110" type="nodebox.graphics.Grob">
-  <description>Merges multiple vector nodes together.</description>
-    <port name="shapes" type="nodebox.graphics.Grob" cardinality="multiple"/>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Group
-
-def cook(self):
-  g = Group()
-  if self.shapes is None: return g
-  for shape in self.shapes:
-      if isinstance(shape, Group):
-          g.extend(shape)
-      else:
-          g.add(shape.clone())
-  return g]]></value>
-    </param>
-    <param name="_image">
-      <value>merge.png</value>
-    </param>
-  </node>
-  <node name="place" prototype="builtins.root" x="300" y="190">
-    <port name="shape" type="nodebox.graphics.Grob" />
-    <port name="template" type="nodebox.graphics.Grob" />
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Group, Transform
-
-def cook(self):
-  if self.shape is None: return None
-  if self.template is None: return self.shape.clone()
-
-  g = Group()
-
-  for point in self.template.points:
-      t = Transform()
-      t.translate(point.x, point.y)
-      newShape = self.shape.clone()
-      newShape.transform(t)
-      try:
-        g.extend(newShape)
-      except:
-        g.add(newShape)
-
-  return g]]></value>
     </param>
   </node>
 </ndbx>
