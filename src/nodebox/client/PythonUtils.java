@@ -21,7 +21,9 @@ public class PythonUtils {
         // Add the built-in Python libraries.
         String workingDirectory = System.getProperty("user.dir");
         File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
+        File svgLibrary = new File(workingDirectory, "lib" + PlatformUtils.SEP + "svg.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
+        Py.getSystemState().path.add(new PyString(svgLibrary.getAbsolutePath()));
 
         // Add the user's Python directory.
         Py.getSystemState().path.add(new PyString(PlatformUtils.getUserPythonDirectory().getAbsolutePath()));
