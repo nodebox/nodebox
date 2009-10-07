@@ -1,10 +1,11 @@
 package nodebox.client;
 
-import nodebox.node.*;
+import nodebox.node.Node;
+import nodebox.node.NodeLibrary;
+import nodebox.node.Parameter;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
 public class ExpressionWindow extends AbstractParameterEditor {
 
@@ -47,13 +48,13 @@ public class ExpressionWindow extends AbstractParameterEditor {
 
     public boolean save() {
         expressionArea.requestFocus();
-        try {
-            getParameter().setExpression(expressionArea.getText());
+        getParameter().setExpression(expressionArea.getText());
+        if (getParameter().hasExpressionError()) {
+            errorArea.setText(getParameter().getExpressionError().getCause().toString());
+            return false;
+        } else {
             errorArea.setText("");
             return true;
-        } catch (ExpressionError ee) {
-            errorArea.setText(ee.getCause().toString());
-            return false;
         }
     }
 

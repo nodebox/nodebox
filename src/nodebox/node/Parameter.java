@@ -633,6 +633,14 @@ public class Parameter {
         return expression != null;
     }
 
+    public boolean hasExpressionError() {
+        return hasExpression() && expression.hasError();
+    }
+
+    public Exception getExpressionError() {
+        return hasExpression() ? expression.getError() : null;
+    }
+
     public String getExpression() {
         return hasExpression() ? expression.getExpression() : "";
     }
@@ -644,32 +652,60 @@ public class Parameter {
         markDirty();
     }
 
-    public void setExpression(String expression) throws ExpressionError {
-        if (hasExpression() && getExpression().equals(expression)) {
-            return;
-        }
+    /**
+     * Set the expression to the given value.
+     *
+     * @param expression the expression, in MVEL format.
+     * @return false if the expression could not be evaluated.
+     */
+    public boolean setExpression(String expression) {
+        // We used to check if the expression was equal to the given expression, but this causes problems
+        // when new parameters are added that are relevant to the expression, i.e. Parameter "a" refers to "b" but
+        // parameter "b" does not exist yet. The expression becomes valid the moment we add "b", but to make this
+        // happen, we need to set "a" again to the same expression.
+        // TODO: This is more of a temporary workaround than a final solution.
+        // Ideally, the system should detect that the expression becomes valid because a new parameter was created.
+        // However, this means we can no longer use MVELs dependency detection.
         if (expression == null || expression.trim().length() == 0) {
             clearExpression();
-        } else {
-            this.expression = new Expression(this, expression);
-            // Reset the stamp flag. It will be set by markStampExpression(), which will be called
-            // from the expression helper while evaluating the expression.
-            hasStampExpression = false;
-            // Evaluate the expression to see if it returns any errors.
-            this.expression.evaluate();
-            // Setting an expession automatically enables it and marks the parameter as dirty.
-            markDirty();
-            try {
-                updateDependencies();
-            } catch (IllegalArgumentException e) {
-                // Whilst updating, we might catch a Connection error meaning you are connecting
-                // e.g. the parameter to itself. If that happens, we clear out the expression and all of its
-                // dependencies.
-                removeDependencies();
-                this.expression = null;
-                throw new ExpressionError("This expression causes a cyclic dependency.", e);
-            }
+            return true;
         }
+        // Remove the dependencies first in case creating the expression throws an error.
+        removeDependencies();
+        // Set the new expression.
+        this.expression = new Expression(this, expression);
+        // Reset the stamp flag. It will be set by markStampExpression(), which will be called
+        // from the expression helper while evaluating the expression.
+        hasStampExpression = false;
+        // Evaluate the expression to see if it returns any errors.
+        try {
+            this.expression.evaluate();
+        } catch (ExpressionError ignored) {
+            // Note that we catch the error, but do not handle it.
+            // We want to be able to work with errornous expressions, and only have the error
+            // happen when the Node is updated, updating parameters and thus expressions.
+            // We simply return false to indicate that the method has an error.
+            // You can call hasExpressionError to check if the expression is faulty.
+            // Note that some expressions can become faulty at runtime, due to the dynamic nature of code.
+
+            // Even when an expression fails, the parameter is still marked dirty, since we want to update the
+            // node as soon as possible to inform the user of the error.
+            markDirty();
+            return false;
+        }
+        // Setting an expession automatically enables it and marks the parameter as dirty.
+        markDirty();
+        try {
+            updateDependencies();
+        } catch (IllegalArgumentException e) {
+            // Whilst updating, we might catch a Connection error meaning you are connecting
+            // e.g. the parameter to itself. If that happens, we clear out the expression and all of its
+            // dependencies.
+            removeDependencies();
+            this.expression.setError(e);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -802,6 +838,16 @@ public class Parameter {
     }
 
     /**
+     * Check if this parameter depends on the given parameter.
+     *
+     * @param other the possibly dependent parameter.
+     * @return true if this parameter depends on the given parameter.
+     */
+    public boolean dependsOn(Parameter other) {
+        return getLibrary().getParameterDependencies(this).contains(other);
+    }
+
+    /**
      * Called whenever the value of this parameter changes. This method informs the dependent parameters that my value
      * has changed.
      */
@@ -823,7 +869,6 @@ public class Parameter {
 
     private void dependencyChangedEvent(Parameter p) {
         markDirty();
-        //getNode().markDirty();
     }
 
     /**

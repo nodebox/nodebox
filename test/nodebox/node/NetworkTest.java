@@ -93,6 +93,31 @@ public class NetworkTest extends NodeTestCase {
         assertEquals(2, l.updatedCounter);
     }
 
+    /**
+     * Test if changes to the child data marks the parent as dirty.
+     */
+    public void testChildDataPropagation() {
+        Node net = testNetworkNode.newInstance(testLibrary, "net", Integer.class);
+        Node n1 = net.create(numberNode);
+        n1.setRendered();
+        net.update();
+        assertEquals(0, net.getOutputValue());
+        // This should mark the net as dirty.
+        n1.setValue("value", 42);
+        assertTrue(net.isDirty());
+        net.update();
+        assertEquals(42, net.getOutputValue());
+        n1.setExpression("value", "10 + 1");
+        assertTrue(net.isDirty());
+        net.update();
+        assertEquals(11, net.getOutputValue());
+        n1.clearExpression("value");
+        n1.setValue("value", 33);
+        assertTrue(net.isDirty());
+        net.update();
+        assertEquals(33, net.getOutputValue());
+    }
+
     public void testChildEvent() {
         TestChildListener l1 = new TestChildListener();
         TestChildListener l2 = new TestChildListener();
@@ -311,6 +336,37 @@ public class NetworkTest extends NodeTestCase {
         assertFalse(negate1.isConnected());
         assertFalse(number1.isConnected());
         assertFalse(addConstant1.isConnected());
+    }
+
+    /**
+     * Test if errors occur in the right level, for the parent or children.
+     */
+    public void testErrorPropagation() {
+        Node net = Node.ROOT_NODE.newInstance(testLibrary, "net", Integer.class);
+        Node number1 = net.create(numberNode);
+        // Set an invalid expression. This error is caused by a parameter on the number1 node,
+        // therefore the number1 node should have its error flag set.
+        number1.setExpression("value", "***");
+        number1.setRendered();
+        try {
+            net.update();
+            fail("Update should have thrown an error.");
+        } catch (ProcessingError e) {
+            // The network also has its error flag set since errors propagate.
+            assertTrue(net.hasError());
+            assertTrue(number1.hasError());
+            assertFalse(net.isDirty());
+            assertFalse(number1.isDirty());
+        }
+        // Fix the error by clearing the expression and setting a regular value.
+        number1.clearExpression("value");
+        number1.setValue("value", 42);
+        assertTrue(net.isDirty());
+        net.update();
+        assertFalse(net.hasError());
+        assertFalse(number1.hasError());
+        assertEquals(42, number1.getOutputValue());
+        assertEquals(42, net.getOutputValue());
     }
 
     /**

@@ -1014,11 +1014,11 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     //// Expression shortcuts ////
 
-    public void setExpression(String parameterName, String expression) throws ExpressionError {
+    public boolean setExpression(String parameterName, String expression) {
         Parameter p = parameters.get(parameterName);
         if (p == null)
             throw new IllegalArgumentException("Parameter " + parameterName + " does not exist.");
-        p.setExpression(expression);
+        return p.setExpression(expression);
     }
 
     public void clearExpression(String parameterName) {
@@ -1507,7 +1507,15 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     public void update(ProcessingContext ctx) throws ProcessingError {
         if (!dirty) return;
-        updateDependencies(ctx);
+        try {
+            updateDependencies(ctx);
+        } catch (ProcessingError e) {
+            // Updating the dependencies causes this node to fail as well.
+            dirty = false;
+            error = e;
+            outputPort.setValue(null);
+            throw e;
+        }
         // All dependencies are up-to-date. Process the node.
         ProcessingError pe = null;
         try {
@@ -1518,7 +1526,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         // Even if an error occurred the node is still marked as clean, and events are fired.
         // Only after these steps is the error thrown.
         // It is important to mark the node as clean so that subsequent changes to the node mark it as dirty,
-        // triggering an event. This allows you to fix the node.
+        // triggering an event. This allows you to fix the cause of the error in the node.
         dirty = false;
         fireNodeUpdated(ctx);
         // If exception occurs, throw it.

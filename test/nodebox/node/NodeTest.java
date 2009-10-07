@@ -303,6 +303,71 @@ public class NodeTest extends NodeTestCase {
         assertEquals(1, listener.dirtyCounter);
     }
 
+    /**
+     * Test if errors with expressions also set the error flag on the node.
+     */
+    public void testExpressionError() {
+        Node n = numberNode.newInstance(testLibrary, "number1");
+        n.setExpression("value", "***");
+        try {
+            n.update();
+            fail("Should have caused an exception.");
+        } catch (ProcessingError e) {
+            assertTrue(e.getCause().toString().toLowerCase().contains("cannot compile expression"));
+            assertTrue(n.hasError());
+            // As stated in Node#update(ProcessingContext), even if an error occurred the node is still marked as clean
+            // and events are fired. It is important to mark the node as clean so that subsequent changes to the node
+            // mark it as dirty, triggering an event. This allows you to fix the cause of the error in the node.
+            assertFalse(n.isDirty());
+            assertNull(n.getOutputValue());
+        }
+        n.setExpression("value", "10 + 1");
+        assertTrue(n.isDirty());
+        n.update();
+        assertFalse(n.hasError());
+        assertFalse(n.isDirty());
+        assertEquals(11, n.getOutputValue());
+    }
+
+    /**
+     * Test if errors with dependencies fail fast, and have the correct error behaviour.
+     */
+    public void testDependencyError() {
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node negate1 = net.create(negateNode);
+        Node crash1 = net.create(crashNode);
+        negate1.getPort("value").connect(crash1);
+        try {
+            negate1.update();
+        } catch (ProcessingError e) {
+            assertTrue(crash1.hasError());
+            assertTrue(negate1.hasError());
+        }
+    }
+
+    /**
+     * This is the same test as ParameterTest#testExpressionDependencies, but at the Node level.
+     */
+    public void testRemoveExpressionDependency() {
+        Node net = testNetworkNode.newInstance(testLibrary, "net");
+        Node number1 = net.create(numberNode);
+        number1.addParameter("bob", Parameter.Type.INT, 10);
+        number1.setExpression("value", "bob");
+        number1.setRendered();
+        net.update();
+        assertEquals(10, net.getOutputValue());
+        number1.removeParameter("bob");
+        try {
+            net.update();
+            fail();
+        } catch (ProcessingError e) {
+            assertTrue(e.getCause().getMessage().toLowerCase().contains("cannot evaluate expression"));
+        }
+        assertTrue(net.hasError());
+        assertTrue(number1.hasError());
+        assertNull(net.getOutputValue());
+    }
+
     public void testCopyWithUpstream() {
         Node net = testNetworkNode.newInstance(testLibrary, "net1");
         Node number1 = net.create(numberNode);
@@ -465,8 +530,10 @@ public class NodeTest extends NodeTestCase {
 
     /**
      * Test the behaviour of {@link Node#stampDirty()}.
+     *
+     * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
-    public void testMarkStampedDirty() {
+    public void testMarkStampedDirty() throws ExpressionError {
         // Setup a graph where a <- b <- c.
         Node a = Node.ROOT_NODE.newInstance(testLibrary, "a", Integer.class);
         Node b = Node.ROOT_NODE.newInstance(testLibrary, "b", Integer.class);

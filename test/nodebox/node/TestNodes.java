@@ -17,6 +17,7 @@ public class TestNodes extends NodeLibrary {
         addBuiltin(new MultiAdd());
         addBuiltin(new FloatNegate());
         addBuiltin(new ConvertToUppercase());
+        addBuiltin(new Crash());
         addBuiltin(new TestNetwork());
     }
 
@@ -152,6 +153,19 @@ public class TestNodes extends NodeLibrary {
         public Object cook(Node node, ProcessingContext context) {
             String value = (String) node.getPortValue("value");
             return value.toUpperCase();
+        }
+    }
+
+    public class Crash extends Builtin {
+        protected Node createInstance() {
+            Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "crash", Integer.class);
+            n.addPort("value", Integer.class);
+            return n;
+        }
+
+        public Object cook(Node node, ProcessingContext context) {
+            int a = 0;
+            return 1 / a;
         }
     }
 

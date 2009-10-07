@@ -19,7 +19,6 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
-import nodebox.node.ExpressionHelper;
 import org.mvel2.CompileException;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
@@ -64,6 +63,7 @@ public class Expression {
 
     private Parameter parameter;
     private String expression = "";
+    private transient Exception error;
     private transient Serializable compiledExpression;
     private Set<WeakReference<Parameter>> markedParameterReferences;
 
@@ -79,16 +79,36 @@ public class Expression {
         return expression;
     }
 
-    public void setExpression(String expression) throws ExpressionError {
+    /**
+     * Set the expression.
+     *
+     * The expression is accepted as is, and no errors will be thrown even if the expression is invalid.
+
+     * Only during compilation or evaluation will this result in an error.
+     *
+     * @param expression the new expression.
+     * @see #compile()
+     * @see #evaluate()
+     * @see #evaluate(ProcessingContext)
+     */
+    public void setExpression(String expression) {
         if (this.expression != null && this.expression.equals(expression)) return;
         this.expression = expression;
         markedParameterReferences = null;
-        ExpressionCompiler compiler = new ExpressionCompiler(expression);
-        try {
-            this.compiledExpression = compiler.compile(parserContext);
-        } catch (Exception e) {
-            throw new ExpressionError("Error with expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
-        }
+        compiledExpression = null;
+    }
+
+    public boolean hasError() {
+        return error != null;
+    }
+
+    public Exception getError() {
+        return error;
+    }
+
+    /* package private */ void setError(Exception error) {
+        // This method is called from Parameter to set an error for cyclic dependencies.
+        this.error = error;
     }
 
     public Parameter getParameter() {
@@ -97,7 +117,7 @@ public class Expression {
 
     //// Values ////
 
-    public int asInt() {
+    public int asInt() throws ExpressionError {
         Object value = evaluate();
         if (value instanceof Number) {
             return (Integer) value;
@@ -106,7 +126,7 @@ public class Expression {
         }
     }
 
-    public double asFloat() {
+    public double asFloat() throws ExpressionError {
         Object value = evaluate();
         if (value instanceof Number) {
             return (Double) value;
@@ -115,7 +135,7 @@ public class Expression {
         }
     }
 
-    public String asString() {
+    public String asString() throws ExpressionError {
         Object value = evaluate();
         if (value instanceof String) {
             return (String) value;
@@ -124,7 +144,7 @@ public class Expression {
         }
     }
 
-    public Color asColor() {
+    public Color asColor() throws ExpressionError {
         Object value = evaluate();
         if (value instanceof Color) {
             return (Color) value;
@@ -134,6 +154,23 @@ public class Expression {
     }
 
     //// Evaluation ////
+
+    /**
+     * Compile the expression.
+     *
+     * @see #getError()
+     * @throws ExpressionError if the compilation fails.
+     */
+    public void compile() throws ExpressionError {
+        ExpressionCompiler compiler = new ExpressionCompiler(expression);
+        try {
+            this.compiledExpression = compiler.compile(parserContext);
+            error = null;
+        } catch (Exception e) {
+            error = e;
+            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+        }
+    }
 
     /**
      * Evaluate the expression and return the result.
@@ -147,23 +184,38 @@ public class Expression {
 
     /**
      * Evaluate the expression and return the result.
+     * <p/>
+     * Throw an exception if an error occurs. You can retrieve this exception by calling getError().
      *
      * @param context the context wherein evaluation happens.
      * @return the result of the expression
      * @throws ExpressionError if an error occurs whilst evaluating the expression.
+     * @see #getError()
      */
     public Object evaluate(ProcessingContext context) throws ExpressionError {
+        // If there was an error with the expression, throw it before doing anything.
+        if (hasError()) {
+            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath(), getError());
+        }
+
+        // If the expression was not compiled, compile it first.
+        // This can throw an ExpressionError, which will be forwarded to the caller.
+        if (compiledExpression == null) {
+            compile();
+        }
         // Set up state variables in the expression utilities class.
-        // This is not thread-safe.
+        // TODO: This is not thread-safe.
         ExpressionHelper.currentContext = context;
         ExpressionHelper.currentParameter = parameter;
         // Marked parameter references are used to find which parameters this expression references.
         markedParameterReferences = new HashSet<WeakReference<Parameter>>();
         ProxyResolverFactory prf = new ProxyResolverFactory(parameter.getNode(), context, markedParameterReferences);
         try {
+            error = null;
             return MVEL.executeExpression(compiledExpression, prf);
         } catch (Exception e) {
-            throw new ExpressionError("Error with expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+            error = e;
+            throw new ExpressionError("Cannot evaluate expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
         }
     }
 
@@ -186,7 +238,7 @@ public class Expression {
         for (WeakReference<Parameter> ref : markedParameterReferences) {
             Parameter p = ref.get();
             if (p != null)
-            dependencies.add(p);
+                dependencies.add(p);
         }
         return dependencies;
     }
@@ -348,11 +400,8 @@ public class Expression {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Expression that = (Expression) o;
-
-        if (!expression.equals(that.expression)) return false;
-
-        return true;
+        Expression other = (Expression) o;
+        return expression.equals(other.expression);
     }
 
     @Override

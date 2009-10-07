@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class ExpressionTest extends NodeTestCase {
 
-    public void testSimple() {
+    public void testSimple() throws ExpressionError {
         Node n = numberNode.newInstance(testLibrary, "number");
         Parameter pValue = n.getParameter("value");
         Expression e = new Expression(pValue, "1 + 2");
@@ -34,8 +34,9 @@ public class ExpressionTest extends NodeTestCase {
 
     /**
      * Test parameter interaction between nodes.
+     * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
-    public void testNodeLocal() {
+    public void testNodeLocal() throws ExpressionError {
         Node net = testNetworkNode.newInstance(testLibrary, "net");
         Node addDirect = net.create(addDirectNode);
         Parameter p1 = addDirect.getParameter("v1");
@@ -44,8 +45,9 @@ public class ExpressionTest extends NodeTestCase {
         assertExpressionEquals(12, p1, "v2");
     }
 
-    public void testExpressionErrors() {
-        // Setting an expression immediately evaluates it and returns an error if the expression is invalid.
+    public void testExpressionErrors() throws ExpressionError {
+        // Setting an expression immediately evaluates it, but does not throw an exception if the expression is invalid.
+        // Instead, you need to check hasParameterExpression.
         Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
         Parameter pX = test.addParameter("x", Parameter.Type.INT, 3);
         assertInvalidExpression(pX, "y", "could not access: y");
@@ -56,14 +58,89 @@ public class ExpressionTest extends NodeTestCase {
     }
 
     /**
-     * Test what happens if your expression depends on a parameter that gets removed.
+     * Test if changing the expression removes the previous dependencies.
+     * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
-    public void testDeadDependencies() {
+    public void testDependencyRemoval() throws ExpressionError {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Node beta = Node.ROOT_NODE.newInstance(testLibrary, "beta");
+        Node gamma = Node.ROOT_NODE.newInstance(testLibrary, "gamma");
+        Parameter aValue = alpha.addParameter("value", Parameter.Type.INT, 42);
+        Parameter bValue = beta.addParameter("value", Parameter.Type.INT, 33);
+        Parameter gValue = gamma.addParameter("value", Parameter.Type.INT);
+        // gamma.value depends on alpha.value.
+        gamma.setExpression("value", "alpha.value");
+        assertTrue(gValue.dependsOn(aValue));
+        gamma.update();
+        assertEquals(42, gamma.getValue("value"));
+        // gamma.value depends on beta.value.
+        gamma.setExpression("value", "beta.value");
+        assertFalse(gValue.dependsOn(aValue));
+        assertTrue(gValue.dependsOn(bValue));
+        gamma.update();
+        assertEquals(33, gamma.getValue("value"));
+        // gamma.value no longer depends on alpha or beta.
+        gamma.setExpression("value", "10 + 1");
+        assertFalse(gValue.dependsOn(aValue));
+        assertFalse(gValue.dependsOn(bValue));
+        gamma.update();
+        assertEquals(11, gamma.getValue("value"));
+    }
+
+    /**
+     * When an error is triggered while setting the expression, make sure that all dependencies already created
+     * are removed.
+     * @throws ExpressionError if the expression causes an error. This indicates a regression.
+     */
+    public void testDependencyRemovalOnError() throws ExpressionError {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Node beta = Node.ROOT_NODE.newInstance(testLibrary, "beta");
+        Parameter aValue = alpha.addParameter("value", Parameter.Type.INT, 42);
+        Parameter bValue = beta.addParameter("value", Parameter.Type.INT);
+        // Create a good expression, replace it with a bad expression.
+        beta.setExpression("value", "alpha.value");
+        assertTrue(bValue.dependsOn(aValue));
+        beta.update();
+        assertEquals(42, beta.getValue("value"));
+        // Replace the good expression with an invalid expression.
+        assertInvalidExpression(bValue, "****", "not a statement");
+        // Check that the dependency was removed.
+        assertFalse(bValue.dependsOn(aValue));
+        // Create a "semi-good" expression: one that can evaluate up to a certain point.
+        assertInvalidExpression(bValue, "alpha.value + xxx", "could not access: xxx");
+        assertFalse(bValue.dependsOn(aValue));
+    }
+
+    /**
+     * Test if expression errors mark the parameter as dirty.
+     */
+    public void testDirtyOnError() {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter aValue = alpha.addParameter("value", Parameter.Type.INT, 42);
+        assertTrue(alpha.isDirty());
+        alpha.update();
+        assertFalse(alpha.isDirty());
+        assertInvalidExpression(aValue, "****", "not a statement");
+        assertTrue(alpha.isDirty());
+        try {
+            alpha.update();
+        } catch (ProcessingError e) {
+            assertTrue(e.getMessage().toLowerCase().contains("cannot compile expression"));
+        }
+        assertEquals(42, aValue.getValue());
+    }
+
+
+    /**
+     * Test what happens if your expression depends on a parameter that gets removed.
+     * @throws ExpressionError if the expression causes an error. This indicates a regression.
+     */
+    public void testDeadDependencies() throws ExpressionError {
         Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
         Parameter pX = test.addParameter("x", Parameter.Type.INT, 3);
         Parameter pY = test.addParameter("y", Parameter.Type.INT, 5);
         pX.setExpression("y");
-        assertTrue(pX.getDependencies().contains(pY));
+        assertTrue(pX.dependsOn(pY));
         pX.update(new ProcessingContext());
         assertEquals(5, pX.getValue());
         test.removeParameter("y");
@@ -71,6 +148,7 @@ public class ExpressionTest extends NodeTestCase {
         assertFalse(pX.getDependencies().contains(pY));
         try {
             pX.update(new ProcessingContext());
+            fail();
         } catch (ExpressionError e) {
             // update throws an error since the expression references a parameter that cannot be found.
             //throw e;
@@ -124,7 +202,7 @@ public class ExpressionTest extends NodeTestCase {
         assertProcessingError(number2, "value is not an int");
     }
 
-    public void testCycles() {
+    public void testCycles() throws ExpressionError {
         Node net = testNetworkNode.newInstance(testLibrary, "net");
         Node number1 = net.create(numberNode);
         Node addDirect1 = net.create(addDirectNode);
@@ -135,7 +213,9 @@ public class ExpressionTest extends NodeTestCase {
         assertInvalidExpression(pValue, "value", "refers to itself");
         // This should not have created any connections
         assertTrue(pValue.getDependencies().isEmpty());
-        number1.setValue("value", 42);
+        // Set a direct value to number1.value. Clear the expression first.
+        pValue.clearExpression();
+        pValue.set(42);
         assertExpressionEquals(42, pV1, "number1.value");
         // Create a 2-node cycle with expressions
         assertInvalidExpression(pValue, "addDirect1.v1", "cyclic dependency");
@@ -177,7 +257,7 @@ public class ExpressionTest extends NodeTestCase {
         assertEquals(33 + 33, add1.getOutputValue());
     }
 
-    public void testNetworkLocal() {
+    public void testNetworkLocal() throws ExpressionError {
         Node net = testNetworkNode.newInstance(testLibrary, "net");
         net.addParameter("pn", Parameter.Type.INT, 33);
         Node number1 = net.create(numberNode);
@@ -267,7 +347,7 @@ public class ExpressionTest extends NodeTestCase {
         assertEquals(eA, eB);
     }
 
-    public void assertExpressionEquals(Object expected, Parameter p, String expression) {
+    public void assertExpressionEquals(Object expected, Parameter p, String expression) throws ExpressionError {
         // We don't catch the ExpressionError but let it bubble up.
         p.setExpression(expression);
         p.update(new ProcessingContext());
@@ -275,12 +355,13 @@ public class ExpressionTest extends NodeTestCase {
     }
 
     private void assertInvalidExpression(Parameter p, String expression, String expectedMessage) {
-        try {
-            p.setExpression(expression);
+        p.setExpression(expression);
+        if (!p.hasExpressionError()) {
             fail("Expression should have failed with \"" + expectedMessage + "\"");
-        } catch (ExpressionError e) {
-            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getCause().getMessage() + "\"",
-                    e.getCause().getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
+        } else {
+        Exception e = p.getExpressionError();
+        assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
+                e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
         }
     }
 

@@ -1,6 +1,6 @@
 package nodebox.node;
 
-public class ExpressionError extends RuntimeException {
+public class ExpressionError extends Exception {
 
     public ExpressionError() {
     }

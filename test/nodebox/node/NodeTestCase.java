@@ -8,7 +8,7 @@ public class NodeTestCase extends TestCase {
     protected NodeLibraryManager manager;
     protected NodeLibrary testNodes, polygraphLibrary, testLibrary;
     protected Node numberNode, negateNode, addNode, addDirectNode, addConstantNode, multiplyNode, multiAddNode,
-            floatNegateNode, convertToUppercaseNode, testNetworkNode,
+            floatNegateNode, convertToUppercaseNode, crashNode, testNetworkNode,
             polygonNode, rectNode, translateNode;
 
     @Override
@@ -29,6 +29,7 @@ public class NodeTestCase extends TestCase {
         multiAddNode = manager.getNode("testlib.multiAdd");
         floatNegateNode = manager.getNode("testlib.floatNegate");
         convertToUppercaseNode = manager.getNode("testlib.convertToUppercase");
+        crashNode = manager.getNode("testlib.crash");
         testNetworkNode = manager.getNode("testlib.testnet");
         polygonNode = manager.getNode("polygraph.polygon");
         rectNode = manager.getNode("polygraph.rect");

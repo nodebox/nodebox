@@ -220,6 +220,22 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
+     * Test if you can store/load a file with expression errors.
+     */
+    public void testStoreWithExpressionErrors() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
+        Parameter pValue = alpha.addParameter("value", Parameter.Type.INT);
+        assertCanStoreExpression(pValue, "10 + 1"); // Correct expression.
+        assertCanStoreExpression(pValue, "12 + ????"); // Compilation error.
+        assertCanStoreExpression(pValue, "y"); // Evaluation error: y does not exist.
+        alpha.addParameter("bob", Parameter.Type.INT);
+        assertCanStoreExpression(pValue, "bob"); // Correct since bob exists.
+        alpha.removeParameter("bob");
+        assertCanStoreExpression(pValue, "bob"); // Bob is gone, but the script still needs to save.
+    }
+
+    /**
      * Assert that the search string only appears once in the source.
      *
      * @param source       the source string to search in
@@ -271,6 +287,25 @@ public class NodeLibraryTest extends TestCase {
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
         Node newAlpha = newLibrary.get("alpha");
         assertEquals(value, newAlpha.getValue("value"));
+    }
+
+    /**
+     * Assert that the given expression can be stored into the parameters without problems.
+     * This checks if storing/loading will return the same expression, and no errors occur.
+
+     * @param p the parameter
+     * @param expression the expression
+     */
+    public void assertCanStoreExpression(Parameter p, String expression) {
+        String nodeName = p.getNode().getName();
+        String parameterName = p.getName();
+        p.setExpression(expression);
+        String xml = p.getLibrary().toXml();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        Node newAlpha = newLibrary.get(nodeName);
+        Parameter newParameter = newAlpha.getParameter(parameterName);
+        assertEquals(expression, newParameter.getExpression());
     }
 
 
