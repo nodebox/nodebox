@@ -302,27 +302,4 @@ public class Port {
     public String toString() {
         return node.getName() + "." + getName();
     }
-
-    public void toXml(StringBuffer xml, String spaces) {
-        // We only write out the ports that have changed with regards to the prototype.
-        Node protoNode = getNode().getPrototype();
-        Port protoPort = null;
-        if (protoNode != null)
-            protoPort = protoNode.getPort(getName());
-        // If the port and its prototype are equal, don't write anything.
-        if (protoPort != null
-                && protoPort.getName().equals(getName())
-                && protoPort.getDataClass().equals(getDataClass())
-                && protoPort.getDirection().equals(getDirection())
-                && protoPort.getCardinality().equals(getCardinality())) return;
-        xml.append(spaces)
-                .append("<port name=\"")
-                .append(getName())
-                .append("\" type=\"")
-                .append(getDataClass().getName());
-        if (getCardinality() != Cardinality.SINGLE)
-            xml.append("\" cardinality=\"")
-                    .append(getCardinality().toString().toLowerCase());
-        xml.append("\"/>\n");
-    }
 }

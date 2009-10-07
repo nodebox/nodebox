@@ -8,8 +8,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -186,6 +184,10 @@ public class NodeLibrary {
 
     //// Variables ////
 
+    public String[] getVariableNames() {
+        return variables.keySet().toArray(new String[variables.keySet().size()]);
+    }
+
     public String getVariable(String name) {
         return variables.get(name);
     }
@@ -213,9 +215,7 @@ public class NodeLibrary {
     }
 
     public void store(File f) throws IOException {
-        FileOutputStream fos = new FileOutputStream(f);
-        fos.write(toXml().getBytes("UTF-8"));
-        fos.close();
+        NDBXWriter.write(this, f);
     }
 
     /**
@@ -224,48 +224,7 @@ public class NodeLibrary {
      * @return an XML string
      */
     public String toXml() {
-        StringBuffer xml = new StringBuffer();
-        // Build the header
-        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<ndbx type=\"file\" formatVersion=\"0.9\">\n");
-        // Write out all the variables
-        for (Map.Entry<String, String> var : variables.entrySet()) {
-            xml.append("  <var name=\"").append(var.getKey()).append("\" value=\"").append(var.getValue()).append("\"/>\n");
-        }
-        // Write out all the nodes (skip the root)
-        List<Node> children = getRootNode().getChildren();
-        // The order in which the nodes are written is important!
-        // Since a library can potentially store an instance and its prototype, make sure that the prototype gets
-        // stored sequentially before its instance.
-        // The NDBXHandler class expects prototypes to be defined before their instances.
-        while (!children.isEmpty()) {
-            Node child = children.get(0);
-            writeOrderedChild(xml, children, child);
-        }
-        // Add the child connections
-        for (Node child : getRootNode().getChildren()) {
-            for (Connection conn : child.getUpstreamConnections()) {
-                conn.toXml(xml, "  ");
-            }
-        }
-        xml.append("</ndbx>");
-        return xml.toString();
-    }
-
-    /**
-     * Write out the child. If the prototype of the child is also in this library, write that out first, recursively.
-     *
-     * @param xml      the buffer to write to
-     * @param children a list of children that were written already.
-     *                 When a child is written, we remove it from the list.
-     * @param child    the child to write
-     */
-    private void writeOrderedChild(StringBuffer xml, List<Node> children, Node child) {
-        Node prototype = child.getPrototype();
-        if (prototype.getLibrary() == this && children.contains(prototype))
-            writeOrderedChild(xml, children, prototype);
-        child.toXml(xml, "  ");
-        children.remove(child);
+        return NDBXWriter.asString(this);
     }
 
     //// Parameter dependencies ////

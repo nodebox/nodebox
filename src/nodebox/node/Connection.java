@@ -204,22 +204,4 @@ public class Connection {
     public String toString() {
         return getOutputs() + " <= " + getInput();
     }
-
-    //// Persistence ////
-
-    public void toXml(StringBuffer xml, String spaces) {
-        for (Port output : outputs) {
-            toXml(xml, spaces, output);
-        }
-    }
-
-    protected void toXml(StringBuffer xml, String spaces, Port output) {
-        xml.append(spaces);
-        xml.append("<conn");
-        xml.append(" output=\"").append(output.getNode().getName()).append("\"");
-        xml.append(" input=\"").append(getInputNode().getName()).append("\"");
-        xml.append(" port=\"").append(getInput().getName()).append("\"");
-        xml.append("/>\n");
-    }
-
 }

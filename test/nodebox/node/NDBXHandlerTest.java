@@ -155,11 +155,11 @@ public class NDBXHandlerTest extends TestCase {
         assertEquals(Polygon.class, alpha.getOutputPort().getDataClass());
         // Create a new instance with the same output type.
         // Store it in a temporary node library.
-        Node beta = alpha.newInstance(new NodeLibrary("xxx"), "beta");
-        StringBuffer sb = new StringBuffer();
-        beta.toXml(sb, "");
+        NodeLibrary betaLibrary = new NodeLibrary("xxx");
+        alpha.newInstance(betaLibrary, "beta");
+        String s = betaLibrary.toXml();
         // The output type is the same, so should not be persisted.
-        assertFalse(sb.toString().contains("Polygon"));
+        assertFalse(s.contains("Polygon"));
         // Check if ports have their types persisted.
         Node n = Node.ROOT_NODE.newInstance(typeLib, "gamma");
         n.addPort("string", String.class);

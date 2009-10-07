@@ -177,6 +177,49 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
+     * Test if child nodes are stored correctly.
+     */
+    public void testStoreChildren() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node net = Node.ROOT_NODE.newInstance(library, "net", Polygon.class);
+        Node alpha = net.create(Node.ROOT_NODE, "alpha", Polygon.class);
+        Node beta = net.create(Node.ROOT_NODE, "beta", Polygon.class);
+        Port pPolygon = beta.addPort("polygon", Polygon.class);
+        pPolygon.connect(alpha);
+
+        String xml = library.toXml();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        Node newNet = newLibrary.get("net");
+        assertTrue(newNet.hasChildren());
+        Node newAlpha = newNet.getChild("alpha");
+        Node newBeta = newNet.getChild("beta");
+        assertTrue(newBeta.isConnectedTo(newAlpha));
+    }
+
+    /**
+     * Test a number of sneaky characters to see if they are encoded correctly.
+     */
+    public void testEntityEncoding() {
+        String[] testStrings = {
+                "test", // A regular string, for sanity checking
+                "&", // The ampersand is used to encode entities
+                "\"", // Double quote needs to be escaped in XML attributes
+                "\'", // Single quote could cause some problems also
+                "<", // XML open tag needs to be escaped in XML text
+                ">", // XML close tag needs to be escaped in XML text
+                "<![CDATA[", // Beginning CDATA section
+                "]]>", // End of CDATA section
+                "<![CDATA[test]]>", // Full CDATA section
+        };
+
+        for (String testString : testStrings) {
+            assertCanStoreValue(Parameter.Type.STRING, testString);
+            assertCanStoreHelpText(testString);
+        }
+    }
+
+    /**
      * Assert that the search string only appears once in the source.
      *
      * @param source       the source string to search in
@@ -185,6 +228,49 @@ public class NodeLibraryTest extends TestCase {
     public void assertOnlyOnce(String source, String searchString) {
         // If the first position where it appears == the last position, it only appears once.
         assertTrue(source.indexOf(searchString) >= 0 && source.indexOf(searchString) == source.lastIndexOf(searchString));
+    }
+
+    /**
+     * Assert that the given text can be used as the description for a parameter.
+     * This checks if storing/loading will return the same string, and no errors occur.
+     *
+     * @param helpText the help text
+     */
+    public void assertCanStoreHelpText(String helpText) {
+        // Create a library and node to store the value.
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
+        Parameter pValue = alpha.addParameter("value", Parameter.Type.STRING);
+        pValue.setHelpText(helpText);
+        // Store the library to XML.
+        String xml = library.toXml();
+        // Load the library from the XML, and retrieve the value.
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        Node newAlpha = newLibrary.get("alpha");
+        Parameter newValue = newAlpha.getParameter("value");
+        assertEquals(helpText, newValue.getHelpText());
+    }
+
+    /**
+     * Assert that the given value can be stored as a parameter value in a NodeBox script.
+     * The original value and the restored value will be compared using equals() to support strings.
+     *
+     * @param type  the type for the value.
+     * @param value the value.
+     */
+    public void assertCanStoreValue(Parameter.Type type, Object value) {
+        // Create a library and node to store the value.
+        NodeLibrary library = new NodeLibrary("test");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
+        alpha.addParameter("value", type, value);
+        // Store the library to XML.
+        String xml = library.toXml();
+        // Load the library from the XML, and retrieve the value.
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        Node newAlpha = newLibrary.get("alpha");
+        assertEquals(value, newAlpha.getValue("value"));
     }
 
 

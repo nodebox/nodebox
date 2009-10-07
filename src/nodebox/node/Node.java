@@ -1014,7 +1014,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     //// Expression shortcuts ////
 
-    public void setExpression(String parameterName, String expression) {
+    public void setExpression(String parameterName, String expression) throws ExpressionError {
         Parameter p = parameters.get(parameterName);
         if (p == null)
             throw new IllegalArgumentException("Parameter " + parameterName + " does not exist.");
@@ -1779,55 +1779,4 @@ public class Node implements NodeCode, NodeAttributeListener {
             return String.format(Locale.US, "<Node %s (%s)>", getIdentifier(), prototype.getIdentifier());
         }
     }
-
-    //// Persistence ////
-
-    /**
-     * Converts the data structure to xml. The xml String is appended to the given StringBuffer.
-     *
-     * @param xml    the StringBuffer to use when appending.
-     * @param spaces the indentation.
-     */
-    public void toXml(StringBuffer xml, String spaces) {
-        String xPosition = String.format(Locale.US, "%.0f", getX());
-        String yPosition = String.format(Locale.US, "%.0f", getY());
-        xml.append(spaces).append("<node");
-        xml.append(" name=\"").append(getName()).append("\"");
-        xml.append(" prototype=\"").append(getPrototype().getRelativeIdentifier(this)).append("\"");
-        xml.append(" x=\"").append(xPosition).append("\"");
-        xml.append(" y=\"").append(yPosition).append("\"");
-        if (isRendered())
-            xml.append(" rendered=\"true\"");
-        // Add the output type if it is different from the prototype.
-        if (getOutputPort().getDataClass() != getPrototype().getOutputPort().getDataClass())
-            xml.append(" type=\"").append(getOutputPort().getDataClass().getName()).append("\"");
-        xml.append(">\n");
-        // Add the description
-        if (!getDescription().equals(getPrototype().getDescription()))
-            xml.append(spaces).append("<description>").append(getDescription()).append("</description>\n");
-        // Add the ports
-        for (Port port : getPorts()) {
-            port.toXml(xml, spaces + "  ");
-        }
-        // Add the parameters
-        for (Parameter param : getParameters()) {
-            // We've written the description above in the <description> tag.
-            if (param.getName().equals("_description")) continue;
-            param.toXml(xml, spaces + "  ");
-        }
-        // Add all child nodes
-        for (Node child : getChildren()) {
-            child.toXml(xml, spaces + "  ");
-        }
-        // Add all child connections
-        if (childGraph != null) {
-            for (Connection conn : childGraph.getInfos()) {
-                conn.toXml(xml, spaces + "  ");
-            }
-        }
-        // End the node
-        xml.append(spaces);
-        xml.append("</node>\n");
-    }
-
 }
