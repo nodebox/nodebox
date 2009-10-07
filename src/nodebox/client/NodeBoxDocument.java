@@ -489,10 +489,16 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     //// Network events ////
 
-    public void nodeDirty(Node node) {
+    public void nodeDirty(final Node node) {
         if (node != activeNetwork) return;
-        markChanged();
-        updateActiveNetwork();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // If meanwhile the node has been marked clean, ignore the event.
+                if (!node.isDirty()) return;
+                markChanged();
+                updateActiveNetwork();
+            }
+        });
     }
 
     private void updateActiveNetwork() {
