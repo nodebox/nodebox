@@ -87,7 +87,7 @@ def cook(self):
       <value>100.0</value>
     </param>
   </node>
-  <node name="place" prototype="builtins.root" x="320" y="200">
+  <node name="place" prototype="builtins.root" x="320" y="200" type="nodebox.graphics.Grob">
     <port name="shape" type="nodebox.graphics.Grob"/>
     <port name="template" type="nodebox.graphics.Grob"/>
     <param name="_code">
