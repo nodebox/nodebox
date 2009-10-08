@@ -2,13 +2,12 @@ package nodebox.client.parameter;
 
 import nodebox.client.DraggableNumber;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
-import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class FloatControl extends AbstractParameterControl implements ChangeListener, ActionListener {
 
@@ -32,6 +31,7 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
         add(draggable);
         setValueForControl(parameter.getValue());
     }
+
     public void setValueForControl(Object v) {
         Float value = (Float) v;
         draggable.setValue(value);
@@ -47,11 +47,13 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
 
     private void setValueFromControl() {
         double value = draggable.getValue();
-        if (parameter.getMinimumValue() != null) {
-            value = Math.max(parameter.getMinimumValue(), value);
-        }
-        if (parameter.getMaximumValue() != null) {
-            value = Math.max(parameter.getMaximumValue(), value);
+        if (parameter.getBoundingMethod() == Parameter.BoundingMethod.HARD) {
+            if (parameter.getMinimumValue() != null) {
+                value = Math.max(parameter.getMinimumValue(), value);
+            }
+            if (parameter.getMaximumValue() != null) {
+                value = Math.min(parameter.getMaximumValue(), value);
+            }
         }
         if (value != (Float) parameter.getValue()) {
             parameter.setValue((float) value);

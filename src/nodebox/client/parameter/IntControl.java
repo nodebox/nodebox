@@ -2,15 +2,12 @@ package nodebox.client.parameter;
 
 import nodebox.client.DraggableNumber;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
-import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 import java.text.NumberFormat;
 
 public class IntControl extends AbstractParameterControl implements ChangeListener, ActionListener {
@@ -55,11 +52,13 @@ public class IntControl extends AbstractParameterControl implements ChangeListen
 
     private void setValueFromControl() {
         double doubleValue = draggable.getValue();
-        if (parameter.getMinimumValue() != null) {
-            doubleValue = Math.max(parameter.getMinimumValue(), doubleValue);
-        }
-        if (parameter.getMaximumValue() != null) {
-            doubleValue = Math.max(parameter.getMaximumValue(), doubleValue);
+        if (parameter.getBoundingMethod() == Parameter.BoundingMethod.HARD) {
+            if (parameter.getMinimumValue() != null) {
+                doubleValue = Math.max(parameter.getMinimumValue(), doubleValue);
+            }
+            if (parameter.getMaximumValue() != null) {
+                doubleValue = Math.min(parameter.getMaximumValue(), doubleValue);
+            }
         }
         int intValue = (int) doubleValue;
         if (intValue != parameter.asInt()) {
