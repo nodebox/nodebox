@@ -57,7 +57,7 @@ public class NodeLibrary {
         } catch (ParserConfigurationException e) {
             throw new RuntimeException("Error in the XML parser configuration", e);
         } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing.", e);
+            throw new RuntimeException("Error while parsing: " + e.getMessage(), e);
         } catch (IOException e) {
             throw new RuntimeException("I/O error while parsing.", e);
         }

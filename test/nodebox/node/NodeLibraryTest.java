@@ -58,6 +58,24 @@ public class NodeLibraryTest extends TestCase {
         assertEquals(new Rectangle(20, 30, 40, 50), polygon.getBounds());
     }
 
+    public void testLoadingErrors() {
+        // Use one manager with the polynodes library loaded in,
+        // and restore it using a manager without the polynodes library.
+        NodeLibraryManager manager = new NodeLibraryManager();
+        manager.load(new File("test/polynodes.ndbx"));
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node polyRect = manager.getNode("polynodes.rect");
+        polyRect.newInstance(testLibrary, "myrect");
+        String xml = testLibrary.toXml();
+
+        NodeLibraryManager emptyManager = new NodeLibraryManager();
+        try {
+            emptyManager.load("test", xml);
+        } catch (RuntimeException e) {
+            assertTrue(e.getMessage().toLowerCase().contains("unknown prototype polynodes.rect"));
+        }
+    }
+
     /**
      * There is a difference between loading a library using a static method on NodeLibrary
      * and using the NodeManager.load(). NodeManager.load() automatically adds the library
@@ -292,8 +310,8 @@ public class NodeLibraryTest extends TestCase {
     /**
      * Assert that the given expression can be stored into the parameters without problems.
      * This checks if storing/loading will return the same expression, and no errors occur.
-
-     * @param p the parameter
+     *
+     * @param p          the parameter
      * @param expression the expression
      */
     public void assertCanStoreExpression(Parameter p, String expression) {
