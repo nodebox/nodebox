@@ -302,7 +302,7 @@ public class NodeTest extends NodeTestCase {
         assertEquals(2, listener.updatedCounter);
         assertEquals(1, listener.dirtyCounter);
     }
-
+    
     /**
      * Test if errors with expressions also set the error flag on the node.
      */
@@ -340,8 +340,11 @@ public class NodeTest extends NodeTestCase {
         try {
             negate1.update();
         } catch (ProcessingError e) {
+        	// The error flag is limited to the dependency that caused the error.
+        	// The crash node caused the error, so it has the error flag,
+        	// but the dependent node, negate1, doesn't get the error flag.
             assertTrue(crash1.hasError());
-            assertTrue(negate1.hasError());
+            assertFalse(negate1.hasError());
         }
     }
 

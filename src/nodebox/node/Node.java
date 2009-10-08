@@ -1507,15 +1507,9 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     public void update(ProcessingContext ctx) throws ProcessingError {
         if (!dirty) return;
-        try {
-            updateDependencies(ctx);
-        } catch (ProcessingError e) {
-            // Updating the dependencies causes this node to fail as well.
-            dirty = false;
-            error = e;
-            outputPort.setValue(null);
-            throw e;
-        }
+        // Update the dependencies.
+        // This might cause an exception which we don't catch, instead letting it boil up.
+        updateDependencies(ctx);
         // All dependencies are up-to-date. Process the node.
         ProcessingError pe = null;
         try {
@@ -1535,14 +1529,66 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
+     * Update all dependencies of this node.
+     * <p/>
+     * This will update both the ports and parameters.
+     *
+     * @param ctx meta-information about the processing operation.
+     * @throws nodebox.node.ProcessingError when an error happened while updating the dependencies.
+     */
+    public void updateDependencies(ProcessingContext ctx) throws ProcessingError {
+        // Update the ports
+        try {
+            updatePorts(ctx);
+        } catch (ProcessingError e) {
+            // If an error occurs while updating the ports, this node will fail as well.
+            // The error is not saved in this node since it occurred on a dependency.
+            // This makes it easier to track down the error.
+            dirty = false;
+            outputPort.setValue(null);
+            throw e;
+        }
+        // Update the parameters
+        try {
+            updateParameters(ctx);
+        } catch (ProcessingError e) {
+            // If an error occurs while updating the parameters, this node will fail as well.
+            // It also sets the error flag on this node since there might be a problem with the expression.
+            error = e;
+            dirty = false;
+            outputPort.setValue(null);
+            throw e;
+        }
+    }
+
+    /**
+     * Update the parameters of this node.
+     * <p/>
+     * This causes all expressions to be evaluated and dependencies to be resolved this way.
+     *
+     * @param ctx meta-information about the processing operation.
+     * @throws nodebox.node.ProcessingError when an error happened during processing.
+     */
+    private void updateParameters(ProcessingContext ctx) throws ProcessingError {
+        // Update all parameter expressions.
+        for (Parameter param : parameters.values()) {
+            try {
+                param.update(ctx);
+            } catch (Exception e) {
+                throw new ProcessingError(this, "Error occurred while updating parameter " + param + ": " + e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
      * Update everything this node depends on.
      * <p/>
      * This method will update all upstream node and all parameter expressions.
      *
      * @param ctx meta-information about the processing operation.
-     * @throws nodebox.node.ProcessingError when an error happened during procesing.
+     * @throws nodebox.node.ProcessingError when an error happened during processing.
      */
-    public void updateDependencies(ProcessingContext ctx) throws ProcessingError {
+    private void updatePorts(ProcessingContext ctx) throws ProcessingError {
         // Update all upstream nodes.
         if (parent != null && parent.childGraph != null) {
             for (Port port : ports.values()) {
@@ -1550,14 +1596,6 @@ public class Node implements NodeCode, NodeAttributeListener {
                 if (conn == null) continue;
                 // Updating the connection sets the value of the corresponding input port.
                 conn.update(ctx);
-            }
-        }
-        // Update all parameter expressions.
-        for (Parameter param : parameters.values()) {
-            try {
-                param.update(ctx);
-            } catch (Exception e) {
-                throw new ProcessingError(this, "Error occurred while updating parameter " + param + ": " + e.getMessage(), e);
             }
         }
     }
