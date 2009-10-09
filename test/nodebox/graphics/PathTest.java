@@ -91,6 +91,16 @@ public class PathTest extends GraphicsTestCase {
         assertEquals(SIDE * 4, p.getLength());
     }
 
+    public void testLengthMultipleContours() {
+        Path p = new Path();
+        p.line(0, 0, 100, 0);
+        assertEquals(100f, p.getLength());
+        p.line(0, 100, 100, 100);
+        assertEquals(200f, p.getLength());
+        p.close();
+        assertEquals(300f, p.getLength());
+    }
+
     public void testPointAt() {
         Path p = new Path();
         p.line(0, 0, 50, 0);
