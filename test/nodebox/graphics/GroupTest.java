@@ -142,4 +142,15 @@ public class GroupTest extends GraphicsTestCase {
         assertEquals(100f, g.getLength());
     }
 
+    public void testLength() {
+        Group g = new Group();
+        Path p1 = new Path();
+        p1.line(0, 0, 100, 0);
+        Path p2 = new Path();
+        p2.line(0, 100, 100, 100);
+        g.add(p1);
+        g.add(p2);
+        assertEquals(200, g.getLength());
+    }
+
 }
