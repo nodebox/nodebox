@@ -288,11 +288,25 @@ def cook(self):
 <value type="python"><![CDATA[from nodebox.graphics import Path
 import pickle
 
+def _string_to_dict(s):
+        d = {}
+        for el in s.split("P"):
+            if el:
+                item = el.strip().split(" ")
+                try:
+                    index = int(item[0])
+                    x = float(item[1])
+                    y = float(item[2])
+                    d[index] = (x, y)
+                except:
+                    pass
+        return d
+
 def cook(self):
     if self.shape is None: return None
     new_shape = self.shape.clone()
     if self.pointDeltas:
-        deltas = pickle.loads(self.pointDeltas)
+        deltas = _string_to_dict(self.pointDeltas)
         for index in deltas.keys():
             try:
                 point = deltas[index]
@@ -305,7 +319,6 @@ def cook(self):
 <param name="_handle">
 <value type="python"><![CDATA[from nodebox.graphics import Path, Color, IGeometry
 from nodebox.handle import AbstractHandle
-import pickle
 
 class MyHandle(AbstractHandle):
     def __init__(self, node, shape, deltas):
@@ -323,7 +336,7 @@ class MyHandle(AbstractHandle):
     def init(self, deltas):
         self.points = self.shape.clone().points
         self._edited_points = {}
-        delta_values = deltas and pickle.loads(deltas) or {}
+        delta_values = deltas and self._string_to_dict(deltas) or {}
         for (key, (x, y)) in delta_values.items():
             try:
                 point = self.points[key]
@@ -375,6 +388,29 @@ class MyHandle(AbstractHandle):
 #            print "selected point", self.points[self._selected_point], pt.x, pt.y
             self.updateValues()            
 
+    def _dict_to_string(self, d):
+        items = d.items()
+        items.sort()
+        s = ""
+        for item in items:
+            index, (x, y) = item
+            s += "P %d %.3f %.3f " % (index, x, y)
+        return s[:-1]
+
+    def _string_to_dict(self, s):
+        d = {}
+        for el in s.split("P"):
+            if el:
+                item = el.strip().split(" ")
+                try:
+                    index = int(item[0])
+                    x = float(item[1])
+                    y = float(item[2])
+                    d[index] = (x, y)
+                except:
+                    pass
+        return d
+        
     def updateValues(self):
         delta_values = {}
         for (index, (x, y)) in self._edited_points.items():
@@ -383,8 +419,8 @@ class MyHandle(AbstractHandle):
                 delta_values[index] = (x - point.x, y - point.y)
             except IndexError:
                 pass
-
-        self.node.silentSet("pointDeltas", pickle.dumps(delta_values))
+        
+        self.node.silentSet("pointDeltas", self._dict_to_string(delta_values))
             
     def mouseReleased(self, pt):
         self._selected_point = -1
@@ -595,6 +631,38 @@ def cook(self):
 <value>0.0</value>
 </param>
 </node>
+<node name="resample" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="110">
+<description>Creates a new set of points based on the original shape.</description>
+<port name="shape" type="nodebox.graphics.Grob"/>
+<param name="_code">
+<value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    if self.method == 'length':
+        return self.shape.resampleByLength(self.length)
+    else:
+        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
+</param>
+<param name="_image">
+<value>resample.png</value>
+</param>
+<param name="method" type="string" widget="menu">
+<value>length</value>
+<menu key="length">By Length</menu>
+<menu key="amount">By Amount</menu>
+</param>
+<param bounding="hard" min="0.01" name="length" type="float">
+<value>10.0</value>
+</param>
+<param bounding="hard" min="1.0" name="points" type="int">
+<value>10</value>
+</param>
+<param label="Per Contour" name="perContour" type="int" widget="toggle">
+<value>0</value>
+</param>
+</node>
 <node name="star" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="30">
 <description>Creates a star.</description>
 <param name="_code">
@@ -691,38 +759,6 @@ def cook(self):
 </param>
 <param bounding="hard" min="0.0" name="strokeWidth" type="float">
 <value>0.0</value>
-</param>
-</node>
-<node name="resample" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="110">
-<description>Creates a new set of points based on the original shape.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    if self.method == 'length':
-        return self.shape.resampleByLength(self.length)
-    else:
-        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
-</param>
-<param name="_image">
-<value>resample.png</value>
-</param>
-<param name="method" type="string" widget="menu">
-<value>length</value>
-<menu key="length">By Length</menu>
-<menu key="amount">By Amount</menu>
-</param>
-<param bounding="hard" min="0.01" name="length" type="float">
-<value>10.0</value>
-</param>
-<param bounding="hard" min="1.0" name="points" type="int">
-<value>10</value>
-</param>
-<param label="Per Contour" name="perContour" type="int" widget="toggle">
-<value>0</value>
 </param>
 </node>
 <node name="fit" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="200">
