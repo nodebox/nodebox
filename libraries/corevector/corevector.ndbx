@@ -313,7 +313,13 @@ class MyHandle(AbstractHandle):
         self.shape = shape
         self._selected_point = -1
         self.init(deltas)
-    
+        # When we move a curve point that has control points,
+        # we want those handles too move the same amount.
+        # _delta_prev and _delta_next are the horizontal and vertical 
+        # distance from those control points to the point.
+        self._delta_prev = None         
+        self._delta_next = None
+        
     def init(self, deltas):
         self.points = self.shape.clone().points
         self._edited_points = {}
@@ -327,7 +333,8 @@ class MyHandle(AbstractHandle):
             
     def mousePressed(self, pt):
         keys = self._edited_points.keys()
-
+        num_points = len(self.points)
+        
         for index, point in enumerate(self.points):
             if index in keys:
                 x, y = self._edited_points[index]
@@ -336,11 +343,36 @@ class MyHandle(AbstractHandle):
 
             if self.createHitRectangle(x, y).contains(pt):
                 self._selected_point = index
+
+                if self.points[index].isCurveTo():
+                    i_p = index - 1
+                    if i_p > 0 and self.points[i_p].isOffCurve():
+                        if i_p in keys:
+                            x1, y1 = self._edited_points[i_p]
+                        else:
+                            point = self.points[i_p]
+                            x1, y1 = point.x, point.y
+                        self._delta_prev = (x - x1, y - y1)
+                    i_n = index + 1
+                    if i_n < num_points and self.points[i_n].isOffCurve():
+                        if i_n in keys:
+                            x1, y1 = self._edited_points[i_n]
+                        else:
+                            point = self.points[i_n]
+                            x1, y1 = point.x, point.y
+                        self._delta_next = (x - x1, y - y1)
                 break
 
     def mouseDragged(self, pt):
         if self._selected_point != -1:
             self._edited_points[self._selected_point] = (pt.x, pt.y)
+            if self._delta_prev is not None:
+                dx, dy = self._delta_prev
+                self._edited_points[self._selected_point - 1] = (pt.x - dx, pt.y - dy)
+            if self._delta_next is not None:
+                dx, dy = self._delta_next
+                self._edited_points[self._selected_point + 1] = (pt.x - dx, pt.y - dy)
+#            print "selected point", self.points[self._selected_point], pt.x, pt.y
             self.updateValues()            
 
     def updateValues(self):
@@ -356,6 +388,8 @@ class MyHandle(AbstractHandle):
             
     def mouseReleased(self, pt):
         self._selected_point = -1
+        self._delta_prev = None
+        self._delta_next = None
 
     def draw(self, ctx):
         if self.shape != self.node.ports[0]:
@@ -387,6 +421,28 @@ class MyHandle(AbstractHandle):
 
                 self.drawDot(path, x, y)
                 ctx.draw(path)
+                
+                if not on_curve:
+                    if index - 1 in keys:
+                        prev_point = self._edited_points[index - 1]
+                    else: 
+                        point = self.points[index-1]
+                        prev_point = (point.x, point.y)
+                    
+                    if index + 1 in keys:
+                        next_point = self._edited_points[index + 1]
+                    else:
+                        point = self.points[index+1]
+                        next_point = (point.x, point.y)
+                    path = Path()
+                    path.moveto(x, y)
+                    if self.points[index - 1].isOnCurve():
+                        path.lineto(prev_point[0], prev_point[1])
+                    else:
+                        path.lineto(next_point[0], next_point[1])
+                    path.strokeColor = Color(0, 0, 1)
+                    path.strokeWidth = 1
+                    ctx.draw(path)
  
 def cook(self):
     if self.shape is None: return None
@@ -539,38 +595,6 @@ def cook(self):
 <value>0.0</value>
 </param>
 </node>
-<node name="resample" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="110">
-<description>Creates a new set of points based on the original shape.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    if self.method == 'length':
-        return self.shape.resampleByLength(self.length)
-    else:
-        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
-</param>
-<param name="_image">
-<value>resample.png</value>
-</param>
-<param name="method" type="string" widget="menu">
-<value>length</value>
-<menu key="length">By Length</menu>
-<menu key="amount">By Amount</menu>
-</param>
-<param bounding="hard" min="0.01" name="length" type="float">
-<value>10.0</value>
-</param>
-<param bounding="hard" min="1.0" name="points" type="int">
-<value>10</value>
-</param>
-<param label="Per Contour" name="perContour" type="int" widget="toggle">
-<value>0</value>
-</param>
-</node>
 <node name="star" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="30">
 <description>Creates a star.</description>
 <param name="_code">
@@ -667,6 +691,38 @@ def cook(self):
 </param>
 <param bounding="hard" min="0.0" name="strokeWidth" type="float">
 <value>0.0</value>
+</param>
+</node>
+<node name="resample" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="110">
+<description>Creates a new set of points based on the original shape.</description>
+<port name="shape" type="nodebox.graphics.Grob"/>
+<param name="_code">
+<value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    if self.method == 'length':
+        return self.shape.resampleByLength(self.length)
+    else:
+        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
+</param>
+<param name="_image">
+<value>resample.png</value>
+</param>
+<param name="method" type="string" widget="menu">
+<value>length</value>
+<menu key="length">By Length</menu>
+<menu key="amount">By Amount</menu>
+</param>
+<param bounding="hard" min="0.01" name="length" type="float">
+<value>10.0</value>
+</param>
+<param bounding="hard" min="1.0" name="points" type="int">
+<value>10</value>
+</param>
+<param label="Per Contour" name="perContour" type="int" widget="toggle">
+<value>0</value>
 </param>
 </node>
 <node name="fit" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="200">
