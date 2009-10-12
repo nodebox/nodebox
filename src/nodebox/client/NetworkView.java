@@ -76,6 +76,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         DialogHandler dialogHandler = new DialogHandler();
         addKeyListener(dialogHandler);
         addKeyListener(new DeleteHandler());
+        addKeyListener(new UpDownHandler());
         initMenus();
         // This is disabled so we can detect the tab key.
         setFocusTraversalKeysEnabled(false);
@@ -85,6 +86,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         networkMenu = new JPopupMenu();
         networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
+        networkMenu.add(new GoUpAction());
         PopupHandler popupHandler = new PopupHandler();
         addInputEventListener(popupHandler);
     }
@@ -444,6 +446,25 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         return connectionPoint;
     }
 
+    //// Network navigation ////
+
+    private void goUp() {
+        if (node.getParent() == null) {
+            Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+        NodeBoxDocument.getCurrentDocument().setActiveNetwork(node.getParent());
+    }
+
+    private void goDown() {
+        if (selection.size() != 1) {
+            Toolkit.getDefaultToolkit().beep();
+            return;
+        }
+        NodeView selectedNode = selection.iterator().next();
+        NodeBoxDocument.getCurrentDocument().setActiveNetwork(selectedNode.getNode());
+    }
+
     //// Inner classes ////
 
     private class SelectionMarker extends PNode {
@@ -513,6 +534,16 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         }
     }
 
+    private class UpDownHandler extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            switch(e.getKeyCode()) {
+                case KeyEvent.VK_U: goUp(); break;
+                case KeyEvent.VK_ENTER: goDown(); break;
+            }
+        }
+    }
+
     private class DialogHandler extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
@@ -540,7 +571,6 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
             Point2D p = e.getCanvasPosition();
             networkMenu.show(NetworkView.this, (int) p.getX(), (int) p.getY());
         }
-
     }
 
     private class NewNodeAction extends AbstractAction {
@@ -560,6 +590,17 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
         public void actionPerformed(ActionEvent e) {
             getCamera().setViewTransform(new AffineTransform());
+        }
+    }
+
+    private class GoUpAction extends AbstractAction {
+        private GoUpAction() {
+            super("Go Up");
+            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_U, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            goUp();
         }
     }
 }

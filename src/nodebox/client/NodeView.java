@@ -364,6 +364,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             menu.add(new SetRenderedAction());
             menu.add(new RenameAction());
             menu.add(new DeleteAction());
+            menu.add(new GoInAction());
             Point2D p = e.getCanvasPosition();
             menu.show(NodeView.this.networkView, (int) p.getX(), (int) p.getY());
             e.setHandled(true);
@@ -401,6 +402,17 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void actionPerformed(ActionEvent e) {
             node.getParent().remove(node);
+        }
+    }
+
+    private class GoInAction extends AbstractAction {
+        private GoInAction() {
+            super("Edit Children");
+            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            NodeBoxDocument.getCurrentDocument().setActiveNetwork(node);
         }
     }
 
