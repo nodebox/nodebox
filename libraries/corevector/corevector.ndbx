@@ -501,7 +501,7 @@ def cook(self):
 <value>filter.png</value>
 </param>
 </node>
-<node name="null" prototype="builtins.root" x="140" y="290">
+<node name="null" prototype="builtins.root" type="nodebox.graphics.Grob" x="140" y="290">
 <description>Does nothing.</description>
 <port name="shape" type="nodebox.graphics.Grob"/>
 <param name="_code">
