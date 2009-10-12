@@ -266,7 +266,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     }
 
     @Override
-    public boolean isFocusTraversable() {
+    public boolean isFocusable() {
         return true;
     }
 }

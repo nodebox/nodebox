@@ -349,8 +349,8 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         if (compatibles.size() == 0) return false;
         // Connect the output of the active node to the first compatible input of the new node.
         compatibles.get(0).connect(activeNode);
-        // Move the node under the active node.
-        newNode.setPosition(activeNode.getX(), activeNode.getY() + 40);
+        // Move the node next to the active node.
+        newNode.setPosition(activeNode.getX() + NodeView.NODE_FULL_SIZE + 10, activeNode.getY());
         // Return true to indicate the connection was created successfully.
         return true;
     }
