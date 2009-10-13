@@ -4,7 +4,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Group extends AbstractGeometry implements Colorizable {
+public class Geometry extends AbstractGeometry implements Colorizable {
 
     private ArrayList<Path> paths;
     private Path currentPath;
@@ -12,12 +12,12 @@ public class Group extends AbstractGeometry implements Colorizable {
     private ArrayList<Float> pathLengths;
     private float groupLength;
 
-    public Group() {
+    public Geometry() {
         paths = new ArrayList<Path>();
         currentPath = null;
     }
 
-    public Group(Group other) {
+    public Geometry(Geometry other) {
         paths = new ArrayList<Path>(other.paths.size());
         for (Path path : other.paths) {
             paths.add(path.clone());
@@ -78,7 +78,7 @@ public class Group extends AbstractGeometry implements Colorizable {
      *
      * @param g the group whose paths are appended.
      */
-    public void extend(Group g) {
+    public void extend(Geometry g) {
         for (Path path : g.paths) {
             paths.add(path.clone());
         }
@@ -276,6 +276,35 @@ public class Group extends AbstractGeometry implements Colorizable {
     }
 
 
+    //// Geometric queries ////
+
+    public boolean contains(Point pt) {
+        for (Path p : paths) {
+            if (p.contains(pt)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean contains(float x, float y) {
+        for (Path p : paths) {
+            if (p.contains(x, y)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean contains(Rect r) {
+        for (Path p : paths) {
+            if (p.contains(r)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //// Geometric operations ////
 
     public Point[] makePoints(int amount, boolean perContour) {
@@ -299,15 +328,15 @@ public class Group extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public Group resampleByAmount(int amount, boolean perContour) {
+    public Geometry resampleByAmount(int amount, boolean perContour) {
         if (perContour) {
-            Group g = new Group();
+            Geometry g = new Geometry();
             for (Path p : paths) {
                 g.add(p.resampleByAmount(amount, true));
             }
             return g;
         } else {
-            Group g = new Group();
+            Geometry g = new Geometry();
             float delta = pointDelta(amount, isClosed());
             for (int i = 0; i < amount; i++) {
                 g.addPoint(pointAt(delta * i));
@@ -316,8 +345,8 @@ public class Group extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public Group resampleByLength(float segmentLength) {
-        Group g = new Group();
+    public Geometry resampleByLength(float segmentLength) {
+        Geometry g = new Geometry();
         for (Path p : paths) {
             g.add(p.resampleByLength(segmentLength));
         }
@@ -355,8 +384,8 @@ public class Group extends AbstractGeometry implements Colorizable {
 
     //// Object methods ////
 
-    public Group clone() {
-        return new Group(this);
+    public Geometry clone() {
+        return new Geometry(this);
     }
 
     @Override

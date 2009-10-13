@@ -61,6 +61,16 @@ public class Path extends AbstractGeometry implements Colorizable {
         add(c);
     }
 
+    /**
+     * Wrap the current path in a geometry object.
+     * @return a Geometry object
+     */
+    public Geometry asGeometry() {
+        Geometry g = new Geometry();
+        g.add(this);
+        return g;
+    }
+
     //// Color operations ////
 
     public Color getFillColor() {

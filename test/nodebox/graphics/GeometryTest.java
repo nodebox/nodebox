@@ -2,12 +2,12 @@ package nodebox.graphics;
 
 import java.util.List;
 
-public class GroupTest extends GraphicsTestCase {
+public class GeometryTest extends GraphicsTestCase {
 
     public void testBounds() {
         Path r1 = new Path();
         r1.rect(10, 20, 30, 40);
-        Group g1 = new Group();
+        Geometry g1 = new Geometry();
         g1.add(r1);
         assertEquals(Rect.centeredRect(10, 20, 30, 40), g1.getBounds());
     }
@@ -18,7 +18,7 @@ public class GroupTest extends GraphicsTestCase {
         Transform t = new Transform();
         t.translate(200, 300);
         r1.transform(t);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(r1);
         assertEquals(Rect.centeredRect(210, 320, 30, 40), g.getBounds());
     }
@@ -28,7 +28,7 @@ public class GroupTest extends GraphicsTestCase {
         r1.rect(10, 20, 30, 40);
         Path r2 = new Path();
         r2.rect(10, 120, 30, 40);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(r1);
         g.add(r2);
         Rect rect1 = Rect.centeredRect(10, 20, 30, 40);
@@ -43,7 +43,7 @@ public class GroupTest extends GraphicsTestCase {
     public void testAdd() {
         Path p = new Path();
         p.rect(10, 20, 30, 40);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(p);
         p.transform(Transform.translated(5, 7));
         // Since the path is in the group and not cloned,
@@ -56,7 +56,7 @@ public class GroupTest extends GraphicsTestCase {
         Path p2 = new Path();
         p1.rect(10, 20, 30, 40);
         p2.rect(40, 20, 30, 40);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(p1);
         g.add(p2);
         assertEquals(Rect.centeredRect((40 - 10) / 2 + 10, 20, 60, 40), g.getBounds());
@@ -71,7 +71,7 @@ public class GroupTest extends GraphicsTestCase {
         Path p2 = new Path();
         p1.rect(0, 0, 100, 100);
         p2.rect(150, 150, 100, 100);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(p1);
         g.add(p2);
         assertEquals(2, g.size());
@@ -92,7 +92,7 @@ public class GroupTest extends GraphicsTestCase {
         Path p2 = new Path();
         p2.line(50, 0, 75, 0);
         p2.line(75, 0, 100, 0);
-        Group g = new Group();
+        Geometry g = new Geometry();
         g.add(p1);
         g.add(p2);
         assertEquals(100f, g.getLength());
@@ -103,8 +103,8 @@ public class GroupTest extends GraphicsTestCase {
         assertPointEquals(75, 0, points[3]);
         assertPointEquals(100, 0, points[4]);
         // Achieve the same result using resampleByAmount.
-        Group resampledGroup = g.resampleByAmount(5, false);
-        List<Point> resampledPoints = resampledGroup.getPoints();
+        Geometry resampledGeometry = g.resampleByAmount(5, false);
+        List<Point> resampledPoints = resampledGeometry.getPoints();
         assertPointEquals(0, 0, resampledPoints.get(0));
         assertPointEquals(25, 0, resampledPoints.get(1));
         assertPointEquals(50, 0, resampledPoints.get(2));
@@ -117,15 +117,15 @@ public class GroupTest extends GraphicsTestCase {
      * Check if the cache is properly invalidated.
      */
     public void testCacheInvalidation() {
-        Group g = new Group();
+        Geometry g = new Geometry();
         assertEquals(0f, g.getLength());
         Path p1 = new Path();
         p1.line(0, 0, 50, 0);
         g.add(p1);
         assertEquals(50f, g.getLength());
-        // Change the Path after it was added to the Group.
+        // Change the Path after it was added to the Geometry.
         p1.line(50, 0, 75, 0);
-        // This change is not detected by the Group, and thus the length is not updated.
+        // This change is not detected by the Geometry, and thus the length is not updated.
         assertEquals(50f, g.getLength());
         // Manually invalidate the group.
         g.invalidate();
@@ -143,7 +143,7 @@ public class GroupTest extends GraphicsTestCase {
     }
 
     public void testLength() {
-        Group g = new Group();
+        Geometry g = new Geometry();
         Path p1 = new Path();
         p1.line(0, 0, 100, 0);
         Path p2 = new Path();

@@ -108,8 +108,23 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             return true;
         }
     }
-
+    
+    public static NodeBoxDocument createNewGeometryDocument() {
+    	NodeLibrary nodeLibrary = new NodeLibrary("untitled");
+    	NodeLibraryManager manager = Application.getInstance().getManager();
+    	Node geonet = nodeLibrary.getRootNode().create(manager.getNode("corevector.geonet"));
+        geonet.setRendered();
+        //Node geonet = Node.ROOT_NODE.newInstance(nodeLibrary, "geonet", Geometry.class);
+        NodeBoxDocument doc = new NodeBoxDocument(nodeLibrary);
+        doc.setActiveNetwork(geonet);
+        return doc;
+    }
+    
     public NodeBoxDocument() {
+    	this(new NodeLibrary("untitled"));
+    }
+
+    public NodeBoxDocument(NodeLibrary lib) {
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
         EditorPane editorPane = new EditorPane(this);
@@ -128,7 +143,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         addWindowListener(this);
         updateTitle();
         setJMenuBar(new NodeBoxMenuBar());
-        nodeLibrary = new NodeLibrary("untitled");
+        nodeLibrary = lib;
         setNodeLibrary(nodeLibrary);
         //renderThread = new RenderThread();
         //renderThread.start();

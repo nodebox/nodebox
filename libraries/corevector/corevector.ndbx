@@ -1,9 +1,147 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
-<node name="ellipse" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="30">
-<description>Creates ellipses and circles.</description>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+  <node name="generator" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="90">
+    <description>Template for creating nodes that generator vector data.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
+# Read the code in cook and replace it with your own.
+from nodebox.graphics import Path
+
+def cook(self):
+    # Replace the code below.
+    # Create a new path object.
+    p = Path()
+    # Call the rect method to draw something within the path.
+    p.rect(0, 0, 100, 100)
+    # Return the path object.
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>generator.png</value>
+    </param>
+  </node>
+  <node name="filter" prototype="generator" x="10" y="250">
+    <description>Template for creating nodes that manipulate vector data.</description>
+    <port name="shape" type="nodebox.graphics.Geometry"/>
+    <param name="_code">
+      <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
+# Read the code in cook() and replace it with your own.
+
+def cook(self):
+    # Replace the code below
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    # If you're changing the shape, make sure to clone it.
+    new_shape = self.shape.clone()
+    # Do something with the cloned copy.
+    new_shape.rotate(45)
+    # Return the transformed shape.
+    return new_shape]]></value>
+    </param>
+    <param name="_image">
+      <value>filter.png</value>
+    </param>
+  </node>
+  <node name="wiggle" prototype="filter" x="170" y="410">
+    <description>Shift points by a random amount.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from random import seed, uniform
+
+def cook(self):
+    seed(self.seed)
+    if self.shape is None: return None
+    new_shape = self.shape.clone()
+    for point in new_shape.points:
+        dx = (uniform(0, 1) - 0.5) * self.wx * 2
+        dy = (uniform(0, 1) - 0.5) * self.wy * 2
+        point.x += dx
+        point.y += dy
+    return new_shape]]></value>
+    </param>
+    <param label="Wiggle X" name="wx" type="float">
+      <value>30.0</value>
+    </param>
+    <param label="Wiggle Y" name="wy" type="float">
+      <value>30.0</value>
+    </param>
+    <param bounding="hard" min="0.0" name="seed" type="int" widget="seed">
+      <value>0</value>
+    </param>
+  </node>
+  <node name="compound" prototype="filter" x="90" y="250">
+    <description>Add, subtract or intersect geometry.</description>
+    <port name="shapeB" type="nodebox.graphics.Geometry"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry, Color
+
+def cook(self):
+     if self.shape is None: return None
+     if self.shapeB is None: return self.shape.clone()
+     # The invert turns the operation around.
+     if self.invert_difference:
+         shape_a, shape_b = self.shapeB, self.shape
+     else:
+         shape_a, shape_b = self.shape, self.shapeB
+     # We're not changing the original geometry so there is no need to clone.
+     # Unite all the paths from geometry A.
+     compound_a = None
+     for path_a in shape_a.paths:
+         if compound_a is None:
+             compound_a = path_a
+         else:
+             compound_a = compound_a.united(path_a)
+     # Unite all the paths from geometry B.
+     compound_b = None
+     for path_b in shape_b.paths:
+         if compound_b is None:
+             compound_b = path_b
+         else:
+             compound_b = compound_b.united(path_b)
+     # Final check to see if the two compound paths contain data.
+     if compound_a is None or compound_b is None: return None
+     # Combine the two compound paths using the given function.
+     f = self.function
+     if f == "united":
+         compound = compound_a.united(compound_b)
+     elif f == "subtracted":
+         compound = compound_a.subtracted(compound_b)
+     elif f == "intersected":
+         compound = compound_a.intersected(compound_b)
+     else:
+         return None
+     # Set the color of the path.
+     compound.fillColor = self.fill
+     if self.strokeWidth > 0:
+         compound.strokeColor = self.stroke
+         compound.strokeWidth = self.strokeWidth
+     return compound.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>compound.png</value>
+    </param>
+    <param name="function" type="string" widget="menu">
+      <value>united</value>
+      <menu key="united">union</menu>
+      <menu key="subtracted">difference</menu>
+      <menu key="intersected">intersect</menu>
+    </param>
+    <param name="invert_difference" type="int" widget="toggle">
+      <value>0</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="ellipse" prototype="generator" x="90" y="90">
+    <description>Create ellipses and circles.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def cook(self):
     p = Path()
@@ -14,279 +152,156 @@ def cook(self):
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
-    return p]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
 
 def cook(self):
     return FourPointHandle(self.node)]]></value>
-</param>
-<param name="_image">
-<value>ellipse.png</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param name="width" type="float">
-<value>100.0</value>
-</param>
-<param name="height" type="float">
-<value>100.0</value>
-</param>
-<param name="fill" type="color">
-<value>#000000ff</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param name="strokeWidth" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="transform" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="200">
-<description>Transforms the location, rotation and scale of a shape.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Transform
+    </param>
+    <param name="_image">
+      <value>ellipse.png</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float">
+      <value>100.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>100.0</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="merge" prototype="generator" x="90" y="330">
+    <description>Combine multiple geometries together.</description>
+    <port cardinality="multiple" name="shapes" type="nodebox.graphics.Geometry"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
 
 def cook(self):
-    if self.shape is None: return None
-    t = Transform()
-    # Each letter of the order describes an operation.
-    for op in self.order:
-        if op == 't':
-            t.translate(self.tx, self.ty)
-        elif op == 'r':
-            t.rotate(self.r)
-        elif op == 's':
-            t.scale(self.sx / 100, self.sy / 100)
-    newShape = self.shape.clone()
-    newShape.transform(t)
-    return newShape]]></value>
-</param>
-<param name="order" type="string" widget="menu">
-<value>tsr</value>
-<menu key="srt">Scale Rot Trans</menu>
-<menu key="str">Scale Trans Rot</menu>
-<menu key="rst">Rot Scale Trans</menu>
-<menu key="rts">Rot Trans Scale</menu>
-<menu key="tsr">Trans Scale Rot</menu>
-<menu key="trs">Trans Rot Scale</menu>
-</param>
-<param label="Translate X" name="tx" type="float">
-<value>0.0</value>
-</param>
-<param label="Translate Y" name="ty" type="float">
-<value>0.0</value>
-</param>
-<param label="Rotate" name="r" type="float">
-<value>0.0</value>
-</param>
-<param label="Scale X" name="sx" type="float">
-<value>100.0</value>
-</param>
-<param label="Scale Y" name="sy" type="float">
-<value>100.0</value>
-</param>
-</node>
-<node name="place" prototype="builtins.root" type="nodebox.graphics.Grob" x="320" y="200">
-<port name="shape" type="nodebox.graphics.Grob"/>
-<port name="template" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Group, Transform
-
-def cook(self):
-  if self.shape is None: return None
-  if self.template is None: return self.shape.clone()
-
-  g = Group()
-
-  for point in self.template.points:
-      t = Transform()
-      t.translate(point.x, point.y)
-      newShape = self.shape.clone()
-      newShape.transform(t)
-      try:
-        g.extend(newShape)
-      except:
-        g.add(newShape)
-
+  g = Geometry()
+  if self.shapes is None: return g
+  for shape in self.shapes:
+      g.extend(shape)
   return g]]></value>
-</param>
-</node>
-<node name="copy" prototype="builtins.root" type="nodebox.graphics.Grob" x="140" y="110">
-<description>Creates multiple copies of the input.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Group, Transform
+    </param>
+    <param name="_image">
+      <value>merge.png</value>
+    </param>
+  </node>
+  <node name="star" prototype="generator" x="410" y="90">
+    <description>Create a star shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from math import pi, sin, cos
+from nodebox.graphics import Path
 
 def cook(self):
-    if self.shape is None:
-        return None
-    g = Group()
-    tx = ty = r = 0.0
-    sx = sy = 1.0
-    for i in range(self.copies):
-        t = Transform()
-        # Each letter of the order describes an operation.
-        for op in self.order:
-            if op == 't':
-                t.translate(tx, ty)
-            elif op == 'r':
-                t.rotate(r)
-            elif op == 's':
-                t.scale(sx, sy)
-        newShape = self.shape.clone()
-        newShape.transform(t)
-#        if isinstance(newShape, Group):
-        try:
-            g.extend(newShape)
-#        else:
-        except:
-            g.add(newShape)
-        tx += self.tx
-        ty += self.ty
-        r += self.r
-        sx += self.sx / 100.0
-        sy += self.sy / 100.0
-    return g]]></value>
-</param>
-<param name="_image">
-<value>copy.png</value>
-</param>
-<param name="copies" type="int">
-<value>1</value>
-</param>
-<param name="order" type="string" widget="menu">
-<value>tsr</value>
-<menu key="srt">Scale Rot Trans</menu>
-<menu key="str">Scale Trans Rot</menu>
-<menu key="rst">Rot Scale Trans</menu>
-<menu key="rts">Rot Trans Scale</menu>
-<menu key="tsr">Trans Scale Rot</menu>
-<menu key="trs">Trans Rot Scale</menu>
-</param>
-<param label="Translate X" name="tx" type="float">
-<value>0.0</value>
-</param>
-<param label="Translate Y" name="ty" type="float">
-<value>0.0</value>
-</param>
-<param label="Rotate" name="r" type="float">
-<value>0.0</value>
-</param>
-<param label="Scale X" name="sx" type="float">
-<value>0.0</value>
-</param>
-<param label="Scale Y" name="sy" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="textpath" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="110">
-<description>Creates a textpath based on an input.</description>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path,Text
+    p = Path()
+    p.moveto(self.x, self.y + self.outer / 2)
 
-def cook(self):
-    t = Text(self.text, self.x, self.y, self.width, self.height)
-    t.fontName = self.font
-    t.fontSize = self.size
-    p = t.path
-    p.fillColor = self.fill
+    for i in xrange(1, self.points * 2):
+        angle = i * pi / self.points
+        x = sin(angle)
+        y = cos(angle)
+        radius = i % 2 and self.inner / 2 or self.outer / 2
+        x = self.x + radius * x
+        y = self.y + radius * y
+        p.lineto(x, y)
+    p.close()
+    p.fill = self.fill
     if self.strokeWidth > 0:
         p.strokeColor = self.stroke
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
-    return p]]></value>
-</param>
-<param name="_image">
-<value>tp.png</value>
-</param>
-<param name="text" type="string">
-<value>word</value>
-</param>
-<param name="x" type="float">
-<value>-35.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param name="width" type="float">
-<value>0.0</value>
-</param>
-<param name="height" type="float">
-<value>0.0</value>
-</param>
-<param name="font" type="string" widget="font">
-<value>Futura-Medium</value>
-</param>
-<param name="fill" type="color">
-<value>#00000000</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param name="size" type="float">
-<value>105.0</value>
-</param>
-<param name="strokeWidth" type="float">
-<value>3.0</value>
-</param>
-</node>
-<node name="import" prototype="builtins.root" type="nodebox.graphics.Grob" x="320" y="290">
-<description>Imports input geometry (currently only SVG) and places it in a Group instance.</description>
-<param name="_code">
-<value type="python"><![CDATA[import svg
-from nodebox.graphics import Group, Transform
+    # Convert the path to a geometry object and return.
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import AbstractHandle, FourPointHandle
+
+class StarHandle(AbstractHandle):
+  def __init__(self, node):
+      AbstractHandle.__init__(self, node)
+      self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
+      self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
+
+  def draw(self, ctx):
+      self.innerHandle.draw(ctx)
+      self.outerHandle.draw(ctx)
+
+  def mousePressed(self, pt):
+      inner, outer = self.innerHandle, self.outerHandle
+
+      if self.node.asFloat("inner") > self.node.asFloat("outer"):
+          inner, outer = outer, inner
+
+      inner.mousePressed(pt)
+      if not inner.hasDragState():
+          outer.mousePressed(pt)
+
+  def mouseDragged(self, pt):
+      inner, outer = self.innerHandle, self.outerHandle
+
+      if self.node.asFloat("inner") > self.node.asFloat("outer"):
+          inner, outer = outer, inner
+
+      inner.mouseDragged(pt)
+      if not inner.hasDragState():
+          outer.mouseDragged(pt)
+
+  def mouseReleased(self, pt):
+      self.innerHandle.mouseReleased(pt)
+      self.outerHandle.mouseReleased(pt)
 
 def cook(self):
-    if not self.file:
-        return None
-    f = file(self.file, 'r')
-    s = f.read()
-    f.close()
-    g = Group()
-    paths = svg.parse(s)
-    for path in paths:
-        g.add(path)
-    return g
-]]></value>
-</param>
-<param name="file" type="string" widget="file">
-<value></value>
-</param>
-</node>
-<node name="merge" prototype="builtins.root" type="nodebox.graphics.Grob" x="50" y="110">
-<description>Merges multiple vector nodes together.</description>
-<port cardinality="multiple" name="shapes" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Group
-
-def cook(self):
-  g = Group()
-  if self.shapes is None: return g
-  for shape in self.shapes:
-      if isinstance(shape, Group):
-          g.extend(shape)
-      else:
-          g.add(shape.clone())
-  return g]]></value>
-</param>
-<param name="_image">
-<value>merge.png</value>
-</param>
-</node>
-<node name="edit" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="290">
-<description>Edit the points of a given shape</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
-import pickle
+  return StarHandle(self.node)]]></value>
+    </param>
+    <param name="_image">
+      <value>star.png</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param bounding="hard" min="1.0" name="points" type="int">
+      <value>20</value>
+    </param>
+    <param name="outer" type="float">
+      <value>200.0</value>
+    </param>
+    <param name="inner" type="float">
+      <value>100.0</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="edit" prototype="filter" x="330" y="250">
+    <description>Edit points non-destructively.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[import pickle
 
 def _string_to_dict(s):
         d = {}
@@ -305,19 +320,20 @@ def _string_to_dict(s):
 def cook(self):
     if self.shape is None: return None
     new_shape = self.shape.clone()
+    points = new_shape.points
     if self.pointDeltas:
         deltas = _string_to_dict(self.pointDeltas)
         for index in deltas.keys():
             try:
                 point = deltas[index]
-                new_shape.points[index].x += point[0]
-                new_shape.points[index].y += point[1]
+                points[index].x += point[0]
+                points[index].y += point[1]
             except IndexError:
                 pass
     return new_shape]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Color, IGeometry
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Color, IGeometry
 from nodebox.handle import AbstractHandle
 
 class MyHandle(AbstractHandle):
@@ -483,342 +499,15 @@ class MyHandle(AbstractHandle):
 def cook(self):
     if self.shape is None: return None
     return MyHandle(self.node, self.shape, self.pointDeltas)]]></value>
-</param>
-<param name="pointDeltas" type="string">
-<value></value>
-</param>
-</node>
-<node name="scatter" prototype="builtins.root" type="nodebox.graphics.Grob" x="140" y="200">
-<description>Generates points within shape boundaries</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Point
-from random import seed, uniform
-
-def cook(self):
-    seed(self.seed)
-    if self.shape is None: return None
-    bx, by, bw, bh = list(self.shape.bounds)
-    p = Path()
-    for i in xrange(self.amount):
-        tries = 100
-        while tries > 0:
-            pt = Point(bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh)
-            if self.shape.contains(pt):
-                break
-            tries -= 1
-        if tries:
-            p.moveto(pt.x, pt.y)
-        else:
-            pass # add warning: no points found on the path
-
-    return p]]></value>
-</param>
-<param name="_image">
-<value>scatter.png</value>
-</param>
-<param bounding="hard" min="0.0" name="amount" type="int">
-<value>20</value>
-</param>
-<param bounding="hard" min="0.0" name="seed" type="int">
-<value>0</value>
-</param>
-</node>
-<node name="grid" prototype="builtins.root" type="nodebox.graphics.Grob" x="320" y="110">
-<description>Creates a grid of points.</description>
-<param name="_code">
-<value type="python"><![CDATA[
-from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.fill = None
-    column_size = 0
-    left = 0
-    if self.columns > 1:
-        column_size = self.width / (self.columns - 1)
-        left = self.x - self.width / 2
-    row_size = 0
-    top = 0
-    if self.rows > 1:
-        row_size = self.height / (self.rows - 1)
-        top = self.y - self.height / 2
-    for ri in xrange(self.rows):
-        for ci in xrange(self.columns):
-            p.addPoint(left + ci * column_size, top + ri * row_size)
-    return p]]></value>
-</param>
-<param name="_image">
-<value>grid.png</value>
-</param>
-<param help="" name="width" type="float">
-<value>300.0</value>
-</param>
-<param name="height" type="float">
-<value>300.0</value>
-</param>
-<param name="rows" type="int">
-<value>10</value>
-</param>
-<param name="columns" type="int">
-<value>10</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="filter" prototype="builtins.root" type="nodebox.graphics.Grob" x="50" y="110">
-<description>Template for creating nodes that manipulate vector data.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
-# Read the code in cook() and replace it with your own.
-from nodebox.graphics import Path
-
-def cook(self):
-    # Replace the code below
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    # If you're changing the shape, make sure to clone it.
-    clone = self.shape.clone()
-    # Do something with the cloned copy.
-    clone.rotate(45)
-    # Return the transformed shape.
-    return clone]]></value>
-</param>
-<param name="_image">
-<value>filter.png</value>
-</param>
-</node>
-<node name="null" prototype="builtins.root" type="nodebox.graphics.Grob" x="140" y="290">
-<description>Does nothing.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[def cook(self):
-    return self.shape]]></value>
-</param>
-</node>
-<node name="color" prototype="builtins.root" type="nodebox.graphics.Grob" x="50" y="200">
-<description>Color the input shapes.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    if self.shape is None: return None
-    clone = self.shape.clone()
-    clone.fillColor = self.fill
-    if self.strokeWidth > 0:
-        clone.strokeColor = self.stroke
-        clone.strokeWidth = self.strokeWidth
-    else:
-        clone.strokeColor = None
-    return clone]]></value>
-</param>
-<param name="_image">
-<value>color.png</value>
-</param>
-<param name="fill" type="color">
-<value>#000000ff</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="resample" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="110">
-<description>Creates a new set of points based on the original shape.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    if self.method == 'length':
-        return self.shape.resampleByLength(self.length)
-    else:
-        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
-</param>
-<param name="_image">
-<value>resample.png</value>
-</param>
-<param name="method" type="string" widget="menu">
-<value>length</value>
-<menu key="length">By Length</menu>
-<menu key="amount">By Amount</menu>
-</param>
-<param bounding="hard" min="0.01" name="length" type="float">
-<value>10.0</value>
-</param>
-<param bounding="hard" min="1.0" name="points" type="int">
-<value>10</value>
-</param>
-<param label="Per Contour" name="perContour" type="int" widget="toggle">
-<value>0</value>
-</param>
-</node>
-<node name="star" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="30">
-<description>Creates a star.</description>
-<param name="_code">
-<value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
-# Read the code in cook and replace it with your own.
-from math import pi, sin, cos
-from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.moveto(self.x, self.y + self.outer / 2)
-
-    for i in xrange(1, self.points * 2):
-        angle = i * pi / self.points
-        x = sin(angle)
-        y = cos(angle)
-        radius = i % 2 and self.inner / 2 or self.outer / 2
-        x = self.x + radius * x
-        y = self.y + radius * y
-        p.lineto(x, y)
-    p.close()
-    p.fill = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    # Return the path object.
-    return p]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.handle import AbstractHandle, FourPointHandle
-
-class StarHandle(AbstractHandle):
-  def __init__(self, node):
-      AbstractHandle.__init__(self, node)
-      self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
-      self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
-
-  def draw(self, ctx):
-      self.innerHandle.draw(ctx)
-      self.outerHandle.draw(ctx)
-
-  def mousePressed(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
-
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
-
-      inner.mousePressed(pt)
-      if not inner.hasDragState():
-          outer.mousePressed(pt)
-
-  def mouseDragged(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
-
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
-
-      inner.mouseDragged(pt)
-      if not inner.hasDragState():
-          outer.mouseDragged(pt)
-
-  def mouseReleased(self, pt):
-      self.innerHandle.mouseReleased(pt)
-      self.outerHandle.mouseReleased(pt)
-
-def cook(self):
-  return StarHandle(self.node)]]></value>
-</param>
-<param name="_image">
-<value>star.png</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param bounding="hard" min="1.0" name="points" type="int">
-<value>20</value>
-</param>
-<param name="outer" type="float">
-<value>200.0</value>
-</param>
-<param name="inner" type="float">
-<value>100.0</value>
-</param>
-<param name="fill" type="color">
-<value>#000000ff</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param bounding="hard" min="0.0" name="strokeWidth" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="fit" prototype="builtins.root" type="nodebox.graphics.Grob" x="410" y="200">
-<description>Fits a shape in specified bounds</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<port name="template" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Transform
-
-def cook(self):
-    if self.shape is None: return None
-
-    px, py, pw, ph = list(self.shape.bounds)
-
-    # if a template shape is given, use its bounding rectangle,
-    # otherwise use the input values.
-    if self.template is not None:
-        x, y, width, height = list(self.template.bounds)
-        x += width / 2
-        y += height / 2
-    else:
-        x = self.x
-        y = self.y
-        width = self.width
-        height = self.height
-
-    t = Transform()
-    t.translate(x, y)
-    t.scale(width / pw, height / ph)
-    t.translate(-pw / 2 - px, -ph / 2 - py)
-
-    return t.map(self.shape.clone())]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-def cook(self):
-    if self.shape is None or self.template is not None: return None
-    return FourPointHandle(self.node)]]></value>
-</param>
-<param name="_image">
-<value>fit.png</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param name="width" type="float">
-<value>300.0</value>
-</param>
-<param name="height" type="float">
-<value>300.0</value>
-</param>
-</node>
-<node name="line" prototype="builtins.root" type="nodebox.graphics.Grob" x="320" y="30">
-<description>Draws a line between two points</description>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+    </param>
+    <param name="pointDeltas" type="string">
+      <value/>
+    </param>
+  </node>
+  <node name="line" prototype="generator" x="170" y="170">
+    <description>Draw a line between two points.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 from nodebox.util.Geometry import coordinates
 
 def cook(self):
@@ -830,10 +519,11 @@ def cook(self):
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
-    return p.resampleByAmount(self.points, True)]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+    p = p.resampleByAmount(self.points, True)
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
@@ -912,36 +602,36 @@ class LineHandle(AbstractHandle):
 
 def cook(self):
   return LineHandle(self.node)]]></value>
-</param>
-<param name="_image">
-<value>line.png</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param name="angle" type="float" widget="angle">
-<value>0.0</value>
-</param>
-<param name="distance" type="float">
-<value>120.0</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param min="0.0" name="strokeWidth" type="float">
-<value>1.0</value>
-</param>
-<param bounding="hard" min="2.0" name="points" type="int">
-<value>2</value>
-</param>
-</node>
-<node name="rect" prototype="builtins.root" type="nodebox.graphics.Grob" x="140" y="30">
-<description>Creates rectangles and rounded rectangles.</description>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+    </param>
+    <param name="_image">
+      <value>line.png</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="angle" type="float" widget="angle">
+      <value>0.0</value>
+    </param>
+    <param name="distance" type="float">
+      <value>120.0</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param min="0.0" name="strokeWidth" type="float">
+      <value>1.0</value>
+    </param>
+    <param bounding="hard" min="2.0" name="points" type="int">
+      <value>2</value>
+    </param>
+  </node>
+  <node name="rect" prototype="generator" x="330" y="90">
+    <description>Create rectangles and rounded rectangles.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def cook(self):
     p = Path()
@@ -955,151 +645,458 @@ def cook(self):
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
-    return p]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
 
 def cook(self):
     return FourPointHandle(self.node)]]></value>
-</param>
-<param name="_image">
-<value>rect.png</value>
-</param>
-<param name="x" type="float">
-<value>0.0</value>
-</param>
-<param name="y" type="float">
-<value>0.0</value>
-</param>
-<param name="width" type="float">
-<value>100.0</value>
-</param>
-<param name="height" type="float">
-<value>100.0</value>
-</param>
-<param label="Roundness X" name="rx" type="float">
-<value>0.0</value>
-</param>
-<param label="Roundness Y" name="ry" type="float">
-<value>0.0</value>
-</param>
-<param name="fill" type="color">
-<value>#000000ff</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param name="strokeWidth" type="float">
-<value>0.0</value>
-</param>
-</node>
-<node name="wiggle" prototype="builtins.root" type="nodebox.graphics.Grob" x="230" y="290">
-<description>Relocates points based on original points with a margin.</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+    </param>
+    <param name="_image">
+      <value>rect.png</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float">
+      <value>100.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>100.0</value>
+    </param>
+    <param label="Roundness X" name="rx" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Roundness Y" name="ry" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="textpath" prototype="generator" x="90" y="170">
+    <description>Create a path out of text.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Text
+
+def cook(self):
+    t = Text(self.text, self.x, self.y, self.width, self.height)
+    t.fontName = self.font
+    t.fontSize = self.size
+    # valueOf requires a correct value: LEFT, CENTER, RIGHT or JUSTIFY. Anything else will
+    # make it crash. If users start doing crazy things and change the alignment, at least
+    # make sure you catch the error.
+    try:
+        t.align = Text.Align.valueOf(self.align)
+    except:
+        pass
+    p = t.path
+    p.fillColor = self.fill
+    if self.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>tp.png</value>
+    </param>
+    <param name="text" type="string">
+      <value>hello</value>
+    </param>
+    <param name="font" type="string" widget="font">
+      <value>Verdana</value>
+    </param>
+    <param name="size" type="float">
+      <value>24.0</value>
+    </param>
+    <param name="align" type="string" widget="menu">
+      <value>CENTER</value>
+      <menu key="LEFT">Left</menu>
+      <menu key="CENTER">Center</menu>
+      <menu key="RIGHT">Right</menu>
+      <menu key="JUSTIFY">Justify</menu>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="resample" prototype="filter" x="330" y="330">
+    <description>Distribute points along a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[
+def cook(self):
+    # Check if a shape is connected.
+    if self.shape is None: return None
+    if self.method == 'length':
+        return self.shape.resampleByLength(self.length)
+    else:
+        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
+    </param>
+    <param name="_image">
+      <value>resample.png</value>
+    </param>
+    <param name="method" type="string" widget="menu">
+      <value>length</value>
+      <menu key="length">By Length</menu>
+      <menu key="amount">By Amount</menu>
+    </param>
+    <param bounding="hard" min="0.01" name="length" type="float">
+      <value>10.0</value>
+    </param>
+    <param bounding="hard" min="1.0" name="points" type="int">
+      <value>10</value>
+    </param>
+    <param label="Per Contour" name="perContour" type="int" widget="toggle">
+      <value>0</value>
+    </param>
+  </node>
+  <node name="scatter" prototype="filter" x="410" y="330">
+    <description>Generate points within the boundaries of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Point
 from random import seed, uniform
 
 def cook(self):
     seed(self.seed)
     if self.shape is None: return None
-    shape = self.shape.clone()
-    for point in shape.points:
-        dx = (uniform(0, 1) - 0.5) * self.wx * 2
-        dy = (uniform(0, 1) - 0.5) * self.wy * 2
-        point.x += dx
-        point.y += dy
-    return shape]]></value>
-</param>
-<param label="Wiggle X" name="wx" type="float">
-<value>30.0</value>
-</param>
-<param label="Wiggle Y" name="wy" type="float">
-<value>30.0</value>
-</param>
-<param bounding="hard" min="0.0" name="seed" type="int" widget="seed">
-<value>0</value>
-</param>
-</node>
-<node name="generator" prototype="builtins.root" type="nodebox.graphics.Grob" x="50" y="30">
-<description>Template for creating nodes that generator vector data.</description>
-<param name="_code">
-<value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
-# Read the code in cook and replace it with your own.
+    bx, by, bw, bh = list(self.shape.bounds)
+    p = Path()
+    for i in xrange(self.amount):
+        tries = 100
+        while tries > 0:
+            pt = Point(bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh)
+            if self.shape.contains(pt):
+                break
+            tries -= 1
+        if tries:
+            p.moveto(pt.x, pt.y)
+        else:
+            pass # add warning: no points found on the path
+
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>scatter.png</value>
+    </param>
+    <param bounding="hard" min="0.0" name="amount" type="int">
+      <value>20</value>
+    </param>
+    <param bounding="hard" min="0.0" name="seed" type="int">
+      <value>0</value>
+    </param>
+  </node>
+  <node name="transform" prototype="filter" x="90" y="410">
+    <description>Transforms the location, rotation and scale of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform
+
+def cook(self):
+    if self.shape is None: return None
+    t = Transform()
+    # Each letter of the order describes an operation.
+    for op in self.order:
+        if op == 't':
+            t.translate(self.tx, self.ty)
+        elif op == 'r':
+            t.rotate(self.r)
+        elif op == 's':
+            t.scale(self.sx / 100, self.sy / 100)
+    # Transform.map clones and transforms the geometry.
+    return t.map(self.shape)]]></value>
+    </param>
+    <param name="order" type="string" widget="menu">
+      <value>tsr</value>
+      <menu key="srt">Scale Rot Trans</menu>
+      <menu key="str">Scale Trans Rot</menu>
+      <menu key="rst">Rot Scale Trans</menu>
+      <menu key="rts">Rot Trans Scale</menu>
+      <menu key="tsr">Trans Scale Rot</menu>
+      <menu key="trs">Trans Rot Scale</menu>
+    </param>
+    <param label="Translate X" name="tx" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Translate Y" name="ty" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Rotate" name="r" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Scale X" name="sx" type="float">
+      <value>100.0</value>
+    </param>
+    <param label="Scale Y" name="sy" type="float">
+      <value>100.0</value>
+    </param>
+  </node>
+  <node name="fit" prototype="filter" x="410" y="250">
+    <description>Fit a shape within bounds.</description>
+    <port name="template" type="nodebox.graphics.Geometry"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Transform
+
+def cook(self):
+    if self.shape is None: return None
+
+    px, py, pw, ph = list(self.shape.bounds)
+
+    # if a template shape is given, use its bounding rectangle,
+    # otherwise use the input values.
+    if self.template is not None:
+        x, y, width, height = list(self.template.bounds)
+        x += width / 2
+        y += height / 2
+    else:
+        x = self.x
+        y = self.y
+        width = self.width
+        height = self.height
+
+    t = Transform()
+    t.translate(x, y)
+    t.scale(width / pw, height / ph)
+    t.translate(-pw / 2 - px, -ph / 2 - py)
+
+    return t.map(self.shape)]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+
+def cook(self):
+    if self.shape is None or self.template is not None: return None
+    return FourPointHandle(self.node)]]></value>
+    </param>
+    <param name="_image">
+      <value>fit.png</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float">
+      <value>300.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>300.0</value>
+    </param>
+  </node>
+  <node name="color" prototype="filter" x="250" y="250">
+    <description>Change the color of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
+
+def cook(self):
+    if self.shape is None: return None
+    new_shape = self.shape.clone()
+    for path in new_shape.paths:
+        path.fillColor = self.fill
+        if self.strokeWidth > 0:
+            path.strokeColor = self.stroke
+            path.strokeWidth = self.strokeWidth
+        else:
+            path.strokeColor = None
+    return new_shape]]></value>
+    </param>
+    <param name="_image">
+      <value>color.png</value>
+    </param>
+    <param name="fill" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="grid" prototype="generator" x="170" y="90">
+    <description>Create a grid of points.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[
 from nodebox.graphics import Path
 
 def cook(self):
-    # Replace the code below.
-    # Create a new path object.
     p = Path()
-    # Call the rect method to draw something within the path.
-    p.rect(0, 0, 100, 100)
-    # Return the path object.
-    return p]]></value>
-</param>
-<param name="_image">
-<value>generator.png</value>
-</param>
-</node>
-<node name="compound" prototype="builtins.root" type="nodebox.graphics.Grob" x="50" y="290">
-<description>Creates compound paths</description>
-<port name="shape" type="nodebox.graphics.Grob"/>
-<port name="shapeB" type="nodebox.graphics.Grob"/>
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path,Color
+    p.fill = None
+    column_size = 0
+    left = 0
+    if self.columns > 1:
+        column_size = self.width / (self.columns - 1)
+        left = self.x - self.width / 2
+    row_size = 0
+    top = 0
+    if self.rows > 1:
+        row_size = self.height / (self.rows - 1)
+        top = self.y - self.height / 2
+    for ri in xrange(self.rows):
+        for ci in xrange(self.columns):
+            p.addPoint(left + ci * column_size, top + ri * row_size)
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>grid.png</value>
+    </param>
+    <param help="" name="width" type="float">
+      <value>300.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>300.0</value>
+    </param>
+    <param name="rows" type="int">
+      <value>10</value>
+    </param>
+    <param name="columns" type="int">
+      <value>10</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
+  <node name="import" prototype="generator" x="250" y="90">
+    <description>Import geometry from a SVG file.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry
 
 def cook(self):
-     if self.shape is None: return None
-     if self.shapeB is None: return None
-     p1c = self.shape.clone()
-     p2c = self.shapeB.clone()
-     compound = Path()
-     if self.invert_difference:
-         func = getattr(p1c, self.function)
-         compound = func(p2c)
-     else:
-         func = getattr(p2c, self.function)
-         compound = func(p1c)
+    if not self.file: return None
+    f = file(self.file, 'r')
+    s = f.read()
+    f.close()
+    g = Geometry()
+    # We defer loading the SVG library until we need it.
+    # This makes creating a node faster.
+    import svg
+    paths = svg.parse(s)
+    for path in paths:
+        g.add(path)
+    return g
+]]></value>
+    </param>
+    <param name="file" type="string" widget="file">
+      <value/>
+    </param>
+  </node>
+  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10"/>
+  <node name="place" prototype="filter" x="250" y="330">
+    <port name="template" type="nodebox.graphics.Geometry"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry, Transform
 
-     compound.fillColor = self.fill
-     if self.strokeWidth > 0:
-         compound.strokeColor = self.stroke
-         compound.strokeWidth = self.strokeWidth
-     else:
-         compound.strokeColor = None
-     # otherwise: a bit longer but maybe more comprehensible
-     '''
-     f = self.function
-     if f == "subtracted":
-         compound = p1c.subtracted(p2c)
-     if f == "united":
-         compound = p1c.united(p2c)
-     if f == "intersected":
-         compound = p1c.intersected(p2c)
-     '''
-     return compound]]></value>
-</param>
-<param name="_image">
-<value>compound.png</value>
-</param>
-<param name="function" type="string" widget="menu">
-<value>united</value>
-<menu key="united">union</menu>
-<menu key="subtracted">difference</menu>
-<menu key="intersected">intersect</menu>
-</param>
-<param name="invert_difference" type="int" widget="toggle">
-<value>0</value>
-</param>
-<param name="fill" type="color">
-<value>#000000ff</value>
-</param>
-<param name="stroke" type="color">
-<value>#000000ff</value>
-</param>
-<param name="strokeWidth" type="float">
-<value>0.0</value>
-</param>
-</node>
+def cook(self):
+  if self.shape is None: return None
+  if self.template is None: return self.shape.clone()
+
+  g = Geometry()
+  for point in self.template.points:
+      t = Transform()
+      t.translate(point.x, point.y)
+      newShape = t.map(self.shape)
+      g.extend(newShape)
+  return g]]></value>
+    </param>
+  </node>
+  <node name="null" prototype="filter" x="170" y="330">
+    <description>Does nothing.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[def cook(self):
+    return self.shape]]></value>
+    </param>
+  </node>
+  <node name="copy" prototype="filter" x="170" y="250">
+    <description>Create multiple copies of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
+
+def cook(self):
+    if self.shape is None:
+        return None
+    g = Geometry()
+    tx = ty = r = 0.0
+    sx = sy = 1.0
+    for i in range(self.copies):
+        t = Transform()
+        # Each letter of the order describes an operation.
+        for op in self.order:
+            if op == 't':
+                t.translate(tx, ty)
+            elif op == 'r':
+                t.rotate(r)
+            elif op == 's':
+                t.scale(sx, sy)
+        new_shape = t.map(self.shape)
+        g.extend(new_shape)
+        tx += self.tx
+        ty += self.ty
+        r += self.r
+        sx += self.sx / 100.0
+        sy += self.sy / 100.0
+    return g]]></value>
+    </param>
+    <param name="_image">
+      <value>copy.png</value>
+    </param>
+    <param bounding="hard" min="1.0" name="copies" type="int">
+      <value>1</value>
+    </param>
+    <param name="order" type="string" widget="menu">
+      <value>tsr</value>
+      <menu key="srt">Scale Rot Trans</menu>
+      <menu key="str">Scale Trans Rot</menu>
+      <menu key="rst">Rot Scale Trans</menu>
+      <menu key="rts">Rot Trans Scale</menu>
+      <menu key="tsr">Trans Scale Rot</menu>
+      <menu key="trs">Trans Rot Scale</menu>
+    </param>
+    <param label="Translate X" name="tx" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Translate Y" name="ty" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Rotate" name="r" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Scale X" name="sx" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Scale Y" name="sy" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
 </ndbx>

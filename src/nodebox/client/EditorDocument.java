@@ -2,7 +2,7 @@ package nodebox.client;
 
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Text;
-import nodebox.graphics.Group;
+import nodebox.graphics.Geometry;
 import nodebox.graphics.Path;
 import org.python.util.PythonInterpreter;
 
@@ -120,7 +120,7 @@ public class EditorDocument extends JFrame {
             interpreter.set("GraphicsContext", nodebox.graphics.GraphicsContext.class);
             interpreter.set("Grob", nodebox.graphics.Grob.class);
             interpreter.set("Path", Path.class);
-            interpreter.set("Group", Group.class);
+            interpreter.set("Geometry", Geometry.class);
             interpreter.set("Image", nodebox.graphics.Image.class);
             interpreter.set("NodeBoxError", nodebox.graphics.NodeBoxError.class);
             interpreter.set("PathElement", nodebox.graphics.PathElement.class);

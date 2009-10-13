@@ -142,6 +142,12 @@ public class Transform implements Cloneable {
         return newPath;
     }
 
+    public Geometry map(Geometry g) {
+        Geometry newGeometry = new Geometry(g);
+        map(newGeometry.getPoints());
+        return newGeometry;
+    }
+
     /**
      * Transforms all the given points in place.
      *

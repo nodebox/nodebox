@@ -67,7 +67,7 @@ public class PathTest extends GraphicsTestCase {
         p.rect(0, 0, 100, 100);
         p.rect(150, 150, 100, 100);
         // Create a new group that will contain the converted contours.
-        Group g = new Group();
+        Geometry g = new Geometry();
         // Convert each contour to a path of its own.
         for (Contour c : p.getContours()) {
             g.add(c.toPath());
