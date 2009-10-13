@@ -710,7 +710,7 @@ def cook(self):
     return p.asGeometry()]]></value>
     </param>
     <param name="_image">
-      <value>tp.png</value>
+      <value>textpath.png</value>
     </param>
     <param name="text" type="string">
       <value>hello</value>
@@ -1008,11 +1008,19 @@ def cook(self):
     return g
 ]]></value>
     </param>
+    <param name="_image">
+      <value>import.png</value>
+    </param>
     <param name="file" type="string" widget="file">
       <value/>
     </param>
   </node>
-  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10"/>
+  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
+    <description>A network of geometry nodes.</description>
+    <param name="_image">
+      <value>geonet.png</value>
+    </param>
+  </node>
   <node name="place" prototype="filter" x="250" y="330">
     <port name="template" type="nodebox.graphics.Geometry"/>
     <param name="_code">
