@@ -136,8 +136,8 @@ public class Rect implements Iterable {
         return new Rectangle2D.Float(x, y, width, height);
     }
 
-    public Iterator iterator() {
-        List list = new ArrayList();
+    public Iterator<Float> iterator() {
+        List<Float> list = new ArrayList<Float>();
         list.add(x);
         list.add(y);
         list.add(width);
