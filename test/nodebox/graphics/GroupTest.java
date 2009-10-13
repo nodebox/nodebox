@@ -150,7 +150,7 @@ public class GroupTest extends GraphicsTestCase {
         p2.line(0, 100, 100, 100);
         g.add(p1);
         g.add(p2);
-        assertEquals(200, g.getLength());
+        assertEquals(200f, g.getLength());
     }
 
 }
