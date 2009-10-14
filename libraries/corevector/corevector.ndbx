@@ -500,6 +500,9 @@ def cook(self):
     if self.shape is None: return None
     return MyHandle(self.node, self.shape, self.pointDeltas)]]></value>
     </param>
+    <param help="" name="_image">
+      <value>edit.png</value>
+    </param>
     <param name="pointDeltas" type="string">
       <value/>
     </param>
@@ -780,85 +783,6 @@ def cook(self):
       <value>0</value>
     </param>
   </node>
-  <node name="scatter" prototype="filter" x="410" y="330">
-    <description>Generate points within the boundaries of a shape.</description>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Point
-from random import seed, uniform
-
-def cook(self):
-    seed(self.seed)
-    if self.shape is None: return None
-    bx, by, bw, bh = list(self.shape.bounds)
-    p = Path()
-    for i in xrange(self.amount):
-        tries = 100
-        while tries > 0:
-            pt = Point(bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh)
-            if self.shape.contains(pt):
-                break
-            tries -= 1
-        if tries:
-            p.moveto(pt.x, pt.y)
-        else:
-            pass # add warning: no points found on the path
-
-    return p.asGeometry()]]></value>
-    </param>
-    <param name="_image">
-      <value>scatter.png</value>
-    </param>
-    <param bounding="hard" min="0.0" name="amount" type="int">
-      <value>20</value>
-    </param>
-    <param bounding="hard" min="0.0" name="seed" type="int">
-      <value>0</value>
-    </param>
-  </node>
-  <node name="transform" prototype="filter" x="90" y="410">
-    <description>Transforms the location, rotation and scale of a shape.</description>
-    <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform
-
-def cook(self):
-    if self.shape is None: return None
-    t = Transform()
-    # Each letter of the order describes an operation.
-    for op in self.order:
-        if op == 't':
-            t.translate(self.tx, self.ty)
-        elif op == 'r':
-            t.rotate(self.r)
-        elif op == 's':
-            t.scale(self.sx / 100, self.sy / 100)
-    # Transform.map clones and transforms the geometry.
-    return t.map(self.shape)]]></value>
-    </param>
-    <param name="order" type="string" widget="menu">
-      <value>tsr</value>
-      <menu key="srt">Scale Rot Trans</menu>
-      <menu key="str">Scale Trans Rot</menu>
-      <menu key="rst">Rot Scale Trans</menu>
-      <menu key="rts">Rot Trans Scale</menu>
-      <menu key="tsr">Trans Scale Rot</menu>
-      <menu key="trs">Trans Rot Scale</menu>
-    </param>
-    <param label="Translate X" name="tx" type="float">
-      <value>0.0</value>
-    </param>
-    <param label="Translate Y" name="ty" type="float">
-      <value>0.0</value>
-    </param>
-    <param label="Rotate" name="r" type="float">
-      <value>0.0</value>
-    </param>
-    <param label="Scale X" name="sx" type="float">
-      <value>100.0</value>
-    </param>
-    <param label="Scale Y" name="sy" type="float">
-      <value>100.0</value>
-    </param>
-  </node>
   <node name="fit" prototype="filter" x="410" y="250">
     <description>Fit a shape within bounds.</description>
     <port name="template" type="nodebox.graphics.Geometry"/>
@@ -910,6 +834,85 @@ def cook(self):
     </param>
     <param name="height" type="float">
       <value>300.0</value>
+    </param>
+  </node>
+  <node name="transform" prototype="filter" x="90" y="410">
+    <description>Transforms the location, rotation and scale of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform
+
+def cook(self):
+    if self.shape is None: return None
+    t = Transform()
+    # Each letter of the order describes an operation.
+    for op in self.order:
+        if op == 't':
+            t.translate(self.tx, self.ty)
+        elif op == 'r':
+            t.rotate(self.r)
+        elif op == 's':
+            t.scale(self.sx / 100, self.sy / 100)
+    # Transform.map clones and transforms the geometry.
+    return t.map(self.shape)]]></value>
+    </param>
+    <param name="order" type="string" widget="menu">
+      <value>tsr</value>
+      <menu key="srt">Scale Rot Trans</menu>
+      <menu key="str">Scale Trans Rot</menu>
+      <menu key="rst">Rot Scale Trans</menu>
+      <menu key="rts">Rot Trans Scale</menu>
+      <menu key="tsr">Trans Scale Rot</menu>
+      <menu key="trs">Trans Rot Scale</menu>
+    </param>
+    <param label="Translate X" name="tx" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Translate Y" name="ty" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Rotate" name="r" type="float">
+      <value>0.0</value>
+    </param>
+    <param label="Scale X" name="sx" type="float">
+      <value>100.0</value>
+    </param>
+    <param label="Scale Y" name="sy" type="float">
+      <value>100.0</value>
+    </param>
+  </node>
+  <node name="scatter" prototype="filter" x="410" y="330">
+    <description>Generate points within the boundaries of a shape.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Point
+from random import seed, uniform
+
+def cook(self):
+    seed(self.seed)
+    if self.shape is None: return None
+    bx, by, bw, bh = list(self.shape.bounds)
+    p = Path()
+    for i in xrange(self.amount):
+        tries = 100
+        while tries > 0:
+            pt = Point(bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh)
+            if self.shape.contains(pt):
+                break
+            tries -= 1
+        if tries:
+            p.moveto(pt.x, pt.y)
+        else:
+            pass # add warning: no points found on the path
+
+    return p.asGeometry()]]></value>
+    </param>
+    <param name="_image">
+      <value>scatter.png</value>
+    </param>
+    <param bounding="hard" min="0.0" name="amount" type="int">
+      <value>20</value>
+    </param>
+    <param bounding="hard" min="0.0" name="seed" type="int">
+      <value>0</value>
     </param>
   </node>
   <node name="color" prototype="filter" x="250" y="250">
@@ -988,6 +991,12 @@ def cook(self):
       <value>0.0</value>
     </param>
   </node>
+  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
+    <description>A network of geometry nodes.</description>
+    <param name="_image">
+      <value>geonet.png</value>
+    </param>
+  </node>
   <node name="import" prototype="generator" x="250" y="90">
     <description>Import geometry from a SVG file.</description>
     <param name="_code">
@@ -1013,12 +1022,6 @@ def cook(self):
     </param>
     <param name="file" type="string" widget="file">
       <value/>
-    </param>
-  </node>
-  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
-    <description>A network of geometry nodes.</description>
-    <param name="_image">
-      <value>geonet.png</value>
     </param>
   </node>
   <node name="place" prototype="filter" x="250" y="330">
