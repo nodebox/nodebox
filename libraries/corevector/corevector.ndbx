@@ -22,7 +22,7 @@ def cook(self):
   </node>
   <node name="filter" prototype="generator" x="10" y="250">
     <description>Template for creating nodes that manipulate vector data.</description>
-    <port name="shape" type="nodebox.graphics.Geometry"/>
+    <port name="shape"/>
     <param name="_code">
       <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
 # Read the code in cook() and replace it with your own.
@@ -70,7 +70,7 @@ def cook(self):
   </node>
   <node name="compound" prototype="filter" x="90" y="250">
     <description>Add, subtract or intersect geometry.</description>
-    <port name="shapeB" type="nodebox.graphics.Geometry"/>
+    <port name="shapeB"/>
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Geometry, Color
 
@@ -187,7 +187,7 @@ def cook(self):
   </node>
   <node name="merge" prototype="generator" x="90" y="330">
     <description>Combine multiple geometries together.</description>
-    <port cardinality="multiple" name="shapes" type="nodebox.graphics.Geometry"/>
+    <port cardinality="multiple" name="shapes"/>
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
 
@@ -785,7 +785,7 @@ def cook(self):
   </node>
   <node name="fit" prototype="filter" x="410" y="250">
     <description>Fit a shape within bounds.</description>
-    <port name="template" type="nodebox.graphics.Geometry"/>
+    <port name="template"/>
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Transform
 
@@ -1025,7 +1025,7 @@ def cook(self):
     </param>
   </node>
   <node name="place" prototype="filter" x="250" y="330">
-    <port name="template" type="nodebox.graphics.Geometry"/>
+    <port name="template"/>
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry, Transform
 

@@ -48,7 +48,6 @@ public class NDBXHandler extends DefaultHandler {
     public static final String PARAMETER_MAXIMUM_VALUE = "max";
     public static final String VALUE_TYPE = "type";
     public static final String PORT_NAME = "name";
-    public static final String PORT_TYPE = "type";
     public static final String PORT_CARDINALITY = "cardinality";
     public static final String CONNECTION_OUTPUT = "output";
     public static final String CONNECTION_INPUT = "input";
@@ -430,18 +429,9 @@ public class NDBXHandler extends DefaultHandler {
 
     private void startPortTag(Attributes attributes) throws SAXException {
         String name = attributes.getValue(PORT_NAME);
-        String typeAsString = attributes.getValue(PORT_TYPE);
         String cardinalityAsString = attributes.getValue(PORT_CARDINALITY);
         if (name == null)
             throw new SAXException("Name is required for port on node '" + currentNode.getName() + "'.");
-        if (typeAsString == null)
-            throw new SAXException("Type is required for port on node '" + currentNode.getName() + "'.");
-        Class type;
-        try {
-            type = Class.forName(typeAsString);
-        } catch (ClassNotFoundException e) {
-            throw new SAXException("Class " + typeAsString + " for port " + name + " not found.");
-        }
         Port.Cardinality cardinality = Port.Cardinality.SINGLE;
         if (cardinalityAsString != null) {
             try {
@@ -450,7 +440,7 @@ public class NDBXHandler extends DefaultHandler {
                 throw new SAXException("Invalid cardinality attribute in port tag: should be single or multiple, not " + cardinalityAsString + ".");
             }
         }
-        currentNode.addPort(name, type, cardinality);
+        currentNode.addPort(name, cardinality);
     }
 
     private void startConnectionTag(Attributes attributes) throws SAXException {

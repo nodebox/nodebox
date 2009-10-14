@@ -14,9 +14,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.File;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Locale;
@@ -125,8 +125,8 @@ public class NDBXWriter {
             el.setAttribute("rendered", "true");
 
         // Add the output type if it is different from the prototype.
-        if (node.getOutputPort().getDataClass() != node.getPrototype().getOutputPort().getDataClass())
-            el.setAttribute("type", node.getOutputPort().getDataClass().getName());
+        if (node.getDataClass() != node.getPrototype().getDataClass())
+            el.setAttribute("type", node.getDataClass().getName());
 
         // Add the description
         if (!node.getDescription().equals(node.getPrototype().getDescription())) {
@@ -157,7 +157,7 @@ public class NDBXWriter {
         // Add all child connections
         for (Node child : node.getChildren()) {
             for (Connection conn : child.getUpstreamConnections()) {
-                writeConnection(doc,el,conn);
+                writeConnection(doc, el, conn);
             }
         }
     }
@@ -232,12 +232,10 @@ public class NDBXWriter {
         // If the port and its prototype are equal, don't write anything.
         if (protoPort != null
                 && protoPort.getName().equals(port.getName())
-                && protoPort.getDataClass().equals(port.getDataClass())
                 && protoPort.getDirection().equals(port.getDirection())
                 && protoPort.getCardinality().equals(port.getCardinality())) return;
         Element el = doc.createElement("port");
         el.setAttribute("name", port.getName());
-        el.setAttribute("type", port.getDataClass().getName());
         if (port.getCardinality() != Port.Cardinality.SINGLE)
             el.setAttribute("cardinality", port.getCardinality().toString().toLowerCase());
         parent.appendChild(el);

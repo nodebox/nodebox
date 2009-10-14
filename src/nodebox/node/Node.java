@@ -93,6 +93,11 @@ public class Node implements NodeCode, NodeAttributeListener {
     private Node prototype;
 
     /**
+     * The type of data that will be processed by this node.
+     */
+    private Class dataClass;
+
+    /**
      * Position of this node in the interface.
      */
     private double x, y;
@@ -159,7 +164,8 @@ public class Node implements NodeCode, NodeAttributeListener {
         assert library != null;
         this.library = library;
         this.name = name;
-        this.outputPort = new Port(this, OUTPUT_PORT_NAME, dataClass, Port.Direction.OUT);
+        this.dataClass = dataClass;
+        this.outputPort = new Port(this, OUTPUT_PORT_NAME, Port.Direction.OUT);
     }
 
     //// Naming /////
@@ -367,7 +373,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     public Node create(Node prototype, String name, Class dataClass) {
         if (prototype == null) throw new IllegalArgumentException("Prototype cannot be null.");
-        if (dataClass == null) dataClass = prototype.getOutputPort().getDataClass();
+        if (dataClass == null) dataClass = prototype.getDataClass();
         if (name == null) name = uniqueName(prototype.getName());
         Node newNode = prototype.rawInstance(library, name, dataClass);
         add(newNode);
@@ -492,6 +498,19 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public Node getPrototype() {
         return prototype;
+    }
+
+    //// Data Class ////
+
+    public Class getDataClass() {
+        return dataClass;
+    }
+
+    public void validate(Object value) throws IllegalArgumentException {
+        // Null is accepted as a default value.
+        if (value == null) return;
+        if (!getDataClass().isAssignableFrom(value.getClass()))
+            throw new IllegalArgumentException("Value " + value + " is not of required class (was " + value.getClass() + ", required " + getDataClass());
     }
 
     //// Position ////
@@ -676,12 +695,12 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     //// Ports ////
 
-    public Port addPort(String name, Class dataClass) {
-        return addPort(name, dataClass, Port.Cardinality.SINGLE);
+    public Port addPort(String name) {
+        return addPort(name, Port.Cardinality.SINGLE);
     }
 
-    public Port addPort(String name, Class dataClass, Port.Cardinality cardinality) {
-        Port p = new Port(this, name, dataClass, cardinality);
+    public Port addPort(String name, Port.Cardinality cardinality) {
+        Port p = new Port(this, name, cardinality);
         ports.put(name, p);
         if (parent != null) {
             if (parent.childGraph == null)
@@ -1728,7 +1747,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @return a new Node with this node as the prototype.
      */
     public Node newInstance(NodeLibrary library, String name) {
-        return newInstance(library, name, outputPort.getDataClass());
+        return newInstance(library, name, getDataClass());
     }
 
     /**
@@ -1763,7 +1782,7 @@ public class Node implements NodeCode, NodeAttributeListener {
      */
     private Node rawInstance(NodeLibrary library, String name, Class dataClass) {
         if (library == null) throw new IllegalArgumentException("Library parameter cannot be null.");
-        if (dataClass == null) dataClass = outputPort.getDataClass();
+        if (dataClass == null) dataClass = getDataClass();
         Node n = new Node(library, name, dataClass);
         n.prototype = this;
         n.dirty = true;

@@ -26,32 +26,30 @@ public class Port {
 
     private Node node;
     private String name;
-    private Class dataClass;
     private Cardinality cardinality;
     private Direction direction;
     // Depending on the cardinality, either value or values is used.
     private Object value;
     private List<Object> values;
 
-    public Port(Node node, String name, Class dataClass) {
-        this(node, name, dataClass, Cardinality.SINGLE, Direction.IN);
+    public Port(Node node, String name) {
+        this(node, name, Cardinality.SINGLE, Direction.IN);
     }
 
-    public Port(Node node, String name, Class dataClass, Cardinality cardinality) {
-        this(node, name, dataClass, cardinality, Direction.IN);
+    public Port(Node node, String name, Cardinality cardinality) {
+        this(node, name, cardinality, Direction.IN);
     }
 
-    public Port(Node node, String name, Class dataClass, Direction direction) {
-        this(node, name, dataClass, Cardinality.SINGLE, direction);
+    public Port(Node node, String name, Direction direction) {
+        this(node, name, Cardinality.SINGLE, direction);
     }
 
-    public Port(Node node, String name, Class dataClass, Cardinality cardinality, Direction direction) {
+    public Port(Node node, String name, Cardinality cardinality, Direction direction) {
         if (direction == Direction.OUT && cardinality != Cardinality.SINGLE)
             throw new IllegalArgumentException("Output ports can't have multiple cardinality.");
         this.node = node;
         validateName(name);
         this.name = name;
-        this.dataClass = dataClass;
         this.cardinality = cardinality;
         this.direction = direction;
     }
@@ -79,10 +77,6 @@ public class Port {
         Node.validateName(name);
     }
 
-    public Class getDataClass() {
-        return dataClass;
-    }
-
     public Cardinality getCardinality() {
         return cardinality;
     }
@@ -92,10 +86,7 @@ public class Port {
     }
 
     public void validate(Object value) throws IllegalArgumentException {
-        // Null is accepted as a default value.
-        if (value == null) return;
-        if (!dataClass.isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Value " + value + " is not of required class (was " + value.getClass() + ", required " + dataClass);
+        node.validate(value);
     }
 
     /**
@@ -257,8 +248,8 @@ public class Port {
         if (direction != Direction.IN) return false;
         // Check if the data classes match.
         // They can either be equal, or the output type can be downcasted to the input type.
-        Class inputClass = getDataClass();
-        Class outputClass = outputPort.getDataClass();
+        Class inputClass = node.getDataClass();
+        Class outputClass = outputPort.node.getDataClass();
         return inputClass.isAssignableFrom(outputClass);
     }
 
@@ -295,7 +286,7 @@ public class Port {
      * @return a new Port object
      */
     public Port clone(Node n) {
-        return new Port(n, getName(), getDataClass(), getCardinality(), getDirection());
+        return new Port(n, getName(), getCardinality(), getDirection());
     }
 
     @Override

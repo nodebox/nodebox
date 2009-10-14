@@ -401,7 +401,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     public static void main(String[] args) {
         JFrame editorFrame = new JFrame();
         Node node = new NodeBoxDocument.AllControlsType().createInstance();
-        node.addPort("shape", Object.class);
+        node.addPort("shape");
         editorFrame.getContentPane().add(new NodeAttributesEditor(node));
         editorFrame.setSize(580, 710);
         editorFrame.setResizable(false);

@@ -108,7 +108,7 @@ public class NodeLibraryTest extends TestCase {
         NodeLibrary library = new NodeLibrary("test");
         Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
         Node beta = Node.ROOT_NODE.newInstance(library, "beta", Polygon.class);
-        beta.addPort("polygon", Polygon.class);
+        beta.addPort("polygon");
         beta.getPort("polygon").connect(alpha);
         assertTrue(alpha.isConnectedTo(beta));
         assertTrue(beta.isConnectedTo(alpha));
@@ -202,7 +202,7 @@ public class NodeLibraryTest extends TestCase {
         Node net = Node.ROOT_NODE.newInstance(library, "net", Polygon.class);
         Node alpha = net.create(Node.ROOT_NODE, "alpha", Polygon.class);
         Node beta = net.create(Node.ROOT_NODE, "beta", Polygon.class);
-        Port pPolygon = beta.addPort("polygon", Polygon.class);
+        Port pPolygon = beta.addPort("polygon");
         pPolygon.connect(alpha);
 
         String xml = library.toXml();

@@ -18,7 +18,7 @@
  */
 package nodebox.node;
 
-import nodebox.graphics.Path;
+import nodebox.node.polygraph.Polygon;
 
 public class NodeTest extends NodeTestCase {
 
@@ -192,16 +192,15 @@ public class NodeTest extends NodeTestCase {
      * Test if the attributes on ports are set correctly.
      */
     public void testPortAttributes() {
-        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A");
+        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A", String.class);
+        assertEquals(String.class, nodeA.getDataClass());
         Port outputPort = nodeA.getOutputPort();
         assertEquals("output", outputPort.getName());
         assertEquals(Port.Direction.OUT, outputPort.getDirection());
-        assertEquals(Object.class, outputPort.getDataClass());
         assertEquals(null, outputPort.getValue());
-        Port stringPort = nodeA.addPort("stringPort", String.class);
+        Port stringPort = nodeA.addPort("stringPort");
         assertEquals("stringPort", stringPort.getName());
         assertEquals(Port.Direction.IN, stringPort.getDirection());
-        assertEquals(String.class, stringPort.getDataClass());
         assertEquals(null, stringPort.getValue());
     }
 
@@ -209,10 +208,11 @@ public class NodeTest extends NodeTestCase {
      * Test if ports are copied from the prototype to the new instance.
      */
     public void testPortPropagation() {
-        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A");
-        nodeA.addPort("path", Path.class);
+        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "A", Polygon.class);
+        nodeA.addPort("polygon");
         Node nodeB = nodeA.newInstance(testLibrary, "B");
-        assertTrue(nodeB.hasPort("path"));
+        assertTrue(nodeB.hasPort("polygon"));
+        assertEquals(Polygon.class, nodeB.getDataClass());
     }
 
     /**
@@ -503,7 +503,7 @@ public class NodeTest extends NodeTestCase {
     public void testStampExpression() {
         Node number1 = numberNode.newInstance(testLibrary, "number1");
         Node stamp1 = Node.ROOT_NODE.newInstance(testLibrary, "stamp1", Integer.class);
-        stamp1.addPort("value", Integer.class);
+        stamp1.addPort("value");
         stamp1.getPort("value").connect(number1);
         // The code prepares upstream dependencies for stamping, processes them and negates the output.
         String stampCode = "def cook(self):\n" +
@@ -543,8 +543,8 @@ public class NodeTest extends NodeTestCase {
         Node c = Node.ROOT_NODE.newInstance(testLibrary, "c", Integer.class);
         a.addParameter("a", Parameter.Type.INT);
         b.addParameter("b", Parameter.Type.INT);
-        Port bIn = b.addPort("in", Integer.class);
-        Port cIn = c.addPort("in", Integer.class);
+        Port bIn = b.addPort("in");
+        Port cIn = c.addPort("in");
         bIn.connect(a);
         cIn.connect(b);
         // Update the graph. This will make a, b and c clean.

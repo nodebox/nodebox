@@ -29,13 +29,13 @@ public class TestNodes extends NodeLibrary {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "number", Integer.class);
             n.addParameter("value", Parameter.Type.INT);
-            n.addPort("valuePort", Integer.class);
+            n.addPort("valuePort");
             return n;
         }
 
         public Object cook(Node node, ProcessingContext context) {
             if (node.getPort("valuePort").isConnected()) {
-                return (Integer) node.getPortValue("valuePort");
+                return node.getPortValue("valuePort");
             } else {
                 return node.asInt("value");
             }
@@ -45,7 +45,7 @@ public class TestNodes extends NodeLibrary {
     public class Negate extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "negate", Integer.class);
-            n.addPort("value", Integer.class);
+            n.addPort("value");
             return n;
         }
 
@@ -58,8 +58,8 @@ public class TestNodes extends NodeLibrary {
     public class Add extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "add", Integer.class);
-            n.addPort("v1", Integer.class);
-            n.addPort("v2", Integer.class);
+            n.addPort("v1");
+            n.addPort("v2");
             return n;
         }
 
@@ -86,7 +86,7 @@ public class TestNodes extends NodeLibrary {
     public class AddConstant extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "addConstant", Integer.class);
-            n.addPort("value", Integer.class);
+            n.addPort("value");
             n.addParameter("constant", Parameter.Type.INT);
             return n;
         }
@@ -100,8 +100,8 @@ public class TestNodes extends NodeLibrary {
     public class Multiply extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "multiply", Integer.class);
-            n.addPort("v1", Integer.class);
-            n.addPort("v2", Integer.class);
+            n.addPort("v1");
+            n.addPort("v2");
             return n;
         }
 
@@ -115,7 +115,7 @@ public class TestNodes extends NodeLibrary {
     public class MultiAdd extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "multiAdd", Integer.class);
-            n.addPort("values", Integer.class, Port.Cardinality.MULTIPLE);
+            n.addPort("values", Port.Cardinality.MULTIPLE);
             return n;
         }
 
@@ -133,7 +133,7 @@ public class TestNodes extends NodeLibrary {
     public class FloatNegate extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "floatNegate", Float.class);
-            n.addPort("value", Float.TYPE);
+            n.addPort("value");
             return n;
         }
 
@@ -146,7 +146,7 @@ public class TestNodes extends NodeLibrary {
     public class ConvertToUppercase extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "convertToUppercase", String.class);
-            n.addPort("value", String.class);
+            n.addPort("value");
             return n;
         }
 
@@ -159,7 +159,7 @@ public class TestNodes extends NodeLibrary {
     public class Crash extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(TestNodes.this, "crash", Integer.class);
-            n.addPort("value", Integer.class);
+            n.addPort("value");
             return n;
         }
 

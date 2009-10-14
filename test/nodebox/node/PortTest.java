@@ -28,46 +28,51 @@ public class PortTest extends NodeTestCase {
         //assertNull(port.getOutput());
     }
 
+    private Node nodeWithDataClass(String name, Class dataClass) {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, name, dataClass);
+        n.addPort("p");
+        return n;
+    }
+
     /**
      * Checks if isAssignableFrom works when validating.
      */
     public void testDowncasting() {
-        Node n = numberNode.newInstance(testLibrary, "number1");
-        Port ptGrob = n.addPort("grob", Grob.class);
-        Port ptCanvas = n.addPort("canvas", Canvas.class);
-        Port ptImage = n.addPort("image", Image.class);
-        Port ptPath = n.addPort("path", Path.class);
-        Port ptText = n.addPort("text", Text.class);
+        Node grobNode = nodeWithDataClass("grob", Grob.class);
+        Node canvasNode = nodeWithDataClass("canvas", Canvas.class);
+        Node imageNode = nodeWithDataClass("image", Image.class);
+        Node pathNode = nodeWithDataClass("path", Path.class);
+        Node textNode = nodeWithDataClass("text", Text.class);
 
         Canvas canvas = new Canvas();
         Image image = new Image();
         Path path = new Path();
         Text text = new Text("", 0, 0);
 
-        assertValidValue(ptGrob, canvas);
-        assertValidValue(ptGrob, image);
-        assertValidValue(ptGrob, path);
-        assertValidValue(ptGrob, text);
+        assertValidValue(grobNode, canvas);
+        assertValidValue(grobNode, image);
+        assertValidValue(grobNode, path);
+        assertValidValue(grobNode, text);
 
-        assertValidValue(ptCanvas, canvas);
-        assertInvalidValue(ptCanvas, image);
-        assertInvalidValue(ptCanvas, path);
-        assertInvalidValue(ptCanvas, text);
+        assertValidValue  (canvasNode, canvas);
+        assertInvalidValue(canvasNode, image);
+        assertInvalidValue(canvasNode, path);
+        assertInvalidValue(canvasNode, text);
 
-        assertInvalidValue(ptImage, canvas);
-        assertValidValue(ptImage, image);
-        assertInvalidValue(ptImage, path);
-        assertInvalidValue(ptImage, text);
+        assertInvalidValue(imageNode, canvas);
+        assertValidValue  (imageNode, image);
+        assertInvalidValue(imageNode, path);
+        assertInvalidValue(imageNode, text);
 
-        assertInvalidValue(ptPath, canvas);
-        assertInvalidValue(ptPath, image);
-        assertValidValue(ptPath, path);
-        assertInvalidValue(ptPath, text);
+        assertInvalidValue(pathNode, canvas);
+        assertInvalidValue(pathNode, image);
+        assertValidValue  (pathNode, path);
+        assertInvalidValue(pathNode, text);
 
-        assertInvalidValue(ptText, canvas);
-        assertInvalidValue(ptText, image);
-        assertInvalidValue(ptText, path);
-        assertValidValue(ptText, text);
+        assertInvalidValue(textNode, canvas);
+        assertInvalidValue(textNode, image);
+        assertInvalidValue(textNode, path);
+        assertValidValue  (textNode, text);
 
         //TODO: These tests would only work if input and outputs are not checked, which they are.
 //        assertTrue(ptGrob.canConnectTo(ptCanvas));
@@ -90,8 +95,8 @@ public class PortTest extends NodeTestCase {
 
     public void testCardinality() {
         Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
-        test.addPort("single", Object.class);
-        test.addPort("multiple", Object.class, Port.Cardinality.MULTIPLE);
+        test.addPort("single");
+        test.addPort("multiple", Port.Cardinality.MULTIPLE);
         assertEquals(Port.Cardinality.SINGLE, test.getPort("single").getCardinality());
         assertEquals(Port.Cardinality.MULTIPLE, test.getPort("multiple").getCardinality());
         // Now clone this instance and check cardinality.
@@ -118,7 +123,7 @@ public class PortTest extends NodeTestCase {
 
     private void assertInvalidName(Node n, String newName, String reason) {
         try {
-            n.addPort(newName, Integer.class);
+            n.addPort(newName);
             fail("the following condition was not met: " + reason);
         } catch (InvalidNameException ignored) {
         }
@@ -126,23 +131,24 @@ public class PortTest extends NodeTestCase {
 
     private void assertValidName(Node n, String newName) {
         try {
-            n.addPort(newName, Integer.class);
+            n.addPort(newName);
         } catch (InvalidNameException e) {
             fail("The name \"" + newName + "\" should have been accepted.");
         }
     }
 
-    private void assertValidValue(Port p, Object value) {
+    private void assertValidValue(Node n, Object value) {
         try {
-            p.validate(value);
+            n.getPort("p").validate(value);
         } catch (IllegalArgumentException e) {
             fail("The value '" + value + "' should have been accepted: " + e);
         }
+
     }
 
-    private void assertInvalidValue(Port p, Object value) {
+    private void assertInvalidValue(Node n, Object value) {
         try {
-            p.validate(value);
+            n.getPort("p").validate(value);
             fail("The value '" + value + "' should not have been accepted.");
         } catch (IllegalArgumentException ignored) {
         }

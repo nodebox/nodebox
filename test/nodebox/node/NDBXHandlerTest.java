@@ -1,7 +1,6 @@
 package nodebox.node;
 
 import junit.framework.TestCase;
-import nodebox.graphics.Path;
 import nodebox.node.polygraph.Polygon;
 import org.xml.sax.SAXException;
 
@@ -152,7 +151,7 @@ public class NDBXHandlerTest extends TestCase {
         String xml = typeLib.toXml();
         NodeLibrary library = parseXml(xml);
         Node alpha = library.get("alpha");
-        assertEquals(Polygon.class, alpha.getOutputPort().getDataClass());
+        assertEquals(Polygon.class, alpha.getDataClass());
         // Create a new instance with the same output type.
         // Store it in a temporary node library.
         NodeLibrary betaLibrary = new NodeLibrary("xxx");
@@ -161,14 +160,12 @@ public class NDBXHandlerTest extends TestCase {
         // The output type is the same, so should not be persisted.
         assertFalse(s.contains("Polygon"));
         // Check if ports have their types persisted.
-        Node n = Node.ROOT_NODE.newInstance(typeLib, "gamma");
-        n.addPort("string", String.class);
-        n.addPort("polygon", Polygon.class);
+        Node n = Node.ROOT_NODE.newInstance(typeLib, "gamma", Polygon.class);
+        n.addPort("polygon");
         xml = typeLib.toXml();
         library = parseXml(xml);
         Node gamma = library.get("gamma");
-        assertEquals(String.class, gamma.getPort("string").getDataClass());
-        assertEquals(Polygon.class, gamma.getPort("polygon").getDataClass());
+        assertEquals(Polygon.class, gamma.getDataClass());
     }
 
     //// Helper methods ////
@@ -183,13 +180,13 @@ public class NDBXHandlerTest extends TestCase {
 
     private void loadBasicTypes() {
         NodeLibrary testlib = new NodeLibrary("testlib");
-        Node dot = Node.ROOT_NODE.newInstance(testlib, "dot", Path.class);
+        Node dot = Node.ROOT_NODE.newInstance(testlib, "dot", Polygon.class);
         testlib.add(dot);
         dot.addParameter("x", Parameter.Type.FLOAT, 0F);
         dot.addParameter("y", Parameter.Type.FLOAT, 0F);
-        Node rotate = Node.ROOT_NODE.newInstance(testlib, "rotate", Path.class);
+        Node rotate = Node.ROOT_NODE.newInstance(testlib, "rotate", Polygon.class);
         testlib.add(rotate);
-        rotate.addPort("shape", Path.class);
+        rotate.addPort("shape");
         rotate.addParameter("rotation", Parameter.Type.FLOAT, 0F);
         manager.add(testlib);
     }

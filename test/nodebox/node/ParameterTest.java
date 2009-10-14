@@ -18,8 +18,8 @@
  */
 package nodebox.node;
 
-import nodebox.graphics.Canvas;
 import nodebox.graphics.Color;
+import nodebox.node.polygraph.Polygon;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -77,7 +77,7 @@ public class ParameterTest extends NodeTestCase {
         assertValidName(n, "uPpercase");
 
         assertInvalidName(n, "radius", "parameter names must be unique for the node");
-        n.addPort("myport", Integer.class);
+        n.addPort("myport");
         assertInvalidName(n, "myport", "parameter names must be unique across parameters and ports");
     }
 
@@ -101,7 +101,7 @@ public class ParameterTest extends NodeTestCase {
         Parameter pFloat = customType.addParameter("float", Parameter.Type.FLOAT);
         assertInvalidValue(pFloat, "A");
         assertInvalidValue(pFloat, new Color());
-        assertInvalidValue(pFloat, new Canvas());
+        assertInvalidValue(pFloat, new Polygon());
         assertValidValue(pFloat, 1F);
         // As a special exception, floating-point parameters can also accept integers
         assertValidValue(pFloat, 1);
@@ -109,7 +109,7 @@ public class ParameterTest extends NodeTestCase {
         Parameter pInt = customType.addParameter("int", Parameter.Type.INT);
         assertInvalidValue(pInt, "A");
         assertInvalidValue(pInt, new Color());
-        assertInvalidValue(pInt, new Canvas());
+        assertInvalidValue(pInt, new Polygon());
         assertValidValue(pInt, 1);
         // You cannot assign floating-point values to integers,
         // so the above exception to the rule only works in one way.

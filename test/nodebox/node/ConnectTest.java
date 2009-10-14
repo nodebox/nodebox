@@ -101,29 +101,29 @@ public class ConnectTest extends NodeTestCase {
         Node upstream, downstream;
         // Both are of the same type. Should be able to connect.
         upstream = Node.ROOT_NODE.newInstance(testLibrary, "upstream", HashMap.class);
-        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream");
-        downstream.addPort("value", HashMap.class);
+        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream", HashMap.class);
+        downstream.addPort("value");
         downstream.getPort("value").connect(upstream);
         // Reset the library
         testLibrary = new NodeLibrary("test");
         // Upstream is a more specific type, which is allowed.
         upstream = Node.ROOT_NODE.newInstance(testLibrary, "upstream", LinkedHashMap.class);
-        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream");
-        downstream.addPort("value", HashMap.class);
+        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream", HashMap.class);
+        downstream.addPort("value");
         downstream.getPort("value").connect(upstream);
         // Reset the library
         testLibrary = new NodeLibrary("test");
         // Now downstream is more specific, which is NOT allowed.
         upstream = Node.ROOT_NODE.newInstance(testLibrary, "upstream", HashMap.class);
-        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream");
-        downstream.addPort("value", LinkedHashMap.class);
+        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream", LinkedHashMap.class);
+        downstream.addPort("value");
         assertConnectionError(downstream, "value", upstream, "Downstream is a more specific type.");
         // Reset the library
         testLibrary = new NodeLibrary("test");
         // Downstream is an interface which upstream implements.
         upstream = Node.ROOT_NODE.newInstance(testLibrary, "upstream", LinkedHashMap.class);
-        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream");
-        downstream.addPort("value", Map.class);
+        downstream = Node.ROOT_NODE.newInstance(testLibrary, "downstream", Map.class);
+        downstream.addPort("value");
         downstream.getPort("value").connect(upstream);
     }
 

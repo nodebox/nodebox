@@ -26,10 +26,10 @@ public class PythonCodeTest extends TestCase {
      * You can access parameter values on the node by using self.parametername.
      */
     public void testSelf() {
-        Node node1 = Node.ROOT_NODE.newInstance(testLibrary, "node1");
+        Node node1 = Node.ROOT_NODE.newInstance(testLibrary, "node1", Polygon.class);
         node1.addParameter("alpha", Parameter.Type.INT, 42);
         assertSnippetEquals(42, "self.alpha", node1);
-        node1.addPort("polygon", Polygon.class);
+        node1.addPort("polygon");
         node1.setPortValue("polygon", Polygon.rect(20, 30, 40, 50));
         assertSnippetEquals(new Rectangle(20, 30, 40, 50), "self.polygon.bounds", node1);
     }

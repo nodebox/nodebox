@@ -29,7 +29,7 @@ public class PythonNodeTest extends NodeTestCase {
     public void testBasicFilter() {
         Node rect1 = rectNode.newInstance(testLibrary, "rect1");
         Node mover = Node.ROOT_NODE.newInstance(testLibrary, "mover", Polygon.class);
-        mover.addPort("polygon", Polygon.class);
+        mover.addPort("polygon");
         mover.addParameter("tx", Parameter.Type.INT, 10);
         mover.addParameter("ty", Parameter.Type.INT, 20);
         PythonCode code = new PythonCode("def cook(self):\n" +
@@ -57,7 +57,7 @@ public class PythonNodeTest extends NodeTestCase {
      */
     public void testMultiPort() {
         Node multiAdd = Node.ROOT_NODE.newInstance(testLibrary, "multiAdd", Integer.class);
-        Port pValues = multiAdd.addPort("values", Integer.class, Port.Cardinality.MULTIPLE);
+        Port pValues = multiAdd.addPort("values", Port.Cardinality.MULTIPLE);
         PythonCode code = new PythonCode("def cook(self): return sum(self.values)");
         multiAdd.setValue("_code", code);
         multiAdd.update();
@@ -101,7 +101,7 @@ public class PythonNodeTest extends NodeTestCase {
         stringIn.setValue("_code", stringInCode);
 
         Node upper = Node.ROOT_NODE.newInstance(testLibrary, "upper", String.class);
-        upper.addPort("string", String.class);
+        upper.addPort("string");
         PythonCode upperCode = new PythonCode("def cook(self):\n  return self.string.upper()");
         upper.setValue("_code", upperCode);
 

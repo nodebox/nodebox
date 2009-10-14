@@ -66,7 +66,7 @@ public class PolygraphLibrary extends NodeLibrary {
     public class TranslateBuiltin extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "translate", Polygon.class);
-            n.addPort("polygon", Polygon.class);
+            n.addPort("polygon");
             n.addParameter("tx", Parameter.Type.FLOAT);
             n.addParameter("ty", Parameter.Type.FLOAT);
             return n;
@@ -86,7 +86,7 @@ public class PolygraphLibrary extends NodeLibrary {
     public class MergeBuiltin extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "merge", Polygon.class);
-            n.addPort("polygons", Polygon.class, Port.Cardinality.MULTIPLE);
+            n.addPort("polygons", Port.Cardinality.MULTIPLE);
             return n;
         }
 
