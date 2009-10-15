@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -58,6 +60,8 @@ public class NDBXWriter {
 
             // Write out all the nodes (skip the root)
             List<Node> children = library.getRootNode().getChildren();
+            // Sort the children by name.
+            Collections.sort(children, new NodeNameCompator());
             // The order in which the nodes are written is important!
             // Since a library can potentially store an instance and its prototype, make sure that the prototype gets
             // stored sequentially before its instance.
@@ -274,4 +278,11 @@ public class NDBXWriter {
         el.appendChild(doc.createTextNode(text.toString()));
         parent.appendChild(el);
     }
+
+    private static class NodeNameCompator implements Comparator<Node> {
+        public int compare(Node node1, Node node2) {
+            return node1.getName().compareTo(node2.getName());
+        }
+    }
+
 }

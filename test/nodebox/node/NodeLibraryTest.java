@@ -5,6 +5,8 @@ import nodebox.node.polygraph.Polygon;
 import nodebox.node.polygraph.Rectangle;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NodeLibraryTest extends TestCase {
 
@@ -213,6 +215,47 @@ public class NodeLibraryTest extends TestCase {
         Node newAlpha = newNet.getChild("alpha");
         Node newBeta = newNet.getChild("beta");
         assertTrue(newBeta.isConnectedTo(newAlpha));
+    }
+
+    /**
+     * Test if nodes are stored in a stable order.
+     */
+    public void testStoreOrder() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node.ROOT_NODE.newInstance(library, "a");
+        Node.ROOT_NODE.newInstance(library, "b");
+        Node.ROOT_NODE.newInstance(library, "c");
+        String xml = library.toXml();
+        Pattern p = Pattern.compile("<node name=\"(.*?)\"");
+        Matcher m = p.matcher(xml);
+        m.find();
+        assertEquals("a", m.group(1));
+        m.find();
+        assertEquals("b", m.group(1));
+        m.find();
+        assertEquals("c", m.group(1));
+    }
+
+    /**
+     * Test if nodes are stored in a stable order, even when using prototypes.
+     */
+    public void testStoreOrderPrototypes() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node z = Node.ROOT_NODE.newInstance(library, "z");
+        z.newInstance(library, "a");
+        z.newInstance(library, "b");
+        z.newInstance(library, "c");
+        String xml = library.toXml();
+        Pattern p = Pattern.compile("<node name=\"(.*?)\"");
+        Matcher m = p.matcher(xml);
+        m.find();
+        assertEquals("z", m.group(1));
+        m.find();
+        assertEquals("a", m.group(1));
+        m.find();
+        assertEquals("b", m.group(1));
+        m.find();
+        assertEquals("c", m.group(1));
     }
 
     /**
