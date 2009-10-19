@@ -771,10 +771,10 @@ public class Path extends AbstractGeometry implements Colorizable {
         if (contours.size() == 0) {
             bounds = new Rect();
         } else {
-            float minX = Float.MAX_VALUE;
-            float minY = Float.MAX_VALUE;
-            float maxX = Float.MIN_VALUE;
-            float maxY = Float.MIN_VALUE;
+            float minX = Integer.MAX_VALUE;
+            float minY = Integer.MAX_VALUE;
+            float maxX = Integer.MIN_VALUE;
+            float maxY = Integer.MIN_VALUE;
             float px, py;
             for (Contour c : contours) {
                 for (Point p : c.getPoints()) {
