@@ -148,6 +148,28 @@ public class Connection {
     }
 
     /**
+     * Changes the ordering of output ports by moving the given port a specified number of positions.
+     * <p/>
+     * To move the specified port up one position, set the deltaIndex to -1. To move a port down, set
+     * the deltaIndex to 1.
+     * <p/>
+     * If the delta index is larger or smaller than the number of positions this port can move, it will
+     * move the port to the beginning or end. This will not result in an error.
+     *
+     * @param port       the port to move
+     * @param deltaIndex the number of places to move.
+     */
+    public void reorderOutput(Port port, int deltaIndex) {
+        int index = outputs.indexOf(port);
+        int newIndex = index + deltaIndex;
+        newIndex = Math.max(0, Math.min(outputs.size() - 1, newIndex));
+        if (index == newIndex) return;
+        outputs.remove(port);
+        outputs.add(newIndex, port);
+        markDirtyDownstream();
+    }
+
+    /**
      * Gets the input (downstream) port.
      *
      * @return the input port.
