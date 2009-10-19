@@ -227,4 +227,14 @@ public class PathTest extends GraphicsTestCase {
         // This time, the length is correct.
         assertEquals(100f, p.getLength());
     }
+
+    public void testNegativeBounds() {
+        Path p1 = new Path();
+        p1.rect(10, 20, 30, 40);
+        assertEquals(Rect.centeredRect(10, 20, 30, 40), p1.getBounds());
+
+        Path p2 = new Path();
+        p2.rect(-80, -200, 100, 100);
+        assertEquals(Rect.centeredRect(-80, -200, 100, 100), p2.getBounds());
+    }
 }
