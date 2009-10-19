@@ -14,13 +14,13 @@ import java.util.HashMap;
 
 public class Image extends AbstractGrob {
 
-    private static HashMap<String, RenderedImage> imageCache = new HashMap<String, RenderedImage>();
+    private static HashMap<String, BufferedImage> imageCache = new HashMap<String, BufferedImage>();
 
     private float x, y;
     private float desiredWidth, desiredHeight;
     private float alpha = 1.0F;
 
-    private RenderedImage image;
+    private BufferedImage image;
     private static BufferedImage blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
     public static final String BLANK_IMAGE = "__blank";
 
@@ -54,7 +54,7 @@ public class Image extends AbstractGrob {
         this.y = cy;
     }
 
-    public Image(RenderedImage image) {
+    public Image(BufferedImage image) {
         this.image = image;
     }
 
@@ -120,7 +120,7 @@ public class Image extends AbstractGrob {
         this.alpha = alpha;
     }
 
-    public RenderedImage getAwtImage() {
+    public BufferedImage getAwtImage() {
         return image;
     }
 
