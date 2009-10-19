@@ -20,6 +20,7 @@ package nodebox.node;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ConnectTest extends NodeTestCase {
@@ -255,7 +256,7 @@ public class ConnectTest extends NodeTestCase {
         Node root = testLibrary.getRootNode();
         Node number1 = root.create(numberNode);
         Node addConstant1 = root.create(addConstantNode);
-        Port pValue =addConstant1.getPort("value");
+        Port pValue = addConstant1.getPort("value");
         pValue.connect(number1);
         // Remove the specific connection and check if everything was removed.
         addConstant1.disconnect(pValue, number1);
@@ -370,6 +371,62 @@ public class ConnectTest extends NodeTestCase {
         addConstant1.disconnect();
         assertEquals(2, l.connectCounter);
         assertEquals(2, l.disconnectCounter);
+    }
+
+    public void testReorder() {
+        Node root = testLibrary.getRootNode();
+        Node number1 = root.create(numberNode);
+        Node number2 = root.create(numberNode);
+        Node number3 = root.create(numberNode);
+        Node multiAdd = root.create(multiAddNode);
+        Port pValues = multiAdd.getPort("values");
+        pValues.connect(number1);
+        pValues.connect(number2);
+        pValues.connect(number3);
+        assertOrder(pValues, number1, number2, number3);
+
+        // Move number 2 up.
+        pValues.getConnection().reorderOutput(number2.getOutputPort(), -1);
+        assertOrder(pValues, number2, number1, number3);
+        assertDirtyAndUpdate(multiAdd);
+
+        // Move number 3 down. It was already last, so shouldn't change anything.
+        pValues.getConnection().reorderOutput(number3.getOutputPort(), 1);
+        assertOrder(pValues, number2, number1, number3);
+        assertFalse(multiAdd.isDirty());
+
+        // Move number 3 up by a large amount. It should just move it to the first position.
+        pValues.getConnection().reorderOutput(number3.getOutputPort(), -5000);
+        assertOrder(pValues, number3, number2, number1);
+        assertDirtyAndUpdate(multiAdd);
+
+        // Move number 2 by a large amount, moving it to the end.
+        pValues.getConnection().reorderOutput(number2.getOutputPort(), 5000);
+        assertOrder(pValues, number3, number1, number2);
+        assertDirtyAndUpdate(multiAdd);
+
+        // Move number 1 by zero places. This should not move anything and not mark the node as dirty.
+        pValues.getConnection().reorderOutput(number1.getOutputPort(), 0);
+        assertOrder(pValues, number3, number1, number2);
+        assertFalse(multiAdd.isDirty());
+    }
+
+    private void assertOrder(Port port, Node... nodes) {
+        List<Port> outputs = port.getConnection().getOutputs();
+        for (int i = 0; i < nodes.length; i++) {
+            assertEquals(nodes[i], outputs.get(i).getNode());
+        }
+    }
+
+    /**
+     * Assert that the given node is dirty, then update and assert it is clean.
+     *
+     * @param node the node.
+     */
+    private void assertDirtyAndUpdate(Node node) {
+        assertTrue(node.isDirty());
+        node.update();
+        assertFalse(node.isDirty());
     }
 
 }

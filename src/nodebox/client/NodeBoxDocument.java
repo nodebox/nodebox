@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.graphics.Grob;
 import nodebox.graphics.Rect;
 import nodebox.graphics.Text;
+import nodebox.graphics.PDFRenderer;
 import nodebox.node.*;
 
 import javax.swing.*;
@@ -355,26 +356,28 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     }
 
     public boolean exportToFile(File file) {
+        // Make sure the file ends with ".pdf".
+        String fullPath = null;
+        try {
+            fullPath = file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to access file " + file, e);
+        }
+        if (!fullPath.toLowerCase().endsWith(".pdf")) {
+            fullPath = fullPath.concat(".pdf");
+        }
+        file = new File(fullPath);
+
         // todo: file export only works on grobs.
         if (activeNetwork == null || activeNetwork.getRenderedChild() == null) return false;
         Object outputValue = activeNetwork.getRenderedChild().getOutputValue();
-        nodebox.graphics.Canvas canvas;
-        if (outputValue instanceof nodebox.graphics.Canvas) {
-            canvas = (nodebox.graphics.Canvas) outputValue;
-        } else if (outputValue instanceof Grob) {
+        if (outputValue instanceof Grob) {
             Grob g = (Grob) outputValue;
-            Rect bounds = g.getBounds();
-            canvas = new nodebox.graphics.Canvas(bounds.getWidth(), bounds.getHeight());
-            // We need to translate the canvas to compensate for the x/y value of the grob.
-            double dx = bounds.getWidth() / 2 + bounds.getX();
-            double dy = bounds.getHeight() / 2 + bounds.getY();
-            // TODO: canvas.translate(-dx, -dy);
-            canvas.add(g);
+            PDFRenderer.render(g, file);
+            return true;
         } else {
             throw new RuntimeException("This type of output cannot be exported " + outputValue);
         }
-        canvas.save(file);
-        return true;
     }
 
 

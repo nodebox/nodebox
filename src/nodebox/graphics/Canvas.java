@@ -123,21 +123,14 @@ public class Canvas extends AbstractTransformable {
     //// Geometry ////
 
     /**
-     * Returns the bounding box of all elements in the group.
+     * Returns the bounding box of the canvas.
+     * <p/>
+     * This does not compute the bounding boxes of the children, but always returns the requested canvas bounds.
      *
-     * @return a bounding box that contains all elements in the group.
+     * @return a bounding box with x/y at 0,0 and width/height of the canvas.
      */
     public Rect getBounds() {
-        if (items.isEmpty()) return new Rect();
-        Rect r = null;
-        for (Grob g : items) {
-            if (r == null) {
-                r = g.getBounds();
-            } else {
-                r = r.united(g.getBounds());
-            }
-        }
-        return r;
+        return new Rect(0, 0, width, height);
     }
 
     public Canvas clone() {

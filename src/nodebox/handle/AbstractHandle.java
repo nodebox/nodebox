@@ -1,7 +1,9 @@
 package nodebox.handle;
 
+import nodebox.client.Viewer;
 import nodebox.graphics.*;
 import nodebox.node.Node;
+
 import java.awt.event.KeyEvent;
 
 
@@ -17,6 +19,7 @@ public abstract class AbstractHandle implements Handle {
     public static final int META_DOWN = KeyEvent.META_DOWN_MASK;
 
     protected Node node;
+    protected Viewer viewer;
 
     protected AbstractHandle(Node node) {
         this.node = node;
@@ -24,6 +27,14 @@ public abstract class AbstractHandle implements Handle {
 
     public Node getNode() {
         return node;
+    }
+
+    public Viewer getViewer() {
+        return viewer;
+    }
+
+    public void setViewer(Viewer viewer) {
+        this.viewer = viewer;
     }
 
     //// Stub implementations of event handling ////

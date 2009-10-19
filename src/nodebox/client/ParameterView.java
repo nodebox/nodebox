@@ -41,6 +41,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
     private Node node;
 
     private NodeEventHandler handler = new NodeEventHandler();
+    private NodeChildHandler childHandler = new NodeChildHandler();
 
     private JPanel controlPanel;
 
@@ -64,11 +65,13 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
         if (oldNode != null) {
             oldNode.removeNodeAttributeListener(handler);
             oldNode.removeParameterAttributeListener(this);
+            if (oldNode.hasParent()) oldNode.getParent().removeNodeChildListener(childHandler);
         }
         this.node = node;
         if (node != null) {
             node.addNodeAttributeListener(handler);
             node.addParameterAttributeListener(this);
+            if (node.hasParent()) node.getParent().addNodeChildListener(childHandler);
         }
         rebuildInterface();
         validate();
@@ -79,6 +82,19 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
         controlPanel.removeAll();
         if (node == null) return;
         int rowindex = 0;
+        for (Port p : node.getPorts()) {
+            if (p.getCardinality() != Port.Cardinality.MULTIPLE) continue;
+            MultiConnectionPanel panel = new MultiConnectionPanel(p);
+            PortRow portRow = new PortRow(p, panel);
+            GridBagConstraints rowConstraints = new GridBagConstraints();
+            rowConstraints.gridx = 0;
+            rowConstraints.gridy = rowindex;
+            rowConstraints.fill = GridBagConstraints.HORIZONTAL;
+            rowConstraints.weightx = 1.0;
+            controlPanel.add(portRow, rowConstraints);
+            rowindex++;
+        }
+
         for (Parameter p : node.getParameters()) {
             // Parameters starting with underscores are hidden.
             if (p.getName().startsWith("_")) continue;
@@ -137,6 +153,32 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
             if (source == getNode() && attribute == Attribute.PARAMETER) {
                 rebuildInterface();
             }
+        }
+    }
+
+    private class NodeChildHandler implements NodeChildListener{
+        public void childAdded(Node source, Node child) {
+        }
+
+        public void childRemoved(Node source, Node child) {
+        }
+
+        public void connectionAdded(Node source, Connection connection) {
+            if (connection.getInputNode() == getNode()) {
+                rebuildInterface();
+            }
+        }
+
+        public void connectionRemoved(Node source, Connection connection) {
+            if (connection.getInputNode() == getNode()) {
+                rebuildInterface();
+            }
+        }
+
+        public void renderedChildChanged(Node source, Node child) {
+        }
+
+        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
         }
     }
 

@@ -4,6 +4,7 @@ import nodebox.Icons;
 import nodebox.node.Connection;
 import nodebox.node.Node;
 import nodebox.node.Port;
+import nodebox.node.NodeLibrary;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
@@ -19,7 +20,7 @@ public class MultiConnectionPanel extends JPanel {
 
     public MultiConnectionPanel(Port input) {
         super(new BorderLayout(5, 0));
-        setBackground(Theme.getInstance().getParameterViewBackgroundColor());
+        setOpaque(false);
         this.input = input;
         portListModel = new PortListModel();
         outputList = new JList(portListModel);
@@ -28,6 +29,7 @@ public class MultiConnectionPanel extends JPanel {
         outputList.setCellRenderer(portCellRenderer);
         outputList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
+        buttonPanel.setOpaque(false);
         JButton upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH));
         upButton.addActionListener(new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
@@ -72,8 +74,7 @@ public class MultiConnectionPanel extends JPanel {
         int index = ports.indexOf(selectedPort);
         assert (index >= 0);
         if (index >= ports.size() - 1) return;
-        ports.remove(selectedPort);
-        ports.add(index + 1, selectedPort);
+        c.reorderOutput(selectedPort, 1);
         reloadList();
         outputList.setSelectedIndex(index + 1);
         input.getNode().markDirty();
@@ -88,13 +89,11 @@ public class MultiConnectionPanel extends JPanel {
         int index = ports.indexOf(selectedPort);
         assert (index >= 0);
         if (index == 0) return;
-        ports.remove(selectedPort);
-        ports.add(index - 1, selectedPort);
+        c.reorderOutput(selectedPort, -1);
         reloadList();
         outputList.setSelectedIndex(index - 1);
         input.getNode().markDirty();
     }
-
 
     private void removeSelected() {
         Port output = (Port) outputList.getSelectedValue();
@@ -108,7 +107,6 @@ public class MultiConnectionPanel extends JPanel {
         outputList.setModel(portListModel);
         outputList.repaint();
     }
-
 
     private class PortListModel implements ListModel {
         public int getSize() {
@@ -137,6 +135,26 @@ public class MultiConnectionPanel extends JPanel {
             String displayValue = port.getNode().getName();
             return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
         }
+    }
+    public static void main(String[] args) {
+        NodeLibrary library = new NodeLibrary("test");
+        Node mergeShapes = Node.ROOT_NODE.newInstance(library, "mergeshapes", Polygon.class);
+        Node poly1 = Node.ROOT_NODE.newInstance(library, "poly1", Polygon.class);
+        Node poly2 = Node.ROOT_NODE.newInstance(library, "poly2", Polygon.class);
+        Node poly3 = Node.ROOT_NODE.newInstance(library, "poly3", Polygon.class);
+        Port shapesPort = mergeShapes.addPort("shapes", Port.Cardinality.MULTIPLE);
+        shapesPort.connect(poly1);
+        shapesPort.connect(poly2);
+        shapesPort.connect(poly3);
+
+        JDialog d = new JDialog();
+        d.setModal(true);
+        d.getContentPane().setLayout(new BorderLayout());
+
+        MultiConnectionPanel panel = new MultiConnectionPanel(shapesPort);
+        d.getContentPane().add(panel, BorderLayout.CENTER);
+        d.setSize(400, 400);
+        d.setVisible(true);
     }
 
 }

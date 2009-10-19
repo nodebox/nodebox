@@ -21,6 +21,7 @@ public class ViewerPane extends Pane {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         handlesCheck = new NButton(NButton.Mode.CHECK, "Handles");
+        handlesCheck.setChecked(true);
         handlesCheck.setActionMethod(this, "toggleHandles");
         pointsCheck = new NButton(NButton.Mode.CHECK, "Points");
         pointsCheck.setActionMethod(this, "togglePoints");
