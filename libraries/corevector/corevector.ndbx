@@ -937,17 +937,17 @@ class BezierPathEditor(AbstractHandle):
     
     def mouseMoved(self, pt):
         self._mouseXY = pt
-        self.node.markDirty()
+        self.viewer.repaint()
 
     def keyPressed(self, keycode, modifiers):
         self._keycode = keycode
         self.keydown = True
-        self.node.markDirty()
+        self.viewer.repaint()
 
     def keyReleased(self, keycode, modifiers):
         self._keycode = keycode
         self.keydown = False
-        self.node.markDirty()
+        self.viewer.repaint()
 
 def cook(self):
     return BezierPathEditor(self.node)]]></value>
