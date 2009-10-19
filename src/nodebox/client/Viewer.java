@@ -1,6 +1,9 @@
 package nodebox.client;
 
-import nodebox.graphics.*;
+import nodebox.graphics.GraphicsContext;
+import nodebox.graphics.Grob;
+import nodebox.graphics.IGeometry;
+import nodebox.graphics.Path;
 import nodebox.handle.Handle;
 import nodebox.node.DirtyListener;
 import nodebox.node.Node;
@@ -8,12 +11,7 @@ import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 public class Viewer extends JComponent implements DirtyListener, MouseListener, MouseMotionListener, KeyListener {
@@ -87,6 +85,9 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         activeNode = node;
         if (activeNode != null) {
             handle = activeNode.createHandle();
+            if (handle != null) {
+                handle.setViewer(this);
+            }
         } else {
             handle = null;
         }

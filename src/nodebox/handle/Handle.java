@@ -1,11 +1,16 @@
 package nodebox.handle;
 
 
+import nodebox.client.Viewer;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
 import nodebox.node.Node;
 
 public interface Handle {
+
+    public void setViewer(Viewer viewer);
+
+    public Viewer getViewer();
 
     //public List<Parameter> getParameters();
 
