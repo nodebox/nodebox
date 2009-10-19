@@ -1,9 +1,6 @@
 package nodebox.client;
 
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Grob;
-import nodebox.graphics.IGeometry;
-import nodebox.graphics.Path;
+import nodebox.graphics.*;
 import nodebox.handle.Handle;
 import nodebox.node.DirtyListener;
 import nodebox.node.Node;
@@ -11,6 +8,7 @@ import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -149,7 +147,8 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             onCurves.draw(g2);
             offCurves.draw(g2);
         }
-        // Draw the points numbers.
+
+        // Draw the point numbers.
         if (showPointNumbers && outputValue instanceof IGeometry) {
             g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
             g2.setColor(Color.BLUE);
@@ -166,10 +165,18 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
                 index++;
             }
         }
-        // Draw center
+
+        // Draw the center.
         //g.setColor(new Color(240, 240, 240));
         //g.drawLine(-getWidth() / 2, 0, getWidth() / 2, 0);
         //g.drawLine(0, -getHeight() / 2, 0, getHeight() / 2);
+
+        // Draw the bounding box.
+        //if (outputValue instanceof IGeometry) {
+        //    IGeometry p = (IGeometry) outputValue;
+        //    g2.setColor(Color.BLUE);
+        //    g2.draw(p.getBounds().getRectangle2D());
+        //}
     }
 
     //// Network data events ////

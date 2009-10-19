@@ -24,9 +24,10 @@ public class PDFRenderer {
         }
     }
 
-    public static void render(Canvas c, File file) {
+    public static void render(Grob g, File file) {
+        Rect bounds = g.getBounds();
         // I'm using fully qualified class names here so as not to polute the class' namespace.
-        com.lowagie.text.Rectangle size = new com.lowagie.text.Rectangle(c.getWidth(), c.getHeight());
+        com.lowagie.text.Rectangle size = new com.lowagie.text.Rectangle(bounds.getWidth(), bounds.getHeight());
         com.lowagie.text.Document document = new com.lowagie.text.Document(size);
         FileOutputStream fos;
         try {
@@ -42,13 +43,11 @@ public class PDFRenderer {
         }
         document.open();
         com.lowagie.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
-        Graphics2D graphics = contentByte.createGraphics(size.getWidth(), size.getHeight(), fontMapper);
-        graphics.translate(c.getWidth() / 2, c.getHeight() / 2);
-        c.draw(graphics);
+        Graphics2D graphics = contentByte.createGraphics(bounds.getWidth(), bounds.getHeight(), fontMapper);
+        graphics.translate(-bounds.getX(), -bounds.getY());
+        g.draw(graphics);
         graphics.dispose();
         document.close();
-
     }
-
 
 }
