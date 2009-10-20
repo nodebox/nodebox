@@ -1260,9 +1260,18 @@ def cook(self):
     <param name="_handle">
       <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
 
+class FitHandle(FourPointHandle):
+    def __init__(self, *args):
+        FourPointHandle.__init__(self, *args)
+        self.update()
+    
+    def update(self):
+        shape = self.node.getPort("shape").value
+        template = self.node.getPort("template").value
+        self.visible = not (shape is None or template is not None)
+
 def cook(self):
-    if self.shape is None or self.template is not None: return None
-    return FourPointHandle(self.node)]]></value>
+    return FitHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>fit.png</value>
