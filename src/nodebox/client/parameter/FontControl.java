@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.PlatformUtils;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 import nodebox.node.ParameterValueListener;
 
@@ -39,7 +40,7 @@ public class FontControl extends AbstractParameterControl implements ActionListe
         fontChooser.setPreferredSize(new Dimension(150, 22));
         fontChooser.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
         fontChooser.addActionListener(this);
-        fontChooser.setFont(PlatformUtils.getSmallBoldFont());
+        fontChooser.setFont(Theme.SMALL_BOLD_FONT);
         add(fontChooser);
         setValueForControl(parameter.getValue());
     }
@@ -109,7 +110,7 @@ public class FontControl extends AbstractParameterControl implements ActionListe
             Font f = (Font) value;
             if (f == null) return label;
             label.setText(f.getFontName());
-            label.setFont(PlatformUtils.getSmallBoldFont());
+            label.setFont(Theme.SMALL_BOLD_FONT);
             return label;
         }
     }

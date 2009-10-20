@@ -18,17 +18,17 @@ public class ExpressionWindow extends AbstractParameterEditor {
 
     public Component getContentArea() {
         expressionArea = new JTextArea(getParameter().getExpression());
-        expressionArea.setFont(PlatformUtils.getEditorFont());
+        expressionArea.setFont(Theme.EDITOR_FONT);
         expressionArea.setBorder(null);
         JScrollPane expressionScroll = new JScrollPane(expressionArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         expressionScroll.setBorder(BorderFactory.createEtchedBorder());
 
         errorArea = new JTextArea();
-        errorArea.setFont(PlatformUtils.getEditorFont());
+        errorArea.setFont(Theme.EDITOR_FONT);
         errorArea.setBorder(null);
-        errorArea.setBackground(new Color(240, 240, 240));
+        errorArea.setBackground(Theme.EXPRESSION_ERROR_BACKGROUND_COLOR);
         errorArea.setEditable(false);
-        errorArea.setForeground(new Color(200, 0, 0));
+        errorArea.setForeground(Theme.EXPRESSION_ERROR_FOREGROUND_COLOR);
         JScrollPane errorScroll = new JScrollPane(errorArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         errorScroll.setBorder(BorderFactory.createEtchedBorder());
 

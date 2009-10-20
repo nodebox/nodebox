@@ -46,7 +46,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
-        messages.setFont(PlatformUtils.getEditorFont());
+        messages.setFont(Theme.EDITOR_FONT);
         messages.setMargin(new Insets(0, 5, 0, 5));
         JScrollPane messagesScroll = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         messagesScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -108,7 +108,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
             editor.setSource("");
             editor.setEnabled(false);
             messages.setEnabled(false);
-            messages.setBackground(new Color(240, 240, 240));
+            messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
             splitter.setDividerLocation(1.0);
             updateMessages(node, null);
         } else {

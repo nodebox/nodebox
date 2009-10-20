@@ -48,7 +48,7 @@ public class CodeArea extends JEditorPane {
 
     private void init() {
         this.setMargin(new Insets(0, 5, 0, 5));
-        setFont(PlatformUtils.getEditorFont());
+        setFont(Theme.EDITOR_FONT);
         setEditorKit(new PythonEditorKit());
         rootElement = getDocument().getDefaultRootElement();
 

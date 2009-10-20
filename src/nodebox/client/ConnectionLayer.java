@@ -46,9 +46,9 @@ public class ConnectionLayer extends PLayer {
         for (Node n : node.getChildren()) {
             for (Connection c : n.getDownstreamConnections()) {
                 if (selection == c) {
-                    g.setColor(Theme.getInstance().getActionColor());
+                    g.setColor(Theme.CONNECTION_ACTION_COLOR);
                 } else {
-                    g.setColor(Theme.getInstance().getConnectionColor());
+                    g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
                 }
                 for (Node outputNode : c.getOutputNodes()) {
                     paintConnection(g, outputNode, c.getInputNode());
@@ -58,7 +58,7 @@ public class ConnectionLayer extends PLayer {
         // Draw temporary connection
         if (networkView.isConnecting() && networkView.getConnectionPoint() != null) {
             // Set the color to some kind of yellow
-            g.setColor(new Color(170, 167, 18));
+            g.setColor(Theme.CONNECTION_CONNECTING_COLOR);
             Point2D pt = networkView.getConnectionPoint();
             ConnectionLayer.paintConnection(g, networkView.getConnectionSource().getNode(), (float) pt.getX(), (float) pt.getY());
         }

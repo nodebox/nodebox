@@ -2,6 +2,7 @@ package nodebox.client.parameter;
 
 import nodebox.client.FileUtils;
 import nodebox.client.PlatformUtils;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 import nodebox.node.ParameterValueListener;
 
@@ -24,7 +25,7 @@ public class FileControl extends AbstractParameterControl implements ActionListe
         fileField.putClientProperty("JComponent.sizeVariant", "small");
         fileField.setPreferredSize(new Dimension(150, 19));
         fileField.setEditable(false);
-        fileField.setFont(PlatformUtils.getSmallBoldFont());
+        fileField.setFont(Theme.SMALL_BOLD_FONT);
         chooseButton = new JButton("...");
         chooseButton.putClientProperty("JButton.buttonType", "gradient");
         chooseButton.setPreferredSize(new Dimension(30, 27));

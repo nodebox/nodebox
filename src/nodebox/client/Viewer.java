@@ -115,8 +115,8 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             ((Grob) outputValue).draw(g2);
         } else if (outputValue != null) {
             String s = outputValue.toString();
-            g2.setColor(SwingUtils.COLOR_NORMAL);
-            g2.setFont(PlatformUtils.getEditorFont());
+            g2.setColor(Theme.TEXT_NORMAL_COLOR);
+            g2.setFont(Theme.EDITOR_FONT);
             g2.drawString(s, 5, 20);
         }
 
@@ -151,7 +151,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
         // Draw the point numbers.
         if (showPointNumbers && outputValue instanceof IGeometry) {
-            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            g2.setFont(Theme.SMALL_MONO_FONT);
             g2.setColor(Color.BLUE);
             // Create a canvas with a transparent background
             IGeometry p = (IGeometry) outputValue;

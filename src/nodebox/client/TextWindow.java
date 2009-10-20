@@ -15,7 +15,7 @@ public class TextWindow extends AbstractParameterEditor {
 
     public Component getContentArea() {
         textArea = new JTextArea(getParameter().asString());
-        textArea.setFont(PlatformUtils.getEditorFont());
+        textArea.setFont(Theme.EDITOR_FONT);
         textArea.setBorder(null);
         JScrollPane textScroll = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         textScroll.setBorder(BorderFactory.createEtchedBorder());

@@ -67,7 +67,7 @@ public class AddressBar extends JPanel implements MouseListener {
         positions = new int[nodes.size()];
         Graphics2D g2 = (Graphics2D) g;
 
-        g2.setFont(SwingUtils.FONT_BOLD);
+        g2.setFont(Theme.SMALL_BOLD_FONT);
 
         g2.drawImage(addressGradient, 0, 0, getWidth(), 25, null);
 
@@ -76,9 +76,9 @@ public class AddressBar extends JPanel implements MouseListener {
         for (int i = 0; i < nodes.size(); i++) {
             Node part = nodes.get(i);
             if (i == armed) {
-                g2.setColor(SwingUtils.COLOR_ARMED);
+                g2.setColor(Theme.TEXT_ARMED_COLOR);
             } else {
-                g2.setColor(SwingUtils.COLOR_NORMAL);
+                g2.setColor(Theme.TEXT_NORMAL_COLOR);
             }
             SwingUtils.drawShadowText(g2, part.getName(), x, 16);
 

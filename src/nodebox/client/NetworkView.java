@@ -42,7 +42,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         this.node = node;
         if (node != null)
             this.networkError = node.hasError();
-        setBackground(new Color(69, 69, 69));
+        setBackground(Theme.NETWORK_BACKGROUND_COLOR);
         SelectionHandler selectionHandler = new SelectionHandler();
         addInputEventListener(selectionHandler);
         setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
@@ -474,12 +474,12 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
         protected void paint(PPaintContext c) {
             Graphics2D g = c.getGraphics();
-            g.setColor(new Color(200, 200, 200, 100));
+            g.setColor(Theme.NETWORK_SELECTION_COLOR);
             PBounds b = getBounds();
             // Inset the bounds so we don't draw outside the refresh region.
             b.inset(1, 1);
             g.fill(b);
-            g.setColor(new Color(100, 100, 100, 100));
+            g.setColor(Theme.NETWORK_SELECTION_BORDER_COLOR);
             g.draw(b);
         }
     }

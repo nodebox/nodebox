@@ -128,7 +128,7 @@ public class PathDialog extends JDialog {
     private class NodeCellRenderer extends DefaultTreeCellRenderer {
 
         private NodeCellRenderer() {
-            setFont(PlatformUtils.getSmallFont());
+            setFont(Theme.SMALL_FONT);
         }
 
         @Override

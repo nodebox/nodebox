@@ -43,7 +43,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
 
     private void addRow(String label, JComponent component) {
         JLabel l = new JLabel(label);
-        l.setFont(PlatformUtils.getSmallBoldFont());
+        l.setFont(Theme.SMALL_BOLD_FONT);
         l.setBounds(18, y, 400, 18);
         add(l);
         y += 18;

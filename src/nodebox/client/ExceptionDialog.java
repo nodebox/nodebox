@@ -27,9 +27,9 @@ public class ExceptionDialog extends JDialog implements ClipboardOwner {
         innerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         this.exception = exception;
         JLabel messageLabel = new JLabel("<html><b>Error: </b>" + exception.getClass().getName() + ": " + exception.getMessage() + " " + extraMessage + "</html>");
-        messageLabel.setFont(PlatformUtils.getInfoFont());
+        messageLabel.setFont(Theme.INFO_FONT);
         JTextArea textArea = new JTextArea();
-        textArea.setFont(PlatformUtils.getEditorFont());
+        textArea.setFont(Theme.EDITOR_FONT);
         StringBuffer sb = new StringBuffer();
         StringWriter sw = new StringWriter();
         exception.printStackTrace(new PrintWriter(sw));

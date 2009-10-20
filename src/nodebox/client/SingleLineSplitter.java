@@ -15,7 +15,7 @@ public class SingleLineSplitter extends JSplitPane {
         setDividerSize(1);
         setUI(new PaneSplitterUI());
         setBorder(BorderFactory.createEmptyBorder());
-        lineColor = new Color(139, 139, 139);
+        lineColor = Theme.DEFAULT_SPLIT_COLOR;
     }
 
     public Color getLineColor() {

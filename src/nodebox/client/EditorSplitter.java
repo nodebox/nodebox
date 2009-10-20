@@ -65,11 +65,11 @@ public class EditorSplitter extends JSplitPane {
                 // If the divider is at the bottom, make sure the dark line of the divider doesn't get drawn.
                 // We do this by overdrawing the bottom line with the same color as the middle of the divider.
                 if (EditorSplitter.this.getHeight() - getDividerLocation() <= DIVIDER_SIZE) {
-                    g.setColor(new Color(210, 210, 210));
+                    g.setColor(Theme.EDITOR_SPLITTER_DIVIDER_COLOR);
                     g.fillRect(r.x, r.y + r.height - 1, r.width, 1);
                 }
-                g.setFont(SwingUtils.FONT_BOLD);
-                g.setColor(SwingUtils.COLOR_NORMAL);
+                g.setFont(Theme.SMALL_BOLD_FONT);
+                g.setColor(Theme.TEXT_NORMAL_COLOR);
                 SwingUtils.drawShadowText((Graphics2D) g, positionString, r.x + 5, r.y + 13);
             }
         }

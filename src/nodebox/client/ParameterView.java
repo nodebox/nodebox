@@ -117,8 +117,8 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
 
         if (rowindex == 0) {
             JLabel noParameters = new JLabel("No parameters");
-            noParameters.setFont(SwingUtils.FONT_BOLD);
-            noParameters.setForeground(SwingUtils.COLOR_NORMAL);
+            noParameters.setFont(Theme.SMALL_BOLD_FONT);
+            noParameters.setForeground(Theme.TEXT_NORMAL_COLOR);
             controlPanel.add(noParameters);
         }
         JLabel filler = new JLabel();
