@@ -16,6 +16,8 @@ public interface Handle {
 
     public Node getNode();
 
+    public void update();
+
     public void draw(GraphicsContext ctx);
 
     //// Mouse events ////

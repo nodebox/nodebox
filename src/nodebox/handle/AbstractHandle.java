@@ -77,6 +77,11 @@ public abstract class AbstractHandle implements Handle {
     public void keyReleased(int keyCode, int modifiers) {
     }
 
+    //// Node events ////
+
+    public void update() {
+    }
+
     //// Utility methods ////
 
     protected void drawDot(GraphicsContext ctx, float x, float y) {
