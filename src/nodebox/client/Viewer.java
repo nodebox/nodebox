@@ -189,6 +189,9 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
     public void nodeUpdated(Node node, ProcessingContext context) {
         if (node == getNode()) {
+            if (handle != null && showHandle) {
+                handle.update();
+            }
             repaint();
         }
         /*
