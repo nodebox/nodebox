@@ -2,6 +2,7 @@ package nodebox.client.parameter;
 
 import nodebox.client.PathDialog;
 import nodebox.client.PlatformUtils;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 import nodebox.node.ParameterValueListener;
 
@@ -22,7 +23,7 @@ public class NoderefControl extends AbstractParameterControl implements ActionLi
         pathField.putClientProperty("JComponent.sizeVariant", "small");
         pathField.setPreferredSize(new Dimension(150, 19));
         pathField.setEditable(false);
-        pathField.setFont(PlatformUtils.getSmallBoldFont());
+        pathField.setFont(Theme.SMALL_BOLD_FONT);
         JButton chooseButton = new JButton("...");
         chooseButton.putClientProperty("JButton.buttonType", "gradient");
         chooseButton.setPreferredSize(new Dimension(30, 27));

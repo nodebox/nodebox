@@ -12,7 +12,6 @@ public class PlatformUtils {
 
     public static int current_platform = -1;
     public static int platformSpecificModifier;
-    private static Border platformLineBorder;
 
     public static final String SEP = System.getProperty("file.separator");
 
@@ -124,61 +123,6 @@ public class PlatformUtils {
 
     public static KeyStroke getKeyStroke(int key, int modifier) {
         return KeyStroke.getKeyStroke(key, platformSpecificModifier | modifier);
-    }
-
-    public static Font getEditorFont() {
-        if (onMac()) {
-            return new Font("Monaco", Font.PLAIN, 11);
-        } else {
-            return new Font("Courier", Font.PLAIN, 11);
-        }
-    }
-
-    public static Font getMessageFont() {
-        if (onMac()) {
-            return new Font("Lucida Grande", Font.BOLD, 13);
-        } else {
-            return new Font("Verdana", Font.BOLD, 11);
-        }
-    }
-
-    public static Font getInfoFont() {
-        if (onMac()) {
-            return new Font("Lucida Grande", Font.PLAIN, 11);
-        } else {
-            return new Font("Verdana", Font.PLAIN, 10);
-        }
-    }
-
-    public static Font getSmallFont() {
-        if (onMac()) {
-            return new Font("Lucida Grande", Font.PLAIN, 11);
-        } else {
-            return new Font("Verdana", Font.PLAIN, 10);
-        }
-    }
-
-    public static Font getSmallBoldFont() {
-        if (onMac()) {
-            return new Font("Lucida Grande", Font.BOLD, 11);
-        } else {
-            return new Font("Verdana", Font.BOLD, 10);
-        }
-    }
-
-    public static Border createLineBorder() {
-        if (platformLineBorder == null) {
-            Color borderColor;
-            if (onWindows()) {
-                borderColor = new Color(100, 100, 100);
-            } else if (onMac()) {
-                borderColor = new Color(200, 200, 200);
-            } else {
-                borderColor = new Color(200, 200, 200);
-            }
-            platformLineBorder = BorderFactory.createLineBorder(borderColor);
-        }
-        return platformLineBorder;
     }
 
 }

@@ -21,7 +21,7 @@ public class LoggingPane extends Pane implements DirtyListener {
         setLayout(new BorderLayout(0, 0));
         PaneHeader paneHeader = new PaneHeader(this);
         loggingArea = new JTextArea(80, 30);
-        loggingArea.setFont(PlatformUtils.getInfoFont());
+        loggingArea.setFont(Theme.INFO_FONT);
         loggingArea.setEditable(false);
         JScrollPane loggingScroll = new JScrollPane(loggingArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         add(paneHeader, BorderLayout.NORTH);

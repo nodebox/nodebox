@@ -1,6 +1,7 @@
 package nodebox.client.editor;
 
 import nodebox.client.CodeArea;
+import nodebox.client.Theme;
 
 import javax.swing.*;
 import javax.swing.event.CaretListener;
@@ -39,7 +40,7 @@ public class SimpleEditor extends JPanel implements DocumentListener {
         if (enabled) {
             codeArea.setBackground(Color.white);
         } else {
-            codeArea.setBackground(new Color(240, 240, 240));
+            codeArea.setBackground(Theme.EDITOR_DISABLED_BACKGROUND_COLOR);
         }
     }
 

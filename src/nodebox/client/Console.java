@@ -24,7 +24,7 @@ public class Console extends JTextPane {
     public Console(Pane pane) {
         this.pane = pane;
         this.setMargin(new Insets(0, 5, 0, 5));
-        setFont(PlatformUtils.getEditorFont());
+        setFont(Theme.EDITOR_FONT);
         StyleContext styles = new StyleContext();
         StyledDocument doc = new DefaultStyledDocument(styles);
         setDocument(doc);

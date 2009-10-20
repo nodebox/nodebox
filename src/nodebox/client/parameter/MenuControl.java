@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.PlatformUtils;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 import nodebox.node.ParameterValueListener;
 
@@ -27,7 +28,7 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
         menuBox.setRenderer(menuItemRenderer);
         menuBox.putClientProperty("JComponent.sizeVariant", "small");
         menuBox.putClientProperty("JComboBox.isPopDown", Boolean.TRUE);
-        menuBox.setFont(PlatformUtils.getSmallBoldFont());
+        menuBox.setFont(Theme.SMALL_BOLD_FONT);
         menuBox.addActionListener(this);
         add(menuBox);
         setValueForControl(parameter.getValue());
@@ -100,7 +101,7 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
             Parameter.MenuItem item = (Parameter.MenuItem) value;
             if (item == null) return label;
             label.setText(item.getLabel());
-            label.setFont(PlatformUtils.getSmallBoldFont());
+            label.setFont(Theme.SMALL_BOLD_FONT);
             return label;
         }
     }

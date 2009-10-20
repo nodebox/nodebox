@@ -3,6 +3,7 @@ package nodebox.client.parameter;
 import nodebox.client.NodeBoxDocument;
 import nodebox.client.PlatformUtils;
 import nodebox.client.TextWindow;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
 import javax.swing.*;
@@ -20,12 +21,12 @@ public class TextControl extends AbstractParameterControl implements ActionListe
         setLayout(new BorderLayout(0, 0));
         textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");
-        textField.setFont(PlatformUtils.getSmallBoldFont());
+        textField.setFont(Theme.SMALL_BOLD_FONT);
         textField.addActionListener(this);
         externalWindowButton = new JButton("...");
         externalWindowButton.putClientProperty("JComponent.sizeVariant", "small");
         externalWindowButton.putClientProperty("JButton.buttonType", "gradient");
-        externalWindowButton.setFont(PlatformUtils.getSmallBoldFont());
+        externalWindowButton.setFont(Theme.SMALL_BOLD_FONT);
         externalWindowButton.addActionListener(this);
         add(textField, BorderLayout.CENTER);
         add(externalWindowButton, BorderLayout.EAST);

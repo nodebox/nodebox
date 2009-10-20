@@ -9,8 +9,6 @@ import java.awt.*;
 
 public class PortRow extends JComponent {
 
-    private static Border rowBorder = new RowBorder();
-
     private Port port;
     private JLabel label;
     private JComponent control;
@@ -32,7 +30,7 @@ public class PortRow extends JComponent {
         add(Box.createHorizontalStrut(10));
         add(this.control);
         add(Box.createHorizontalGlue());
-        setBorder(rowBorder);
+        setBorder(Theme.PARAMETER_ROW_BORDER);
     }
 
 }

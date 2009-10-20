@@ -18,7 +18,6 @@ import java.io.IOException;
 public class ParameterRow extends JComponent implements MouseListener, ParameterValueListener, ActionListener {
 
     private static Image popupButtonImage;
-    private static Border rowBorder = new RowBorder();
 
     static {
         try {
@@ -63,13 +62,13 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         expressionPanel.setVisible(false);
         expressionField = new JTextField();
         expressionField.setAction(new ExpressionFieldChangedAction());
-        expressionField.setBackground(new Color(255, 255, 240));
+        expressionField.setBackground(Theme.PARAMETER_EXPRESSION_BACKGROUND_COLOR);
         expressionField.putClientProperty("JComponent.sizeVariant", "small");
-        expressionField.setFont(PlatformUtils.getSmallBoldFont());
+        expressionField.setFont(Theme.SMALL_BOLD_FONT);
         JButton expressionButton = new JButton("...");
         expressionButton.putClientProperty("JComponent.sizeVariant", "small");
         expressionButton.putClientProperty("JButton.buttonType", "gradient");
-        expressionButton.setFont(PlatformUtils.getSmallBoldFont());
+        expressionButton.setFont(Theme.SMALL_BOLD_FONT);
         expressionButton.addActionListener(this);
         expressionPanel.add(expressionField, BorderLayout.CENTER);
         expressionPanel.add(expressionButton, BorderLayout.EAST);
@@ -82,7 +81,7 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         // Compensate for the popup button.
         add(Box.createHorizontalStrut(30));
         setExpressionStatus();
-        setBorder(rowBorder);
+        setBorder(Theme.PARAMETER_ROW_BORDER);
     }
 
     @Override

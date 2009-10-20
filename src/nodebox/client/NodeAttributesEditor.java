@@ -278,10 +278,10 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             Graphics2D g2 = (Graphics2D) g;
             if (selected) {
                 Rectangle clip = g2.getClipBounds();
-                g2.setColor(new Color(60, 60, 60));
+                g2.setColor(Theme.NODE_ATTRIBUTES_PARAMETER_COLOR);
                 g2.fillRect(clip.x, clip.y, clip.width, clip.height);
             }
-            g2.setFont(SwingUtils.FONT_REGULAR);
+            g2.setFont(Theme.SMALL_FONT);
             if (selected) {
                 g2.setColor(Color.WHITE);
             } else {
@@ -299,7 +299,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         private ParameterList() {
             super(null);
             Dimension d = new Dimension(140, 500);
-            setBackground(new Color(240, 240, 250));
+            setBackground(Theme.NODE_ATTRIBUTES_PARAMETER_LIST_BACGKGROUND_COLOR);
             setBorder(null);
             setOpaque(true);
             setPreferredSize(d);
@@ -360,8 +360,8 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         public void addHeader(String s) {
             JLabel header = new JLabel(s);
             header.setEnabled(false);
-            header.setForeground(SwingUtils.COLOR_DISABLED);
-            header.setFont(SwingUtils.FONT_BOLD);
+            header.setForeground(Theme.TEXT_DISABLED_COLOR);
+            header.setFont(Theme.SMALL_BOLD_FONT);
             header.setMinimumSize(new Dimension(100, 25));
             header.setMaximumSize(new Dimension(500, 25));
             header.setPreferredSize(new Dimension(140, 25));

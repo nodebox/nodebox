@@ -20,6 +20,10 @@ public interface Handle {
 
     public void draw(GraphicsContext ctx);
 
+    public void setVisible(boolean visible);
+
+    public boolean isVisible();
+
     //// Mouse events ////
 
     public void mouseClicked(Point pt);

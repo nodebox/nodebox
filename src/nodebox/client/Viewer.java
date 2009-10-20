@@ -94,6 +94,11 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         repaint();
     }
 
+    public boolean hasVisibleHandle() {
+        if (handle == null) return false;
+        if (showHandle == false) return false;
+        return handle.isVisible();
+    }
 
     @Override
     public void paint(Graphics g) {
@@ -115,13 +120,13 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
             ((Grob) outputValue).draw(g2);
         } else if (outputValue != null) {
             String s = outputValue.toString();
-            g2.setColor(SwingUtils.COLOR_NORMAL);
-            g2.setFont(PlatformUtils.getEditorFont());
+            g2.setColor(Theme.TEXT_NORMAL_COLOR);
+            g2.setFont(Theme.EDITOR_FONT);
             g2.drawString(s, 5, 20);
         }
 
         // Draw the handle.
-        if (handle != null && showHandle) {
+        if (hasVisibleHandle()) {
             // Create a canvas with a transparent background
             nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
             canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
@@ -151,7 +156,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
         // Draw the point numbers.
         if (showPointNumbers && outputValue instanceof IGeometry) {
-            g2.setFont(new Font("Monospaced", Font.PLAIN, 10));
+            g2.setFont(Theme.SMALL_MONO_FONT);
             g2.setColor(Color.BLUE);
             // Create a canvas with a transparent background
             IGeometry p = (IGeometry) outputValue;
@@ -188,12 +193,12 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     }
 
     public void nodeUpdated(Node node, ProcessingContext context) {
-        if (node == getNode()) {
-            if (handle != null && showHandle) {
-                handle.update();
-            }
-            repaint();
+        if (node != getNode()) return;
+        // Note that we don't use check handle visibility here, since the update might change handle visibility.
+        if (handle != null && showHandle) {
+            handle.update();
         }
+        repaint();
         /*
         canvasImage = null;
         if (getNetwork() == null || getNetwork() != network) return;
@@ -221,59 +226,59 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
     public void mouseClicked(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseClicked(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseClicked(pointForEvent(e));
     }
 
     public void mousePressed(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mousePressed(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mousePressed(pointForEvent(e));
     }
 
     public void mouseReleased(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseReleased(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseReleased(pointForEvent(e));
     }
 
     public void mouseEntered(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseEntered(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseEntered(pointForEvent(e));
     }
 
     public void mouseExited(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseExited(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseExited(pointForEvent(e));
     }
 
     public void mouseDragged(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseDragged(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseDragged(pointForEvent(e));
     }
 
     public void mouseMoved(MouseEvent e) {
         requestFocus();
-        if (handle == null) return;
-        handle.mouseMoved(pointForEvent(e));
+        if (hasVisibleHandle())
+            handle.mouseMoved(pointForEvent(e));
     }
 
     public void keyTyped(KeyEvent e) {
-        if (handle == null) return;
-        handle.keyTyped(e.getKeyCode(), e.getModifiersEx());
+        if (hasVisibleHandle())
+            handle.keyTyped(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyPressed(KeyEvent e) {
-        if (handle == null) return;
-        handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
+        if (hasVisibleHandle())
+            handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyReleased(KeyEvent e) {
-        if (handle == null) return;
-        handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
+        if (hasVisibleHandle())
+            handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
 
     @Override

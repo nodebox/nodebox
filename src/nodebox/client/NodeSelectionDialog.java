@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeLibraryManager;
+import nodebox.util.StringUtils;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -85,22 +86,20 @@ public class NodeSelectionDialog extends JDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof Node);
             Node node = (Node) value;
-            String html = "<html><b>" + node.getName() + "</b><br><font color=#333333>" + node.getDescription() + "</font></html>";
+            String html = "<html><b>" + StringUtils.humanizeName(node.getName()) + "</b> &ndash; " + node.getDescription() + "<br><font color=#333333>" + node.getDataClass().getSimpleName() + " &mdash;</font> <font color=#666666>" + node.getLibrary().getName() + "</font></html>";
             setText(html);
             if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
+                setBackground(Theme.NODE_SELECTION_ACTIVE_BACKGROUND_COLOR);
             } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
+                setBackground(Theme.NODE_SELECTION_BACKGROUND_COLOR);
             }
             setEnabled(list.isEnabled());
             setFont(list.getFont());
             setIcon(new ImageIcon(NodeView.getImageForNode(node)));
+            setBorder(Theme.BOTTOM_BORDER);
             setOpaque(true);
             return this;
         }
-
     }
 
     private NodeLibrary library;
@@ -141,7 +140,7 @@ public class NodeSelectionDialog extends JDialog {
         panel.add(searchField, BorderLayout.NORTH);
         panel.add(nodeScroll, BorderLayout.CENTER);
         setContentPane(panel);
-        setSize(346, 382);
+        setSize(500, 400);
         SwingUtils.centerOnScreen(this);
     }
 

@@ -18,7 +18,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
-    private static Color highlightColor;
 
     static {
         try {
@@ -28,7 +27,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
-            highlightColor = new Color(223, 223, 223);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,7 +63,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
         numberField = new JTextField();
         numberField.putClientProperty("JComponent.sizeVariant", "small");
-        numberField.setFont(PlatformUtils.getSmallBoldFont());
+        numberField.setFont(Theme.SMALL_BOLD_FONT);
         numberField.setHorizontalAlignment(JTextField.CENTER);
         numberField.setVisible(false);
         numberField.addKeyListener(new EscapeListener());
@@ -194,9 +192,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         g2.drawImage(draggerLeft, 0, 0, null);
         g2.drawImage(draggerRight, r.width - draggerRightWidth, 0, null);
         g2.drawImage(draggerBackground, draggerLeftWidth, 0, centerWidth, draggerHeight, null);
-        g2.setFont(SwingUtils.FONT_BOLD);
-        g2.setColor(SwingUtils.COLOR_NORMAL);
-        SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, highlightColor);
+        g2.setFont(Theme.SMALL_BOLD_FONT);
+        g2.setColor(Theme.TEXT_NORMAL_COLOR);
+        SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, Theme.DRAGGABLE_NUMBER_HIGLIGHT_COLOR);
     }
 
     //// Component size ////

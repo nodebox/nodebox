@@ -20,6 +20,7 @@ public abstract class AbstractHandle implements Handle {
 
     protected Node node;
     protected Viewer viewer;
+    private boolean visible = true;
 
     protected AbstractHandle(Node node) {
         this.node = node;
@@ -35,6 +36,14 @@ public abstract class AbstractHandle implements Handle {
 
     public void setViewer(Viewer viewer) {
         this.viewer = viewer;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 
     //// Stub implementations of event handling ////

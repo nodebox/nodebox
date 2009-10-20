@@ -1,31 +1,109 @@
 package nodebox.client;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 
 public class Theme {
 
-    private static Theme instance = new Theme();
+    // Default colors
+    public static final Color DEFAULT_ARROW_COLOR = new Color(136, 136, 136);
+    public static final Color DEFAULT_SHADOW_COLOR = new Color(176, 176, 176);
+    public static final Color DEFAULT_SPLIT_COLOR = new Color(139, 139, 139);
 
-    public static Theme getInstance() {
-        return instance;
+    // Viewer
+    public static final Color VIEWER_NEUTRAL_GREY = new Color(232, 232, 232);
+
+    // Network view
+    public static final Color NETWORK_BACKGROUND_COLOR = new Color(69, 69, 69);
+    public static final Color NETWORK_SELECTION_COLOR = new Color(200, 200, 200, 100);
+    public static final Color NETWORK_SELECTION_BORDER_COLOR = new Color(100, 100, 100, 100);
+    public static final Color NETWORK_NODE_NAME_COLOR = new Color(194, 194, 194);
+    public static final Color NETWORK_NODE_NAME_SHADOW_COLOR = new Color(23, 23, 23);
+    public static final Color CONNECTION_DEFAULT_COLOR = new Color(100, 100, 100);
+    public static final Color CONNECTION_CONNECTING_COLOR = new Color(170, 167, 18);
+    public static final Color CONNECTION_ACTION_COLOR = new Color(0, 116, 168);
+
+    // Parameter view
+    public static final Color PARAMETER_EXPRESSION_BACKGROUND_COLOR = new Color(255, 255, 240);
+    public static final Color DRAGGABLE_NUMBER_HIGLIGHT_COLOR = new Color(223, 223, 223);
+
+    // Source editor
+    public static final Color MESSAGES_BACKGROUND_COLOR = new Color(240, 240, 240);
+    public static final Color EDITOR_SPLITTER_DIVIDER_COLOR = new Color(210, 210, 210);
+    public static final Color EDITOR_DISABLED_BACKGROUND_COLOR = new Color(240, 240, 240);
+
+    // Expression editor
+    public static final Color EXPRESSION_ERROR_BACKGROUND_COLOR = new Color(240, 240, 240);
+    public static final Color EXPRESSION_ERROR_FOREGROUND_COLOR = new Color(200, 0, 0);
+
+    // Node attributes editor
+    public static final Color NODE_ATTRIBUTES_PARAMETER_LIST_BACGKGROUND_COLOR = new Color(240, 240, 250);
+    public static final Color NODE_ATTRIBUTES_PARAMETER_COLOR = new Color(60, 60, 60);
+
+    // Node selection dialog
+    public static final Color NODE_SELECTION_BACKGROUND_COLOR = new Color(244, 244, 244);
+    public static final Color NODE_SELECTION_ACTIVE_BACKGROUND_COLOR = new Color(224, 224, 224);
+
+    // Text
+    public static final Color TEXT_NORMAL_COLOR = new Color(60, 60, 60);
+    public static final Color TEXT_ARMED_COLOR = new Color(0, 0, 0);
+    public static final Color TEXT_SHADOW_COLOR = new Color(255, 255, 255);
+    public static final Color TEXT_DISABLED_COLOR = new Color(98, 112, 130);
+
+    // Borders
+    public static Border LINE_BORDER;
+    public static Border TOP_BOTTOM_BORDER;
+    public static Border BOTTOM_BORDER;
+    public static Border PARAMETER_ROW_BORDER;
+
+    // Fonts
+    public static Font EDITOR_FONT;
+    public static Font MESSAGE_FONT;
+    public static Font INFO_FONT;
+    public static Font SMALL_FONT;
+    public static Font SMALL_BOLD_FONT;
+    public static Font SMALL_MONO_FONT;
+
+    static {
+        // Intialize borders.
+        Color borderColor;
+        if (PlatformUtils.onWindows()) {
+            borderColor = new Color(100, 100, 100);
+        } else if (PlatformUtils.onMac()) {
+            borderColor = new Color(200, 200, 200);
+        } else {
+            borderColor = new Color(200, 200, 200);
+        }
+        LINE_BORDER = BorderFactory.createLineBorder(borderColor);
+        Color topColor = new Color(224, 224, 224);
+        Color bottomColor = new Color(245, 245, 245);
+        TOP_BOTTOM_BORDER = new TopBottomBorder(topColor, bottomColor);
+        Color whiteColor = new Color(255, 255, 255);
+        BOTTOM_BORDER = new BottomBorder(whiteColor);
+        PARAMETER_ROW_BORDER = new RowBorder();
+
+        // Initialize fonts.
+        if (PlatformUtils.onMac()) {
+            EDITOR_FONT = new Font("Monaco", Font.PLAIN, 11);
+            MESSAGE_FONT = new Font("Lucida Grande", Font.BOLD, 13);
+            INFO_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
+            SMALL_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
+            SMALL_BOLD_FONT = new Font("Lucida Grande", Font.BOLD, 11);
+            SMALL_MONO_FONT =new Font("Monaco", Font.PLAIN, 10);
+        } else {
+            EDITOR_FONT = new Font("Courier", Font.PLAIN, 11);
+            MESSAGE_FONT = new Font("Verdana", Font.BOLD, 11);
+            INFO_FONT = new Font("Verdana", Font.PLAIN, 10);
+            SMALL_FONT = new Font("Verdana", Font.PLAIN, 10);
+            SMALL_BOLD_FONT = new Font("Verdana", Font.BOLD, 10);
+            SMALL_MONO_FONT =new Font("Courier", Font.PLAIN, 10);
+        }
     }
 
-    private Color backgroundColor = new Color(178, 178, 178);
-    private Color parameterViewBackgroundColor = new Color(204, 204, 204);
-    private Color foregroundColor = new Color(136, 136, 136);
-    private Color textColor = new Color(80, 80, 80);
-    private Color actionColor = new Color(0, 116, 168);
-    private Color borderColor = new Color(48, 48, 48);
-    private Color borderHighlightColor = new Color(120, 120, 120);
-    private Color viewBackgroundColor = new Color(178, 178, 185);
-    private Color connectionColor = new Color(100, 100, 100);
-    private Color implicitConnectionColor = new Color(160, 160, 160);
-    private ArrowIcon arrowIcon = new ArrowIcon();
-
-    public class ArrowIcon implements Icon {
+    public static class ArrowIcon implements Icon {
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            g.setColor(Theme.getInstance().getForegroundColor());
+            g.setColor(Theme.DEFAULT_ARROW_COLOR);
             g.drawLine(x + 1, y, x + 1, y);
             g.drawLine(x + 1, y + 1, x + 2, y + 1);
             g.drawLine(x + 1, y + 2, x + 3, y + 2);
@@ -44,51 +122,79 @@ public class Theme {
         }
     }
 
+    public static class TopBottomBorder implements Border {
+        private Color topColor;
+        private Color bottomColor;
 
-    private Theme() {
+        public TopBottomBorder(Color topColor, Color bottomColor) {
+            this.topColor = topColor;
+            this.bottomColor = bottomColor;
+        }
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(topColor);
+            g.drawLine(x, y, x + width, y);
+            g.setColor(bottomColor);
+            g.drawLine(x, y + height - 1, x + width, y + height - 1);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(1, 0, 1, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
     }
 
-    public Color getBackgroundColor() {
-        return backgroundColor;
+    public static class BottomBorder implements Border {
+        private Color bottomColor;
+
+        public BottomBorder(Color bottomColor) {
+            this.bottomColor = bottomColor;
+        }
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(bottomColor);
+            g.drawLine(x, y + height - 1, x + width, y + height - 1);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(0, 0, 1, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
     }
 
-    public Color getParameterViewBackgroundColor() {
-        return parameterViewBackgroundColor;
-    }
+    public static class RowBorder implements Border {
 
-    public Color getForegroundColor() {
-        return foregroundColor;
-    }
+        private static final Color LABEL_UP_COLOR = new Color(140, 140, 140);
+        private static final Color LABEL_DOWN_COLOR = new Color(166, 166, 166);
+        private static final Color PARAMETER_UP_COLOR = new Color(179, 179, 179);
+        private static final Color PARAMETER_DOWN_COLOR = new Color(213, 213, 213);
 
-    public Color getTextColor() {
-        return textColor;
-    }
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            int labelWidth = ParameterView.LABEL_WIDTH;
+            // Draw border on the side of the label
+            g.setColor(LABEL_UP_COLOR);
+            g.fillRect(x, y + height - 2, labelWidth - 2, 1);
+            g.setColor(LABEL_DOWN_COLOR);
+            g.fillRect(x, y + height - 1, labelWidth - 2, 1);
+            // Draw border on parameter side
+            g.setColor(PARAMETER_UP_COLOR);
+            g.fillRect(x + labelWidth + 1, y + height - 2, width - labelWidth - 1, 1);
+            g.setColor(PARAMETER_DOWN_COLOR);
+            g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
+        }
 
-    public Color getActionColor() {
-        return actionColor;
-    }
+        public Insets getBorderInsets(Component c) {
+            return new Insets(4, 0, 4, 0);
+        }
 
-    public Color getBorderColor() {
-        return borderColor;
-    }
-
-    public Color getBorderHighlightColor() {
-        return borderHighlightColor;
-    }
-
-    public Color getViewBackgroundColor() {
-        return viewBackgroundColor;
-    }
-
-    public Color getConnectionColor() {
-        return connectionColor;
-    }
-
-    public Color getImplicitConnectionColor() {
-        return implicitConnectionColor;
-    }
-
-    public ArrowIcon getArrowIcon() {
-        return arrowIcon;
+        public boolean isBorderOpaque() {
+            return true;
+        }
     }
 }

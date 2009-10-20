@@ -6,13 +6,6 @@ import java.awt.geom.Rectangle2D;
 
 public class SwingUtils {
 
-    public static final Color COLOR_NORMAL = new Color(60, 60, 60);
-    public static final Color COLOR_ARMED = new Color(0, 0, 0);
-    public static final Color COLOR_SHADOW = new Color(255, 255, 255);
-    public static final Color COLOR_DISABLED = new Color(98, 112, 130);
-    public static final Font FONT_REGULAR = new Font("Lucida Grande", Font.PLAIN, 11);
-    public static final Font FONT_BOLD = new Font("Lucida Grande", Font.BOLD, 11);
-
     public static void centerOnScreen(Window w) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Dimension screenSize = toolkit.getScreenSize();
@@ -22,7 +15,7 @@ public class SwingUtils {
     }
 
     public static void drawShadowText(Graphics2D g2, String s, int x, int y) {
-        drawShadowText(g2, s, x, y, COLOR_SHADOW, 1);
+        drawShadowText(g2, s, x, y, Theme.TEXT_SHADOW_COLOR, 1);
     }
 
     public static void drawShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor, int offset) {
@@ -34,7 +27,7 @@ public class SwingUtils {
     }
 
     public static void drawCenteredShadowText(Graphics2D g2, String s, int x, int y) {
-        drawCenteredShadowText(g2, s, x, y, COLOR_SHADOW);
+        drawCenteredShadowText(g2, s, x, y, Theme.TEXT_SHADOW_COLOR);
     }
 
     public static void drawCenteredShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor) {

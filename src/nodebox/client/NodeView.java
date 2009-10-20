@@ -34,7 +34,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public static final int GRID_SIZE = 10;
 
 
-    private static Image nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeRim;
+    private static BufferedImage nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeRim;
 
     static {
         try {
@@ -75,31 +75,6 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         updateIcon();
     }
 
-    public void updateIcon() {
-        Image icon = getImageForNode(node);
-        // Create the icon.
-        // We include only the parts that are not changed by state.
-        // This means leaving off the error and rendered image.
-        // Also, we draw the rim at the very end, above the error and rendered,
-        // so we can't draw it here yet.
-        fullIcon = new BufferedImage(NODE_FULL_SIZE, NODE_FULL_SIZE, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D fg = fullIcon.createGraphics();
-        // Count the input ports and draw them.
-        java.util.List<Port> inputs = node.getPorts();
-        if (inputs.size() > 0) {
-            int portY = (NODE_FULL_SIZE - NODE_PORT_HEIGHT) / 2 - 1;
-            fg.drawImage(nodeInPort, 0, portY, null);
-        }
-        // Draw the other layers.
-        fg.drawImage(nodeOutPort, 0, 0, null);
-        fg.drawImage(nodeMask, 0, 0, null);
-        fg.setComposite(AlphaComposite.SrcIn);
-        fg.drawImage(icon, 10, 10, NODE_IMAGE_SIZE, NODE_IMAGE_SIZE, null);
-        fg.setComposite(AlphaComposite.SrcOver);
-        //fg.drawImage(nodeReflection, 0, 0, null);
-        fg.dispose();
-    }
-
     /**
      * Tries to find an image representation for the node.
      * The image should be located near the library, and have the same name as the library.
@@ -110,7 +85,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
      * @param node the node
      * @return an Image object.
      */
-    public static Image getImageForNode(Node node) {
+    public static BufferedImage getImageForNode(Node node) {
         if (node == null || node.getImage() == null || node.getImage().equals(Node.IMAGE_GENERIC)) return nodeGeneric;
         File libraryFile = node.getLibrary().getFile();
         if (libraryFile != null) {
@@ -128,6 +103,44 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
         // Look for the prototype
         return getImageForNode(node.getPrototype());
+    }
+
+    /**
+     * Create an icon with the node's image and the rounded embellishments.
+     *
+     * @param node the node
+     * @return an Image object.
+     */
+    public static BufferedImage getFullImageForNode(Node node, boolean drawPorts) {
+        Image icon = getImageForNode(node);
+        // Create the icon.
+        // We include only the parts that are not changed by state.
+        // This means leaving off the error and rendered image.
+        // Also, we draw the rim at the very end, above the error and rendered,
+        // so we can't draw it here yet.
+        BufferedImage fullIcon = new BufferedImage(NODE_FULL_SIZE, NODE_FULL_SIZE, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D fg = fullIcon.createGraphics();
+        if (drawPorts) {
+            // Count the input ports and draw them.
+            java.util.List<Port> inputs = node.getPorts();
+            if (inputs.size() > 0) {
+                int portY = (NODE_FULL_SIZE - NODE_PORT_HEIGHT) / 2 - 1;
+                fg.drawImage(nodeInPort, 0, portY, null);
+            }
+            fg.drawImage(nodeOutPort, 0, 0, null);
+        }
+        // Draw the other layers.
+        fg.drawImage(nodeMask, 0, 0, null);
+        fg.setComposite(AlphaComposite.SrcIn);
+        fg.drawImage(icon, 10, 10, NODE_IMAGE_SIZE, NODE_IMAGE_SIZE, null);
+        fg.setComposite(AlphaComposite.SrcOver);
+        //fg.drawImage(nodeReflection, 0, 0, null);
+        fg.dispose();
+        return fullIcon;
+    }
+
+    public void updateIcon() {
+        fullIcon = getFullImageForNode(node, true);
     }
 
     public void propertyChange(PropertyChangeEvent evt) {
@@ -173,11 +186,11 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.drawImage(nodeRim, 0, 0, null);
 
         // Draw the node name.
-        g.setFont(SwingUtils.FONT_BOLD);
-        g.setColor(new Color(194, 194, 194));
+        g.setFont(Theme.SMALL_BOLD_FONT);
+        g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         int textWidth = g.getFontMetrics().stringWidth(node.getName());
         int x = (int) ((NODE_FULL_SIZE - textWidth) / 2f);
-        SwingUtils.drawShadowText(g, node.getName(), x, NODE_FULL_SIZE + 5, new Color(23, 23, 23), -1);
+        SwingUtils.drawShadowText(g, node.getName(), x, NODE_FULL_SIZE + 5, Theme.NETWORK_NODE_NAME_SHADOW_COLOR, -1);
 
         // Reset the clipping.
         g.setClip(clip);
