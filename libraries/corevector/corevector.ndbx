@@ -172,6 +172,12 @@ def cook(self):
         sy += self.sy / 100.0
     return g]]></value>
     </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import PointHandle
+
+def cook(self):
+    return PointHandle(self.node, "tx", "ty")]]></value>
+    </param>
     <param name="_image">
       <value>copy.png</value>
     </param>
@@ -1867,6 +1873,12 @@ def cook(self):
             t.scale(self.sx / 100, self.sy / 100)
     # Transform.map clones and transforms the geometry.
     return t.map(self.shape)]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import PointHandle
+
+def cook(self):
+    return PointHandle(self.node, "tx", "ty")]]></value>
     </param>
     <param name="_image">
       <value>transform.png</value>
