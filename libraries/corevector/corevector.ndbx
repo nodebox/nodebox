@@ -971,18 +971,18 @@ def cook(self):
       <value type="python"><![CDATA[import pickle
 
 def _string_to_dict(s):
-        d = {}
-        for el in s.split("P"):
-            if el:
-                item = el.strip().split(" ")
-                try:
-                    index = int(item[0])
-                    x = float(item[1])
-                    y = float(item[2])
-                    d[index] = (x, y)
-                except:
-                    pass
-        return d
+    d = {}
+    for el in s.split("P"):
+        if el:
+            item = el.strip().split(" ")
+            try:
+                index = int(item[0])
+                x = float(item[1])
+                y = float(item[2])
+                d[index] = (x, y)
+            except:
+                pass
+    return d
 
 def cook(self):
     if self.shape is None: return None
@@ -1003,7 +1003,7 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.graphics import Path, Color, IGeometry
 from nodebox.handle import AbstractHandle
 
-class MyHandle(AbstractHandle):
+class EditHandle(AbstractHandle):
     def __init__(self, node, shape, deltas):
         AbstractHandle.__init__(self, node)
         self.shape = shape
@@ -1165,7 +1165,7 @@ class MyHandle(AbstractHandle):
  
 def cook(self):
     if self.shape is None: return None
-    return MyHandle(self.node, self.shape, self.pointDeltas)]]></value>
+    return EditHandle(self.node, self.shape, self.pointDeltas)]]></value>
     </param>
     <param help="" name="_image">
       <value>edit.png</value>
