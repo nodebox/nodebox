@@ -36,6 +36,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
         CONTROL_MAP.put(Parameter.Widget.TEXT, TextControl.class);
         CONTROL_MAP.put(Parameter.Widget.TOGGLE, ToggleControl.class);
         CONTROL_MAP.put(Parameter.Widget.NODEREF, NoderefControl.class);
+        CONTROL_MAP.put(Parameter.Widget.STAMP_EXPRESSION, StampExpressionControl.class);
     }
 
     private Node node;
