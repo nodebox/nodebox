@@ -26,6 +26,7 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
     private boolean showHandle;
     private boolean showPoints;
     private boolean showPointNumbers;
+    private float zoomFactor = 1;
 
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
@@ -62,6 +63,15 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
 
     public void setShowPointNumbers(boolean showPointNumbers) {
         this.showPointNumbers = showPointNumbers;
+        repaint();
+    }
+
+    public float getZoomFactor() {
+        return zoomFactor;
+    }
+
+    public void setZoomFactor(float zoomFactor) {
+        this.zoomFactor = zoomFactor;
         repaint();
     }
 
@@ -117,6 +127,8 @@ public class Viewer extends JComponent implements DirtyListener, MouseListener, 
         Object outputValue = getNode().getOutputValue();
         if (outputValue instanceof Grob) {
             g2.translate(getWidth() / 2.0, getHeight() / 2.0);
+            // Zoom the canvas
+            g2.scale(zoomFactor, zoomFactor);
             ((Grob) outputValue).draw(g2);
         } else if (outputValue != null) {
             String s = outputValue.toString();

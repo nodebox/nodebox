@@ -2,15 +2,18 @@ package nodebox.client;
 
 import nodebox.node.Node;
 
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 
-public class ViewerPane extends Pane {
+public class ViewerPane extends Pane implements ChangeListener {
 
     private PaneHeader paneHeader;
     private Viewer viewer;
     private Node node;
     private NButton handlesCheck, pointsCheck, pointNumbersCheck;
-
+    private JSlider zoomSlider;
 
     public ViewerPane(NodeBoxDocument document) {
         this();
@@ -27,9 +30,14 @@ public class ViewerPane extends Pane {
         pointsCheck.setActionMethod(this, "togglePoints");
         pointNumbersCheck = new NButton(NButton.Mode.CHECK, "Point Numbers");
         pointNumbersCheck.setActionMethod(this, "togglePointNumbers");
+        zoomSlider = new JSlider(JSlider.HORIZONTAL, 1, 1000, 100);
+        zoomSlider.setSize(new Dimension(12, 125));
+        zoomSlider.putClientProperty("JComponent.sizeVariant", "small");
+        zoomSlider.addChangeListener(this);
         paneHeader.add(handlesCheck);
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
+        paneHeader.add(zoomSlider);
         viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
@@ -45,6 +53,16 @@ public class ViewerPane extends Pane {
 
     public void togglePointNumbers() {
         viewer.setShowPointNumbers(pointNumbersCheck.isChecked());
+    }
+
+    /**
+     * User dragged the zoom slider.
+     *
+     * @param e the change event
+     */
+    public void stateChanged(ChangeEvent e) {
+        float zoomFactor = zoomSlider.getValue() / 100f;
+        viewer.setZoomFactor(zoomFactor);
     }
 
     @Override
