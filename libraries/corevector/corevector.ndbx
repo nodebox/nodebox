@@ -987,9 +987,7 @@ def cook(self):
   <node name="edit" prototype="filter" x="330" y="250">
     <description>Edit points non-destructively.</description>
     <param name="_code">
-      <value type="python"><![CDATA[import pickle
-
-def _string_to_dict(s):
+      <value type="python"><![CDATA[def _string_to_dict(s):
     d = {}
     for el in s.split("P"):
         if el:
@@ -1023,29 +1021,43 @@ def cook(self):
 from nodebox.handle import AbstractHandle
 
 class EditHandle(AbstractHandle):
-    def __init__(self, node, shape, deltas):
+    def __init__(self, node):
         AbstractHandle.__init__(self, node)
-        self.shape = shape
+        self.shape = None
+        self.points = []
         self._selected_point = -1
-        self.init(deltas)
+        self._edited_as_string = ""
         # When we move a curve point that has control points,
         # we want those handles too move the same amount.
         # _delta_prev and _delta_next are the horizontal and vertical 
         # distance from those control points to the point.
         self._delta_prev = None         
         self._delta_next = None
+        self.update()
+
+    def update(self):
+        shape = self.node.getPort("shape").value
+        same_shape = self.shape == shape
+        if not same_shape:
+            self.shape = shape
+            self.points = []
+            if isinstance(self.shape, IGeometry):
+                self.points = self.shape.clone().points
+
+        deltas = self.node.asString("pointDeltas")
         
-    def init(self, deltas):
-        self.points = self.shape.clone().points
-        self._edited_points = {}
-        delta_values = deltas and self._string_to_dict(deltas) or {}
-        for (key, (x, y)) in delta_values.items():
-            try:
-                point = self.points[key]
-                self._edited_points[key] = (x + point.x, y + point.y)
-            except IndexError:
-                pass
-            
+        if not same_shape or self._edited_as_string != deltas:
+            self._edited_points = {}
+            delta_values = deltas and self._string_to_dict(deltas) or {}
+            for (key, (x, y)) in delta_values.items():
+                try:
+                    point = self.points[key]
+                    self._edited_points[key] = (x + point.x, y + point.y)
+                except IndexError:
+                    self._edited_points[key] = (x, y)
+        
+        self.visible = isinstance(self.shape, IGeometry)
+                
     def mousePressed(self, pt):
         keys = self._edited_points.keys()
         num_points = len(self.points)
@@ -1087,7 +1099,6 @@ class EditHandle(AbstractHandle):
             if self._delta_next is not None:
                 dx, dy = self._delta_next
                 self._edited_points[self._selected_point + 1] = (pt.x - dx, pt.y - dy)
-#            print "selected point", self.points[self._selected_point], pt.x, pt.y
             self.updateValues()            
 
     def _dict_to_string(self, d):
@@ -1120,9 +1131,9 @@ class EditHandle(AbstractHandle):
                 point = self.points[index]
                 delta_values[index] = (x - point.x, y - point.y)
             except IndexError:
-                pass
-        
-        self.node.silentSet("pointDeltas", self._dict_to_string(delta_values))
+                delta_values[index] = (x, y)
+        self._edited_as_string = self._dict_to_string(delta_values)
+        self.node.silentSet("pointDeltas", self._edited_as_string)
             
     def mouseReleased(self, pt):
         self._selected_point = -1
@@ -1130,16 +1141,8 @@ class EditHandle(AbstractHandle):
         self._delta_next = None
 
     def draw(self, ctx):
-        if self.shape != self.node.ports[0]:
-            self.shape = self.node.ports[0].value
-            
-            if isinstance(self.shape, IGeometry):
-                self.points = self.shape.clone().points
-                self.updateValues()
-
-        if isinstance(self.shape, IGeometry):    
-            self._draw_points(ctx, True, AbstractHandle.HANDLE_COLOR)
-            self._draw_points(ctx, False, Color(1, 1, 1))
+        self._draw_points(ctx, True, AbstractHandle.HANDLE_COLOR)
+        self._draw_points(ctx, False, Color(1, 1, 1))
 
     def _draw_points(self, ctx, on_curve, color):
         keys = self._edited_points.keys()
@@ -1183,8 +1186,7 @@ class EditHandle(AbstractHandle):
                     ctx.draw(path)
  
 def cook(self):
-    if self.shape is None: return None
-    return EditHandle(self.node, self.shape, self.pointDeltas)]]></value>
+    return EditHandle(self.node)]]></value>
     </param>
     <param help="" name="_image">
       <value>edit.png</value>
