@@ -80,9 +80,9 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         editorPanel = new JPanel(new BorderLayout());
         editorPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-        SingleLineSplitter split = new SingleLineSplitter(JSplitPane.HORIZONTAL_SPLIT, leftPanel, editorPanel);
-        split.setDividerLocation(150);
-        split.setResizeWeight(0.2);
+        SingleLineSplitter split = new SingleLineSplitter(NSplitter.Orientation.HORIZONTAL, leftPanel, editorPanel);
+        split.setPosition(0.25f);
+        split.setEnabled(false);
         add(split, BorderLayout.CENTER);
         if (node.getParameterCount() > 0)
             parameterList.setSelectedIndex(0);

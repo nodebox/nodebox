@@ -131,9 +131,9 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         EditorPane editorPane = new EditorPane(this);
         ParameterPane parameterPane = new ParameterPane(this);
         NetworkPane networkPane = new NetworkPane(this);
-        PaneSplitter viewEditorSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, viewPane, editorPane);
-        PaneSplitter parameterNetworkSplit = new PaneSplitter(PaneSplitter.VERTICAL_SPLIT, parameterPane, networkPane);
-        PaneSplitter topSplit = new PaneSplitter(PaneSplitter.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
+        PaneSplitter viewEditorSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, viewPane, editorPane);
+        PaneSplitter parameterNetworkSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, parameterPane, networkPane);
+        PaneSplitter topSplit = new PaneSplitter(NSplitter.Orientation.HORIZONTAL, viewEditorSplit, parameterNetworkSplit);
         addressBar = new AddressBar(this);
         rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
