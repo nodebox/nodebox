@@ -31,13 +31,21 @@ public class AddressBar extends JPanel implements MouseListener {
 
     private NodeBoxDocument document;
     private Node node;
+    private JProgressBar progressBar;
 
     public AddressBar(NodeBoxDocument document) {
+        this.document = document;
         addMouseListener(this);
         setMinimumSize(new Dimension(0, 25));
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         setPreferredSize(new Dimension(Integer.MAX_VALUE, 25));
-        this.document = document;
+        setLayout(null);
+        progressBar = new JProgressBar();
+        progressBar.putClientProperty("JProgressBar.style", "circular");
+        progressBar.setIndeterminate(true);
+        progressBar.setBorderPainted(false);
+        progressBar.setVisible(false);
+        add(progressBar);
     }
 
     public Node getNode() {
@@ -47,6 +55,14 @@ public class AddressBar extends JPanel implements MouseListener {
     public void setNode(Node node) {
         this.node = node;
         repaint();
+    }
+
+    public boolean getProgressVisible() {
+        return progressBar.isVisible();
+    }
+
+    public void setProgressVisible(boolean visible) {
+        progressBar.setVisible(visible);
     }
 
     private java.util.List<Node> getNetworkParts() {
@@ -130,5 +146,9 @@ public class AddressBar extends JPanel implements MouseListener {
         return -1;
     }
 
-
+    @Override
+    public void doLayout() {
+        final int width = getWidth();
+        progressBar.setBounds(width-23, 3, 20, 20);
+    }
 }

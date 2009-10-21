@@ -1,9 +1,8 @@
 package nodebox.client;
 
 import nodebox.graphics.Grob;
-import nodebox.graphics.Rect;
-import nodebox.graphics.Text;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.Text;
 import nodebox.node.*;
 
 import javax.swing.*;
@@ -109,20 +108,20 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             return true;
         }
     }
-    
+
     public static NodeBoxDocument createNewGeometryDocument() {
-    	NodeLibrary nodeLibrary = new NodeLibrary("untitled");
-    	NodeLibraryManager manager = Application.getInstance().getManager();
-    	Node geonet = nodeLibrary.getRootNode().create(manager.getNode("corevector.geonet"));
+        NodeLibrary nodeLibrary = new NodeLibrary("untitled");
+        NodeLibraryManager manager = Application.getInstance().getManager();
+        Node geonet = nodeLibrary.getRootNode().create(manager.getNode("corevector.geonet"));
         geonet.setRendered();
         //Node geonet = Node.ROOT_NODE.newInstance(nodeLibrary, "geonet", Geometry.class);
         NodeBoxDocument doc = new NodeBoxDocument(nodeLibrary);
         doc.setActiveNetwork(geonet);
         return doc;
     }
-    
+
     public NodeBoxDocument() {
-    	this(new NodeLibrary("untitled"));
+        this(new NodeLibrary("untitled"));
     }
 
     public NodeBoxDocument(NodeLibrary lib) {
@@ -206,7 +205,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
             setActiveNode(null);
         }
         if (activeNetwork != null) {
-            updateActiveNetwork();
+            requestActiveNetworkUpdate();
         }
         addressBar.setNode(activeNetwork);
     }
@@ -418,7 +417,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     public void deleteSelected() {
         // TODO: Find network view, delete selected.
-        JOptionPane.showMessageDialog(this, "Delete selected.", "NodeBox", JOptionPane.ERROR_MESSAGE);        
+        JOptionPane.showMessageDialog(this, "Delete selected.", "NodeBox", JOptionPane.ERROR_MESSAGE);
     }
 
     private void updateTitle() {
@@ -509,22 +508,31 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     public void nodeDirty(final Node node) {
         if (node != activeNetwork) return;
+        requestActiveNetworkUpdate();
+    }
+
+    private void requestActiveNetworkUpdate() {
+        addressBar.setProgressVisible(true);
+
+
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 // If meanwhile the node has been marked clean, ignore the event.
-                if (!node.isDirty()) return;
+                if (!activeNetwork.isDirty()) return;
                 markChanged();
-                updateActiveNetwork();
+                try {
+                    activeNetwork.update();
+                } catch (ProcessingError processingError) {
+                    Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            addressBar.setProgressVisible(false);
+                        }
+                    });
+                }
             }
         });
-    }
-
-    private void updateActiveNetwork() {
-        try {
-            activeNetwork.update();
-        } catch (ProcessingError processingError) {
-            Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
-        }
     }
 
     private void doRender() {
