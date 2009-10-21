@@ -40,6 +40,7 @@ public class NButton extends JComponent implements MouseListener {
     private Method actionMethod;
     private Mode mode;
     private boolean armed = false;
+    private boolean pressed = false;
     private boolean checked = false;
 
     /**
@@ -160,26 +161,34 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mouseClicked(MouseEvent e) {
-        try {
-            actionMethod.invoke(actionObject);
-        } catch (Exception e1) {
-            throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject);
-        }
     }
 
     public void mousePressed(MouseEvent e) {
+        pressed = true;
         armed = true;
         repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
-        armed = false;
-        if (mode == Mode.CHECK)
-            checked = !checked;
-        repaint();
+        pressed = false;
+        if (armed) {
+            armed = false;
+            if (mode == Mode.CHECK)
+                checked = !checked;
+            try {
+                actionMethod.invoke(actionObject);
+            } catch (Exception e1) {
+                throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject);
+            }
+            repaint();
+        }
     }
 
     public void mouseEntered(MouseEvent e) {
+        if (pressed) {
+            armed = true;
+            repaint();
+        }
     }
 
     public void mouseExited(MouseEvent e) {
