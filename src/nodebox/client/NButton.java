@@ -104,6 +104,7 @@ public class NButton extends JComponent implements MouseListener {
         // To measure text we need a graphics context. Create an image and use its' graphics context.
         BufferedImage tmp = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = tmp.createGraphics();
+        g2.setFont(Theme.SMALL_BOLD_FONT);
         int width = normalImage.getWidth(null);
         width += IMAGE_TEXT_MARGIN;
         width += (int) g2.getFontMetrics().stringWidth(text);

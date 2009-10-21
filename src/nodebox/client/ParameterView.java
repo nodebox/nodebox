@@ -18,7 +18,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
     private static final Map<Parameter.Widget, Class> CONTROL_MAP;
 
     // At this width, the label background lines out with the pane header divider.
-    public static final int LABEL_WIDTH = 106;
+    public static final int LABEL_WIDTH = 114;
 
     static {
         CONTROL_MAP = new HashMap<Parameter.Widget, Class>();
@@ -157,7 +157,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
         }
     }
 
-    private class NodeChildHandler implements NodeChildListener{
+    private class NodeChildHandler implements NodeChildListener {
         public void childAdded(Node source, Node child) {
         }
 
@@ -197,7 +197,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
             } else {
                 int height = getHeight();
                 int width = getWidth();
-                g.setColor(new Color(153, 153, 153));
+                g.setColor(Theme.PARAMETER_LABEL_BACKGROUND);
                 g.fillRect(0, 0, LABEL_WIDTH - 3, height);
                 g.setColor(new Color(146, 146, 146));
                 g.fillRect(LABEL_WIDTH - 3, 0, 1, height);
@@ -205,7 +205,7 @@ public class ParameterView extends JComponent implements ParameterAttributeListe
                 g.fillRect(LABEL_WIDTH - 2, 0, 1, height);
                 g.setColor(new Color(112, 112, 112));
                 g.fillRect(LABEL_WIDTH - 1, 0, 1, height);
-                g.setColor(new Color(196, 196, 196));
+                g.setColor(Theme.PARAMETER_VALUE_BACKGROUND);
                 g.fillRect(LABEL_WIDTH, 0, width - LABEL_WIDTH, height);
             }
         }

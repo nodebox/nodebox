@@ -19,6 +19,7 @@ public class SwingUtils {
     }
 
     public static void drawShadowText(Graphics2D g2, String s, int x, int y, Color shadowColor, int offset) {
+        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         Color c = g2.getColor();
         g2.setColor(shadowColor);
         g2.drawString(s, x, y + offset);

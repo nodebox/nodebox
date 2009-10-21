@@ -1,12 +1,12 @@
 package nodebox.client.parameter;
 
-import nodebox.node.Parameter;
 import nodebox.client.Theme;
+import nodebox.node.Parameter;
 
 import javax.swing.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class StampExpressionControl extends AbstractParameterControl implements ActionListener {
 
@@ -15,7 +15,7 @@ public class StampExpressionControl extends AbstractParameterControl implements 
 
     public StampExpressionControl(Parameter parameter) {
         super(parameter);
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(5, 0));
         keyField = new JTextField();
         keyField.putClientProperty("JComponent.sizeVariant", "small");
         keyField.setFont(Theme.SMALL_BOLD_FONT);
