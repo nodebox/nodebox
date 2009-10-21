@@ -35,6 +35,11 @@ public class StringUtils {
         return sb.toString().trim();
     }
 
+
+    public static String humanizeConstant(String constant) {
+        return humanizeName(constant.toLowerCase());
+    }
+
     public static String join(List items, String separator) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {

@@ -2,11 +2,11 @@ package nodebox.client;
 
 import nodebox.Icons;
 import nodebox.node.Parameter;
+import nodebox.util.StringUtils;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -28,6 +28,33 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
     private JButton removeButton;
     private JButton upButton;
     private JButton downButton;
+
+    private static HumanizedWidget[] humanizedWidgets;
+
+    private static class HumanizedWidget {
+        private Parameter.Widget widget;
+
+        private HumanizedWidget(Parameter.Widget widget) {
+            this.widget = widget;
+        }
+
+        public Parameter.Widget getWidget() {
+            return widget;
+        }
+
+        @Override
+        public String toString() {
+            return StringUtils.humanizeConstant(widget.toString());
+        }
+    }
+
+    static {
+        Parameter.Widget[] widgets = Parameter.Widget.values();
+        humanizedWidgets = new HumanizedWidget[widgets.length];
+        for (int i = 0; i < widgets.length; i++) {
+            humanizedWidgets[i] = new HumanizedWidget(widgets[i]);
+        }
+    }
 
     private int y = 0;
 
@@ -76,7 +103,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         addRow("Help Text", helpTextField);
 
         // Widget
-        widgetBox = new JComboBox(Parameter.Widget.values());
+        widgetBox = new JComboBox(humanizedWidgets);
         widgetBox.addActionListener(this);
         addRow("Type", widgetBox);
 
@@ -149,7 +176,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         nameField.setText(parameter.getName());
         labelField.setText(parameter.getLabel());
         helpTextField.setText(parameter.getHelpText());
-        widgetBox.setSelectedItem(parameter.getWidget());
+        widgetBox.setSelectedItem(getHumanizedWidget(parameter.getWidget()));
         valueField.setText(parameter.getValue().toString());
         Parameter.BoundingMethod boundingMethod = parameter.getBoundingMethod();
         boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase());
@@ -178,9 +205,9 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             if (newHelpText.equals(parameter.getHelpText())) return;
             parameter.setHelpText(helpTextField.getText());
         } else if (e.getSource() == widgetBox) {
-            Parameter.Widget newWidget = (Parameter.Widget) widgetBox.getSelectedItem();
-            if (parameter.getWidget().equals(newWidget)) return;
-            parameter.setWidget(newWidget);
+            HumanizedWidget newWidget = (HumanizedWidget) widgetBox.getSelectedItem();
+            if (parameter.getWidget() == newWidget.getWidget()) return;
+            parameter.setWidget(newWidget.getWidget());
         } else if (e.getSource() == valueField) {
             String newValue = valueField.getText();
             if (parameter.getValue() != null && parameter.getValue().toString().equals(newValue)) return;
@@ -237,6 +264,13 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             throw new AssertionError("Unknown source " + e.getSource());
         }
         updateValues();
+    }
+
+    private HumanizedWidget getHumanizedWidget(Parameter.Widget widget) {
+        for (HumanizedWidget humanizedWidget : humanizedWidgets) {
+            if (humanizedWidget.getWidget() == widget) return humanizedWidget;
+        }
+        throw new AssertionError("Widget is not in humanized widget list.");
     }
 
     private void showError(String msg) {

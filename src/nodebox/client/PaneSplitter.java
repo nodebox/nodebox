@@ -8,7 +8,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
-public class PaneSplitter extends JSplitPane {
+public class PaneSplitter extends NSplitter {
 
     private static Image splitterHorizontalBackground, splitterVerticalBackground;
 
@@ -21,33 +21,30 @@ public class PaneSplitter extends JSplitPane {
         }
     }
 
-    public PaneSplitter(int orientation, Component newLeftComponent, Component newRightComponent) {
-        super(orientation, newLeftComponent, newRightComponent);
-        setContinuousLayout(true);
-        setDividerLocation(0.5);
-        setResizeWeight(0.5);
+    public PaneSplitter(Orientation orientation, JComponent firstComponent, JComponent secondComponent) {
+        super(orientation, firstComponent, secondComponent);
+        setPosition(0.5f);
         setDividerSize(7);
-        setUI(new PaneSplitterUI());
-        setBorder(BorderFactory.createEmptyBorder());
     }
 
-    private class PaneSpliterDivider extends BasicSplitPaneDivider {
-        private PaneSpliterDivider(BasicSplitPaneUI ui) {
-            super(ui);
-        }
+    @Override
+    protected Divider createDivider() {
+        return new PaneSpliterDivider();
+    }
 
+    private class PaneSpliterDivider extends Divider {
         @Override
         public void paint(Graphics g) {
             Rectangle r = g.getClipBounds();
-            if (getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
-                g.drawImage(splitterHorizontalBackground, r.x, r.y, 7, r.height, null);
+            if (getOrientation() == Orientation.HORIZONTAL) {
+                g.drawImage(splitterHorizontalBackground, 0, 0, 7, getHeight(), null);
 //                g.setColor(Theme.getInstance().getBorderHighlightColor());
 //                g.fillRect(r.x, r.y, 1, r.height);
 //                g.setColor(Theme.getInstance().getBorderColor());
 //                g.fillRect(r.x + 1, r.y, 1, r.height);
 
             } else {
-                g.drawImage(splitterVerticalBackground, r.x, r.y, r.width, 7, null);
+                g.drawImage(splitterVerticalBackground, 0, 0, getWidth(), 7, null);
 //                g.setColor(Theme.getInstance().getBorderHighlightColor());
 //                g.fillRect(r.x, r.y, r.width, 1);
 //                g.setColor(Theme.getInstance().getBorderColor());
@@ -55,12 +52,4 @@ public class PaneSplitter extends JSplitPane {
             }
         }
     }
-
-    private class PaneSplitterUI extends BasicSplitPaneUI {
-        @Override
-        public BasicSplitPaneDivider createDefaultDivider() {
-            return new PaneSpliterDivider(this);
-        }
-    }
-
 }

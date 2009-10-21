@@ -6,7 +6,6 @@ import nodebox.node.ParameterValueListener;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -66,6 +65,7 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         expressionField.putClientProperty("JComponent.sizeVariant", "small");
         expressionField.setFont(Theme.SMALL_BOLD_FONT);
         JButton expressionButton = new JButton("...");
+        expressionButton.setBackground(Theme.PARAMETER_VALUE_BACKGROUND);
         expressionButton.putClientProperty("JComponent.sizeVariant", "small");
         expressionButton.putClientProperty("JButton.buttonType", "gradient");
         expressionButton.setFont(Theme.SMALL_BOLD_FONT);

@@ -50,8 +50,9 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         messages.setMargin(new Insets(0, 5, 0, 5));
         JScrollPane messagesScroll = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         messagesScroll.setBorder(BorderFactory.createEmptyBorder());
-        splitter = new EditorSplitter(JSplitPane.VERTICAL_SPLIT, editor, messagesScroll);
+        splitter = new EditorSplitter(NSplitter.Orientation.VERTICAL, editor, messagesScroll);
         splitter.setEnabled(false);
+        splitter.setPosition(1.0f);
         add(splitter, BorderLayout.CENTER);
         addComponentListener(this);
     }
@@ -109,7 +110,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
             editor.setEnabled(false);
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
-            splitter.setDividerLocation(1.0);
+            splitter.setPosition(1.0f);
             updateMessages(node, null);
         } else {
             String code = pCode.asCode().getSource();
@@ -138,12 +139,13 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     }
 
     private void setMessages(boolean v) {
+        if (splitter.isEnabled() == v) return;
         if (v) {
             splitter.setEnabled(true);
-            splitter.setDividerLocation(getHeight() - 200);
+            splitter.setPosition(0.6f);
         } else {
             splitter.setEnabled(false);
-            splitter.setDividerLocation(1.0);
+            splitter.setPosition(1.0f);
         }
         messagesCheck.setChecked(v);
     }
@@ -193,8 +195,8 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
             messages.setText(sb.toString());
             setMessages(true);
             // Ensure messages are visible
-            if (splitter.getHeight() - splitter.getDividerLocation() < 100) {
-                splitter.setDividerLocation(0.6);
+            if (splitter.getPosition() > 0.9f) {
+                splitter.setPosition(0.6f);
             }
         } else {
             messages.setText("");
@@ -204,7 +206,7 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     //// Component events /////
 
     public void componentResized(ComponentEvent e) {
-        splitter.setDividerLocation(splitter.getHeight());
+        // splitter.setDividerLocation(splitter.getHeight());
     }
 
     public void componentMoved(ComponentEvent e) {

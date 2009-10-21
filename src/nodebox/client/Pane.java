@@ -44,7 +44,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
      * The bottom pane will be a clone of this pane.
      */
     public void splitTopBottom() {
-        split(JSplitPane.VERTICAL_SPLIT);
+        split(NSplitter.Orientation.VERTICAL);
     }
 
     /**
@@ -52,38 +52,57 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
      * The right pane will be a clone of this pane.
      */
     public void splitLeftRight() {
-        split(JSplitPane.HORIZONTAL_SPLIT);
+        split(NSplitter.Orientation.HORIZONTAL);
     }
 
-    private void split(int orientation) {
-        Dimension d = getSize();
+    private void split(NSplitter.Orientation orientation) {
         Container parent = getParent();
-        parent.remove(this);
-        PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
-        split.setSize(d);
-        parent.add(split);
-        parent.validate();
+        if (parent instanceof PaneSplitter) {
+            PaneSplitter parentSplit = (PaneSplitter) parent;
+            boolean first = parentSplit.getFirstComponent() == this;
+            if (first) {
+                parentSplit.setFirstComponent(null);
+            } else {
+                parentSplit.setSecondComponent(null);
+            }
+            PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
+            if (first) {
+                parentSplit.setFirstComponent(split);
+            } else {
+                parentSplit.setSecondComponent(split);
+            }
+            parentSplit.validate();
+        } else {
+            parent.remove(this);
+            PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
+            parent.add(split);
+            parent.validate();
+        }
     }
 
     public void close() {
         Container parent = getParent();
         if (!(parent instanceof PaneSplitter)) return;
         PaneSplitter split = (PaneSplitter) parent;
-        Component left = split.getLeftComponent();
-        Component right = split.getRightComponent();
-        Component remainingComponent = left == this ? right : left;
-        split.remove(left);
-        split.remove(right);
+        JComponent firstComponent = split.getFirstComponent();
+        JComponent secondComponent = split.getSecondComponent();
+        JComponent remainingComponent = firstComponent == this ? secondComponent : firstComponent;
+        split.setFirstComponent(null);
+        split.setSecondComponent(null);
         Container grandParent = parent.getParent();
-        if (!(grandParent instanceof PaneSplitter)) return;
-        PaneSplitter grandSplit = (PaneSplitter) grandParent;
-        Component grandLeft = grandSplit.getLeftComponent();
-        Component grandRight = grandSplit.getRightComponent();
-        String constraint = split == grandLeft ? JSplitPane.LEFT : JSplitPane.RIGHT;
-        // Remove the split pane.
-        grandSplit.remove(split);
-        grandSplit.add(remainingComponent, constraint);
-
+        if (grandParent instanceof PaneSplitter) {
+            PaneSplitter grandSplit = (PaneSplitter) grandParent;
+            // Remove the split pane.
+            if (split == grandSplit.getFirstComponent()) {
+                grandSplit.setFirstComponent(remainingComponent);
+            } else {
+                grandSplit.setSecondComponent(remainingComponent);
+            }
+        } else {
+            grandParent.remove(parent);
+            grandParent.add(remainingComponent);
+        }
+        grandParent.validate();
     }
 
     public void changePaneType(Class paneType) {
@@ -97,11 +116,20 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
         }
         newPane.setDocument(getDocument());
         Container parent = getParent();
-        Dimension d = getSize();
-
-        parent.remove(this);
-        parent.add(newPane);
-        newPane.setSize(d);
+        if (parent instanceof PaneSplitter) {
+            PaneSplitter parentSplit = (PaneSplitter) parent;
+            boolean first = parentSplit.getFirstComponent() == this;
+            if (first) {
+                parentSplit.setFirstComponent(newPane);
+            } else {
+                parentSplit.setSecondComponent(newPane);
+            }
+        } else {
+            Dimension d = getSize();
+            parent.remove(this);
+            parent.add(newPane);
+            newPane.setSize(d);
+        }
         parent.validate();
     }
 

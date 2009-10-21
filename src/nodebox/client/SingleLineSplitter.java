@@ -5,16 +5,13 @@ import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.awt.*;
 
-public class SingleLineSplitter extends JSplitPane {
+public class SingleLineSplitter extends NSplitter {
 
     private Color lineColor;
 
-    public SingleLineSplitter(int orientation, Component newLeftComponent, Component newRightComponent) {
+    public SingleLineSplitter(Orientation orientation, JComponent newLeftComponent, JComponent newRightComponent) {
         super(orientation, newLeftComponent, newRightComponent);
-        setContinuousLayout(true);
         setDividerSize(1);
-        setUI(new PaneSplitterUI());
-        setBorder(BorderFactory.createEmptyBorder());
         lineColor = Theme.DEFAULT_SPLIT_COLOR;
     }
 
@@ -27,16 +24,18 @@ public class SingleLineSplitter extends JSplitPane {
         repaint();
     }
 
-    private class PaneSpliterDivider extends BasicSplitPaneDivider {
-        private PaneSpliterDivider(BasicSplitPaneUI ui) {
-            super(ui);
-        }
+    @Override
+    protected Divider createDivider() {
+        return new PaneSpliterDivider();
+    }
+
+    private class PaneSpliterDivider extends Divider {
 
         @Override
-        public void paint(Graphics g) {
+        public void paintComponent(Graphics g) {
             g.setColor(lineColor);
             Rectangle r = g.getClipBounds();
-            if (getOrientation() == JSplitPane.HORIZONTAL_SPLIT) {
+            if (getOrientation() == Orientation.HORIZONTAL) {
                 g.drawLine(r.x, r.y, r.x, r.height);
 
             } else {
@@ -44,13 +43,5 @@ public class SingleLineSplitter extends JSplitPane {
             }
         }
     }
-
-    private class PaneSplitterUI extends BasicSplitPaneUI {
-        @Override
-        public BasicSplitPaneDivider createDefaultDivider() {
-            return new PaneSpliterDivider(this);
-        }
-    }
-
 
 }

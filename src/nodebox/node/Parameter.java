@@ -68,7 +68,7 @@ public class Parameter {
      * The UI control for this parameter. This defines how the parameter is represented in the user interface.
      */
     public enum Widget {
-        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF, CODE
+        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF, STAMP_EXPRESSION, CODE
     }
 
     /**
@@ -159,6 +159,7 @@ public class Parameter {
         REVERSE_WIDGET_MAPPING.put(Widget.TEXT, Type.STRING);
         REVERSE_WIDGET_MAPPING.put(Widget.TOGGLE, Type.INT);
         REVERSE_WIDGET_MAPPING.put(Widget.NODEREF, Type.STRING);
+        REVERSE_WIDGET_MAPPING.put(Widget.STAMP_EXPRESSION, Type.STRING);
         REVERSE_WIDGET_MAPPING.put(Widget.CODE, Type.CODE);
     }
 

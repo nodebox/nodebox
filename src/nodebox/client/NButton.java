@@ -40,6 +40,7 @@ public class NButton extends JComponent implements MouseListener {
     private Method actionMethod;
     private Mode mode;
     private boolean armed = false;
+    private boolean pressed = false;
     private boolean checked = false;
 
     /**
@@ -103,6 +104,7 @@ public class NButton extends JComponent implements MouseListener {
         // To measure text we need a graphics context. Create an image and use its' graphics context.
         BufferedImage tmp = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = tmp.createGraphics();
+        g2.setFont(Theme.SMALL_BOLD_FONT);
         int width = normalImage.getWidth(null);
         width += IMAGE_TEXT_MARGIN;
         width += (int) g2.getFontMetrics().stringWidth(text);
@@ -160,26 +162,34 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mouseClicked(MouseEvent e) {
-        try {
-            actionMethod.invoke(actionObject);
-        } catch (Exception e1) {
-            throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject);
-        }
     }
 
     public void mousePressed(MouseEvent e) {
+        pressed = true;
         armed = true;
         repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
-        armed = false;
-        if (mode == Mode.CHECK)
-            checked = !checked;
-        repaint();
+        pressed = false;
+        if (armed) {
+            armed = false;
+            if (mode == Mode.CHECK)
+                checked = !checked;
+            try {
+                actionMethod.invoke(actionObject);
+            } catch (Exception e1) {
+                throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject);
+            }
+            repaint();
+        }
     }
 
     public void mouseEntered(MouseEvent e) {
+        if (pressed) {
+            armed = true;
+            repaint();
+        }
     }
 
     public void mouseExited(MouseEvent e) {

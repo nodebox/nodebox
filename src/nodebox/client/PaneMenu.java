@@ -26,7 +26,7 @@ public class PaneMenu extends JComponent implements MouseListener {
 
     public PaneMenu(Pane pane) {
         this.pane = pane;
-        Dimension d = new Dimension(95, 21);
+        Dimension d = new Dimension(103, 21);
         setMinimumSize(d);
         setMaximumSize(d);
         setPreferredSize(d);
@@ -51,7 +51,9 @@ public class PaneMenu extends JComponent implements MouseListener {
         SwingUtils.drawShadowText(g2, getMenuName(), 9, 14);
     }
 
-    public String getMenuName() { return ""; }
+    public String getMenuName() {
+        return "";
+    }
 
     public void mouseClicked(MouseEvent e) {
     }

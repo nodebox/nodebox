@@ -145,7 +145,8 @@ def cook(self):
   <node name="copy" prototype="filter" x="170" y="250">
     <description>Create multiple copies of a shape.</description>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
+      <value type="python"><![CDATA[from nodebox.node import StampExpression
+from nodebox.graphics import Geometry, Transform
 
 def cook(self):
     if self.shape is None:
@@ -153,7 +154,13 @@ def cook(self):
     g = Geometry()
     tx = ty = r = 0.0
     sx = sy = 1.0
-    for i in range(self.copies):
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+    for i in xrange(self.copies):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            self.node.stampExpressions(context)
         t = Transform()
         # Each letter of the order describes an operation.
         for op in self.order:
@@ -207,6 +214,12 @@ def cook(self):
     </param>
     <param label="Scale Y" name="sy" type="float">
       <value>0.0</value>
+    </param>
+    <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
+      <value>0</value>
+    </param>
+    <param help="" label="Expression" name="expr" type="string" widget="stamp_expression">
+      <value/>
     </param>
   </node>
   <node name="curve" prototype="generator" x="330" y="170">
@@ -1289,7 +1302,7 @@ def cook(self):
       <value>300.0</value>
     </param>
   </node>
-  <node name="geonet" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="10">
+  <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
     <description>A network of geometry nodes.</description>
     <param name="_image">
       <value>geonet.png</value>
@@ -1522,19 +1535,32 @@ def cook(self):
   <node name="place" prototype="filter" x="250" y="330">
     <port name="template"/>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry, Transform
+      <value type="python"><![CDATA[from nodebox.node import StampExpression
+from nodebox.graphics import Path, Geometry, Transform
 
 def cook(self):
   if self.shape is None: return None
   if self.template is None: return self.shape.clone()
 
+  if self.stamp:
+      stamp = StampExpression(self.node, "expr")
   g = Geometry()
-  for point in self.template.points:
+  for i, point in enumerate(self.template.points):
+      if self.stamp:
+          context.put('CNUM', i)
+          stamp.evaluate(context)
+          self.node.stampExpressions(context)
       t = Transform()
       t.translate(point.x, point.y)
       newShape = t.map(self.shape)
       g.extend(newShape)
   return g]]></value>
+    </param>
+    <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
+      <value>0</value>
+    </param>
+    <param label="Expression" name="expr" type="string" widget="stamp_expression">
+      <value/>
     </param>
   </node>
   <node name="polygon" prototype="generator" x="250" y="170">

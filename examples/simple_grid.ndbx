@@ -1,67 +1,51 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ndbx type="file" formatVersion="0.8">
-    <network name="canvasnet" type="corecanvas.canvasnet" version="1.0.0" x="0.0" y="0.0">
-        <key>width</key>
-        <float>1000.0</float>
-        <key>height</key>
-        <float>1000.0</float>
-        <node name="copy1" type="corevector.copy" version="1.0.0" x="99.0" y="125.0" rendered="true">
-            <data>
-                <key>copies</key>
-                <int>5</int>
-                <key>tx</key>
-                <float>5.0</float>
-                <key>ty</key>
-                <float>1.0</float>
-                <key>r</key>
-                <float>25.42999999038875</float>
-                <key>sx</key>
-                <float>81.0</float>
-                <key>sy</key>
-                <float>89.0</float>
-                <key>expression</key>
-                <string></string>
-            </data>
-        </node>
-        <node name="grid1" type="corevector.grid" version="1.0.0" x="173.0" y="48.0">
-            <data>
-                <key>width</key>
-                <float>455.0</float>
-                <key>height</key>
-                <float>300.0</float>
-                <key>rows</key>
-                <int>10</int>
-                <key>columns</key>
-                <int>10</int>
-                <key>x</key>
-                <float>0.0</float>
-                <key>y</key>
-                <float>0.0</float>
-            </data>
-        </node>
-        <node name="rect1" type="corevector.rect" version="1.0.0" x="40.0" y="51.0">
-            <data>
-                <key>x</key>
-                <float>0.0</float>
-                <key>y</key>
-                <float>0.0</float>
-                <key>width</key>
-                <float>66.37999999895692</float>
-                <key>height</key>
-                <float>22.0</float>
-                <key>rx</key>
-                <float>2.0</float>
-                <key>ry</key>
-                <float>2.0</float>
-                <key>fill</key>
-                <color>#00000005</color>
-                <key>stroke</key>
-                <color>#000000ff</color>
-                <key>strokewidth</key>
-                <float>0.04999999888241291</float>
-            </data>
-        </node>
-        <connection outputNode="grid1" inputNode="copy1" inputParameter="template"/>
-        <connection outputNode="rect1" inputNode="copy1" inputParameter="shape"/>
-    </network>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="0.9" type="file">
+  <node name="copy1" prototype="corevector.copy" x="180" y="50">
+    <param name="copies">
+      <value>5</value>
+    </param>
+    <param name="order">
+      <value>rst</value>
+    </param>
+    <param name="tx">
+      <value>5.0</value>
+    </param>
+    <param name="r">
+      <value>21.0</value>
+    </param>
+    <param name="sx">
+      <value>-9.0</value>
+    </param>
+    <param name="sy">
+      <expression>sx</expression>
+    </param>
+  </node>
+  <node name="grid1" prototype="corevector.grid" x="180" y="140"/>
+  <node name="place1" prototype="corevector.place" rendered="true" x="260" y="50"/>
+  <node name="rect1" prototype="corevector.rect" x="100" y="50">
+    <param name="width">
+      <value>21.0</value>
+    </param>
+    <param name="height">
+      <expression>width</expression>
+    </param>
+    <param name="rx">
+      <value>-2.0</value>
+    </param>
+    <param name="ry">
+      <value>-3.0</value>
+    </param>
+    <param name="fill">
+      <value>#00000000</value>
+    </param>
+    <param name="stroke">
+      <value>#00002fff</value>
+    </param>
+    <param name="strokeWidth">
+      <value>0.44000012</value>
+    </param>
+  </node>
+  <conn input="copy1" output="rect1" port="shape"/>
+  <conn input="place1" output="grid1" port="template"/>
+  <conn input="place1" output="copy1" port="shape"/>
 </ndbx>

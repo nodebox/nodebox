@@ -1466,6 +1466,15 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
+     * Update all upstream nodes with stamp expressions.
+     * @param ctx the processing context
+     */
+    public void stampExpressions(ProcessingContext ctx) {
+        stampDirty();
+        updateDependencies(ctx);
+    }
+
+    /**
      * Mark all upstream nodes that have stamp expressions dirty.
      * <p/>
      * This method is used for the copy node, where nodes that have parameters with stamp expressions should
