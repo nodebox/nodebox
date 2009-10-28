@@ -1362,7 +1362,7 @@ def cook(self):
   <node name="import" prototype="generator" x="250" y="90">
     <description>Import geometry from a SVG file.</description>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Geometry
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
 
 def cook(self):
     if not self.file: return None
@@ -1376,6 +1376,12 @@ def cook(self):
     paths = svg.parse(s)
     for path in paths:
         g.add(path)
+    t = Transform()
+    if self.centered:
+        x, y, w, h = list(g.bounds)
+        t.translate(-x-w/2, -y-h/2)
+    t.translate(self.x, self.y)
+    g = t.map(g)
     return g
 ]]></value>
     </param>
@@ -1384,6 +1390,15 @@ def cook(self):
     </param>
     <param name="file" type="string" widget="file">
       <value/>
+    </param>
+    <param label="Center on canvas" name="centered" type="int" widget="toggle">
+      <value>1</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
     </param>
   </node>
   <node name="line" prototype="generator" x="170" y="170">
