@@ -971,6 +971,9 @@ class BezierPathEditor(AbstractHandle):
 def cook(self):
     return BezierPathEditor(self.node)]]></value>
     </param>
+    <param name="_image">
+      <value>curve.png</value>
+    </param>
     <param name="path" type="string">
       <value/>
     </param>
@@ -980,7 +983,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>1.0</value>
     </param>
   </node>
@@ -1238,7 +1241,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>0.0</value>
     </param>
   </node>
@@ -1500,7 +1503,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param min="0.0" name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>1.0</value>
     </param>
     <param bounding="hard" min="2.0" name="points" type="int">
@@ -1558,6 +1561,9 @@ def cook(self):
       g.extend(newShape)
   return g]]></value>
     </param>
+    <param name="_image">
+      <value>place.png</value>
+    </param>
     <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
       <value>0</value>
     </param>
@@ -1587,6 +1593,9 @@ def cook(self):
     p.strokeWidth = self.strokeWidth
     return p.asGeometry()]]></value>
     </param>
+    <param name="_image">
+      <value>polygon.png</value>
+    </param>
     <param name="x" type="float">
       <value>0.0</value>
     </param>
@@ -1605,7 +1614,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param name="strokeWidth" type="float">
+    <param bounding="hard" min="0.0" name="strokeWidth" type="float">
       <value>0.0</value>
     </param>
   </node>
@@ -1661,7 +1670,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>0.0</value>
     </param>
   </node>
@@ -1822,7 +1831,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>0.0</value>
     </param>
   </node>
@@ -1888,7 +1897,7 @@ def cook(self):
     <param name="stroke" type="color">
       <value>#000000ff</value>
     </param>
-    <param name="strokeWidth" type="float">
+    <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
       <value>0.0</value>
     </param>
   </node>
