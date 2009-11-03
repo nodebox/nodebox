@@ -1,8 +1,6 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
-import nodebox.node.ProcessingContext;
-import nodebox.node.Parameter;
 
 import java.util.Random;
 
@@ -41,6 +39,20 @@ public class ExpressionHelper {
 
     public static double random(long seed, double min, double max) {
         return min + random(seed) * (max - min);
+    }
+
+    public static int randint(long seed, int min, int max) {
+        randomGenerator.setSeed(seed * 100000000);
+        // nextInt's specified value is exclusive, whereas we want to include it, so add 1.
+        return min + randomGenerator.nextInt(max - min + 1);
+    }
+
+    public static int toInt(double v) {
+        return (int) v;
+    }
+
+    public static double toFloat(int v) {
+        return (double) v;
     }
 
     public static Color color(double... values) {

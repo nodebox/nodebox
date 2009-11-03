@@ -389,7 +389,46 @@ public class ExpressionTest extends NodeTestCase {
     public void testGeometry() {
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         Parameter pAlpha = alpha.addParameter("v", Parameter.Type.FLOAT);
+    }
 
+    /**
+     * Test extended mathematical methods.
+     *
+     * @throws ExpressionError
+     */
+    public void testMath() throws ExpressionError {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
+        assertExpressionEquals((float) Math.PI, pFloat, "math.PI");
+        assertExpressionEquals((float) Math.sin(12), pFloat, "math.sin(12)");
+    }
+
+    /**
+     * Test to see if the current frame is accessible from the expression.
+     *
+     * @throws ExpressionError
+     */
+    public void testFrame() throws ExpressionError {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pInt = alpha.addParameter("int", Parameter.Type.INT);
+        assertExpressionEquals(1, pInt, "FRAME");
+    }
+
+    /**
+     * A bit silly test to see if the random range is correct.
+     */
+    public void testRandint() {
+        int min = Integer.MAX_VALUE;
+        int max = Integer.MIN_VALUE;
+        // Since these values are essentially random, we just have to generate enough
+        // to get a good distribution that reaches the edges.
+        for (int i = 0; i < 50; i++) {
+            int v = ExpressionHelper.randint(i, 20, 30);
+            min = v < min ? v : min;
+            max = v > max ? v : max;
+        }
+        assertEquals(20, min);
+        assertEquals(30, max);
     }
 
     public void assertExpressionEquals(Object expected, Parameter p, String expression) throws ExpressionError {

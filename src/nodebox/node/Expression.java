@@ -54,8 +54,12 @@ public class Expression {
             // non-varargs. So in our ExpressionHelper we have both the varargs and non-varargs methods.
             // We lookup the varargs version here, but only the non-varargs will get called.
             parserContext.addImport("random", ExpressionHelper.class.getMethod("random", long.class, double[].class));
+            parserContext.addImport("randint", ExpressionHelper.class.getMethod("randint", long.class, int.class, int.class));
             parserContext.addImport("color", ExpressionHelper.class.getMethod("color", double[].class));
             parserContext.addImport("stamp", ExpressionHelper.class.getMethod("stamp", String.class, Object.class));
+            parserContext.addImport("int", ExpressionHelper.class.getMethod("toInt", double.class));
+            parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));
+            parserContext.addImport("math", Math.class);
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Unknown static method for expression." + e);
         }
@@ -81,9 +85,8 @@ public class Expression {
 
     /**
      * Set the expression.
-     *
+     * <p/>
      * The expression is accepted as is, and no errors will be thrown even if the expression is invalid.
-
      * Only during compilation or evaluation will this result in an error.
      *
      * @param expression the new expression.
@@ -158,8 +161,8 @@ public class Expression {
     /**
      * Compile the expression.
      *
-     * @see #getError()
      * @throws ExpressionError if the compilation fails.
+     * @see #getError()
      */
     public void compile() throws ExpressionError {
         ExpressionCompiler compiler = new ExpressionCompiler(expression);
