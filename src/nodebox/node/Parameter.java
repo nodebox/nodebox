@@ -903,8 +903,9 @@ public class Parameter {
             }
 
             Object expressionValue = expression.evaluate(context);
+            expressionValue = convertToType(expressionValue);
             validate(expressionValue);
-            value = convertToType(expressionValue);
+            value = expressionValue;
             fireValueChanged();
         }
     }
@@ -919,11 +920,47 @@ public class Parameter {
      * @return the unchanged object, or the value converted to float for parameters with FLOAT type.
      */
     private Object convertToType(Object value) {
-        if (type != Type.FLOAT) return value;
-        if (value instanceof Float) return value;
-        if (value instanceof Integer) return ((Integer) value).floatValue();
-        if (value instanceof Double) return ((Double) value).floatValue();
-        throw new IllegalArgumentException("Value " + value + " cannot be converted to float.");
+
+        if (type == Type.INT) {
+            if (value instanceof Integer) {
+                return value;
+            } else if (value instanceof Float) {
+                return ((Float) value).intValue();
+            } else if (value instanceof Double) {
+                return ((Double) value).intValue();
+            } else {
+                throw new IllegalArgumentException("Value " + value + " cannot be converted to int.");
+            }
+        } else if (type == Type.FLOAT) {
+            if (value instanceof Integer) {
+                return ((Integer) value).floatValue();
+            } else if (value instanceof Float) {
+                return value;
+            } else if (value instanceof Double) {
+                return ((Double) value).floatValue();
+            } else {
+                throw new IllegalArgumentException("Value " + value + " cannot be converted to float.");
+            }
+        } else if (type == Type.STRING) {
+            return value.toString();
+        } else if (type == Type.COLOR) {
+            if (value instanceof Integer) {
+                float v = ((Integer) value) / 255f;
+                return new Color(v, v, v);
+            } else if (value instanceof Float) {
+                float v = ((Float) value);
+                return new Color(v, v, v);
+            } else if (value instanceof Double) {
+                double v = ((Double) value);
+                return new Color(v, v, v);
+            } else if (value instanceof String) {
+                return new Color((String) value);
+            } else {
+                throw new IllegalArgumentException("Value " + value + " cannot be converted to color.");
+            }
+        } else {
+            return value;
+        }
     }
 
     //// Values ////

@@ -18,6 +18,7 @@
  */
 package nodebox.node;
 
+import nodebox.graphics.Color;
 import nodebox.node.polygraph.Polygon;
 import nodebox.node.polygraph.Rectangle;
 
@@ -34,6 +35,7 @@ public class ExpressionTest extends NodeTestCase {
 
     /**
      * Test parameter interaction between nodes.
+     *
      * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
     public void testNodeLocal() throws ExpressionError {
@@ -59,6 +61,7 @@ public class ExpressionTest extends NodeTestCase {
 
     /**
      * Test if changing the expression removes the previous dependencies.
+     *
      * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
     public void testDependencyRemoval() throws ExpressionError {
@@ -90,6 +93,7 @@ public class ExpressionTest extends NodeTestCase {
     /**
      * When an error is triggered while setting the expression, make sure that all dependencies already created
      * are removed.
+     *
      * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
     public void testDependencyRemovalOnError() throws ExpressionError {
@@ -133,6 +137,7 @@ public class ExpressionTest extends NodeTestCase {
 
     /**
      * Test what happens if your expression depends on a parameter that gets removed.
+     *
      * @throws ExpressionError if the expression causes an error. This indicates a regression.
      */
     public void testDeadDependencies() throws ExpressionError {
@@ -199,7 +204,7 @@ public class ExpressionTest extends NodeTestCase {
         // Setting the expression does not throw an error.
         pValue2.setExpression("number1");
         // Evaluating the node does.
-        assertProcessingError(number2, "value is not an int");
+        assertProcessingError(number2, "cannot be converted to int");
     }
 
     public void testCycles() throws ExpressionError {
@@ -347,6 +352,46 @@ public class ExpressionTest extends NodeTestCase {
         assertEquals(eA, eB);
     }
 
+    /**
+     * The return value of expressions is accepted with a great margin.
+     * If values can be converted in one form or another, they will.
+     */
+    public void testLenientTypes() {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        // Integer
+        Parameter pInt = alpha.addParameter("int", Parameter.Type.INT);
+        pInt.setExpression("12.9"); // Note that values are not rounded. The floating-point part is just cut off.
+        alpha.update();
+        assertEquals(12, pInt.getValue());
+        // Float
+        Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
+        pFloat.setExpression("100");
+        alpha.update();
+        assertEquals(100f, pFloat.getValue());
+        // String
+        Parameter pString = alpha.addParameter("string", Parameter.Type.STRING);
+        pString.setExpression("10 + 5"); // Any value is converted to a string.
+        alpha.update();
+        assertEquals("15", pString.getValue());
+        // Color
+        Parameter pColor = alpha.addParameter("color", Parameter.Type.COLOR);
+        pColor.setExpression("128"); // Integers are converted to the 0-255 range
+        alpha.update();
+        assertEquals(new Color(0.5, 0.5, 0.5), pColor.getValue());
+        pColor.setExpression("0.7"); // Floats are converted to the 0-1 range
+        alpha.update();
+        assertEquals(new Color(0.7, 0.7, 0.7), pColor.getValue());
+    }
+
+    /**
+     * Test geometric methods on expression.
+     */
+    public void testGeometry() {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pAlpha = alpha.addParameter("v", Parameter.Type.FLOAT);
+
+    }
+
     public void assertExpressionEquals(Object expected, Parameter p, String expression) throws ExpressionError {
         // We don't catch the ExpressionError but let it bubble up.
         p.setExpression(expression);
@@ -359,9 +404,9 @@ public class ExpressionTest extends NodeTestCase {
         if (!p.hasExpressionError()) {
             fail("Expression should have failed with \"" + expectedMessage + "\"");
         } else {
-        Exception e = p.getExpressionError();
-        assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
-                e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
+            Exception e = p.getExpressionError();
+            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
+                    e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
         }
     }
 

@@ -172,4 +172,13 @@ public class NodeAccessProxy implements Map {
     public Set entrySet() {
         throw new RuntimeException("Not implemented");
     }
+
+    @Override
+    public String toString() {
+        if (node == null) {
+            return "<Empty proxy>";
+        } else {
+            return "<Node " + node.getName() + ">";
+        }
+    }
 }
