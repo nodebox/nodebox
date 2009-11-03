@@ -3,7 +3,7 @@
 Name "NodeBox"
 Caption "NodeBox"
 Icon "platform\windows\res\nodebox.ico"
-OutFile "dist\windows\nodebox\nodebox.exe"
+OutFile "dist\windows\nodebox\NodeBox.exe"
 
 SilentInstall silent
 AutoCloseWindow true
