@@ -21,9 +21,9 @@ package nodebox.node;
 import nodebox.graphics.Color;
 import nodebox.node.polygraph.Polygon;
 
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class ParameterTest extends NodeTestCase {
 
@@ -193,7 +193,7 @@ public class ParameterTest extends NodeTestCase {
 
     /**
      * Test if the expression is independent from the locale.
-     *
+     * <p/>
      * We use String.format in asExpression, which is locale-dependent.
      * Having the "wrong" locale would mean that the returned expression was invalid.
      */
@@ -250,6 +250,20 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(12, n.asInt("int"));
         assertEquals(0.5F, n.asFloat("float"));
         assertEquals("hello", n.asString("string"));
+    }
+
+    public void testImmutableValues() {
+        Node color1 = Node.ROOT_NODE.newInstance(testLibrary, "color1", Color.class);
+        color1.addParameter("color", Parameter.Type.COLOR);
+        color1.setValue("_code", new PythonCode("def cook(self): return self.color"));
+        Color original = new Color(0.1, 0.2, 0.3, 0.4);
+        color1.setValue("color", original);
+        // Retrieving the value should make a copy.
+        assertNotSame(original, color1.asColor("color"));
+        assertNotSame(original, color1.getValue("color"));
+        // Returning the cooked color should create a copy.
+        color1.update();
+        assertNotSame(original, color1.getOutputValue());
     }
 
     /**
@@ -353,7 +367,7 @@ public class ParameterTest extends NodeTestCase {
      * Test if changes to the parameter value fire the correct event.
      */
     public void testParameterValueEvents() {
-    TestParameterValueListener l;
+        TestParameterValueListener l;
         Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
         l = new TestParameterValueListener();
         n.addParameterValueListener(l);
@@ -435,7 +449,7 @@ public class ParameterTest extends NodeTestCase {
 
     /**
      * Test if types are migrated correctly.
-     *
+     * <p/>
      * Also checks if widgets set to this type follow along. Some
      * widgets don't make sense for a certain type.
      */
@@ -540,7 +554,7 @@ public class ParameterTest extends NodeTestCase {
         // Revert to default. The beta parameter should have a regular value instead of an expression.
         tBeta.revertToDefault();
         assertFalse(tBeta.hasExpression());
-        assertEquals(88, tBeta.getValue());        
+        assertEquals(88, tBeta.getValue());
     }
 
     /**
