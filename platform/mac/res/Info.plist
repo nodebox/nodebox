@@ -32,9 +32,9 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleGetInfoString</key>
-    <string>2.0a1 (955), Copyright NodeBox, (c) 2004-2009</string>
+    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2009</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0a1 (955)</string>
+    <string>@@VERSION@@</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>Java</key>

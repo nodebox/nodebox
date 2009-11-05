@@ -209,6 +209,10 @@
         <copy todir="${mac.application.contents}">
             <fileset dir="${platform.res}"/>
         </copy>
+        <!-- Replace version number -->
+        <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
+        <!-- Copy version number -->
+        <copy file="version.properties" todir="${mac.application.resources.java}" />
         <!-- Make directory into a bundle -->
         <exec executable="/Developer/Tools/SetFile">
             <arg line="-a B ${mac.application}"/>
