@@ -4,6 +4,7 @@ Name "NodeBox"
 Caption "NodeBox"
 Icon "platform\windows\installer\nodebox.ico"
 OutFile "dist\windows\nodebox\NodeBox.exe"
+RequestExecutionLevel user
 
 SilentInstall silent
 AutoCloseWindow true

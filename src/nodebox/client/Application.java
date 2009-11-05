@@ -23,8 +23,11 @@ import nodebox.node.NodeLibraryManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +44,7 @@ public class Application {
     private NodeBoxDocument currentDocument;
     private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
+    private String version;
 
     public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
@@ -57,14 +61,38 @@ public class Application {
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
 
         // Create the user's NodeBox library directories. 
+        try {
+            setNodeBoxVersion();
+            createNodeBoxDataDirectories();
+            registerForMacOSXEvents();
+        } catch (RuntimeException e) {
+            ExceptionDialog ed = new ExceptionDialog(null, e);
+            ed.setVisible(true);
+            System.exit(-1);
+        }
+    }
+
+    private void setNodeBoxVersion() {
+        Properties properties = new Properties();
+        try {
+            properties.load(new FileInputStream("version.properties"));
+            version = properties.getProperty("nodebox.version");
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read NodeBox version file. Please re-install NodeBox.", e);
+        }
+    }
+
+    public String getVersion() {
+        return version;
+    }
+
+    private void createNodeBoxDataDirectories() throws RuntimeException {
         PlatformUtils.getUserDataDirectory().mkdir();
         PlatformUtils.getUserScriptsDirectory().mkdir();
         PlatformUtils.getUserPythonDirectory().mkdir();
-
-        registerForMacOSXEvents();
     }
 
-    private void registerForMacOSXEvents() {
+    private void registerForMacOSXEvents() throws RuntimeException {
         if (!PlatformUtils.onMac()) return;
         try {
             // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
@@ -74,8 +102,7 @@ public class Application {
             OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
             OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
         } catch (Exception e) {
-            System.err.println("Error while loading the OSXAdapter:");
-            e.printStackTrace();
+            throw new RuntimeException("Error while loading the OS X Adapter.", e);
         }
         // Create hidden window.
         hiddenFrame = new JFrame();
@@ -99,8 +126,7 @@ public class Application {
     }
 
     public void showAbout() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
+        JOptionPane.showMessageDialog(null, NAME + " version " + getVersion(), NAME, JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void showPreferences() {
@@ -120,7 +146,7 @@ public class Application {
         manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
         manager.lookForLibraries();
         int tasks = manager.getLibraries().size() + 1;
-        startupDialog = new ProgressDialog(null, "Starting NodeBox", tasks);
+        startupDialog = new ProgressDialog(null, "Starting " + NAME, tasks);
         startupDialog.setVisible(true);
 
         // Initialize Jython

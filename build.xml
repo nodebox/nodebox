@@ -4,6 +4,8 @@
 
     <target name="properties">
         <property file="build.properties"/>
+        <property file="version.properties"/>
+        <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
         <property name="src" value="src"/>
         <property name="res" value="res"/>
         <property name="test" value="test"/>
@@ -130,6 +132,7 @@
         <mkdir dir="${dist.windows.nodebox.libraries}"/>
         <copy file="${dist}/lib/nodebox.jar"
               todir="${dist.windows.nodebox.lib}"/>
+        <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <copy todir="${dist.windows.nodebox.lib}">
             <fileset dir="${lib}">
                 <include name="*.jar"/>
@@ -154,7 +157,9 @@
             <classpath location="${lib}/nsisant-1.2.jar"/>
         </taskdef>
         <nsis script="makelauncher.nsi" path="${windows.nsis}"/>
-        <nsis script="makeinstaller.nsi" path="${windows.nsis}"/>
+        <nsis script="makeinstaller.nsi" path="${windows.nsis}">
+            <define name="APPVERSION" value="${nodebox.version}"/>
+        </nsis>
     </target>
 
     <target name="dist-mac" depends="jar" description="Make a double-clickable Mac OS X application">

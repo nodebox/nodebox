@@ -45,7 +45,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new ExportAction());
         if (!PlatformUtils.onMac()) {
             fileMenu.addSeparator();
-            fileMenu.add(new QuitAction());
+            fileMenu.add(new ExitAction());
         }
         add(fileMenu);
 
@@ -82,6 +82,9 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         // Help menu
         JMenu helpMenu = new JMenu("Help");
+        if (!PlatformUtils.onMac()) {
+            helpMenu.add(new AboutAction());
+        }
         helpMenu.add(new NodeboxSiteAction());
         add(helpMenu);
     }
@@ -254,10 +257,9 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-    public static class QuitAction extends AbstractAction {
-        public QuitAction() {
-            putValue(NAME, "Quit");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Q));
+    public static class ExitAction extends AbstractAction {
+        public ExitAction() {
+            putValue(NAME, "Exit");
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -394,6 +396,16 @@ public class NodeBoxMenuBar extends JMenuBar {
         public void actionPerformed(ActionEvent e) {
             // TODO: Implement
             Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    public static class AboutAction extends AbstractAction {
+        public AboutAction() {
+            super("About");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Application.getInstance().showAbout();
         }
     }
 

@@ -1,9 +1,11 @@
 package nodebox.client;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 
 public class PlatformUtils {
     public static int WIN = 1;
@@ -14,6 +16,13 @@ public class PlatformUtils {
     public static int platformSpecificModifier;
 
     public static final String SEP = System.getProperty("file.separator");
+
+    private static final String REG_QUERY_COMMAND = "reg query ";
+    private static final String REG_STRING_TOKEN = "REG_SZ";
+    private static final String REG_SHELL_FOLDERS = "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
+    private static final String REG_LOCAL_APPDATA = "Local AppData";
+
+    private static File userDataDirectory = null;
 
     static {
         String osName = System.getProperty("os.name").toLowerCase();
@@ -43,7 +52,6 @@ public class PlatformUtils {
 
     public static File getHomeDirectory() {
         return new File(System.getProperty("user.home"));
-
     }
 
     /**
@@ -52,20 +60,23 @@ public class PlatformUtils {
      * <p/>
      * <ul>
      * <li>Mac: <code>/Users/username/Library/NodeBox</code></li>
-     * <li>Windows: <code>/Users/username/Application Data/NodeBox</code></li>
+     * <li>Windows: <code>/Documents And Settings/username/Local Settings/Application Data/NodeBox</code></li>
      * <li>Other: <code>~/nodebox</code></li>
      * </ul>
      *
      * @return the user's library directory.
      */
-    public static File getUserDataDirectory() {
+    public static File getUserDataDirectory() throws RuntimeException {
+        if (userDataDirectory != null)
+            return userDataDirectory;
         if (onMac()) {
-            return new File(getHomeDirectory(), "Library/" + Application.NAME);
+            userDataDirectory = new File(getHomeDirectory(), "Library/" + Application.NAME);
         } else if (onWindows()) {
-            return new File(getHomeDirectory(), "Application Data/" + Application.NAME);
+            userDataDirectory = new File(readWindowsRegistryValue(REG_SHELL_FOLDERS, REG_LOCAL_APPDATA) + "\\" + Application.NAME);
         } else {
-            return new File(getHomeDirectory(), Application.NAME.toLowerCase());
+            userDataDirectory = new File(getHomeDirectory(), Application.NAME.toLowerCase());
         }
+        return userDataDirectory;
     }
 
     /**
@@ -123,6 +134,52 @@ public class PlatformUtils {
 
     public static KeyStroke getKeyStroke(int key, int modifier) {
         return KeyStroke.getKeyStroke(key, platformSpecificModifier | modifier);
+    }
+
+    //// Registry ////
+
+    public static String readWindowsRegistryValue(String key, String valueKey) {
+        String command = REG_QUERY_COMMAND + " \"" + key + "\" /v \"" + valueKey + "\"";
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            StreamReader reader = new StreamReader(process.getInputStream());
+            reader.start();
+            process.waitFor();
+            reader.join();
+            String result = reader.getResult();
+            int p = result.indexOf(REG_STRING_TOKEN);
+            if (p == -1)
+                throw new RuntimeException("Cannot read Windows registry. Exiting...");
+            return result.substring(p + REG_STRING_TOKEN.length()).trim();
+        }
+        catch (Exception e) {
+            throw new RuntimeException("Cannot read Windows registry. Exiting...", e);
+        }
+    }
+
+    static private class StreamReader extends Thread {
+        private InputStream is;
+        private StringWriter sw;
+
+        StreamReader(InputStream is) {
+            this.is = is;
+            sw = new StringWriter();
+        }
+
+        public void run() {
+            try {
+                int c;
+                while ((c = is.read()) != -1)
+                    sw.write(c);
+            }
+            catch (IOException e) {
+                throw new RuntimeException("Cannot read Windows registry. Exiting...", e);
+            }
+        }
+
+        String getResult() {
+            return sw.toString();
+        }
     }
 
 }

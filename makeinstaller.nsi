@@ -1,40 +1,53 @@
 ; NodeBox installer script for use with NSIS (Nullsoft Scriptable Install System).
 
-; Modern installer
+;--------------------------------
+; Includes
 !include "MUI2.nsh"
 
 ;--------------------------------
-
 ; Application metadata
 !define APPNAME "NodeBox"
-!define APPVERSION "958"
-!define APPNAMEANDVERSION "NodeBox v${APPVERSION}"
+!ifndef APPVERSION
+  !define APPVERSION "snapshot"
+!endif
+!define APPNAMEANDVERSION "${APPNAME} ${APPVERSION}"
 !define APPWEBSITE "http://beta.nodebox.net/"
 
+;--------------------------------
 ; General
 Name "${APPNAMEANDVERSION}"
-OutFile "dist\nodebox-${APPVERSION}.exe"
-InstallDir "$LOCALAPPDATA\${APPNAME}\Application"
+OutFile "dist\nodebox-${APPVERSION}-setup.exe"
+InstallDir "$PROGRAMFILES\${APPNAME}"
 InstallDirRegKey HKCU "Software\${APPNAME}" ""
-RequestExecutionLevel user
+RequestExecutionLevel admin
+
+;--------------------------------
+; Compression
+SetCompress Auto
+SetCompressor /SOLID lzma
+SetCompressorDictSize 32
+SetDatablockOptimize On
 
 ;--------------------------------
 ; Interface settings
-!define MUI_ICON "platform\windows\installer\nodebox.ico"
+!define MUI_ICON "platform\windows\installer\installer.ico"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "platform\windows\installer\wizard.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP "platform\windows\installer\header.bmp" ; optional
+!define MUI_HEADERIMAGE_BITMAP "platform\windows\installer\header.bmp"
 !define MUI_ABORTWARNING
 
 ;--------------------------------
-
 ; Pages
 !insertmacro MUI_PAGE_LICENSE "LICENSE.txt"
+!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
+!define MUI_FINISHPAGE_LINK "Visit the NodeBox site for documentation and support"
+!define MUI_FINISHPAGE_LINK_LOCATION "http://beta.nodebox.net/"
+
 !define MUI_FINISHPAGE_RUN
-!define MUI_FINISHPAGE_RUN_TEXT "Run NodeBox"
+!define MUI_FINISHPAGE_RUN_TEXT "Run ${APPNAME}"
 !define MUI_FINISHPAGE_RUN_FUNCTION "LaunchNodeBox"
 !insertmacro MUI_PAGE_FINISH
 
@@ -42,44 +55,47 @@ RequestExecutionLevel user
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ;--------------------------------
-
+; Language and Branding
 !insertmacro MUI_LANGUAGE "English"
-BrandingText "NodeBox"
+BrandingText "http://beta.nodebox.net/"
 
 ;--------------------------------
-
-; The stuff to install
+; Sections
 Section ""
   SetOutPath $INSTDIR
   ; Copy all application resources.
   File /r dist\windows\NodeBox\*.*
   ; Store installation folder.
-  WriteRegStr HKCU "Software\NodeBox" "" $INSTDIR
+  WriteRegStr HKCU "Software\$APPNAME" "" $INSTDIR
   ; Create shortcuts in start menu and desktop.
-  CreateShortCut $SMPROGRAMS\NodeBox.lnk $INSTDIR\NodeBox.exe
-  CreateShortCut $DESKTOP\NodeBox.lnk "$INSTDIR\NodeBox.exe"
+  CreateShortCut $SMPROGRAMS\${APPNAME}.lnk $INSTDIR\NodeBox.exe
+  CreateShortCut $DESKTOP\${APPNAME}.lnk "$INSTDIR\NodeBox.exe"
   ; Create uninstaller
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   ; Write uninstaller to add/remove programs.
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox" "DisplayName" "NodeBox"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox" "DisplayIcon" "$INSTDIR\NodeBox.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox" "Publisher" "Experimental Media Group"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox" "UninstallString" "$INSTDIR\Uninstall.exe"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox" "InstallLocation" "$INSTDIR"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME}"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayIcon" "$INSTDIR\NodeBox.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "Experimental Media Group"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\Uninstall.exe"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$INSTDIR"
 SectionEnd
 
 Section "Uninstall"
   ; Remove installation directory.
   RMDir /r "$INSTDIR"
+  ; Remove application data.
+  RMDir /r "$LOCALAPPDATA\NodeBox"
   ; Remove NodeBox registry key.
-  DeleteRegKey /ifempty HKCU "Software\NodeBox"
+  DeleteRegKey /ifempty HKCU "Software\${APPNAME}"
   ; Remove from installed programs.
-  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\NodeBox"
+  DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
   ; Remove shortcuts from start menu and desktop.
-  Delete $SMPROGRAMS\NodeBox.lnk
-  Delete $DESKTOP\NodeBox.lnk
+  Delete $SMPROGRAMS\${APPNAME}.lnk
+  Delete $DESKTOP\${APPNAME}.lnk
 SectionEnd
 
+;--------------------------------
+; Functions
 Function LaunchNodeBox
   Exec '"$INSTDIR\NodeBox.exe"'
 FunctionEnd
