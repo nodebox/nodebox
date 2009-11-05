@@ -2,7 +2,7 @@
 
 Name "NodeBox"
 Caption "NodeBox"
-Icon "platform\windows\res\nodebox.ico"
+Icon "platform\windows\installer\nodebox.ico"
 OutFile "dist\windows\nodebox\NodeBox.exe"
 
 SilentInstall silent
@@ -55,6 +55,8 @@ Function GetJRE
   StrCpy $R0 "$R0\bin\${JAVAEXE}"
 
   IfErrors 0 JreFound  ;; 3) found it in the registry
+
+  MessageBox MB_OK|MB_ICONSTOP "No Java found. Please download and install Java at www.java.com."
   StrCpy $R0 "${JAVAEXE}"  ;; 4) wishing you good luck
 
  JreFound:
