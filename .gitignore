@@ -6,8 +6,12 @@ out
 # Mac OS X custom attribute files
 .DS_Store
 
+# Windows thumbnails
+Thumbs.db
+
 # IntelliJ project files
 *.i[mpw][lrs]
+.idea
 
 # Jython package cache
 lib/cachedir
