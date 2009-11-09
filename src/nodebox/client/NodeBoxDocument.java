@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.List;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -403,22 +404,51 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     }
 
     public void cut() {
-        // TODO: Implement cut/copy/paste
-        JOptionPane.showMessageDialog(this, "Cut/copy/paste is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
+        NetworkView networkView = currentNetworkView();
+        if (networkView == null) {
+            beep();
+            return;
+        }
+        networkView.cutSelected();
     }
 
     public void copy() {
-        // Find current network view.
-        JOptionPane.showMessageDialog(this, "Cut/copy/paste is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
+        NetworkView networkView = currentNetworkView();
+        if (networkView == null) {
+            beep();
+            return;
+        }
+        networkView.copySelected();
     }
 
     public void paste() {
-        JOptionPane.showMessageDialog(this, "Cut/copy/paste is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
+        NetworkView networkView = currentNetworkView();
+        if (networkView == null) {
+            beep();
+            return;
+        }
+        networkView.pasteSelected();
     }
 
+    private NetworkView currentNetworkView() {
+        // Find current network view.
+        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (focusOwner == null) return null;
+        Pane pane = (Pane) SwingUtilities.getAncestorOfClass(Pane.class, focusOwner);
+        if (pane == null) return null;
+        PaneView paneView = pane.getPaneView();
+        if (!(paneView instanceof NetworkView)) return null;
+        return (NetworkView) paneView;
+    }
+
+
     public void deleteSelected() {
-        // TODO: Find network view, delete selected.
-        JOptionPane.showMessageDialog(this, "Delete selected.", "NodeBox", JOptionPane.ERROR_MESSAGE);
+        NetworkView networkView = currentNetworkView();
+        if (networkView == null) {
+            beep();
+            return;
+        }
+        networkView.deleteSelected();
     }
 
     private void updateTitle() {
@@ -478,6 +508,10 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
                 System.exit(0);
             }
         }
+    }
+
+    private void beep() {
+        Toolkit.getDefaultToolkit().beep();
     }
 
     //// Window events ////

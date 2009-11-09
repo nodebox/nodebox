@@ -83,4 +83,12 @@ public class ViewerPane extends Pane {
     public String getPaneName() {
         return "Viewer";
     }
+
+    public PaneHeader getPaneHeader() {
+        return paneHeader;
+    }
+
+    public PaneView getPaneView() {
+        return viewer;
+    }
 }

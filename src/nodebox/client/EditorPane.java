@@ -72,6 +72,14 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         return "Source";
     }
 
+    public PaneHeader getPaneHeader() {
+        return paneHeader;
+    }
+
+    public PaneView getPaneView() {
+        return editor;
+    }
+
     public void setCodeType(String name, String codeType) {
         this.codeName = name;
         this.codeType = codeType;

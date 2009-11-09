@@ -126,7 +126,8 @@ public class TestNodes extends NodeLibrary {
             return n;
         }
 
-        public Object cook(Node node, ProcessingContext context) {
+        public Object
+        cook(Node node, ProcessingContext context) {
             List<Object> values = node.getPortValues("values");
             int sum = 0;
             for (Object obj : values) {

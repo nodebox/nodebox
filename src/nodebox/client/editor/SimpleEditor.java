@@ -1,6 +1,7 @@
 package nodebox.client.editor;
 
 import nodebox.client.CodeArea;
+import nodebox.client.PaneView;
 import nodebox.client.Theme;
 
 import javax.swing.*;
@@ -9,7 +10,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 
-public class SimpleEditor extends JPanel implements DocumentListener {
+public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
 
     private CodeArea codeArea;
     private boolean changed = false;

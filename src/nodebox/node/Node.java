@@ -18,6 +18,7 @@
  */
 package nodebox.node;
 
+import nodebox.client.NodeView;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.handle.Handle;
@@ -51,6 +52,7 @@ public class Node implements NodeCode, NodeAttributeListener {
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network|root|context)$");
+    private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
 
     public static final String IMAGE_GENERIC = "__generic";
 
@@ -403,9 +405,18 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     public String uniqueName(String prefix) {
-        int counter = 1;
+        Matcher m = NUMBER_AT_THE_END.matcher(prefix);
+        m.find();
+        String namePrefix = m.group(1);
+        String number = m.group(2);
+        int counter;
+        if (number.length() > 0) {
+            counter = Integer.parseInt(number);
+        } else {
+            counter = 1;
+        }
         while (true) {
-            String suggestedName = prefix + counter;
+            String suggestedName = namePrefix + counter;
             if (!contains(suggestedName)) {
                 // We don't use rename here, since it assumes the node will be in
                 // this network.
@@ -1145,7 +1156,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         } else {
             // Ports with multiple cardinality will add output ports to an existing connection.
             // See if we can find an existing connection and add a port, otherwise create a new connection.
-            c = (Connection) parent.childGraph.getInfo(input);
+            c = parent.childGraph.getInfo(input);
             if (c == null) {
                 c = new Connection(output, input);
             } else {
@@ -1837,13 +1848,14 @@ public class Node implements NodeCode, NodeAttributeListener {
     }
 
     /**
-     * Copy this node and all its upstream connections.
-     * Used with deferreds.
+     * Copy this node.
+     * <p/>
+     * Connection are not copied. Use copyChildren on the parent for that.
      *
      * @param newParent the node that will be the parent of the newly cloned node.
      * @return a copy of the node with copies to all of its upstream connections.
      */
-    public Node copyWithUpstream(Node newParent) {
+    public Node copy(Node newParent) {
         String name;
         if (newParent.contains(getName())) {
             name = newParent.uniqueName(getName());
@@ -1851,6 +1863,14 @@ public class Node implements NodeCode, NodeAttributeListener {
             name = getName();
         }
         Node newNode = newParent.create(getPrototype(), name, getDataClass());
+        // Set position.
+        if (parent == newParent) {
+            newNode.setX(getX() + 20);
+            newNode.setY(getY() + 80);
+        } else {
+            newNode.setX(getX());
+            newNode.setY(getY());
+        }
         // Copy all parameters.
         for (Parameter p : parameters.values()) {
             newNode.parameters.remove(p.getName());
@@ -1859,11 +1879,37 @@ public class Node implements NodeCode, NodeAttributeListener {
         // Copy all ports.
         for (Port p : ports.values()) {
             newNode.ports.remove(p.getName());
-            newNode.ports.put(p.getName(), p.copyWithUpstream(newNode));
+            newNode.ports.put(p.getName(), p.copy(newNode));
         }
         // TODO: Copy children.
         // TODO: Copy rendered child.
         return newNode;
+    }
+
+    public Collection<Node> copyChildren(Collection<Node> children, Node newParent) {
+        HashMap<Node, Node> copyMap = new HashMap<Node, Node>(children.size());
+        for (Node n : children) {
+            assert contains(n);
+            Node newNode = n.copy(newParent);
+            copyMap.put(n, newNode);
+        }
+        for (Node n : children) {
+            Node newNode = copyMap.get(n);
+            assert newNode != null;
+            for (Port p : newNode.getPorts()) {
+                Port oldPort = n.getPort(p.getName());
+                oldPort.cloneConnection(p, copyMap);
+            }
+        }
+        return copyMap.values();
+    }
+
+    public Node copyChild(Node child, Node newParent) {
+        ArrayList<Node> children = new ArrayList<Node>(1);
+        children.add(child);
+        Collection<Node> newChildren = copyChildren(children, newParent);
+        assert newChildren.size() == 1;
+        return newChildren.iterator().next();
     }
 
     //// Output ////

@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Console extends JTextPane {
+public class Console extends JTextPane implements PaneView {
 
     private Pane pane;
     private static Logger logger = Logger.getLogger("nodebox.client.Console");

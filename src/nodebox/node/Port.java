@@ -1,7 +1,9 @@
 package nodebox.node;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A connectable object on a node. Ports provide input and output capabilities between nodes.
@@ -297,18 +299,39 @@ public class Port {
      * @param newNode the new node
      * @return a new, cloned port.
      */
-    public Port copyWithUpstream(Node newNode) {
-        Port newPort = new Port(newNode, getName(), getCardinality(), getDirection());
-        // Create new connections for this port to the upstream nodes.
-        // If the new node is under a different parent connections cannot be retained, and no
-        // connections are created.
-        if (isConnected() && getNode().getParent() == newNode.getParent()) {
-            Connection c = getConnection();
-            for (Node n : c.getOutputNodes()) {
-                newPort.connect(n);
+    public Port copy(Node newNode) {
+        return new Port(newNode, getName(), getCardinality(), getDirection());
+    }
+
+    /**
+     * Clone the connections of this port onto the new port.
+     * <p/>
+     * If the old connection points to nodes within the copy map they will be replaced with connections to the new node.
+     *
+     * @param newPort the new port to clone the connections onto.
+     * @param copyMap a mapping between the old nodes and the new nodes.
+     */
+    public void cloneConnection(Port newPort, Map<Node, Node> copyMap) {
+        assert newPort.name.equals(getName());
+        assert newPort.cardinality == cardinality;
+        assert newPort.node != node;
+        // The new port should not be connected to anything.
+        assert newPort.getConnection() == null;
+        Connection c = getConnection();
+        if (c == null) return;
+        for (Node n : c.getOutputNodes()) {
+            Node outputNode;
+            if (copyMap.containsKey(n)) {
+                outputNode = copyMap.get(n);
+            } else {
+                outputNode = n;
+            }
+            // If the new node is under a different parent connections cannot be retained, and no
+            // connections are created.
+            if (outputNode.getParent() == newPort.getNode().getParent()) {
+                newPort.connect(outputNode);
             }
         }
-        return newPort;
     }
 
     @Override

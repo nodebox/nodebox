@@ -20,6 +20,10 @@ package nodebox.node;
 
 import nodebox.node.polygraph.Polygon;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class NodeTest extends NodeTestCase {
 
     private class TestAttributeListener implements NodeAttributeListener {
@@ -258,6 +262,20 @@ public class NodeTest extends NodeTestCase {
         assertValidName(n, "uPpercase");
     }
 
+    public void testUniqueName() {
+        Node net = Node.ROOT_NODE.newInstance(testLibrary, "net");
+        Node node = Node.ROOT_NODE.newInstance(testLibrary, "node");
+        Node node1 = net.create(node);
+        assertEquals("node1", node1.getName());
+        assertEquals("node2", net.uniqueName("node"));
+        assertEquals("node2", net.uniqueName("node1"));
+        assertEquals("node33", net.uniqueName("node33"));
+        Node node99 = net.create(node, "node99");
+        assertEquals("node2", net.uniqueName("node"));
+        assertEquals("node100", net.uniqueName("node99"));
+        assertEquals("node12a1", net.uniqueName("node12a"));
+    }
+
     public void testDirty() {
         Node n = numberNode.newInstance(testLibrary, "number1");
         assertTrue(n.isDirty());
@@ -373,77 +391,127 @@ public class NodeTest extends NodeTestCase {
 
     public void testCopyWithUpstream() {
         // We create a simple network where
-        // alpha <- beta <- gamma
-        // beta will be the node to copy. This checks if upstreams/downstreams are handled correctly.
+        // alpha1 <- beta1 <- gamma1
+        // beta1 will be the node to copy. This checks if upstreams/downstreams are handled correctly.
         Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
         Node net2 = testNetworkNode.newInstance(testLibrary, "net2");
-        Node alpha = net1.create(Node.ROOT_NODE, "alpha", Integer.class);
-        Node beta = net1.create(Node.ROOT_NODE, "beta", Integer.class);
+        Node alpha1 = net1.create(Node.ROOT_NODE, "alpha1", Integer.class);
+        Node beta1 = net1.create(Node.ROOT_NODE, "beta1", Integer.class);
         String originalDescription = "Beta description";
-        beta.setDescription(originalDescription);
-        beta.setValue("_code", new PythonCode("def cook(self): return self.value"));
-        Node gamma = net1.create(Node.ROOT_NODE, "gamma", Integer.class);
+        beta1.setDescription(originalDescription);
+        beta1.setValue("_code", new PythonCode("def cook(self): return self.value"));
+        Node gamma1 = net1.create(Node.ROOT_NODE, "gamma1", Integer.class);
         int originalValue = 5;
-        beta.addParameter("value", Parameter.Type.INT, originalValue);
-        Port betaPort1 = beta.addPort("betaPort1");
-        Port gammaPort1 = gamma.addPort("gammaPort1");
-        betaPort1.connect(alpha);
-        gammaPort1.connect(beta);
+        beta1.addParameter("value", Parameter.Type.INT, originalValue);
+        Port betaPort1 = beta1.addPort("betaPort1");
+        Port gammaPort1 = gamma1.addPort("gammaPort1");
+        betaPort1.connect(alpha1);
+        gammaPort1.connect(beta1);
 
         // Update and clean the network.
-        gamma.update();
-        assertFalse(beta.isDirty());
-        assertEquals(originalValue, beta.getOutputValue());
+        gamma1.update();
+        assertFalse(beta1.isDirty());
+        assertEquals(originalValue, beta1.getOutputValue());
 
         // Copying under the same parent will give the node a unique name.
-        Node beta1 = beta.copyWithUpstream(net1);
-        assertEquals("beta1", beta1.getName());
+        Node beta2 = net1.copyChild(beta1, net1);
+        assertEquals("beta2", beta2.getName());
 
         // Copying under a different parent keep the original name.
-        Node beta2 = beta.copyWithUpstream(net2);
-        assertEquals("beta", beta2.getName());
+        Node beta3 = net1.copyChild(beta1, net2);
+        assertEquals("beta1", beta3.getName());
 
         // The node inherits from the same prototype as the original.
-        assertSame(beta.getPrototype(), beta1.getPrototype());
+        assertSame(beta1.getPrototype(), beta2.getPrototype());
 
         // It also retains all the same changes as the original.
-        assertSame(beta.getDataClass(), beta1.getDataClass());
-        assertTrue(beta1.hasParameter("value"));
-        assertEquals(originalValue, beta1.asInt("value"));
-        assertTrue(beta1.hasPort("betaPort1"));
+        assertSame(beta1.getDataClass(), beta2.getDataClass());
+        assertTrue(beta2.hasParameter("value"));
+        assertEquals(originalValue, beta2.asInt("value"));
+        assertTrue(beta2.hasPort("betaPort1"));
 
         // Some other properties.
-        assertEquals(0.0, beta1.getX());
-        assertEquals(0.0, beta1.getY());
-        assertEquals(originalDescription, beta1.getDescription());
+        assertEquals(0.0, beta2.getX());
+        assertEquals(0.0, beta2.getY());
+        assertEquals(originalDescription, beta2.getDescription());
 
         // The new node will be dirty and won't have any output data.
-        assertTrue(beta1.isDirty());
-        assertNull(beta1.getOutputValue());
+        assertTrue(beta2.isDirty());
+        assertNull(beta2.getOutputValue());
 
         // It also retains connections to the upstream nodes,
         // although the connection objects differ.
         // It does not retain connections to the downstream nodes since
         // that would replace existing connections.
-        assertTrue(beta1.isConnectedTo(alpha));
-        Connection newConn = beta1.getPort("betaPort1").getConnection();
+        assertTrue(beta2.isConnectedTo(alpha1));
+        Connection newConn = beta2.getPort("betaPort1").getConnection();
         assertNotSame(betaPort1.getConnection(), newConn);
-        assertFalse(beta1.isConnectedTo(gamma));
+        assertFalse(beta2.isConnectedTo(gamma1));
 
         // If the new node is under a different parent connections cannot be retained.
-        assertFalse(beta2.isConnected());
+        assertFalse(beta3.isConnected());
 
         // Try updating the node to see if the results are still correct.
-        beta1.update();
-        assertEquals(originalValue, beta1.getOutputValue());
+        beta2.update();
+        assertEquals(originalValue, beta2.getOutputValue());
 
         // Changes to the copy should not affect the original and vice versa.
         int newValueForOriginal = 11;
         int newValueForCopy = 33;
-        beta.setValue("value", newValueForOriginal);
-        assertEquals(originalValue, beta1.asInt("value"));
-        beta1.setValue("value", newValueForCopy);
-        assertEquals(newValueForOriginal, beta.asInt("value"));
+        beta1.setValue("value", newValueForOriginal);
+        assertEquals(originalValue, beta2.asInt("value"));
+        beta2.setValue("value", newValueForCopy);
+        assertEquals(newValueForOriginal, beta1.asInt("value"));
+    }
+
+    public void testCopyComplex() {
+        // number1-> negate1 -> addConstant1 -> multiAdd1
+        // We'll copy negate1 and addConstant1.
+        Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
+        Node number1 = net1.create(numberNode);
+        Node negate1 = net1.create(negateNode);
+        Node addConstant1 = net1.create(addConstantNode);
+        Node multiAdd1 = net1.create(multiAddNode);
+        // Wire up the network.
+        multiAdd1.getPort("values").connect(addConstant1);
+        addConstant1.getPort("value").connect(negate1);
+        negate1.getPort("value").connect(number1);
+        // Set some values.
+        number1.setValue("value", 42);
+        addConstant1.setValue("constant", 2);
+        multiAdd1.setRendered();
+        // Check the output.
+        net1.update();
+        assertEquals(-40, net1.getOutputValue());
+        // Copy negate1 and addConstant1.
+        ArrayList<Node> children = new ArrayList<Node>();
+        children.add(negate1);
+        children.add(addConstant1);
+        Collection<Node> newChildren = net1.copyChildren(children, net1);
+        assertEquals(2, newChildren.size());
+        Node negate2 = net1.getChild("negate2");
+        Node addConstant2 = net1.getChild("addConstant2");
+        assertNotNull(negate2);
+        assertNotNull(addConstant2);
+        assertTrue(negate2.isConnectedTo(number1));
+        assertTrue(addConstant2.isConnectedTo(negate2));
+        assertFalse(addConstant2.isConnectedTo(negate1));
+        assertFalse(multiAdd1.isConnectedTo(addConstant2));
+        // Connect the copies to multiAdd1 and update.
+        multiAdd1.getPort("values").connect(addConstant2);
+        net1.update();
+        assertEquals(-80, net1.getOutputValue());
+        // Copy negate1 and addConstant1 into a different network.
+        Node net2 = testNetworkNode.newInstance(testLibrary, "net2");
+        Collection<Node> net2Children = net1.copyChildren(children, net2);
+        assertEquals(2, net2Children.size());
+        Node net2Negate1 = net2.getChild("negate1");
+        Node net2AddConstant1 = net2.getChild("addConstant1");
+        assertNotNull(net2Negate1);
+        assertNotNull(net2AddConstant1);
+        assertFalse(net2Negate1.isConnectedTo(number1));
+        assertTrue(net2AddConstant1.isConnectedTo(net2Negate1));
+        assertFalse(multiAdd1.isConnectedTo(net2AddConstant1));
     }
 
     public void testDisconnect() {
