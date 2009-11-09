@@ -643,6 +643,7 @@ public class ParameterTest extends NodeTestCase {
             n.addParameter("int", Parameter.Type.INT);
             n.addParameter("float", Parameter.Type.FLOAT);
             n.addParameter("string", Parameter.Type.STRING);
+            n.addParameter("color", Parameter.Type.COLOR);
             return n;
         }
 

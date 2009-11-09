@@ -118,7 +118,7 @@ public class ExpressionTest extends NodeTestCase {
     /**
      * Test if expression errors mark the parameter as dirty.
      */
-    public void testDirtyOnError() {
+    public void testDirtyOnError() throws ExpressionError {
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         Parameter aValue = alpha.addParameter("value", Parameter.Type.INT, 42);
         assertTrue(alpha.isDirty());
@@ -355,32 +355,35 @@ public class ExpressionTest extends NodeTestCase {
     /**
      * The return value of expressions is accepted with a great margin.
      * If values can be converted in one form or another, they will.
+     *
+     * @throws ExpressionError if tests are correct, never.
      */
-    public void testLenientTypes() {
+    public void testLenientTypes() throws ExpressionError {
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         // Integer
         Parameter pInt = alpha.addParameter("int", Parameter.Type.INT);
-        pInt.setExpression("12.9"); // Note that values are not rounded. The floating-point part is just cut off.
-        alpha.update();
-        assertEquals(12, pInt.getValue());
+        assertExpressionEquals(5, pInt, "5");
+        // Note that values are not rounded. The floating-point part is just cut off.
+        assertExpressionEquals(12, pInt, "12.9");
+        assertUpdateError(pInt, "\"hello\"", "cannot be converted to int");
+        assertUpdateError(pInt, "color(0.5)", "cannot be converted to int");
         // Float
         Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
-        pFloat.setExpression("100");
-        alpha.update();
-        assertEquals(100f, pFloat.getValue());
+        assertExpressionEquals(1.234f, pFloat, "1.234");
+        assertExpressionEquals(100f, pFloat, "100");
+        assertUpdateError(pFloat, "\"hello\"", "cannot be converted to float");
+        assertUpdateError(pFloat, "color(0.1, 0.2, 0.3)", "cannot be converted to float");
         // String
         Parameter pString = alpha.addParameter("string", Parameter.Type.STRING);
-        pString.setExpression("10 + 5"); // Any value is converted to a string.
-        alpha.update();
-        assertEquals("15", pString.getValue());
+        // Any value is converted to a string.
+        assertExpressionEquals("15", pString, "10 + 5");
         // Color
         Parameter pColor = alpha.addParameter("color", Parameter.Type.COLOR);
-        pColor.setExpression("128"); // Integers are converted to the 0-255 range
-        alpha.update();
-        assertEquals(new Color(0.5, 0.5, 0.5), pColor.getValue());
-        pColor.setExpression("0.7"); // Floats are converted to the 0-1 range
-        alpha.update();
-        assertEquals(new Color(0.7, 0.7, 0.7), pColor.getValue());
+        assertExpressionEquals(new Color(0.1, 0.2, 0.3, 0.4), pColor, "color(0.1, 0.2, 0.3, 0.4)");
+        // Integers are converted to the 0-255 range
+        assertExpressionEquals(new Color(0.5, 0.5, 0.5), pColor, "128");
+        // Floats are converted to the 0-1 range
+        assertExpressionEquals(new Color(0.7, 0.7, 0.7), pColor, "0.7");
     }
 
     /**
@@ -438,12 +441,22 @@ public class ExpressionTest extends NodeTestCase {
         assertEquals(expected, p.getValue());
     }
 
-    private void assertInvalidExpression(Parameter p, String expression, String expectedMessage) {
+    private void assertInvalidExpression(Parameter p, String expression, String expectedMessage) throws ExpressionError {
         p.setExpression(expression);
         if (!p.hasExpressionError()) {
             fail("Expression should have failed with \"" + expectedMessage + "\"");
         } else {
             Exception e = p.getExpressionError();
+            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
+                    e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
+        }
+    }
+
+    private void assertUpdateError(Parameter p, String expression, String expectedMessage) throws ExpressionError {
+        p.setExpression(expression);
+        try {
+            p.update(new ProcessingContext());
+        } catch (IllegalArgumentException e) {
             assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
                     e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
         }

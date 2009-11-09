@@ -920,7 +920,6 @@ public class Parameter {
      * @return the unchanged object, or the value converted to float for parameters with FLOAT type.
      */
     private Object convertToType(Object value) {
-
         if (type == Type.INT) {
             if (value instanceof Integer) {
                 return value;
@@ -932,10 +931,10 @@ public class Parameter {
                 throw new IllegalArgumentException("Value " + value + " cannot be converted to int.");
             }
         } else if (type == Type.FLOAT) {
-            if (value instanceof Integer) {
-                return ((Integer) value).floatValue();
-            } else if (value instanceof Float) {
+            if (value instanceof Float) {
                 return value;
+            } else if (value instanceof Integer) {
+                return ((Integer) value).floatValue();
             } else if (value instanceof Double) {
                 return ((Double) value).floatValue();
             } else {
@@ -944,7 +943,9 @@ public class Parameter {
         } else if (type == Type.STRING) {
             return value.toString();
         } else if (type == Type.COLOR) {
-            if (value instanceof Integer) {
+            if (value instanceof Color) {
+                return value;
+            } else if (value instanceof Integer) {
                 float v = ((Integer) value) / 255f;
                 return new Color(v, v, v);
             } else if (value instanceof Float) {
