@@ -1844,33 +1844,26 @@ public class Node implements NodeCode, NodeAttributeListener {
      * @return a copy of the node with copies to all of its upstream connections.
      */
     public Node copyWithUpstream(Node newParent) {
-        throw new UnsupportedOperationException("This method is not yet implemented.");
-        /*
-        Constructor nodeConstructor;
-        try {
-            nodeConstructor = getClass().getConstructor(NodeType.class);
-        } catch (NoSuchMethodException e) {
-            logger.log(Level.SEVERE, "Class " + getClass() + " has no appropriate constructor.", e);
-            return null;
+        String name;
+        if (newParent.contains(getName())) {
+            name = newParent.uniqueName(getName());
+        } else {
+            name = getName();
         }
-
-
-        Node newNode;
-        try {
-            newNode = (Node) nodeConstructor.newInstance(nodeType);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Class " + getClass() + " cannot be instantiated.", e);
-            return null;
-        }
-        newNode.setName(getName());
-        newNode.setParent(newNetwork);
-
+        Node newNode = newParent.create(getPrototype(), name, getDataClass());
+        // Copy all parameters.
         for (Parameter p : parameters.values()) {
-            newNode.parameters.remove(p);
+            newNode.parameters.remove(p.getName());
             newNode.parameters.put(p.getName(), p.copyWithUpstream(newNode));
         }
+        // Copy all ports.
+        for (Port p : ports.values()) {
+            newNode.ports.remove(p.getName());
+            newNode.ports.put(p.getName(), p.copyWithUpstream(newNode));
+        }
+        // TODO: Copy children.
+        // TODO: Copy rendered child.
         return newNode;
-        */
     }
 
     //// Output ////

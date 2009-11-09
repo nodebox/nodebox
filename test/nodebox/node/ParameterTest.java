@@ -341,26 +341,22 @@ public class ParameterTest extends NodeTestCase {
      * Test if all parameter attributes are cloned.
      */
     public void testParameterCloning() {
-        Node nodeA = Node.ROOT_NODE.newInstance(testLibrary, "a");
-        Parameter aAngle = nodeA.addParameter("angle", Parameter.Type.FLOAT, 42F);
-        aAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
-        aAngle.setMinimumValue(0F);
-        aAngle.setMaximumValue(360F);
-        aAngle.setLabel("My Angle");
-        aAngle.setDisplayLevel(Parameter.DisplayLevel.HUD);
-        aAngle.setHelpText("The angle of the node.");
-        aAngle.setWidget(Parameter.Widget.ANGLE);
-        Node nodeB = nodeA.newInstance(testLibrary, "b");
-        Parameter bAngle = nodeB.getParameter("angle");
-        assertNotNull(bAngle);
-        assertNotSame(aAngle, bAngle);
-        assertEquals(aAngle.getBoundingMethod(), bAngle.getBoundingMethod());
-        assertEquals(aAngle.getMinimumValue(), bAngle.getMinimumValue());
-        assertEquals(aAngle.getMaximumValue(), bAngle.getMaximumValue());
-        assertEquals(aAngle.getLabel(), bAngle.getLabel());
-        assertEquals(aAngle.getDisplayLevel(), bAngle.getDisplayLevel());
-        assertEquals(aAngle.getHelpText(), bAngle.getHelpText());
-        assertEquals(aAngle.getWidget(), bAngle.getWidget());
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter aAngle = createCustomAngleParameter(alpha);
+        Node beta = alpha.newInstance(testLibrary, "beta");
+        Parameter bAngle = beta.getParameter("angle");
+        assertEqualsParameter(aAngle, bAngle);
+    }
+
+    /**
+     * Test if all parameter attributes are copied.
+     */
+    public void testCopyWithUpstream() {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Node beta = Node.ROOT_NODE.newInstance(testLibrary, "beta");
+        Parameter aAngle = createCustomAngleParameter(alpha);
+        Parameter bAngle = aAngle.copyWithUpstream(beta);
+        assertEqualsParameter(aAngle, bAngle);
     }
 
     /**
@@ -671,5 +667,30 @@ public class ParameterTest extends NodeTestCase {
 
     private void assertParameterNotFound(Node n, String parameterName) {
         assertNull("The parameter \"" + parameterName + "\" should not have been found.", n.getParameter(parameterName));
+    }
+
+    private Parameter createCustomAngleParameter(Node n) {
+        Parameter aAngle = n.addParameter("angle", Parameter.Type.FLOAT, 42F);
+        aAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
+        aAngle.setMinimumValue(0F);
+        aAngle.setMaximumValue(360F);
+        aAngle.setLabel("My Angle");
+        aAngle.setDisplayLevel(Parameter.DisplayLevel.HUD);
+        aAngle.setHelpText("The angle of the node.");
+        aAngle.setWidget(Parameter.Widget.ANGLE);
+        return aAngle;
+    }
+
+    private void assertEqualsParameter(Parameter original, Parameter actual) {
+        assertNotNull(actual);
+        assertNotSame(original, actual);
+        assertEquals(original.getValue(), actual.getValue());
+        assertEquals(original.getBoundingMethod(), actual.getBoundingMethod());
+        assertEquals(original.getMinimumValue(), actual.getMinimumValue());
+        assertEquals(original.getMaximumValue(), actual.getMaximumValue());
+        assertEquals(original.getLabel(), actual.getLabel());
+        assertEquals(original.getDisplayLevel(), actual.getDisplayLevel());
+        assertEquals(original.getHelpText(), actual.getHelpText());
+        assertEquals(original.getWidget(), actual.getWidget());
     }
 }

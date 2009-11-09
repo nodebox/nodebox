@@ -408,6 +408,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     }
 
     public void copy() {
+        // Find current network view.
         JOptionPane.showMessageDialog(this, "Cut/copy/paste is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
     }
 

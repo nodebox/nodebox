@@ -289,6 +289,28 @@ public class Port {
         return new Port(n, getName(), getCardinality(), getDirection());
     }
 
+    /**
+     * Copy this port onto the new node.
+     * <p/>
+     * Also clones any upstream connections.
+     *
+     * @param newNode the new node
+     * @return a new, cloned port.
+     */
+    public Port copyWithUpstream(Node newNode) {
+        Port newPort = new Port(newNode, getName(), getCardinality(), getDirection());
+        // Create new connections for this port to the upstream nodes.
+        // If the new node is under a different parent connections cannot be retained, and no
+        // connections are created.
+        if (isConnected() && getNode().getParent() == newNode.getParent()) {
+            Connection c = getConnection();
+            for (Node n : c.getOutputNodes()) {
+                newPort.connect(n);
+            }
+        }
+        return newPort;
+    }
+
     @Override
     public String toString() {
         return node.getName() + "." + getName();

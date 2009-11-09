@@ -302,7 +302,7 @@ public class NodeTest extends NodeTestCase {
         assertEquals(2, listener.updatedCounter);
         assertEquals(1, listener.dirtyCounter);
     }
-    
+
     /**
      * Test if errors with expressions also set the error flag on the node.
      */
@@ -340,9 +340,9 @@ public class NodeTest extends NodeTestCase {
         try {
             negate1.update();
         } catch (ProcessingError e) {
-        	// The error flag is limited to the dependency that caused the error.
-        	// The crash node caused the error, so it has the error flag,
-        	// but the dependent node, negate1, doesn't get the error flag.
+            // The error flag is limited to the dependency that caused the error.
+            // The crash node caused the error, so it has the error flag,
+            // but the dependent node, negate1, doesn't get the error flag.
             assertTrue(crash1.hasError());
             assertFalse(negate1.hasError());
         }
@@ -372,28 +372,78 @@ public class NodeTest extends NodeTestCase {
     }
 
     public void testCopyWithUpstream() {
-        Node net = testNetworkNode.newInstance(testLibrary, "net1");
-        Node number1 = net.create(numberNode);
-        Node number2 = net.create(numberNode);
-        Node add1 = net.create(addNode);
-        assertEquals("number1", number1.getName());
-        assertEquals("number2", number2.getName());
-        assertEquals("add1", add1.getName());
-        add1.getPort("v1").connect(number1);
-        add1.getPort("v2").connect(number2);
+        // We create a simple network where
+        // alpha <- beta <- gamma
+        // beta will be the node to copy. This checks if upstreams/downstreams are handled correctly.
+        Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
+        Node net2 = testNetworkNode.newInstance(testLibrary, "net2");
+        Node alpha = net1.create(Node.ROOT_NODE, "alpha", Integer.class);
+        Node beta = net1.create(Node.ROOT_NODE, "beta", Integer.class);
+        String originalDescription = "Beta description";
+        beta.setDescription(originalDescription);
+        beta.setValue("_code", new PythonCode("def cook(self): return self.value"));
+        Node gamma = net1.create(Node.ROOT_NODE, "gamma", Integer.class);
+        int originalValue = 5;
+        beta.addParameter("value", Parameter.Type.INT, originalValue);
+        Port betaPort1 = beta.addPort("betaPort1");
+        Port gammaPort1 = gamma.addPort("gammaPort1");
+        betaPort1.connect(alpha);
+        gammaPort1.connect(beta);
 
-        // TODO: Implement copyNodeWithUpstream         
-//        Node copiedAdd1 = add1.getParent().copyNodeWithUpstream(add1);
-//        assertEquals("add1", copiedAdd1.getName());
-//        Network copiedNetwork = copiedAdd1.getParent();
-//        assertEquals(net.getName(), copiedNetwork.getName());
-//        Node copiedNumber1 = copiedAdd1.getParent().get("number1");
-//        Node copiedNumber2 = copiedAdd1.getParent().get("number2");
-//        assertNotNull(copiedNumber1);
-//        assertNotNull(copiedNumber2);
-//        assert (copiedAdd1.isConnected());
-//        assert (copiedAdd1.getParameter("v1").isConnectedTo(copiedNumber1));
-//        assert (copiedAdd1.getParameter("v2").isConnectedTo(copiedNumber2));
+        // Update and clean the network.
+        gamma.update();
+        assertFalse(beta.isDirty());
+        assertEquals(originalValue, beta.getOutputValue());
+
+        // Copying under the same parent will give the node a unique name.
+        Node beta1 = beta.copyWithUpstream(net1);
+        assertEquals("beta1", beta1.getName());
+
+        // Copying under a different parent keep the original name.
+        Node beta2 = beta.copyWithUpstream(net2);
+        assertEquals("beta", beta2.getName());
+
+        // The node inherits from the same prototype as the original.
+        assertSame(beta.getPrototype(), beta1.getPrototype());
+
+        // It also retains all the same changes as the original.
+        assertSame(beta.getDataClass(), beta1.getDataClass());
+        assertTrue(beta1.hasParameter("value"));
+        assertEquals(originalValue, beta1.asInt("value"));
+        assertTrue(beta1.hasPort("betaPort1"));
+
+        // Some other properties.
+        assertEquals(0.0, beta1.getX());
+        assertEquals(0.0, beta1.getY());
+        assertEquals(originalDescription, beta1.getDescription());
+
+        // The new node will be dirty and won't have any output data.
+        assertTrue(beta1.isDirty());
+        assertNull(beta1.getOutputValue());
+
+        // It also retains connections to the upstream nodes,
+        // although the connection objects differ.
+        // It does not retain connections to the downstream nodes since
+        // that would replace existing connections.
+        assertTrue(beta1.isConnectedTo(alpha));
+        Connection newConn = beta1.getPort("betaPort1").getConnection();
+        assertNotSame(betaPort1.getConnection(), newConn);
+        assertFalse(beta1.isConnectedTo(gamma));
+
+        // If the new node is under a different parent connections cannot be retained.
+        assertFalse(beta2.isConnected());
+
+        // Try updating the node to see if the results are still correct.
+        beta1.update();
+        assertEquals(originalValue, beta1.getOutputValue());
+
+        // Changes to the copy should not affect the original and vice versa.
+        int newValueForOriginal = 11;
+        int newValueForCopy = 33;
+        beta.setValue("value", newValueForOriginal);
+        assertEquals(originalValue, beta1.asInt("value"));
+        beta1.setValue("value", newValueForCopy);
+        assertEquals(newValueForOriginal, beta.asInt("value"));
     }
 
     public void testDisconnect() {

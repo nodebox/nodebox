@@ -1120,43 +1120,19 @@ public class Parameter {
     }
 
     /**
-     * Copy this field and all its upstream connections, recursively.
-     * Used with deferreds.
+     * Copy this parameter and changes expressions.
+     * <p/>
+     * The difference between copyWithUpstream and clone is that copyWithUpstream also copies the value,
+     * whereas clone inherits the value from the prototype parameter.
      *
      * @param newNode the new node that will act as the parent to this parameter.
      * @return the new copy of this parameter.
      */
     public Parameter copyWithUpstream(Node newNode) {
-        throw new UnsupportedOperationException("Not yet supported.");
-        /*
-        Constructor parameterConstructor;
-        try {
-            parameterConstructor = getClass().getConstructor(ParameterType.class, Node.class);
-        } catch (NoSuchMethodException e) {
-            logger.log(Level.SEVERE, "Class " + getClass() + " has no appropriate constructor.", e);
-            return null;
-        }
-        Parameter newParameter;
-        try {
-            newParameter = (Parameter) parameterConstructor.newInstance(parameterType, newNode);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Class " + getClass() + " cannot be instantiated.", e);
-            return null;
-        }
-
-        Connection conn = getParentNode().getExplicitConnection(this);
-        if (conn != null) {
-            Node newOutputNode = conn.getOutputNode().copyWithUpstream(newNode.getParent());
-            newParameter.connect(newOutputNode);
-        } else if (hasExpression()) {
-            newParameter.setExpression(getExpression());
-        } else {
-            // TODO: Clone the value properly.
-            newParameter.value = value;
-        }
-
-        return newParameter;
-        */
+        Parameter p = new Parameter(newNode, getName(), getType());
+        p.setValue(getValue());
+        copyAttributes(p);
+        return p;
     }
 
     /**
@@ -1176,6 +1152,16 @@ public class Parameter {
     public Parameter clone(Node n) {
         // This will call revertToDefault, which will set the value/expression to that of the prototype.
         Parameter p = new Parameter(n, getName(), getType());
+        copyAttributes(p);
+        return p;
+    }
+
+    /**
+     * Copy all metadata attributes of this parameter into the given parameter.
+     *
+     * @param p the parameter to copy onto.
+     */
+    private void copyAttributes(Parameter p) {
         p.setLabel(getLabel());
         p.setHelpText(getHelpText());
         p.setWidget(getWidget());
@@ -1185,23 +1171,6 @@ public class Parameter {
         p.setDisplayLevel(getDisplayLevel());
         for (MenuItem item : getMenuItems()) {
             p.addMenuItem(item.getKey(), item.getLabel());
-        }
-        return p;
-    }
-
-    /**
-     * Return a clone of this value.
-     * <p/>
-     * This method only clones color objects, since other objects are immutable and therefore don't need to be cloned.
-     *
-     * @param value the original value
-     * @return a clone of this value.
-     */
-    private Object cloneValue(Object value) {
-        if (value instanceof Color) {
-            return new Color((Color) value);
-        } else {
-            return value;
         }
     }
 
