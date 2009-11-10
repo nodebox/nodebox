@@ -1590,7 +1590,8 @@ def cook(self):
     <description>Draw a polygon</description>
     <param name="_code">
       <value type="python"><![CDATA[from math import cos, sin, pi
-from nodebox.graphics import Path
+from nodebox.graphics import Path, Transform
+from nodebox.util.Geometry import angle
 
 def cook(self):
     t = 0
@@ -1603,6 +1604,12 @@ def cook(self):
         vertices.append((self.x + cos(t) * self.radius, self.y + sin(t) * self.radius))
         p.lineto( *vertices[i] ) 
     p.close()
+    if self.align and len(vertices) >= 2:
+        (x1, y1), (x2, y2) = vertices[0:2]
+        a = angle(x2, y2, x1, y1)
+        t = Transform()
+        t.rotate(-a)
+        p = t.map(p)
     p.fillColor = self.fill
     p.strokeColor = self.stroke
     p.strokeWidth = self.strokeWidth
@@ -1622,6 +1629,9 @@ def cook(self):
     </param>
     <param bounding="hard" min="0.0" name="sides" type="int">
       <value>3</value>
+    </param>
+    <param name="align" type="int" widget="toggle">
+      <value>0</value>
     </param>
     <param name="fill" type="color">
       <value>#000000ff</value>
