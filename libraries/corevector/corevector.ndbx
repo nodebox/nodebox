@@ -1337,6 +1337,12 @@ def cook(self):
             p.addPoint(left + ci * column_size, top + ri * row_size)
     return p.asGeometry()]]></value>
     </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+
+def cook(self):
+    return FourPointHandle(self.node, "x", "y", "width", "height")]]></value>
+    </param>
     <param name="_image">
       <value>grid.png</value>
     </param>
