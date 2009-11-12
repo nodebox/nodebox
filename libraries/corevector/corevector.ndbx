@@ -2013,10 +2013,118 @@ def cook(self):
     return t.map(self.shape)]]></value>
     </param>
     <param name="_handle">
-      <value type="python"><![CDATA[from nodebox.handle import PointHandle
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Rect
+from nodebox.handle import AbstractHandle
 
+class TransformHandle(AbstractHandle):
+    NONE, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT, CENTER = range(6)
+    
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.dragState = TransformHandle.NONE
+        self.iwidth = 0
+        self.iheight = 0
+        self.update()
+        
+    def update(self):
+        shape = self.node.getPort("shape").value
+        if shape is not None:
+            x, y, w, h = list(shape.bounds)
+            self.iwidth = w
+            self.iheight = h
+            self.visible = True
+        else:
+            self.iwidth = self.iheight = 0
+            self.visible = False
+        
+    def draw(self, ctx):
+        cx = self.node.asFloat("tx")
+        cy = self.node.asFloat("ty")
+        width = self.node.asFloat("sx") * self.iwidth / 100
+        height = self.node.asFloat("sy") * self.iheight / 100
+        left = cx - width / 2
+        right = cx + width / 2
+        top = cy - height / 2
+        bottom = cy + height / 2
+        cornerPath = Path()
+        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
+        cornerPath.strokeWidth = 0
+        self.drawDot(cornerPath, left, top)
+        self.drawDot(cornerPath, right, top)
+        self.drawDot(cornerPath, right, bottom)
+        self.drawDot(cornerPath, left, bottom)
+        self.drawDot(cornerPath, cx, cy)
+        ctx.canvas.add(cornerPath)
+        strokePath = Path()
+        strokePath.fillColor = None
+        strokePath.strokeColor = AbstractHandle.HANDLE_COLOR
+        strokePath.rect(cx, cy, width, height)
+        ctx.draw(strokePath)
+        
+    def mousePressed(self, pt):
+        self.px = pt.x
+        self.py = pt.y
+        
+        self.ocx = self.node.asFloat("tx")
+        self.ocy = self.node.asFloat("ty")
+        self.owidth = self.iwidth * self.node.asFloat("sx") / 100
+        self.oheight = self.iheight * self.node.asFloat("sy") / 100
+        
+        left = self.ocx - self.owidth / 2
+        right = self.ocx + self.owidth / 2
+        top = self.ocy - self.oheight / 2
+        bottom = self.ocy + self.oheight / 2
+        
+        topLeft = self.createHitRectangle(left, top)
+        topRight = self.createHitRectangle(right, top)
+        bottomLeft = self.createHitRectangle(left, bottom)
+        bottomRight = self.createHitRectangle(right, bottom)
+        center = Rect(left, top, self.owidth, self.oheight)
+        
+        if topLeft.contains(pt):
+            self.dragState = self.TOP_LEFT
+        elif topRight.contains(pt):
+            self.dragState = self.TOP_RIGHT
+        elif bottomLeft.contains(pt):
+            self.dragState = self.BOTTOM_LEFT
+        elif bottomRight.contains(pt):
+            self.dragState = self.BOTTOM_RIGHT
+        elif center.contains(pt):
+            self.dragState = self.CENTER
+        else:
+            self.dragState = self.NONE
+
+    def mouseDragged(self, pt):
+        if self.dragState == self.NONE: return
+
+        x = pt.x
+        y = pt.y
+        dx = x - self.px
+        dy = y - self.py
+        
+        if (dx == 0 and dy == 0): return
+        
+        if self.dragState == self.TOP_LEFT:
+            self.node.silentSet("sx", (self.owidth - dx * 2) / self.iwidth * 100)
+            self.node.silentSet("sy", (self.oheight - dy * 2) / self.iheight * 100)
+        elif self.dragState == self.TOP_RIGHT:
+            self.node.silentSet("sy", (self.oheight - dy * 2) / self.iwidth * 100)
+            self.node.silentSet("sx", (self.owidth + dx * 2) / self.iheight * 100)
+        elif self.dragState == self.BOTTOM_LEFT:
+            self.node.silentSet("sx", (self.owidth - dx * 2) / self.iwidth * 100)
+            self.node.silentSet("sy", (self.oheight + dy * 2) / self.iheight * 100)
+        elif self.dragState == self.BOTTOM_RIGHT:
+            self.node.silentSet("sx", (self.owidth + dx * 2) / self.iwidth * 100)
+            self.node.silentSet("sy", (self.oheight + dy * 2) / self.iheight * 100)
+        elif self.dragState == self.CENTER:
+            self.node.silentSet("tx", self.ocx + dx)
+            self.node.silentSet("ty", self.ocy + dy)
+        
+    def mouseReleased(self, pt):
+        self.dragState = self.NONE
+        
 def cook(self):
-    return PointHandle(self.node, "tx", "ty")]]></value>
+    return TransformHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>transform.png</value>
