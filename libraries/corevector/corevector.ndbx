@@ -1615,6 +1615,73 @@ def cook(self):
     p.strokeWidth = self.strokeWidth
     return p.asGeometry()]]></value>
     </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
+from nodebox.handle import AbstractHandle
+
+class PolygonHandle(AbstractHandle):
+    NONE, CENTER, OUTER = range(3)
+
+    def __init__(self, *args):
+        AbstractHandle.__init__(self, *args)
+        self.dragState = PolygonHandle.NONE
+        
+    def mousePressed(self, pt):
+        self.px = pt.x
+        self.py = pt.y
+        
+        self.ocx = self.node.asFloat("x")
+        self.ocy = self.node.asFloat("y")
+        self.ocr = self.node.asFloat("radius")
+        
+        center = self.createHitRectangle(self.ocx, self.ocy)
+        outer = self.createHitRectangle(self.ocx + self.ocr, self.ocy)
+        
+        if outer.contains(pt):
+            self.dragState = self.OUTER
+        elif center.contains(pt):
+            self.dragState = self.CENTER
+        else:
+            self.dragState = self.NONE
+
+    def mouseDragged(self, pt):
+        if self.dragState == self.NONE: return
+        
+        x = pt.x
+        y = pt.y
+        dx = x - self.px
+        dy = y - self.py
+        
+        if (dx == 0 and dy == 0): return
+        
+        if self.dragState == self.CENTER:
+            self.node.silentSet("x", self.ocx + dx)
+            self.node.silentSet("y", self.ocy + dy)
+        elif self.dragState == self.OUTER:
+            self.node.silentSet("radius", self.ocr + dx)
+
+    def mouseReleased(self, pt):
+        self.dragState = self.NONE
+        
+    def draw(self, ctx):
+        x = self.node.asFloat("x")
+        y = self.node.asFloat("y")
+        radius = self.node.asFloat("radius")
+        cornerPath = Path()
+        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
+        cornerPath.strokeWidth = 0
+        self.drawDot(cornerPath, x, y)
+        self.drawDot(cornerPath, x + radius, y)
+        ctx.draw(cornerPath)
+        strokePath = Path()
+        strokePath.fillColor = None
+        strokePath.strokeColor = AbstractHandle.HANDLE_COLOR
+        strokePath.line(x, y, x + radius, y)
+        ctx.draw(strokePath)
+
+def cook(self):
+    return PolygonHandle(self.node)]]></value>
+    </param>
     <param name="_image">
       <value>polygon.png</value>
     </param>
