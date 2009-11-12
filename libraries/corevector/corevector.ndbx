@@ -1995,6 +1995,21 @@ def cook(self):
         point.y += dy
     return new_shape]]></value>
     </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import PointHandle
+
+class WiggleHandle(PointHandle):
+    def __init__(self, *args):
+        PointHandle.__init__(self, *args)
+        self.update()
+    
+    def update(self):
+        shape = self.node.getPort("shape").value
+        self.visible = shape is not None
+
+def cook(self):
+    return WiggleHandle(self.node, "wx", "wy")]]></value>
+    </param>
     <param name="_image">
       <value>wiggle.png</value>
     </param>
