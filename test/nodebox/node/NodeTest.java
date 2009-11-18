@@ -22,7 +22,6 @@ import nodebox.node.polygraph.Polygon;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class NodeTest extends NodeTestCase {
 
@@ -431,8 +430,8 @@ public class NodeTest extends NodeTestCase {
         assertTrue(beta2.hasPort("betaPort1"));
 
         // Some other properties.
-        assertEquals(0.0, beta2.getX());
-        assertEquals(0.0, beta2.getY());
+        assertEquals(20.0, beta2.getX());
+        assertEquals(80.0, beta2.getY());
         assertEquals(originalDescription, beta2.getDescription());
 
         // The new node will be dirty and won't have any output data.

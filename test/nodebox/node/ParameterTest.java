@@ -354,9 +354,13 @@ public class ParameterTest extends NodeTestCase {
     public void testCopyWithUpstream() {
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         Node beta = Node.ROOT_NODE.newInstance(testLibrary, "beta");
+        Node gamma = Node.ROOT_NODE.newInstance(testLibrary, "gamma");
         Parameter aAngle = createCustomAngleParameter(alpha);
         Parameter bAngle = aAngle.copyWithUpstream(beta);
         assertEqualsParameter(aAngle, bAngle);
+        aAngle.setExpression("42 * 2");
+        Parameter gAngle = aAngle.copyWithUpstream(beta);
+        assertEqualsParameter(aAngle, gAngle);
     }
 
     /**
@@ -684,7 +688,12 @@ public class ParameterTest extends NodeTestCase {
     private void assertEqualsParameter(Parameter original, Parameter actual) {
         assertNotNull(actual);
         assertNotSame(original, actual);
-        assertEquals(original.getValue(), actual.getValue());
+        if (original.hasExpression()) {
+            assertEquals(original.getExpression(), actual.getExpression());
+
+        } else {
+            assertEquals(original.getValue(), actual.getValue());
+        }
         assertEquals(original.getBoundingMethod(), actual.getBoundingMethod());
         assertEquals(original.getMinimumValue(), actual.getMinimumValue());
         assertEquals(original.getMaximumValue(), actual.getMaximumValue());

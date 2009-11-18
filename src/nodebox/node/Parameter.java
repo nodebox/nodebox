@@ -1130,7 +1130,11 @@ public class Parameter {
      */
     public Parameter copyWithUpstream(Node newNode) {
         Parameter p = new Parameter(newNode, getName(), getType());
-        p.setValue(getValue());
+        if (hasExpression()) {
+            p.setExpression(getExpression());
+        } else {
+            p.setValue(getValue());
+        }
         copyAttributes(p);
         return p;
     }
