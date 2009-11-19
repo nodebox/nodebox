@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.URI;
 
 public class PlatformUtils {
     public static int WIN = 1;
@@ -154,6 +155,18 @@ public class PlatformUtils {
         }
         catch (Exception e) {
             throw new RuntimeException("Cannot read Windows registry. Exiting...", e);
+        }
+    }
+
+    public static void openURL(String url) {
+        if (Desktop.isDesktopSupported()) {
+            URI uri = URI.create(url);
+            try {
+                Desktop.getDesktop().browse(uri);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

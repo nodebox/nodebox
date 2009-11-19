@@ -342,9 +342,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                         menu.show(getNetworkView(), pt.x, pt.y);
                     }
                 }
-
                 networkView.endConnection();
-
             }
         }
 

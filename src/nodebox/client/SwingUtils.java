@@ -7,10 +7,21 @@ import java.awt.geom.Rectangle2D;
 public class SwingUtils {
 
     public static void centerOnScreen(Window w) {
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int x = (screenSize.width - w.getWidth()) / 2;
-        int y = (screenSize.height - w.getHeight()) / 2;
+        centerOnScreen(w, null);
+    }
+
+    public static void centerOnScreen(Window w, Window parent) {
+        Rectangle r = new Rectangle();
+        if (parent == null) {
+            r.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        } else {
+            r.setLocation(parent.getLocation());
+            r.setSize(parent.getSize());
+        }
+        // Determine the new location of the alert
+        int x = r.x + (r.width - w.getWidth()) / 2;
+        int y = r.y + (r.height - w.getHeight()) / 2;
+        // Move the alert
         w.setLocation(x, y);
     }
 

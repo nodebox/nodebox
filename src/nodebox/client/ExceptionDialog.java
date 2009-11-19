@@ -92,7 +92,8 @@ public class ExceptionDialog extends JDialog implements ClipboardOwner {
         innerPanel.add(buttonPanel, BorderLayout.SOUTH);
         container.add(innerPanel, BorderLayout.CENTER);
         setSize(600, 400);
-        SwingUtils.centerOnScreen(this);
+        Window win = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
+        SwingUtils.centerOnScreen(this, win);
     }
 
     public void lostOwnership(Clipboard clipboard, Transferable transferable) {

@@ -31,12 +31,12 @@ public class ProgressDialog extends JDialog {
         contentPane.add(messageLabel);
         updateProgress();
         setSize(400, 100);
-        SwingUtils.centerOnScreen(this);
+        SwingUtils.centerOnScreen(this, owner);
     }
 
     public void updateProgress() {
         progressBar.setValue(tasksCompleted);
-        double percentage = (double)(tasksCompleted ) / (double)(taskCount) ;
+        double percentage = (double) (tasksCompleted) / (double) (taskCount);
         int ip = (int) (percentage * 100);
         progressLabel.setText(ip + " %");
         repaint();

@@ -82,9 +82,13 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         // Help menu
         JMenu helpMenu = new JMenu("Help");
+        helpMenu.add(new GettingStartedAction());
+        helpMenu.add(new HelpAndSupportAction());
+        helpMenu.addSeparator();
         if (!PlatformUtils.onMac()) {
             helpMenu.add(new AboutAction());
         }
+        helpMenu.add(new CheckForUpdatesAction());
         helpMenu.add(new NodeboxSiteAction());
         add(helpMenu);
     }
@@ -409,6 +413,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
+
     public static class NodeboxSiteAction extends AbstractAction {
         public NodeboxSiteAction() {
             putValue(NAME, "NodeBox Site");
@@ -420,5 +425,35 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
+
+    public static class GettingStartedAction extends AbstractAction {
+        public GettingStartedAction() {
+            super("Getting Started");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            PlatformUtils.openURL("http://beta.nodebox.net/documentation/getting-started/");
+        }
+    }
+
+    public static class HelpAndSupportAction extends AbstractAction {
+        public HelpAndSupportAction() {
+            super("Help and Support");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            PlatformUtils.openURL("http://beta.nodebox.net/documentation/");
+        }
+    }
+
+    public static class CheckForUpdatesAction extends AbstractAction {
+        public CheckForUpdatesAction() {
+            super("Check for Updates...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Application.getInstance().getUpdater().checkForUpdates();
+        }
+    }
 
 }

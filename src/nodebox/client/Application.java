@@ -18,8 +18,12 @@
  */
 package nodebox.client;
 
+import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeLibraryManager;
+import nodebox.versioncheck.Host;
+import nodebox.versioncheck.Updater;
+import nodebox.versioncheck.Version;
 
 import javax.swing.*;
 import java.awt.*;
@@ -31,7 +35,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Application {
+public class Application implements Host {
 
     private static Application instance;
     private JFrame hiddenFrame;
@@ -40,11 +44,13 @@ public class Application {
         return instance;
     }
 
+    private Updater updater;
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
     private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
-    private String version;
+    private Version version;
+    private List<Node> nodeClipboard;
 
     public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
@@ -65,6 +71,7 @@ public class Application {
             setNodeBoxVersion();
             createNodeBoxDataDirectories();
             registerForMacOSXEvents();
+            updater = new Updater(this);
         } catch (RuntimeException e) {
             ExceptionDialog ed = new ExceptionDialog(null, e);
             ed.setVisible(true);
@@ -76,14 +83,10 @@ public class Application {
         Properties properties = new Properties();
         try {
             properties.load(new FileInputStream("version.properties"));
-            version = properties.getProperty("nodebox.version");
+            version = new Version(properties.getProperty("nodebox.version"));
         } catch (IOException e) {
             throw new RuntimeException("Could not read NodeBox version file. Please re-install NodeBox.", e);
         }
-    }
-
-    public String getVersion() {
-        return version;
     }
 
     private void createNodeBoxDataDirectories() throws RuntimeException {
@@ -135,6 +138,7 @@ public class Application {
     }
 
     public boolean readFromFile(String path) {
+        // This method looks unused, but is actually called using reflection by the OS X adapter.
         NodeBoxDocument doc = createNewDocument();
         doc.readFromFile(path);
         return true;
@@ -165,6 +169,7 @@ public class Application {
         startupDialog.setVisible(false);
         if (documents.isEmpty())
             instance.createNewDocument();
+        updater.checkForUpdatesInBackground();
     }
 
     private void librariesErrorEvent(String libraryName, Exception exception) {
@@ -199,6 +204,31 @@ public class Application {
     }
 
 
+    //// Host implementation ////
+
+
+    public String getName() {
+        return "NodeBox";
+    }
+
+    public String getIconFile() {
+        return "test/mockboxlogo.png";
+    }
+
+    public Version getVersion() {
+        return version;
+    }
+
+    public String getAppcastURL() {
+        return "http://secure.nodebox.net/app/nodebox/appcast.xml";
+    }
+
+    public Updater getUpdater() {
+        return updater;
+    }
+
+    //// Loader classes ////
+
     public class PythonLoader implements Runnable {
         public void run() {
             PythonUtils.initializePython();
@@ -215,9 +245,6 @@ public class Application {
             String libraryName = "";
             Exception currentException = null;
             // Load libraries
-            // TODO: Check if the lines below are needed. Already done in load()?
-            //manager = new NodeLibraryManager();
-            //manager.addSearchPath(PlatformUtils.getUserNodeTypeLibraryDirectory());
             for (NodeLibrary library : manager.getLibraries()) {
                 SwingUtilities.invokeLater(new MessageSetter("Loading " + library.getName() + " library"));
                 try {
