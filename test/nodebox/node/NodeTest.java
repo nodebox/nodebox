@@ -553,6 +553,39 @@ public class NodeTest extends NodeTestCase {
         assertEquals(-42, net1.getOutputValue());
     }
 
+    public void testNewInstanceChildren() {
+        Node root = testLibrary.getRootNode();
+        // Test if children of the prototype are copied as well.
+        Node protoNet = root.create(testNetworkNode, "protoNet");
+        Node number1 = protoNet.create(numberNode);
+        Node negate1 = protoNet.create(negateNode);
+        number1.setExpression("value", "40+2");
+        negate1.getPort("value").connect(number1);
+        negate1.setRendered();
+        // Create new node based on prototype.
+        Node protoNet1 = root.create(protoNet);
+        assertEquals("protoNet1", protoNet1.getName());
+        assertTrue(protoNet1.contains("number1"));
+        assertTrue(protoNet1.contains("negate1"));
+        assertTrue(protoNet1.getChild("negate1").isConnectedTo(protoNet1.getChild("number1")));
+        assertEquals(0, protoNet1.getChild("number1").getValue("value"));
+        assertEquals("40+2", protoNet1.getChild("number1").getParameter("value").getExpression());
+        protoNet1.update();
+        assertEquals(42, protoNet1.getChild("number1").getValue("value"));
+        assertEquals(-42, protoNet1.getOutputValue());
+    }
+
+    public void testNewInstanceExpression() {
+        Node protoNumber = numberNode.newInstance(testLibrary, "protoNumber");
+        protoNumber.setExpression("value", "40+2");
+        Node proto1 = protoNumber.newInstance(testLibrary, "proto1");
+        assertEquals(0, proto1.getValue("value"));
+        assertEquals("40+2", proto1.getParameter("value").getExpression());
+        proto1.update();
+        assertEquals(42, proto1.getValue("value"));
+        assertEquals(42, proto1.getOutputValue());
+    }
+
     public void testDisconnect() {
         Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
         Node number1 = net1.create(numberNode);

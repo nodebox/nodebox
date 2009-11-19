@@ -1843,6 +1843,8 @@ public class Node implements NodeCode, NodeAttributeListener {
         for (Port p : ports.values()) {
             n.ports.put(p.getName(), p.clone(n));
         }
+        // Copy all children.
+        copyChildren(n);
         return n;
     }
 

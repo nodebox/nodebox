@@ -985,6 +985,12 @@ public class Parameter {
             // TODO: Inheriting the prototype expression is simple, but likely wrong.
             // It can refer to other parameters that are not in our namespace.
             // Better is to rewrite the expression, which we should also do in clone.
+
+            // Also set the default value, otherwise the value will be null for this parameter.
+            // The parameter is dirty, so it needs to be updated anyway.
+            // We *could* copy the value for the prototype, but we can't be sure the prototype has
+            // been updated, so it's better to set a default value.
+            setValue(getDefaultValue(type));
             setExpression(protoParam.getExpression());
         } else {
             // If the prototype does not have an expression, we shouldn't have on either.
@@ -1144,7 +1150,9 @@ public class Parameter {
      * <p/>
      * The value/expression of the new parameter will match the value/parameter
      * of its prototype, if that exists, otherwise the value will be set to the
-     * default value for the Type.
+     * default value for the Type. If the parameter has an expression, the value will be set to the
+     * default value for the Type as well. You need to update the parameter to evaluate the expression
+     * and get a correct value.
      * <p/>
      * Do not use this method directly. This method is only used by Node to create a new instance
      * based on a prototype.
