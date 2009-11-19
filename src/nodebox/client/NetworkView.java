@@ -333,6 +333,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
         for (Node newNode : newNodes) {
             NodeView nv = getNodeView(newNode);
             assert nv != null;
+            nv.updateIcon();
             addToSelection(nv);
         }
     }
