@@ -18,7 +18,6 @@
  */
 package nodebox.node;
 
-import nodebox.client.NodeView;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.handle.Handle;
@@ -1881,15 +1880,42 @@ public class Node implements NodeCode, NodeAttributeListener {
             newNode.ports.remove(p.getName());
             newNode.ports.put(p.getName(), p.copy(newNode));
         }
-        // TODO: Copy children.
-        // TODO: Copy rendered child.
+        copyChildren(newNode);
         return newNode;
     }
 
+    /**
+     * Copy all of my children to the new parent.
+     *
+     * @param newParent the new parent to copy the children under.
+     * @return a new collection of children.
+     */
+
+    public Collection<Node> copyChildren(Node newParent) {
+        // Copy children.
+        Collection<Node> newChildren = copyChildren(children.values(), newParent);
+        // Copy rendered child.
+        if (getRenderedChild() != null) {
+            newParent.setRenderedChild(newParent.getChild(getRenderedChild().getName()));
+        }
+        return newChildren;
+    }
+
+    /**
+     * Copy all of the given children under the new parent.
+     * <p/>
+     * The children need to be contained in this node.
+     *
+     * @param children  a list of my children to copy. They need to be direct children of this node.
+     * @param newParent the new parent to copy the children under.
+     * @return a new collection of children.
+     */
     public Collection<Node> copyChildren(Collection<Node> children, Node newParent) {
         HashMap<Node, Node> copyMap = new HashMap<Node, Node>(children.size());
         for (Node n : children) {
-            assert contains(n);
+            if (!contains(n)) {
+                throw new IllegalArgumentException("The given node is not a child of this parent: " + n + " parent: " + this);
+            }
             Node newNode = n.copy(newParent);
             copyMap.put(n, newNode);
         }
@@ -1904,6 +1930,15 @@ public class Node implements NodeCode, NodeAttributeListener {
         return copyMap.values();
     }
 
+    /**
+     * Copy one child of this node under the new parent.
+     * <p/>
+     * The child needs to be a direct descendant of this node (so no grandchildren).
+     *
+     * @param child     a child to copy. This child needs to be a direct child of this node.
+     * @param newParent the new parent to copy the child under.
+     * @return the new child.
+     */
     public Node copyChild(Node child, Node newParent) {
         ArrayList<Node> children = new ArrayList<Node>(1);
         children.add(child);

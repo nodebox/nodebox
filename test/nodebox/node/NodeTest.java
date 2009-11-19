@@ -463,6 +463,14 @@ public class NodeTest extends NodeTestCase {
         assertEquals(newValueForOriginal, beta1.asInt("value"));
     }
 
+    public void testCopyChild() {
+        Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
+        Node net2 = testNetworkNode.newInstance(testLibrary, "net2");
+        Node number1 = net1.create(numberNode);
+        Node newNumber1 = net1.copyChild(number1, net2);
+        assertEquals(net2, newNumber1.getParent());
+    }
+
     public void testCopyComplex() {
         // number1-> negate1 -> addConstant1 -> multiAdd1
         // We'll copy negate1 and addConstant1.
@@ -511,6 +519,38 @@ public class NodeTest extends NodeTestCase {
         assertFalse(net2Negate1.isConnectedTo(number1));
         assertTrue(net2AddConstant1.isConnectedTo(net2Negate1));
         assertFalse(multiAdd1.isConnectedTo(net2AddConstant1));
+    }
+
+    public void testCopyChildren() {
+        Node root = testLibrary.getRootNode();
+        Node net1 = testNetworkNode.newInstance(testLibrary, "net1");
+        Node number1 = net1.create(numberNode);
+        Node negate1 = net1.create(negateNode);
+        Node subnet1 = net1.create(testNetworkNode, "subnet1");
+        Node subNumber1 = subnet1.create(numberNode);
+        negate1.getPort("value").connect(number1);
+        negate1.setRendered();
+        number1.setValue("value", 42);
+        subNumber1.setValue("value", 33);
+        net1.update();
+        assertEquals(-42, net1.getOutputValue());
+        try {
+            root.copyChild(negate1, root);
+            fail("Should have thrown error.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("not a child of this parent"));
+        }
+        Node net2 = root.copyChild(net1, root);
+        assertEquals("net2", net2.getName());
+        Node net2number1 = net2.getChild("number1");
+        Node net2negate1 = net2.getChild("negate1");
+        assertEquals("negate1", net2negate1.getName());
+        assertTrue(net2negate1.getPort("value").isConnectedTo(net2number1));
+        assertEquals(33, net2.getChild("subnet1").getChild("number1").getValue("value"));
+        // Not updated yet.
+        assertNull(net2.getOutputValue());
+        net2.update();
+        assertEquals(-42, net1.getOutputValue());
     }
 
     public void testDisconnect() {
