@@ -7,7 +7,128 @@ import java.util.ArrayList;
 /**
  * Base class for all geometric (vector) data.
  */
+
+
 public class Path extends AbstractGeometry implements Colorizable {
+
+    private class Bezier {
+        private float x1, y1, x2, y2, x3, y3, x4, y4;
+        private float minx, maxx, miny, maxy;
+
+        public Bezier(Point p1, Point p2, Point p3, Point p4) {
+            x1 = p1.getX();
+            y1 = p1.getY();
+            x2 = p2.getX();
+            y2 = p2.getY();
+            x3 = p3.getX();
+            y3 = p3.getY();
+            x4 = p4.getX();
+            y4 = p4.getY();
+        }
+
+        private boolean fuzzyCompare(float p1, float p2) {
+            return Math.abs(p1 - p2) <= (0.000000000001 * Math.min(Math.abs(p1), Math.abs(p2)));
+        }
+
+        public Point pointAt(float t) {
+            float coeff[], a, b, c, d;
+            coeff = coefficients(t);
+            a = coeff[0];
+            b = coeff[1];
+            c = coeff[2];
+            d = coeff[3];
+            return new Point(a*x1 + b*x2 + c*x3 + d*x4, a*y1 + b*y2 + c*y3 + d*y4);
+        }
+
+        private float[] coefficients(float t) {
+            float m_t, a, b, c, d;
+            m_t = 1 - t;
+            b = m_t * m_t;
+            c = t * t;
+            d = c * t;
+            a = b * m_t;
+            b *= (3. * t);
+            c *= (3. * m_t);
+            return new float[] {a, b, c, d};
+        }
+
+        private void bezierCheck(float t) {
+            if (t >= 0 && t <= 1) {
+                Point p = pointAt(t);
+                if (p.getX() < minx) minx = p.getX();
+                else if (p.getX() > maxx) maxx = p.getX();
+                if (p.getY() < miny) miny = p.getY();
+                else if (p.getY() > maxy) maxy = p.getY();
+            }
+        }
+
+        public Rect extrema() {
+            float ax, bx, cx, ay, by, cy;
+
+            if (x1 < x4) {
+                minx = x1;
+                maxx = x4;
+            } else {
+                minx = x4;
+                maxx = x1;
+            }
+            if (y1 < y4) {
+                miny = y1;
+                maxy = y4;
+            } else {
+                miny = y4;
+                maxy = y1;
+            }
+
+            ax = 3 * (-x1 + 3*x2 - 3*x3 + x4);
+            bx = 6 * (x1 - 2*x2 + x3);
+            cx = 3 * (-x1 + x2);
+
+            if (fuzzyCompare(ax + 1, 1)) {
+                if (! fuzzyCompare(bx + 1, 1)) {
+                    float t = -cx / bx;
+                    bezierCheck(t);
+                }
+            } else {
+                float tx = bx * bx - 4 * ax * cx;
+                if (tx >= 0) {
+                    float temp, rcp, t1, t2;
+                    temp = (float) Math.sqrt(tx);
+                    rcp = 1 / (2 * ax);
+                    t1 = (-bx + temp) * rcp;
+                    bezierCheck(t1);
+
+                    t2 = (-bx - temp) * rcp;
+                    bezierCheck(t2);
+                }
+            }
+
+            ay = 3 * (-y1 + 3*y2 - 3*y3 + y4);
+            by = 6 * (y1 - 2*y2 + y3);
+            cy = 3 * (-y1 + y2);
+
+            if (fuzzyCompare(ay + 1, 1)) {
+                if (! fuzzyCompare(by + 1, 1)) {
+                    float t = -cy / by;
+                    bezierCheck(t);
+                }
+            } else {
+                float ty = by * by - 4 * ay * cy;
+                if (ty > 0) {
+                    float temp, rcp, t1, t2;
+                    temp = (float) Math.sqrt(ty);
+                    rcp = 1 / (2 * ay);
+                    t1 = (-by + temp) * rcp;
+                    bezierCheck(t1);
+
+                    t2 = (-by - temp) * rcp;
+                    bezierCheck(t2);
+                }
+            }
+
+            return new Rect(minx, miny, maxx - minx, maxy - miny);
+        }
+    }
 
     // Simulate a quarter of a circle.
     private static final float ONE_MINUS_QUARTER = 1.0f - 0.552f;
@@ -777,14 +898,25 @@ public class Path extends AbstractGeometry implements Colorizable {
             float maxX = -Float.MAX_VALUE;
             float maxY = -Float.MAX_VALUE;
             float px, py;
-            for (Contour c : contours) {
-                for (Point p : c.getPoints()) {
+            ArrayList<Point> points = (ArrayList<Point>) getPoints();
+            for (int i=0; i < getPointCount(); i++) {
+                Point p = points.get(i);
+                if (p.getType() == Point.LINE_TO) {
                     px = p.getX();
                     py = p.getY();
                     if (px < minX) minX = px;
                     if (py < minY) minY = py;
                     if (px > maxX) maxX = px;
                     if (py > maxY) maxY = py;
+                } else if (p.getType() == Point.CURVE_TO) {
+                    Bezier b = new Bezier(points.get(i-3), points.get(i-2), points.get(i-1), p);
+                    Rect r = b.extrema();
+                    float right = r.getX() + r.getWidth();
+                    float bottom = r.getY() + r.getHeight();
+                    if (r.getX() < minX) minX = r.getX();
+                    if (right > maxX) maxX = right;
+                    if (r.getY() < minY) minY = r.getY();
+                    if (bottom > maxY) maxY = bottom;
                 }
             }
             bounds = new Rect(minX, minY, maxX - minX, maxY - minY);
