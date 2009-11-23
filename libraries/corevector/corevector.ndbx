@@ -2002,7 +2002,7 @@ def cook(self):
   <node name="transform" prototype="filter" x="90" y="410">
     <description>Transforms the location, rotation and scale of a shape.</description>
     <param name="_code">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform
+      <value type="python"><![CDATA[from nodebox.graphics import Transform
 
 def cook(self):
     if self.shape is None: return None
@@ -2019,116 +2019,315 @@ def cook(self):
     return t.map(self.shape)]]></value>
     </param>
     <param name="_handle">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Rect
+      <value type="python"><![CDATA[from nodebox.graphics import *
 from nodebox.handle import AbstractHandle
+from nodebox.util.Geometry import coordinates, angle, distance
+
+def values(transform):
+    t = transform.affineTransform
+    return [t.scaleX, t.shearY, t.shearX, t.scaleY, t.translateX, t.translateY]
 
 class TransformHandle(AbstractHandle):
-    NONE, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT, CENTER = range(6)
-    
+    NONE, SCALE, TRANSLATION, ROTATION = range(4)
+
     def __init__(self, node):
         AbstractHandle.__init__(self, node)
-        self.dragState = TransformHandle.NONE
-        self.iwidth = 0
-        self.iheight = 0
+        self.shape = None
+        self.original_rect = None
+        self.transform = None
+        self._toggle_rotation = False
+        self.rotation_handle_length = 100
+        self.operation = self.NONE
         self.update()
+    
+    def node_parameters(self):
+        order = self.node.asString("order")
+        tx = self.node.asFloat("tx")
+        ty = self.node.asFloat("ty")
+        r = self.node.asFloat("r")
+        sx = self.node.asFloat("sx")
+        sy = self.node.asFloat("sy")
+        return order, tx, ty, r, sx, sy
         
+    def find_translation_before(self, x0, y0, x1, y1, t):
+        m11, m21, m12, m22 = values(t)[:4]
+        tx = x1 - m11*x0 - m12*y0
+        ty = y1 - m21*x0 - m22*y0
+        return tx, ty
+
+    def find_translation_after(self, x0, y0, x1, y1, t):
+        m11, m21, m12, m22 = values(t)[:4]
+        ty = (m11*(y1 - m22*y0) + m21*(m12*y0 - x1)) / (m11*m22 - m21*m12)
+        tx = (x1 - m11*x0 - m12*(y0 + ty)) / m11
+        return tx, ty
+
+    def find_translation_rts(self, x0, y0, x1, y1, t1, t2):
+        m11, m21, m12, m22 = values(t1)[:4]
+        sx, _a, _b, sy = values(t2)[:4]
+        k = m11*sx
+        l = m12*sy
+        m = m21*sx
+        n = m22*sy
+        ty = (m11*(y1 - m*x0 - n*y0) + m21*(l*y0 - x1 + k*x0)) / (m11*m22 - m21*m12)
+        tx = (x1 - k*x0 - l*y0 - m12*ty)/m11
+        return tx, ty
+
+    def find_translation_str(self, x0, y0, x1, y1, t1, t2):
+        m11, m21, m12, m22 = values(t2)[:4]
+        sx, _a, _b, sy = values(t1)[:4]
+        tx = (x1 - sx*(m11*x0 + m12*y0)) / sx
+        ty = (y1 - sy*(m21*x0 + m22*y0)) / sy
+        return tx, ty
+
+    def find_scale_before(self, x0, y0, x1, y1, t):
+        m11, m21, m12, m22, m13, m23 = values(t)
+        sx = x1 / (m11*x0 + m12*y0 + m13)
+        sy = y1 / (m21*x0 + m22*y0 + m23)
+        return sx, sy
+
+    def find_scale_after(self, x0, y0, x1, y1, t):
+        m11, m21, m12, m22, m13, m23 = values(t)
+        sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
+        sy = (y1 - m21*sx*x0 - m23) / (m22*y0)
+        return sx, sy
+
+    def find_scale_rst(self, x0, y0, x1, y1, t1, t2):
+        m11, m21, m12, m22 = values(t1)[:4]
+        tx, ty = values(t2)[4:]
+
+        j = m11*(tx + x0)
+        k = m21*(tx + x0)
+        l = m12*(ty + y0)
+        m = m22*(ty + y0)
+
+        if j== 0 and l == 0:
+            return 1, 1
+        if j == 0:
+            return 1, x1 / l
+        if l == 0:
+            return x1 / j, 1
+
+        sx = (y1*l - x1*m) / (l*k - j*m)
+        sy = (y1*j - x1*k) / (m*j - l*k)
+        return sx, sy
+
+    def find_scale_tsr(self, x0, y0, x1, y1, t1, t2):
+        m11, m21, m12, m22 = values(t2)[:4]
+        tx, ty = values(t1)[4:]
+        sx = (x1 - tx) / (m11*x0 + m12*y0)
+        sy = (y1 - ty) / (m21*x0 + m22*y0)
+        return sx, sy
+            
     def update(self):
         shape = self.node.getPort("shape").value
         if shape is not None:
-            x, y, w, h = list(shape.bounds)
-            self.iwidth = w
-            self.iheight = h
+            if shape is not self.shape:
+                self.shape = shape
+                x, y, w, h = list(shape.bounds)
+                p = Path()
+                p.rect(x + w/2, y + h/2, w, h)
+                self.original_rect = p
+            order, tx, ty, r, sx, sy = self.node_parameters()
+            
+            t = Transform()
+            for op in order:
+                if op == 't':
+                    t.translate(tx, ty)
+                elif op == 'r':
+                    t.rotate(r)
+                elif op == 's':
+                    t.scale(sx / 100, sy / 100)
+            self.transform = t
             self.visible = True
         else:
-            self.iwidth = self.iheight = 0
+            self.shape = None
+            self.original_rect = None
+            self.transform = None
             self.visible = False
-        
-    def draw(self, ctx):
-        cx = self.node.asFloat("tx")
-        cy = self.node.asFloat("ty")
-        width = self.node.asFloat("sx") * self.iwidth / 100
-        height = self.node.asFloat("sy") * self.iheight / 100
-        left = cx - width / 2
-        right = cx + width / 2
-        top = cy - height / 2
-        bottom = cy + height / 2
-        cornerPath = Path()
-        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
-        cornerPath.strokeWidth = 0
-        self.drawDot(cornerPath, left, top)
-        self.drawDot(cornerPath, right, top)
-        self.drawDot(cornerPath, right, bottom)
-        self.drawDot(cornerPath, left, bottom)
-        self.drawDot(cornerPath, cx, cy)
-        ctx.canvas.add(cornerPath)
-        strokePath = Path()
-        strokePath.fillColor = None
-        strokePath.strokeColor = AbstractHandle.HANDLE_COLOR
-        strokePath.rect(cx, cy, width, height)
-        ctx.draw(strokePath)
-        
-    def mousePressed(self, pt):
-        self.px = pt.x
-        self.py = pt.y
-        
-        self.ocx = self.node.asFloat("tx")
-        self.ocy = self.node.asFloat("ty")
-        self.owidth = self.iwidth * self.node.asFloat("sx") / 100
-        self.oheight = self.iheight * self.node.asFloat("sy") / 100
-        
-        left = self.ocx - self.owidth / 2
-        right = self.ocx + self.owidth / 2
-        top = self.ocy - self.oheight / 2
-        bottom = self.ocy + self.oheight / 2
-        
-        topLeft = self.createHitRectangle(left, top)
-        topRight = self.createHitRectangle(right, top)
-        bottomLeft = self.createHitRectangle(left, bottom)
-        bottomRight = self.createHitRectangle(right, bottom)
-        center = Rect(left, top, self.owidth, self.oheight)
-        
+            
+    def init_scale_or_translation_operation(self, pt):
+        path = self.transform.map(self.original_rect)
+        o1, o2, o3, o4 = self.original_rect.points
+        p1, p2, p3, p4 = path.points
+        topLeft = self.createHitRectangle(p1.x, p1.y)
+        topRight = self.createHitRectangle(p2.x, p2.y)
+        bottomLeft = self.createHitRectangle(p3.x, p3.y)
+        bottomRight = self.createHitRectangle(p4.x, p4.y)
+        self.operation = self.SCALE
         if topLeft.contains(pt):
-            self.dragState = self.TOP_LEFT
+            self.transform_point = o1
         elif topRight.contains(pt):
-            self.dragState = self.TOP_RIGHT
+            self.transform_point = o2
         elif bottomLeft.contains(pt):
-            self.dragState = self.BOTTOM_LEFT
+            self.transform_point = o3
         elif bottomRight.contains(pt):
-            self.dragState = self.BOTTOM_RIGHT
-        elif center.contains(pt):
-            self.dragState = self.CENTER
+            self.transform_point = o4
+        elif path.contains(pt):
+            t = Transform(self.transform)
+            t.invert()
+            self.transform_point = t.map(pt)
+            self.operation = self.TRANSLATION
         else:
-            self.dragState = self.NONE
+            self.operation = self.NONE
 
+    def rotation_coordinates(self):
+        order, tx, ty, r, sx, sy = self.node_parameters()
+        t = Transform()
+        for op in order:
+            if op == 't':
+                t.translate(tx, ty)
+            elif op == 'r':
+                break
+            elif op == 's':
+                t.scale(sx / 100, sy / 100)
+
+        origin = t.map(Point(0, 0))
+        rx, ry = coordinates(origin.x, origin.y, self.rotation_handle_length, r)
+        return origin, Point(rx, ry)
+    
+    def init_rotation_operation(self, pt):
+        origin, handle = self.rotation_coordinates()
+        p = self.createHitRectangle(handle.x, handle.y)
+        if p.contains(pt):
+            self.transform_point = origin
+            self.operation = self.ROTATION
+            
+    def mousePressed(self, pt):
+        if self._toggle_rotation:
+            self.init_rotation_operation(pt)
+        else:
+            self.init_scale_or_translation_operation(pt)
+
+    def perform_scale(self, pt):
+        p = self.transform_point
+        order, tx, ty, r, sx, sy = self.node_parameters()
+        t = Transform()
+        if order in ["srt", "rts"]:
+            t.rotate(r)
+            t.translate(tx, ty)
+        elif order in ["str", "trs"]:
+            t.translate(tx, ty)
+            t.rotate(r)
+        
+        if order in ["srt", "str"]:
+            sx, sy = self.find_scale_before(p.x, p.y, pt.x, pt.y, t)
+        elif order in ["rts", "trs"]:
+            sx, sy = self.find_scale_after(p.x, p.y, pt.x, pt.y, t)
+        elif order in ["rst", "tsr"]:
+            t1 = Transform()
+            t1.rotate(r)
+            t2 = Transform()
+            t2.translate(tx, ty)
+            if order == "rst":
+                sx, sy = self.find_scale_rst(p.x, p.y, pt.x, pt.y, t1, t2)
+            else:
+                sx, sy = self.find_scale_tsr(p.x, p.y, pt.x, pt.y, t2, t1)
+            
+        self.node.silentSet("sx", sx * 100)
+        self.node.silentSet("sy", sy * 100)
+    
+    def perform_translation(self, pt):
+        p = self.transform_point
+        order, tx, ty, r, sx, sy = self.node_parameters()
+        sx /= 100
+        sy /= 100
+        t = Transform()
+    
+        if order in ["trs", "rst"]:
+            t.rotate(r)
+            t.scale(sx, sy)
+        elif order in ["tsr", "srt"]:
+            t.scale(sx, sy)
+            t.rotate(r)
+    
+        if order in ["trs", "tsr"]:
+            tx, ty = self.find_translation_before(p.x, p.y, pt.x, pt.y, t)
+        elif order in ["rst", "srt"]:
+            tx, ty = self.find_translation_after(p.x, p.y, pt.x, pt.y, t)
+        elif order in ["rts", "str"]:
+            t1 = Transform()
+            t1.rotate(r)
+            t2 = Transform()
+            t2.scale(sx, sy)
+            if order == "rts":
+                tx, ty = self.find_translation_rts(p.x, p.y, pt.x, pt.y, t1, t2)
+            else:
+                tx, ty = self.find_translation_str(p.x, p.y, pt.x, pt.y, t2, t1)
+            
+        self.node.silentSet("tx", tx)
+        self.node.silentSet("ty", ty)
+
+    def perform_rotation(self, pt):
+        p = self.transform_point
+        d = distance(p.x, p.y, pt.x, pt.y)
+        a = angle(p.x, p.y, pt.x, pt.y)
+        self.node.silentSet("r", a)
+        self.rotation_handle_length = d
+        
     def mouseDragged(self, pt):
-        if self.dragState == self.NONE: return
-
-        x = pt.x
-        y = pt.y
-        dx = x - self.px
-        dy = y - self.py
-        
-        if (dx == 0 and dy == 0): return
-        
-        if self.dragState == self.TOP_LEFT:
-            self.node.silentSet("sx", (self.owidth - dx * 2) / self.iwidth * 100)
-            self.node.silentSet("sy", (self.oheight - dy * 2) / self.iheight * 100)
-        elif self.dragState == self.TOP_RIGHT:
-            self.node.silentSet("sy", (self.oheight - dy * 2) / self.iwidth * 100)
-            self.node.silentSet("sx", (self.owidth + dx * 2) / self.iheight * 100)
-        elif self.dragState == self.BOTTOM_LEFT:
-            self.node.silentSet("sx", (self.owidth - dx * 2) / self.iwidth * 100)
-            self.node.silentSet("sy", (self.oheight + dy * 2) / self.iheight * 100)
-        elif self.dragState == self.BOTTOM_RIGHT:
-            self.node.silentSet("sx", (self.owidth + dx * 2) / self.iwidth * 100)
-            self.node.silentSet("sy", (self.oheight + dy * 2) / self.iheight * 100)
-        elif self.dragState == self.CENTER:
-            self.node.silentSet("tx", self.ocx + dx)
-            self.node.silentSet("ty", self.ocy + dy)
-        
+        if self.operation == self.SCALE:
+            self.perform_scale(pt)
+        elif self.operation == self.TRANSLATION:            
+            self.perform_translation(pt)
+        elif self.operation == self.ROTATION:
+            self.perform_rotation(pt)
+            
     def mouseReleased(self, pt):
-        self.dragState = self.NONE
-        
+        self.operation = self.NONE
+        self.viewer.repaint()
+
+    def keyPressed(self, keyCode, modifiers):
+        if modifiers & AbstractHandle.SHIFT_DOWN:
+            self._toggle_rotation = True
+            self.viewer.repaint()
+
+    def keyReleased(self, keyCode, modifiers):
+        self._toggle_rotation = False
+        self.viewer.repaint()
+
+    def draw(self, ctx):
+        if self.operation in [self.SCALE, self.TRANSLATION]:
+            show_rotation_handle = False
+        elif self.operation == self.ROTATION or self._toggle_rotation:
+            show_rotation_handle = True
+        else:
+            show_rotation_handle = False
+            
+        if show_rotation_handle:
+            self.draw_rotation_handle(ctx)
+        else:
+            self.draw_scale_handles(ctx)
+    
+    def draw_scale_handles(self, ctx):
+        x, y, w, h = list(self.original_rect.bounds)
+        p = self.original_rect.points[0]
+        center = self.transform.map(Point(p.x + w/2, p.y + h/2))
+        bounds_path = self.transform.map(self.original_rect)
+        bounds_path.fillColor = None
+        bounds_path.strokeColor = AbstractHandle.HANDLE_COLOR
+        corner_path = Path()
+        corner_path.fillColor = AbstractHandle.HANDLE_COLOR
+        corner_path.strokeWidth = 0
+        for point in bounds_path.points:
+            self.drawDot(corner_path, point.x, point.y)
+        self.drawDot(corner_path, center.x, center.y)
+        ctx.draw(bounds_path)
+        ctx.draw(corner_path)
+                
+    def draw_rotation_handle(self, ctx):
+        origin, handle = self.rotation_coordinates()
+        rotation_path = Path()
+        rotation_path.fillColor = AbstractHandle.HANDLE_COLOR
+        rotation_path.strokeWidth = 0
+        self.drawDot(rotation_path, handle.x, handle.y)
+        rotation_line_path = Path()
+        rotation_line_path.fillColor = None
+        rotation_line_path.strokeColor = AbstractHandle.HANDLE_COLOR
+        rotation_line_path.strokeWidth = 1
+        rotation_line_path.line(origin.x, origin.y, handle.x, handle.y)
+        ctx.draw(rotation_line_path)
+        ctx.draw(rotation_path)
+    
 def cook(self):
     return TransformHandle(self.node)]]></value>
     </param>
