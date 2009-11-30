@@ -2027,6 +2027,8 @@ def values(transform):
     t = transform.affineTransform
     return [t.scaleX, t.shearY, t.shearX, t.scaleY, t.translateX, t.translateY]
 
+DEFAULT_ROTATION_HANDLE_LENGTH = 100
+
 class TransformHandle(AbstractHandle):
     NONE, SCALE, TRANSLATION, ROTATION = range(4)
 
@@ -2035,8 +2037,7 @@ class TransformHandle(AbstractHandle):
         self.shape = None
         self.original_rect = None
         self.transform = None
-        self._toggle_rotation = False
-        self.rotation_handle_length = 100
+        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
         self.operation = self.NONE
         self.update()
     
@@ -2153,6 +2154,7 @@ class TransformHandle(AbstractHandle):
         topRight = self.createHitRectangle(p2.x, p2.y)
         bottomLeft = self.createHitRectangle(p3.x, p3.y)
         bottomRight = self.createHitRectangle(p4.x, p4.y)
+        can_scale_or_translate = True
         self.operation = self.SCALE
         if topLeft.contains(pt):
             self.transform_point = o1
@@ -2169,6 +2171,8 @@ class TransformHandle(AbstractHandle):
             self.operation = self.TRANSLATION
         else:
             self.operation = self.NONE
+            can_scale_or_translate = False
+        return can_scale_or_translate
 
     def rotation_coordinates(self):
         order, tx, ty, r, sx, sy = self.node_parameters()
@@ -2191,11 +2195,11 @@ class TransformHandle(AbstractHandle):
         if p.contains(pt):
             self.transform_point = origin
             self.operation = self.ROTATION
+            return True
+        return False
             
     def mousePressed(self, pt):
-        if self._toggle_rotation:
-            self.init_rotation_operation(pt)
-        else:
+        if not self.init_rotation_operation(pt):
             self.init_scale_or_translation_operation(pt)
 
     def perform_scale(self, pt):
@@ -2274,29 +2278,12 @@ class TransformHandle(AbstractHandle):
             
     def mouseReleased(self, pt):
         self.operation = self.NONE
-        self.viewer.repaint()
-
-    def keyPressed(self, keyCode, modifiers):
-        if modifiers & AbstractHandle.SHIFT_DOWN:
-            self._toggle_rotation = True
-            self.viewer.repaint()
-
-    def keyReleased(self, keyCode, modifiers):
-        self._toggle_rotation = False
+        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
         self.viewer.repaint()
 
     def draw(self, ctx):
-        if self.operation in [self.SCALE, self.TRANSLATION]:
-            show_rotation_handle = False
-        elif self.operation == self.ROTATION or self._toggle_rotation:
-            show_rotation_handle = True
-        else:
-            show_rotation_handle = False
-            
-        if show_rotation_handle:
-            self.draw_rotation_handle(ctx)
-        else:
-            self.draw_scale_handles(ctx)
+        self.draw_rotation_handle(ctx)
+        self.draw_scale_handles(ctx)
     
     def draw_scale_handles(self, ctx):
         x, y, w, h = list(self.original_rect.bounds)
@@ -2335,7 +2322,7 @@ def cook(self):
       <value>transform.png</value>
     </param>
     <param name="order" type="string" widget="menu">
-      <value>tsr</value>
+      <value>trs</value>
       <menu key="srt">Scale Rot Trans</menu>
       <menu key="str">Scale Trans Rot</menu>
       <menu key="rst">Rot Scale Trans</menu>
