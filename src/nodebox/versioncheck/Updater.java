@@ -3,6 +3,8 @@ package nodebox.versioncheck;
 import nodebox.client.SwingUtils;
 
 import java.awt.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -11,8 +13,8 @@ import java.util.prefs.Preferences;
  */
 public class Updater {
 
-    public static final String LAST_UPDATE_CHECK = "FBLastUpdateCheck";
-    public static final long UPDATE_INTERVAL = 1000 * 60 * 60 * 24; // 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = Every day
+    public static final String LAST_UPDATE_CHECK = "NBLastUpdateCheck";
+    public static final long UPDATE_INTERVAL = 0; //1000 * 60 * 60 * 24; // 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = Every day
 
     private final Host host;
     private boolean automaticCheck;
@@ -79,7 +81,7 @@ public class Updater {
             SwingUtils.centerOnScreen(updateCheckDialog, win);
             updateCheckDialog.setVisible(true);
         }
-        updateChecker = new UpdateChecker(this);
+        updateChecker = new UpdateChecker(this, false);
         updateChecker.start();
     }
 
@@ -90,7 +92,7 @@ public class Updater {
      */
     public void checkForUpdatesInBackground() {
         if (shouldCheckForUpdate()) {
-            updateChecker = new UpdateChecker(this);
+            updateChecker = new UpdateChecker(this, true);
             updateChecker.start();
         }
     }
@@ -110,14 +112,14 @@ public class Updater {
         return preferences;
     }
 
-    public void checkPerformed(Appcast appcast) {
+    public void checkPerformed(UpdateChecker checker, Appcast appcast) {
         if (updateCheckDialog != null) {
             updateCheckDialog.setVisible(false);
             updateCheckDialog = null;
         }
         // Delegate method.
         if (delegate != null)
-            if (delegate.checkPerformed(appcast))
+            if (delegate.checkPerformed(checker, appcast))
                 return;
 
         // Store last check update check time.
@@ -129,10 +131,10 @@ public class Updater {
         }
     }
 
-    public void checkerFoundValidUpdate(Appcast appcast) {
+    public void checkerFoundValidUpdate(UpdateChecker checker, Appcast appcast) {
         // Delegate method.
         if (delegate != null)
-            if (delegate.checkerFoundValidUpdate(appcast))
+            if (delegate.checkerFoundValidUpdate(checker, appcast))
                 return;
 
         UpdateAlert alert = new UpdateAlert(this, appcast);
@@ -142,16 +144,20 @@ public class Updater {
         alert.downloadReleaseNotes();
     }
 
-    public void checkerEncounteredError(Exception e) {
+    public void checkerEncounteredError(UpdateChecker checker, Throwable t) {
         if (updateCheckDialog != null) {
             updateCheckDialog.setVisible(false);
             updateCheckDialog = null;
         }
         // Delegate method.
         if (delegate != null)
-            if (delegate.checkerEncounteredError(e))
+            if (delegate.checkerEncounteredError(checker, t))
                 return;
-        throw new RuntimeException(e);
+        if (checker.isSilent()) {
+            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Update checker encountered error.", t);
+        } else {
+            throw new RuntimeException(t);
+        }
     }
 
     public void waitForCheck(int timeoutMillis) {

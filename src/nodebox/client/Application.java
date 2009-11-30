@@ -220,7 +220,7 @@ public class Application implements Host {
     }
 
     public String getAppcastURL() {
-        return "http://secure.nodebox.net/app/nodebox/appcast.xml";
+        return "https://secure.nodebox.net/app/nodebox/appcast.xml";
     }
 
     public Updater getUpdater() {

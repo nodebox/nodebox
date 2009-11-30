@@ -10,9 +10,15 @@ import java.net.URLConnection;
 public class UpdateChecker extends Thread implements Runnable {
 
     private Updater updater;
+    private boolean silent;
 
-    public UpdateChecker(Updater updater) {
+    public UpdateChecker(Updater updater, boolean silent) {
         this.updater = updater;
+        this.silent = silent;
+    }
+
+    public boolean isSilent() {
+        return silent;
     }
 
     public void run() {
@@ -25,7 +31,7 @@ public class UpdateChecker extends Thread implements Runnable {
             // Inform the updater that a check was performed.
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updater.checkPerformed(appcast);
+                    updater.checkPerformed(UpdateChecker.this, appcast);
                 }
             });
             // Check if the latest version is newer than the current version.
@@ -33,14 +39,14 @@ public class UpdateChecker extends Thread implements Runnable {
             if (latest.isNewerThan(updater.getHost())) {
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
-                        updater.checkerFoundValidUpdate(appcast);
+                        updater.checkerFoundValidUpdate(UpdateChecker.this, appcast);
                     }
                 });
             }
         } catch (final Exception e) {
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    updater.checkerEncounteredError(e);
+                    updater.checkerEncounteredError(UpdateChecker.this, e);
                 }
             });
         }

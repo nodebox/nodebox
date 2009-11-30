@@ -7,15 +7,15 @@ package nodebox.versioncheck;
  */
 public class UpdateDelegate {
 
-    public boolean checkPerformed(Appcast appcast) {
+    public boolean checkPerformed(UpdateChecker checker, Appcast appcast) {
         return false;
     }
 
-    public boolean checkerFoundValidUpdate(Appcast appcast) {
+    public boolean checkerFoundValidUpdate(UpdateChecker checker, Appcast appcast) {
         return false;
     }
 
-    public boolean checkerEncounteredError(Exception e) {
+    public boolean checkerEncounteredError(UpdateChecker checker, Throwable t) {
         return false;
     }
 

@@ -29,7 +29,7 @@ public class UpdaterTest extends TestCase {
             throw new RuntimeException(e);
         }
         assertTrue(delegate.checkPerformed);
-        assertNull(delegate.exception);
+        assertNull(delegate.throwable);
         AppcastItem item = delegate.appcast.getLatest();
         assertNotNull(item);
         assertEquals(new Version("2.0"), item.getVersion());
@@ -40,23 +40,23 @@ public class UpdaterTest extends TestCase {
 
         private boolean checkPerformed;
         private Appcast appcast;
-        private Exception exception;
+        private Throwable throwable;
 
         @Override
-        public boolean checkPerformed(Appcast appcast) {
+        public boolean checkPerformed(UpdateChecker checker, Appcast appcast) {
             checkPerformed = true;
             return true;
         }
 
         @Override
-        public boolean checkerFoundValidUpdate(Appcast appcast) {
+        public boolean checkerFoundValidUpdate(UpdateChecker checker, Appcast appcast) {
             this.appcast = appcast;
             return true;
         }
 
         @Override
-        public boolean checkerEncounteredError(Exception e) {
-            this.exception = e;
+        public boolean checkerEncounteredError(UpdateChecker checker, Throwable t) {
+            this.throwable = t;
             return true;
         }
     }
