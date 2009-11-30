@@ -3,6 +3,7 @@ package nodebox.versioncheck;
 import junit.framework.TestCase;
 import org.xml.sax.SAXParseException;
 
+import javax.swing.*;
 import java.io.FileNotFoundException;
 
 public class UpdaterTest extends TestCase {
@@ -63,6 +64,19 @@ public class UpdaterTest extends TestCase {
         try {
             updater.getUpdateChecker().join();
         } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        // The update checker calls invokeLater on the AWT event dispatch thread.
+        // We need to make sure this call finishes before we continue our test.
+        // By using invokeAndWait to place an empty action on the thread, we know
+        // that the calls will have finished.
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    // Do nothing;
+                }
+            });
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return delegate;
