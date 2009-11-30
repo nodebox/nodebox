@@ -1772,6 +1772,73 @@ def cook(self):
       <value>0.0</value>
     </param>
   </node>
+  <node name="reflect" prototype="filter" x="330" y="410">
+    <description>Mirrors and copies the geometry across an invisible axis.</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry
+from nodebox.util.Geometry import coordinates, angle, distance
+from math import cos, radians
+
+def cook(self):
+    if self.shape is None: return None
+    g = Geometry()
+    shape = self.shape.clone()
+    if self.keepOriginal:
+        g.extend(shape)
+        
+    for point in shape.points:
+        d = distance(point.x, point.y, self.x, self.y)
+        a = angle(point.x, point.y, self.x, self.y)
+        x, y = coordinates(self.x, self.y, d * cos(radians(a - self.angle)), 180 + self.angle)
+        d = distance(point.x, point.y, x, y)
+        a = angle(point.x, point.y, x, y)
+        point.x, point.y = coordinates(point.x, point.y, d * 2, a)
+        
+    g.extend(shape)
+    return g]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Color
+from nodebox.handle import PointHandle
+from nodebox.util.Geometry import coordinates
+
+class ReflectHandle(PointHandle):
+    def __init__(self, node):
+        PointHandle.__init__(self, node)
+  
+    def update(self):
+        shape = self.node.getPort("shape").value
+        self.visible = shape is not None
+    
+    def draw(self, ctx):
+        x = self.node.asFloat("x")
+        y = self.node.asFloat("y")
+        a = self.node.asFloat("angle")
+        p = Path()
+        x1, y1 = coordinates(x, y, -1000, a)
+        x2, y2 = coordinates(x, y, 1000, a)
+        p.line(x1, y1, x2, y2)
+        p.strokeColor = PointHandle.HANDLE_COLOR
+        p.strokeWidth = 1
+        ctx.canvas.add(p)
+        self.drawDot(ctx, x, y)
+
+def cook(self):
+    return ReflectHandle(self.node)]]></value>
+    </param>
+    <param name="x" type="float">
+      <value>50.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="angle" type="float" widget="angle">
+      <value>120.0</value>
+    </param>
+    <param name="keepOriginal" type="int" widget="toggle">
+      <value>1</value>
+    </param>
+  </node>
   <node name="resample" prototype="filter" x="330" y="330">
     <description>Distribute points along a shape.</description>
     <param name="_code">
