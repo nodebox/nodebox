@@ -1837,6 +1837,170 @@ def cook(self):
       <value>0</value>
     </param>
   </node>
+  <node name="sort" prototype="filter" x="250" y="410">
+    <description>Sort points or shapes using different sorting methods</description>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Geometry, Point
+from nodebox.util.Geometry import distance, angle
+from random import seed, shuffle
+
+def by_x(p1, p2):
+    if _sort_paths:
+        return cmp(p1.bounds.x, p2.bounds.x)
+    return cmp(p1.x, p2.x)
+
+def by_y(p1, p2):
+    if _sort_paths:
+        return cmp(p1.bounds.y, p2.bounds.y)
+    return cmp(p1.y, p2.y)
+
+def by_proximity(x, y):
+    def fn(p1, p2):
+        if _sort_paths:
+            p1 = p1.bounds
+            p2 = p2.bounds
+        dist1 = distance(p1.x, p1.y, x, y)
+        dist2 = distance(p2.x, p2.y, x, y)
+        return cmp(dist1, dist2)
+    return fn
+
+def by_angle(x, y):
+    def fn(p1, p2):
+        if _sort_paths:
+            p1 = p1.bounds
+            p2 = p2.bounds
+        dist1 = angle(p1.x, p1.y, x, y)
+        dist2 = angle(p2.x, p2.y, x, y)
+        return cmp(dist1, dist2)
+    return fn
+
+def sort_items(items, order, **kwargs):
+    if order == 'unchanged':
+        pass
+    elif order == 'by_x':
+        items.sort(by_x)
+    elif order == 'by_y':
+        items.sort(by_y)
+    elif order == 'random':
+        seed(kwargs["seed"])
+        shuffle(items)
+    elif order == 'reversed':
+        items.reverse()
+    elif order == 'shift':
+        offset = kwargs["offset"] % len(items)
+        for i in xrange(offset):
+            item = items[0]
+            items = items[1:]
+            items.append(item)
+    elif order == 'proximity':
+        items.sort(by_proximity(kwargs["x"], kwargs["y"]))
+    elif order == 'angle':
+        items.sort(by_angle(kwargs["x"], kwargs["y"]))
+    return items
+
+def sort_points(shape, scope, order, **kwargs):
+    new_shape = Geometry()
+    if scope == "pt_g":
+        points = list(shape.points)
+        points = sort_items(points, order, **kwargs)
+        for point in points:
+            new_shape.addPoint(Point(point.x, point.y))
+        new_shape.paths[0].fillColor = None
+    elif scope == "pt_p":
+        for path in shape.paths:
+            points = list(path.points)
+            points = sort_items(points, order, **kwargs)
+            p = path.clone()
+            for i, point in enumerate(points):
+                pp = p.points[i]
+                pp.x = point.x
+                pp.y = point.y
+                pp.type = point.LINE_TO
+            new_shape.add(p)
+    elif scope == "pt_c":
+        for path in shape.paths:
+            p = path.cloneAndClear()
+            for contour in path.contours:
+                points = list(contour.points)
+                points = sort_items(points, order, **kwargs)
+                c = contour.clone()
+                for i, point in enumerate(points):
+                    cp = c.points[i]
+                    cp.x = point.x
+                    cp.y = point.y
+                    cp.type = Point.LINE_TO
+                p.add(c)
+            new_shape.add(p)
+    return new_shape
+
+def sort_paths(shape, order, **kwargs):
+    new_shape = Geometry()
+    paths = list(shape.paths)
+    paths = sort_items(paths, order, **kwargs)
+    for path in paths:
+        new_shape.add(path.clone())
+    return new_shape
+
+def sort_contours(shape, order, **kwargs):
+    new_shape = Geometry()
+    for path in shape.paths:
+        p = path.cloneAndClear()
+        contours = list(path.contours)
+        contours = sort_items(contours, order, **kwargs)
+        for c in contours:
+            p.add(c)
+        new_shape.add(p)
+    return new_shape
+        
+def cook(self):
+    if self.shape is None: return None
+    global _sort_paths
+    _sort_paths = True
+    kwargs = {"seed": self.seed, "offset": self.offset, "x": self.x, "y": self.y}
+    if self.scope in ["pt_c", "pt_p", "pt_g"]:
+        _sort_paths = False
+        return sort_points(self.shape, self.scope, self.order, **kwargs)
+    elif self.scope == "p_g":
+        return sort_paths(self.shape, self.order, **kwargs)
+    elif self.scope == "c_p":
+        return sort_contours(self.shape, self.order, **kwargs)
+    return None]]></value>
+    </param>
+    <param name="_image">
+      <value>sort.png</value>
+    </param>
+    <param name="scope" type="string" widget="menu">
+      <value>p_g</value>
+      <menu key="p_g">Paths within geometry</menu>
+      <menu key="pt_g">Points within geometry</menu>
+      <menu key="pt_c">Points within a contour</menu>
+      <menu key="pt_p">Points within a path</menu>
+      <menu key="c_p">Contours within a path</menu>
+    </param>
+    <param name="order" type="string" widget="menu">
+      <value>unchanged</value>
+      <menu key="unchanged">Unchanged</menu>
+      <menu key="by_x">By X</menu>
+      <menu key="by_y">By Y</menu>
+      <menu key="random">Random</menu>
+      <menu key="reversed">Reversed</menu>
+      <menu key="shift">Shift</menu>
+      <menu key="proximity">Proximity To Point</menu>
+      <menu key="angle">Angle To Point</menu>
+    </param>
+    <param name="seed" type="int">
+      <value>0</value>
+    </param>
+    <param name="offset" type="int">
+      <value>10</value>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+  </node>
   <node name="star" prototype="generator" x="410" y="90">
     <description>Create a star shape.</description>
     <param name="_code">
