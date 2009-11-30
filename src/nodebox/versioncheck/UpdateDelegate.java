@@ -7,7 +7,7 @@ package nodebox.versioncheck;
  */
 public class UpdateDelegate {
 
-    public boolean checkPerformed(UpdateChecker checker, Appcast appcast) {
+    public boolean checkCompleted(UpdateChecker checker, Appcast appcast) {
         return false;
     }
 

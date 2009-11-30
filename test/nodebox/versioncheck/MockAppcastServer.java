@@ -30,8 +30,7 @@ public class MockAppcastServer implements Runnable {
                 Socket socket = server.accept();
                 handleRequest(socket);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Could not start server.", e);
+        } catch (IOException ignored) {
         }
     }
 
@@ -77,16 +76,20 @@ public class MockAppcastServer implements Runnable {
             byte[] data;
 
             File f = new File(mediaRoot, fileName);
-            data = readFileAsString(f).getBytes();
-            if (version.startsWith("HTTP/")) { //send headers
+            try {
+                data = readFileAsString(f).getBytes();
                 String header = "HTTP/1.0 200 OK\r\n";
                 header += standardHeaders();
                 header += "Content-length: " + data.length + "\r\n";
                 header += "Content-type: text/xml\r\n\r\n";
                 os.print(header);
-            }
-            if (!headOnly) {
-                os.write(data);
+                if (!headOnly) {
+                    os.write(data);
+                }
+            } catch (IOException e) {
+                String header = "HTTP/1.0 404 Not Found\r\n";
+                header += standardHeaders();
+                os.print(header);
             }
             os.flush();
             os.close();

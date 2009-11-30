@@ -112,14 +112,20 @@ public class Updater {
         return preferences;
     }
 
-    public void checkPerformed(UpdateChecker checker, Appcast appcast) {
+    /**
+     * The update checker completed the check without error.
+     *
+     * @param checker the update checker
+     * @param appcast the appcast
+     */
+    public void checkCompleted(UpdateChecker checker, Appcast appcast) {
         if (updateCheckDialog != null) {
             updateCheckDialog.setVisible(false);
             updateCheckDialog = null;
         }
         // Delegate method.
         if (delegate != null)
-            if (delegate.checkPerformed(checker, appcast))
+            if (delegate.checkCompleted(checker, appcast))
                 return;
 
         // Store last check update check time.

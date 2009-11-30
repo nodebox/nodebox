@@ -1,25 +1,62 @@
 package nodebox.versioncheck;
 
 import junit.framework.TestCase;
+import org.xml.sax.SAXParseException;
+
+import java.io.FileNotFoundException;
 
 public class UpdaterTest extends TestCase {
-
-
-    private Host host;
-    private Updater updater;
     private MockAppcastServer server;
     private Thread serverThread;
 
     @Override
     protected void setUp() throws Exception {
-        host = new MockHost();
-        updater = new Updater(host);
         server = new MockAppcastServer(MockHost.APPCAST_SERVER_PORT);
         serverThread = new Thread(server);
         serverThread.start();
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+        server.stop();
+        serverThread.join();
+    }
+
+    /**
+     * Test the regular update process.
+     */
     public void testCheckForUpdates() {
+        Updater updater = new Updater(new MockHost());
+        TestUpdateDelegate delegate = checkForUpdates(updater);
+        assertTrue(delegate.checkPerformed);
+        assertNull(delegate.throwable);
+        AppcastItem item = delegate.appcast.getLatest();
+        assertNotNull(item);
+        assertEquals(new Version("2.0"), item.getVersion());
+        assertTrue(item.isNewerThan(updater.getHost()));
+    }
+
+    /**
+     * Test what happens if the appcast file can not be found.
+     */
+    public void testNotFound() {
+        Updater updater = new Updater(new NotFoundHost());
+        TestUpdateDelegate delegate = checkForUpdates(updater);
+        assertFalse(delegate.checkPerformed);
+        assertEquals(FileNotFoundException.class, delegate.throwable.getClass());
+    }
+
+    /**
+     * Test what happens if the appcast file can not be parsed.
+     */
+    public void testUnreadableAppcast() {
+        Updater updater = new Updater(new UnreadableHost());
+        TestUpdateDelegate delegate = checkForUpdates(updater);
+        assertFalse(delegate.checkPerformed);
+        assertEquals(SAXParseException.class, delegate.throwable.getClass());
+    }
+
+    private TestUpdateDelegate checkForUpdates(Updater updater) {
         TestUpdateDelegate delegate = new TestUpdateDelegate();
         updater.setDelegate(delegate);
         updater.checkForUpdates(false);
@@ -28,12 +65,7 @@ public class UpdaterTest extends TestCase {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        assertTrue(delegate.checkPerformed);
-        assertNull(delegate.throwable);
-        AppcastItem item = delegate.appcast.getLatest();
-        assertNotNull(item);
-        assertEquals(new Version("2.0"), item.getVersion());
-        assertTrue(item.isNewerThan(host));
+        return delegate;
     }
 
     private class TestUpdateDelegate extends UpdateDelegate {
@@ -43,7 +75,7 @@ public class UpdaterTest extends TestCase {
         private Throwable throwable;
 
         @Override
-        public boolean checkPerformed(UpdateChecker checker, Appcast appcast) {
+        public boolean checkCompleted(UpdateChecker checker, Appcast appcast) {
             checkPerformed = true;
             return true;
         }
@@ -60,4 +92,20 @@ public class UpdaterTest extends TestCase {
             return true;
         }
     }
+
+    public class NotFoundHost extends MockHost {
+        @Override
+        public String getAppcastURL() {
+            return "http://localhost:" + APPCAST_SERVER_PORT + "/this_file_does_not_exist";
+        }
+    }
+
+
+    public class UnreadableHost extends MockHost {
+        @Override
+        public String getAppcastURL() {
+            return "http://localhost:" + APPCAST_SERVER_PORT + "/unreadable_appcast.xml";
+        }
+    }
+
 }
