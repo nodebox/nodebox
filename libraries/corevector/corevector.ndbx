@@ -1307,6 +1307,313 @@ def cook(self):
       <value>300.0</value>
     </param>
   </node>
+  <node name="freehand" prototype="generator" x="410" y="170">
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Path
+import svg
+
+template_svg = """<?xml version="1.0"?>
+<svg>'
+<g>
+<path d="%s" />
+</g>
+</svg>"""
+
+def cook(self):
+    s = template_svg % self.path
+    p = svg.parse(s)[0]
+    p.fillColor = self.fill
+    if self.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p.asGeometry()
+]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Color
+from nodebox.handle import AbstractHandle
+
+import svg
+
+template_svg = """<?xml version="1.0"?>
+<svg>'
+<g>
+<path d="%s" />
+</g>
+</svg>"""
+
+MOVETO, LINETO, CURVETO, CLOSE = range(4)
+
+class Point(object):
+    def __init__(self, *args):
+        if len(args) == 2:
+            self.x, self.y = args
+        elif len(args) == 1:
+            self.x, self.y = args[0]
+        elif len(args) == 0:
+            self.x = self.y = 0.0
+
+    def __repr__(self):
+        return "Point(x=%.3f, y=%.3f)" % (self.x, self.y)
+       
+    def __eq__(self, other):
+        if other is None: return False
+        return self.x == other.x and self.y == other.y
+       
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+              
+class PathElement(object):
+    def __init__(self, cmd=None, pts=None):
+        self.cmd = cmd
+        if cmd == MOVETO:
+            assert len(pts) == 1
+            self.x, self.y = pts[0]
+            self.ctrl1 = Point(pts[0])
+            self.ctrl2 = Point(pts[0])
+        elif cmd == LINETO:
+            assert len(pts) == 1
+            self.x, self.y = pts[0]
+            self.ctrl1 = Point(pts[0])
+            self.ctrl2 = Point(pts[0])
+        elif cmd == CURVETO:
+            assert len(pts) == 3
+            self.ctrl1 = Point(pts[0])
+            self.ctrl2 = Point(pts[1])
+            self.x, self.y = pts[2]
+        elif cmd == CLOSE:
+            assert pts is None or len(pts) == 0
+            self.x = self.y = 0.0
+            self.ctrl1 = Point(0.0, 0.0)
+            self.ctrl2 = Point(0.0, 0.0)
+        else:
+            self.x = self.y = 0.0
+            self.ctrl1 = Point()
+            self.ctrl2 = Point()
+
+    def __repr__(self):
+        if self.cmd == MOVETO:
+            return "PathElement(MOVETO, ((%.3f, %.3f),))" % (self.x, self.y)
+        elif self.cmd == LINETO:
+            return "PathElement(LINETO, ((%.3f, %.3f),))" % (self.x, self.y)
+        elif self.cmd == CURVETO:
+            return "PathElement(CURVETO, ((%.3f, %.3f), (%.3f, %s), (%.3f, %.3f))" % \
+                (self.ctrl1.x, self.ctrl1.y, self.ctrl2.x, self.ctrl2.y, self.x, self.y)
+        elif self.cmd == CLOSE:
+            return "PathElement(CLOSE)"
+           
+    def __eq__(self, other):
+        if other is None: return False
+        if self.cmd != other.cmd: return False
+        return self.x == other.x and self.y == other.y \
+            and self.ctrl1 == other.ctrl1 and self.ctrl2 == other.ctrl2
+       
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+                                
+class FreeHandEditor(AbstractHandle):
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.path = None
+        self.path_string = ""
+        self._points = []
+        if self.node.asString("path"):
+            self.import_svg()
+        self.strokewidth = 0.75
+        self.handle_color = Color(0.6, 0.6, 0.6)
+        self.reset()
+
+    def reset(self):
+        self._mouseXY = None
+        self.mousedown = False
+        self._dirty = False
+        
+    def update(self):
+        if self.node.asString("path") != self.path_string:
+            self.import_svg()
+            self.reset()
+        
+    def draw(self, _ctx):
+        
+        """ Draws the editable path and interface elements.
+        """
+
+        if self._dirty:
+            self.export_svg()
+        
+        _ctx.strokeWidth = self.strokewidth
+
+        if self.mousedown:
+            
+            x, y = self.mouse()
+            
+            if self.freehand_move == True:
+                cmd = MOVETO
+                self.freehand_move = False
+            else:
+                cmd = LINETO
+            
+            # Add a new LINETO to the path,
+            # except when starting to draw,
+            # then a MOVETO is added to the path.
+            pt = PathElement()
+            pt.cmd = cmd
+            pt.x = x
+            pt.y = y
+            pt.ctrl1 = Point(x,y)
+            pt.ctrl2 = Point(x,y)
+            
+            append = True
+            if len(self._points) > 0:
+                lpt = self._points[-1]
+                if lpt.x == x and lpt.y == y and lpt.cmd == cmd:
+                    append = False
+            if append:
+                self._points.append(pt)
+            
+            # Draw the current location of the cursor.
+            r = 4
+            _ctx.fillColor = None
+            _ctx.strokeColor = self.handle_color
+            _ctx.ellipse(pt.x, pt.y, r*2, r*2)
+        
+            self._dirty = True
+        
+        else:
+
+            # Export the updated drawing,
+            # remember to do a MOVETO on the next interaction.
+            self.freehand_move = True
+            if self._dirty:
+                self._points[-1].freehand = False
+                self._dirty = False
+
+        r = 4
+        _ctx.fillColor = None
+        path = Path()
+        if len(self._points) > 0:
+            first = True
+            for i in range(len(self._points)):
+                
+                # Construct the path.
+                pt = self._points[i]
+                if first:
+                    path.moveto(pt.x, pt.y)
+                    first = False
+                else:
+                    if pt.cmd == CLOSE:
+                        path.close()
+                    elif pt.cmd == MOVETO:
+                        path.moveto(pt.x, pt.y)
+                    elif pt.cmd == LINETO:
+                        path.lineto(pt.x, pt.y)
+                    elif pt.cmd == CURVETO:
+                        path.curveto(pt.ctrl1.x, pt.ctrl1.y, 
+                                     pt.ctrl2.x, pt.ctrl2.y, 
+                                     pt.x, pt.y)
+                
+            # Set the current path,
+            self.path = path
+
+    def import_svg(self):
+        self.path_string = self.node.asString("path")                
+        s = template_svg % self.path_string
+        self.path = svg.parse(s)[0]
+        self._points = []
+        for contour in self.path.contours:
+            if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
+                first = None
+                curvePoint = PathElement()
+                curvePoint.cmd = CURVETO
+                first_curvepoint = True
+                for point in contour.points:
+                    if first is None or point.isLineTo():
+                        pe = PathElement()
+                        if first is None:
+                            first = point
+                            pe.cmd = MOVETO
+                        else:
+                            pe.cmd = LINETO
+                        pe.x = point.x
+                        pe.y = point.y
+                        self._points.append(pe)
+                    else:
+                        if first_curvepoint:
+                            curvePoint.ctrl1.x = point.x
+                            curvePoint.ctrl1.y = point.y
+                            first_curvepoint = False
+                        elif point.isOffCurve():
+                            curvePoint.ctrl2.x = point.x
+                            curvePoint.ctrl2.y = point.y
+                        else:
+                            curvePoint.x = point.x
+                            curvePoint.y = point.y
+                            self._points.append(curvePoint)
+                            curvePoint = PathElement()
+                            curvePoint.cmd = CURVETO
+                            first_curvepoint = True
+                if contour.closed:
+                    pe = PathElement()
+                    pe.cmd = CLOSE  
+                    self._points.append(pe)    
+
+    def export_svg(self):
+        s = ""
+        if len(self._points) > 0:
+            for pt in self._points:
+                if pt.cmd == MOVETO:
+                    s += "M "+str(pt.x)+" "+str(pt.y)+" "
+                elif pt.cmd == LINETO:
+                    s += "L "+str(pt.x)+" "+str(pt.y)+" "
+                elif pt.cmd == CURVETO:
+                    s += "C "
+                    s += str(pt.ctrl1.x)+" "+str(pt.ctrl1.y)+" "
+                    s += str(pt.ctrl2.x)+" "+str(pt.ctrl2.y)+" "
+                    s += str(pt.x)+" "+str(pt.y)+" "
+            self.path_string = s
+            if self.path_string != self.node.asString("path"):
+                self.node.silentSet("path", s)
+    
+    def mouse(self):
+        if self._mouseXY is not None:
+            return (self._mouseXY.x, self._mouseXY.y)
+        else:
+            return (0, 0)
+
+    def mousePressed(self, pt):
+        self._mouseXY = pt
+        self.mousedown = True
+        self.node.markDirty()
+        
+    def mouseDragged(self, pt):
+        self._mouseXY = pt
+        self.node.markDirty()
+
+    def mouseReleased(self, pt):
+        self._mouseXY = pt
+        self.mousedown = False
+        self.node.markDirty()
+    
+def cook(self):
+    return FreeHandEditor(self.node)]]></value>
+    </param>
+    <param name="path" type="string">
+      <value/>
+    </param>
+    <param name="fill" type="color">
+      <value>#00000000</value>
+    </param>
+    <param name="stroke" type="color">
+      <value>#000000ff</value>
+    </param>
+    <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+      <value>1.0</value>
+    </param>
+  </node>
   <node name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
     <description>A network of geometry nodes.</description>
     <param name="_image">
