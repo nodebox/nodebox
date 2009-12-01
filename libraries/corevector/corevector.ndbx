@@ -1909,12 +1909,12 @@ from nodebox.util.Geometry import angle
 def cook(self):
     t = 0
     vertices = []
-    vertices.append((self.x + cos(t) * self.radius, self.y + sin(t) * self.radius))
+    vertices.append((cos(t) * self.radius, sin(t) * self.radius))
     p = Path()
     p.moveto( *vertices[0] )
     for i in range(1, self.sides):               
         t += 2*pi/self.sides
-        vertices.append((self.x + cos(t) * self.radius, self.y + sin(t) * self.radius))
+        vertices.append((cos(t) * self.radius, sin(t) * self.radius))
         p.lineto( *vertices[i] ) 
     p.close()
     if self.align and len(vertices) >= 2:
@@ -1923,6 +1923,9 @@ def cook(self):
         t = Transform()
         t.rotate(-a)
         p = t.map(p)
+    t = Transform()
+    t.translate(self.x, self.y)
+    p = t.map(p)
     p.fillColor = self.fill
     p.strokeColor = self.stroke
     p.strokeWidth = self.strokeWidth
