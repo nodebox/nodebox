@@ -475,7 +475,7 @@ public class Path extends AbstractGeometry implements Colorizable {
      * <p/>
      * Integrates the estimated length of the cubic bezier spline
      * defined by x0, y0, ... x3, y3, by adding the lengths of
-     * lineair lines between points at t.
+     * linear lines between points at t.
      * <p/>
      * The number of points is defined by n
      * (n=10 would add the lengths of lines between 0.0 and 0.1,
@@ -503,7 +503,7 @@ public class Path extends AbstractGeometry implements Colorizable {
      * <p/>
      * Integrates the estimated length of the cubic bezier spline
      * defined by x0, y0, ... x3, y3, by adding the lengths of
-     * lineair lines between points at t.
+     * linear lines between points at t.
      * <p/>
      * The number of points is defined by n
      * (n=10 would add the lengths of lines between 0.0 and 0.1,
