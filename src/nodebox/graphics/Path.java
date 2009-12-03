@@ -43,8 +43,10 @@ public class Path extends AbstractGeometry implements Colorizable {
         if (cloneContours) {
             contours = new ArrayList<Contour>(other.contours.size());
             extend(other);
-            // Set the current contour to the last contour.
-            currentContour = contours.get(contours.size() - 1);
+            if (!contours.isEmpty()) {
+                // Set the current contour to the last contour.
+                currentContour = contours.get(contours.size() - 1);
+            }
         } else {
             contours = new ArrayList<Contour>();
             currentContour = null;
