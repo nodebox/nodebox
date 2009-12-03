@@ -32,6 +32,7 @@ public class UpdaterTest extends TestCase {
         Updater updater = new Updater(new MockHost());
         TestUpdateDelegate delegate = checkForUpdates(updater);
         assertTrue(delegate.checkPerformed);
+        assertTrue(delegate.updateAvailable);
         assertNull(delegate.throwable);
         AppcastItem item = delegate.appcast.getLatest();
         assertNotNull(item);
@@ -65,6 +66,13 @@ public class UpdaterTest extends TestCase {
         assertEquals(SAXParseException.class, delegate.throwable.getClass());
     }
 
+    public void testLatestVersion() {
+        Updater updater = new Updater(new LatestVersionHost());
+        TestUpdateDelegate delegate = checkForUpdates(updater);
+        assertTrue(delegate.checkPerformed);
+        assertFalse(delegate.updateAvailable);
+    }
+
     private TestUpdateDelegate checkForUpdates(Updater updater) {
         TestUpdateDelegate delegate = new TestUpdateDelegate();
         updater.setDelegate(delegate);
@@ -94,6 +102,7 @@ public class UpdaterTest extends TestCase {
 
         private boolean checkPerformed;
         private Appcast appcast;
+        private Boolean updateAvailable = null;
         private Throwable throwable;
 
         @Override
@@ -105,6 +114,14 @@ public class UpdaterTest extends TestCase {
         @Override
         public boolean checkerFoundValidUpdate(UpdateChecker checker, Appcast appcast) {
             this.appcast = appcast;
+            updateAvailable = true;
+            return true;
+        }
+
+        @Override
+        public boolean checkerDetectedLatestVersion(UpdateChecker checker, Appcast appcast) {
+            this.appcast = appcast;
+            updateAvailable = false;
             return true;
         }
 
@@ -127,6 +144,13 @@ public class UpdaterTest extends TestCase {
         @Override
         public String getAppcastURL() {
             return "http://localhost:" + APPCAST_SERVER_PORT + "/unreadable_appcast.xml";
+        }
+    }
+
+    public class LatestVersionHost extends MockHost {
+        @Override
+        public Version getVersion() {
+            return new Version("999");
         }
     }
 

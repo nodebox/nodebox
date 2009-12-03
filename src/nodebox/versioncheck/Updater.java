@@ -2,7 +2,9 @@ package nodebox.versioncheck;
 
 import nodebox.client.SwingUtils;
 
+import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
@@ -17,6 +19,7 @@ public class Updater {
     public static final long UPDATE_INTERVAL = 1000 * 60 * 60 * 24; // 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = Every day
 
     private final Host host;
+    private Icon hostIcon;
     private boolean automaticCheck;
     private Preferences preferences;
     private UpdateChecker updateChecker;
@@ -32,6 +35,18 @@ public class Updater {
 
     public Host getHost() {
         return host;
+    }
+
+    public Icon getHostIcon() {
+        if (hostIcon != null) return hostIcon;
+        BufferedImage img = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D) img.getGraphics();
+        Icon icon = new ImageIcon(host.getIconFile());
+        float factor = 64f / icon.getIconHeight();
+        g.scale(factor, factor);
+        icon.paintIcon(null, g, 0, 0);
+        hostIcon = new ImageIcon(img);
+        return hostIcon;
     }
 
     public UpdateDelegate getDelegate() {
@@ -119,10 +134,7 @@ public class Updater {
      * @param appcast the appcast
      */
     public void checkCompleted(UpdateChecker checker, Appcast appcast) {
-        if (updateCheckDialog != null) {
-            updateCheckDialog.setVisible(false);
-            updateCheckDialog = null;
-        }
+        hideUpdateCheckDialog();
         // Delegate method.
         if (delegate != null)
             if (delegate.checkCompleted(checker, appcast))
@@ -149,11 +161,20 @@ public class Updater {
         alert.setVisible(true);
     }
 
-    public void checkerEncounteredError(UpdateChecker checker, Throwable t) {
-        if (updateCheckDialog != null) {
-            updateCheckDialog.setVisible(false);
-            updateCheckDialog = null;
+    public void checkerDetectedLatestVersion(UpdateChecker checker, Appcast appcast) {
+        // Delegate method.
+        if (delegate != null)
+            if (delegate.checkerDetectedLatestVersion(checker, appcast))
+                return;
+
+        // Show a message that you're using the latest version if you've explicitly checked for updates.
+        if (!checker.isSilent()) {
+            JOptionPane.showMessageDialog(null, "<html><b>You're up to date!</b><br>\n" + host.getName() + " " + host.getVersion() + " is the latest version available.", "", JOptionPane.INFORMATION_MESSAGE, getHostIcon());
         }
+    }
+
+    public void checkerEncounteredError(UpdateChecker checker, Throwable t) {
+        hideUpdateCheckDialog();
         // Delegate method.
         if (delegate != null)
             if (delegate.checkerEncounteredError(checker, t))
@@ -179,6 +200,13 @@ public class Updater {
     public void cancelUpdateCheck() {
         if (updateChecker != null && updateChecker.isAlive()) {
             updateChecker.interrupt();
+        }
+    }
+
+    private void hideUpdateCheckDialog() {
+        if (updateCheckDialog != null) {
+            updateCheckDialog.setVisible(false);
+            updateCheckDialog = null;
         }
     }
 }

@@ -6,14 +6,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 
 /**
  * Visual alert that new updates are available.
  */
 public class UpdateAlert extends JFrame {
 
-    public static final String RELEASE_NOTES_HEADER = "<html><head><style type=\"text/css\">body { font-family: sans-serif; }</style></head><body>";
+    public static final String RELEASE_NOTES_HEADER = "<html><head><style type=\"text/css\">" + "" +
+            "body { font-family: sans-serif; font-size: 10px; } " +
+            "ul { list-style-type:none; margin-left: 10px; padding: 0 }" +
+            "li { margin-bottom: 5px; }" +
+            "</style></head><body>";
     public static final String RELEASE_NOTES_FOOTER = "</body></html>";
 
     private Updater updater;
@@ -36,14 +39,8 @@ public class UpdateAlert extends JFrame {
         JPanel iconPanel = new JPanel();
         iconPanel.setLayout(new BoxLayout(iconPanel, BoxLayout.Y_AXIS));
 
-        BufferedImage img = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = (Graphics2D) img.getGraphics();
-        Icon icon = new ImageIcon(host.getIconFile());
-        float factor = 64f / icon.getIconHeight();
-        g.scale(factor, factor);
-        icon.paintIcon(this, g, 0, 0);
-        ImageIcon scaledIcon = new ImageIcon(img);
-        JLabel iconLabel = new JLabel(scaledIcon);
+        Icon hostIcon = updater.getHostIcon();
+        JLabel iconLabel = new JLabel(hostIcon);
         forceSize(iconLabel, 64, 64);
         iconPanel.add(iconLabel);
         iconPanel.add(Box.createVerticalGlue());

@@ -42,6 +42,12 @@ public class UpdateChecker extends Thread implements Runnable {
                         updater.checkerFoundValidUpdate(UpdateChecker.this, appcast);
                     }
                 });
+            } else {
+                SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        updater.checkerDetectedLatestVersion(UpdateChecker.this, appcast);
+                    }
+                });
             }
         } catch (final Exception e) {
             SwingUtilities.invokeLater(new Runnable() {

@@ -15,9 +15,11 @@ public class UpdateDelegate {
         return false;
     }
 
-    public boolean checkerEncounteredError(UpdateChecker checker, Throwable t) {
+    public boolean checkerDetectedLatestVersion(UpdateChecker checker, Appcast appcast) {
         return false;
     }
 
-
+    public boolean checkerEncounteredError(UpdateChecker checker, Throwable t) {
+        return false;
+    }
 }

@@ -212,7 +212,7 @@ public class Application implements Host {
     }
 
     public String getIconFile() {
-        return "test/mockboxlogo.png";
+        return "res/applogo.png";
     }
 
     public Version getVersion() {

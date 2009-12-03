@@ -92,7 +92,7 @@ public class UpdateCheckDialog extends JDialog implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         updater.cancelUpdateCheck();
-        dispose();
+        setVisible(false);
     }
 
     private static class MockHost implements Host {
