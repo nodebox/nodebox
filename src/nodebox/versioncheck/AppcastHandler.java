@@ -13,8 +13,8 @@ public class AppcastHandler extends DefaultHandler {
     public static final String TAG_ITEM = "item";
     public static final String TAG_TITLE = "title";
     public static final String TAG_LINK = "link";
+    public static final String TAG_DESCRIPTION = "description";
     public static final String TAG_APPCAST_VERSION = "appcast:version";
-    public static final String TAG_APPCAST_RELEASE_NOTES_LINK = "appcast:releaseNotesLink";
     public static final String TAG_PUB_DATE = "pubDate";
 
     private List<AppcastItem> items = new ArrayList<AppcastItem>();
@@ -49,12 +49,15 @@ public class AppcastHandler extends DefaultHandler {
             } else {
                 title = text;
             }
+        } else if (qName.equals(TAG_DESCRIPTION)) {
+            // We're after the description tag in item.
+            if (currentItemProperties != null) {
+                currentItemProperties.setProperty(TAG_DESCRIPTION, text);
+            }
         } else if (qName.equals(TAG_LINK)) {
             link = text;
         } else if (qName.equals(TAG_APPCAST_VERSION)) {
             currentItemProperties.setProperty(TAG_APPCAST_VERSION, text);
-        } else if (qName.equals(TAG_APPCAST_RELEASE_NOTES_LINK)) {
-            currentItemProperties.setProperty(TAG_APPCAST_RELEASE_NOTES_LINK, text);
         } else if (qName.equals(TAG_PUB_DATE)) {
             currentItemProperties.setProperty(TAG_PUB_DATE, text);
         }

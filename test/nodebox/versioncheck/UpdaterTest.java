@@ -5,6 +5,8 @@ import org.xml.sax.SAXParseException;
 
 import javax.swing.*;
 import java.io.FileNotFoundException;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class UpdaterTest extends TestCase {
     private MockAppcastServer server;
@@ -34,6 +36,12 @@ public class UpdaterTest extends TestCase {
         AppcastItem item = delegate.appcast.getLatest();
         assertNotNull(item);
         assertEquals(new Version("2.0"), item.getVersion());
+        assertEquals("Version 2.0", item.getTitle());
+        assertEquals("2.0 Release Notes.", item.getDescription());
+        // Months start from zero.
+        GregorianCalendar c = new GregorianCalendar(2006, 0, 9, 19, 20, 11);
+        c.setTimeZone(TimeZone.getTimeZone("UTC"));
+        assertEquals(c.getTime(), item.getDate());
         assertTrue(item.isNewerThan(updater.getHost()));
     }
 

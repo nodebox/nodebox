@@ -7,14 +7,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URLConnection;
 
 /**
  * Visual alert that new updates are available.
  */
 public class UpdateAlert extends JFrame {
+
+    public static final String RELEASE_NOTES_HEADER = "<html><head><style type=\"text/css\">body { font-family: sans-serif; }</style></head><body>";
+    public static final String RELEASE_NOTES_FOOTER = "</body></html>";
 
     private Updater updater;
     private Appcast appcast;
@@ -68,7 +68,7 @@ public class UpdateAlert extends JFrame {
         controlsPanel.add(Box.createVerticalStrut(5));
 
         // Second line: text area.
-        notesArea = new JEditorPane("text/html", "<html><i>Downloading release notes...</i></html>");
+        notesArea = new JEditorPane("text/html", RELEASE_NOTES_HEADER + item.getDescription() + RELEASE_NOTES_FOOTER);
         notesArea.setEditable(false);
         notesArea.setMaximumSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
         notesArea.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
@@ -124,49 +124,4 @@ public class UpdateAlert extends JFrame {
         c.setMaximumSize(d);
         c.setPreferredSize(d);
     }
-
-    public void downloadReleaseNotes() {
-        Thread t = new Thread(new ReleaseNotesDownloader());
-        t.start();
-    }
-
-    private void releaseNotesDownloaded(String releaseNotes) {
-        notesArea.setText(releaseNotes);
-    }
-
-    private void releaseNotesError(Exception e) {
-        notesArea.setText(e.toString());
-    }
-
-    private class ReleaseNotesDownloader implements Runnable {
-
-        public void run() {
-            try {
-                // Get contents of URL
-                URLConnection conn = item.getReleaseNotesURL().openConnection();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                final StringBuffer releaseNotes = new StringBuffer();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    releaseNotes.append(line);
-                    releaseNotes.append('\n');
-                }
-
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        releaseNotesDownloaded(releaseNotes.toString());
-                    }
-                });
-            } catch (final Exception e) {
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        releaseNotesError(e);
-                    }
-                });
-            }
-        }
-    }
-
-
 }

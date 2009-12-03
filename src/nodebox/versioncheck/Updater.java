@@ -14,7 +14,7 @@ import java.util.prefs.Preferences;
 public class Updater {
 
     public static final String LAST_UPDATE_CHECK = "NBLastUpdateCheck";
-    public static final long UPDATE_INTERVAL = 0; //1000 * 60 * 60 * 24; // 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = Every day
+    public static final long UPDATE_INTERVAL = 1000 * 60 * 60 * 24; // 1000 milliseconds * 60 seconds * 60 minutes * 24 hours = Every day
 
     private final Host host;
     private boolean automaticCheck;
@@ -147,7 +147,6 @@ public class Updater {
         Window win = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
         SwingUtils.centerOnScreen(alert, win);
         alert.setVisible(true);
-        alert.downloadReleaseNotes();
     }
 
     public void checkerEncounteredError(UpdateChecker checker, Throwable t) {

@@ -6,24 +6,23 @@
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
         <item>
-            <title>Version 2.0 (2 bugs fixed; 3 new features)</title>
+            <title>Version 2.0</title>
+            <description>2.0 Release Notes.</description>
             <appcast:version>2.0</appcast:version>
-            <appcast:releaseNotesLink>http://localhost:41555/2.0.html</appcast:releaseNotesLink>
             <pubDate>Wed, 09 Jan 2006 19:20:11 +0000</pubDate>
         </item>
 
         <item>
-            <title>Version 1.5 (8 bugs fixed; 2 new features)</title>
+            <title>Version 1.5</title>
+            <description>1.5 Release Notes.</description>
             <appcast:version>1.5</appcast:version>
-            <appcast:releaseNotesLink>http://localhost:41555/1.5.html</appcast:releaseNotesLink>
             <pubDate>Wed, 01 Jan 2006 12:20:11 +0000</pubDate>
         </item>
 
-        <!-- Now here's an example of a version with a weird internal version number (like an SVN revision) but a human-readable external one. -->
         <item>
-            <title>Version 1.4 (5 bugs fixed; 2 new features)</title>
+            <title>Version 1.4</title>
+            <description>1.4 Release Notes.</description>
             <appcast:version>1.4</appcast:version>
-            <appcast:releaseNotesLink>http://localhost:41555/1.4.html</appcast:releaseNotesLink>
             <pubDate>Wed, 25 Dec 2005 12:20:11 +0000</pubDate>
         </item>
     </channel>

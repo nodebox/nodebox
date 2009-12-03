@@ -1,7 +1,5 @@
 package nodebox.versioncheck;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,20 +11,17 @@ public class AppcastItem {
 
     private final Properties properties;
     private String title;
+    private String description;
     private Date date;
-    private URL releaseNotesURL;
     private Version version;
 
     public AppcastItem(Properties properties) {
         this.properties = properties;
         try {
             title = properties.getProperty(AppcastHandler.TAG_TITLE);
-            releaseNotesURL = new URL(properties.getProperty(AppcastHandler.TAG_APPCAST_RELEASE_NOTES_LINK));
+            description = properties.getProperty(AppcastHandler.TAG_DESCRIPTION);
             date = RSSDateFormat.parse(properties.getProperty(AppcastHandler.TAG_PUB_DATE));
             version = new Version(properties.getProperty(AppcastHandler.TAG_APPCAST_VERSION));
-        } catch (MalformedURLException e) {
-            System.out.println("Bad release notes link: " + properties.getProperty(AppcastHandler.TAG_APPCAST_RELEASE_NOTES_LINK));
-            e.printStackTrace();
         } catch (ParseException e) {
             e.printStackTrace();
         }
@@ -36,12 +31,12 @@ public class AppcastItem {
         return title;
     }
 
-    public Date getDate() {
-        return date;
+    public String getDescription() {
+        return description;
     }
 
-    public URL getReleaseNotesURL() {
-        return releaseNotesURL;
+    public Date getDate() {
+        return date;
     }
 
     public Version getVersion() {
