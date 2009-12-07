@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx formatVersion="0.9">
     <var name="version" value="1.0"/>
-    <node name="rect" prototype="builtins.root" type="nodebox.node.polygraph.Polygon">
+    <node name="rect" prototype="builtins.root" type="nodebox.node.polygraph.Polygon" exported="true">
         <description>Creates a rectangle.</description>
         <param name="x" type="float">
             <value>0.0</value>

@@ -239,7 +239,7 @@ public class NetworkTest extends NodeTestCase {
         assertEquals("hello", hello.getOutputValue());
         // Store/load library
         NodeLibrary newLibrary = storeAndLoad(testLibrary);
-        Node newHello = newLibrary.get("hello");
+        Node newHello = newLibrary.getRootNode().getChild("hello");
         newHello.update();
         assertEquals("hello", newHello.getOutputValue());
     }
@@ -248,17 +248,17 @@ public class NetworkTest extends NodeTestCase {
      * Test if all types load correctly.
      */
     public void testTypeLoading() {
-        Node alltypes = Node.ROOT_NODE.newInstance(testLibrary, "alltypes");
-        alltypes.addParameter("i", Parameter.Type.INT, 42);
-        alltypes.addParameter("f", Parameter.Type.FLOAT, 42F);
-        alltypes.addParameter("s", Parameter.Type.STRING, "42");
-        alltypes.addParameter("c", Parameter.Type.COLOR, new Color(0.4, 0.2, 0.1, 0.9));
+        Node allTypes = Node.ROOT_NODE.newInstance(testLibrary, "allTypes");
+        allTypes.addParameter("i", Parameter.Type.INT, 42);
+        allTypes.addParameter("f", Parameter.Type.FLOAT, 42F);
+        allTypes.addParameter("s", Parameter.Type.STRING, "42");
+        allTypes.addParameter("c", Parameter.Type.COLOR, new Color(0.4, 0.2, 0.1, 0.9));
         NodeLibrary newLibrary = storeAndLoad(testLibrary);
-        Node newAlltypes = newLibrary.get("alltypes");
-        Parameter pI = newAlltypes.getParameter("i");
-        Parameter pF = newAlltypes.getParameter("f");
-        Parameter pS = newAlltypes.getParameter("s");
-        Parameter pC = newAlltypes.getParameter("c");
+        Node newAllTypes = newLibrary.getRootNode().getChild("allTypes");
+        Parameter pI = newAllTypes.getParameter("i");
+        Parameter pF = newAllTypes.getParameter("f");
+        Parameter pS = newAllTypes.getParameter("s");
+        Parameter pC = newAllTypes.getParameter("c");
         assertEquals(Parameter.Type.INT, pI.getType());
         assertEquals(Parameter.Type.FLOAT, pF.getType());
         assertEquals(Parameter.Type.STRING, pS.getType());

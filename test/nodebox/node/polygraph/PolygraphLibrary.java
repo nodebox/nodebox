@@ -10,7 +10,9 @@ public class PolygraphLibrary extends NodeLibrary {
         addBuiltin(new RectBuiltin());
         addBuiltin(new TranslateBuiltin());
         addBuiltin(new MergeBuiltin());
-        add(Node.ROOT_NODE.newInstance(this, "network", Polygon.class));
+        Node network = Node.ROOT_NODE.newInstance(this, "network", Polygon.class);
+        network.setExported(true);
+        add(network);
     }
 
     private void addBuiltin(Builtin builtin) {
@@ -23,6 +25,7 @@ public class PolygraphLibrary extends NodeLibrary {
     public class PolygonBuiltin extends Builtin {
         public Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "polygon", Polygon.class);
+            n.setExported(true);
             n.addParameter("path", Parameter.Type.STRING);
             return n;
         }
@@ -44,6 +47,7 @@ public class PolygraphLibrary extends NodeLibrary {
     public class RectBuiltin extends Builtin {
         public Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "rect", Polygon.class);
+            n.setExported(true);
             n.addParameter("x", Parameter.Type.FLOAT, 0);
             n.addParameter("y", Parameter.Type.FLOAT, 0);
             n.addParameter("width", Parameter.Type.FLOAT, 100);
@@ -66,6 +70,7 @@ public class PolygraphLibrary extends NodeLibrary {
     public class TranslateBuiltin extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "translate", Polygon.class);
+            n.setExported(true);
             n.addPort("polygon");
             n.addParameter("tx", Parameter.Type.FLOAT);
             n.addParameter("ty", Parameter.Type.FLOAT);
@@ -86,13 +91,14 @@ public class PolygraphLibrary extends NodeLibrary {
     public class MergeBuiltin extends Builtin {
         protected Node createInstance() {
             Node n = Node.ROOT_NODE.newInstance(PolygraphLibrary.this, "merge", Polygon.class);
+            n.setExported(true);
             n.addPort("polygons", Port.Cardinality.MULTIPLE);
             return n;
         }
 
         public Object cook(Node node, ProcessingContext context) {
             Polygon merged = new Polygon();
-            for (Object obj: node.getPortValues("polygons")) {
+            for (Object obj : node.getPortValues("polygons")) {
                 Polygon p = (Polygon) obj;
                 merged.extend(p);
             }

@@ -127,6 +127,8 @@ public class NDBXWriter {
         el.setAttribute("y", yPosition);
         if (node.isRendered())
             el.setAttribute("rendered", "true");
+        if (node.isExported())
+            el.setAttribute("exported", "true");
 
         // Add the output type if it is different from the prototype.
         if (node.getDataClass() != node.getPrototype().getDataClass())

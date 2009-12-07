@@ -50,7 +50,7 @@ public class NDBXHandlerTest extends TestCase {
         Node n = Node.ROOT_NODE.newInstance(l, "test");
         n.setPosition(25, 50);
         NodeLibrary lib = parseXml(l.toXml());
-        Node test = lib.get("test");
+        Node test = lib.getRootNode().getChild("test");
         assertEquals(25.0, test.getX());
         assertEquals(50.0, test.getY());
     }
@@ -131,7 +131,7 @@ public class NDBXHandlerTest extends TestCase {
         NodeLibrary library = parseXml(xml);
         Node protoDot = manager.getNode("testlib.dot");
         assertTrue(library.contains("dot1"));
-        Node dot1 = library.get("dot1");
+        Node dot1 = library.getRootNode().getChild("dot1");
         assertEquals(protoDot, dot1.getPrototype());
         // Since dot1 inherits from the prototype, it has all the parameters of the prototype.
         assertTrue(dot1.hasParameter("x"));
@@ -150,7 +150,7 @@ public class NDBXHandlerTest extends TestCase {
         Node.ROOT_NODE.newInstance(typeLib, "alpha", Polygon.class);
         String xml = typeLib.toXml();
         NodeLibrary library = parseXml(xml);
-        Node alpha = library.get("alpha");
+        Node alpha = library.getRootNode().getChild("alpha");
         assertEquals(Polygon.class, alpha.getDataClass());
         // Create a new instance with the same output type.
         // Store it in a temporary node library.
@@ -164,7 +164,7 @@ public class NDBXHandlerTest extends TestCase {
         n.addPort("polygon");
         xml = typeLib.toXml();
         library = parseXml(xml);
-        Node gamma = library.get("gamma");
+        Node gamma = library.getRootNode().getChild("gamma");
         assertEquals(Polygon.class, gamma.getDataClass());
     }
 
@@ -181,10 +181,12 @@ public class NDBXHandlerTest extends TestCase {
     private void loadBasicTypes() {
         NodeLibrary testlib = new NodeLibrary("testlib");
         Node dot = Node.ROOT_NODE.newInstance(testlib, "dot", Polygon.class);
+        dot.setExported(true);
         testlib.add(dot);
         dot.addParameter("x", Parameter.Type.FLOAT, 0F);
         dot.addParameter("y", Parameter.Type.FLOAT, 0F);
         Node rotate = Node.ROOT_NODE.newInstance(testlib, "rotate", Polygon.class);
+        rotate.setExported(true);
         testlib.add(rotate);
         rotate.addPort("shape");
         rotate.addParameter("rotation", Parameter.Type.FLOAT, 0F);

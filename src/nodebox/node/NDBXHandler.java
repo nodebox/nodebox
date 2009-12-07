@@ -36,6 +36,7 @@ public class NDBXHandler extends DefaultHandler {
     public static final String NODE_X = "x";
     public static final String NODE_Y = "y";
     public static final String NODE_RENDERED = "rendered";
+    public static final String NODE_EXPORTED = "exported";
     public static final String MENU_KEY = "key";
     public static final String PARAMETER_NAME = "name";
     public static final String PARAMETER_TYPE = "type";
@@ -218,15 +219,16 @@ public class NDBXHandler extends DefaultHandler {
         }
         // Switch between relative and long identifiers.
         // Long identifiers (e.g. "polygraph.rect") contain both a library and name and should be looked up using the manager.
+        // Only exported nodes will qualify.
         // Short identifiers (e.g. "beta") contain only a name and are in the same library as this node.
-        // They should be looked up using the library.
+        // They should be looked up using the library. These can be non-exported nodes as well.
         Node prototype;
         if (prototypeId.contains(".")) {
             // Long identifier
             prototype = manager.getNode(prototypeId);
         } else {
             // Short identifier
-            prototype = library.get(prototypeId);
+            prototype = library.getRootNode().getChild(prototypeId);
         }
         if (prototype == null) throw new SAXException("Unknown prototype " + prototypeId + " for node " + name);
         Node newNode = prototype.newInstance(library, name, dataClass);
@@ -245,6 +247,8 @@ public class NDBXHandler extends DefaultHandler {
             newNode.setY(Double.parseDouble(y));
         if ("true".equals(attributes.getValue(NODE_RENDERED)))
             newNode.setRendered();
+        if ("true".equals(attributes.getValue(NODE_EXPORTED)))
+            newNode.setExported(true);
         // Go down into the current node; this will now become the current network.
         currentNode = newNode;
     }
@@ -295,7 +299,7 @@ public class NDBXHandler extends DefaultHandler {
             currentParameter.setLabel(label);
         if (helpText != null)
             currentParameter.setHelpText(helpText);
-        if (displayLevel!= null)
+        if (displayLevel != null)
             currentParameter.setDisplayLevel(Parameter.DisplayLevel.valueOf(displayLevel.toUpperCase()));
         if (boundingMethod != null)
             currentParameter.setBoundingMethod(Parameter.BoundingMethod.valueOf(boundingMethod.toUpperCase()));
@@ -462,8 +466,8 @@ public class NDBXHandler extends DefaultHandler {
 
         Node output, input;
         if (currentNode == null) {
-            output = library.get(outputAsString);
-            input = library.get(inputAsString);
+            output = rootNode.getChild(outputAsString);
+            input = rootNode.getChild(inputAsString);
         } else {
             output = currentNode.getChild(outputAsString);
             input = currentNode.getChild(inputAsString);

@@ -41,5 +41,6 @@
     return PointHandle(self.node)]]></value>
         </param>
     </node>
+    <node name="exportedRect" prototype="polygraph.rect" exported="true"/>
     <conn output="rect1" input="move1" port="polygon"/>
 </ndbx>

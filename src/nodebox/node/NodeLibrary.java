@@ -7,7 +7,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -147,6 +149,17 @@ public class NodeLibrary {
         return rootNode;
     }
 
+    public List<Node> getExportedNodes() {
+        List<Node> allChildren = rootNode.getChildren();
+        List<Node> exportedChildren = new ArrayList<Node>(allChildren.size());
+        for (Node child : allChildren) {
+            if (child.isExported()) {
+                exportedChildren.add(child);
+            }
+        }
+        return exportedChildren;
+    }
+
     public void add(Node node) {
         if (node.getLibrary() != this) throw new AssertionError("This node is already added to another library.");
         // The root node can be null in only one case: when we're creating the builtins library.
@@ -158,9 +171,17 @@ public class NodeLibrary {
         }
     }
 
+    /**
+     * Get a node from this library.
+     * <p/>
+     * Only exported nodes are returned. If you want all nodes, use getRootNode().getChild()
+     *
+     * @param name the name of the node
+     * @return the node, or null if a node with this name could not be found.
+     */
     public Node get(String name) {
         if ("root".equals(name)) return rootNode;
-        return rootNode.getChild(name);
+        return rootNode.getExportedChild(name);
     }
 
     public Node remove(String name) {

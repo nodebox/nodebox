@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
-  <node name="generator" prototype="builtins.root" rendered="true" type="nodebox.graphics.Image" x="20" y="10">
+  <node exported="true" name="generator" prototype="builtins.root" rendered="true" type="nodebox.graphics.Image" x="20" y="10">
     <description>Template for nodes that create image data.</description>
     <param name="_code">
       <value type="python"><![CDATA[# This node serves as a template for writing image generators.
@@ -31,7 +31,7 @@ def cook(self):
       <value>generator.png</value>
     </param>
   </node>
-  <node name="filter" prototype="generator" x="20" y="100">
+  <node exported="true" name="filter" prototype="generator" x="20" y="100">
     <description>Template for node that manipulates image data.</description>
     <port name="image"/>
     <param name="_code">

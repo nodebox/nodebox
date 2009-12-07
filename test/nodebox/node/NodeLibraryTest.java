@@ -5,6 +5,7 @@ import nodebox.node.polygraph.Polygon;
 import nodebox.node.polygraph.Rectangle;
 
 import java.io.File;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +17,8 @@ public class NodeLibraryTest extends TestCase {
     public void testNodeNameChange() {
         NodeLibrary test = new NodeLibrary("test");
         Node alpha = Node.ROOT_NODE.newInstance(test, "alpha");
+        // We export the node since we want to test the NodeLibrary#get method, which only returns exported nodes.
+        alpha.setExported(true);
         test.add(alpha);
         assertEquals(alpha, test.get("alpha"));
         // now change the name
@@ -116,8 +119,8 @@ public class NodeLibraryTest extends TestCase {
         assertTrue(beta.isConnectedTo(alpha));
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
-        Node newAlpha = newLibrary.get("alpha");
-        Node newBeta = newLibrary.get("beta");
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
+        Node newBeta = newLibrary.getRootNode().getChild("beta");
         assertTrue(newAlpha.isConnectedTo(newBeta));
         assertTrue(newBeta.isConnectedTo(newAlpha));
     }
@@ -140,7 +143,7 @@ public class NodeLibraryTest extends TestCase {
 
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.get("alpha");
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
         assertEquals("44 - 2", newAlpha.getParameter("v").getExpression());
         newAlpha.update();
         assertEquals(42, newAlpha.getValue("v"));
@@ -167,14 +170,14 @@ public class NodeLibraryTest extends TestCase {
         pLabel.setLabel("My Label");
         pLabel.setHelpText("My Help Text");
         // Inherit from alpha. This is used to test if prototype data is stored only once.
-        Node beta = alpha.newInstance(library, "beta");
+        alpha.newInstance(library, "beta");
 
         String xml = library.toXml();
         assertOnlyOnce(xml, "<param name=\"menu\"");
 
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.get("alpha");
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
         Parameter newAngle = newAlpha.getParameter("angle");
         assertEquals(Parameter.Widget.ANGLE, newAngle.getWidget());
         assertEquals(Parameter.BoundingMethod.HARD, newAngle.getBoundingMethod());
@@ -210,7 +213,7 @@ public class NodeLibraryTest extends TestCase {
         String xml = library.toXml();
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newNet = newLibrary.get("net");
+        Node newNet = newLibrary.getRootNode().getChild("net");
         assertTrue(newNet.hasChildren());
         Node newAlpha = newNet.getChild("alpha");
         Node newBeta = newNet.getChild("beta");
@@ -297,6 +300,66 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
+     * Test if only nodes with the export flags show up in the manager.
+     */
+    public void testExportFlag() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node exportMe = Node.ROOT_NODE.newInstance(library, "exportMe");
+        exportMe.setExported(true);
+        Node hideMe = Node.ROOT_NODE.newInstance(library, "hideMe");
+        List<Node> exportedNodes = library.getExportedNodes();
+        assertEquals(1, exportedNodes.size());
+        assertEquals(exportMe, exportedNodes.get(0));
+        assertTrue(exportMe.isExported());
+        assertFalse(hideMe.isExported());
+
+        // Test if the exported flag is persisted.
+        String xml = library.toXml();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        List<Node> newExportedNodes = newLibrary.getExportedNodes();
+        assertEquals(1, newExportedNodes.size());
+        Node newExportMe = newExportedNodes.get(0);
+        assertEquals("exportMe", newExportMe.getName());
+        assertTrue(newExportMe.isExported());
+        // You can still access the non-exported nodes using getRootNode().getChildren()
+        Node newHideMe = newLibrary.getRootNode().getChild("hideMe");
+        assertEquals("hideMe", newHideMe.getName());
+        assertFalse(newHideMe.isExported());
+        // Try accessing through the library
+        assertEquals(newExportMe, newLibrary.get("exportMe"));
+        assertNull(newLibrary.get("hideMe"));
+
+
+        // Test if a new instance based on this prototype loses the flag.
+        NodeLibrary doc = new NodeLibrary("doc");
+        Node myExportInstance = exportMe.newInstance(doc, "myExportInstance");
+        assertFalse(myExportInstance.isExported());
+        // Note that you can create instances of non-exported nodes as well.
+        // They just don't show up in library.getExportedNodes().
+        Node myHideMeInstance = hideMe.newInstance(doc, "myHideMeInstance");
+        assertFalse(myHideMeInstance.isExported());
+    }
+
+    /**
+     * Test if internal instances can still be loaded even if not exported.
+     */
+    public void testExportInternalInstances() {
+        NodeLibrary library = new NodeLibrary("test");
+        // Alpha and beta are both non-exported.
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
+        Node beta = alpha.newInstance(library, "beta");
+        // Store and load this library.
+        String xml = library.toXml();
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
+        assertEquals(0, newLibrary.getExportedNodes().size());
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
+        Node newBeta = newLibrary.getRootNode().getChild("beta");
+        assertEquals(newAlpha, newBeta.getPrototype());
+    }
+
+    /**
      * Assert that the search string only appears once in the source.
      *
      * @param source       the source string to search in
@@ -324,7 +387,7 @@ public class NodeLibraryTest extends TestCase {
         // Load the library from the XML, and retrieve the value.
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.get("alpha");
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
         Parameter newValue = newAlpha.getParameter("value");
         assertEquals(helpText, newValue.getHelpText());
     }
@@ -346,7 +409,7 @@ public class NodeLibraryTest extends TestCase {
         // Load the library from the XML, and retrieve the value.
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.get("alpha");
+        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
         assertEquals(value, newAlpha.getValue("value"));
     }
 
@@ -364,7 +427,7 @@ public class NodeLibraryTest extends TestCase {
         String xml = p.getLibrary().toXml();
         NodeLibraryManager manager = new NodeLibraryManager();
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.get(nodeName);
+        Node newAlpha = newLibrary.getRootNode().getChild(nodeName);
         Parameter newParameter = newAlpha.getParameter(parameterName);
         assertEquals(expression, newParameter.getExpression());
     }

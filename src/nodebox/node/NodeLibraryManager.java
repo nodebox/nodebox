@@ -196,7 +196,7 @@ public class NodeLibraryManager {
         // Add the root node separately.
         nodes.add(Node.ROOT_NODE);
         for (NodeLibrary library : libraries.values()) {
-            nodes.addAll(library.getRootNode().getChildren());
+            nodes.addAll(library.getExportedNodes());
         }
         return nodes;
     }

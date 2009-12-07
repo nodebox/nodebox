@@ -109,6 +109,12 @@ public class Node implements NodeCode, NodeAttributeListener {
     private transient boolean dirty = true;
 
     /**
+     * A flag that indicates that this node will be exported.
+     * This flag only has effect for nodes directly under the root node in a library.
+     */
+    private boolean exported;
+
+    /**
      * A map of all parameters.
      */
     private LinkedHashMap<String, Parameter> parameters = new LinkedHashMap<String, Parameter>();
@@ -421,6 +427,16 @@ public class Node implements NodeCode, NodeAttributeListener {
         return children.get(nodeName);
     }
 
+    public Node getExportedChild(String nodeName) {
+        Node child = getChild(nodeName);
+        if (child == null) return null;
+        if (child.isExported()) {
+            return child;
+        } else {
+            return null;
+        }
+    }
+
     public Node getChildAt(int index) {
         Collection c = children.values();
         if (index >= c.size()) return null;
@@ -547,6 +563,19 @@ public class Node implements NodeCode, NodeAttributeListener {
         this.y = y;
         fireNodeAttributeChanged(Attribute.POSITION);
     }
+
+    //// Export flag ////
+
+
+    public boolean isExported() {
+        return exported;
+    }
+
+    public void setExported(boolean exported) {
+        this.exported = exported;
+        fireNodeAttributeChanged(Attribute.EXPORT);
+    }
+
 
     //// Parameters ////
 
@@ -1467,6 +1496,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     /**
      * Update all upstream nodes with stamp expressions.
+     *
      * @param ctx the processing context
      */
     public void stampExpressions(ProcessingContext ctx) {

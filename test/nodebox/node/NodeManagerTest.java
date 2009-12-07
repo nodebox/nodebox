@@ -29,10 +29,11 @@ public class NodeManagerTest extends TestCase {
         manager.load(new File("test/demo.ndbx"));
         assertNotNull(manager.get("demo"));
         assertNotNull(manager.getNode("demo.root"));
-        assertNotNull(manager.getNode("demo.rect1"));
-        assertNotNull(manager.getNode("demo.move1"));
-        Node rect1 = manager.getNode("demo.rect1");
-        Node move1 = manager.getNode("demo.move1");
+        assertNull(manager.getNode("demo.rect1"));
+        assertNull(manager.getNode("demo.move1"));
+        assertNotNull(manager.getNode("demo.exportedRect"));
+        Node rect1 = manager.get("demo").getRootNode().getChild("rect1");
+        Node move1 = manager.get("demo").getRootNode().getChild("move1");
         assertEquals(polygraph.get("rect"), rect1.getPrototype());
         assertEquals(Node.ROOT_NODE, move1.getPrototype());
         assertTrue(rect1.hasParameter("x"));
@@ -66,9 +67,11 @@ public class NodeManagerTest extends TestCase {
 
         NodeLibrary storedLibrary = new NodeLibrary(basename);
         Node dotNode = Node.ROOT_NODE.newInstance(storedLibrary, "dot");
+        dotNode.setExported(true);
         dotNode.addParameter("x", Parameter.Type.FLOAT);
         dotNode.addParameter("y", Parameter.Type.FLOAT);
         Node circleNode = dotNode.newInstance(storedLibrary, "circle");
+        circleNode.setExported(true);
         circleNode.addParameter("size", Parameter.Type.FLOAT, 50F);
         storedLibrary.add(dotNode);
         storedLibrary.add(circleNode);
@@ -103,14 +106,18 @@ public class NodeManagerTest extends TestCase {
     public void testOrderedDependencies() throws IOException {
         // Create a temporary file to store the nodes in.
         File f = temporaryLibraryFile();
-        // The library stores nodes in a Set so we can't know the exact ordering of the nodes.
-        // Therefore, we test in all directions.
-        testOrderedDependencies(f, new String[]{"alpha", "beta", "gamma"});
-        testOrderedDependencies(f, new String[]{"alpha", "gamma", "beta"});
-        testOrderedDependencies(f, new String[]{"beta", "alpha", "gamma"});
-        testOrderedDependencies(f, new String[]{"beta", "gamma", "alpha"});
-        testOrderedDependencies(f, new String[]{"gamma", "beta", "alpha"});
-        testOrderedDependencies(f, new String[]{"gamma", "alpha", "beta"});
+        try {
+            // The library stores nodes in a Set so we can't know the exact ordering of the nodes.
+            // Therefore, we test in all directions.
+            testOrderedDependencies(f, new String[]{"alpha", "beta", "gamma"});
+            testOrderedDependencies(f, new String[]{"alpha", "gamma", "beta"});
+            testOrderedDependencies(f, new String[]{"beta", "alpha", "gamma"});
+            testOrderedDependencies(f, new String[]{"beta", "gamma", "alpha"});
+            testOrderedDependencies(f, new String[]{"gamma", "beta", "alpha"});
+            testOrderedDependencies(f, new String[]{"gamma", "alpha", "beta"});
+        } finally {
+            f.delete();
+        }
     }
 
     /**
@@ -140,7 +147,7 @@ public class NodeManagerTest extends TestCase {
         NodeLibrary newLib = manager.get(basename);
         Node newPrototype = Node.ROOT_NODE;
         for (String name : names) {
-            Node newInstance = newLib.get(name);
+            Node newInstance = newLib.getRootNode().getChild(name);
             assertEquals(newPrototype, newInstance.getPrototype());
             newPrototype = newInstance;
         }

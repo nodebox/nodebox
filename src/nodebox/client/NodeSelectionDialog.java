@@ -30,7 +30,7 @@ public class NodeSelectionDialog extends JDialog {
             this.manager = manager;
             this.searchString = "";
             this.filteredNodes = manager.getNodes();
-            this.filteredNodes.addAll(library.getRootNode().getChildren());
+            this.filteredNodes.addAll(library.getExportedNodes());
         }
 
         public String getSearchString() {
@@ -42,8 +42,8 @@ public class NodeSelectionDialog extends JDialog {
             if (searchString.length() == 0) {
                 // Add all the nodes from the manager.
                 filteredNodes = manager.getNodes();
-                // Add all the nodes from the current library.
-                filteredNodes.addAll(library.getRootNode().getChildren());
+                // Add all the exported nodes from the current library.
+                filteredNodes.addAll(library.getExportedNodes());
             } else {
                 filteredNodes = new ArrayList<Node>();
                 // Add all the nodes from the manager.
@@ -51,8 +51,8 @@ public class NodeSelectionDialog extends JDialog {
                     if (contains(node, searchString))
                         filteredNodes.add(node);
                 }
-                // Add all the nodes from the current library.
-                for (Node node : library.getRootNode().getChildren()) {
+                // Add all the exported nodes from the current library.
+                for (Node node : library.getExportedNodes()) {
                     if (contains(node, searchString))
                         filteredNodes.add(node);
                 }
