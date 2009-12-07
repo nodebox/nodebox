@@ -52,6 +52,7 @@ public class Theme {
     public static final Color TEXT_ARMED_COLOR = new Color(0, 0, 0);
     public static final Color TEXT_SHADOW_COLOR = new Color(255, 255, 255);
     public static final Color TEXT_DISABLED_COLOR = new Color(98, 112, 130);
+    public static final Color TEXT_HEADER_COLOR = new Color(93, 93, 93);
 
     // Borders
     public static Border LINE_BORDER;

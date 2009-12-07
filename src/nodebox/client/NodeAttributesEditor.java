@@ -9,15 +9,17 @@ import javax.swing.*;
 import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.Map;
 
 public class NodeAttributesEditor extends JPanel implements ListSelectionListener {
+
+    private static final String NODE_SETTINGS = "Settings";
 
     private Node node;
 
@@ -93,6 +95,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         // Add the Node metadata.
 
         parameterList.addHeader("NODE");
+        parameterList.addNodeSettings();
         parameterList.addHeader("PORTS");
         for (Port p : node.getPorts()) {
             parameterList.addPort(p);
@@ -102,6 +105,15 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             parameterList.addParameter(p);
         }
         revalidate();
+    }
+
+    private void settingsSelected() {
+        editorPanel.removeAll();
+        NodeSettingsEditor editor = new NodeSettingsEditor(node);
+        editorPanel.add(editor, BorderLayout.CENTER);
+        editorPanel.revalidate();
+        selectedPort = null;
+        selectedParameter = null;
     }
 
     private void portSelected(Port p) {
@@ -262,6 +274,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             setMinimumSize(new Dimension(100, 25));
             setMaximumSize(new Dimension(500, 25));
             setPreferredSize(new Dimension(140, 25));
+            setAlignmentX(JComponent.LEFT_ALIGNMENT);
         }
 
         public boolean isSelected() {
@@ -306,23 +319,22 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         }
 
-        public void addPort(final Port p) {
-            final SourceLabel label = new SourceLabel(p.getName(), p);
-            label.addMouseListener(new MouseListener() {
+        public void addNodeSettings() {
+            final SourceLabel label = new SourceLabel(NODE_SETTINGS, NODE_SETTINGS);
+            label.addMouseListener(new MouseInputAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     setSelectedLabel(label);
                 }
+            });
+            labelMap.put(NODE_SETTINGS, label);
+            add(label);
+        }
 
-                public void mousePressed(MouseEvent e) {
-                }
-
-                public void mouseReleased(MouseEvent e) {
-                }
-
-                public void mouseEntered(MouseEvent e) {
-                }
-
-                public void mouseExited(MouseEvent e) {
+        public void addPort(final Port p) {
+            final SourceLabel label = new SourceLabel(p.getName(), p);
+            label.addMouseListener(new MouseInputAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    setSelectedLabel(label);
                 }
             });
             labelMap.put(p, label);
@@ -331,21 +343,9 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
         public void addParameter(final Parameter p) {
             final SourceLabel label = new SourceLabel(p.getName(), p);
-            label.addMouseListener(new MouseListener() {
+            label.addMouseListener(new MouseInputAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     setSelectedLabel(label);
-                }
-
-                public void mousePressed(MouseEvent e) {
-                }
-
-                public void mouseReleased(MouseEvent e) {
-                }
-
-                public void mouseEntered(MouseEvent e) {
-                }
-
-                public void mouseExited(MouseEvent e) {
                 }
             });
             labelMap.put(p, label);
@@ -359,12 +359,13 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
          */
         public void addHeader(String s) {
             JLabel header = new JLabel(s);
-            header.setEnabled(false);
-            header.setForeground(Theme.TEXT_DISABLED_COLOR);
+            header.setForeground(Theme.TEXT_HEADER_COLOR);
             header.setFont(Theme.SMALL_BOLD_FONT);
             header.setMinimumSize(new Dimension(100, 25));
             header.setMaximumSize(new Dimension(500, 25));
             header.setPreferredSize(new Dimension(140, 25));
+            header.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            header.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
             add(header);
         }
 
@@ -374,7 +375,9 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             selectedLabel = label;
             if (selectedLabel != null) {
                 selectedLabel.setSelected(true);
-                if (label.source instanceof Parameter)
+                if (label.source.equals(NODE_SETTINGS)) {
+                    settingsSelected();
+                } else if (label.source instanceof Parameter)
                     parameterSelected((Parameter) label.source);
                 else if (label.source instanceof Port)
                     portSelected((Port) label.source);
