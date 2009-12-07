@@ -1491,7 +1491,7 @@ class FreeHandEditor(AbstractHandle):
             self.path = path
 
     def import_svg(self):
-        self.path = svg.parse_from_string(self.path_string)
+        self.path = svg.path_from_string(self.path_string)
         self._points = []
         for contour in self.path.contours:
             if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
