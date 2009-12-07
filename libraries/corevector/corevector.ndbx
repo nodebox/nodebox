@@ -1570,6 +1570,9 @@ class FreeHandEditor(AbstractHandle):
 def cook(self):
     return FreeHandEditor(self.node)]]></value>
     </param>
+    <param name="_image">
+      <value>freehand.png</value>
+    </param>
     <param name="path" type="string">
       <value/>
     </param>
@@ -2104,6 +2107,9 @@ class ReflectHandle(PointHandle):
 
 def cook(self):
     return ReflectHandle(self.node)]]></value>
+    </param>
+    <param name="_image">
+      <value>reflect.png</value>
     </param>
     <param name="x" type="float">
       <value>50.0</value>
