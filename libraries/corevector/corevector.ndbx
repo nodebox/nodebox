@@ -1295,11 +1295,32 @@ def cook(self):
   <node exported="true" name="freehand" prototype="generator" x="410" y="170">
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Path
-import svg
+
+def str_to_path(s):
+    p = Path()
+    
+    for curve_str in s.strip().split("M"):
+        curve_str = curve_str.strip()
+        if curve_str:
+            coords = []
+            for coord in curve_str.split(" "):
+                try:
+                    coords.append(float(coord))
+                except:
+                    pass
+            coords = len(coords) % 2 and coords[:-1] or coords
+            for i in range(0, len(coords), 2):
+                x = coords[i]
+                y = coords[i+1]
+                if i == 0:
+                    p.moveto(x, y)
+                else:
+                    p.lineto(x, y)
+    return p
 
 def cook(self):
     if not self.path: return None
-    p = svg.path_from_string(self.path)
+    p = str_to_path(self.path)
     p.fillColor = self.fill
     if self.strokeWidth > 0:
         p.strokeColor = self.stroke
@@ -1313,90 +1334,40 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.graphics import Path, Color
 from nodebox.handle import AbstractHandle
 
-import svg
+MOVETO, LINETO = range(2)
 
-MOVETO, LINETO, CURVETO, CLOSE = range(4)
+def str_to_path(s):
+    p = Path()
+    
+    for curve_str in s.strip().split("M"):
+        curve_str = curve_str.strip()
+        if curve_str:
+            coords = []
+            for coord in curve_str.split(" "):
+                try:
+                    coords.append(float(coord))
+                except:
+                    pass
+            coords = len(coords) % 2 and coords[:-1] or coords
+            for i in range(0, len(coords), 2):
+                x = coords[i]
+                y = coords[i+1]
+                if i == 0:
+                    p.moveto(x, y)
+                else:
+                    p.lineto(x, y)
+    return p
 
-class Point(object):
-    def __init__(self, *args):
-        if len(args) == 2:
-            self.x, self.y = args
-        elif len(args) == 1:
-            self.x, self.y = args[0]
-        elif len(args) == 0:
-            self.x = self.y = 0.0
 
-    def __repr__(self):
-        return "Point(x=%.3f, y=%.3f)" % (self.x, self.y)
-       
-    def __eq__(self, other):
-        if other is None: return False
-        return self.x == other.x and self.y == other.y
-       
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-              
-class PathElement(object):
-    def __init__(self, cmd=None, pts=None):
-        self.cmd = cmd
-        if cmd == MOVETO:
-            assert len(pts) == 1
-            self.x, self.y = pts[0]
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[0])
-        elif cmd == LINETO:
-            assert len(pts) == 1
-            self.x, self.y = pts[0]
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[0])
-        elif cmd == CURVETO:
-            assert len(pts) == 3
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[1])
-            self.x, self.y = pts[2]
-        elif cmd == CLOSE:
-            assert pts is None or len(pts) == 0
-            self.x = self.y = 0.0
-            self.ctrl1 = Point(0.0, 0.0)
-            self.ctrl2 = Point(0.0, 0.0)
-        else:
-            self.x = self.y = 0.0
-            self.ctrl1 = Point()
-            self.ctrl2 = Point()
-
-    def __repr__(self):
-        if self.cmd == MOVETO:
-            return "PathElement(MOVETO, ((%.3f, %.3f),))" % (self.x, self.y)
-        elif self.cmd == LINETO:
-            return "PathElement(LINETO, ((%.3f, %.3f),))" % (self.x, self.y)
-        elif self.cmd == CURVETO:
-            return "PathElement(CURVETO, ((%.3f, %.3f), (%.3f, %s), (%.3f, %.3f))" % \
-                (self.ctrl1.x, self.ctrl1.y, self.ctrl2.x, self.ctrl2.y, self.x, self.y)
-        elif self.cmd == CLOSE:
-            return "PathElement(CLOSE)"
-           
-    def __eq__(self, other):
-        if other is None: return False
-        if self.cmd != other.cmd: return False
-        return self.x == other.x and self.y == other.y \
-            and self.ctrl1 == other.ctrl1 and self.ctrl2 == other.ctrl2
-       
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-                                
 class FreeHandEditor(AbstractHandle):
     def __init__(self, node):
         AbstractHandle.__init__(self, node)
-        self.path = None
+        self.path = Path()
         self.path_string = ""
-        self._points = []
-        if self.node.asString("path"):
-            self.import_svg()
         self.strokewidth = 0.75
         self.handle_color = Color(0.6, 0.6, 0.6)
         self.reset()
+        self.update()
 
     def reset(self):
         self._mouseXY = None
@@ -1405,7 +1376,8 @@ class FreeHandEditor(AbstractHandle):
         
     def update(self):
         if self.node.asString("path") != self.path_string:
-            self.import_svg()
+            self.path_string = self.node.asString("path")
+            self.path = str_to_path(self.path_string)
             self.reset()
         
     def draw(self, _ctx):
@@ -1414,7 +1386,7 @@ class FreeHandEditor(AbstractHandle):
         """
 
         if self._dirty:
-            self.export_svg()
+            self.export()
         
         _ctx.strokeWidth = self.strokewidth
 
@@ -1428,29 +1400,23 @@ class FreeHandEditor(AbstractHandle):
             else:
                 cmd = LINETO
             
-            # Add a new LINETO to the path,
-            # except when starting to draw,
-            # then a MOVETO is added to the path.
-            pt = PathElement()
-            pt.cmd = cmd
-            pt.x = x
-            pt.y = y
-            pt.ctrl1 = Point(x,y)
-            pt.ctrl2 = Point(x,y)
-            
             append = True
-            if len(self._points) > 0:
-                lpt = self._points[-1]
-                if lpt.x == x and lpt.y == y and lpt.cmd == cmd:
+            points = self.path.points
+            if len(points) > 0:
+                pt = points[-1]
+                if pt.x == x and pt.y == y:
                     append = False
             if append:
-                self._points.append(pt)
+                if cmd == MOVETO:
+                    self.path.moveto(x, y)
+                else:
+                    self.path.lineto(x, y)
             
             # Draw the current location of the cursor.
             r = 4
             _ctx.fillColor = None
             _ctx.strokeColor = self.handle_color
-            _ctx.ellipse(pt.x, pt.y, r*2, r*2)
+            _ctx.ellipse(x, y, r*2, r*2)
         
             self._dirty = True
         
@@ -1460,92 +1426,19 @@ class FreeHandEditor(AbstractHandle):
             # remember to do a MOVETO on the next interaction.
             self.freehand_move = True
             if self._dirty:
-                self._points[-1].freehand = False
                 self._dirty = False
 
         r = 4
         _ctx.fillColor = None
-        path = Path()
-        if len(self._points) > 0:
-            first = True
-            for i in range(len(self._points)):
-                
-                # Construct the path.
-                pt = self._points[i]
-                if first:
-                    path.moveto(pt.x, pt.y)
-                    first = False
-                else:
-                    if pt.cmd == CLOSE:
-                        path.close()
-                    elif pt.cmd == MOVETO:
-                        path.moveto(pt.x, pt.y)
-                    elif pt.cmd == LINETO:
-                        path.lineto(pt.x, pt.y)
-                    elif pt.cmd == CURVETO:
-                        path.curveto(pt.ctrl1.x, pt.ctrl1.y, 
-                                     pt.ctrl2.x, pt.ctrl2.y, 
-                                     pt.x, pt.y)
-                
-            # Set the current path,
-            self.path = path
-
-    def import_svg(self):
-        self.path = svg.path_from_string(self.path_string)
-        self._points = []
-        for contour in self.path.contours:
-            if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
-                first = None
-                curvePoint = PathElement()
-                curvePoint.cmd = CURVETO
-                first_curvepoint = True
-                for point in contour.points:
-                    if first is None or point.isLineTo():
-                        pe = PathElement()
-                        if first is None:
-                            first = point
-                            pe.cmd = MOVETO
-                        else:
-                            pe.cmd = LINETO
-                        pe.x = point.x
-                        pe.y = point.y
-                        self._points.append(pe)
-                    else:
-                        if first_curvepoint:
-                            curvePoint.ctrl1.x = point.x
-                            curvePoint.ctrl1.y = point.y
-                            first_curvepoint = False
-                        elif point.isOffCurve():
-                            curvePoint.ctrl2.x = point.x
-                            curvePoint.ctrl2.y = point.y
-                        else:
-                            curvePoint.x = point.x
-                            curvePoint.y = point.y
-                            self._points.append(curvePoint)
-                            curvePoint = PathElement()
-                            curvePoint.cmd = CURVETO
-                            first_curvepoint = True
-                if contour.closed:
-                    pe = PathElement()
-                    pe.cmd = CLOSE  
-                    self._points.append(pe)    
-
-    def export_svg(self):
+        
+    def export(self):
         s = ""
-        if len(self._points) > 0:
-            for pt in self._points:
-                if pt.cmd == MOVETO:
-                    s += "M "+str(pt.x)+" "+str(pt.y)+" "
-                elif pt.cmd == LINETO:
-                    s += "L "+str(pt.x)+" "+str(pt.y)+" "
-                elif pt.cmd == CURVETO:
-                    s += "C "
-                    s += str(pt.ctrl1.x)+" "+str(pt.ctrl1.y)+" "
-                    s += str(pt.ctrl2.x)+" "+str(pt.ctrl2.y)+" "
-                    s += str(pt.x)+" "+str(pt.y)+" "
-            self.path_string = s
-            if self.path_string != self.node.asString("path"):
-                self.node.silentSet("path", s)
+        for contour in self.path.contours:
+            s += "M "
+            s += "".join(["%s %s " % (pt.x, pt.y) for pt in contour.points])
+        self.path_string = s
+        if self.path_string != self.node.asString("path"):
+            self.node.silentSet("path", self.path_string)
     
     def mouse(self):
         if self._mouseXY is not None:
