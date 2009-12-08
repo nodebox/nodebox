@@ -1379,19 +1379,12 @@ class FreeHandEditor(AbstractHandle):
             self.path_string = self.node.asString("path")
             self.path = str_to_path(self.path_string)
             self.reset()
-        
-    def draw(self, _ctx):
-        
-        """ Draws the editable path and interface elements.
-        """
 
+        # Export the updated drawing,
         if self._dirty:
             self.export()
-        
-        _ctx.strokeWidth = self.strokewidth
-
-        if self.mousedown:
             
+        if self.mousedown:
             x, y = self.mouse()
             
             if self.freehand_move == True:
@@ -1411,25 +1404,27 @@ class FreeHandEditor(AbstractHandle):
                     self.path.moveto(x, y)
                 else:
                     self.path.lineto(x, y)
-            
-            # Draw the current location of the cursor.
-            r = 4
-            _ctx.fillColor = None
-            _ctx.strokeColor = self.handle_color
-            _ctx.ellipse(x, y, r*2, r*2)
-        
             self._dirty = True
-        
         else:
-
-            # Export the updated drawing,
             # remember to do a MOVETO on the next interaction.
             self.freehand_move = True
             if self._dirty:
                 self._dirty = False
+        
+    def draw(self, _ctx):
+        
+        """ Draws the cursor.
+        """
 
-        r = 4
-        _ctx.fillColor = None
+        if self.mousedown:
+            x, y = self.mouse()
+            
+            # Draw the current location of the cursor.
+            r = 4
+            _ctx.fillColor = None
+            _ctx.strokeWidth = self.strokewidth
+            _ctx.strokeColor = self.handle_color
+            _ctx.ellipse(x, y, r*2, r*2)
         
     def export(self):
         s = ""
