@@ -1983,17 +1983,67 @@ def cook(self):
     </param>
     <param name="_handle">
       <value type="python"><![CDATA[from nodebox.graphics import Path, Color
-from nodebox.handle import PointHandle
-from nodebox.util.Geometry import coordinates
+from nodebox.handle import AbstractHandle
+from nodebox.util.Geometry import coordinates, distance, angle
 
-class ReflectHandle(PointHandle):
+DEFAULT_ROTATION_HANDLE_LENGTH = 100
+
+class ReflectHandle(AbstractHandle):
+    NONE, ORIGIN, ROTATION = range(3)
+    
     def __init__(self, node):
-        PointHandle.__init__(self, node)
-  
+        AbstractHandle.__init__(self, node)
+        self.dragState = ReflectHandle.NONE
+        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
+
     def update(self):
         shape = self.node.getPort("shape").value
         self.visible = shape is not None
-    
+
+    def mousePressed(self, pt):
+        self.px = pt.x
+        self.py = pt.y
+
+        self.ox = self.node.asFloat("x")
+        self.oy = self.node.asFloat("y")
+        origin = self.createHitRectangle(self.ox, self.oy)
+        
+        a = self.node.asFloat("angle")
+        ax, ay = coordinates(self.ox, self.oy, self.rotation_handle_length, a)
+        rot = self.createHitRectangle(ax, ay)
+        
+        if origin.contains(pt):
+            self.dragState = self.ORIGIN
+        elif rot.contains(pt):
+            self.dragState = self.ROTATION
+        else:
+            self.dragState = self.NONE
+
+    def mouseDragged(self, pt):
+        if self.dragState == self.NONE: return
+        
+        if self.dragState == self.ORIGIN:
+            x = pt.x
+            y = pt.y
+            dx = x - self.px
+            dy = y - self.py
+            if dx == 0 and dy == 0: return
+            self.node.silentSet("x", self.ox + dx)
+            self.node.silentSet("y", self.oy + dy)
+            
+        elif self.dragState == self.ROTATION:
+            x = pt.x
+            y = pt.y
+            d = distance(x, y, self.ox, self.oy)
+            a = angle(self.ox, self.oy, x, y)
+            self.node.silentSet("angle", a)
+            self.rotation_handle_length = d
+            
+    def mouseReleased(self, pt):
+        self.dragState = self.NONE
+        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
+        self.viewer.repaint()
+                        
     def draw(self, ctx):
         x = self.node.asFloat("x")
         y = self.node.asFloat("y")
@@ -2002,8 +2052,13 @@ class ReflectHandle(PointHandle):
         x1, y1 = coordinates(x, y, -1000, a)
         x2, y2 = coordinates(x, y, 1000, a)
         p.line(x1, y1, x2, y2)
-        p.strokeColor = PointHandle.HANDLE_COLOR
+        p.strokeColor = AbstractHandle.HANDLE_COLOR
         p.strokeWidth = 1
+        ctx.canvas.add(p)
+        ax, ay = coordinates(x, y, self.rotation_handle_length, a)
+        p = Path()
+        p.ellipse(ax, ay, 6, 6)
+        p.fillColor = AbstractHandle.HANDLE_COLOR
         ctx.canvas.add(p)
         self.drawDot(ctx, x, y)
 
