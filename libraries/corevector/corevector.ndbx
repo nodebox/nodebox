@@ -449,8 +449,8 @@ class BezierPathEditor(AbstractHandle):
 
     def insert_point(self, x, y):
         pass
-    
-    def update(self):
+        
+    def _update_interaction(self):
         
         """ Update runs each frame to check for mouse interaction.
         
@@ -460,9 +460,6 @@ class BezierPathEditor(AbstractHandle):
         in the given filename.
         
         """
-        if self.node.asString("path") != self.path_string:
-            self.import_svg()
-            self.reset()
         
         x, y = self.mouse()
         
@@ -709,21 +706,9 @@ class BezierPathEditor(AbstractHandle):
         if not self.keydown and self.last_keycode != None:
             self.last_key = None
             self.last_keycode = None
-    
-    def draw(self, _ctx):
-        
-        """ Draws the editable path and interface elements.
-        """
 
-        # Enable interaction.
-        self.update()
-        self.export_svg()
+    def _update_path(self):
         x, y = self.mouse()
-        
-        _ctx.strokeWidth = self.strokewidth
-        
-        r = 4
-        _ctx.fillColor = None
         path = Path()
         if len(self._points) > 0:
             first = True
@@ -745,6 +730,37 @@ class BezierPathEditor(AbstractHandle):
                         path.curveto(pt.ctrl1.x, pt.ctrl1.y, 
                                      pt.ctrl2.x, pt.ctrl2.y, 
                                      pt.x, pt.y)
+        # Set the current path,
+        self.path = path
+        
+    def update(self):
+        if self.node.asString("path") != self.path_string:
+            self.import_svg()
+            self.reset()
+            
+        # Enable interaction.
+        self._update_interaction()
+        self.export_svg()
+        self._update_path()
+        
+    def draw(self, _ctx):
+        
+        """ Draws the editable path and interface elements.
+        """
+
+        x, y = self.mouse()
+        
+        _ctx.strokeWidth = self.strokewidth
+        
+        r = 4
+        _ctx.fillColor = None
+        if len(self._points) > 0:
+            first = True
+            for i in range(len(self._points)):
+                
+                # Construct the path.
+                pt = self._points[i]
+                
                 # In add- or edit-mode,
                 # display the current point's handles.
                 if ((i == self.edit and self.new == None) \
@@ -796,8 +812,6 @@ class BezierPathEditor(AbstractHandle):
                     _ctx.fillColor = None
                 _ctx.ellipse(pt.x, pt.y, r, r)
                 
-            # Set the current path,
-            self.path = path
 
             # Possible to insert a point here.
             if self.insert:
