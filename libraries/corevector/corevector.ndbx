@@ -1579,7 +1579,7 @@ def cook(self):
       <value/>
     </param>
     <param label="Center on canvas" name="centered" type="int" widget="toggle">
-      <value>1</value>
+      <value>0</value>
     </param>
     <param name="x" type="float">
       <value>0.0</value>
