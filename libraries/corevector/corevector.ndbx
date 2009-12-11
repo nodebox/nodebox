@@ -1255,7 +1255,10 @@ def cook(self):
     if self.shape is None: return None
 
     px, py, pw, ph = list(self.shape.bounds)
-
+    
+    if 0 < pw <= 0.000000000001: pw = 0
+    if 0 < ph <= 0.000000000001: ph = 0
+    
     # if a template shape is given, use its bounding rectangle,
     # otherwise use the input values.
     if self.template is not None:
@@ -1268,9 +1271,12 @@ def cook(self):
         width = self.width
         height = self.height
 
+    w = pw and width / pw or 1
+    h = ph and height / ph or 1
+
     t = Transform()
     t.translate(x, y)
-    t.scale(width / pw, height / ph)
+    t.scale(w, h)
     t.translate(-pw / 2 - px, -ph / 2 - py)
 
     return t.map(self.shape)]]></value>
