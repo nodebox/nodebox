@@ -2562,14 +2562,29 @@ class TransformHandle(AbstractHandle):
 
     def find_scale_before(self, x0, y0, x1, y1, t):
         m11, m21, m12, m22, m13, m23 = values(t)
-        sx = x1 / (m11*x0 + m12*y0 + m13)
-        sy = y1 / (m21*x0 + m22*y0 + m23)
+        try: 
+            sx = x1 / (m11*x0 + m12*y0 + m13)
+        except ZeroDivisionError: 
+            sx = None
+        try: 
+            sy = y1 / (m21*x0 + m22*y0 + m23)
+        except ZeroDivisionError: 
+            sy = None
         return sx, sy
 
     def find_scale_after(self, x0, y0, x1, y1, t):
         m11, m21, m12, m22, m13, m23 = values(t)
-        sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
-        sy = (y1 - m21*sx*x0 - m23) / (m22*y0)
+        try:
+            sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
+        except ZeroDivisionError:
+            sx = None
+        if sx is not None:
+            try:
+                sy = (y1 - m21*sx*x0 - m23) / (m22*y0)
+            except ZeroDivisionError:
+                sy = None
+        else:
+            sy = None
         return sx, sy
 
     def find_scale_rst(self, x0, y0, x1, y1, t1, t2):
@@ -2581,22 +2596,27 @@ class TransformHandle(AbstractHandle):
         l = m12*(ty + y0)
         m = m22*(ty + y0)
 
-        if j== 0 and l == 0:
-            return 1, 1
-        if j == 0:
-            return 1, x1 / l
-        if l == 0:
-            return x1 / j, 1
-
-        sx = (y1*l - x1*m) / (l*k - j*m)
-        sy = (y1*j - x1*k) / (m*j - l*k)
+        try:
+            sx = (y1*l - x1*m) / (l*k - j*m)
+        except ZeroDivisionError:
+            sx = None
+        try:
+            sy = (y1*j - x1*k) / (m*j - l*k)
+        except ZeroDivisionError:
+            sy = None
         return sx, sy
 
     def find_scale_tsr(self, x0, y0, x1, y1, t1, t2):
         m11, m21, m12, m22 = values(t2)[:4]
         tx, ty = values(t1)[4:]
-        sx = (x1 - tx) / (m11*x0 + m12*y0)
-        sy = (y1 - ty) / (m21*x0 + m22*y0)
+        try:
+            sx = (x1 - tx) / (m11*x0 + m12*y0)
+        except ZeroDivisionError:
+            sx = None
+        try:
+            sy = (y1 - ty) / (m21*x0 + m22*y0)
+        except ZeroDivisionError:
+            sy = None
         return sx, sy
             
     def update(self):
@@ -2605,6 +2625,8 @@ class TransformHandle(AbstractHandle):
             if shape is not self.shape:
                 self.shape = shape
                 x, y, w, h = list(shape.bounds)
+                if 0 < w <= 0.000000000001: w = 0
+                if 0 < h <= 0.000000000001: h = 0
                 p = Path()
                 p.rect(x + w/2, y + h/2, w, h)
                 self.original_rect = p
@@ -2629,11 +2651,14 @@ class TransformHandle(AbstractHandle):
     def init_scale_or_translation_operation(self, pt):
         path = self.transform.map(self.original_rect)
         o1, o2, o3, o4 = self.original_rect.points
+        om = Point((o1.x + o2.x)/2, (o1.y + o3.y)/2)
+        pm = self.transform.map(om)
         p1, p2, p3, p4 = path.points
         topLeft = self.createHitRectangle(p1.x, p1.y)
         topRight = self.createHitRectangle(p2.x, p2.y)
         bottomLeft = self.createHitRectangle(p3.x, p3.y)
         bottomRight = self.createHitRectangle(p4.x, p4.y)
+        center = self.createHitRectangle(pm.x, pm.y)
         can_scale_or_translate = True
         self.operation = self.SCALE
         if topLeft.contains(pt):
@@ -2644,7 +2669,7 @@ class TransformHandle(AbstractHandle):
             self.transform_point = o3
         elif bottomRight.contains(pt):
             self.transform_point = o4
-        elif path.contains(pt):
+        elif path.contains(pt) or center.contains(pt):
             t = Transform(self.transform)
             t.invert()
             self.transform_point = t.map(pt)
@@ -2706,9 +2731,10 @@ class TransformHandle(AbstractHandle):
                 sx, sy = self.find_scale_rst(p.x, p.y, pt.x, pt.y, t1, t2)
             else:
                 sx, sy = self.find_scale_tsr(p.x, p.y, pt.x, pt.y, t2, t1)
-            
-        self.node.silentSet("sx", sx * 100)
-        self.node.silentSet("sy", sy * 100)
+        if sx is not None:    
+            self.node.silentSet("sx", sx * 100)
+        if sy is not None:
+            self.node.silentSet("sy", sy * 100)
     
     def perform_translation(self, pt):
         p = self.transform_point
@@ -2778,15 +2804,17 @@ class TransformHandle(AbstractHandle):
         for point in bounds_path.points:
             self.drawDot(corner_path, point.x, point.y)
         self.drawDot(corner_path, center.x, center.y)
-        ctx.draw(bounds_path)
+        if w and h:
+            ctx.draw(bounds_path)
         ctx.draw(corner_path)
                 
     def draw_rotation_handle(self, ctx):
         origin, handle = self.rotation_coordinates()
         rotation_path = Path()
-        rotation_path.fillColor = AbstractHandle.HANDLE_COLOR
-        rotation_path.strokeWidth = 0
-        self.drawDot(rotation_path, handle.x, handle.y)
+        rotation_path.fillColor = Color(1, 1, 1)
+        rotation_path.strokeWidth = 1.5
+        rotation_path.strokeColor = AbstractHandle.HANDLE_COLOR
+        rotation_path.ellipse(handle.x, handle.y, 6, 6)
         rotation_line_path = Path()
         rotation_line_path.fillColor = None
         rotation_line_path.strokeColor = AbstractHandle.HANDLE_COLOR
