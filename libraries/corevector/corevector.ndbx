@@ -2335,6 +2335,7 @@ def cook(self):
     p = Path()
     p.moveto(self.x, self.y + self.outer / 2)
 
+    # Calculate the points of the star.
     for i in xrange(1, self.points * 2):
         angle = i * pi / self.points
         x = sin(angle)
@@ -2357,41 +2358,38 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.handle import AbstractHandle, FourPointHandle
 
 class StarHandle(AbstractHandle):
-  def __init__(self, node):
-      AbstractHandle.__init__(self, node)
-      self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
-      self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
+        self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
 
-  def draw(self, ctx):
-      self.innerHandle.draw(ctx)
-      self.outerHandle.draw(ctx)
+    def draw(self, ctx):
+        self.innerHandle.draw(ctx)
+        self.outerHandle.draw(ctx)
 
-  def mousePressed(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
+    def mousePressed(self, pt):
+        inner, outer = self.innerHandle, self.outerHandle
 
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
+        # if the inner diameter is larger than the outer,
+        # we should first check the handles of the outer rectangle,
+        # so treat the outer as if it was the inner.
+        if abs(self.node.asFloat("inner")) > abs(self.node.asFloat("outer")):
+            inner, outer = outer, inner
 
-      inner.mousePressed(pt)
-      if not inner.hasDragState():
-          outer.mousePressed(pt)
+        inner.mousePressed(pt)
+        if not inner.hasDragState():
+            outer.mousePressed(pt)
 
-  def mouseDragged(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
+    def mouseDragged(self, pt):
+        self.innerHandle.mouseDragged(pt)
+        self.outerHandle.mouseDragged(pt)
 
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
-
-      inner.mouseDragged(pt)
-      if not inner.hasDragState():
-          outer.mouseDragged(pt)
-
-  def mouseReleased(self, pt):
-      self.innerHandle.mouseReleased(pt)
-      self.outerHandle.mouseReleased(pt)
+    def mouseReleased(self, pt):
+        self.innerHandle.mouseReleased(pt)
+        self.outerHandle.mouseReleased(pt)
 
 def cook(self):
-  return StarHandle(self.node)]]></value>
+    return StarHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>star.png</value>
