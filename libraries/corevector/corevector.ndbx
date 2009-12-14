@@ -1317,6 +1317,8 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def str_to_path(s):
+    # Utility function to convert a string containing a list of points to a Path
+    # The letter M marks the start of a new curve.
     p = Path()
     
     for curve_str in s.strip().split("M"):
@@ -1357,6 +1359,8 @@ from nodebox.handle import AbstractHandle
 MOVETO, LINETO = range(2)
 
 def str_to_path(s):
+    # Utility function to convert a string containing a list of points to a Path
+    # The letter M marks the start of a new curve.
     p = Path()
     
     for curve_str in s.strip().split("M"):
@@ -1400,7 +1404,7 @@ class FreeHandEditor(AbstractHandle):
             self.path = str_to_path(self.path_string)
             self.reset()
 
-        # Export the updated drawing,
+        # Export the updated drawing.
         if self._dirty:
             self.export()
             
@@ -1408,6 +1412,7 @@ class FreeHandEditor(AbstractHandle):
             x, y = self.mouse()
             
             if self.freehand_move == True:
+                # The start of a new curve
                 cmd = MOVETO
                 self.freehand_move = False
             else:
@@ -1416,6 +1421,8 @@ class FreeHandEditor(AbstractHandle):
             append = True
             points = self.path.points
             if len(points) > 0:
+                # Only append the point if its location isn't equal
+                # to the last drawn point.
                 pt = points[-1]
                 if pt.x == x and pt.y == y:
                     append = False
@@ -1433,13 +1440,13 @@ class FreeHandEditor(AbstractHandle):
         
     def draw(self, _ctx):
         
-        """ Draws the cursor.
+        """ Draws the cursor when the mouse is pressed down.
         """
 
         if self.mousedown:
             x, y = self.mouse()
             
-            # Draw the current location of the cursor.
+            # Draws the current location of the cursor.
             r = 4
             _ctx.fillColor = None
             _ctx.strokeWidth = self.strokewidth
@@ -1447,6 +1454,7 @@ class FreeHandEditor(AbstractHandle):
             _ctx.ellipse(x, y, r*2, r*2)
         
     def export(self):
+        # Constructs a string out of the paths list of points.
         s = ""
         for contour in self.path.contours:
             s += "M "
