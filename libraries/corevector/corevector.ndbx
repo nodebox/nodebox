@@ -1817,7 +1817,7 @@ from nodebox.util.Geometry import angle
 def cook(self):
     t = 0
     vertices = []
-    vertices.append((cos(t) * self.radius, sin(t) * self.radius))
+    vertices.append((cos(0) * self.radius, sin(0) * self.radius))
     p = Path()
     p.moveto( *vertices[0] )
     for i in range(1, self.sides):               
@@ -1840,8 +1840,10 @@ def cook(self):
     return p.asGeometry()]]></value>
     </param>
     <param name="_handle">
-      <value type="python"><![CDATA[from nodebox.graphics import Path
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform, Point
 from nodebox.handle import AbstractHandle
+from nodebox.util.Geometry import angle, distance
+from math import sin, cos, pi
 
 class PolygonHandle(AbstractHandle):
     NONE, CENTER, OUTER = range(3)
@@ -1849,6 +1851,10 @@ class PolygonHandle(AbstractHandle):
     def __init__(self, *args):
         AbstractHandle.__init__(self, *args)
         self.dragState = PolygonHandle.NONE
+        self.update()
+   
+    def update(self):
+        self.visible = self.node.asInt("sides") > 0
         
     def mousePressed(self, pt):
         self.px = pt.x
@@ -1857,9 +1863,15 @@ class PolygonHandle(AbstractHandle):
         self.ocx = self.node.asFloat("x")
         self.ocy = self.node.asFloat("y")
         self.ocr = self.node.asFloat("radius")
-        
         center = self.createHitRectangle(self.ocx, self.ocy)
-        outer = self.createHitRectangle(self.ocx + self.ocr, self.ocy)
+        if self.node.asInt("align"):
+            t = Transform()
+            t.translate(self.ocx, self.ocy)
+            t.rotate(- self.find_angle())
+            p = t.map(Point(self.ocr, 0))
+            outer = self.createHitRectangle(p.x, p.y)
+        else:
+            outer = self.createHitRectangle(self.ocx + self.ocr, self.ocy)
         
         if outer.contains(pt):
             self.dragState = self.OUTER
@@ -1882,11 +1894,24 @@ class PolygonHandle(AbstractHandle):
             self.node.silentSet("x", self.ocx + dx)
             self.node.silentSet("y", self.ocy + dy)
         elif self.dragState == self.OUTER:
-            self.node.silentSet("radius", self.ocr + dx)
+            if self.node.asInt("align"):
+                d = distance(self.node.asFloat("x"), self.node.asFloat("y"), x, y)
+                self.node.silentSet("radius", d)
+            else:
+                self.node.silentSet("radius", self.ocr + dx)
 
     def mouseReleased(self, pt):
         self.dragState = self.NONE
-        
+    
+    def find_angle(self):
+        radius = self.node.asFloat("radius")
+        sides = self.node.asInt("sides")
+        x1, y1 = cos(0) * radius, sin(0) * radius
+        t = 2*pi/sides
+        x2, y2 = cos(t) * radius, sin(t) * radius
+        a = angle(x2, y2, x1, y1)
+        return a          
+              
     def draw(self, ctx):
         x = self.node.asFloat("x")
         y = self.node.asFloat("y")
@@ -1894,14 +1919,20 @@ class PolygonHandle(AbstractHandle):
         cornerPath = Path()
         cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
         cornerPath.strokeWidth = 0
-        self.drawDot(cornerPath, x, y)
-        self.drawDot(cornerPath, x + radius, y)
-        ctx.draw(cornerPath)
         strokePath = Path()
         strokePath.fillColor = None
         strokePath.strokeColor = AbstractHandle.HANDLE_COLOR
-        strokePath.line(x, y, x + radius, y)
+        strokePath.line(0, 0, radius, 0)
+        t = Transform()
+        t.translate(x, y)
+        if self.node.asInt("align"):
+            t.rotate(-self.find_angle())
+        strokePath = t.map(strokePath)
         ctx.draw(strokePath)
+        for point in strokePath.points:
+            self.drawDot(cornerPath, point.x, point.y)
+        ctx.draw(cornerPath)
+
 
 def cook(self):
     return PolygonHandle(self.node)]]></value>
