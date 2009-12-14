@@ -1610,6 +1610,7 @@ def cook(self):
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
+    # Resample the path so it contains the desired amount of points.
     p = p.resampleByAmount(self.points, True)
     return p.asGeometry()]]></value>
     </param>
@@ -1619,80 +1620,87 @@ from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
 class LineHandle(AbstractHandle):
-  NONE, ORIGIN, MIDDLE, END = range(4)
+    NONE, ORIGIN, MIDDLE, END = range(4)
 
-  def __init__(self, node):
-      AbstractHandle.__init__(self, node)
-      self.dragState = LineHandle.NONE
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.dragState = LineHandle.NONE
 
-  def draw(self, ctx):
-      cx = self.node.asFloat("x")
-      cy = self.node.asFloat("y")
-      cornerPath = Path()
-      cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
-      self.drawDot(cornerPath, cx, cy)
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance"), self.node.asFloat("angle"))
-      self.drawDot(cornerPath, x1, y1)
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance") / 2, self.node.asFloat("angle"))
-      self.drawDot(cornerPath, x1, y1)
-      ctx.canvas.add(cornerPath)
+    def draw(self, ctx):
+        cx = self.node.asFloat("x")
+        cy = self.node.asFloat("y")
+        d = self.node.asFloat("distance")
+        a = self.node.asFloat("angle")
+        cornerPath = Path()
+        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
+        self.drawDot(cornerPath, cx, cy) # Draw the starting point handle
+        x1, y1 = coordinates(cx, cy, d, a)
+        self.drawDot(cornerPath, x1, y1) # Draw the ending point handle
+        x1, y1 = coordinates(cx, cy, d / 2, a)
+        self.drawDot(cornerPath, x1, y1) # Draw the middle point handle
+        ctx.canvas.add(cornerPath)
 
-  def mousePressed(self, pt):
-      self.px = pt.x
-      self.py = pt.y
+    def mousePressed(self, pt):
+        self.px = pt.x
+        self.py = pt.y
 
-      cx = self.ocx = self.node.asFloat("x")
-      cy = self.ocy = self.node.asFloat("y")
-      origin = self.createHitRectangle(cx, cy)
+        d = self.node.asFloat("distance")
+        a = self.node.asFloat("angle")
 
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance"), self.node.asFloat("angle"))
-      end = self.createHitRectangle(x1, y1)
+        cx = self.ocx = self.node.asFloat("x")
+        cy = self.ocy = self.node.asFloat("y")
+        origin = self.createHitRectangle(cx, cy)
 
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance") / 2, self.node.asFloat("angle"))
-      middle = self.createHitRectangle(x1, y1)
+        x1, y1 = coordinates(cx, cy, d, a)
+        end = self.createHitRectangle(x1, y1)
 
-      if origin.contains(pt):
-          self.dragState = self.ORIGIN
-      elif end.contains(pt):
-          self.dragState = self.END
-      elif middle.contains(pt):
-          self.dragState = self.MIDDLE
-      else:
-          self.dragState = self.NONE
+        x1, y1 = coordinates(cx, cy, d / 2, a)
+        middle = self.createHitRectangle(x1, y1)
 
-  def mouseDragged(self, pt):
-      if self.dragState == self.NONE: return
+        if origin.contains(pt):
+            self.dragState = self.ORIGIN
+        elif end.contains(pt):
+            self.dragState = self.END
+        elif middle.contains(pt):
+            self.dragState = self.MIDDLE
+        else:
+            self.dragState = self.NONE
 
-      x = pt.x
-      y = pt.y
-      dx = x - self.px
-      dy = y - self.py
+    def mouseDragged(self, pt):
+        if self.dragState == self.NONE: return
 
-      if (dx == 0 and dy == 0): return
+        x = pt.x
+        y = pt.y
+        dx = x - self.px
+        dy = y - self.py
 
-      if self.dragState == self.MIDDLE:
-          self.node.silentSet("x", self.ocx + dx)
-          self.node.silentSet("y", self.ocy + dy)
-      elif self.dragState == self.ORIGIN:
-          x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
-          a = angle(x, y, x1, y1)
-          d = distance(x, y, x1, y1)
-          self.node.silentSet("x", x)
-          self.node.silentSet("y", y)
-          self.node.silentSet("angle", a)
-          self.node.silentSet("distance", d)
-      elif self.dragState == self.END:
-          a = angle(self.ocx, self.ocy, x, y)
-          d = distance(self.ocx, self.ocy, x, y)
-          self.node.silentSet("angle", a)
-          self.node.silentSet("distance", d)
+        if (dx == 0 and dy == 0): return
 
-  def mouseReleased(self, pt):
-      self.dragState = self.NONE
+        if self.dragState == self.MIDDLE:
+            self.node.silentSet("x", self.ocx + dx)
+            self.node.silentSet("y", self.ocy + dy)
+        elif self.dragState == self.ORIGIN:
+            # First, calculate the ending point of the line using the current parameters,
+            # then, use this point to calculate angle and distance from the new starting point.
+            x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
+            a = angle(x, y, x1, y1)
+            d = distance(x, y, x1, y1)
+            self.node.silentSet("x", x)
+            self.node.silentSet("y", y)
+            self.node.silentSet("angle", a)
+            self.node.silentSet("distance", d)
+        elif self.dragState == self.END:
+            a = angle(self.ocx, self.ocy, x, y)
+            d = distance(self.ocx, self.ocy, x, y)
+            self.node.silentSet("angle", a)
+            self.node.silentSet("distance", d)
+
+    def mouseReleased(self, pt):
+        self.dragState = self.NONE
 
 
 def cook(self):
-  return LineHandle(self.node)]]></value>
+    return LineHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>line.png</value>
