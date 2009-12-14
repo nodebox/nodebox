@@ -2232,12 +2232,16 @@ def sort_items(items, order, **kwargs):
 def sort_points(shape, scope, order, **kwargs):
     new_shape = Geometry()
     if scope == "pt_g":
+        # Sorts points per group.
+        # Color information is discarded.
         points = list(shape.points)
         points = sort_items(points, order, **kwargs)
         for point in points:
             new_shape.addPoint(Point(point.x, point.y))
         new_shape.paths[0].fillColor = None
     elif scope == "pt_p":
+        # Sorts points per path.
+        # Color information is kept.
         for path in shape.paths:
             points = list(path.points)
             points = sort_items(points, order, **kwargs)
@@ -2249,6 +2253,8 @@ def sort_points(shape, scope, order, **kwargs):
                 pp.type = point.LINE_TO
             new_shape.add(p)
     elif scope == "pt_c":
+        # Sorts points per contour.
+        # Color information is kept.
         for path in shape.paths:
             p = path.cloneAndClear()
             for contour in path.contours:
@@ -2275,6 +2281,8 @@ def sort_paths(shape, order, **kwargs):
 def sort_contours(shape, order, **kwargs):
     new_shape = Geometry()
     for path in shape.paths:
+        # Create an empty path with the current path's color information
+        # Add the sorted contours to the path.
         p = path.cloneAndClear()
         contours = list(path.contours)
         contours = sort_items(contours, order, **kwargs)
@@ -2285,8 +2293,12 @@ def sort_contours(shape, order, **kwargs):
         
 def cook(self):
     if self.shape is None: return None
+    
+    # whether the comparison functions should compare a points' x/y values (True)
+    # or a paths' bounding box x/y values. (False)
     global _sort_paths
     _sort_paths = True
+    
     kwargs = {"seed": self.seed, "offset": self.offset, "x": self.x, "y": self.y}
     if self.scope in ["pt_c", "pt_p", "pt_g"]:
         _sort_paths = False
