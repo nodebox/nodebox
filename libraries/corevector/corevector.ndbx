@@ -429,7 +429,16 @@ class BezierPathEditor(AbstractHandle):
         return False
 
     def insert_point(self, x, y):
-        pass
+        
+        """ Inserts a point on the path at the mouse location.
+
+        We first need to check if the mouse location is on the path.
+        Inserting point is time intensive and experimental.
+        
+        """
+        
+        # TODO: implement
+        pass 
         
     def _update_interaction(self):
         
@@ -857,9 +866,12 @@ class BezierPathEditor(AbstractHandle):
                     _ctx.rect(x+r*2+3+0.75, y, 1.5, r-1)
         
     def import_svg(self):
-        self.path_string = self.node.asString("path")                
+        # Parses the string from the node's path parameter and constructs a path
+        self.path_string = self.node.asString("path")
         self.path = svg.path_from_string(self.path_string)
         self._points = []
+        
+        # Converts the path data into a list of PathElements
         for contour in self.path.contours:
             if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
                 first = None
@@ -868,6 +880,9 @@ class BezierPathEditor(AbstractHandle):
                 first_curvepoint = True
                 for point in contour.points:
                     if first is None or point.isLineTo():
+                        # Checks for MOVETO or LINETO PathElements.
+                        # The first point of a Curve is always a MOVETO,
+                        # The other ones are LINETO's.
                         pe = PathElement()
                         if first is None:
                             first = point
@@ -878,6 +893,9 @@ class BezierPathEditor(AbstractHandle):
                         pe.y = point.y
                         self._points.append(pe)
                     else:
+                        # Checks for CURVETO PathElements.
+                        # A new element will only be appended to the points list
+                        # when all necessary data has been found by going through the loop
                         if first_curvepoint:
                             curvePoint.ctrl1.x = point.x
                             curvePoint.ctrl1.y = point.y
@@ -898,18 +916,19 @@ class BezierPathEditor(AbstractHandle):
                     self._points.append(pe)    
 
     def export_svg(self):
+        # Converts all the point data into SVG format.
         s = ""
         if len(self._points) > 0:
             for pt in self._points:
                 if pt.cmd == MOVETO:
-                    s += "M "+str(pt.x)+" "+str(pt.y)+" "
+                    s += "M " + str(pt.x) + " " + str(pt.y) + " "
                 elif pt.cmd == LINETO:
-                    s += "L "+str(pt.x)+" "+str(pt.y)+" "
+                    s += "L " + str(pt.x) + " " + str(pt.y) + " "
                 elif pt.cmd == CURVETO:
                     s += "C "
-                    s += str(pt.ctrl1.x)+" "+str(pt.ctrl1.y)+" "
-                    s += str(pt.ctrl2.x)+" "+str(pt.ctrl2.y)+" "
-                    s += str(pt.x)+" "+str(pt.y)+" "
+                    s += str(pt.ctrl1.x) + " " + str(pt.ctrl1.y) + " "
+                    s += str(pt.ctrl2.x) + " " + str(pt.ctrl2.y) + " "
+                    s += str(pt.x) + " " + str(pt.y) + " "
             self.path_string = s
             if self.path_string != self.node.asString("path"):
                 self.node.silentSet("path", s)
