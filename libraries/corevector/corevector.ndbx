@@ -2529,6 +2529,7 @@ from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
 def values(transform):
+    # Utility function that returns the matrix values of a Transform object.
     t = transform.affineTransform
     return [t.scaleX, t.shearY, t.shearX, t.scaleY, t.translateX, t.translateY]
 
@@ -2556,18 +2557,21 @@ class TransformHandle(AbstractHandle):
         return order, tx, ty, r, sx, sy
         
     def find_translation_before(self, x0, y0, x1, y1, t):
+        # Translation happens before all other operations. Returns tx/ty.
         m11, m21, m12, m22 = values(t)[:4]
         tx = x1 - m11*x0 - m12*y0
         ty = y1 - m21*x0 - m22*y0
         return tx, ty
 
     def find_translation_after(self, x0, y0, x1, y1, t):
+        # Translation happens after all other operations. Returns tx/ty.
         m11, m21, m12, m22 = values(t)[:4]
         ty = (m11*(y1 - m22*y0) + m21*(m12*y0 - x1)) / (m11*m22 - m21*m12)
         tx = (x1 - m11*x0 - m12*(y0 + ty)) / m11
         return tx, ty
 
     def find_translation_rts(self, x0, y0, x1, y1, t1, t2):
+        # Order is rotate-translate-scale. Returns tx/ty.
         m11, m21, m12, m22 = values(t1)[:4]
         sx, _a, _b, sy = values(t2)[:4]
         k = m11*sx
@@ -2579,6 +2583,7 @@ class TransformHandle(AbstractHandle):
         return tx, ty
 
     def find_translation_str(self, x0, y0, x1, y1, t1, t2):
+        # Order is scale-translate-rotate. Returns tx/ty.
         m11, m21, m12, m22 = values(t2)[:4]
         sx, _a, _b, sy = values(t1)[:4]
         tx = (x1 - sx*(m11*x0 + m12*y0)) / sx
@@ -2586,6 +2591,7 @@ class TransformHandle(AbstractHandle):
         return tx, ty
 
     def find_scale_before(self, x0, y0, x1, y1, t):
+        # Scaling happens before all other operations. Returns sx/sy.
         m11, m21, m12, m22, m13, m23 = values(t)
         try: 
             sx = x1 / (m11*x0 + m12*y0 + m13)
@@ -2598,6 +2604,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_after(self, x0, y0, x1, y1, t):
+        # Scaling happens after all other operations. Returns sx/sy.
         m11, m21, m12, m22, m13, m23 = values(t)
         try:
             sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
@@ -2613,6 +2620,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_rst(self, x0, y0, x1, y1, t1, t2):
+        # Order is rotate-scale-translate. Returns sx/sy.
         m11, m21, m12, m22 = values(t1)[:4]
         tx, ty = values(t2)[4:]
 
@@ -2632,6 +2640,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_tsr(self, x0, y0, x1, y1, t1, t2):
+        # Order is translate-scale-rotate. Returns sx/sy.
         m11, m21, m12, m22 = values(t2)[:4]
         tx, ty = values(t1)[4:]
         try:
@@ -2650,6 +2659,8 @@ class TransformHandle(AbstractHandle):
             if shape is not self.shape:
                 self.shape = shape
                 x, y, w, h = list(shape.bounds)
+                # Make sure w and h aren't infinitely small numbers.
+                # This will lead to incorrect transformations with for examples lines.
                 if 0 < w <= 0.000000000001: w = 0
                 if 0 < h <= 0.000000000001: h = 0
                 p = Path()
@@ -2674,6 +2685,9 @@ class TransformHandle(AbstractHandle):
             self.visible = False
             
     def init_scale_or_translation_operation(self, pt):
+        # Check if the user's interaction indicates the beginning
+        # of a scaling or translation operation
+        
         path = self.transform.map(self.original_rect)
         o1, o2, o3, o4 = self.original_rect.points
         om = Point((o1.x + o2.x)/2, (o1.y + o3.y)/2)
@@ -2705,6 +2719,10 @@ class TransformHandle(AbstractHandle):
         return can_scale_or_translate
 
     def rotation_coordinates(self):
+        # Returns the coordinates of the origin point (0,0) and the
+        # rotation handle where they are when rotation should happen
+        # in the order of events.
+        
         order, tx, ty, r, sx, sy = self.node_parameters()
         t = Transform()
         for op in order:
@@ -2720,6 +2738,9 @@ class TransformHandle(AbstractHandle):
         return origin, Point(rx, ry)
     
     def init_rotation_operation(self, pt):
+        # Check if the user's interaction indicates the beginning
+        # of a rotation operation.
+        
         origin, handle = self.rotation_coordinates()
         p = self.createHitRectangle(handle.x, handle.y)
         if p.contains(pt):
@@ -2756,6 +2777,10 @@ class TransformHandle(AbstractHandle):
                 sx, sy = self.find_scale_rst(p.x, p.y, pt.x, pt.y, t1, t2)
             else:
                 sx, sy = self.find_scale_tsr(p.x, p.y, pt.x, pt.y, t2, t1)
+                
+        # If sx or sy turn out to be None, it's an indication the point
+        # of the handle you're trying to drag isn't draggable in this order
+        # of operations. If this is the case, do nothing.
         if sx is not None:    
             self.node.silentSet("sx", sx * 100)
         if sy is not None:
