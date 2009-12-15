@@ -1851,10 +1851,12 @@ class PolygonHandle(AbstractHandle):
     def __init__(self, *args):
         AbstractHandle.__init__(self, *args)
         self.dragState = PolygonHandle.NONE
+        self._sides = 0
+        self._angle = 0
         self.update()
    
     def update(self):
-        self.visible = self.node.asInt("sides") > 0
+        self.visible = self.node.asInt("sides") >= 3
         
     def mousePressed(self, pt):
         self.px = pt.x
@@ -1904,13 +1906,15 @@ class PolygonHandle(AbstractHandle):
         self.dragState = self.NONE
     
     def find_angle(self):
-        radius = self.node.asFloat("radius")
         sides = self.node.asInt("sides")
-        x1, y1 = cos(0) * radius, sin(0) * radius
-        t = 2*pi/sides
-        x2, y2 = cos(t) * radius, sin(t) * radius
-        a = angle(x2, y2, x1, y1)
-        return a          
+        if sides == self._sides:
+            return self._angle
+        else:
+            t = 2*pi/sides
+            x, y = cos(t), sin(t)
+            self._angle = angle(x, y, 1.0, 0.0)
+            self._sides = sides
+            return self._angle
               
     def draw(self, ctx):
         x = self.node.asFloat("x")
@@ -1949,7 +1953,7 @@ def cook(self):
     <param bounding="hard" min="0.0" name="radius" type="float">
       <value>100.0</value>
     </param>
-    <param bounding="hard" min="0.0" name="sides" type="int">
+    <param bounding="hard" min="3.0" name="sides" type="int">
       <value>3</value>
     </param>
     <param name="align" type="int" widget="toggle">
