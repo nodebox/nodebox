@@ -1255,6 +1255,8 @@ def cook(self):
 
     px, py, pw, ph = list(self.shape.bounds)
     
+    # Make sure pw and ph aren't infinitely small numbers.
+    # This will lead to incorrect transformations with for examples lines.
     if 0 < pw <= 0.000000000001: pw = 0
     if 0 < ph <= 0.000000000001: ph = 0
     
@@ -1270,6 +1272,7 @@ def cook(self):
         width = self.width
         height = self.height
 
+    # Don't scale widths or heights that are equal to zero.
     w = pw and width / pw or 1
     h = ph and height / ph or 1
 
