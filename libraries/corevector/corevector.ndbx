@@ -1771,22 +1771,24 @@ def cook(self):
 from nodebox.graphics import Path, Geometry, Transform
 
 def cook(self):
-  if self.shape is None: return None
-  if self.template is None: return self.shape.clone()
+    if self.shape is None: return None
+    if self.template is None: return self.shape.clone()
 
-  if self.stamp:
-      stamp = StampExpression(self.node, "expr")
-  g = Geometry()
-  for i, point in enumerate(self.template.points):
-      if self.stamp:
-          context.put('CNUM', i)
-          stamp.evaluate(context)
-          self.node.stampExpressions(context)
-      t = Transform()
-      t.translate(point.x, point.y)
-      newShape = t.map(self.shape)
-      g.extend(newShape)
-  return g]]></value>
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+        
+    g = Geometry()
+    for i, point in enumerate(self.template.points):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            self.node.stampExpressions(context)
+            
+        t = Transform()
+        t.translate(point.x, point.y)
+        newShape = t.map(self.shape)
+        g.extend(newShape)
+    return g]]></value>
     </param>
     <param name="_image">
       <value>place.png</value>
