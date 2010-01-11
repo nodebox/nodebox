@@ -242,7 +242,7 @@ def cook(self):
 ]]></value>
     </param>
     <param name="_handle">
-      <value type="python"><![CDATA[from nodebox.graphics import Path, Color
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Point, Color
 from nodebox.handle import AbstractHandle
 
 from math import sin, cos, atan, pi, degrees, radians, sqrt, pow
@@ -251,26 +251,6 @@ import svg
 
 MOVETO, LINETO, CURVETO, CLOSE = range(4)
 
-class Point(object):
-    def __init__(self, *args):
-        if len(args) == 2:
-            self.x, self.y = args
-        elif len(args) == 1:
-            self.x, self.y = args[0]
-        elif len(args) == 0:
-            self.x = self.y = 0.0
-
-    def __repr__(self):
-        return "Point(x=%.3f, y=%.3f)" % (self.x, self.y)
-       
-    def __eq__(self, other):
-        if other is None: return False
-        return self.x == other.x and self.y == other.y
-       
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-              
 class PathElement(object):
     def __init__(self, cmd=None, pts=None):
         self.cmd = cmd
@@ -449,7 +429,16 @@ class BezierPathEditor(AbstractHandle):
         return False
 
     def insert_point(self, x, y):
-        pass
+        
+        """ Inserts a point on the path at the mouse location.
+
+        We first need to check if the mouse location is on the path.
+        Inserting point is time intensive and experimental.
+        
+        """
+        
+        # TODO: implement
+        pass 
         
     def _update_interaction(self):
         
@@ -877,9 +866,12 @@ class BezierPathEditor(AbstractHandle):
                     _ctx.rect(x+r*2+3+0.75, y, 1.5, r-1)
         
     def import_svg(self):
-        self.path_string = self.node.asString("path")                
+        # Parses the string from the node's path parameter and constructs a path
+        self.path_string = self.node.asString("path")
         self.path = svg.path_from_string(self.path_string)
         self._points = []
+        
+        # Converts the path data into a list of PathElements
         for contour in self.path.contours:
             if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
                 first = None
@@ -888,6 +880,9 @@ class BezierPathEditor(AbstractHandle):
                 first_curvepoint = True
                 for point in contour.points:
                     if first is None or point.isLineTo():
+                        # Checks for MOVETO or LINETO PathElements.
+                        # The first point of a Curve is always a MOVETO,
+                        # The other ones are LINETO's.
                         pe = PathElement()
                         if first is None:
                             first = point
@@ -898,6 +893,9 @@ class BezierPathEditor(AbstractHandle):
                         pe.y = point.y
                         self._points.append(pe)
                     else:
+                        # Checks for CURVETO PathElements.
+                        # A new element will only be appended to the points list
+                        # when all necessary data has been found by going through the loop
                         if first_curvepoint:
                             curvePoint.ctrl1.x = point.x
                             curvePoint.ctrl1.y = point.y
@@ -918,18 +916,19 @@ class BezierPathEditor(AbstractHandle):
                     self._points.append(pe)    
 
     def export_svg(self):
+        # Converts all the point data into SVG format.
         s = ""
         if len(self._points) > 0:
             for pt in self._points:
                 if pt.cmd == MOVETO:
-                    s += "M "+str(pt.x)+" "+str(pt.y)+" "
+                    s += "M " + str(pt.x) + " " + str(pt.y) + " "
                 elif pt.cmd == LINETO:
-                    s += "L "+str(pt.x)+" "+str(pt.y)+" "
+                    s += "L " + str(pt.x) + " " + str(pt.y) + " "
                 elif pt.cmd == CURVETO:
                     s += "C "
-                    s += str(pt.ctrl1.x)+" "+str(pt.ctrl1.y)+" "
-                    s += str(pt.ctrl2.x)+" "+str(pt.ctrl2.y)+" "
-                    s += str(pt.x)+" "+str(pt.y)+" "
+                    s += str(pt.ctrl1.x) + " " + str(pt.ctrl1.y) + " "
+                    s += str(pt.ctrl2.x) + " " + str(pt.ctrl2.y) + " "
+                    s += str(pt.x) + " " + str(pt.y) + " "
             self.path_string = s
             if self.path_string != self.node.asString("path"):
                 self.node.silentSet("path", s)
@@ -991,15 +990,18 @@ def cook(self):
     <description>Edit points non-destructively.</description>
     <param name="_code">
       <value type="python"><![CDATA[def _string_to_dict(s):
+    # Convenience function that converts an input string into
+    # a dictionary where the key is the index of the changed point
+    # and the value a tuple with the amount the point moves (delta-x, delta-y) 
     d = {}
     for el in s.split("P"):
         if el:
             item = el.strip().split(" ")
             try:
                 index = int(item[0])
-                x = float(item[1])
-                y = float(item[2])
-                d[index] = (x, y)
+                dx = float(item[1])
+                dy = float(item[2])
+                d[index] = (dx, dy)
             except:
                 pass
     return d
@@ -1012,9 +1014,9 @@ def cook(self):
         deltas = _string_to_dict(self.pointDeltas)
         for index in deltas.keys():
             try:
-                point = deltas[index]
-                points[index].x += point[0]
-                points[index].y += point[1]
+                dx, dy = deltas[index]
+                points[index].x += dx
+                points[index].y += dy
             except IndexError:
                 pass
     return new_shape]]></value>
@@ -1031,7 +1033,7 @@ class EditHandle(AbstractHandle):
         self._selected_point = -1
         self._edited_as_string = ""
         # When we move a curve point that has control points,
-        # we want those handles too move the same amount.
+        # we want those handles to move the same amount.
         # _delta_prev and _delta_next are the horizontal and vertical 
         # distance from those control points to the point.
         self._delta_prev = None         
@@ -1109,32 +1111,35 @@ class EditHandle(AbstractHandle):
         items.sort()
         s = ""
         for item in items:
-            index, (x, y) = item
-            s += "P %d %.3f %.3f " % (index, x, y)
+            index, (dx, dy) = item
+            s += "P %d %.3f %.3f " % (index, dx, dy)
         return s[:-1]
 
     def _string_to_dict(self, s):
+        # Convenience function that converts an input string into
+        # a dictionary where the key is the index of the changed point
+        # and the value a tuple with the amount the point moves (delta-x, delta-y) 
         d = {}
         for el in s.split("P"):
             if el:
                 item = el.strip().split(" ")
                 try:
                     index = int(item[0])
-                    x = float(item[1])
-                    y = float(item[2])
-                    d[index] = (x, y)
+                    dx = float(item[1])
+                    dy = float(item[2])
+                    d[index] = (dx, dy)
                 except:
                     pass
         return d
         
     def updateValues(self):
         delta_values = {}
-        for (index, (x, y)) in self._edited_points.items():
+        for (index, (dx, dy)) in self._edited_points.items():
             try:
                 point = self.points[index]
-                delta_values[index] = (x - point.x, y - point.y)
+                delta_values[index] = (dx - point.x, dy - point.y)
             except IndexError:
-                delta_values[index] = (x, y)
+                delta_values[index] = (dx, dy)
         self._edited_as_string = self._dict_to_string(delta_values)
         self.node.silentSet("pointDeltas", self._edited_as_string)
             
@@ -1187,7 +1192,8 @@ class EditHandle(AbstractHandle):
                     path.strokeColor = Color(0, 0, 1)
                     path.strokeWidth = 1
                     ctx.draw(path)
- 
+
+  
 def cook(self):
     return EditHandle(self.node)]]></value>
     </param>
@@ -1256,6 +1262,8 @@ def cook(self):
 
     px, py, pw, ph = list(self.shape.bounds)
     
+    # Make sure pw and ph aren't infinitely small numbers.
+    # This will lead to incorrect transformations with for examples lines.
     if 0 < pw <= 0.000000000001: pw = 0
     if 0 < ph <= 0.000000000001: ph = 0
     
@@ -1271,6 +1279,7 @@ def cook(self):
         width = self.width
         height = self.height
 
+    # Don't scale widths or heights that are equal to zero.
     w = pw and width / pw or 1
     h = ph and height / ph or 1
 
@@ -1318,6 +1327,8 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def str_to_path(s):
+    # Utility function to convert a string containing a list of points to a Path
+    # The letter M marks the start of a new curve.
     p = Path()
     
     for curve_str in s.strip().split("M"):
@@ -1358,6 +1369,8 @@ from nodebox.handle import AbstractHandle
 MOVETO, LINETO = range(2)
 
 def str_to_path(s):
+    # Utility function to convert a string containing a list of points to a Path
+    # The letter M marks the start of a new curve.
     p = Path()
     
     for curve_str in s.strip().split("M"):
@@ -1401,7 +1414,7 @@ class FreeHandEditor(AbstractHandle):
             self.path = str_to_path(self.path_string)
             self.reset()
 
-        # Export the updated drawing,
+        # Export the updated drawing.
         if self._dirty:
             self.export()
             
@@ -1409,6 +1422,7 @@ class FreeHandEditor(AbstractHandle):
             x, y = self.mouse()
             
             if self.freehand_move == True:
+                # The start of a new curve
                 cmd = MOVETO
                 self.freehand_move = False
             else:
@@ -1417,6 +1431,8 @@ class FreeHandEditor(AbstractHandle):
             append = True
             points = self.path.points
             if len(points) > 0:
+                # Only append the point if its location isn't equal
+                # to the last drawn point.
                 pt = points[-1]
                 if pt.x == x and pt.y == y:
                     append = False
@@ -1434,13 +1450,13 @@ class FreeHandEditor(AbstractHandle):
         
     def draw(self, _ctx):
         
-        """ Draws the cursor.
+        """ Draws the cursor when the mouse is pressed down.
         """
 
         if self.mousedown:
             x, y = self.mouse()
             
-            # Draw the current location of the cursor.
+            # Draws the current location of the cursor.
             r = 4
             _ctx.fillColor = None
             _ctx.strokeWidth = self.strokewidth
@@ -1448,6 +1464,7 @@ class FreeHandEditor(AbstractHandle):
             _ctx.ellipse(x, y, r*2, r*2)
         
     def export(self):
+        # Constructs a string out of the paths list of points.
         s = ""
         for contour in self.path.contours:
             s += "M "
@@ -1610,6 +1627,7 @@ def cook(self):
         p.strokeWidth = self.strokeWidth
     else:
         p.strokeColor = None
+    # Resample the path so it contains the desired amount of points.
     p = p.resampleByAmount(self.points, True)
     return p.asGeometry()]]></value>
     </param>
@@ -1619,80 +1637,87 @@ from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
 class LineHandle(AbstractHandle):
-  NONE, ORIGIN, MIDDLE, END = range(4)
+    NONE, ORIGIN, MIDDLE, END = range(4)
 
-  def __init__(self, node):
-      AbstractHandle.__init__(self, node)
-      self.dragState = LineHandle.NONE
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.dragState = LineHandle.NONE
 
-  def draw(self, ctx):
-      cx = self.node.asFloat("x")
-      cy = self.node.asFloat("y")
-      cornerPath = Path()
-      cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
-      self.drawDot(cornerPath, cx, cy)
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance"), self.node.asFloat("angle"))
-      self.drawDot(cornerPath, x1, y1)
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance") / 2, self.node.asFloat("angle"))
-      self.drawDot(cornerPath, x1, y1)
-      ctx.canvas.add(cornerPath)
+    def draw(self, ctx):
+        cx = self.node.asFloat("x")
+        cy = self.node.asFloat("y")
+        d = self.node.asFloat("distance")
+        a = self.node.asFloat("angle")
+        cornerPath = Path()
+        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
+        self.drawDot(cornerPath, cx, cy) # Draw the starting point handle
+        x1, y1 = coordinates(cx, cy, d, a)
+        self.drawDot(cornerPath, x1, y1) # Draw the ending point handle
+        x1, y1 = coordinates(cx, cy, d / 2, a)
+        self.drawDot(cornerPath, x1, y1) # Draw the middle point handle
+        ctx.canvas.add(cornerPath)
 
-  def mousePressed(self, pt):
-      self.px = pt.x
-      self.py = pt.y
+    def mousePressed(self, pt):
+        self.px = pt.x
+        self.py = pt.y
 
-      cx = self.ocx = self.node.asFloat("x")
-      cy = self.ocy = self.node.asFloat("y")
-      origin = self.createHitRectangle(cx, cy)
+        d = self.node.asFloat("distance")
+        a = self.node.asFloat("angle")
 
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance"), self.node.asFloat("angle"))
-      end = self.createHitRectangle(x1, y1)
+        cx = self.ocx = self.node.asFloat("x")
+        cy = self.ocy = self.node.asFloat("y")
+        origin = self.createHitRectangle(cx, cy)
 
-      x1, y1 = coordinates(cx, cy, self.node.asFloat("distance") / 2, self.node.asFloat("angle"))
-      middle = self.createHitRectangle(x1, y1)
+        x1, y1 = coordinates(cx, cy, d, a)
+        end = self.createHitRectangle(x1, y1)
 
-      if origin.contains(pt):
-          self.dragState = self.ORIGIN
-      elif end.contains(pt):
-          self.dragState = self.END
-      elif middle.contains(pt):
-          self.dragState = self.MIDDLE
-      else:
-          self.dragState = self.NONE
+        x1, y1 = coordinates(cx, cy, d / 2, a)
+        middle = self.createHitRectangle(x1, y1)
 
-  def mouseDragged(self, pt):
-      if self.dragState == self.NONE: return
+        if origin.contains(pt):
+            self.dragState = self.ORIGIN
+        elif end.contains(pt):
+            self.dragState = self.END
+        elif middle.contains(pt):
+            self.dragState = self.MIDDLE
+        else:
+            self.dragState = self.NONE
 
-      x = pt.x
-      y = pt.y
-      dx = x - self.px
-      dy = y - self.py
+    def mouseDragged(self, pt):
+        if self.dragState == self.NONE: return
 
-      if (dx == 0 and dy == 0): return
+        x = pt.x
+        y = pt.y
+        dx = x - self.px
+        dy = y - self.py
 
-      if self.dragState == self.MIDDLE:
-          self.node.silentSet("x", self.ocx + dx)
-          self.node.silentSet("y", self.ocy + dy)
-      elif self.dragState == self.ORIGIN:
-          x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
-          a = angle(x, y, x1, y1)
-          d = distance(x, y, x1, y1)
-          self.node.silentSet("x", x)
-          self.node.silentSet("y", y)
-          self.node.silentSet("angle", a)
-          self.node.silentSet("distance", d)
-      elif self.dragState == self.END:
-          a = angle(self.ocx, self.ocy, x, y)
-          d = distance(self.ocx, self.ocy, x, y)
-          self.node.silentSet("angle", a)
-          self.node.silentSet("distance", d)
+        if (dx == 0 and dy == 0): return
 
-  def mouseReleased(self, pt):
-      self.dragState = self.NONE
+        if self.dragState == self.MIDDLE:
+            self.node.silentSet("x", self.ocx + dx)
+            self.node.silentSet("y", self.ocy + dy)
+        elif self.dragState == self.ORIGIN:
+            # First, calculate the ending point of the line using the current parameters,
+            # then, use this point to calculate angle and distance from the new starting point.
+            x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
+            a = angle(x, y, x1, y1)
+            d = distance(x, y, x1, y1)
+            self.node.silentSet("x", x)
+            self.node.silentSet("y", y)
+            self.node.silentSet("angle", a)
+            self.node.silentSet("distance", d)
+        elif self.dragState == self.END:
+            a = angle(self.ocx, self.ocy, x, y)
+            d = distance(self.ocx, self.ocy, x, y)
+            self.node.silentSet("angle", a)
+            self.node.silentSet("distance", d)
+
+    def mouseReleased(self, pt):
+        self.dragState = self.NONE
 
 
 def cook(self):
-  return LineHandle(self.node)]]></value>
+    return LineHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>line.png</value>
@@ -1753,22 +1778,24 @@ def cook(self):
 from nodebox.graphics import Path, Geometry, Transform
 
 def cook(self):
-  if self.shape is None: return None
-  if self.template is None: return self.shape.clone()
+    if self.shape is None: return None
+    if self.template is None: return self.shape.clone()
 
-  if self.stamp:
-      stamp = StampExpression(self.node, "expr")
-  g = Geometry()
-  for i, point in enumerate(self.template.points):
-      if self.stamp:
-          context.put('CNUM', i)
-          stamp.evaluate(context)
-          self.node.stampExpressions(context)
-      t = Transform()
-      t.translate(point.x, point.y)
-      newShape = t.map(self.shape)
-      g.extend(newShape)
-  return g]]></value>
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+        
+    g = Geometry()
+    for i, point in enumerate(self.template.points):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            self.node.stampExpressions(context)
+            
+        t = Transform()
+        t.translate(point.x, point.y)
+        newShape = t.map(self.shape)
+        g.extend(newShape)
+    return g]]></value>
     </param>
     <param name="_image">
       <value>place.png</value>
@@ -1790,7 +1817,7 @@ from nodebox.util.Geometry import angle
 def cook(self):
     t = 0
     vertices = []
-    vertices.append((cos(t) * self.radius, sin(t) * self.radius))
+    vertices.append((cos(0) * self.radius, sin(0) * self.radius))
     p = Path()
     p.moveto( *vertices[0] )
     for i in range(1, self.sides):               
@@ -1813,8 +1840,10 @@ def cook(self):
     return p.asGeometry()]]></value>
     </param>
     <param name="_handle">
-      <value type="python"><![CDATA[from nodebox.graphics import Path
+      <value type="python"><![CDATA[from nodebox.graphics import Path, Transform, Point
 from nodebox.handle import AbstractHandle
+from nodebox.util.Geometry import angle, distance
+from math import sin, cos, pi
 
 class PolygonHandle(AbstractHandle):
     NONE, CENTER, OUTER = range(3)
@@ -1822,6 +1851,12 @@ class PolygonHandle(AbstractHandle):
     def __init__(self, *args):
         AbstractHandle.__init__(self, *args)
         self.dragState = PolygonHandle.NONE
+        self._sides = 0
+        self._angle = 0
+        self.update()
+   
+    def update(self):
+        self.visible = self.node.asInt("sides") >= 3
         
     def mousePressed(self, pt):
         self.px = pt.x
@@ -1830,9 +1865,15 @@ class PolygonHandle(AbstractHandle):
         self.ocx = self.node.asFloat("x")
         self.ocy = self.node.asFloat("y")
         self.ocr = self.node.asFloat("radius")
-        
         center = self.createHitRectangle(self.ocx, self.ocy)
-        outer = self.createHitRectangle(self.ocx + self.ocr, self.ocy)
+        if self.node.asInt("align"):
+            t = Transform()
+            t.translate(self.ocx, self.ocy)
+            t.rotate(- self.find_angle())
+            p = t.map(Point(self.ocr, 0))
+            outer = self.createHitRectangle(p.x, p.y)
+        else:
+            outer = self.createHitRectangle(self.ocx + self.ocr, self.ocy)
         
         if outer.contains(pt):
             self.dragState = self.OUTER
@@ -1855,11 +1896,26 @@ class PolygonHandle(AbstractHandle):
             self.node.silentSet("x", self.ocx + dx)
             self.node.silentSet("y", self.ocy + dy)
         elif self.dragState == self.OUTER:
-            self.node.silentSet("radius", self.ocr + dx)
+            if self.node.asInt("align"):
+                d = distance(self.node.asFloat("x"), self.node.asFloat("y"), x, y)
+                self.node.silentSet("radius", d)
+            else:
+                self.node.silentSet("radius", self.ocr + dx)
 
     def mouseReleased(self, pt):
         self.dragState = self.NONE
-        
+    
+    def find_angle(self):
+        sides = self.node.asInt("sides")
+        if sides == self._sides:
+            return self._angle
+        else:
+            t = 2*pi/sides
+            x, y = cos(t), sin(t)
+            self._angle = angle(x, y, 1.0, 0.0)
+            self._sides = sides
+            return self._angle
+              
     def draw(self, ctx):
         x = self.node.asFloat("x")
         y = self.node.asFloat("y")
@@ -1867,14 +1923,20 @@ class PolygonHandle(AbstractHandle):
         cornerPath = Path()
         cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
         cornerPath.strokeWidth = 0
-        self.drawDot(cornerPath, x, y)
-        self.drawDot(cornerPath, x + radius, y)
-        ctx.draw(cornerPath)
         strokePath = Path()
         strokePath.fillColor = None
         strokePath.strokeColor = AbstractHandle.HANDLE_COLOR
-        strokePath.line(x, y, x + radius, y)
+        strokePath.line(0, 0, radius, 0)
+        t = Transform()
+        t.translate(x, y)
+        if self.node.asInt("align"):
+            t.rotate(-self.find_angle())
+        strokePath = t.map(strokePath)
         ctx.draw(strokePath)
+        for point in strokePath.points:
+            self.drawDot(cornerPath, point.x, point.y)
+        ctx.draw(cornerPath)
+
 
 def cook(self):
     return PolygonHandle(self.node)]]></value>
@@ -1891,7 +1953,7 @@ def cook(self):
     <param bounding="hard" min="0.0" name="radius" type="float">
       <value>100.0</value>
     </param>
-    <param bounding="hard" min="0.0" name="sides" type="int">
+    <param bounding="hard" min="3.0" name="sides" type="int">
       <value>3</value>
     </param>
     <param name="align" type="int" widget="toggle">
@@ -2217,12 +2279,16 @@ def sort_items(items, order, **kwargs):
 def sort_points(shape, scope, order, **kwargs):
     new_shape = Geometry()
     if scope == "pt_g":
+        # Sorts points per group.
+        # Color information is discarded.
         points = list(shape.points)
         points = sort_items(points, order, **kwargs)
         for point in points:
             new_shape.addPoint(Point(point.x, point.y))
         new_shape.paths[0].fillColor = None
     elif scope == "pt_p":
+        # Sorts points per path.
+        # Color information is kept.
         for path in shape.paths:
             points = list(path.points)
             points = sort_items(points, order, **kwargs)
@@ -2234,6 +2300,8 @@ def sort_points(shape, scope, order, **kwargs):
                 pp.type = point.LINE_TO
             new_shape.add(p)
     elif scope == "pt_c":
+        # Sorts points per contour.
+        # Color information is kept.
         for path in shape.paths:
             p = path.cloneAndClear()
             for contour in path.contours:
@@ -2260,6 +2328,8 @@ def sort_paths(shape, order, **kwargs):
 def sort_contours(shape, order, **kwargs):
     new_shape = Geometry()
     for path in shape.paths:
+        # Create an empty path with the current path's color information
+        # Add the sorted contours to the path.
         p = path.cloneAndClear()
         contours = list(path.contours)
         contours = sort_items(contours, order, **kwargs)
@@ -2270,8 +2340,12 @@ def sort_contours(shape, order, **kwargs):
         
 def cook(self):
     if self.shape is None: return None
+    
+    # whether the comparison functions should compare a points' x/y values (True)
+    # or a paths' bounding box x/y values. (False)
     global _sort_paths
     _sort_paths = True
+    
     kwargs = {"seed": self.seed, "offset": self.offset, "x": self.x, "y": self.y}
     if self.scope in ["pt_c", "pt_p", "pt_g"]:
         _sort_paths = False
@@ -2327,6 +2401,7 @@ def cook(self):
     p = Path()
     p.moveto(self.x, self.y + self.outer / 2)
 
+    # Calculate the points of the star.
     for i in xrange(1, self.points * 2):
         angle = i * pi / self.points
         x = sin(angle)
@@ -2349,41 +2424,38 @@ def cook(self):
       <value type="python"><![CDATA[from nodebox.handle import AbstractHandle, FourPointHandle
 
 class StarHandle(AbstractHandle):
-  def __init__(self, node):
-      AbstractHandle.__init__(self, node)
-      self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
-      self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
+    def __init__(self, node):
+        AbstractHandle.__init__(self, node)
+        self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
+        self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
 
-  def draw(self, ctx):
-      self.innerHandle.draw(ctx)
-      self.outerHandle.draw(ctx)
+    def draw(self, ctx):
+        self.innerHandle.draw(ctx)
+        self.outerHandle.draw(ctx)
 
-  def mousePressed(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
+    def mousePressed(self, pt):
+        inner, outer = self.innerHandle, self.outerHandle
 
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
+        # if the inner diameter is larger than the outer,
+        # we should first check the handles of the outer rectangle,
+        # so treat the outer as if it was the inner.
+        if abs(self.node.asFloat("inner")) > abs(self.node.asFloat("outer")):
+            inner, outer = outer, inner
 
-      inner.mousePressed(pt)
-      if not inner.hasDragState():
-          outer.mousePressed(pt)
+        inner.mousePressed(pt)
+        if not inner.hasDragState():
+            outer.mousePressed(pt)
 
-  def mouseDragged(self, pt):
-      inner, outer = self.innerHandle, self.outerHandle
+    def mouseDragged(self, pt):
+        self.innerHandle.mouseDragged(pt)
+        self.outerHandle.mouseDragged(pt)
 
-      if self.node.asFloat("inner") > self.node.asFloat("outer"):
-          inner, outer = outer, inner
-
-      inner.mouseDragged(pt)
-      if not inner.hasDragState():
-          outer.mouseDragged(pt)
-
-  def mouseReleased(self, pt):
-      self.innerHandle.mouseReleased(pt)
-      self.outerHandle.mouseReleased(pt)
+    def mouseReleased(self, pt):
+        self.innerHandle.mouseReleased(pt)
+        self.outerHandle.mouseReleased(pt)
 
 def cook(self):
-  return StarHandle(self.node)]]></value>
+    return StarHandle(self.node)]]></value>
     </param>
     <param name="_image">
       <value>star.png</value>
@@ -2504,6 +2576,7 @@ from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
 def values(transform):
+    # Utility function that returns the matrix values of a Transform object.
     t = transform.affineTransform
     return [t.scaleX, t.shearY, t.shearX, t.scaleY, t.translateX, t.translateY]
 
@@ -2531,18 +2604,21 @@ class TransformHandle(AbstractHandle):
         return order, tx, ty, r, sx, sy
         
     def find_translation_before(self, x0, y0, x1, y1, t):
+        # Translation happens before all other operations. Returns tx/ty.
         m11, m21, m12, m22 = values(t)[:4]
         tx = x1 - m11*x0 - m12*y0
         ty = y1 - m21*x0 - m22*y0
         return tx, ty
 
     def find_translation_after(self, x0, y0, x1, y1, t):
+        # Translation happens after all other operations. Returns tx/ty.
         m11, m21, m12, m22 = values(t)[:4]
         ty = (m11*(y1 - m22*y0) + m21*(m12*y0 - x1)) / (m11*m22 - m21*m12)
         tx = (x1 - m11*x0 - m12*(y0 + ty)) / m11
         return tx, ty
 
     def find_translation_rts(self, x0, y0, x1, y1, t1, t2):
+        # Order is rotate-translate-scale. Returns tx/ty.
         m11, m21, m12, m22 = values(t1)[:4]
         sx, _a, _b, sy = values(t2)[:4]
         k = m11*sx
@@ -2554,6 +2630,7 @@ class TransformHandle(AbstractHandle):
         return tx, ty
 
     def find_translation_str(self, x0, y0, x1, y1, t1, t2):
+        # Order is scale-translate-rotate. Returns tx/ty.
         m11, m21, m12, m22 = values(t2)[:4]
         sx, _a, _b, sy = values(t1)[:4]
         tx = (x1 - sx*(m11*x0 + m12*y0)) / sx
@@ -2561,6 +2638,7 @@ class TransformHandle(AbstractHandle):
         return tx, ty
 
     def find_scale_before(self, x0, y0, x1, y1, t):
+        # Scaling happens before all other operations. Returns sx/sy.
         m11, m21, m12, m22, m13, m23 = values(t)
         try: 
             sx = x1 / (m11*x0 + m12*y0 + m13)
@@ -2573,6 +2651,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_after(self, x0, y0, x1, y1, t):
+        # Scaling happens after all other operations. Returns sx/sy.
         m11, m21, m12, m22, m13, m23 = values(t)
         try:
             sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
@@ -2588,6 +2667,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_rst(self, x0, y0, x1, y1, t1, t2):
+        # Order is rotate-scale-translate. Returns sx/sy.
         m11, m21, m12, m22 = values(t1)[:4]
         tx, ty = values(t2)[4:]
 
@@ -2607,6 +2687,7 @@ class TransformHandle(AbstractHandle):
         return sx, sy
 
     def find_scale_tsr(self, x0, y0, x1, y1, t1, t2):
+        # Order is translate-scale-rotate. Returns sx/sy.
         m11, m21, m12, m22 = values(t2)[:4]
         tx, ty = values(t1)[4:]
         try:
@@ -2625,6 +2706,8 @@ class TransformHandle(AbstractHandle):
             if shape is not self.shape:
                 self.shape = shape
                 x, y, w, h = list(shape.bounds)
+                # Make sure w and h aren't infinitely small numbers.
+                # This will lead to incorrect transformations with for examples lines.
                 if 0 < w <= 0.000000000001: w = 0
                 if 0 < h <= 0.000000000001: h = 0
                 p = Path()
@@ -2649,6 +2732,9 @@ class TransformHandle(AbstractHandle):
             self.visible = False
             
     def init_scale_or_translation_operation(self, pt):
+        # Check if the user's interaction indicates the beginning
+        # of a scaling or translation operation
+        
         path = self.transform.map(self.original_rect)
         o1, o2, o3, o4 = self.original_rect.points
         om = Point((o1.x + o2.x)/2, (o1.y + o3.y)/2)
@@ -2680,6 +2766,10 @@ class TransformHandle(AbstractHandle):
         return can_scale_or_translate
 
     def rotation_coordinates(self):
+        # Returns the coordinates of the origin point (0,0) and the
+        # rotation handle where they are when rotation should happen
+        # in the order of events.
+        
         order, tx, ty, r, sx, sy = self.node_parameters()
         t = Transform()
         for op in order:
@@ -2695,6 +2785,9 @@ class TransformHandle(AbstractHandle):
         return origin, Point(rx, ry)
     
     def init_rotation_operation(self, pt):
+        # Check if the user's interaction indicates the beginning
+        # of a rotation operation.
+        
         origin, handle = self.rotation_coordinates()
         p = self.createHitRectangle(handle.x, handle.y)
         if p.contains(pt):
@@ -2731,6 +2824,10 @@ class TransformHandle(AbstractHandle):
                 sx, sy = self.find_scale_rst(p.x, p.y, pt.x, pt.y, t1, t2)
             else:
                 sx, sy = self.find_scale_tsr(p.x, p.y, pt.x, pt.y, t2, t1)
+                
+        # If sx or sy turn out to be None, it's an indication the point
+        # of the handle you're trying to drag isn't draggable in this order
+        # of operations. If this is the case, do nothing.
         if sx is not None:    
             self.node.silentSet("sx", sx * 100)
         if sy is not None:
