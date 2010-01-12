@@ -2,10 +2,7 @@ package nodebox.client;
 
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.event.PBasicInputEventHandler;
-import edu.umd.cs.piccolo.event.PInputEvent;
-import edu.umd.cs.piccolo.event.PInputEventFilter;
-import edu.umd.cs.piccolo.event.PPanEventHandler;
+import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.node.*;
@@ -26,6 +23,9 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     public static final String HIGHLIGHT_PROPERTY = "highlight";
     public static final String RENDER_PROPERTY = "render";
     public static final String NETWORK_PROPERTY = "network";
+
+    public static final float MIN_ZOOM = 0.2f;
+    public static final float MAX_ZOOM = 1.0f;
 
     private Pane pane;
     private Node node;
@@ -58,21 +58,22 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         addInputEventListener(panHandler);
         connectionLayer = new ConnectionLayer(this);
         getCamera().addLayer(0, connectionLayer);
-        /*
         setZoomEventHandler(new PZoomEventHandler() {
             public void processEvent(final PInputEvent evt, final int i) {
                 if (evt.isMouseWheelEvent()) {
                     double currentScale = evt.getCamera().getViewScale();
                     double scaleDelta = 1D - 0.1 * evt.getWheelRotation();
                     double newScale = currentScale * scaleDelta;
-                    final Point2D p = evt.getPosition();
-                    if (newScale > 0.2 && newScale <= 1.0) {
-                        evt.getCamera().scaleViewAboutPoint(scaleDelta, p.getX(), p.getY());
+                    if (newScale < MIN_ZOOM) {
+                        scaleDelta = MIN_ZOOM / currentScale;
+                    } else if (newScale > MAX_ZOOM) {
+                        scaleDelta = MAX_ZOOM / currentScale;
                     }
+                    final Point2D p = evt.getPosition();
+                    evt.getCamera().scaleViewAboutPoint(scaleDelta, p.getX(), p.getY());
                 }
             }
         });
-        */
         DialogHandler dialogHandler = new DialogHandler();
         addKeyListener(dialogHandler);
         addKeyListener(new DeleteHandler());
@@ -537,9 +538,13 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     private class UpDownHandler extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
-            switch(e.getKeyCode()) {
-                case KeyEvent.VK_U: goUp(); break;
-                case KeyEvent.VK_ENTER: goDown(); break;
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_U:
+                    goUp();
+                    break;
+                case KeyEvent.VK_ENTER:
+                    goDown();
+                    break;
             }
         }
     }

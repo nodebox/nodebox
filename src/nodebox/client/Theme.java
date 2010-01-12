@@ -12,7 +12,7 @@ public class Theme {
     public static final Color DEFAULT_SPLIT_COLOR = new Color(139, 139, 139);
 
     // Viewer
-    public static final Color VIEWER_NEUTRAL_GREY = new Color(232, 232, 232);
+    public static final Color VIEWER_BACKGROUND_COLOR = new Color(232, 232, 232);
 
     // Network view
     public static final Color NETWORK_BACKGROUND_COLOR = new Color(69, 69, 69);
