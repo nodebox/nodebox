@@ -387,6 +387,11 @@ def parse_path(e):
         
     return path
 
+def path_from_string(path_string):
+    s = '<?xml version="1.0"?><svg><g><path d="%s" /></g></svg>' % path_string
+    path = parse(s)[0]
+    return path
+
 #--- PATH TRANSFORM ----------------------------------------------------------------------------------
 
 def parse_transform(e, path):
