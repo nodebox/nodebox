@@ -54,6 +54,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON2_MASK);
         panFilter.setNotMask(InputEvent.CTRL_MASK);
         PPanEventHandler panHandler = new PPanEventHandler();
+        panHandler.setAutopan(false);
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
         connectionLayer = new ConnectionLayer(this);

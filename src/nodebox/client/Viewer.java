@@ -58,6 +58,7 @@ public class Viewer extends PCanvas implements DirtyListener, MouseListener, Mou
         PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON2_MASK);
         panFilter.setNotMask(InputEvent.CTRL_MASK);
         PPanEventHandler panHandler = new PPanEventHandler();
+        panHandler.setAutopan(false);
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
         viewerLayer = new ViewerLayer();
