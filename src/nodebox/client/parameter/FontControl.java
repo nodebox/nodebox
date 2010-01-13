@@ -1,21 +1,13 @@
 package nodebox.client.parameter;
 
-import nodebox.client.PlatformUtils;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
-import javax.swing.ComboBoxModel;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JList;
+import javax.swing.*;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 
 /**
  * Provides a control for fonts.
@@ -56,7 +48,10 @@ public class FontControl extends AbstractParameterControl implements ActionListe
     public void actionPerformed(ActionEvent e) {
         Font font = (Font) fontChooser.getSelectedItem();
         if (font == null) return;
-        parameter.setValue(font.getFontName());
+        String fontName = font.getFontName();
+        if (!fontName.equals(parameter.asString())) {
+            parameter.setValue(font.getFontName());
+        }
     }
 
     private class FontDataModel implements ComboBoxModel {
