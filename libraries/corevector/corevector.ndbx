@@ -2178,7 +2178,7 @@ def cook(self):
             <menu key="length">By Length</menu>
             <menu key="amount">By Amount</menu>
         </param>
-        <param bounding="hard" min="0.01" name="length" type="float">
+        <param bounding="hard" min="1.0" name="length" type="float">
             <value>10.0</value>
         </param>
         <param bounding="hard" min="1.0" name="points" type="int">
