@@ -470,11 +470,10 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
                 editor.dispose();
             }
             dispose();
-            // TODO: On mac, the application doesn't quit after the last document is closed.
-            if (!PlatformUtils.onMac()) {
-                //    // On mac, the application doesn't quit after the last document is closed.
-                //    setVisible(false);
-                //} else {
+            // On Mac the application does not close if the last window is closed.
+            if (PlatformUtils.onMac()) return;
+            // If there are no more documents, exit the application.
+            if (Application.getInstance().getDocumentCount() == 0) {
                 System.exit(0);
             }
         }
