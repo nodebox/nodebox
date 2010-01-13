@@ -13,8 +13,7 @@ import arc
 import xml.dom.minidom as parser
 import re
 import md5
-from nodebox.graphics import Path as BezierPath
-from nodebox.graphics import Color, Transform
+from nodebox.graphics import Path, Color
 
 #### CACHE ###########################################################################################
 
@@ -25,8 +24,7 @@ class cache(dict):
     
     def id(self, svg):
         hash = md5.new()
-        #hash.update(str(_ctx)+svg)
-        hash.update(str(svg))
+        hash.update(str(_ctx)+svg)
         return hash.digest()
         
     def save(self, id, paths):
@@ -41,10 +39,10 @@ class cache(dict):
     def copypath(self, path):
         # Expand the path copy with the properties from add_color_info()
         p = path.copy()
-        p.fillColor = path.fillColor
-        p.strokeColor = path.strokeColor
-        p.strokeWidth = path.strokeWidth
-#        p.closed = path.closed
+        p.fill = path.fill
+        p.stroke = path.stroke
+        p.strokewidth = path.strokewidth
+        p.closed = path.closed
         return p
     
     def clear(self):
@@ -128,12 +126,12 @@ def parse_node(node, paths=[], ignore=["pattern"]):
 #--- LINE --------------------------------------------------------------------------------------------
 
 def parse_line(e):
-
-    p = BezierPath()
+    
     x1 = float(get_attribute(e, "x1"))
     y1 = float(get_attribute(e, "y1"))
     x2 = float(get_attribute(e, "x2"))
     y2 = float(get_attribute(e, "y2"))
+    p = Path()
     p.line(x1, y1, x2, y2)
     return p
 
@@ -141,42 +139,43 @@ def parse_line(e):
 
 def parse_rect(e):
     
-    p = BezierPath()
     x = float(get_attribute(e, "x"))
     y = float(get_attribute(e, "y"))
     w = float(get_attribute(e, "width"))
     h = float(get_attribute(e, "height"))
-    p.rect(x, y, w, h)
+    p = Path()
+    p.rect(x+w/2, y+h/2, w, h)
     return p
 
 #--- CIRCLE -----------------------------------------------------------------------------------------
 
 def parse_circle(e):
     
-    p = BezierPath()
     x = float(get_attribute(e, "cx"))
     y = float(get_attribute(e, "cy"))
     r = float(get_attribute(e, "r"))
-    p.ellipse(x-r, y-r, r*2, r*2)
+    p = Path()
+    p.ellipse(x, y, r*2, r*2)
+    p.close()
     return p
 
 #--- OVAL -------------------------------------------------------------------------------------------
 
 def parse_oval(e):
     
-    p = BezierPath()
     x = float(get_attribute(e, "cx"))
     y = float(get_attribute(e, "cy"))
     w = float(get_attribute(e, "rx"))*2
     h = float(get_attribute(e, "ry"))*2
-    p.ellipse(x-w/2, y-h/2, w, h)
+    p = Path()
+    p.ellipse(x, y, w, h)
+    p.close()
     return p
 
 #--- POLYGON -----------------------------------------------------------------------------------------
 
 def parse_polygon(e):
     
-    p = BezierPath()
     d = get_attribute(e, "points", default="")
     d = d.replace(" ", ",")
     d = d.replace("-", ",")
@@ -185,10 +184,15 @@ def parse_polygon(e):
     for x in d:
         if x != "": points.append(float(x))
     
+    autoclosepath = True
+    if (e.tagName == "polyline") :
+        autoclosepath = False
+
+    p = Path()
     p.moveto(points[0], points[1])
     for i in range(len(points)/2):
         p.lineto(points[i*2], points[i*2+1])
-    if (e.tagName != "polyline"):
+    if autoclosepath:
         p.close()
     return p
 
@@ -196,7 +200,6 @@ def parse_polygon(e):
 
 def parse_path(e):
 
-    p = BezierPath()
     d = get_attribute(e, "d", default="")
     
     # Divide the path data string into segments.
@@ -226,13 +229,14 @@ def parse_path(e):
     dhx = 0
     dhy = 0
     
-    p.moveto(0,0)
+    path = Path()
+
     for segment in segments:
         
         command = segment[0]
 
         if command in ["Z", "z"]:
-            p.close()
+            path.close()
         else:
             # The command is a pen move, line or curve.
             # Get the coordinates.
@@ -247,7 +251,7 @@ def parse_path(e):
         # Move the current point to the new coordinates.
         if command == "M":
             for i in range(len(points)/2):
-                p.moveto(points[i*2], points[i*2+1])
+                path.moveto(points[i*2], points[i*2+1])
                 dx = points[i*2]
                 dy = points[i*2+1]
                 x0 = dx
@@ -257,7 +261,7 @@ def parse_path(e):
         # Offset from the current point.
         elif command == "m":
             for i in range(len(points)/2):
-                p.moveto(dx+points[i*2], dy+points[i*2+1])
+                path.moveto(dx+points[i*2], dy+points[i*2+1])
                 dx += points[i*2]
                 dy += points[i*2+1]
                 x0 = dx
@@ -267,7 +271,7 @@ def parse_path(e):
         # Draw a line from the current point to the new coordinate.
         elif command == "L":
             for i in range(len(points)/2):
-                p.lineto(points[i*2], points[i*2+1])
+                path.lineto(points[i*2], points[i*2+1])
                 dx = points[i*2]
                 dy = points[i*2+1]
 
@@ -275,7 +279,7 @@ def parse_path(e):
         # Offset from the current point.
         elif command == "l":
             for i in range(len(points)/2):
-                p.lineto(dx+points[i*2], dy+points[i*2+1])
+                path.lineto(dx+points[i*2], dy+points[i*2+1])
                 dx += points[i*2]
                 dy += points[i*2+1]
 
@@ -283,35 +287,35 @@ def parse_path(e):
         # Only the vertical coordinate is supplied.
         elif command == "H":
             for i in range(len(points)):
-                p.lineto(points[i], dy)
+                path.lineto(points[i], dy)
                 dx = points[i]
 
         # Relative horizontal LINETO.
         # Offset from the current point.
         elif command == "h":
             for i in range(len(points)):
-                p.lineto(dx+points[i], dy)
+                path.lineto(dx+points[i], dy)
                 dx += points[i]
 
         # Absolute vertical LINETO.
         # Only the horizontal coordinate is supplied.
         if command == "V":
             for i in range(len(points)):
-                p.lineto(dx, points[i])
+                path.lineto(dx, points[i])
                 dy = points[i]
 
         # Relative vertical LINETO.
         # Offset from the current point.
         elif command == "v":
             for i in range(len(points)):
-                p.lineto(dx, dy+points[i])
+                path.lineto(dx, dy+points[i])
                 dy += points[i]
 
         # Absolute CURVETO.
         # Draw a bezier with given control handles and destination.
         elif command == "C":
             for i in range(len(points)/6):
-                p.curveto(points[i*6],   points[i*6+1], 
+                path.curveto(points[i*6],   points[i*6+1], 
                              points[i*6+2], points[i*6+3], 
                              points[i*6+4], points[i*6+5])
                 dhx = points[i*6+2]
@@ -323,7 +327,7 @@ def parse_path(e):
         # Offset from the current point.
         elif command == "c":
             for i in range(len(points)/6):
-                p.curveto(dx+points[i*6],   dy+points[i*6+1], 
+                path.curveto(dx+points[i*6],   dy+points[i*6+1], 
                              dx+points[i*6+2], dy+points[i*6+3], 
                              dx+points[i*6+4], dy+points[i*6+5])
                 dhx = dx+points[i*6+2]
@@ -342,7 +346,7 @@ def parse_path(e):
                 else:
                     dhx = dx-dhx
                     dhy = dy-dhy
-                p.curveto(dx+dhx, dy+dhy, 
+                path.curveto(dx+dhx, dy+dhy, 
                              points[i*4],   points[i*4+1], 
                              points[i*4+2], points[i*4+3])
                 dhx = points[i*4]
@@ -360,7 +364,7 @@ def parse_path(e):
                 else:
                     dhx = dx-dhx
                     dhy = dy-dhy
-                p.curveto(dx+dhx, dy+dhy, 
+                path.curveto(dx+dhx, dy+dhy, 
                              dx+points[i*4],   dy+points[i*4+1], 
                              dx+points[i*4+2], dy+points[i*4+3])
                 dhx = dx+points[i*4]
@@ -371,17 +375,17 @@ def parse_path(e):
         # Absolute elliptical arc.
         elif command == "A":
             rx, ry, phi, large_arc_flag, sweep_flag, x2, y2 = points
-            for po in arc.elliptical_arc_to(dx, dy, rx, ry, phi, large_arc_flag, sweep_flag, x2, y2):
-                if len(po) == 2: 
-                    p.lineto(*po)
-                elif len(po) == 6: 
-                    p.curveto(*po)
-            dx = po[-2]
-            dy = po[-1]
+            for p in arc.elliptical_arc_to(dx, dy, rx, ry, phi, large_arc_flag, sweep_flag, x2, y2):
+                if len(p) == 2: 
+                    path.lineto(*p)
+                elif len(p) == 6: 
+                    path.curveto(*p)
+            dx = p[-2]
+            dy = p[-1]
 
         previous_command = command
         
-    return p
+    return path
 
 #--- PATH TRANSFORM ----------------------------------------------------------------------------------
 
@@ -401,11 +405,11 @@ def parse_transform(e, path):
             v = t.replace(mode, "").lstrip("(").rstrip(")")
             v = v.replace(", ", ",").replace(" ", ",")
             v = [float(x) for x in v.split(",")]
-
-            t = Transform()
+            from nodebox.graphics import Transform
             if mode == "matrix":
-                t = Transform(*v)    
+                t = Transform(*v)
             elif mode == "translate":
+                t = Transform()            
                 t.translate(*v)
             path = t.map(path)
             break
@@ -437,8 +441,8 @@ def add_color_info(e, path):
         b = n&0xff
         return Color(r/255.0, g/255.0, b/255.0, alpha)
 
-    path.fillColor = Color(0, 0, 0, 0)
-    path.strokeColor = Color(0, 0, 0, 0)
+    path.fill = None
+    path.stroke = None
     path.strokeWidth = 0
 
     # See if we can find an opacity attribute,
@@ -450,10 +454,10 @@ def add_color_info(e, path):
         alpha = float(alpha)
     
     # Colors stored as fill="" or stroke="" attributes.
-    try: path.fillColor = _color(get_attribute(e, "fill", default="none"), alpha)
+    try: path.fill = _color(get_attribute(e, "fill", default="none"), alpha)
     except: 
         pass
-    try: path.strokeColor = _color(get_attribute(e, "stroke", default="none"), alpha)
+    try: path.stroke = _color(get_attribute(e, "stroke", default="none"), alpha)
     except: 
         pass
     try: path.strokeWidth = float(get_attribute(e, "stroke-width"))
@@ -466,9 +470,9 @@ def add_color_info(e, path):
     for s in style:
         try:
             if s.startswith("fill:"):
-                path.fillColor = _color(s.replace("fill:", ""))
+                path.fill = _color(s.replace("fill:", ""))
             elif s.startswith("stroke:"):
-                path.strokeColor = _color(s.replace("stroke:", ""))
+                path.stroke = _color(s.replace("stroke:", ""))
             elif s.startswith("stroke-width:"):
                 path.strokeWidth = float(s.replace("stroke-width:", ""))
         except:
@@ -484,7 +488,7 @@ def add_color_info(e, path):
     # for i in range(1,len(path)-1):
     #     if path[i].cmd == MOVETO:
     #         path.closed = False
-        
+
     return path
 
 #-----------------------------------------------------------------------------------------------------
