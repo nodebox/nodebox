@@ -2223,6 +2223,68 @@ def cook(self):
             <value>0</value>
         </param>
     </node>
+    <node exported="true" name="snap" prototype="filter" x="410" y="410">
+        <description>Snap geometry to a grid.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[def snap(v, offset=0.0, distance=10.0, strength=1.0):
+    return (v * (1.0-strength)) + (strength * round(v / distance) * distance)
+
+
+def cook(self):
+    if self.shape is None: return None
+    new_shape = self.shape.clone()
+    distance = self.distance
+    strength = self.strength / 100.0
+    for pt in new_shape.points:
+       pt.x = snap(pt.x+self.x, self.x, distance, strength) - self.x
+       pt.y = snap(pt.y + self.y, self.y, distance, strength)  - self.y
+    
+    
+    return new_shape]]></value>
+        </param>
+        <param name="_handle">
+            <value type="python"><![CDATA[from nodebox.handle import PointHandle
+from nodebox.graphics import Color, Rect
+
+class SnapHandle(PointHandle):
+    
+    def createHitRectangle(self, x, y):
+        return Rect(-1000, -1000, 2000, 2000)
+    
+    def draw(self, ctx):
+        snap_x = self.node.asFloat("x")
+        snap_y = self.node.asFloat("y")
+        distance = self.node.asFloat("distance")
+        ctx.stroke = Color(0.4, 0.4, 0.4, 0.5)
+        ctx.strokeWidth = 1.0
+        for i in xrange(-100, 100):
+            x = -snap_x + (i * distance)
+            y = -snap_y + (i * distance)
+            ctx.line(x, -1000, x, 1000)
+            ctx.line(-1000, y, 1000, y)
+        
+
+
+
+def cook(self):
+    return SnapHandle(self.node)]]></value>
+        </param>
+        <param name="_image">
+            <value>snap.png</value>
+        </param>
+        <param bounding="hard" min="1.0" name="distance" type="float">
+            <value>10.0</value>
+        </param>
+        <param bounding="hard" max="100.0" min="0.0" name="strength" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
     <node exported="true" name="sort" prototype="filter" x="250" y="410">
         <description>Sort points or shapes using different sorting methods</description>
         <param name="_code">
