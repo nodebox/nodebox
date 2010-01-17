@@ -61,8 +61,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         panHandler.setAutopan(false);
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
-        viewerLayer = new ViewerLayer();
-        getCamera().addLayer(0, viewerLayer);
         setZoomEventHandler(new PZoomEventHandler() {
             public void processEvent(final PInputEvent evt, final int i) {
                 if (evt.isMouseWheelEvent()) {
@@ -79,6 +77,10 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
                 }
             }
         });
+        // Add the zoomable view layer
+        viewerLayer = new ViewerLayer();
+        getCamera().addLayer(0, viewerLayer);
+
         initMenus();
     }
 
@@ -88,13 +90,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         PopupHandler popupHandler = new PopupHandler();
         addInputEventListener(popupHandler);
     }
-
-    @Override
-    public void setBounds(int x, int y, int width, int height) {
-        super.setBounds(x, y, width, height);
-        viewerLayer.setBounds(getBounds());
-    }
-
 
     public boolean isShowHandle() {
         return showHandle;
@@ -172,22 +167,24 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         if (handle != null && showHandle) {
             handle.update();
         }
+        // Set bounds from output value.
+        if (getNode() != null) {
+            Object outputValue = getNode().getOutputValue();
+            if (outputValue instanceof Grob) {
+                Grob grob = (Grob) outputValue;
+                viewerLayer.setBounds(grob.getBounds().getRectangle2D());
+                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
+            } else if (outputValue != null) {
+                resetView();
+                viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                viewerLayer.setOffset(5, 5);
+            }
+        }
         repaint();
-        /*
-        canvasImage = null;
-        if (getNetwork() == null || getNetwork() != network) return;
-        Object outputValue = getNetwork().getOutputValue();
-        if (!(outputValue instanceof Grob)) return;
+    }
 
-        Grob g = (Grob)outputValue;
-        Rect grobBounds = g.getBounds();
-        if (grobBounds.isEmpty()) return;
-        canvasImage = new BufferedImage((int)grobBounds.getWidth(), (int)grobBounds.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = (Graphics2D) canvasImage.getGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.translate(getWidth() / 2.0, getHeight() / 2.0);
-        g.draw(g2);
-        */
+    public void resetView() {
+        getCamera().setViewTransform(new AffineTransform());
     }
 
     //// Mouse events ////
@@ -279,7 +276,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
         @Override
         protected void paint(PPaintContext paintContext) {
-            super.paint(paintContext);
             Graphics2D g2 = paintContext.getGraphics();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -294,7 +290,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
             if (outputValue instanceof Grob) {
-                g2.translate(getWidth() / 2.0, getHeight() / 2.0);
                 ((Grob) outputValue).draw(g2);
             } else if (outputValue != null) {
                 String s = outputValue.toString();
@@ -380,7 +375,7 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCamera().setViewTransform(new AffineTransform());
+            resetView();
         }
     }
 
