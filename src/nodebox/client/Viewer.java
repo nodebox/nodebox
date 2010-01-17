@@ -32,9 +32,10 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
     private Node node;
     private Node activeNode;
     private Handle handle;
-    private boolean showHandle;
-    private boolean showPoints;
-    private boolean showPointNumbers;
+    private boolean showHandle = true;
+    private boolean showPoints = false;
+    private boolean showPointNumbers = false;
+    private boolean showOrigin = false;
     private PLayer viewerLayer;
     private JPopupMenu viewerMenu;
 
@@ -43,8 +44,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         this.node = node;
         addMouseListener(this);
         addMouseMotionListener(this);
-        showHandle = true;
-        showPoints = false;
         setFocusable(true);
         addKeyListener(this);
         // Setup Piccolo canvas
@@ -115,6 +114,15 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     public void setShowPointNumbers(boolean showPointNumbers) {
         this.showPointNumbers = showPointNumbers;
+        repaint();
+    }
+
+    public boolean isShowOrigin() {
+        return showOrigin;
+    }
+
+    public void setShowOrigin(boolean showOrigin) {
+        this.showOrigin = showOrigin;
         repaint();
     }
 
@@ -272,21 +280,26 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         return true;
     }
 
+    @Override
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        // Draw the origin.
+        Point2D origin = getCamera().getViewTransform().transform(viewerLayer.getOffset(), null);
+        int x = (int) Math.round(origin.getX());
+        int y = (int) Math.round(origin.getY());
+        if (showOrigin) {
+            g.setColor(Color.DARK_GRAY);
+            g.drawLine(x, 0, x, getHeight());
+            g.drawLine(0, y, getWidth(), y);
+        }
+    }
+
     public class ViewerLayer extends PLayer {
 
         @Override
         protected void paint(PPaintContext paintContext) {
             Graphics2D g2 = paintContext.getGraphics();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            // Fill the background with a neutral grey.
-            //g2.setColor(new Color(232, 232, 232));
-            //Rectangle clip = g2.getClipBounds();
-            //g2.fillRect(clip.x, clip.y, clip.width, clip.height);
-
-            //if (canvasImage != null)
-            //g2.drawImage(canvasImage,0, 0, null);
-
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
             if (outputValue instanceof Grob) {
@@ -344,18 +357,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
                     index++;
                 }
             }
-
-            // Draw the center.
-            //g.setColor(new Color(240, 240, 240));
-            //g.drawLine(-getWidth() / 2, 0, getWidth() / 2, 0);
-            //g.drawLine(0, -getHeight() / 2, 0, getHeight() / 2);
-
-            // Draw the bounding box.
-            //if (outputValue instanceof IGeometry) {
-            //    IGeometry p = (IGeometry) outputValue;
-            //    g2.setColor(Color.BLUE);
-            //    g2.draw(p.getBounds().getRectangle2D());
-            //}
         }
     }
 

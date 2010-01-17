@@ -9,7 +9,7 @@ public class ViewerPane extends Pane {
     private PaneHeader paneHeader;
     private Viewer viewer;
     private Node node;
-    private NButton handlesCheck, pointsCheck, pointNumbersCheck;
+    private NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck;
 
     public ViewerPane(NodeBoxDocument document) {
         this();
@@ -26,9 +26,12 @@ public class ViewerPane extends Pane {
         pointsCheck.setActionMethod(this, "togglePoints");
         pointNumbersCheck = new NButton(NButton.Mode.CHECK, "Point Numbers");
         pointNumbersCheck.setActionMethod(this, "togglePointNumbers");
+        originCheck = new NButton(NButton.Mode.CHECK, "Origin");
+        originCheck.setActionMethod(this, "toggleOrigin");
         paneHeader.add(handlesCheck);
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
+        paneHeader.add(originCheck);
         viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
@@ -44,6 +47,10 @@ public class ViewerPane extends Pane {
 
     public void togglePointNumbers() {
         viewer.setShowPointNumbers(pointNumbersCheck.isChecked());
+    }
+
+    public void toggleOrigin() {
+        viewer.setShowOrigin(originCheck.isChecked());
     }
 
     @Override
