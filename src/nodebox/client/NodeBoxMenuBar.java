@@ -420,8 +420,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            // TODO: Implement
-            Toolkit.getDefaultToolkit().beep();
+            PlatformUtils.openURL("http://beta.nodebox.net/");
         }
     }
 
