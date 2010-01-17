@@ -981,16 +981,21 @@ public class Parameter {
             clearExpression();
             setValue(getDefaultValue(type));
         } else if (protoParam.hasExpression()) {
-            // If the prototype has an expression, we need to have an expression too.
-            // TODO: Inheriting the prototype expression is simple, but likely wrong.
+            // If the prototype has an expression, we inherit this expression.
+            // TODO: Inheriting the prototype expression can cause problems.
             // It can refer to other parameters that are not in our namespace.
             // Better is to rewrite the expression, which we should also do in clone.
 
-            // Also set the default value, otherwise the value will be null for this parameter.
+            // 1. Clear out any expression we already have.
+            clearExpression();
+
+            //2. Set a default value so accessing the value provides a meaningful default, even before an update.
             // The parameter is dirty, so it needs to be updated anyway.
             // We *could* copy the value for the prototype, but we can't be sure the prototype has
             // been updated, so it's better to set a default value.
             setValue(getDefaultValue(type));
+
+            // 3. Set the expression to the parameter prototype expression.
             setExpression(protoParam.getExpression());
         } else {
             // If the prototype does not have an expression, we shouldn't have on either.
