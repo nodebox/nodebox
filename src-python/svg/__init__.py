@@ -459,13 +459,13 @@ def add_color_info(e, path):
         alpha = float(alpha)
     
     # Colors stored as fill="" or stroke="" attributes.
-    try: path.fill = _color(get_attribute(e, "fill", default="none"), alpha)
+    try: path.fill = _color(get_attribute(e, "fill", default="#000000"), alpha)
     except: 
         pass
     try: path.stroke = _color(get_attribute(e, "stroke", default="none"), alpha)
     except: 
         pass
-    try: path.strokeWidth = float(get_attribute(e, "stroke-width"))
+    try: path.strokeWidth = float(get_attribute(e, "stroke-width", default="1"))
     except: 
         pass
     
