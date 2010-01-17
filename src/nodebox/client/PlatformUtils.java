@@ -75,14 +75,17 @@ public class PlatformUtils {
         } else if (onWindows()) {
             // Try to read the local application data from the system environment first.
             // This environment variable is only available on Windows Vista/7.
-            // If this fails, try to read the registry, which works on most systems, but is deprecated,
-            // and has been known to be missing.
             String localAppData = System.getenv("LOCALAPPDATA");
-            if (localAppData != null) {
-                userDataDirectory = new File(localAppData, Application.NAME);
-            } else {
-                userDataDirectory = new File(readWindowsRegistryValue(REG_SHELL_FOLDERS, REG_LOCAL_APPDATA), Application.NAME);
+            if (localAppData == null) {
+                // If this fails, try to read the registry, which works on most systems, but is deprecated,
+                // and has been known to be missing.
+                localAppData = readWindowsRegistryValue(REG_SHELL_FOLDERS, REG_LOCAL_APPDATA);
+                if (localAppData == null) {
+                    // If reading the registry fails, use the home directory.
+                    localAppData = getHomeDirectory().getPath();
+                }
             }
+            userDataDirectory = new File(localAppData, Application.NAME);
         } else {
             userDataDirectory = new File(getHomeDirectory(), Application.NAME.toLowerCase());
         }
@@ -163,7 +166,7 @@ public class PlatformUtils {
             return result.substring(p + REG_STRING_TOKEN.length()).trim();
         }
         catch (Exception e) {
-            throw new RuntimeException("Cannot read Windows registry. Exiting...", e);
+            return null;
         }
     }
 
