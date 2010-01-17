@@ -21,9 +21,13 @@ public class PythonUtils {
         // Add the built-in Python libraries.
         String workingDirectory = System.getProperty("user.dir");
         File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
-        File svgLibrary = new File(workingDirectory, "lib" + PlatformUtils.SEP + "svg.zip");
+        File nodeBoxLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "nodeboxlibs.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
-        Py.getSystemState().path.add(new PyString(svgLibrary.getAbsolutePath()));
+        Py.getSystemState().path.add(new PyString(nodeBoxLibraries.getAbsolutePath()));
+
+        // This folder contains unarchived NodeBox libraries.
+        // Only used in development.
+        Py.getSystemState().path.add(new PyString("src-python"));
 
         // Add the user's Python directory.
         Py.getSystemState().path.add(new PyString(PlatformUtils.getUserPythonDirectory().getAbsolutePath()));

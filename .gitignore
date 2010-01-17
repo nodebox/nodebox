@@ -13,5 +13,6 @@ Thumbs.db
 *.i[mpw][lrs]
 .idea
 
-# Jython package cache
+# Jython package cache and compiled files
 lib/cachedir
+*$py.class

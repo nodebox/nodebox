@@ -113,7 +113,13 @@
         <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
     </target>
 
-    <target name="dist-win" depends="jar">
+    <target  name="nodeboxlibs" depends="init">
+        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src-python"/>
+    </target>
+
+    <target  name="archives" depends="jar,nodeboxlibs"/>
+
+    <target name="dist-win" depends="archives">
         <!-- Check JRE -->
         <available file="${windows.jre}/bin/javaw.exe" property="windows.javaw.exists"/>
         <fail unless="windows.javaw.exists"
@@ -130,15 +136,17 @@
         <mkdir dir="${dist.windows.nodebox.lib}"/>
         <mkdir dir="${dist.windows.nodebox.res}"/>
         <mkdir dir="${dist.windows.nodebox.libraries}"/>
-        <copy file="${dist}/lib/nodebox.jar"
-              todir="${dist.windows.nodebox.lib}"/>
+        <!-- Copy version number -->
         <copy file="version.properties" todir="${dist.windows.nodebox}"/>
+        <!-- Copy library and program archives-->
         <copy todir="${dist.windows.nodebox.lib}">
             <fileset dir="${lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
-                <include name="*.py"/>
-                <include name="*.properties"/>
+            </fileset>
+            <fileset dir="${dist}/lib">
+                <include  name="*.jar"/>
+                <include  name="*.zip"/>
             </fileset>
         </copy>
         <copy todir="${dist.windows.nodebox.res}">
@@ -162,7 +170,7 @@
         </nsis>
     </target>
 
-    <target name="dist-mac" depends="jar" description="Make a double-clickable Mac OS X application">
+    <target name="dist-mac" depends="archives" description="Make a double-clickable Mac OS X application">
         <mkdir dir="${dist.mac.nodebox}"/>
         <mkdir dir="${mac.application.resources.java}"/>
         <mkdir dir="${mac.application.macos}"/>
@@ -170,24 +178,16 @@
         <mkdir dir="${mac.application.plugins}"/>
         <mkdir dir="${mac.application.libraries}"/>
         <mkdir dir="${mac.application.res}"/>
-        <!-- Copy program jar and library jars -->
-        <copy file="${dist}/lib/nodebox.jar"
-              todir="${mac.application.lib}"/>
+        <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
             <fileset dir="${lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
-                <include name="*.py"/>
-                <include name="*.properties"/>
             </fileset>
-            <!-- Currently there are no files in platform.lib.
-            <fileset dir="${platform.lib}">
-                <include name="*.jar"/>
-                <include name="*.zip"/>
-                <include name="*.py"/>
-                <include name="*.properties"/>
+            <fileset dir="${dist}/lib">
+                <include  name="*.jar"/>
+                <include  name="*.zip"/>
             </fileset>
-            -->
         </copy>
         <!-- Copy resources-->
         <copy todir="${mac.application.res}">
