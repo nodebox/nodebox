@@ -73,7 +73,16 @@ public class PlatformUtils {
         if (onMac()) {
             userDataDirectory = new File(getHomeDirectory(), "Library/" + Application.NAME);
         } else if (onWindows()) {
-            userDataDirectory = new File(readWindowsRegistryValue(REG_SHELL_FOLDERS, REG_LOCAL_APPDATA) + "\\" + Application.NAME);
+            // Try to read the local application data from the system environment first.
+            // This environment variable is only available on Windows Vista/7.
+            // If this fails, try to read the registry, which works on most systems, but is deprecated,
+            // and has been known to be missing.
+            String localAppData = System.getenv("LOCALAPPDATA");
+            if (localAppData != null) {
+                userDataDirectory = new File(localAppData, Application.NAME);
+            } else {
+                userDataDirectory = new File(readWindowsRegistryValue(REG_SHELL_FOLDERS, REG_LOCAL_APPDATA), Application.NAME);
+            }
         } else {
             userDataDirectory = new File(getHomeDirectory(), Application.NAME.toLowerCase());
         }
