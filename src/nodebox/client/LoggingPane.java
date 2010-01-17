@@ -9,7 +9,7 @@ import java.awt.*;
 
 public class LoggingPane extends Pane implements DirtyListener {
 
-    private JTextArea loggingArea;
+    private LoggingArea loggingArea;
     private Node node;
 
     public LoggingPane(NodeBoxDocument document) {
@@ -20,7 +20,7 @@ public class LoggingPane extends Pane implements DirtyListener {
     public LoggingPane() {
         setLayout(new BorderLayout(0, 0));
         PaneHeader paneHeader = new PaneHeader(this);
-        loggingArea = new JTextArea(80, 30);
+        loggingArea = new LoggingArea(80, 30);
         loggingArea.setFont(Theme.INFO_FONT);
         loggingArea.setEditable(false);
         JScrollPane loggingScroll = new JScrollPane(loggingArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -55,5 +55,20 @@ public class LoggingPane extends Pane implements DirtyListener {
 
     public String getPaneName() {
         return "Log";
+    }
+
+    public PaneHeader getPaneHeader() {
+        return null;
+    }
+
+    public PaneView getPaneView() {
+        return loggingArea;
+    }
+
+    public static class LoggingArea extends JTextArea implements PaneView {
+
+        public LoggingArea(int rows, int columns) {
+            super(rows, columns);
+        }
     }
 }

@@ -21,7 +21,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
-public class Viewer extends PCanvas implements DirtyListener, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float POINT_SIZE = 4f;
 

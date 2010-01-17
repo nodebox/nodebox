@@ -35,6 +35,14 @@ public class ParameterPane extends Pane {
         return "Parameters";
     }
 
+    public PaneHeader getPaneHeader() {
+        return paneHeader;
+    }
+
+    public PaneView getPaneView() {
+        return parameterView;
+    }
+
     @Override
     public void setDocument(NodeBoxDocument document) {
         super.setDocument(document);

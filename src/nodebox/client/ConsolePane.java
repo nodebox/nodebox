@@ -23,11 +23,19 @@ public class ConsolePane extends Pane {
         add(consoleScroll, BorderLayout.CENTER);
     }
 
-    public Pane clone() {
-        return new ConsolePane(getDocument());
-    }
-
     public String getPaneName() {
         return "Console";
+    }
+
+    public PaneHeader getPaneHeader() {
+        return paneHeader;
+    }
+
+    public PaneView getPaneView() {
+        return console;
+    }
+
+    public Pane clone() {
+        return new ConsolePane(getDocument());
     }
 }

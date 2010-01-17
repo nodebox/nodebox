@@ -199,6 +199,14 @@ public class Application implements Host {
         return doc;
     }
 
+    public List<Node> getNodeClipboard() {
+        return nodeClipboard;
+    }
+
+    public void setNodeClipboard(List<Node> nodeClipboard) {
+        this.nodeClipboard = nodeClipboard;
+    }
+
     public NodeLibraryManager getManager() {
         return manager;
     }

@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ParameterView extends JComponent implements ParameterAttributeListener {
+public class ParameterView extends JComponent implements PaneView, ParameterAttributeListener {
 
     private static Logger logger = Logger.getLogger("nodebox.client.ParameterView");
 

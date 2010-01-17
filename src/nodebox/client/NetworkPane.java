@@ -39,8 +39,16 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
         return new NetworkPane(getDocument());
     }
 
+    public PaneHeader getPaneHeader() {
+        return paneHeader;
+    }
+
     public String getPaneName() {
         return "Network";
+    }
+
+    public PaneView getPaneView() {
+        return networkView;
     }
 
     public Node getNode() {
@@ -73,8 +81,11 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
         // If there is no selection, set the active node to null.
         if (selection == null || selection.isEmpty()) {
             getDocument().setActiveNode(null);
-        } else if (selection.size() == 1) {
-            // If there is one element selected, that will be the new active node.
+        } else {
+            // If the active node is in the new selection leave the active node as is.
+            NodeView nv = networkView.getNodeView(getDocument().getActiveNode());
+            if (selection.contains(nv)) return;
+            // If there are multiple elements selected, the first one will be the active node.
             NodeView firstElement = selection.iterator().next();
             getDocument().setActiveNode(firstElement.getNode());
         }

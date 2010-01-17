@@ -12,12 +12,11 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.HashSet;
+import java.awt.geom.Rectangle2D;
+import java.util.*;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
 
-public class NetworkView extends PCanvas implements NodeChildListener, DirtyListener {
+public class NetworkView extends PCanvas implements PaneView, NodeChildListener, DirtyListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -143,6 +142,18 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         return null;
     }
 
+    public NodeView getNodeViewAt(Point2D point) {
+        for (Object child : getLayer().getChildrenReference()) {
+            if (!(child instanceof NodeView)) continue;
+            NodeView nv = (NodeView) child;
+            Rectangle2D r = new Rectangle2D.Double(nv.getNode().getX(), nv.getNode().getY(), NodeView.NODE_FULL_SIZE, NodeView.NODE_FULL_SIZE);
+            if (r.contains(point)) {
+                return nv;
+            }
+        }
+        return null;
+    }
+
     //// Selections ////
 
     public boolean isSelected(Node node) {
@@ -157,7 +168,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
     public void select(Node node) {
         NodeView nodeView = getNodeView(node);
-        select(nodeView);
+        addToSelection(nodeView);
     }
 
     /**
@@ -193,7 +204,31 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         firePropertyChange(SELECT_PROPERTY, null, selection);
     }
 
-    public void select(NodeView nodeView) {
+    public void select(Set<NodeView> newSelection) {
+        boolean selectionChanged = false;
+        ArrayList<NodeView> nodeViewsToRemove = new ArrayList<NodeView>();
+        for (NodeView nodeView : selection) {
+            if (!newSelection.contains(nodeView)) {
+                selectionChanged = true;
+                nodeView.setSelected(false);
+                nodeViewsToRemove.add(nodeView);
+            }
+        }
+        for (NodeView nodeView : nodeViewsToRemove) {
+            selection.remove(nodeView);
+        }
+        for (NodeView nodeView : newSelection) {
+            if (!selection.contains(nodeView)) {
+                selectionChanged = true;
+                nodeView.setSelected(true);
+                selection.add(nodeView);
+            }
+        }
+        if (selectionChanged)
+            firePropertyChange(SELECT_PROPERTY, null, selection);
+    }
+
+    public void addToSelection(NodeView nodeView) {
         if (nodeView == null) return;
         // If the selection already contained the object, bail out.
         // This is to prevent the select event from firing.
@@ -203,7 +238,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         firePropertyChange(SELECT_PROPERTY, null, selection);
     }
 
-    public void select(Set<NodeView> newSelection) {
+    public void addToSelection(Set<NodeView> newSelection) {
         boolean selectionChanged = false;
         for (NodeView nodeView : newSelection) {
             if (!selection.contains(nodeView)) {
@@ -253,6 +288,54 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
         selection.clear();
         connectionLayer.deselect();
         firePropertyChange(SELECT_PROPERTY, null, selection);
+    }
+
+    public void deleteSelected() {
+        Set<NodeView> nodesToRemove = new HashSet<NodeView>(selection);
+        for (NodeView nodeView : nodesToRemove) {
+            node.remove(nodeView.getNode());
+        }
+        connectionLayer.deleteSelected();
+    }
+
+    public void cutSelected() {
+        Node parent = getNode();
+        ArrayList<Node> nodesToCopy = new ArrayList<Node>(selection.size());
+        for (NodeView nv : selection) {
+            Node n = nv.getNode();
+            nodesToCopy.add(n);
+        }
+        for (Node n : nodesToCopy) {
+            parent.remove(n);
+        }
+        Application.getInstance().setNodeClipboard(nodesToCopy);
+    }
+
+    public void copySelected() {
+        ArrayList<Node> nodesToCopy = new ArrayList<Node>(selection.size());
+        for (NodeView nv : selection) {
+            Node n = nv.getNode();
+            nodesToCopy.add(n);
+        }
+        Application.getInstance().setNodeClipboard(nodesToCopy);
+    }
+
+    public void pasteSelected() {
+        Node newParent = getNode();
+        List<Node> nodesToCopy = Application.getInstance().getNodeClipboard();
+        if (nodesToCopy == null || nodesToCopy.size() == 0) return;
+        Node parent = nodesToCopy.get(0).getParent();
+        // TODO: Cut operation removes parent from child nodes, so no parent is available.
+        // This is a problem for connections.
+        if (parent == null) return;
+        Collection<Node> newNodes = parent.copyChildren(nodesToCopy, newParent);
+        deselectAll();
+        for (Node newNode : newNodes) {
+            NodeView nv = getNodeView(newNode);
+            assert nv != null;
+            nv.updateIcon();
+            addToSelection(nv);
+        }
     }
 
     //// Events ////
@@ -497,10 +580,17 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
 
         public void mousePressed(PInputEvent e) {
             if (e.getButton() != MouseEvent.BUTTON1) return;
-            Point2D p = e.getPosition();
-            selectionMarker = new SelectionMarker(p);
-            getLayer().addChild(selectionMarker);
             temporarySelection.clear();
+            // Make sure no Node View is under the mouse cursor.
+            // In that case, we're not selecting, but moving a node.
+            Point2D p = e.getPosition();
+            NodeView nv = getNodeViewAt(p);
+            if (nv == null) {
+                selectionMarker = new SelectionMarker(p);
+                getLayer().addChild(selectionMarker);
+            } else {
+                selectionMarker = null;
+            }
         }
 
         public void mouseDragged(PInputEvent e) {
@@ -562,10 +652,7 @@ public class NetworkView extends PCanvas implements NodeChildListener, DirtyList
     private class DeleteHandler extends KeyAdapter {
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_DELETE || e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                for (NodeView nodeView : selection) {
-                    node.remove(nodeView.getNode());
-                }
-                connectionLayer.deleteSelected();
+                deleteSelected();
             }
         }
     }
