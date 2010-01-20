@@ -231,12 +231,12 @@ public class NDBXHandler extends DefaultHandler {
             prototype = library.getRootNode().getChild(prototypeId);
         }
         if (prototype == null) throw new SAXException("Unknown prototype " + prototypeId + " for node " + name);
-        Node newNode = prototype.newInstance(library, name, dataClass);
-        // Add the child to the node library or its parent
+        // Create the child at the root of the node library or the current parent
+        Node newNode;
         if (currentNode == null) {
-            library.add(newNode);
+            newNode = library.getRootNode().create(prototype, name, dataClass);
         } else {
-            currentNode.add(newNode);
+            newNode = currentNode.create(prototype, name, dataClass);
         }
         // Parse additional node flags.
         String x = attributes.getValue(NODE_X);

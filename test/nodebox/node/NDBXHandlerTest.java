@@ -168,6 +168,20 @@ public class NDBXHandlerTest extends TestCase {
         assertEquals(Polygon.class, gamma.getDataClass());
     }
 
+    /**
+     * Test a bug where having a node with the name same as the parent stopped loading.
+     */
+    public void testSameNameChild() {
+        resetManager();
+        NodeLibrary test = new NodeLibrary("test");
+        Node rect1 = Node.ROOT_NODE.newInstance(test, "rect1", Polygon.class);
+        Node innerRect1 = rect1.create(Node.ROOT_NODE, "rect1");
+        NodeLibrary newTest = NodeLibrary.load("newTest", test.toXml(), manager);
+        Node newRect1 = newTest.getRootNode().getChild("rect1");
+        assertNotNull(newRect1);
+        assertNotNull(newRect1.getChild("rect1"));
+    }
+
     //// Helper methods ////
 
     /**
