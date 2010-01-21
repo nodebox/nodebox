@@ -179,8 +179,7 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         if (getNode() != null) {
             Object outputValue = getNode().getOutputValue();
             if (outputValue instanceof Grob) {
-                Grob grob = (Grob) outputValue;
-                viewerLayer.setBounds(grob.getBounds().getRectangle2D());
+                viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
                 viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
             } else if (outputValue != null) {
                 resetView();
