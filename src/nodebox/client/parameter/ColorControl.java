@@ -6,7 +6,6 @@ import nodebox.client.NodeBoxDocument;
 import nodebox.client.SwingUtils;
 import nodebox.node.Node;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -14,7 +13,6 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 
 public class ColorControl extends AbstractParameterControl implements ChangeListener, ActionListener, DocumentFocusListener {
 
@@ -63,11 +61,15 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         if (colorDialog == null) {
             colorDialog = new ColorDialog((Frame) SwingUtilities.getWindowAncestor(this));
             colorDialog.setColor(parameter.asColor().getAwtColor());
-            colorDialog.setSize(500, 340);
+            colorDialog.setMinimumSize(new Dimension(400, 375));
+            colorDialog.setPreferredSize(new Dimension(540, 375));
+            colorDialog.setMaximumSize(new Dimension(Integer.MAX_VALUE, 375));
+            colorDialog.setSize(540, 375);
             colorDialog.addChangeListener(this);
             colorDialog.setAlwaysOnTop(true);
             SwingUtils.centerOnScreen(colorDialog);
             colorDialog.setVisible(true);
+//            colorDialog.setLocationRelativeTo(null);
         } else {
             colorDialog.setVisible(true);
             colorDialog.requestFocus();
