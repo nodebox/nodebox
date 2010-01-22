@@ -8,8 +8,10 @@ import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
+import java.util.prefs.Preferences;
 
 public class ColorDialog extends JDialog implements ChangeListener {
+    public static final String COLOR_RANGE = "NBColorRange";
     public enum ColorRange {
         PERCENTAGE, ABSOLUTE
     }
@@ -20,7 +22,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
     private OKAction okAction = new OKAction();
     private CancelAction cancelAction = new CancelAction();
-
+    private Preferences preferences;
+    
     private ColorRangeMenu rangeBox;
 
     private Color color;
@@ -59,6 +62,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
 //        setMaximumSize(new Dimension(Integer.MAX_VALUE, 400));
 //        setSize(new Dimension(300, 400));
         colorField = new ColorField();
+        Class colorDialogClass = this.getClass();
+        this.preferences = Preferences.userNodeForPackage(colorDialogClass);
 
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
@@ -126,7 +131,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
         }, escapeStroke, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
         setColor(Color.WHITE);
-        setColorRange(ColorRange.ABSOLUTE);
+
+        setColorRange(ColorRange.valueOf(getPreferences().get(COLOR_RANGE, "ABSOLUTE")));
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 setColor(newColor);
@@ -350,11 +356,15 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
     public void setColorRange(ColorRange colorRange) {
         this.colorRange = colorRange;
+        getPreferences().put(COLOR_RANGE, colorRange.toString());
         for (ColorPanel panel : panels)
             panel.setColorRange(colorRange);
     }
 
-
+    public Preferences getPreferences() {
+        return preferences;
+    }
+    
     public class ColorField extends JButton {
 
         public ColorField() {
