@@ -174,7 +174,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private Rectangle getLeftButtonRect(Rectangle r) {
         if (r == null)
             r = getBounds();
-        return new Rectangle(r.x, r.y, draggerLeftWidth, draggerHeight);
+        return new Rectangle(0, 0, draggerLeftWidth, draggerHeight);
     }
 
     private Rectangle getRightButtonRect(Rectangle r) {
