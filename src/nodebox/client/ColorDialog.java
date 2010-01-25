@@ -34,11 +34,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
     private DraggableNumber hueDraggable, saturationDraggable, brightnessDraggable;
     private DraggableNumber redDraggable, blueDraggable, greenDraggable;
     private DraggableNumber alphaDraggable;
-    private boolean changeDisabled = false;
 
     private float hue, saturation, brightness, red, green, blue, alpha;
-    //    private ColorDialog dialog = this;
-    private static final int MAX_RANGE = 5000;
 
     /**
      * Only one <code>ChangeEvent</code> is needed per slider instance since the
@@ -58,28 +55,17 @@ public class ColorDialog extends JDialog implements ChangeListener {
     public ColorDialog(Frame owner) {
         super(owner, "Choose Color");
         getRootPane().putClientProperty("Window.style", "small");
-//        setMinimumSize(new Dimension(300, 340));
-//        setMaximumSize(new Dimension(Integer.MAX_VALUE, 400));
-//        setSize(new Dimension(300, 400));
         colorField = new ColorField();
-        Class colorDialogClass = this.getClass();
-        this.preferences = Preferences.userNodeForPackage(colorDialogClass);
 
+        Dimension d = new Dimension(Integer.MAX_VALUE, 80);
         JPanel topPanel = new JPanel();
         topPanel.setLayout(new BorderLayout());
-        Dimension d = new Dimension(Integer.MAX_VALUE, 80);
         topPanel.setMinimumSize(d);
         topPanel.setPreferredSize(d);
         topPanel.setMaximumSize(d);
         topPanel.setSize(d);
-
-        rangeBox = new ColorRangeMenu();
-        d = new Dimension(120, Integer.MAX_VALUE);
-        rangeBox.setMinimumSize(d);
-        rangeBox.setPreferredSize(d);
-        rangeBox.setSize(d);
         topPanel.add(colorField, BorderLayout.WEST);
-        topPanel.setBorder(new EmptyBorder(5, 5, 5, 7));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 7));
 
         ColorPanel red = new ColorPanel("red");
         ColorPanel green = new ColorPanel("green");
@@ -88,17 +74,24 @@ public class ColorDialog extends JDialog implements ChangeListener {
         ColorPanel hue = new ColorPanel("hue");
         ColorPanel saturation = new ColorPanel("saturation");
         ColorPanel brightness = new ColorPanel("brightness");
-        panels = new ColorPanel[]{red, green, blue, alpha, hue, saturation, brightness};
+        panels = new ColorPanel[]{ red, green, blue, alpha, hue, saturation, brightness };
 
+        d = new Dimension(120, Integer.MAX_VALUE);
+        rangeBox = new ColorRangeMenu();
+        rangeBox.setMinimumSize(d);
+        rangeBox.setPreferredSize(d);
+        rangeBox.setSize(d);
+
+        JButton cancelButton = new JButton(cancelAction);
+        JButton okButton = new JButton(okAction);
+
+        d = new Dimension(Integer.MAX_VALUE, 30);
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-        d = new Dimension(Integer.MAX_VALUE, 30);
         bottomPanel.setMinimumSize(d);
         bottomPanel.setPreferredSize(d);
         bottomPanel.setMaximumSize(d);
         bottomPanel.setSize(d);
-        JButton cancelButton = new JButton(cancelAction);
-        JButton okButton = new JButton(okAction);
         bottomPanel.add(Box.createHorizontalStrut(77));
         bottomPanel.add(rangeBox);
         bottomPanel.add(Box.createHorizontalGlue());
@@ -122,6 +115,11 @@ public class ColorDialog extends JDialog implements ChangeListener {
         contents.add(alpha);
         contents.add(bottomPanel);
 
+        setColor(Color.WHITE);
+
+        this.preferences = Preferences.userNodeForPackage(this.getClass());
+        setColorRange(ColorRange.valueOf(getPreferences().get(COLOR_RANGE, "ABSOLUTE")));
+
         KeyStroke escapeStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         getRootPane().registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -130,9 +128,6 @@ public class ColorDialog extends JDialog implements ChangeListener {
             }
         }, escapeStroke, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 
-        setColor(Color.WHITE);
-
-        setColorRange(ColorRange.valueOf(getPreferences().get(COLOR_RANGE, "ABSOLUTE")));
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 setColor(newColor);
@@ -140,39 +135,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
         });
     }
 
-/*
-    @Override
-    public void paint(Graphics g) {
-        Dimension d = getSize();
-        Dimension m = getMaximumSize();
-        boolean resize = d.width > m.width || d.height > m.height;
-        d.width = Math.min(m.width, d.width);
-        d.height = Math.min(m.height, d.height);
-        if (resize) {
-            Point p = getLocation();
-            setVisible(false);
-            setSize(d);
-            setLocation(p);
-            setVisible(true);
-        }
-        super.paint(g);
-    }
-*/
-
-    public static void main(String[] args) {
-        ColorDialog cd = new ColorDialog(null);
-        cd.setSize(500, 340);
-        cd.setLocationByPlatform(true);
-        cd.setAlwaysOnTop(true);
-        cd.setVisible(true);
-    }
-
     private float clamp(float v) {
         return Math.max(0F, Math.min(1F, v));
-    }
-
-    public void stateChanged(ChangeEvent e) {
-        if (changeDisabled) return;
     }
 
     public void setColor(Color color) {
@@ -185,6 +149,19 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
     public Color getColor() {
         return newColor;
+    }
+
+    public void setRGB(float r, float g, float b) {
+        setRGBA(r, g, b, 1.0F);
+    }
+
+    public void setRGBA(float r, float g, float b, float a) {
+        if (red == r && green == g && blue == b && alpha == a) return;
+        red = clamp(r);
+        green = clamp(g);
+        blue = clamp(b);
+        alpha = clamp(a);
+        updateHSB();
     }
 
     private void updateRGB() {
@@ -201,19 +178,6 @@ public class ColorDialog extends JDialog implements ChangeListener {
         brightness = clamp(b);
         alpha = clamp(a);
         updateRGB();
-    }
-
-    public void setRGB(float r, float g, float b) {
-        setRGBA(r, g, b, 1.0F);
-    }
-
-    public void setRGBA(float r, float g, float b, float a) {
-        if (red == r && green == g && blue == b && alpha == a) return;
-        red = clamp(r);
-        green = clamp(g);
-        blue = clamp(b);
-        alpha = clamp(a);
-        updateHSB();
     }
 
     private void updateHSB() {
@@ -293,6 +257,35 @@ public class ColorDialog extends JDialog implements ChangeListener {
         updateColor();
     }
 
+    private void updateColor() {
+        newColor = new Color(red, green, blue, alpha);
+        updatePanels();
+        fireStateChanged();
+    }
+
+    private void updatePanels() {
+        colorField.repaint();
+        for (ColorPanel panel : panels) {
+            panel.updateDraggableNumber();
+            panel.repaint();
+        }
+    }
+
+    public ColorRange getColorRange() {
+        return colorRange;
+    }
+
+    public void setColorRange(ColorRange colorRange) {
+        this.colorRange = colorRange;
+        getPreferences().put(COLOR_RANGE, colorRange.toString());
+        for (ColorPanel panel : panels)
+            panel.setColorRange(colorRange);
+    }
+
+    public Preferences getPreferences() {
+        return preferences;
+    }
+    
     /**
      * Adds a ChangeListener to the slider.
      *
@@ -303,7 +296,6 @@ public class ColorDialog extends JDialog implements ChangeListener {
     public void addChangeListener(ChangeListener l) {
         listenerList.add(ChangeListener.class, l);
     }
-
 
     /**
      * Removes a ChangeListener from the slider.
@@ -336,35 +328,17 @@ public class ColorDialog extends JDialog implements ChangeListener {
         }
     }
 
-    private void updateColor() {
-        newColor = new Color(red, green, blue, alpha);
-        updatePanels();
-        fireStateChanged();
+    public void stateChanged(ChangeEvent e) {
     }
 
-    private void updatePanels() {
-        colorField.repaint();
-        for (ColorPanel panel : panels) {
-            panel.updateDraggableNumber();
-            panel.repaint();
-        }
+    public static void main(String[] args) {
+        ColorDialog cd = new ColorDialog(null);
+        cd.setSize(500, 340);
+        cd.setLocationByPlatform(true);
+        cd.setAlwaysOnTop(true);
+        cd.setVisible(true);
     }
 
-    public ColorRange getColorRange() {
-        return colorRange;
-    }
-
-    public void setColorRange(ColorRange colorRange) {
-        this.colorRange = colorRange;
-        getPreferences().put(COLOR_RANGE, colorRange.toString());
-        for (ColorPanel panel : panels)
-            panel.setColorRange(colorRange);
-    }
-
-    public Preferences getPreferences() {
-        return preferences;
-    }
-    
     public class ColorField extends JButton {
 
         public ColorField() {
@@ -699,7 +673,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            colorRangePopup.show(this, -15, 20);
+            colorRangePopup.show(this, 0, 20);
         }
 
         @Override
@@ -734,7 +708,6 @@ public class ColorDialog extends JDialog implements ChangeListener {
                 ColorRangeMenu.this.repaint();
             }
         }
-
     }
 
     public class OKAction extends AbstractAction {
