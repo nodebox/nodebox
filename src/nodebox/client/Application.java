@@ -194,6 +194,7 @@ public class Application implements Host {
     public NodeBoxDocument createNewDocument() {
         NodeBoxDocument doc = new NodeBoxDocument();
         doc.setVisible(true);
+        doc.requestFocus();
         documents.add(doc);
         currentDocument = doc;
         return doc;
