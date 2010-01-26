@@ -24,7 +24,7 @@ public class NodeLibraryManager {
 
     public void addSearchPath(File f) {
         if (!f.isDirectory())
-            throw new IllegalArgumentException("The given file should be a directory.");
+            throw new IllegalArgumentException("The given file should be a directory: " + f);
         searchPaths.add(f);
     }
 
