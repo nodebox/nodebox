@@ -1,0 +1,35 @@
+Installing NodeBox
+==================
+If you're only interested in running NodeBox, precompiled binaries for Windows and Mac are available at http://beta.nodebox.net/download .
+
+Mac OS X
+========
+1. Install Git. I use http://code.google.com/p/git-osx-installer/downloads/list?can=3 but you can use MacPorts or HomeBrew as well.
+2. Open Terminal (in Applications/Utilities)  and type the following commands to clone and build the project:
+
+ git clone git://github.com/nodebox/nodebox.git
+ cd nodebox
+ ant dist-mac
+
+3. Open the "dist" folder under the NodeBox project folder, right-click the "mac" folder and select "Compress". Rename the archive to also contain the version number, e.g. NodeBox-2.0.963.zip. Note that using the "zip" command from the terminal creates an invalid executable.
+
+Windows
+=======
+1. Install Msysgit from http://code.google.com/p/msysgit/downloads/list . During setup, indicate you want to use Unix-style line endings.
+2. Install Java JDK from http://java.sun.com/javase/downloads/index.jsp . We install the JDK under c:\java\jdk6 and the JRE under c:\java\jre6. Note the directory where you've installed the JRE.
+3. Install Unicode NSIS from http://www.scratchpaper.com/home/downloads . Note the directory where you've installed it (normally c:\Program Files\NSIS\Unicode).
+4. If you use the command line, download and install the latest Apache Ant from http://ant.apache.org/bindownload.cgi . Configure JDK_HOME and ANT_HOME under System Properties > Advanced > Environment Variables.
+5. If you use an IDE, configure it to use the build.xml file in the root.
+6. Configure the path to NSIS and the Java JRE in build.properties.
+7. Set the version number in version.properties.
+8. Run the dist-win Ant target. This will create an installer with the given version number under "dist".
+
+Linux
+=====
+The following commands will install the correct prerequisites and clone and run the project: 
+
+ sudo apt-get install git-core openjdk-6-jdk ant
+ git clone git://github.com/nodebox/nodebox.git
+ cd nodebox
+ ant run
+
