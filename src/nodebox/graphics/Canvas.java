@@ -122,6 +122,11 @@ public class Canvas extends AbstractTransformable {
 
     //// Geometry ////
 
+
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
     /**
      * Returns the bounding box of the canvas.
      * <p/>

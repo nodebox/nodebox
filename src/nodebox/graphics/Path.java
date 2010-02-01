@@ -346,7 +346,7 @@ public class Path extends AbstractGeometry implements Colorizable {
     }
 
     public boolean isEmpty() {
-        return contours.isEmpty();
+        return getPointCount() == 0;
     }
 
     public void clear() {
@@ -771,7 +771,7 @@ public class Path extends AbstractGeometry implements Colorizable {
 
     public Rect getBounds() {
         if (!pathDirty && bounds != null) return bounds;
-        if (contours.size() == 0) {
+        if (isEmpty()) {
             bounds = new Rect();
         } else {
             float minX = Float.MAX_VALUE;
@@ -833,10 +833,12 @@ public class Path extends AbstractGeometry implements Colorizable {
     //// Operations on the current context. ////
 
     public void draw(Graphics2D g) {
-
         // If we can't fill or stroke the path, there's nothing to draw.
         if (fillColor == null && strokeColor == null) return;
         GeneralPath gp = getGeneralPath();
+        Rect r = getBounds();
+        // If there are no points, there's nothing to draw.
+        if (getPointCount() == 0) return;
         if (fillColor != null) {
             g.setColor(fillColor.getAwtColor());
             g.fill(gp);

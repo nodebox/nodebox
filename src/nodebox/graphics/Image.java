@@ -7,7 +7,6 @@ import javax.management.RuntimeErrorException;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -149,6 +148,11 @@ public class Image extends AbstractGrob {
     }
 
     //// Grob support ////
+
+
+    public boolean isEmpty() {
+        return image == null || image.getWidth() == 0 || image.getHeight() == 0;
+    }
 
     public Rect getBounds() {
         if (image == null) return new Rect();

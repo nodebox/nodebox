@@ -237,4 +237,26 @@ public class PathTest extends GraphicsTestCase {
         p2.rect(-80, -200, 100, 100);
         assertEquals(Rect.centeredRect(-80, -200, 100, 100), p2.getBounds());
     }
+
+    /**
+     * Check the bounds for an empty path.
+     */
+    public void testEmptyBounds() {
+        Path p1 = new Path();
+        assertEquals(new Rect(), p1.getBounds());
+        // Construct a path with an empty contour.
+        Path p2 = new Path();
+        p2.add(new Contour());
+        assertEquals(new Rect(), p2.getBounds());
+        // Construct a path with an empty and filled contour.
+        Path p3 = new Path();
+        p3.add(new Contour());
+        Contour c2 = new Contour();
+        Rect r = new Rect(20, 30, 40, 50);
+        c2.addPoint(r.getX(), r.getY());
+        c2.addPoint(r.getX() + r.getWidth(), r.getY() + r.getHeight());
+        p3.add(c2);
+        assertEquals(r, p3.getBounds());
+    }
+
 }

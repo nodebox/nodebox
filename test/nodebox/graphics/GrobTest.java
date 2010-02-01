@@ -20,6 +20,10 @@ public class GrobTest extends TestCase {
         public void draw(Graphics2D g) {
         }
 
+        public boolean isEmpty() {
+            return false;
+        }
+
         public Rect getBounds() {
             return getTransform().map(new Rect(x, y, width, height));
         }

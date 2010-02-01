@@ -30,6 +30,8 @@ public interface Grob extends Cloneable {
 
     //// Geometric queries ////
 
+    public boolean isEmpty();
+
     public Rect getBounds();
 
     //// Transformations ////

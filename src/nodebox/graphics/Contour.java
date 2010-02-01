@@ -65,8 +65,12 @@ public class Contour extends AbstractGeometry {
 
     //// Geometric queries ////
 
+    public boolean isEmpty() {
+        return points.isEmpty();
+    }
+
     public Rect getBounds() {
-        if (points.size() == 0) {
+        if (points.isEmpty()) {
             return new Rect();
         }
         float minX = Float.MAX_VALUE;
@@ -87,10 +91,10 @@ public class Contour extends AbstractGeometry {
 
     /**
      * Invalidates the cache. Querying the contour length or calling makePoints/resample will an up-to-date result.
-     *
+     * <p/>
      * Cache invalidation happens automatically when using the Contour methods, such as addPoint/close. You should
      * invalidate the cache only after manually changing the point positions.
-     *
+     * <p/>
      * Invalidating the cache is a lightweight operation; it doesn't recalculate anything. Only when querying the
      * new length will the values be recalculated.
      */
@@ -367,7 +371,9 @@ public class Contour extends AbstractGeometry {
         g.setStroke(savedStroke);
     }
 
-    /* package private */ void _extendPath(GeneralPath gp) {
+    /* package private */
+
+    void _extendPath(GeneralPath gp) {
         if (points.size() == 0) return;
         Point pt = points.get(0);
         Point ctrl1, ctrl2;

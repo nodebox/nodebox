@@ -216,13 +216,22 @@ public class ContourTest extends GraphicsTestCase {
         assertEquals(100f, c.getLength());
     }
 
+    /**
+     * Check the bounds for an empty contour.
+     */
+    public void testEmptyBounds() {
+        Contour c = new Contour();
+        Rect r = c.getBounds();
+        assertEquals(new Rect(), r);
+    }
+
     private void assertRectPoints(IGeometry g, float x, float y, float width, float height) {
         assertEquals(4, g.getPointCount());
         List<Point> points = g.getPoints();
         assertPointEquals(x, y, points.get(0));
-        assertPointEquals(x+width, y, points.get(1));
-        assertPointEquals(x+width, y+height, points.get(2));
-        assertPointEquals(x, y+height, points.get(3));
+        assertPointEquals(x + width, y, points.get(1));
+        assertPointEquals(x + width, y + height, points.get(2));
+        assertPointEquals(x, y + height, points.get(3));
     }
 
 }

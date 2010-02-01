@@ -209,11 +209,12 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         for (Grob g : paths) {
             if (r == null) {
                 r = g.getBounds();
-            } else {
+            }
+            if (!g.isEmpty()) {
                 r = r.united(g.getBounds());
             }
         }
-        return r;
+        return r != null ? r : new Rect();
     }
 
     //// Geometric math ////

@@ -230,6 +230,10 @@ public class Text extends AbstractGrob {
         return p;
     }
 
+    public boolean isEmpty() {
+        return text.trim().length() == 0;
+    }
+
     public Rect getBounds() {
         // TODO: This is correct, but creating a full path just for measuring bounds is slow.
         return getPath().getBounds();

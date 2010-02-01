@@ -23,6 +23,36 @@ public class GeometryTest extends GraphicsTestCase {
         assertEquals(Rect.centeredRect(210, 320, 30, 40), g.getBounds());
     }
 
+    /**
+     * Check the bounds for an empty path.
+     */
+    public void testEmptyBounds() {
+        assertEquals(new Rect(), new Geometry().getBounds());
+        Path p1 = new Path();
+        p1.rect(100, 200, 30, 40);
+        Geometry g1 = new Geometry();
+        g1.add(p1);
+        Rect r = Rect.centeredRect(100, 200, 30, 40);
+        assertEquals(r, g1.getBounds());
+        Path p2 = new Path();
+        Geometry g2 = new Geometry();
+        g2.add(p1);
+        g2.add(p2);
+        assertEquals(r, g2.getBounds());
+    }
+
+    /**
+     * Check if a contour is empty.
+     */
+    public void testIsEmpty() {
+        Geometry g1 = new Geometry();
+        assertTrue(g1.isEmpty());
+        Geometry g2 = new Geometry();
+        // Adding even an empty path makes the geometry not empty.
+        g2.add(new Path());
+        assertFalse(g2.isEmpty());
+    }
+
     public void testTransformedElements() {
         Path r1 = new Path();
         r1.rect(10, 20, 30, 40);
