@@ -168,10 +168,38 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     private void updateRGB() {
-        Color c = Color.getHSBColor(hue, saturation, brightness);
-        red = clamp((float) (c.getRed() / 255.0));
-        green = clamp((float) (c.getGreen() / 255.0));
-        blue = clamp((float) (c.getBlue() / 255.0));
+        if (saturation == 0)
+            red = green = blue = brightness;
+        else {
+            float h = hue;
+            float s = saturation;
+            float v = brightness;
+            float r, g, b, f, p, q, t;
+            h = h / (float) (60.0/360);
+            int i = (int) Math.floor(h);
+            f = h - i;
+            p = v * (1 - s);
+            q = v * (1 - s * f);
+            t = v * (1 - s * (1 - f));
+
+            float rgb[];
+            if (i == 0)
+                rgb = new float[]{v, t, p};
+            else if (i == 1)
+                rgb = new float[]{q, v, p};
+            else if (i == 2)
+                rgb = new float[]{p, v, t};
+            else if (i == 3)
+                rgb = new float[]{p, q, v};
+            else if (i == 4)
+                rgb = new float[]{t, p, v};
+            else
+                rgb = new float[]{v, p, q};
+
+            red = rgb[0];
+            green = rgb[1];
+            blue = rgb[2];
+        }
     }
 
     public void setHSBA(float h, float s, float b, float a) {
@@ -184,11 +212,30 @@ public class ColorDialog extends JDialog implements ChangeListener {
     }
 
     private void updateHSB() {
-        float[] hsb = new float[3];
-        Color.RGBtoHSB(Math.round(red * 255), Math.round(green * 255), Math.round(blue * 255), hsb);
-        hue = clamp(hsb[0]);
-        saturation = clamp(hsb[1]);
-        brightness = clamp(hsb[2]);
+        float h = 0;
+        float s = 0;
+        float v = Math.max(Math.max(red, green), blue);
+        float d = v - Math.min(Math.min(red, green), blue);
+
+        if (v != 0)
+            s = d / v;
+
+        if (s != 0) {
+            if (red == v)
+                h = 0 + (green - blue) / d;
+            else if (green == v)
+                h = 2 + (blue - red) / d;
+            else
+                h = 4 + (red - green) / d;
+        }
+        
+        h = h * (float) (60.0 / 360);
+        if (h < 0)
+            h = h + 1;
+
+        hue = h;
+        saturation = s;
+        brightness = v;
     }
 
     public float getRed() {
