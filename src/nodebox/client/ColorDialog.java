@@ -12,6 +12,7 @@ import java.util.prefs.Preferences;
 
 public class ColorDialog extends JDialog implements ChangeListener {
     public static final String COLOR_RANGE = "NBColorRange";
+
     public enum ColorRange {
         PERCENTAGE, ABSOLUTE
     }
@@ -23,7 +24,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     private OKAction okAction = new OKAction();
     private CancelAction cancelAction = new CancelAction();
     private Preferences preferences;
-    
+
     private ColorRangeMenu rangeBox;
 
     private Color color;
@@ -74,7 +75,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
         ColorPanel hue = new ColorPanel("hue");
         ColorPanel saturation = new ColorPanel("saturation");
         ColorPanel brightness = new ColorPanel("brightness");
-        panels = new ColorPanel[]{ red, green, blue, alpha, hue, saturation, brightness };
+        panels = new ColorPanel[]{red, green, blue, alpha, hue, saturation, brightness};
 
         d = new Dimension(120, Integer.MAX_VALUE);
         rangeBox = new ColorRangeMenu();
@@ -142,7 +143,9 @@ public class ColorDialog extends JDialog implements ChangeListener {
     public void setColor(Color color) {
         this.color = color;
         this.newColor = color;
-        setRGBA((float) (color.getRed() / 255.0), (float) (color.getGreen() / 255.0), (float) (color.getBlue() / 255.0), (float) (color.getAlpha() / 255.0));
+        float[] components = color.getComponents(null);
+        assert components.length == 4;
+        setRGBA(components[0], components[1], components[2], components[3]);
         updatePanels();
         fireStateChanged();
     }
@@ -285,7 +288,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     public Preferences getPreferences() {
         return preferences;
     }
-    
+
     /**
      * Adds a ChangeListener to the slider.
      *
