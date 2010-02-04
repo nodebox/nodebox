@@ -31,6 +31,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public static final Rectangle OUTPUT_BOUNDS = new Rectangle(60, 29, 10, 12);
     public static final int NODE_PORT_WIDTH = 10;
     public static final int NODE_PORT_HEIGHT = 10;
+    private static final int NODE_PORT_MARGIN = 5;
     public static final int GRID_SIZE = 10;
 
 
@@ -106,6 +107,23 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     }
 
     /**
+     * Calculate the vertical offset for the port. This value starts from the full node size.
+     *
+     * @param port the port. The index of the port is used to calculate the offset.
+     * @return the vertical offset
+     */
+    public static int getVerticalOffsetForPort(Port port) {
+        Node node = port.getNode();
+        java.util.List<Port> ports = node.getPorts();
+        int portIndex = node.getPorts().indexOf(port);
+        int portCount = ports.size();
+        int totalPortsHeight = (NODE_PORT_HEIGHT + NODE_PORT_MARGIN) * (portCount - 1) + NODE_PORT_HEIGHT;
+        int offsetPerPort = NODE_PORT_HEIGHT + NODE_PORT_MARGIN;
+        int portStartY = (NODE_FULL_SIZE - totalPortsHeight) / 2 - 1;
+        return portStartY + portIndex * offsetPerPort;
+    }
+
+    /**
      * Create an icon with the node's image and the rounded embellishments.
      *
      * @param node the node
@@ -123,8 +141,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         if (drawPorts) {
             // Count the input ports and draw them.
             java.util.List<Port> inputs = node.getPorts();
-            if (inputs.size() > 0) {
-                int portY = (NODE_FULL_SIZE - NODE_PORT_HEIGHT) / 2 - 1;
+            for (Port p : inputs) {
+                int portY = getVerticalOffsetForPort(p);
                 fg.drawImage(nodeInPort, 0, portY, null);
             }
             fg.drawImage(nodeOutPort, 0, 0, null);

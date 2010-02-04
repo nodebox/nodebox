@@ -5,6 +5,7 @@ import edu.umd.cs.piccolo.event.PInputEvent;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.node.Connection;
 import nodebox.node.Node;
+import nodebox.node.Port;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
@@ -51,7 +52,7 @@ public class ConnectionLayer extends PLayer {
                     g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
                 }
                 for (Node outputNode : c.getOutputNodes()) {
-                    paintConnection(g, outputNode, c.getInputNode());
+                    paintConnection(g, outputNode, c.getInput());
                 }
             }
         }
@@ -64,8 +65,8 @@ public class ConnectionLayer extends PLayer {
         }
     }
 
-    public static void paintConnection(Graphics2D g, Node outputNode, Node inputNode) {
-        GeneralPath p = connectionPath(outputNode, inputNode);
+    public static void paintConnection(Graphics2D g, Node outputNode, Port input) {
+        GeneralPath p = connectionPath(outputNode, input);
         paintConnectionPath(g, p);
     }
 
@@ -79,9 +80,9 @@ public class ConnectionLayer extends PLayer {
         g.draw(p);
     }
 
-    public static GeneralPath connectionPath(Node outputNode, Node inputNode) {
-        float x1 = (float) (inputNode.getX() + 1); // Compensate for selection border
-        float y1 = (float) (inputNode.getY() + NodeView.NODE_FULL_SIZE / 2);
+    public static GeneralPath connectionPath(Node outputNode, Port input) {
+        float x1 = (float) (input.getNode().getX() + 1); // Compensate for selection border
+        float y1 = (float) (input.getNode().getY() + NodeView.getVerticalOffsetForPort(input) + NodeView.NODE_PORT_HEIGHT / 2);
         return connectionPath(outputNode, x1, y1);
     }
 
@@ -104,7 +105,7 @@ public class ConnectionLayer extends PLayer {
         for (Node n : node.getChildren()) {
             for (Connection c : n.getDownstreamConnections()) {
                 for (Node outputNode : c.getOutputNodes()) {
-                    GeneralPath gp = connectionPath(outputNode, c.getInputNode());
+                    GeneralPath gp = connectionPath(outputNode, c.getInput());
                     if (gp.intersects(clickRect))
                         return c;
                 }
