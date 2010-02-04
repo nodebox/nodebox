@@ -282,8 +282,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void mousePressed(PInputEvent e) {
+            if (isPanningEvent(e)) return;
             if (e.getButton() == MouseEvent.BUTTON1) {
-
                 Point2D pt = NodeView.this.getOffset();
                 double x = e.getPosition().getX() - pt.getX();
                 double y = e.getPosition().getY() - pt.getY();
@@ -319,6 +319,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void mouseDragged(PInputEvent e) {
+            if (isPanningEvent(e)) return;
             if (isDragging) {
                 Point2D pt = e.getPosition();
                 double dx = pt.getX() - dragPoint.getX();
@@ -362,6 +363,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 }
                 networkView.endConnection();
             }
+        }
+
+        private boolean isPanningEvent(PInputEvent event) {
+            return (event.getModifiers() & MouseEvent.ALT_MASK) != 0;
         }
 
     }
