@@ -65,40 +65,33 @@ public class Expression {
         }
     }
 
-    private Parameter parameter;
-    private String expression = "";
+    private final Parameter parameter;
+    private final String expression;
     private transient Exception error;
     private transient Serializable compiledExpression;
     private Set<WeakReference<Parameter>> markedParameterReferences;
 
+    /**
+     * Construct and set the expression.
+     * <p/>
+     * The expression is accepted as is, and no errors will be thrown even if the expression is invalid.
+     * Only during compilation or evaluation will this result in an error.
+     *
+     * @param parameter
+     * @param expression
+     */
     public Expression(Parameter parameter, String expression) {
         assert parameter != null; // We need the current parameter for stamp expressions.
         this.parameter = parameter;
-        setExpression(expression);
+        this.expression = expression;
+        markedParameterReferences = null;
+        compiledExpression = null;
     }
 
     //// Attribute access ////
 
     public String getExpression() {
         return expression;
-    }
-
-    /**
-     * Set the expression.
-     * <p/>
-     * The expression is accepted as is, and no errors will be thrown even if the expression is invalid.
-     * Only during compilation or evaluation will this result in an error.
-     *
-     * @param expression the new expression.
-     * @see #compile()
-     * @see #evaluate()
-     * @see #evaluate(ProcessingContext)
-     */
-    public void setExpression(String expression) {
-        if (this.expression != null && this.expression.equals(expression)) return;
-        this.expression = expression;
-        markedParameterReferences = null;
-        compiledExpression = null;
     }
 
     public boolean hasError() {
@@ -109,7 +102,9 @@ public class Expression {
         return error;
     }
 
-    /* package private */ void setError(Exception error) {
+    /* package private */
+
+    void setError(Exception error) {
         // This method is called from Parameter to set an error for cyclic dependencies.
         this.error = error;
     }
@@ -165,9 +160,8 @@ public class Expression {
      * @see #getError()
      */
     public void compile() throws ExpressionError {
-        ExpressionCompiler compiler = new ExpressionCompiler(expression);
         try {
-            this.compiledExpression = compiler.compile(parserContext);
+            this.compiledExpression = MVEL.compileExpression(expression, parserContext);
             error = null;
         } catch (Exception e) {
             error = e;

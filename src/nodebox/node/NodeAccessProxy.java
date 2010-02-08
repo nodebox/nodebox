@@ -161,7 +161,7 @@ public class NodeAccessProxy implements Map {
         throw new AssertionError("You cannot change the node access proxy.");
     }
 
-    public Set keySet() {
+    public Set<String> keySet() {
         return keySet;
     }
 
