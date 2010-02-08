@@ -174,6 +174,7 @@ public class Parameter {
     private BoundingMethod boundingMethod = BoundingMethod.NONE;
     private Float minimumValue, maximumValue; // Objects, because they can be null.
     private DisplayLevel displayLevel = DisplayLevel.HUD;
+    private Expression disableExpression;
     private List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
     private transient boolean dirty;
     private transient boolean hasStampExpression;
@@ -399,6 +400,49 @@ public class Parameter {
 
     public void fireAttributeChanged() {
         node.fireParameterAttributeChanged(this);
+    }
+
+    //// Disable expressions ////
+
+    /**
+     * Check if the parameter is disabled.
+     * <p/>
+     * This evaluates the disable expression.
+     * The disabled flag has no effect on the behaviour of Parameter: you can still set/get values, change metadata, etc.
+     * It is the UI's responsibility to react on the disabled flag.
+     * <p/>
+     * The disabled state is not cached and the disable expression is evaluated every time.
+     *
+     * @return true if this parameter is disabled.
+     */
+    public boolean isDisabled() {
+        if (disableExpression == null) return false;
+        try {
+            return disableExpression.asBoolean();
+        } catch (ExpressionError expressionError) {
+            return false;
+        }
+    }
+
+    /**
+     * Set the expression used for determining if the parameter is disabled.
+     * <p/>
+     * Calling isDisabled will now evaluate this expression every time.
+     *
+     * @param expression the disable expression.
+     * @see #isDisabled()
+     */
+    public void setDisableExpression(String expression) {
+        disableExpression = new Expression(this, expression);
+    }
+
+    /**
+     * Get the disable expression used for determining if the parameter is disabled.
+     *
+     * @return the disable expression.
+     */
+    public Expression getDisableExpression() {
+        return disableExpression;
     }
 
     //// Menu items ////

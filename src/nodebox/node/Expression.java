@@ -23,7 +23,6 @@ import org.mvel2.CompileException;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
 import org.mvel2.UnresolveablePropertyException;
-import org.mvel2.compiler.ExpressionCompiler;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
 import org.mvel2.optimizers.OptimizerFactory;
@@ -114,6 +113,15 @@ public class Expression {
     }
 
     //// Values ////
+
+    public boolean asBoolean() throws ExpressionError {
+        Object value = evaluate();
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        } else {
+            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a boolean.");
+        }
+    }
 
     public int asInt() throws ExpressionError {
         Object value = evaluate();

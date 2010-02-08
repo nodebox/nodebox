@@ -585,6 +585,27 @@ public class ParameterTest extends NodeTestCase {
         assertFalse(pAlpha.hasStampExpression());
     }
 
+    public void testDisabled() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        Parameter pBeta = n.addParameter("beta", Parameter.Type.INT);
+        // By default, the parameter is enabled.
+        assertFalse(pAlpha.isDisabled());
+        // The disable expression requires something that returns a boolean.
+        pAlpha.setDisableExpression("true");
+        assertTrue(pAlpha.isDisabled());
+        // It can refer to other parameters.
+        pAlpha.setDisableExpression("beta > 5");
+        pBeta.set(2);
+        assertFalse(pAlpha.isDisabled());
+        // Changing the dependent parameter will change the disabled state.
+        pBeta.set(10);
+        assertTrue(pAlpha.isDisabled());
+        // Create a syntax error. This re-enables the parameter.
+        pAlpha.setDisableExpression("#$%^");
+        assertFalse(pAlpha.isDisabled());
+    }
+
     //// Helper functions ////
 
     private void assertInvalidName(Node n, String newName, String reason) {
