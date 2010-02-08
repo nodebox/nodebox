@@ -236,6 +236,7 @@ public class NodeLibrary {
     }
 
     public void store(File f) throws IOException {
+        file = f;
         NDBXWriter.write(this, f);
     }
 
