@@ -2,6 +2,8 @@ package nodebox.util;
 
 import junit.framework.TestCase;
 
+import java.io.File;
+
 public class FileUtilTest extends TestCase {
 
     public void testStripExtension() {
@@ -17,5 +19,14 @@ public class FileUtilTest extends TestCase {
         assertEquals("gif", FileUtils.getExtension("MixedCase.GIF")); // Always lower case
         assertEquals("dot", FileUtils.getExtension("a.lot.of.dots.dot")); // Extension = last dot
         assertEquals("", FileUtils.getExtension("noextension"));
+    }
+
+    public void testGetRelativePaths() {
+        assertEquals("stuff/xyz.dat", FileUtils.getRelativePath(
+                new File("/var/data/stuff/xyz.dat"), new File("/var/data/")));
+        assertEquals("../../b/c", FileUtils.getRelativePath(
+                new File("/a/b/c"), new File("/a/x/y/")));
+        assertEquals("../../b/c", FileUtils.getRelativePath(
+                new File("/m/n/o/a/b/c"), new File("/m/n/o/a/x/y/")));
     }
 }
