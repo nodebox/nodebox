@@ -3,7 +3,7 @@ package nodebox.node;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
-import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.PrintStream;
 import java.util.Locale;
 
@@ -76,6 +76,17 @@ public class PythonCode implements NodeCode {
         ss.stdout = Py.java2py(context.getOutputStream());
         ss.stderr = Py.java2py(context.getErrorStream());
 
+        // Set the current working directory.
+        File libraryFile = null;
+        if (node != null && node.getLibrary() != null) {
+            libraryFile = node.getLibrary().getFile();
+        }
+        String originalWorkingDir = null;
+        if (libraryFile != null) {
+            originalWorkingDir = Py.getSystemState().getCurrentWorkingDir();
+            Py.getSystemState().setCurrentWorkingDir(libraryFile.getParent());
+        }
+
         // Run the Python function.
         PyObject pyResult;
         try {
@@ -93,6 +104,12 @@ public class PythonCode implements NodeCode {
         if (result == Py.NoConversion) {
             throw new RuntimeException("Cannot convert Python object " + pyResult + " to java.");
         }
+
+        // Reset the current working directory.
+        if (originalWorkingDir != null) {
+            Py.getSystemState().setCurrentWorkingDir(originalWorkingDir);
+        }
+
         return result;
     }
 
