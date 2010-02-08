@@ -43,6 +43,14 @@ public class FileUtils {
 
     private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
         FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
+        if (pathName == null || pathName.trim().length() == 0) {
+            File documentFile = NodeBoxDocument.getCurrentDocument().getDocumentFile();
+            if (documentFile != null) {
+                fileDialog.setFile(documentFile.getParentFile().getPath());
+            }
+        } else {
+            fileDialog.setFile(pathName);
+        }
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
         fileDialog.setVisible(true);
         String chosenFile = fileDialog.getFile();
