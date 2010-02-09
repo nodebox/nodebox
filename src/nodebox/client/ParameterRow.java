@@ -1,8 +1,6 @@
 package nodebox.client;
 
-import nodebox.node.ConnectionError;
-import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
+import nodebox.node.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,7 +12,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements MouseListener, ParameterValueListener, ActionListener {
+public class ParameterRow extends JComponent implements MouseListener, ParameterValueListener, NodeAttributeListener, ActionListener {
 
     private static Image popupButtonImage;
 
@@ -88,12 +86,14 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
     public void addNotify() {
         super.addNotify();
         parameter.getNode().addParameterValueListener(this);
+        parameter.getNode().addNodeAttributeListener(this);
     }
 
     @Override
     public void removeNotify() {
         super.removeNotify();
         parameter.getNode().removeParameterValueListener(this);
+        parameter.getNode().removeNodeAttributeListener(this);
     }
 
     @Override
@@ -154,8 +154,20 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
      * @param source the Parameter this event comes from
      */
     public void valueChanged(Parameter source) {
+        setEnabled(parameter.isEnabled());
         if (parameter != source) return;
         setExpressionStatus();
+    }
+
+    public void attributeChanged(Node source, Attribute attribute) {
+        setEnabled(parameter.isEnabled());
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        control.setEnabled(enabled);
+        label.setEnabled(enabled);
     }
 
     /**

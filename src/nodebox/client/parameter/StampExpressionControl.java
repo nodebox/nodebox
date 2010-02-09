@@ -30,6 +30,13 @@ public class StampExpressionControl extends AbstractParameterControl implements 
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        keyField.setEnabled(enabled);
+        expressionField.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         if (v == null) return;
         String s = v.toString();

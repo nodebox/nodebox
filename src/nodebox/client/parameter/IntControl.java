@@ -37,6 +37,12 @@ public class IntControl extends AbstractParameterControl implements ChangeListen
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        draggable.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         int value = (Integer) v;
         draggable.setValue(value);

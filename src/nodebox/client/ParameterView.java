@@ -107,6 +107,7 @@ public class ParameterView extends JComponent implements PaneView, ParameterAttr
                 control = new JLabel("  ");
             }
             ParameterRow parameterRow = new ParameterRow(p, control);
+            parameterRow.setEnabled(p.isEnabled());
             GridBagConstraints rowConstraints = new GridBagConstraints();
             rowConstraints.gridx = 0;
             rowConstraints.gridy = rowindex;

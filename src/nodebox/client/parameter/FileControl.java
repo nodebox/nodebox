@@ -32,6 +32,12 @@ public class FileControl extends AbstractParameterControl implements ActionListe
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        chooseButton.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         fileField.setText(v.toString());
     }

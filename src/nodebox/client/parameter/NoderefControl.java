@@ -15,6 +15,7 @@ import java.awt.event.ContainerEvent;
 public class NoderefControl extends AbstractParameterControl implements ActionListener {
 
     private JTextField pathField;
+    private JButton chooseButton;
 
     public NoderefControl(Parameter parameter) {
         super(parameter);
@@ -24,13 +25,20 @@ public class NoderefControl extends AbstractParameterControl implements ActionLi
         pathField.setPreferredSize(new Dimension(150, 19));
         pathField.setEditable(false);
         pathField.setFont(Theme.SMALL_BOLD_FONT);
-        JButton chooseButton = new JButton("...");
+        chooseButton = new JButton("...");
         chooseButton.putClientProperty("JButton.buttonType", "gradient");
         chooseButton.setPreferredSize(new Dimension(30, 27));
         chooseButton.addActionListener(this);
         add(pathField);
         add(chooseButton);
         setValueForControl(parameter.getValue());
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        pathField.setEnabled(enabled);
+        chooseButton.setEnabled(enabled);
     }
 
     public void setValueForControl(Object v) {

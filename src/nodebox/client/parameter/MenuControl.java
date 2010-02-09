@@ -34,6 +34,12 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        menuBox.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         String key = (String) v;
         if (value != null && value.equals(key)) return;

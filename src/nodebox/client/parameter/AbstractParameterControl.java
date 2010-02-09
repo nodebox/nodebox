@@ -7,6 +7,7 @@ import javax.swing.*;
 public abstract class AbstractParameterControl extends JComponent implements ParameterControl {
 
     protected Parameter parameter;
+    private boolean disabled;
 
     protected AbstractParameterControl(Parameter parameter) {
         this.parameter = parameter;

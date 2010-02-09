@@ -33,6 +33,13 @@ public class TextControl extends AbstractParameterControl implements ActionListe
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        textField.setEnabled(enabled);
+        externalWindowButton.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         textField.setText(v.toString());
     }

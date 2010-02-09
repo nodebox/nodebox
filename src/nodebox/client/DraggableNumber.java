@@ -88,6 +88,12 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         componentResized(null);
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        if (!enabled) cancelNumberField();
+    }
+
     //// Value ranges ////
 
     public Double getMinimumValue() {
@@ -174,6 +180,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         }
     }
 
+    private void cancelNumberField() {
+        numberField.setVisible(false);
+    }
+
     //// Component paint ////
 
     private Rectangle getLeftButtonRect(Rectangle r) {
@@ -198,7 +208,11 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         g2.drawImage(draggerRight, r.width - draggerRightWidth, 0, null);
         g2.drawImage(draggerBackground, draggerLeftWidth, 0, centerWidth, draggerHeight, null);
         g2.setFont(Theme.SMALL_BOLD_FONT);
-        g2.setColor(Theme.TEXT_NORMAL_COLOR);
+        if (isEnabled()) {
+            g2.setColor(Theme.TEXT_NORMAL_COLOR);
+        } else {
+            g2.setColor(Theme.TEXT_DISABLED_COLOR);
+        }
         SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, Theme.DRAGGABLE_NUMBER_HIGLIGHT_COLOR);
     }
 
@@ -228,6 +242,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     //// Mouse listeners ////
 
     public void mousePressed(MouseEvent e) {
+        if (!isEnabled()) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
             oldValue = getValue();
             previousX = e.getX();
@@ -235,6 +250,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseClicked(MouseEvent e) {
+        if (!isEnabled()) return;
         float dx = 1.0F;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
             dx = 10F;
@@ -258,6 +274,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseReleased(MouseEvent e) {
+        if (!isEnabled()) return;
         if (oldValue != value)
             fireStateChanged();
     }
@@ -272,6 +289,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseDragged(MouseEvent e) {
+        if (!isEnabled()) return;
         float deltaX = e.getX() - previousX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {

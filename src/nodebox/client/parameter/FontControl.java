@@ -37,6 +37,12 @@ public class FontControl extends AbstractParameterControl implements ActionListe
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        fontChooser.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         String fontName = (String) v;
         if (value != null && value.equals(fontName)) return;

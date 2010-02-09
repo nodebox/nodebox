@@ -1,9 +1,6 @@
 package nodebox.client.parameter;
 
-import nodebox.client.ColorDialog;
-import nodebox.client.DocumentFocusListener;
-import nodebox.client.NodeBoxDocument;
-import nodebox.client.SwingUtils;
+import nodebox.client.*;
 import nodebox.node.Node;
 import nodebox.node.Parameter;
 
@@ -41,6 +38,14 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
     public void setValueForControl(Object v) {
         colorButton.repaint();
         //colorWell.setColor((nodebox.graphics.Color) v);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        colorButton.setEnabled(enabled);
+        if (!enabled && colorDialog != null)
+            colorDialog.dispose();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -93,10 +98,19 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         @Override
         protected void paintComponent(Graphics g) {
             Rectangle r = g.getClipBounds();
+            if (ColorControl.this.isEnabled()) {
+                g.setColor(Color.darkGray);
+            } else {
+                g.setColor(Theme.PARAMETER_LABEL_BACKGROUND);
+            }
+            g.fillRect(r.x, r.y, r.width - 1, r.height - 1);
+            if (ColorControl.this.isEnabled()) {
+                r.grow(1, 1);
+            } else {
+                r.grow(-5, -5);
+            }
             g.setColor(parameter.asColor().getAwtColor());
-            g.fillRect(r.x, r.y, r.width, r.height);
-            g.setColor(Color.darkGray);
-            g.drawRect(r.x, r.y, r.width - 1, r.height - 1);
+            g.fillRect(r.x, r.y, r.width - 1, r.height - 1);
         }
     }
 }

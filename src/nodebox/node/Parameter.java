@@ -454,6 +454,15 @@ public class Parameter {
         return enableExpression.getExpression();
     }
 
+    public boolean hasEnableExpressionError() {
+        return enableExpression != null && enableExpression.getError() != null;
+    }
+
+    public Throwable getEnableExpressionError() {
+        if (enableExpression == null) return null;
+        return enableExpression.getError();
+    }
+
     //// Menu items ////
 
     public List<MenuItem> getMenuItems() {
@@ -691,7 +700,7 @@ public class Parameter {
         return hasExpression() && expression.hasError();
     }
 
-    public Exception getExpressionError() {
+    public Throwable getExpressionError() {
         return hasExpression() ? expression.getError() : null;
     }
 
@@ -1164,7 +1173,8 @@ public class Parameter {
         if (expression != null ? !expression.equals(parameter.expression) : parameter.expression != null) return false;
         if (helpText != null ? !helpText.equals(parameter.helpText) : parameter.helpText != null) return false;
         if (!label.equals(parameter.label)) return false;
-        if (enableExpression!= null ? !enableExpression.equals(parameter.enableExpression) : parameter.enableExpression != null) return false;
+        if (enableExpression != null ? !enableExpression.equals(parameter.enableExpression) : parameter.enableExpression != null)
+            return false;
         if (maximumValue != null ? !maximumValue.equals(parameter.maximumValue) : parameter.maximumValue != null)
             return false;
         if (!menuItems.equals(parameter.menuItems)) return false;

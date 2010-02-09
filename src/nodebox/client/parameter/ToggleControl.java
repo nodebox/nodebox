@@ -29,6 +29,12 @@ public class ToggleControl extends AbstractParameterControl {
         setPreferredSize(new Dimension(120, 30));
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        checkBox.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         if (v == null) return;
         int value = (Integer) v;

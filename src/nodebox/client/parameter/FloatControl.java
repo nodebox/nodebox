@@ -32,6 +32,12 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
         setValueForControl(parameter.getValue());
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        draggable.setEnabled(enabled);
+    }
+
     public void setValueForControl(Object v) {
         Float value = (Float) v;
         draggable.setValue(value);

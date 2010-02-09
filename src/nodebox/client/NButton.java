@@ -19,12 +19,14 @@ public class NButton extends JComponent implements MouseListener {
     public static final int IMAGE_TEXT_MARGIN = 3;
     public static final int TEXT_BASELINE = 14;
 
-    public static Image checkOn, checkOff;
+    public static Image checkOn, checkOff, checkDisabledOn, checkDisabledOff;
 
     static {
         try {
             checkOn = ImageIO.read(new File("res/check-on.png"));
             checkOff = ImageIO.read(new File("res/check-off.png"));
+            checkDisabledOn = ImageIO.read(new File("res/check-disabled-on.png"));
+            checkDisabledOff = ImageIO.read(new File("res/check-disabled-off.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -129,6 +131,12 @@ public class NButton extends JComponent implements MouseListener {
         }
     }
 
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        repaint();
+    }
+
     public Mode getMode() {
         return mode;
     }
@@ -146,15 +154,26 @@ public class NButton extends JComponent implements MouseListener {
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
-        if (checked) {
-            g2.drawImage(checkedImage, 0, 0, null);
+        if (isEnabled()) {
+            if (checked) {
+                g2.drawImage(checkedImage, 0, 0, null);
+            } else {
+                g2.drawImage(normalImage, 0, 0, null);
+            }
         } else {
-            g2.drawImage(normalImage, 0, 0, null);
+            if (checked) {
+                g2.drawImage(checkDisabledOn, 0, 0, null);
+            } else {
+                g2.drawImage(checkDisabledOff, 0, 0, null);
+            }
+
         }
         int w = normalImage.getWidth(null);
         g2.setFont(Theme.SMALL_BOLD_FONT);
         if (armed) {
             g2.setColor(Theme.TEXT_ARMED_COLOR);
+        } else if(!isEnabled()) {
+            g2.setColor(Theme.TEXT_DISABLED_COLOR);
         } else {
             g2.setColor(Theme.TEXT_NORMAL_COLOR);
         }
@@ -165,12 +184,14 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mousePressed(MouseEvent e) {
+        if (!isEnabled()) return;
         pressed = true;
         armed = true;
         repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
+        if (!isEnabled()) return;
         pressed = false;
         if (armed) {
             armed = false;
@@ -186,6 +207,7 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mouseEntered(MouseEvent e) {
+        if (!isEnabled()) return;
         if (pressed) {
             armed = true;
             repaint();
@@ -193,6 +215,7 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mouseExited(MouseEvent e) {
+        if (!isEnabled()) return;
         armed = false;
         repaint();
     }

@@ -17,6 +17,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
     private JTextField helpTextField;
     private JComboBox widgetBox;
     private JTextField valueField;
+    private JTextField enableIfField;
     private JComboBox boundingMethodBox;
     private JTextField minimumValueField;
     private JCheckBox minimumValueCheck;
@@ -113,6 +114,12 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         valueField.addFocusListener(this);
         addRow("Value", valueField);
 
+        // Enable If
+        enableIfField = new JTextField(20);
+        enableIfField.addActionListener(this);
+        enableIfField.addFocusListener(this);
+        addRow("Enable If", enableIfField);
+
         // Bounding Method
         boundingMethodBox = new JComboBox(new String[]{"none", "soft", "hard"});
         boundingMethodBox.addActionListener(this);
@@ -178,6 +185,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         helpTextField.setText(parameter.getHelpText());
         widgetBox.setSelectedItem(getHumanizedWidget(parameter.getWidget()));
         valueField.setText(parameter.getValue().toString());
+        enableIfField.setText(parameter.getEnableExpression());
         Parameter.BoundingMethod boundingMethod = parameter.getBoundingMethod();
         boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase());
         Object minimumValue = parameter.getMinimumValue();
@@ -216,6 +224,10 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             } catch (IllegalArgumentException e1) {
                 showError("Value " + valueField.getText() + " is invalid: " + e1.getMessage());
             }
+        } else if (e.getSource() == enableIfField) {
+            String newEnableExpression = enableIfField.getText();
+            if (newEnableExpression.equals(parameter.getEnableExpression())) return;
+            parameter.setEnableExpression(newEnableExpression);
         } else if (e.getSource() == boundingMethodBox) {
             Parameter.BoundingMethod newMethod = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase());
             if (parameter.getBoundingMethod().equals(newMethod)) return;

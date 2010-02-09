@@ -1,15 +1,12 @@
 package nodebox.client.parameter;
 
-import nodebox.client.PlatformUtils;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 
 public class StringControl extends AbstractParameterControl implements ActionListener {
 
@@ -24,6 +21,12 @@ public class StringControl extends AbstractParameterControl implements ActionLis
         textField.addActionListener(this);
         add(textField, BorderLayout.CENTER);
         setValueForControl(parameter.getValue());
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        textField.setEnabled(enabled);
     }
 
     public void setValueForControl(Object v) {

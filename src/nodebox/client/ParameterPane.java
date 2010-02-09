@@ -70,7 +70,7 @@ public class ParameterPane extends Pane {
         NodeAttributesEditor editor = new NodeAttributesEditor(node);
         JFrame editorFrame = new JFrame(node.getName() + " Metadata");
         editorFrame.getContentPane().add(editor);
-        editorFrame.setSize(580, 710);
+        editorFrame.setSize(580, 751);
         editorFrame.setResizable(false);
         // Center the frame based on the current window.
         Window w = SwingUtilities.getWindowAncestor(this);
