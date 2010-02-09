@@ -174,7 +174,7 @@ public class Parameter {
     private BoundingMethod boundingMethod = BoundingMethod.NONE;
     private Float minimumValue, maximumValue; // Objects, because they can be null.
     private DisplayLevel displayLevel = DisplayLevel.HUD;
-    private Expression disableExpression;
+    private Expression enableExpression;
     private List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
     private transient boolean dirty;
     private transient boolean hasStampExpression;
@@ -402,25 +402,25 @@ public class Parameter {
         node.fireParameterAttributeChanged(this);
     }
 
-    //// Disable expressions ////
+    //// Enable expressions ////
 
     /**
-     * Check if the parameter is disabled.
+     * Check if the parameter is enabled.
      * <p/>
-     * This evaluates the disable expression.
-     * The disabled flag has no effect on the behaviour of Parameter: you can still set/get values, change metadata, etc.
-     * It is the UI's responsibility to react on the disabled flag.
+     * This evaluates the enable expression.
+     * The enable flag has no effect on the behaviour of Parameter: you can still set/get values, change metadata, etc.
+     * It is the UI's responsibility to react on the enable flag.
      * <p/>
-     * The disabled state is not cached and the disable expression is evaluated every time.
+     * The enabled state is not cached and the disable expression is evaluated every time.
      *
-     * @return true if this parameter is disabled.
+     * @return true if this parameter is enabled, has no expression or the expression has an error.
      */
-    public boolean isDisabled() {
-        if (disableExpression == null) return false;
+    public boolean isEnabled() {
+        if (enableExpression == null) return false;
         try {
-            return disableExpression.asBoolean();
+            return enableExpression.asBoolean();
         } catch (ExpressionError expressionError) {
-            return false;
+            return true;
         }
     }
 
@@ -430,10 +430,10 @@ public class Parameter {
      * Calling isDisabled will now evaluate this expression every time.
      *
      * @param expression the disable expression.
-     * @see #isDisabled()
+     * @see #isEnabled()
      */
-    public void setDisableExpression(String expression) {
-        disableExpression = new Expression(this, expression);
+    public void setEnableExpression(String expression) {
+        enableExpression = new Expression(this, expression);
     }
 
     /**
@@ -441,8 +441,8 @@ public class Parameter {
      *
      * @return the disable expression.
      */
-    public Expression getDisableExpression() {
-        return disableExpression;
+    public Expression getEnableExpression() {
+        return enableExpression;
     }
 
     //// Menu items ////
