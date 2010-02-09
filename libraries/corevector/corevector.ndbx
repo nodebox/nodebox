@@ -42,7 +42,7 @@ def cook(self):
       <value>filter.png</value>
     </param>
   </node>
-  <node exported="true" name="align" prototype="filter" rendered="true" x="90" y="490">
+  <node exported="true" name="align" prototype="filter" x="90" y="490">
     <description>Align a shape in relation to the origin.</description>
     <param name="_code">
       <value type="python"><![CDATA[from nodebox.graphics import Geometry
@@ -1037,6 +1037,80 @@ def cook(self):
       <value>1.0</value>
     </param>
   </node>
+  <node exported="true" name="delete" prototype="filter" x="170" y="490">
+    <description>Delete points or paths that lie within certain bounds.</description>
+    <port name="bounding"/>
+    <param name="_code">
+      <value type="python"><![CDATA[from nodebox.graphics import Rect, Point, Geometry, Contour, Path, Color
+
+def cook(self):
+    if self.shape is None: return None
+    op = self.operation == "0"
+    if self.bounding is None:
+        bounding = Rect.centeredRect(self.x, self.y, self.width, self.height)
+    else:
+        bounding = self.bounding
+    # We're going to reconstruct the entire geometry, 
+    # leaving out the points we don't need.
+    if self.scope == "points":
+        new_geo = Geometry()
+        for old_path in self.shape.paths:
+            new_path = Path(old_path, False) # cloneContours = False
+            for old_contour in old_path.contours:
+                new_contour = Contour()
+                for point in old_contour.points:
+                    if bounding.contains(point) == op:
+                        new_contour.addPoint(point.x, point.y)
+                new_path.add(new_contour)
+            new_geo.add(new_path)    
+        return new_geo
+    elif self.scope == "paths":
+        new_geo = Geometry()
+        for old_path in self.shape.paths:
+            selected = False
+            # Paths are eagerly selected: 
+            # Even if only one point is inside of the bounding volume 
+            # the path is selected.
+            for point in old_path.points:
+                if bounding.contains(point):
+                    selected = True
+            if selected is op:
+                new_geo.add(old_path.clone())
+        return new_geo
+]]></value>
+    </param>
+    <param name="_handle">
+      <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+
+def cook(self):
+    return FourPointHandle(self.node)]]></value>
+    </param>
+    <param help="" name="_image">
+      <value>delete.png</value>
+    </param>
+    <param name="scope" type="string" widget="menu">
+      <value>points</value>
+      <menu key="paths">Paths</menu>
+      <menu key="points">Points</menu>
+    </param>
+    <param name="operation" type="string" widget="menu">
+      <value>1</value>
+      <menu key="1">Delete Selected</menu>
+      <menu key="0">Delete Non-selected</menu>
+    </param>
+    <param name="x" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="y" type="float">
+      <value>0.0</value>
+    </param>
+    <param name="width" type="float">
+      <value>100.0</value>
+    </param>
+    <param name="height" type="float">
+      <value>100.0</value>
+    </param>
+  </node>
   <node exported="true" name="edit" prototype="filter" x="330" y="250">
     <description>Edit points non-destructively.</description>
     <param name="_code">
@@ -1570,7 +1644,7 @@ def cook(self):
       <value>1.0</value>
     </param>
   </node>
-  <node exported="true" name="geonet" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="10">
+  <node exported="true" name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry" x="10" y="10">
     <description>A network of geometry nodes.</description>
     <param name="_image">
       <value>geonet.png</value>
