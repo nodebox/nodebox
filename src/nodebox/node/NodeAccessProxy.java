@@ -61,9 +61,14 @@ public class NodeAccessProxy implements Map {
         for (Parameter p : node.getParameters()) {
             keySet.add(p.getName());
         }
-        // 3. Add reserved words
+        // 3. Add ports
+        for (Port p : node.getPorts()) {
+            keySet.add(p.getName());
+        }
+        // 4. Add reserved words
         keySet.add("root");
         keySet.add("parent");
+        keySet.add("node");
     }
 
     public Node getNode() {
@@ -129,6 +134,12 @@ public class NodeAccessProxy implements Map {
                 markedParameterReferences.add(new WeakReference<Parameter>(node.getParameter(k)));
             return node.getValue(k);
         }
+
+        // Search the ports
+        if (node.hasPort(k)) {
+            return node.getPort(k);
+        }
+
 
         // Network searches
         // If this is a network, search its nodes first.
