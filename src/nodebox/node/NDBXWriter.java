@@ -185,6 +185,7 @@ public class NDBXWriter {
         attributeToXml(param, el, "label", NDBXHandler.PARAMETER_LABEL, protoParam, StringUtils.humanizeName(param.getName()));
         attributeToXml(param, el, "helpText", NDBXHandler.PARAMETER_HELP_TEXT, protoParam, null);
         attributeToXml(param, el, "displayLevel", NDBXHandler.PARAMETER_DISPLAY_LEVEL, protoParam, Parameter.DisplayLevel.HUD);
+        attributeToXml(param, el, "enableExpression", NDBXHandler.PARAMETER_ENABLE_EXPRESSION, protoParam, "");
         attributeToXml(param, el, "boundingMethod", NDBXHandler.PARAMETER_BOUNDING_METHOD, protoParam, Parameter.BoundingMethod.NONE);
         attributeToXml(param, el, "minimumValue", NDBXHandler.PARAMETER_MINIMUM_VALUE, protoParam, null);
         attributeToXml(param, el, "maximumValue", NDBXHandler.PARAMETER_MAXIMUM_VALUE, protoParam, null);

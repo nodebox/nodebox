@@ -416,7 +416,7 @@ public class Parameter {
      * @return true if this parameter is enabled, has no expression or the expression has an error.
      */
     public boolean isEnabled() {
-        if (enableExpression == null) return false;
+        if (enableExpression == null) return true;
         try {
             return enableExpression.asBoolean();
         } catch (ExpressionError expressionError) {
@@ -433,7 +433,15 @@ public class Parameter {
      * @see #isEnabled()
      */
     public void setEnableExpression(String expression) {
-        enableExpression = new Expression(this, expression);
+        if (expression == null || expression.trim().isEmpty()) {
+            if (enableExpression == null) return;
+            enableExpression = null;
+        } else if (enableExpression != null && enableExpression.getExpression().equals(expression)) {
+            return;
+        } else {
+            enableExpression = new Expression(this, expression);
+        }
+        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
     }
 
     /**
@@ -441,8 +449,9 @@ public class Parameter {
      *
      * @return the disable expression.
      */
-    public Expression getEnableExpression() {
-        return enableExpression;
+    public String getEnableExpression() {
+        if (enableExpression == null) return "";
+        return enableExpression.getExpression();
     }
 
     //// Menu items ////
@@ -1155,6 +1164,7 @@ public class Parameter {
         if (expression != null ? !expression.equals(parameter.expression) : parameter.expression != null) return false;
         if (helpText != null ? !helpText.equals(parameter.helpText) : parameter.helpText != null) return false;
         if (!label.equals(parameter.label)) return false;
+        if (enableExpression!= null ? !enableExpression.equals(parameter.enableExpression) : parameter.enableExpression != null) return false;
         if (maximumValue != null ? !maximumValue.equals(parameter.maximumValue) : parameter.maximumValue != null)
             return false;
         if (!menuItems.equals(parameter.menuItems)) return false;
@@ -1226,6 +1236,7 @@ public class Parameter {
         p.setLabel(getLabel());
         p.setHelpText(getHelpText());
         p.setWidget(getWidget());
+        p.setEnableExpression(getEnableExpression());
         p.setBoundingMethod(getBoundingMethod());
         p.setMinimumValue(getMinimumValue());
         p.setMaximumValue(getMaximumValue());

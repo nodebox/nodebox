@@ -590,7 +590,7 @@ public class ParameterTest extends NodeTestCase {
         Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
         Parameter pBeta = n.addParameter("beta", Parameter.Type.INT);
         // By default, the parameter is enabled.
-        assertFalse(pAlpha.isEnabled());
+        assertTrue(pAlpha.isEnabled());
         // The disable expression requires something that returns a boolean.
         pAlpha.setEnableExpression("true");
         assertTrue(pAlpha.isEnabled());
@@ -604,6 +604,25 @@ public class ParameterTest extends NodeTestCase {
         // Create a syntax error. This re-enables the parameter.
         pAlpha.setEnableExpression("#$%^");
         assertTrue(pAlpha.isEnabled());
+    }
+
+    public void testEnableExpressionEvents() {
+        Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
+        Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
+        CountingNodeAttributeListener listener = new CountingNodeAttributeListener();
+        n.addNodeAttributeListener(listener);
+        pAlpha.setEnableExpression("");
+        assertEquals(0, listener.count);
+        pAlpha.setEnableExpression(null);
+        assertEquals(0, listener.count);
+        pAlpha.setEnableExpression("false");
+        assertEquals(1, listener.count);
+        pAlpha.setEnableExpression("false");
+        assertEquals(1, listener.count);
+        pAlpha.setEnableExpression(null);
+        assertEquals(2, listener.count);
+        pAlpha.setEnableExpression("");
+        assertEquals(2, listener.count);
     }
 
     //// Helper functions ////
@@ -722,5 +741,12 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(original.getDisplayLevel(), actual.getDisplayLevel());
         assertEquals(original.getHelpText(), actual.getHelpText());
         assertEquals(original.getWidget(), actual.getWidget());
+    }
+
+    private class CountingNodeAttributeListener implements NodeAttributeListener {
+        public int count = 0;
+        public void attributeChanged(Node source, Attribute attribute) {
+            count++;
+        }
     }
 }

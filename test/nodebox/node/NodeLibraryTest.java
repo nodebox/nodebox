@@ -157,6 +157,7 @@ public class NodeLibraryTest extends TestCase {
         Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
         Parameter pAngle = alpha.addParameter("angle", Parameter.Type.FLOAT, 42);
         pAngle.setWidget(Parameter.Widget.ANGLE);
+        pAngle.setEnableExpression("5 > 10");
         pAngle.setMinimumValue(-360f);
         pAngle.setMaximumValue(360f);
         pAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
@@ -180,6 +181,8 @@ public class NodeLibraryTest extends TestCase {
         Node newAlpha = newLibrary.getRootNode().getChild("alpha");
         Parameter newAngle = newAlpha.getParameter("angle");
         assertEquals(Parameter.Widget.ANGLE, newAngle.getWidget());
+        assertEquals("5 > 10", newAngle.getEnableExpression());
+        assertFalse(newAngle.isEnabled());
         assertEquals(Parameter.BoundingMethod.HARD, newAngle.getBoundingMethod());
         assertEquals(-360f, newAngle.getMinimumValue());
         assertEquals(360f, newAngle.getMaximumValue());

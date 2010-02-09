@@ -44,6 +44,7 @@ public class NDBXHandler extends DefaultHandler {
     public static final String PARAMETER_LABEL = "label";
     public static final String PARAMETER_HELP_TEXT = "help";
     public static final String PARAMETER_DISPLAY_LEVEL = "display";
+    public static final String PARAMETER_ENABLE_EXPRESSION = "enableExpression";
     public static final String PARAMETER_BOUNDING_METHOD = "bounding";
     public static final String PARAMETER_MINIMUM_VALUE = "min";
     public static final String PARAMETER_MAXIMUM_VALUE = "max";
@@ -290,6 +291,7 @@ public class NDBXHandler extends DefaultHandler {
         String label = attributes.getValue(PARAMETER_LABEL);
         String helpText = attributes.getValue(PARAMETER_HELP_TEXT);
         String displayLevel = attributes.getValue(PARAMETER_DISPLAY_LEVEL);
+        String enableExpression = attributes.getValue(PARAMETER_ENABLE_EXPRESSION);
         String boundingMethod = attributes.getValue(PARAMETER_BOUNDING_METHOD);
         String minimumValue = attributes.getValue(PARAMETER_MINIMUM_VALUE);
         String maximumValue = attributes.getValue(PARAMETER_MAXIMUM_VALUE);
@@ -301,6 +303,8 @@ public class NDBXHandler extends DefaultHandler {
             currentParameter.setHelpText(helpText);
         if (displayLevel != null)
             currentParameter.setDisplayLevel(Parameter.DisplayLevel.valueOf(displayLevel.toUpperCase()));
+        if (enableExpression != null)
+            currentParameter.setEnableExpression(enableExpression);
         if (boundingMethod != null)
             currentParameter.setBoundingMethod(Parameter.BoundingMethod.valueOf(boundingMethod.toUpperCase()));
         if (minimumValue != null)
