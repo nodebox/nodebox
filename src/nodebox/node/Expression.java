@@ -66,7 +66,7 @@ public class Expression {
 
     private final Parameter parameter;
     private final String expression;
-    private transient Exception error;
+    private transient Throwable error;
     private transient Serializable compiledExpression;
     private Set<WeakReference<Parameter>> markedParameterReferences;
 
@@ -97,7 +97,7 @@ public class Expression {
         return error != null;
     }
 
-    public Exception getError() {
+    public Throwable getError() {
         return error;
     }
 
@@ -119,7 +119,7 @@ public class Expression {
         if (value instanceof Boolean) {
             return (Boolean) value;
         } else {
-            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a boolean.");
+            throw new ExpressionError("Value \"" + value + "\" for expression \"" + expression + "\" is not a boolean.");
         }
     }
 
@@ -128,7 +128,7 @@ public class Expression {
         if (value instanceof Number) {
             return (Integer) value;
         } else {
-            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not an integer.");
+            throw new ExpressionError("Value \"" + value + "\" for expression \"" + expression + "\" is not an integer.");
         }
     }
 
@@ -137,7 +137,7 @@ public class Expression {
         if (value instanceof Number) {
             return (Double) value;
         } else {
-            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a floating-point value.");
+            throw new ExpressionError("Value \"" + value + "\" for expression \"" + expression + "\" is not a floating-point value.");
         }
     }
 
@@ -146,7 +146,7 @@ public class Expression {
         if (value instanceof String) {
             return (String) value;
         } else {
-            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a string.");
+            throw new ExpressionError("Value \"" + value + "\" for expression \"" + expression + "\" is not a string.");
         }
     }
 
@@ -155,7 +155,7 @@ public class Expression {
         if (value instanceof Color) {
             return (Color) value;
         } else {
-            throw new IllegalArgumentException("Value \"" + value + "\" for expression \"" + expression + "\" is not a color.");
+            throw new ExpressionError("Value \"" + value + "\" for expression \"" + expression + "\" is not a color.");
         }
     }
 
@@ -173,7 +173,7 @@ public class Expression {
             error = null;
         } catch (Exception e) {
             error = e;
-            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath() + ": " + e.getMessage(), e);
         }
     }
 
@@ -200,7 +200,7 @@ public class Expression {
     public Object evaluate(ProcessingContext context) throws ExpressionError {
         // If there was an error with the expression, throw it before doing anything.
         if (hasError()) {
-            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath(), getError());
+            throw new ExpressionError("Cannot compile expression '" + expression + "' on " + getParameter().getAbsolutePath() + ": " + getError().getMessage(), getError());
         }
 
         // If the expression was not compiled, compile it first.
@@ -220,7 +220,7 @@ public class Expression {
             return MVEL.executeExpression(compiledExpression, prf);
         } catch (Exception e) {
             error = e;
-            throw new ExpressionError("Cannot evaluate expression '" + expression + "' on " + getParameter().getAbsolutePath(), e);
+            throw new ExpressionError("Cannot evaluate expression '" + expression + "' on " + getParameter().getAbsolutePath() + ": " + e.getMessage(), e);
         }
     }
 

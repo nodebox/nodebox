@@ -446,9 +446,9 @@ public class ExpressionTest extends NodeTestCase {
         if (!p.hasExpressionError()) {
             fail("Expression should have failed with \"" + expectedMessage + "\"");
         } else {
-            Exception e = p.getExpressionError();
-            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + e.getMessage() + "\"",
-                    e.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
+            Throwable t = p.getExpressionError();
+            assertTrue("Expected message \"" + expectedMessage + "\", got \"" + t.getMessage() + "\"",
+                    t.getMessage().toLowerCase().contains(expectedMessage.toLowerCase()));
         }
     }
 
