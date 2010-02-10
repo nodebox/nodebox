@@ -82,7 +82,7 @@ public class NDBXWriter {
             DOMSource domSource = new DOMSource(doc);
             TransformerFactory tf = TransformerFactory.newInstance();
             Transformer serializer = tf.newTransformer();
-            serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+            serializer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
             serializer.setOutputProperty(OutputKeys.INDENT, "yes");
             serializer.transform(domSource, streamResult);
         } catch (ParserConfigurationException e) {
