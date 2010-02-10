@@ -608,16 +608,20 @@ public class Parameter {
         }
         // validate throws IllegalArgumentException when the value fails validation.
         validate(value);
-        if (this.value != null && this.value.equals(value)) return;
+
         // As a special exception, integer values can be cast up to floating-point values,
         // and double values can be cast down (losing precision).
+        Object castValue;
         if (value instanceof Integer && type == Type.FLOAT) {
-            this.value = (float) ((Integer) value);
+            castValue = (float) ((Integer) value);
         } else if (value instanceof Double && type == Type.FLOAT) {
-            this.value = (float) ((Double) value).doubleValue();
+            castValue = (float) ((Double) value).doubleValue();
         } else {
-            this.value = value;
+            castValue = value;
         }
+        if (this.value != null && this.value.equals(castValue)) return;
+
+        this.value = castValue;
         markDirty();
     }
 
