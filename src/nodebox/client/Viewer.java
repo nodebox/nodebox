@@ -10,9 +10,7 @@ import nodebox.graphics.Grob;
 import nodebox.graphics.IGeometry;
 import nodebox.graphics.Path;
 import nodebox.handle.Handle;
-import nodebox.node.DirtyListener;
-import nodebox.node.Node;
-import nodebox.node.ProcessingContext;
+import nodebox.node.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +19,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
-public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseListener, MouseMotionListener, KeyListener, NodeAttributeListener {
 
     public static final float POINT_SIZE = 4f;
 
@@ -33,6 +31,7 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
     private Node activeNode;
     private Handle handle;
     private boolean showHandle = true;
+    private boolean handleEnabled = true;
     private boolean showPoints = false;
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
@@ -139,12 +138,19 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         this.node = node;
         if (this.node == null) return;
         node.addDirtyListener(this);
+        node.addNodeAttributeListener(this);
+        checkIfHandleEnabled();
         repaint();
     }
 
     public void setActiveNode(Node node) {
+        Node oldNode = activeNode;
+        if (oldNode != null) {
+            oldNode.removeNodeAttributeListener(this);
+        }
         activeNode = node;
         if (activeNode != null) {
+            activeNode.addNodeAttributeListener(this);
             handle = activeNode.createHandle();
             if (handle != null) {
                 handle.setViewer(this);
@@ -152,12 +158,14 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         } else {
             handle = null;
         }
+        checkIfHandleEnabled();
         repaint();
     }
 
     public boolean hasVisibleHandle() {
         if (handle == null) return false;
-        if (showHandle == false) return false;
+        if (!showHandle) return false;
+        if (!handleEnabled) return false;
         return handle.isVisible();
     }
 
@@ -171,8 +179,9 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     public void nodeUpdated(Node node, ProcessingContext context) {
         if (node != getNode()) return;
+        checkIfHandleEnabled();
         // Note that we don't use check handle visibility here, since the update might change handle visibility.
-        if (handle != null && showHandle) {
+        if (handle != null && showHandle && handleEnabled) {
             handle.update();
         }
         // Set bounds from output value.
@@ -187,6 +196,20 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
                 viewerLayer.setOffset(5, 5);
             }
         }
+        repaint();
+    }
+
+    //// Node attribute listener ////
+
+    private void checkIfHandleEnabled() {
+        if (activeNode == null) return;
+        Parameter handleParameter = activeNode.getParameter("_handle");
+        if (handleParameter == null) return;
+        handleEnabled = handleParameter.isEnabled();
+    }
+
+    public void attributeChanged(Node source, Attribute attribute) {
+        checkIfHandleEnabled();
         repaint();
     }
 
