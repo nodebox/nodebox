@@ -27,6 +27,15 @@ public class CombinedHandle extends AbstractHandle {
         handles.add(handle);
     }
 
+    public boolean mouseClicked(Point pt) {
+        for (Handle handle : handles) {
+            boolean clicked = handle.mouseClicked(pt);
+            if (clicked)
+                return true;
+        }
+        return false;
+    }
+
     public boolean mousePressed(Point pt) {
         for (Handle handle : handles) {
             boolean pressed = handle.mousePressed(pt);
@@ -53,6 +62,52 @@ public class CombinedHandle extends AbstractHandle {
         }
         return false;
     }
+
+    public boolean mouseEntered(Point pt) {
+        for (Handle handle : handles) {
+            boolean entered = handle.mouseEntered(pt);
+            if (entered)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean mouseExited(Point pt) {
+        for (Handle handle : handles) {
+            boolean exited = handle.mouseExited(pt);
+            if (exited)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean keyTyped(int keyCode, int modifiers) {
+        for (Handle handle : handles) {
+            boolean keyTyed = handle.keyTyped(keyCode, modifiers);
+            if (keyTyed)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean keyPressed(int keyCode, int modifiers) {
+        for (Handle handle : handles) {
+            boolean keyPressed = handle.keyPressed(keyCode, modifiers);
+            if (keyPressed)
+                return true;
+        }
+        return false;
+    }
+
+    public boolean keyReleased(int keyCode, int modifiers) {
+        for (Handle handle : handles) {
+            boolean keyReleased = handle.keyReleased(keyCode, modifiers);
+            if (keyReleased)
+                return true;
+        }
+        return false;
+    }
+
 
     public void update() {
         for (Handle handle : handles)
