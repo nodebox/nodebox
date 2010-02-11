@@ -77,15 +77,16 @@ public abstract class AbstractHandle implements Handle {
         return false;
     }
 
-    public void keyTyped(int keyCode, int modifiers) {
-
+    public boolean keyTyped(int keyCode, int modifiers) {
+       return false;
     }
 
-    public void keyPressed(int keyCode, int modifiers) {
-
+    public boolean keyPressed(int keyCode, int modifiers) {
+        return false;
     }
 
-    public void keyReleased(int keyCode, int modifiers) {
+    public boolean keyReleased(int keyCode, int modifiers) {
+        return false;
     }
 
     //// Node events ////

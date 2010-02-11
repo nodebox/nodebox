@@ -40,10 +40,10 @@ public interface Handle {
 
     public boolean mouseMoved(Point pt);
 
-    public void keyTyped(int keyCode, int modifiers);
+    public boolean keyTyped(int keyCode, int modifiers);
 
-    public void keyPressed(int keyCode, int modifiers);
+    public boolean keyPressed(int keyCode, int modifiers);
 
-    public void keyReleased(int keyCode, int modifiers);
+    public boolean keyReleased(int keyCode, int modifiers);
 
 }
