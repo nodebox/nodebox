@@ -1404,16 +1404,18 @@ def cook(self):
         width = self.width
         height = self.height
 
-    # Don't scale widths or heights that are equal to zero.
-    w = pw and width / pw or 1
-    h = ph and height / ph or 1        
-
     t = Transform()
     t.translate(x, y)
     if self.keepProportions:
+        # Don't scale widths or heights that are equal to zero.
+        w = pw and width / pw or float("inf")
+        h = ph and height / ph or float("inf")
         s = min(w, h)
         t.scale(s, s)
     else:
+        # Don't scale widths or heights that are equal to zero.
+        w = pw and width / pw or 1
+        h = ph and height / ph or 1
         t.scale(w, h)
     t.translate(-pw / 2 - px, -ph / 2 - py)
 
