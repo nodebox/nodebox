@@ -26,19 +26,19 @@ public interface Handle {
 
     //// Mouse events ////
 
-    public void mouseClicked(Point pt);
+    public boolean mouseClicked(Point pt);
 
-    public void mousePressed(Point pt);
+    public boolean mousePressed(Point pt);
 
-    public void mouseReleased(Point pt);
+    public boolean mouseReleased(Point pt);
 
-    public void mouseEntered(Point pt);
+    public boolean mouseEntered(Point pt);
 
-    public void mouseExited(Point pt);
+    public boolean mouseExited(Point pt);
 
-    public void mouseDragged(Point pt);
+    public boolean mouseDragged(Point pt);
 
-    public void mouseMoved(Point pt);
+    public boolean mouseMoved(Point pt);
 
     public void keyTyped(int keyCode, int modifiers);
 

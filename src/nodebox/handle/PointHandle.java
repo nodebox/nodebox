@@ -34,7 +34,7 @@ public class PointHandle extends AbstractHandle {
     }
 
     @Override
-    public void mousePressed(Point pt) {
+    public boolean mousePressed(Point pt) {
         px = pt.getX();
         py = pt.getY();
         ox = node.asFloat(xName);
@@ -42,23 +42,27 @@ public class PointHandle extends AbstractHandle {
 
         Rect hitRect = createHitRectangle(ox, oy);
         dragging = hitRect.contains(pt);
+        return dragging;
     }
 
     @Override
-    public void mouseDragged(Point e) {
-        if (!dragging) return;
+    public boolean mouseDragged(Point e) {
+        if (!dragging) return false;
         double x = e.getX();
         double y = e.getY();
         double dx = x - px;
         double dy = y - py;
-        if (dx == 0 && dy == 0) return;
+        if (dx == 0 && dy == 0) return false;
         // TODO: Temporary float fix to get a working compile. Doubles will be removed.
         node.setValue(xName, (float) (ox + dx));
         node.setValue(yName, (float) (oy + dy));
+        return true;
     }
 
     @Override
-    public void mouseReleased(Point pt) {
+    public boolean mouseReleased(Point pt) {
+        if (!dragging) return false;
         dragging = false;
+        return true;
     }
 }

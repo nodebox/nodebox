@@ -46,33 +46,35 @@ public abstract class AbstractHandle implements Handle {
         this.visible = visible;
     }
 
+
     //// Stub implementations of event handling ////
 
-    public void mouseClicked(Point pt) {
+    public boolean mouseClicked(Point pt) {
+        return false;
     }
 
-    public void mousePressed(Point pt) {
-
+    public boolean mousePressed(Point pt) {
+        return false;
     }
 
-    public void mouseReleased(Point pt) {
-
+    public boolean mouseReleased(Point pt) {
+        return false;
     }
 
-    public void mouseEntered(Point pt) {
-
+    public boolean mouseEntered(Point pt) {
+        return false;
     }
 
-    public void mouseExited(Point pt) {
-
+    public boolean mouseExited(Point pt) {
+        return false;
     }
 
-    public void mouseDragged(Point pt) {
-
+    public boolean mouseDragged(Point pt) {
+        return false;
     }
 
-    public void mouseMoved(Point pt) {
-
+    public boolean mouseMoved(Point pt) {
+        return false;
     }
 
     public void keyTyped(int keyCode, int modifiers) {
