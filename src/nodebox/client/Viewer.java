@@ -201,16 +201,21 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     //// Node attribute listener ////
 
-    private void checkIfHandleEnabled() {
-        if (activeNode == null) return;
+    private boolean checkIfHandleEnabled() {
+        if (activeNode == null) return false;
         Parameter handleParameter = activeNode.getParameter("_handle");
-        if (handleParameter == null) return;
-        handleEnabled = handleParameter.isEnabled();
+        if (handleParameter == null) return false;
+        boolean newEnabled = handleParameter.isEnabled();
+        if (newEnabled == handleEnabled) return false;
+        handleEnabled = newEnabled;
+        return true;
     }
 
     public void attributeChanged(Node source, Attribute attribute) {
-        checkIfHandleEnabled();
-        repaint();
+        if (attribute != Attribute.PARAMETER) return;
+        if (checkIfHandleEnabled()) {
+            repaint();
+        }
     }
 
     public void resetView() {
