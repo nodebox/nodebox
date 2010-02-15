@@ -994,29 +994,38 @@ class BezierPathEditor(AbstractHandle):
         self._mouseXY = pt
         self.mousedown = True
         self.node.markDirty()
+        return True
         
     def mouseDragged(self, pt):
+        if not self.mousedown: return False
         self._mouseXY = pt
         self.node.markDirty()
+        return True
 
     def mouseReleased(self, pt):
+        if not self.mousedown: return False
         self._mouseXY = pt
         self.mousedown = False
         self.node.markDirty()
+        return True
     
     def mouseMoved(self, pt):
         self._mouseXY = pt
         self.viewer.repaint()
+        return True
 
     def keyPressed(self, keycode, modifiers):
         self._keycode = keycode
         self.keydown = True
         self.viewer.repaint()
+        return True
 
     def keyReleased(self, keycode, modifiers):
+        if not self.keydown: return False
         self._keycode = keycode
         self.keydown = False
         self.viewer.repaint()
+        return True
 
 def cook(self):
     return BezierPathEditor(self.node)]]></value>
@@ -1219,17 +1228,19 @@ class EditHandle(AbstractHandle):
                             x1, y1 = point.x, point.y
                         self._delta_next = (x - x1, y - y1)
                 break
+        return self._selected_point != -1
 
     def mouseDragged(self, pt):
-        if self._selected_point != -1:
-            self._edited_points[self._selected_point] = (pt.x, pt.y)
-            if self._delta_prev is not None:
-                dx, dy = self._delta_prev
-                self._edited_points[self._selected_point - 1] = (pt.x - dx, pt.y - dy)
-            if self._delta_next is not None:
-                dx, dy = self._delta_next
-                self._edited_points[self._selected_point + 1] = (pt.x - dx, pt.y - dy)
-            self.updateValues()            
+        if self._selected_point == -1: return False
+        self._edited_points[self._selected_point] = (pt.x, pt.y)
+        if self._delta_prev is not None:
+            dx, dy = self._delta_prev
+            self._edited_points[self._selected_point - 1] = (pt.x - dx, pt.y - dy)
+        if self._delta_next is not None:
+            dx, dy = self._delta_next
+            self._edited_points[self._selected_point + 1] = (pt.x - dx, pt.y - dy)
+        self.updateValues()
+        return True            
 
     def _dict_to_string(self, d):
         items = d.items()
@@ -1269,9 +1280,11 @@ class EditHandle(AbstractHandle):
         self.node.silentSet("pointDeltas", self._edited_as_string)
             
     def mouseReleased(self, pt):
+        if self._selected_point == -1: return False
         self._selected_point = -1
         self._delta_prev = None
         self._delta_next = None
+        return True
 
     def draw(self, ctx):
         self._draw_points(ctx, True, AbstractHandle.HANDLE_COLOR)
@@ -1617,15 +1630,20 @@ class FreeHandEditor(AbstractHandle):
         self._mouseXY = pt
         self.mousedown = True
         self.node.markDirty()
+        return True
         
     def mouseDragged(self, pt):
+        if not self.mousedown: return False
         self._mouseXY = pt
         self.node.markDirty()
+        return True
 
     def mouseReleased(self, pt):
+        if not self.mousedown: return False
         self._mouseXY = pt
         self.mousedown = False
         self.node.markDirty()
+        return True
     
 def cook(self):
     return FreeHandEditor(self.node)]]></value>
@@ -1816,16 +1834,17 @@ class LineHandle(AbstractHandle):
             self.dragState = self.MIDDLE
         else:
             self.dragState = self.NONE
+        return self.dragState != self.NONE
 
     def mouseDragged(self, pt):
-        if self.dragState == self.NONE: return
+        if self.dragState == self.NONE: return False
 
         x = pt.x
         y = pt.y
         dx = x - self.px
         dy = y - self.py
 
-        if (dx == 0 and dy == 0): return
+        if (dx == 0 and dy == 0): return False
 
         if self.dragState == self.MIDDLE:
             self.node.silentSet("x", self.ocx + dx)
@@ -1845,9 +1864,12 @@ class LineHandle(AbstractHandle):
             d = distance(self.ocx, self.ocy, x, y)
             self.node.silentSet("angle", a)
             self.node.silentSet("distance", d)
+        return True
 
     def mouseReleased(self, pt):
+        if self.dragState == self.NONE: return False
         self.dragState = self.NONE
+        return True
 
 
 def cook(self):
@@ -2015,16 +2037,17 @@ class PolygonHandle(AbstractHandle):
             self.dragState = self.CENTER
         else:
             self.dragState = self.NONE
+        return self.dragState != self.NONE
 
     def mouseDragged(self, pt):
-        if self.dragState == self.NONE: return
+        if self.dragState == self.NONE: return False
         
         x = pt.x
         y = pt.y
         dx = x - self.px
         dy = y - self.py
         
-        if (dx == 0 and dy == 0): return
+        if (dx == 0 and dy == 0): return False
         
         if self.dragState == self.CENTER:
             self.node.silentSet("x", self.ocx + dx)
@@ -2035,9 +2058,12 @@ class PolygonHandle(AbstractHandle):
                 self.node.silentSet("radius", d)
             else:
                 self.node.silentSet("radius", self.ocr + dx)
+        return True
 
     def mouseReleased(self, pt):
+        if self.dragState == self.NONE: return False
         self.dragState = self.NONE
+        return True
     
     def find_angle(self):
         sides = self.node.asInt("sides")
@@ -2221,11 +2247,11 @@ class ReflectHandle(AbstractHandle):
             self.dragState = self.ROTATION
         else:
             self.dragState = self.NONE
+        return self.dragState != self.NONE
 
     def mouseDragged(self, pt):
-        if self.dragState == self.NONE: return
-        
-        if self.dragState == self.ORIGIN:
+        if self.dragState == self.NONE: return False
+        elif self.dragState == self.ORIGIN:
             x = pt.x
             y = pt.y
             dx = x - self.px
@@ -2233,7 +2259,6 @@ class ReflectHandle(AbstractHandle):
             if dx == 0 and dy == 0: return
             self.node.silentSet("x", self.ox + dx)
             self.node.silentSet("y", self.oy + dy)
-            
         elif self.dragState == self.ROTATION:
             x = pt.x
             y = pt.y
@@ -2241,11 +2266,14 @@ class ReflectHandle(AbstractHandle):
             a = angle(self.ox, self.oy, x, y)
             self.node.silentSet("angle", a)
             self.rotation_handle_length = d
+        return True
             
     def mouseReleased(self, pt):
+        if self.dragState == self.NONE: return False
         self.dragState = self.NONE
         self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
         self.viewer.repaint()
+        return True
                         
     def draw(self, ctx):
         x = self.node.asFloat("x")
@@ -2630,6 +2658,7 @@ class StarHandle(AbstractHandle):
         AbstractHandle.__init__(self, node)
         self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
         self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
+        self.mousedown = False
 
     def draw(self, ctx):
         self.innerHandle.draw(ctx)
@@ -2644,17 +2673,17 @@ class StarHandle(AbstractHandle):
         if abs(self.node.asFloat("inner")) > abs(self.node.asFloat("outer")):
             inner, outer = outer, inner
 
-        inner.mousePressed(pt)
-        if not inner.hasDragState():
-            outer.mousePressed(pt)
+        self.mousedown = inner.mousePressed(pt) or outer.mousePressed(pt)
+        return self.mousedown
 
     def mouseDragged(self, pt):
-        self.innerHandle.mouseDragged(pt)
-        self.outerHandle.mouseDragged(pt)
+        if not self.mousedown: return False
+        return self.innerHandle.mouseDragged(pt) or self.outerHandle.mouseDragged(pt)
 
     def mouseReleased(self, pt):
-        self.innerHandle.mouseReleased(pt)
-        self.outerHandle.mouseReleased(pt)
+        if not self.mousedown: return False
+        self.mousedown = False
+        return self.innerHandle.mouseReleased(pt) or self.outerHandle.mouseReleased(pt)
 
 def cook(self):
     return StarHandle(self.node)]]></value>
@@ -2999,8 +3028,10 @@ class TransformHandle(AbstractHandle):
         return False
             
     def mousePressed(self, pt):
-        if not self.init_rotation_operation(pt):
-            self.init_scale_or_translation_operation(pt)
+        if self.init_rotation_operation(pt):
+            return True
+        else:
+            return self.init_scale_or_translation_operation(pt)
 
     def perform_scale(self, pt):
         p = self.transform_point
@@ -3074,17 +3105,21 @@ class TransformHandle(AbstractHandle):
         self.rotation_handle_length = d
         
     def mouseDragged(self, pt):
-        if self.operation == self.SCALE:
+        if self.operation == self.NONE: return False
+        elif self.operation == self.SCALE:
             self.perform_scale(pt)
         elif self.operation == self.TRANSLATION:            
             self.perform_translation(pt)
         elif self.operation == self.ROTATION:
             self.perform_rotation(pt)
+        return True
             
     def mouseReleased(self, pt):
+        if self.operation == self.NONE: return False
         self.operation = self.NONE
         self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
         self.viewer.repaint()
+        return True
 
     def draw(self, ctx):
         self.draw_rotation_handle(ctx)
