@@ -52,7 +52,7 @@ public class FourPointHandle extends AbstractHandle {
     }
 
     @Override
-    public void mousePressed(Point pt) {
+    public boolean mousePressed(Point pt) {
         px = pt.getX();
         py = pt.getY();
 
@@ -84,12 +84,14 @@ public class FourPointHandle extends AbstractHandle {
             dragState = DragState.CENTER;
         } else {
             dragState = DragState.NONE;
+            return false;
         }
+        return true;
     }
 
     @Override
-    public void mouseDragged(Point pt) {
-        if (dragState == DragState.NONE) return;
+    public boolean mouseDragged(Point pt) {
+        if (dragState == DragState.NONE) return false;
         float x = pt.getX();
         float y = pt.getY();
         float dx = x - px;
@@ -97,7 +99,7 @@ public class FourPointHandle extends AbstractHandle {
         // The delta value is multiplied by 2 to create the float effect of moving
         // the top left corner down and the bottom left corner up (in the case of
         // the top left handle).
-        if (dx == 0 && dy == 0) return;
+        if (dx == 0 && dy == 0) return false;
         switch (dragState) {
             case TOP_LEFT:
                 node.silentSet(widthName, owidth - dx * 2);
@@ -119,11 +121,14 @@ public class FourPointHandle extends AbstractHandle {
                 node.silentSet(xName, ocx + dx);
                 node.silentSet(yName, ocy + dy);
         }
+        return true;
     }
 
     @Override
-    public void mouseReleased(Point pt) {
+    public boolean mouseReleased(Point pt) {
+        if (dragState == DragState.NONE) return false;
         dragState = DragState.NONE;
+        return true;
     }
 
     public boolean hasDragState() {
