@@ -127,7 +127,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
                 setColor(color);
                 dispose();
             }
-        }, escapeStroke, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        }, escapeStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
