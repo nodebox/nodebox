@@ -696,8 +696,12 @@ public class ColorDialog extends JDialog implements ChangeListener {
             if (e.getID() == MouseEvent.MOUSE_PRESSED) {
                 int width = getWidth() - WIDTH_OFFSET;
                 int x = e.getX();
-                if (x < HALF_WIDTH_OFFSET || x > width + WIDTH_OFFSET) return;
-                panel.setValue((float) (x - HALF_WIDTH_OFFSET) / width);
+                if (x < HALF_WIDTH_OFFSET)
+                    panel.setValue(0);
+                else if (x > width + WIDTH_OFFSET)
+                    panel.setValue(1);
+                else
+                    panel.setValue((float) (x - HALF_WIDTH_OFFSET) / width);
             }
         }
 
@@ -706,8 +710,12 @@ public class ColorDialog extends JDialog implements ChangeListener {
             if (e.getID() == MouseEvent.MOUSE_DRAGGED) {
                 int width = getWidth() - WIDTH_OFFSET;
                 int x = e.getX();
-                if (x < HALF_WIDTH_OFFSET || x > width + WIDTH_OFFSET) return;
-                panel.setValue((float) (x - HALF_WIDTH_OFFSET) / width);
+                if (x < HALF_WIDTH_OFFSET)
+                    panel.setValue(0);
+                else if (x > width + WIDTH_OFFSET)
+                    panel.setValue(1);
+                else
+                    panel.setValue((float) (x - HALF_WIDTH_OFFSET) / width);
             }
         }
     }
