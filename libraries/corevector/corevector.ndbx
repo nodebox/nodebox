@@ -1736,7 +1736,7 @@ def cook(self):
     # We defer loading the SVG library until we need it.
     # This makes creating a node faster.
     import svg
-    paths = svg.parse(s)
+    paths = svg.parse(s, True)
     for path in paths:
         g.add(path)
     t = Transform()
