@@ -24,7 +24,7 @@ class cache(dict):
     
     def id(self, svg):
         hash = md5.new()
-        hash.update(str(_ctx)+svg)
+        hash.update(svg)
         return hash.digest()
         
     def save(self, id, paths):
@@ -33,17 +33,8 @@ class cache(dict):
     def load(self, id, copy=True):  
         if self.has_key(id):
             if copy: 
-                return [self.copypath(path) for path in self[id]]
+                return [path.clone() for path in self[id]]
             return self[id]
-    
-    def copypath(self, path):
-        # Expand the path copy with the properties from add_color_info()
-        p = path.copy()
-        p.fill = path.fill
-        p.stroke = path.stroke
-        p.strokewidth = path.strokewidth
-        p.closed = path.closed
-        return p
     
     def clear(self):
         for k in self.keys(): del self[k]
