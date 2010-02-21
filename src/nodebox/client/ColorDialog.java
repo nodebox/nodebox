@@ -115,7 +115,10 @@ public class ColorDialog extends JDialog implements ChangeListener {
         contents.add(Box.createVerticalStrut(12));
         contents.add(alpha);
         contents.add(bottomPanel);
+        contents.add(Box.createVerticalStrut(5));
 
+        pack();
+        
         setColor(Color.WHITE);
 
         this.preferences = Preferences.userNodeForPackage(this.getClass());

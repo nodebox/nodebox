@@ -66,14 +66,16 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         if (colorDialog == null) {
             colorDialog = new ColorDialog((Frame) SwingUtilities.getWindowAncestor(this));
             colorDialog.setColor(parameter.asColor().getAwtColor());
-            colorDialog.setMinimumSize(new Dimension(400, 375));
-            colorDialog.setPreferredSize(new Dimension(540, 375));
-            colorDialog.setMaximumSize(new Dimension(Integer.MAX_VALUE, 375));
+            int height = colorDialog.getHeight();
+            colorDialog.setMinimumSize(new Dimension(400, height));
+            colorDialog.setPreferredSize(new Dimension(540, height));
+            colorDialog.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
             colorDialog.setSize(540, 375);
             colorDialog.addChangeListener(this);
             colorDialog.setAlwaysOnTop(true);
             SwingUtils.centerOnScreen(colorDialog);
             colorDialog.setVisible(true);
+            colorDialog.pack();
 //            colorDialog.setLocationRelativeTo(null);
         } else {
             colorDialog.setVisible(true);
