@@ -412,34 +412,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
             Node n = getNode().create(dialog.getSelectedNode());
-            boolean success = smartConnect(getPane().getDocument().getActiveNode(), n);
-            if (!success)
-                n.setPosition(new nodebox.graphics.Point(pt));
+            n.setPosition(new nodebox.graphics.Point(pt));
             n.setRendered();
             doc.setActiveNode(n);
         }
-    }
-
-    /**
-     * Try to connect the new node to the active node.
-     *
-     * @param activeNode the currently selected node
-     * @param newNode    the newly created node
-     * @return true if a connection could be made.
-     */
-    private boolean smartConnect(Node activeNode, Node newNode) {
-        // Check if there is an active node.
-        if (activeNode == null) return false;
-        // Check if there are compatible ports on the new node that can be connected
-        // to the output of the active node.
-        List<Port> compatibles = newNode.getCompatibleInputs(activeNode);
-        if (compatibles.size() == 0) return false;
-        // Connect the output of the active node to the first compatible input of the new node.
-        compatibles.get(0).connect(activeNode);
-        // Move the node next to the active node.
-        newNode.setPosition(activeNode.getX() + NodeView.NODE_FULL_SIZE + 10, activeNode.getY());
-        // Return true to indicate the connection was created successfully.
-        return true;
     }
 
     //// Dragging ////
