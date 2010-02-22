@@ -44,12 +44,20 @@ public class FileUtils {
     private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
         FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
         if (pathName == null || pathName.trim().length() == 0) {
-            File documentFile = NodeBoxDocument.getCurrentDocument().getDocumentFile();
-            if (documentFile != null) {
-                fileDialog.setFile(documentFile.getParentFile().getPath());
+            NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
+            if (document != null) {
+                File documentFile = document.getDocumentFile();
+                if (documentFile != null) {
+                    fileDialog.setFile(documentFile.getParentFile().getPath());
+                }
             }
         } else {
-            fileDialog.setFile(pathName);
+            File f = new File(pathName);
+            if (f.isDirectory()) {
+                fileDialog.setDirectory(pathName);
+            } else {
+                fileDialog.setFile(pathName);
+            }
         }
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
         fileDialog.setVisible(true);
