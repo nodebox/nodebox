@@ -76,7 +76,6 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
             SwingUtils.centerOnScreen(colorDialog);
             colorDialog.setVisible(true);
             colorDialog.pack();
-//            colorDialog.setLocationRelativeTo(null);
         } else {
             colorDialog.setVisible(true);
             colorDialog.requestFocus();
