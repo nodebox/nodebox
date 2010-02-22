@@ -433,7 +433,7 @@ public class Parameter {
      * @see #isEnabled()
      */
     public void setEnableExpression(String expression) {
-        if (expression == null || expression.trim().isEmpty()) {
+        if (expression == null || expression.trim().length() == 0) {
             if (enableExpression == null) return;
             enableExpression = null;
         } else if (enableExpression != null && enableExpression.getExpression().equals(expression)) {
