@@ -75,11 +75,11 @@ public class FileUtils {
 
     public static class FileExtensionFilter extends FileFilter implements FilenameFilter {
         String[] extensions;
-        String desc;
+        String description;
 
-        public FileExtensionFilter(String extensions, String desc) {
+        public FileExtensionFilter(String extensions, String description) {
             this.extensions = parseExtensions(extensions);
-            this.desc = desc;
+            this.description = description;
         }
 
         public boolean accept(File f) {
@@ -99,7 +99,7 @@ public class FileUtils {
         }
 
         public String getDescription() {
-            return desc;
+            return description;
         }
     }
 
