@@ -12,6 +12,7 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     private PaneHeader paneHeader;
     private NetworkView networkView;
     private Node node;
+    private NButton newNodeButton;
 
 
     public NetworkPane(NodeBoxDocument document) {
@@ -22,6 +23,10 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
     public NetworkPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
+        newNodeButton = new NButton("New Node", "res/network-new-node.png");
+        newNodeButton.setToolTipText("New Node (TAB)");
+        newNodeButton.setActionMethod(this, "createNewNode");
+        paneHeader.add(newNodeButton);
         networkView = new NetworkView(this, null);
         networkView.addPropertyChangeListener(this);
         add(paneHeader, BorderLayout.NORTH);
@@ -89,5 +94,9 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
             NodeView firstElement = selection.iterator().next();
             getDocument().setActiveNode(firstElement.getNode());
         }
+    }
+
+    public void createNewNode() {
+        networkView.showNodeSelectionDialog();
     }
 }
