@@ -200,6 +200,14 @@ public class Application implements Host {
         return doc;
     }
 
+    public NodeBoxDocument getCurrentDocument() {
+        return currentDocument;
+    }
+
+    void setCurrentDocument(NodeBoxDocument document) {
+        currentDocument = document;
+    }
+
     public List<Node> getNodeClipboard() {
         return nodeClipboard;
     }

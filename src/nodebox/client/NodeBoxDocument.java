@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
-import java.util.List;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,12 +44,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
 
     public static NodeBoxDocument getCurrentDocument() {
-        for (Frame f : JFrame.getFrames()) {
-            if (f.isActive() && f instanceof NodeBoxDocument) {
-                return (NodeBoxDocument) f;
-            }
-        }
-        return null;
+        return Application.getInstance().getCurrentDocument();
     }
 
     private class DocumentObservable extends Observable {
@@ -533,6 +527,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     }
 
     public void windowActivated(WindowEvent e) {
+        Application.getInstance().setCurrentDocument(this);
     }
 
     public void windowDeactivated(WindowEvent e) {
