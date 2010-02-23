@@ -231,9 +231,11 @@ public class NodeSelectionDialog extends JDialog {
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_UP) {
-                moveUp();
+                if (e.getSource() == searchField)
+                    moveUp();
             } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-                moveDown();
+                if (e.getSource() == searchField)
+                    moveDown();
             } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                 selectAndClose();
             }
