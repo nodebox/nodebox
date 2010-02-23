@@ -17,17 +17,18 @@ import java.util.prefs.Preferences;
  */
 public class NodeBoxMenuBar extends JMenuBar {
 
+    private NodeBoxDocument document;
     private boolean enabled;
     private static ArrayList<JMenu> recentFileMenus = new ArrayList<JMenu>();
     private static Preferences recentFilesPreferences = Preferences.userRoot().node("/nodebox/recent");
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxMenuBar");
 
     public NodeBoxMenuBar() {
-        this(true);
+        this(null);
     }
 
-    public NodeBoxMenuBar(boolean enabled) {
-        this.enabled = enabled;
+    public NodeBoxMenuBar(NodeBoxDocument document) {
+        this.document = document;
         // File menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.add(new NewAction());
@@ -93,6 +94,14 @@ public class NodeBoxMenuBar extends JMenuBar {
         add(helpMenu);
     }
 
+    public NodeBoxDocument getDocument() {
+        return document;
+    }
+
+    public boolean isEnabled() {
+        return document != null;
+    }
+
     public static void addRecentFile(File f) {
         File canonicalFile;
         try {
@@ -149,20 +158,12 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-    public static NodeBoxDocument getCurrentDocument() {
-        return NodeBoxDocument.getCurrentDocument();
-    }
-
     //// Actions ////
 
     public abstract class AbstractDocumentAction extends AbstractAction {
         @Override
         public boolean isEnabled() {
-            return NodeBoxMenuBar.this.enabled;
-        }
-
-        public NodeBoxDocument getCurrentDocument() {
-            return NodeBoxDocument.getCurrentDocument();
+            return NodeBoxMenuBar.this.isEnabled();
         }
     }
 
@@ -178,14 +179,14 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-    public static class OpenAction extends AbstractAction {
+    public class OpenAction extends AbstractAction {
         public OpenAction() {
             putValue(NAME, "Open...");
             putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_O));
         }
 
         public void actionPerformed(ActionEvent e) {
-            File chosenFile = FileUtils.showOpenDialog(getCurrentDocument(), NodeBoxDocument.lastFilePath, "ndbx", "NodeBox Document");
+            File chosenFile = FileUtils.showOpenDialog(getDocument(), NodeBoxDocument.lastFilePath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
                 NodeBoxDocument.open(chosenFile);
             }
@@ -214,7 +215,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().close();
+            getDocument().close();
         }
     }
 
@@ -225,7 +226,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().save();
+            getDocument().save();
         }
     }
 
@@ -236,7 +237,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().saveAs();
+            getDocument().saveAs();
         }
     }
 
@@ -246,7 +247,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().revert();
+            getDocument().revert();
         }
     }
 
@@ -257,7 +258,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().export();
+            getDocument().export();
         }
     }
 
@@ -279,11 +280,11 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         @Override
         public boolean isEnabled() {
-            return super.isEnabled() && getCurrentDocument() != null && getCurrentDocument().getUndoManager().canUndo();
+            return super.isEnabled() && getDocument() != null && getDocument().getUndoManager().canUndo();
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().undo();
+            getDocument().undo();
         }
     }
 
@@ -295,11 +296,11 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         @Override
         public boolean isEnabled() {
-            return super.isEnabled() && getCurrentDocument() != null && getCurrentDocument().getUndoManager().canRedo();
+            return super.isEnabled() && getDocument() != null && getDocument().getUndoManager().canRedo();
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().redo();
+            getDocument().redo();
         }
     }
 
@@ -310,7 +311,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().cut();
+            getDocument().cut();
         }
     }
 
@@ -321,7 +322,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().copy();
+            getDocument().copy();
         }
     }
 
@@ -332,7 +333,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().paste();
+            getDocument().paste();
         }
     }
 
@@ -343,7 +344,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().deleteSelected();
+            getDocument().deleteSelected();
         }
     }
 
@@ -354,7 +355,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().reloadActiveNode();
+            getDocument().reloadActiveNode();
         }
     }
 
@@ -377,7 +378,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCurrentDocument().setState(Frame.ICONIFIED);
+            getDocument().setState(Frame.ICONIFIED);
         }
     }
 

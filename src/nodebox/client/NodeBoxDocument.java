@@ -137,7 +137,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         updateTitle();
-        setJMenuBar(new NodeBoxMenuBar());
+        setJMenuBar(new NodeBoxMenuBar(this));
         nodeLibrary = lib;
         setNodeLibrary(nodeLibrary);
         //renderThread = new RenderThread();

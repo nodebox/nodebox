@@ -109,7 +109,7 @@ public class Application implements Host {
         }
         // Create hidden window.
         hiddenFrame = new JFrame();
-        hiddenFrame.setJMenuBar(new NodeBoxMenuBar(false));
+        hiddenFrame.setJMenuBar(new NodeBoxMenuBar());
         hiddenFrame.setUndecorated(true);
         hiddenFrame.setSize(0, 0);
         hiddenFrame.pack();
