@@ -50,7 +50,7 @@ public class ExpressionWindow extends AbstractParameterEditor {
         expressionArea.requestFocus();
         getParameter().setExpression(expressionArea.getText());
         if (getParameter().hasExpressionError()) {
-            errorArea.setText(getParameter().getExpressionError().getCause().toString());
+            errorArea.setText(getParameter().getExpressionError().toString());
             return false;
         } else {
             errorArea.setText("");
