@@ -261,6 +261,7 @@ public class NodeSelectionDialog extends JDialog {
             // Trigger a model reload.
             nodeList.setModel(filteredNodeListModel);
             nodeList.setSelectedIndex(0);
+            nodeList.ensureIndexIsVisible(0);
             repaint();
         }
     }
