@@ -258,10 +258,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     public void mouseEntered(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        Window w = SwingUtilities.getWindowAncestor(this);
-        if (w != null && w.isActive()) {
-            requestFocus();
-        }
         if (hasVisibleHandle())
             handle.mouseEntered(pointForEvent(e));
     }
