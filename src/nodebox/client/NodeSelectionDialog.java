@@ -15,6 +15,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 public class NodeSelectionDialog extends JDialog {
 
@@ -45,23 +47,51 @@ public class NodeSelectionDialog extends JDialog {
                 // Add all the exported nodes from the current library.
                 filteredNodes.addAll(library.getExportedNodes());
             } else {
+                java.util.List<Node> nodes = new ArrayList<Node>();
+
                 filteredNodes = new ArrayList<Node>();
                 // Add all the nodes from the manager.
                 for (Node node : manager.getNodes()) {
                     if (contains(node, searchString))
-                        filteredNodes.add(node);
+                        nodes.add(node);
                 }
                 // Add all the exported nodes from the current library.
                 for (Node node : library.getExportedNodes()) {
                     if (contains(node, searchString))
-                        filteredNodes.add(node);
+                        nodes.add(node);
                 }
+
+                filteredNodes = sortNodes(nodes, searchString);
             }
         }
 
         private boolean contains(Node node, String searchString) {
             String description = node.getDescription() == null ? "" : node.getDescription();
             return node.getName().contains(searchString) || description.contains(searchString);
+        }
+
+
+        private java.util.List<Node> sortNodes(java.util.List<Node> nodes, String searchString) {
+            java.util.List<Node> sortedNodes = new ArrayList<Node>();
+            java.util.List<Node> startsWithNodes = new ArrayList<Node>();
+            java.util.List<Node> containsNodes = new ArrayList<Node>();
+            java.util.List<Node> descriptionNodes = new ArrayList<Node>();
+
+            for (Node node : nodes) {
+                if (node.getName().equals(searchString))
+                    sortedNodes.add(node);
+                else if (node.getName().startsWith(searchString))
+                    startsWithNodes.add(node);
+                else if (node.getName().contains(searchString))
+                    containsNodes.add(node);
+                else
+                    descriptionNodes.add(node);
+            }
+            Collections.sort(startsWithNodes, new NodeNameComparator());
+            sortedNodes.addAll(startsWithNodes);
+            sortedNodes.addAll(containsNodes);
+            sortedNodes.addAll(descriptionNodes);
+            return sortedNodes;
         }
 
         public int getSize() {
@@ -230,6 +260,14 @@ public class NodeSelectionDialog extends JDialog {
             nodeList.setModel(filteredNodeListModel);
             nodeList.setSelectedIndex(0);
             repaint();
+        }
+    }
+
+    private class NodeNameComparator implements Comparator {
+        public int compare(Object o1, Object o2) {
+            Node node1 = (Node) o1;
+            Node node2 = (Node) o2;
+            return node1.getName().compareTo(node2.getName());
         }
     }
 }
