@@ -1,16 +1,13 @@
 package nodebox.client.parameter;
 
-import nodebox.client.PlatformUtils;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 
 public class MenuControl extends AbstractParameterControl implements ActionListener {
 
@@ -53,7 +50,10 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
 
     public void actionPerformed(ActionEvent e) {
         Parameter.MenuItem item = (Parameter.MenuItem) menuBox.getSelectedItem();
-        parameter.setValue(item.getKey());
+        String value = item.getKey();
+        if (!parameter.getValue().equals(value)) {
+            parameter.setValue(item.getKey());
+        }
     }
 
     private class MenuDataModel implements ComboBoxModel {
