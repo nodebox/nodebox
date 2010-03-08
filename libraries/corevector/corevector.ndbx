@@ -1966,30 +1966,25 @@ def cook(self):
     <node exported="true" name="polygon" prototype="generator" x="250" y="170">
         <description>Draw a polygon</description>
         <param name="_code">
-            <value type="python"><![CDATA[from math import cos, sin, pi
-from nodebox.graphics import Path, Transform
-from nodebox.util.Geometry import angle
+            <value type="python"><![CDATA[from nodebox.graphics import Path
+from nodebox.util.Geometry import coordinates, angle
 
 def cook(self):
-    t = 0
-    vertices = []
-    vertices.append((cos(0) * self.radius, sin(0) * self.radius))
     p = Path()
-    p.moveto( *vertices[0] )
-    for i in range(1, self.sides):               
-        t += 2*pi/self.sides
-        vertices.append((cos(t) * self.radius, sin(t) * self.radius))
-        p.lineto( *vertices[i] ) 
-    p.close()
-    if self.align and len(vertices) >= 2:
-        (x1, y1), (x2, y2) = vertices[0:2]
-        a = angle(x2, y2, x1, y1)
-        t = Transform()
-        t.rotate(-a)
-        p = t.map(p)
-    t = Transform()
-    t.translate(self.x, self.y)
-    p = t.map(p)
+    x, y, r = self.x, self.y, self.radius
+    sides = max(self.sides, 3)
+    a = 360.0 / sides
+    da = 0
+    if self.align:
+        x0, y0 = coordinates(x, y, r, 0)
+        x1, y1 = coordinates(x, y, r, a)
+        da = -angle(x1, y1, x0, y0)
+    for i in xrange(sides):
+        x1, y1 = coordinates(x, y, r, (a*i) + da)
+        if i == 0:
+            p.moveto(x1, y1)
+        else:
+            p.lineto(x1, y1)
     p.fillColor = self.fill
     p.strokeColor = self.stroke
     p.strokeWidth = self.strokeWidth
