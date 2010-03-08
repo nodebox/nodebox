@@ -45,6 +45,15 @@ public class CombinedHandle extends AbstractHandle {
         return false;
     }
 
+    public boolean mouseMoved(Point pt) {
+        boolean moved = false;
+        for (Handle handle : handles) {
+            if (handle.mouseMoved(pt))
+                moved = true;
+        }
+        return false;
+    }
+
     public boolean mouseDragged(Point pt) {
         for (Handle handle : handles) {
             boolean dragged = handle.mouseDragged(pt);
