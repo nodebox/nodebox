@@ -1120,6 +1120,255 @@ def cook(self):
             <value>100.0</value>
         </param>
     </node>
+    <node exported="true" name="distribute" prototype="filter" x="250" y="490">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import *
+
+def dist_horizontal_left(paths):
+    pos = [(path.bounds.x, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    outer1, path, i = pos[0]
+    dist_paths.append((i, path.clone()))
+    pos2 = [(path.bounds.x + path.bounds.width, path) for path in paths]
+    pos2.sort()
+    index = -1
+    x, right = pos2[-1]
+    for x, path, i in pos:
+        if right == path:
+            index = i
+    outer2 = right.bounds.x
+    path = right
+    i = index
+    dist_paths.append((i, path.clone()))
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for x, path, i in pos[1:]:
+        if path != right:
+            t = Transform()
+            t.translate(next - x, 0)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+def dist_horizontal_right(paths):
+    pos = [(path.bounds.x + path.bounds.width, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    pos2 = [(path.bounds.x, path) for path in paths]
+    pos2.sort()
+    index = -1
+    x, left = pos2[0]
+    for x, path, i in pos:
+        if left == path:
+            index = i
+    outer1 = left.bounds.x + left.bounds.width
+    path = left
+    i = index
+    dist_paths.append((i, path.clone()))
+    outer2, path, i = pos[-1]
+    dist_paths.append((i, path.clone()))
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for x, path, i in pos[0:-1]:
+        if path != left:
+            t = Transform()
+            t.translate(next - x, 0)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+
+def dist_horizontal_center(paths):
+    pos = [(path.bounds.x + path.bounds.width / 2, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    
+    pos2 = [(path.bounds.x, path) for path in paths]
+    pos2.sort()
+    index = -1
+    x, left = pos2[0]
+    for x, path, i in pos:
+        if left == path:
+            index = i
+    outer1 = left.bounds.x + left.bounds.width / 2
+    path = left
+    i = index
+    dist_paths.append((i, path.clone()))
+    
+    pos2 = [(path.bounds.x + path.bounds.width, path) for path in paths]
+    pos2.sort()
+    index = -1
+    x, right = pos2[-1]
+    for x, path, i in pos:
+        if right == path:
+            index = i
+    outer2 = right.bounds.x + right.bounds.width / 2
+    path = right
+    i = index
+    dist_paths.append((i, path.clone()))
+            
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for x, path, i in pos:
+        if path != left and path != right:
+            t = Transform()
+            t.translate(next - x, 0)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+def dist_vertical_top(paths):
+    pos = [(path.bounds.y, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    outer1, path, i = pos[0]
+    dist_paths.append((i, path.clone()))
+    pos2 = [(path.bounds.y + path.bounds.height, path) for path in paths]
+    pos2.sort()
+    index = -1
+    y, bottom = pos2[-1]
+    for y, path, i in pos:
+        if bottom == path:
+            index = i
+    outer2 = bottom.bounds.y
+    path = bottom
+    i = index
+    dist_paths.append((i, path.clone()))
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for y, path, i in pos[1:]:
+        if path != bottom:
+            t = Transform()
+            t.translate(0, next - y)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+def dist_vertical_bottom(paths):
+    pos = [(path.bounds.y + path.bounds.height, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    pos2 = [(path.bounds.y, path) for path in paths]
+    pos2.sort()
+    index = -1
+    y, top = pos2[0]
+    for y, path, i in pos:
+        if top == path:
+            index = i
+    outer1 = top.bounds.y + top.bounds.height
+    path = top
+    i = index
+    dist_paths.append((i, path.clone()))
+    outer2, path, i = pos[-1]
+    dist_paths.append((i, path.clone()))
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for y, path, i in pos[0:-1]:
+        if path != top:
+            t = Transform()
+            t.translate(0, next - y)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+def dist_vertical_middle(paths):
+    pos = [(path.bounds.y + path.bounds.height / 2, path, i) for i, path in enumerate(paths)]
+    dist_paths = []
+    l = len(pos) - 1
+    pos.sort()
+    
+    pos2 = [(path.bounds.y, path) for path in paths]
+    pos2.sort()
+    index = -1
+    y, top = pos2[0]
+    for y, path, i in pos:
+        if top == path:
+            index = i
+    outer1 = top.bounds.y + top.bounds.height / 2
+    path = top
+    i = index
+    dist_paths.append((i, path.clone()))
+    
+    pos2 = [(path.bounds.y + path.bounds.height, path) for path in paths]
+    pos2.sort()
+    index = -1
+    y, bottom = pos2[-1]
+    for y, path, i in pos:
+        if bottom == path:
+            index = i
+    outer2 = bottom.bounds.y + bottom.bounds.height / 2
+    path = bottom
+    i = index
+    dist_paths.append((i, path.clone()))
+            
+    skip = (outer2 - outer1) / l
+    next = outer1 + skip
+    for y, path, i in pos:
+        if path != top and path != bottom:
+            t = Transform()
+            t.translate(0, next - y)
+            dist_paths.append((i, t.map(path)))
+            next += skip
+    dist_paths.sort()
+    return [path for i, path in dist_paths]
+
+def cook(self):
+    if self.shape is None: return None
+    if len(self.shape.paths) < 3:
+        return self.shape.clone()
+    if self.hor == "none" and self.vert == "none":
+        return self.shape.clone()
+
+    paths = self.shape.paths
+    if self.hor == "left":
+        newpaths = dist_horizontal_left(paths)
+    elif self.hor == "right":
+        newpaths = dist_horizontal_right(paths)
+    elif self.hor == "center":
+        newpaths = dist_horizontal_center(paths)
+    else:
+        newpaths = self.shape.clone().paths
+    
+    paths = newpaths
+    
+    if self.vert == "top":
+        newpaths = dist_vertical_top(paths)
+    elif self.vert == "bottom":
+        newpaths = dist_vertical_bottom(paths)
+    elif self.vert == "middle":
+        newpaths = dist_vertical_middle(paths)
+        
+    g = Geometry()
+    for path in newpaths:
+        g.add(path)
+    return g]]></value>
+        </param>
+        <param name="hor" type="string" widget="menu">
+            <value>none</value>
+            <menu key="none">No Change</menu>
+            <menu key="left">Left</menu>
+            <menu key="right">Right</menu>
+            <menu key="center">Center</menu>
+        </param>
+        <param name="vert" type="string" widget="menu">
+            <value>none</value>
+            <menu key="none">No Change</menu>
+            <menu key="top">Top</menu>
+            <menu key="bottom">Bottom</menu>
+            <menu key="middle">Middle</menu>
+        </param>
+    </node>
     <node exported="true" name="edit" prototype="filter" x="330" y="250">
         <description>Edit points non-destructively.</description>
         <param name="_code">
