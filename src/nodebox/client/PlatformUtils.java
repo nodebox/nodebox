@@ -28,7 +28,11 @@ public class PlatformUtils {
     private static Map<String, Object> JNA_OPTIONS = new HashMap<String, Object>();
 
     static {
-        platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+        try {
+            platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+        } catch (HeadlessException e) {
+            platformSpecificModifier = Event.CTRL_MASK;
+        }
         if (Platform.isWindows()) {
             current_platform = WIN;
             JNA_OPTIONS.put(Library.OPTION_TYPE_MAPPER, W32APITypeMapper.UNICODE);
