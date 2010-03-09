@@ -39,6 +39,7 @@
         <property name="dist.windows.nodebox.lib" location="${dist.windows.nodebox}/lib"/>
         <property name="dist.windows.nodebox.res" location="${dist.windows.nodebox}/res"/>
         <property name="dist.windows.nodebox.libraries" location="${dist.windows.nodebox}/libraries"/>
+        <property name="reports" value="reports"/>
 
         <!-- Determine the platform family: windows, mac or linux. -->
         <condition property="platform.windows" value="true">
@@ -99,13 +100,24 @@
     </target>
 
     <target name="test" depends="compile-tests">
-        <junit haltonfailure="true">
+        <mkdir dir="${reports}"/>
+        <junit haltonfailure="false">
             <classpath refid="project.classpath"/>
-            <formatter type="brief" usefile="false"/>
-            <batchtest>
+            <formatter type="xml"/>
+            <batchtest fork="yes" todir="${reports}">
                 <fileset dir="${build.test}" includes="**/*Test.class"/>
             </batchtest>
         </junit>
+    </target>
+
+    <target name="generate-test-reports" depends="test">
+        <mkdir dir="${reports}"/>
+        <junitreport todir="${reports}">
+            <fileset dir="${reports}">
+                <include  name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames" todir="${reports}"/>
+        </junitreport>
     </target>
 
     <target name="jar" depends="compile">
@@ -251,5 +263,6 @@
     <target name="clean" depends="properties">
         <delete dir="${build}"/>
         <delete dir="${dist}"/>
+        <delete dir="${reports}"/>
     </target>
 </project>
