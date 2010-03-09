@@ -10,7 +10,12 @@ import nodebox.graphics.Grob;
 import nodebox.graphics.IGeometry;
 import nodebox.graphics.Path;
 import nodebox.handle.Handle;
-import nodebox.node.*;
+import nodebox.node.Node;
+import nodebox.node.NodeEvent;
+import nodebox.node.NodeEventListener;
+import nodebox.node.Parameter;
+import nodebox.node.event.NodeAttributeChangedEvent;
+import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +24,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 
-public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseListener, MouseMotionListener, KeyListener, NodeAttributeListener {
+public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener, NodeEventListener {
 
     public static final float POINT_SIZE = 4f;
 
@@ -41,6 +46,7 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
         this.node = node;
+        this.pane.getDocument().getNodeLibrary().addListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
@@ -131,26 +137,15 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     public void setNode(Node node) {
         if (this.node == node) return;
-        Node oldNode = this.node;
-        if (oldNode != null) {
-            oldNode.removeDirtyListener(this);
-        }
         this.node = node;
         if (this.node == null) return;
-        node.addDirtyListener(this);
-        node.addNodeAttributeListener(this);
         checkIfHandleEnabled();
         repaint();
     }
 
     public void setActiveNode(Node node) {
-        Node oldNode = activeNode;
-        if (oldNode != null) {
-            oldNode.removeNodeAttributeListener(this);
-        }
         activeNode = node;
         if (activeNode != null) {
-            activeNode.addNodeAttributeListener(this);
             handle = activeNode.createHandle();
             if (handle != null) {
                 handle.setViewer(this);
@@ -172,13 +167,21 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
 
     //// Network data events ////
 
-    public void nodeDirty(Node node) {
-        // The node is dirty, but we wait for the document to update the network.
-        // This will send the nodeUpdated event.
+    public void receive(NodeEvent event) {
+        if (event instanceof NodeUpdatedEvent) {
+            if (event.getSource() != node) return;
+            nodeUpdated();
+        } else if (event instanceof NodeAttributeChangedEvent) {
+            NodeAttributeChangedEvent e = (NodeAttributeChangedEvent) event;
+            if (e.getSource() != activeNode) return;
+            if (e.getAttribute() != Node.Attribute.PARAMETER) return;
+            if (checkIfHandleEnabled()) {
+                repaint();
+            }
+        }
     }
 
-    public void nodeUpdated(Node node, ProcessingContext context) {
-        if (node != getNode()) return;
+    public void nodeUpdated() {
         checkIfHandleEnabled();
         // Note that we don't use check handle visibility here, since the update might change handle visibility.
         if (handle != null && showHandle && handleEnabled) {
@@ -209,13 +212,6 @@ public class Viewer extends PCanvas implements PaneView, DirtyListener, MouseLis
         if (newEnabled == handleEnabled) return false;
         handleEnabled = newEnabled;
         return true;
-    }
-
-    public void attributeChanged(Node source, Attribute attribute) {
-        if (attribute != Attribute.PARAMETER) return;
-        if (checkIfHandleEnabled()) {
-            repaint();
-        }
     }
 
     public void resetView() {

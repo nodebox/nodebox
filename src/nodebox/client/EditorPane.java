@@ -2,19 +2,19 @@ package nodebox.client;
 
 import nodebox.client.editor.SimpleEditor;
 import nodebox.node.*;
+import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.Element;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class EditorPane extends Pane implements DirtyListener, ComponentListener, CaretListener {
+public class EditorPane extends Pane implements ComponentListener, CaretListener, NodeEventListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
@@ -25,11 +25,8 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     private String codeName, codeType;
 
     public EditorPane(NodeBoxDocument document) {
-        this();
-        setDocument(document);
-    }
-
-    public EditorPane() {
+        super(document);
+        document.getNodeLibrary().addListener(this);
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         NButton reloadButton = new NButton("Reload", "res/code-reload.png");
@@ -55,12 +52,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         splitter.setPosition(1.0f);
         add(splitter, BorderLayout.CENTER);
         addComponentListener(this);
-    }
-
-    @Override
-    public void setDocument(NodeBoxDocument document) {
-        super.setDocument(document);
-        if (document == null) return;
         setNode(document.getActiveNode());
     }
 
@@ -85,7 +76,8 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         this.codeType = codeType;
         paneHeader.repaint();
         if (node != null) {
-            setCode(); }
+            setCode();
+        }
     }
 
     public String getCodeName() {
@@ -98,10 +90,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
 
     public void setNode(Node node) {
         if (this.node == node && node != null) return;
-        Node oldNode = this.node;
-        if (oldNode != null) {
-            oldNode.removeDirtyListener(this);
-        }
         this.node = node;
         setCode();
     }
@@ -110,8 +98,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         Parameter pCode = null;
         if (node != null) {
             pCode = node.getParameter(codeType);
-//            pCode = node.getParameter("_code");
-            node.addDirtyListener(this);
         }
         if (pCode == null) {
             editor.setSource("");
@@ -133,7 +119,6 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
     public boolean reload() {
         if (node == null) return false;
         Parameter pCode = node.getParameter(codeType);
-//        Parameter pCode = node.getParameter("_code");
         if (pCode == null) return false;
         NodeCode code = new PythonCode(editor.getSource());
         pCode.set(code);
@@ -163,12 +148,12 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         setNode(activeNode);
     }
 
-    public void nodeDirty(Node node) {
-        // Ignore this event.
-    }
 
-    public void nodeUpdated(Node node, ProcessingContext context) {
-        updateMessages(node, context);
+    public void receive(NodeEvent event) {
+        if (event.getSource() != this.node) return;
+        if (event instanceof NodeUpdatedEvent) {
+            updateMessages(event.getSource(), ((NodeUpdatedEvent) event).getContext());
+        }
     }
 
     private void updateMessages(Node node, ProcessingContext context) {
@@ -241,19 +226,4 @@ public class EditorPane extends Pane implements DirtyListener, ComponentListener
         splitter.setLocation(linenum, columnnum);
     }
 
-    private class ReloadAction extends AbstractAction {
-        private ReloadAction() {
-            super("Reload");
-            ImageIcon icon = new ImageIcon("res/code-reload.png", "Reload");
-            putValue(Action.SMALL_ICON, icon);
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            if (node == null) return;
-            Parameter pCode = node.getParameter("_code");
-            if (pCode == null) return;
-            NodeCode code = new PythonCode(editor.getSource());
-            pCode.set(code);
-        }
-    }
 }

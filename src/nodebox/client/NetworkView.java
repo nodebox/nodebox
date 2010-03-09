@@ -5,7 +5,10 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.node.*;
+import nodebox.node.Node;
+import nodebox.node.NodeEvent;
+import nodebox.node.NodeEventListener;
+import nodebox.node.event.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,7 +19,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-public class NetworkView extends PCanvas implements PaneView, NodeChildListener, DirtyListener {
+public class NetworkView extends PCanvas implements PaneView, NodeEventListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -39,6 +42,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
     public NetworkView(Pane pane, Node node) {
         this.pane = pane;
         this.node = node;
+        this.pane.getDocument().getNodeLibrary().addListener(this);
         if (node != null)
             this.networkError = node.hasError();
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
@@ -109,16 +113,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
     public void setNode(Node node) {
         if (this.node == node) return;
         Node oldNode = this.node;
-        if (oldNode != null) {
-            oldNode.removeDirtyListener(this);
-            oldNode.removeNodeChildListener(this);
-        }
         this.node = node;
         getLayer().removeAllChildren();
         deselectAll();
         if (node == null) return;
-        node.addDirtyListener(this);
-        node.addNodeChildListener(this);
         networkError = node.hasError();
         // Add nodes
         for (Node n : node.getChildren()) {
@@ -340,12 +338,31 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
 
     //// Events ////
 
-    public void childAdded(Node source, Node child) {
+    public void receive(NodeEvent event) {
+        if (event instanceof NodeAttributeChangedEvent) {
+            if (event.getSource().getParent() != node) return;
+            childAttributeChanged(event.getSource(), ((NodeAttributeChangedEvent) event).getAttribute());
+        }
+        if (event.getSource() != node) return;
+        if (event instanceof ChildAddedEvent) {
+            childAdded(((ChildAddedEvent) event).getChild());
+        } else if (event instanceof ChildRemovedEvent) {
+            childRemoved(((ChildRemovedEvent) event).getChild());
+        } else if (event instanceof ConnectionAddedEvent || event instanceof ConnectionRemovedEvent) {
+            connectionLayer.repaint();
+        } else if (event instanceof RenderedChildChangedEvent) {
+            repaint();
+        } else if (event instanceof NodeUpdatedEvent) {
+            checkErrorAndRepaint();
+        }
+    }
+
+    public void childAdded(Node child) {
         NodeView nv = new NodeView(this, child);
         getLayer().addChild(nv);
     }
 
-    public void childRemoved(Node source, Node child) {
+    public void childRemoved(Node child) {
         NodeView nv = getNodeView(child);
         if (nv == null) return;
         getLayer().removeChild(nv);
@@ -357,27 +374,18 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
         connectionLayer.repaint();
     }
 
-    public void connectionAdded(Node source, Connection connection) {
-        connectionLayer.repaint();
-    }
-
-    public void connectionRemoved(Node source, Connection connection) {
-        connectionLayer.repaint();
-    }
-
-    public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+    public void childAttributeChanged(Node child, Node.Attribute attribute) {
         NodeView nv = getNodeView(child);
         if (nv == null) return;
         // The port is part of the icon. If a port was added or removed, also update the icon.
-        if (attribute == NodeAttributeListener.Attribute.PORT) {
+        if (attribute == Node.Attribute.PORT) {
             nv.updateIcon();
-        }
-        if (attribute == NodeAttributeListener.Attribute.NAME
-                || attribute == NodeAttributeListener.Attribute.IMAGE
-                || attribute == NodeAttributeListener.Attribute.PORT) {
+        } else if (attribute == Node.Attribute.NAME
+                || attribute == Node.Attribute.IMAGE
+                || attribute == Node.Attribute.PORT) {
             // When visual attributes change, repaint the node view.
             nv.repaint();
-        } else if (attribute == NodeAttributeListener.Attribute.POSITION) {
+        } else if (attribute == Node.Attribute.POSITION) {
             // When the position changes, change the node view offset, and also repaint the connections.
             if (!nv.getOffset().equals(child.getPosition().getPoint2D())) {
                 nv.setOffset(child.getX(), child.getY());
@@ -387,14 +395,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeChildListener,
         }
     }
 
-    public void renderedChildChanged(Node source, Node child) {
-        repaint();
-    }
-
-    public void nodeDirty(Node node) {
-    }
-
-    public void nodeUpdated(Node node, ProcessingContext context) {
+    public void checkErrorAndRepaint() {
         if (!networkError && !node.hasError()) return;
         networkError = node.hasError();
         repaint();

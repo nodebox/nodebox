@@ -18,6 +18,9 @@
  */
 package nodebox.node;
 
+import nodebox.node.event.ConnectionAddedEvent;
+import nodebox.node.event.ConnectionRemovedEvent;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,28 +28,16 @@ import java.util.Map;
 
 public class ConnectTest extends NodeTestCase {
 
-    private class ConnectListener implements NodeChildListener {
+    private class ConnectListener implements NodeEventListener {
         public int connectCounter = 0;
         public int disconnectCounter = 0;
 
-        public void childAdded(Node source, Node child) {
-        }
-
-        public void childRemoved(Node source, Node child) {
-        }
-
-        public void connectionAdded(Node source, Connection connection) {
-            ++connectCounter;
-        }
-
-        public void connectionRemoved(Node source, Connection connection) {
-            ++disconnectCounter;
-        }
-
-        public void renderedChildChanged(Node source, Node child) {
-        }
-
-        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+        public void receive(NodeEvent event) {
+            if (event instanceof ConnectionAddedEvent) {
+                connectCounter++;
+            } else if (event instanceof ConnectionRemovedEvent) {
+                disconnectCounter++;
+            }
         }
     }
 
@@ -349,7 +340,7 @@ public class ConnectTest extends NodeTestCase {
         ConnectListener l = new ConnectListener();
         // Setup a basic network with number1 <- addConstant1
         Node root = testLibrary.getRootNode();
-        root.addNodeChildListener(l);
+        testLibrary.addListener(l);
         Node number1 = root.create(numberNode);
         Node addConstant1 = root.create(addConstantNode);
         // No connect/disconnect events have been fired.
@@ -371,6 +362,7 @@ public class ConnectTest extends NodeTestCase {
         addConstant1.disconnect();
         assertEquals(2, l.connectCounter);
         assertEquals(2, l.disconnectCounter);
+        testLibrary.removeListener(l);
     }
 
     public void testReorder() {

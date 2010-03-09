@@ -218,11 +218,7 @@ public class Parameter {
         String oldName = this.name;
         this.name = name;
         node.renameParameter(this, oldName, name);
-        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
-    }
-
-    void _setName(String name) {
-        this.name = name;
+        fireAttributeChanged();
     }
 
     public void validateName(String name) {
@@ -249,7 +245,7 @@ public class Parameter {
             this.label = StringUtils.humanizeName(name);
         else
             this.label = label;
-        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
+        fireAttributeChanged();
     }
 
     public String getHelpText() {
@@ -258,7 +254,7 @@ public class Parameter {
 
     public void setHelpText(String helpText) {
         this.helpText = helpText;
-        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
+        fireAttributeChanged();
     }
 
     //// Type ////
@@ -276,7 +272,7 @@ public class Parameter {
      * The new value will be clamped to bounds (if bounding method is set to hard), and
      * the widget will be set to the default widget for this type.
      *
-     * @param newType
+     * @param newType the new type
      */
     public void setType(Type newType) {
         if (this.type == newType) return;
@@ -399,7 +395,7 @@ public class Parameter {
     }
 
     public void fireAttributeChanged() {
-        node.fireParameterAttributeChanged(this);
+        getLibrary().fireNodeAttributeChanged(node, Node.Attribute.PARAMETER);
     }
 
     //// Enable expressions ////
@@ -441,7 +437,7 @@ public class Parameter {
         } else {
             enableExpression = new Expression(this, expression);
         }
-        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
+        fireAttributeChanged();
     }
 
     /**
@@ -587,17 +583,6 @@ public class Parameter {
         }
     }
 
-    /**
-     * Return a reference to the original value stored in this parameter.
-     * <p/>
-     * This method exists for performance reasons; however, make sure not to modify the reference.
-     *
-     * @return a reference to the original value stored in the parameter.
-     */
-    public Object getValueReference() {
-        return value;
-    }
-
     public void set(Object value) throws IllegalArgumentException {
         setValue(value);
     }
@@ -623,15 +608,6 @@ public class Parameter {
 
         this.value = castValue;
         markDirty();
-    }
-
-    /**
-     * Check if this parameter is dirty and needs to be updated.
-     *
-     * @return true if the parameter is dirty.
-     */
-    public boolean isDirty() {
-        return dirty;
     }
 
     /**
@@ -749,7 +725,7 @@ public class Parameter {
             this.expression.evaluate();
         } catch (ExpressionError ignored) {
             // Note that we catch the error, but do not handle it.
-            // We want to be able to work with errornous expressions, and only have the error
+            // We want to be able to work with erroneous expressions, and only have the error
             // happen when the Node is updated, updating parameters and thus expressions.
             // We simply return false to indicate that the method has an error.
             // You can call hasExpressionError to check if the expression is faulty.
@@ -760,7 +736,7 @@ public class Parameter {
             markDirty();
             return false;
         }
-        // Setting an expession automatically enables it and marks the parameter as dirty.
+        // Setting an expression automatically enables it and marks the parameter as dirty.
         markDirty();
         try {
             updateDependencies();
@@ -798,7 +774,7 @@ public class Parameter {
 
     /**
      * The parameter dependencies function like a directed-acyclic graph, just like the node framework itself.
-     * Parameter depencies are created by setting expressions that refer to other parameters. Once these parameters
+     * Parameter dependencies are created by setting expressions that refer to other parameters. Once these parameters
      * are changed, the dependent parameters need to be changed as well.
      *
      * @throws DependencyError when there is an error creating the dependencies.
@@ -833,14 +809,6 @@ public class Parameter {
      */
     private void removeDependencies() {
         getLibrary().removeParameterDependencies(this);
-//
-//
-//        for (WeakReference<Parameter> ref : dependencies) {
-//            Parameter p = ref.get();
-//            if (p != null)
-//                p.removeDependent(this);
-//        }
-//        dependencies.clear();
     }
 
     /**
@@ -852,15 +820,9 @@ public class Parameter {
     private void removeDependents() {
         // Before removing all dependents, inform them first of the fact that one of their dependencies has changed.
         for (Parameter p : getDependents()) {
-            p.dependencyChangedEvent(this);
+            p.dependencyChangedEvent();
         }
         getLibrary().removeParameterDependents(this);
-//        for (WeakReference<Parameter> ref : dependents) {
-//            Parameter p = ref.get();
-//            if (p != null)
-//                p.removeDependency(this);
-//        }
-//        dependents.clear();
     }
 
     /**
@@ -876,13 +838,6 @@ public class Parameter {
      */
     public Set<Parameter> getDependents() {
         return getLibrary().getParameterDependents(this);
-//        Set<Parameter> set = new HashSet<Parameter>(dependents.size());
-//        for (WeakReference<Parameter> ref : dependents) {
-//            Parameter p = ref.get();
-//            if (p != null)
-//                set.add(p);
-//        }
-//        return set;
     }
 
     /**
@@ -895,13 +850,6 @@ public class Parameter {
      */
     public Set<Parameter> getDependencies() {
         return getLibrary().getParameterDependencies(this);
-//        Set<Parameter> set = new HashSet<Parameter>(dependencies.size());
-//        for (WeakReference<Parameter> ref : dependencies) {
-//            Parameter p = ref.get();
-//            if (p != null)
-//                set.add(p);
-//        }
-//        return set;
     }
 
     /**
@@ -919,22 +867,14 @@ public class Parameter {
      * has changed.
      */
     protected void fireValueChanged() {
-        getNode().fireParameterValueChanged(this);
+        getLibrary().fireValueChanged(getNode(), this);
         getNode().markDirty();
         for (Parameter p : getDependents()) {
-            p.dependencyChangedEvent(this);
+            p.dependencyChangedEvent();
         }
-//        for (WeakReference<Parameter> ref : dependents) {
-//            Parameter p = ref.get();
-//            if (p != null)
-//                p.dependencyChangedEvent(p);
-//        }
-//        for (ParameterValueListener l : listeners) {
-//            l.valueChanged(this, value);
-//        }
     }
 
-    private void dependencyChangedEvent(Parameter p) {
+    private void dependencyChangedEvent() {
         markDirty();
     }
 

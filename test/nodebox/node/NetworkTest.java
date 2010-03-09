@@ -1,26 +1,34 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
+import nodebox.node.event.*;
 
 /**
  * All tests that have to do with parent/child relationships between nodes.
  */
 public class NetworkTest extends NodeTestCase {
 
-    class TestDataListener implements DirtyListener {
+    class TestDataListener implements NodeEventListener {
+        public Node source;
         public int dirtyCounter = 0;
         public int updatedCounter = 0;
 
-        public void nodeDirty(Node node) {
-            ++dirtyCounter;
+        TestDataListener(Node source) {
+            this.source = source;
         }
 
-        public void nodeUpdated(Node node, ProcessingContext context) {
-            ++updatedCounter;
+        public void receive(NodeEvent event) {
+            if (event.getSource() != source) return;
+            if (event instanceof NodeDirtyEvent) {
+                dirtyCounter++;
+            } else if (event instanceof NodeUpdatedEvent) {
+                updatedCounter++;
+            }
         }
     }
 
-    class TestChildListener implements NodeChildListener {
+    class TestChildListener implements NodeEventListener {
+        public Node source;
         public int childAddedCounter = 0;
         public int childRemovedCounter = 0;
         public int connectionAddedCounter = 0;
@@ -28,28 +36,23 @@ public class NetworkTest extends NodeTestCase {
         public int renderedChildChangedCounter = 0;
         public int childAttributeChangedCounter = 0;
 
-        public void childAdded(Node source, Node child) {
-            ++childAddedCounter;
+        TestChildListener(Node source) {
+            this.source = source;
         }
 
-        public void childRemoved(Node source, Node child) {
-            ++childRemovedCounter;
-        }
-
-        public void connectionAdded(Node source, Connection connection) {
-            ++connectionAddedCounter;
-        }
-
-        public void connectionRemoved(Node source, Connection connection) {
-            ++connectionRemovedCounter;
-        }
-
-        public void renderedChildChanged(Node source, Node child) {
-            ++renderedChildChangedCounter;
-        }
-
-        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
-            ++childAttributeChangedCounter;
+        public void receive(NodeEvent event) {
+            if (event.getSource() != this.source) return;
+            if (event instanceof ChildAddedEvent) {
+                childAddedCounter++;
+            } else if (event instanceof ChildRemovedEvent) {
+                childRemovedCounter++;
+            } else if (event instanceof ConnectionAddedEvent) {
+                connectionAddedCounter++;
+            } else if (event instanceof ConnectionRemovedEvent) {
+                connectionRemovedCounter++;
+            } else if (event instanceof RenderedChildChangedEvent) {
+                renderedChildChangedCounter++;
+            }
         }
     }
 
@@ -71,9 +74,9 @@ public class NetworkTest extends NodeTestCase {
     }
 
     public void testDataEvent() {
-        TestDataListener l = new TestDataListener();
         Node net = testNetworkNode.newInstance(testLibrary, "net");
-        net.addDirtyListener(l);
+        TestDataListener l = new TestDataListener(net);
+        testLibrary.addListener(l);
         Node n1 = net.create(numberNode);
         Node n2 = net.create(numberNode);
         assertEquals(0, l.dirtyCounter);
@@ -119,12 +122,12 @@ public class NetworkTest extends NodeTestCase {
     }
 
     public void testChildEvent() {
-        TestChildListener l1 = new TestChildListener();
-        TestChildListener l2 = new TestChildListener();
         Node parent1 = Node.ROOT_NODE.newInstance(testLibrary, "parent1");
         Node parent2 = Node.ROOT_NODE.newInstance(testLibrary, "parent2");
-        parent1.addNodeChildListener(l1);
-        parent2.addNodeChildListener(l2);
+        TestChildListener l1 = new TestChildListener(parent1);
+        TestChildListener l2 = new TestChildListener(parent2);
+        testLibrary.addListener(l1);
+        testLibrary.addListener(l2);
         Node n1 = parent1.create(numberNode);
         assertEquals(1, l1.childAddedCounter);
         n1.setParent(parent2);

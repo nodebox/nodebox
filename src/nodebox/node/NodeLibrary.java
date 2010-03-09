@@ -1,5 +1,6 @@
 package nodebox.node;
 
+import nodebox.node.event.*;
 import nodebox.util.FileUtils;
 import org.xml.sax.SAXException;
 
@@ -32,6 +33,7 @@ public class NodeLibrary {
     private Node rootNode;
     private HashMap<String, String> variables;
     private NodeCode code;
+    private NodeEventBus eventBus = new NodeEventBus();
 
     private DependencyGraph<Parameter, Object> parameterGraph = new DependencyGraph<Parameter, Object>();
 
@@ -323,6 +325,52 @@ public class NodeLibrary {
      */
     public Set<Parameter> getParameterDependencies(Parameter p) {
         return parameterGraph.getDependencies(p);
+    }
+
+    //// Events ////
+
+    public void addListener(NodeEventListener l) {
+        eventBus.addListener(l);
+    }
+
+    public boolean removeListener(NodeEventListener l) {
+        return eventBus.removeListener(l);
+    }
+
+    public void fireNodeDirty(Node source) {
+        eventBus.send(new NodeDirtyEvent(source));
+    }
+
+    public void fireNodeUpdated(Node source, ProcessingContext context) {
+        eventBus.send(new NodeUpdatedEvent(source, context));
+    }
+
+    public void fireNodeAttributeChanged(Node source, Node.Attribute attribute) {
+        eventBus.send(new NodeAttributeChangedEvent(source, attribute));
+    }
+
+    public void fireChildAdded(Node source, Node child) {
+        eventBus.send(new ChildAddedEvent(source, child));
+    }
+
+    public void fireChildRemoved(Node source, Node child) {
+        eventBus.send(new ChildRemovedEvent(source, child));
+    }
+
+    public void fireConnectionAdded(Node source, Connection c) {
+        eventBus.send(new ConnectionAddedEvent(source, c));
+    }
+
+    public void fireConnectionRemoved(Node source, Connection c) {
+        eventBus.send(new ConnectionRemovedEvent(source, c));
+    }
+
+    public void fireRenderedChildChanged(Node source, Node child) {
+        eventBus.send(new RenderedChildChangedEvent(source, child));
+    }
+
+    public void fireValueChanged(Node source, Parameter parameter) {
+        eventBus.send(new ValueChangedEvent(source, parameter));
     }
 
     //// Standard overrides ////

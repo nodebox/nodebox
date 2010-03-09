@@ -24,7 +24,7 @@ public class ParameterGroup {
 
     public void setLabel(String label) {
         this.label = label;
-        node.fireNodeAttributeChanged(NodeAttributeListener.Attribute.PARAMETER);
+        node.getLibrary().fireNodeAttributeChanged(node, Node.Attribute.PARAMETER);
     }
 
     //// Container operations ////

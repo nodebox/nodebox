@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class AddressBar extends JPanel implements MouseListener {
+public class AddressBar extends JPanel implements MouseListener, DocumentFocusListener {
 
     public static Image addressGradient;
     public static Image addressArrow;
@@ -46,15 +46,15 @@ public class AddressBar extends JPanel implements MouseListener {
         progressBar.setBorderPainted(false);
         progressBar.setVisible(false);
         add(progressBar);
+        currentNodeChanged(document.getActiveNetwork());
     }
 
-    public Node getNode() {
-        return node;
-    }
-
-    public void setNode(Node node) {
+    public void currentNodeChanged(Node node) {
         this.node = node;
         repaint();
+    }
+
+    public void focusedNodeChanged(Node node) {
     }
 
     public boolean getProgressVisible() {
@@ -149,6 +149,6 @@ public class AddressBar extends JPanel implements MouseListener {
     @Override
     public void doLayout() {
         final int width = getWidth();
-        progressBar.setBounds(width-23, 3, 20, 20);
+        progressBar.setBounds(width - 23, 3, 20, 20);
     }
 }

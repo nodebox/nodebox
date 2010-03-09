@@ -19,6 +19,8 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
+import nodebox.node.event.NodeAttributeChangedEvent;
+import nodebox.node.event.ValueChangedEvent;
 import nodebox.node.polygraph.Polygon;
 
 import java.util.HashMap;
@@ -27,8 +29,14 @@ import java.util.Map;
 
 public class ParameterTest extends NodeTestCase {
 
-    private static class TestParameterValueListener implements ParameterValueListener {
+    private static class TestParameterValueListener implements NodeEventListener {
         public Map<Parameter, Integer> valueMap = new HashMap<Parameter, Integer>();
+
+        public void receive(NodeEvent event) {
+            if (event instanceof ValueChangedEvent) {
+                valueChanged(((ValueChangedEvent) event).getParameter());
+            }
+        }
 
         public void valueChanged(Parameter source) {
             Integer counter = valueMap.get(source);
@@ -44,11 +52,13 @@ public class ParameterTest extends NodeTestCase {
         }
     }
 
-    private static class TestParameterAttributeListener implements ParameterAttributeListener {
+    private static class TestParameterAttributeListener implements NodeEventListener {
         public int changeCounter = 0;
 
-        public void attributeChanged(Parameter source) {
-            ++changeCounter;
+        public void receive(NodeEvent event) {
+            if (event instanceof NodeAttributeChangedEvent) {
+                changeCounter++;
+            }
         }
     }
 
@@ -370,7 +380,7 @@ public class ParameterTest extends NodeTestCase {
         TestParameterValueListener l;
         Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
         l = new TestParameterValueListener();
-        n.addParameterValueListener(l);
+        testLibrary.addListener(l);
         Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
         Parameter pBeta = n.addParameter("beta", Parameter.Type.FLOAT);
         // Initialization has triggered the parameter value event.
@@ -410,23 +420,25 @@ public class ParameterTest extends NodeTestCase {
         Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
         Parameter pMenu = alpha.addParameter("menu", Parameter.Type.STRING);
         l = new TestParameterAttributeListener();
-        alpha.addParameterAttributeListener(l);
+        testLibrary.addListener(l);
         assertEquals(0, l.changeCounter);
         pMenu.setWidget(Parameter.Widget.MENU);
         assertEquals(1, l.changeCounter);
         pMenu.addMenuItem("en", "English");
         pMenu.addMenuItem("es", "Spanis");
         assertEquals(3, l.changeCounter);
+        testLibrary.removeListener(l);
 
         Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
         l = new TestParameterAttributeListener();
-        alpha.addParameterAttributeListener(l);
+        testLibrary.addListener(l);
         assertEquals(0, l.changeCounter);
         pFloat.setBoundingMethod(Parameter.BoundingMethod.HARD);
         assertEquals(1, l.changeCounter);
         pFloat.setMinimumValue(-100f);
         pFloat.setMaximumValue(100f);
         assertEquals(3, l.changeCounter);
+        testLibrary.removeListener(l);
     }
 
     /**
@@ -610,7 +622,7 @@ public class ParameterTest extends NodeTestCase {
         Node n = Node.ROOT_NODE.newInstance(testLibrary, "test");
         Parameter pAlpha = n.addParameter("alpha", Parameter.Type.FLOAT);
         CountingNodeAttributeListener listener = new CountingNodeAttributeListener();
-        n.addNodeAttributeListener(listener);
+        testLibrary.addListener(listener);
         pAlpha.setEnableExpression("");
         assertEquals(0, listener.count);
         pAlpha.setEnableExpression(null);
@@ -743,10 +755,14 @@ public class ParameterTest extends NodeTestCase {
         assertEquals(original.getWidget(), actual.getWidget());
     }
 
-    private class CountingNodeAttributeListener implements NodeAttributeListener {
+    private class CountingNodeAttributeListener implements NodeEventListener {
         public int count = 0;
-        public void attributeChanged(Node source, Attribute attribute) {
-            count++;
+
+        public void receive(NodeEvent event) {
+            if (event instanceof NodeAttributeChangedEvent) {
+                count++;
+            }
         }
+
     }
 }

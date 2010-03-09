@@ -1,9 +1,7 @@
 package nodebox.client;
 
 import nodebox.Icons;
-import nodebox.node.Node;
-import nodebox.node.Parameter;
-import nodebox.node.Port;
+import nodebox.node.*;
 
 import javax.swing.*;
 import javax.swing.event.ListDataListener;
@@ -401,9 +399,42 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         }
     }
 
+
+    private static class AllControlsType extends Builtin {
+        protected Node createInstance() {
+            NodeLibrary library = new NodeLibrary("allcontrols");
+            Node n = Node.ROOT_NODE.newInstance(library, "allcontrols", Canvas.class);
+            n.addParameter("angle", Parameter.Type.FLOAT).setWidget(Parameter.Widget.ANGLE);
+            n.addParameter("color", Parameter.Type.COLOR).setWidget(Parameter.Widget.COLOR);
+            n.addParameter("file", Parameter.Type.STRING).setWidget(Parameter.Widget.FILE);
+            n.addParameter("float", Parameter.Type.FLOAT).setWidget(Parameter.Widget.FLOAT);
+            n.addParameter("font", Parameter.Type.STRING).setWidget(Parameter.Widget.FONT);
+            n.addParameter("gradient", Parameter.Type.COLOR).setWidget(Parameter.Widget.GRADIENT);
+            n.addParameter("image", Parameter.Type.STRING).setWidget(Parameter.Widget.IMAGE);
+            n.addParameter("int", Parameter.Type.INT).setWidget(Parameter.Widget.INT);
+            n.addParameter("menu", Parameter.Type.STRING).setWidget(Parameter.Widget.MENU);
+            n.addParameter("seed", Parameter.Type.INT).setWidget(Parameter.Widget.SEED);
+            n.addParameter("string", Parameter.Type.STRING).setWidget(Parameter.Widget.STRING);
+            n.addParameter("text", Parameter.Type.STRING).setWidget(Parameter.Widget.TEXT);
+            n.addParameter("toggle", Parameter.Type.INT).setWidget(Parameter.Widget.TOGGLE);
+            n.addParameter("noderef", Parameter.Type.STRING).setWidget(Parameter.Widget.NODEREF);
+            Parameter pMenu = n.getParameter("menu");
+            pMenu.addMenuItem("red", "Red");
+            pMenu.addMenuItem("green", "Green");
+            pMenu.addMenuItem("blue", "Blue");
+            pMenu.setValue("blue");
+            return n;
+        }
+
+        @Override
+        public Object cook(Node node, ProcessingContext context) {
+            return null;
+        }
+    }
+
     public static void main(String[] args) {
         JFrame editorFrame = new JFrame();
-        Node node = new NodeBoxDocument.AllControlsType().createInstance();
+        Node node = new AllControlsType().createInstance();
         node.addPort("shape");
         editorFrame.getContentPane().add(new NodeAttributesEditor(node));
         editorFrame.setSize(580, 710);

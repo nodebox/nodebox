@@ -9,11 +9,7 @@ public class ConsolePane extends Pane {
     private Console console;
 
     public ConsolePane(NodeBoxDocument document) {
-        this();
-        setDocument(document);
-    }
-
-    public ConsolePane() {
+        super(document);
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         console = new Console(this);

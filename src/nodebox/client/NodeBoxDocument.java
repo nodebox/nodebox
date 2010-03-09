@@ -2,8 +2,8 @@ package nodebox.client;
 
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
-import nodebox.graphics.Text;
 import nodebox.node.*;
+import nodebox.node.event.NodeDirtyEvent;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 /**
  * A NodeBoxDocument manages a NodeLibrary.
  */
-public class NodeBoxDocument extends JFrame implements DirtyListener, WindowListener {
+public class NodeBoxDocument extends JFrame implements WindowListener, NodeEventListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -42,6 +42,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     private AddressBar addressBar;
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
+    private boolean loaded = false;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -53,73 +54,12 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         }
     }
 
-    public static class AllControlsType extends Builtin {
-        protected Node createInstance() {
-            NodeLibrary library = new NodeLibrary("allcontrols");
-            Node n = Node.ROOT_NODE.newInstance(library, "allcontrols", Canvas.class);
-            n.addParameter("angle", Parameter.Type.FLOAT).setWidget(Parameter.Widget.ANGLE);
-            n.addParameter("color", Parameter.Type.COLOR).setWidget(Parameter.Widget.COLOR);
-            n.addParameter("file", Parameter.Type.STRING).setWidget(Parameter.Widget.FILE);
-            n.addParameter("float", Parameter.Type.FLOAT).setWidget(Parameter.Widget.FLOAT);
-            n.addParameter("font", Parameter.Type.STRING).setWidget(Parameter.Widget.FONT);
-            n.addParameter("gradient", Parameter.Type.COLOR).setWidget(Parameter.Widget.GRADIENT);
-            n.addParameter("image", Parameter.Type.STRING).setWidget(Parameter.Widget.IMAGE);
-            n.addParameter("int", Parameter.Type.INT).setWidget(Parameter.Widget.INT);
-            n.addParameter("menu", Parameter.Type.STRING).setWidget(Parameter.Widget.MENU);
-            n.addParameter("seed", Parameter.Type.INT).setWidget(Parameter.Widget.SEED);
-            n.addParameter("string", Parameter.Type.STRING).setWidget(Parameter.Widget.STRING);
-            n.addParameter("text", Parameter.Type.STRING).setWidget(Parameter.Widget.TEXT);
-            n.addParameter("toggle", Parameter.Type.INT).setWidget(Parameter.Widget.TOGGLE);
-            n.addParameter("noderef", Parameter.Type.STRING).setWidget(Parameter.Widget.NODEREF);
-            Parameter pMenu = n.getParameter("menu");
-            pMenu.addMenuItem("red", "Red");
-            pMenu.addMenuItem("green", "Green");
-            pMenu.addMenuItem("blue", "Blue");
-            pMenu.setValue("blue");
-            return n;
-        }
-
-        private void addText(nodebox.graphics.Canvas c, Node node, String parameterName, double y) {
-            c.add(new Text(parameterName + ": " + node.asString(parameterName), 10, 24 + y * 24));
-        }
-
-        public Object cook(Node node, ProcessingContext context) {
-            nodebox.graphics.Canvas c = new nodebox.graphics.Canvas();
-            addText(c, node, "angle", 1);
-            addText(c, node, "color", 2);
-            addText(c, node, "file", 3);
-            addText(c, node, "float", 4);
-            addText(c, node, "font", 5);
-            addText(c, node, "gradient", 6);
-            addText(c, node, "image", 7);
-            addText(c, node, "int", 8);
-            addText(c, node, "menu", 9);
-            addText(c, node, "seed", 10);
-            addText(c, node, "string", 11);
-            addText(c, node, "text", 12);
-            addText(c, node, "toggle", 13);
-            addText(c, node, "noderef", 14);
-            node.setOutputValue(c);
-            return true;
-        }
-    }
-
-    public static NodeBoxDocument createNewGeometryDocument() {
-        NodeLibrary nodeLibrary = new NodeLibrary("untitled");
-        NodeLibraryManager manager = Application.getInstance().getManager();
-        Node geonet = nodeLibrary.getRootNode().create(manager.getNode("corevector.geonet"));
-        geonet.setRendered();
-        //Node geonet = Node.ROOT_NODE.newInstance(nodeLibrary, "geonet", Geometry.class);
-        NodeBoxDocument doc = new NodeBoxDocument(nodeLibrary);
-        doc.setActiveNetwork(geonet);
-        return doc;
-    }
-
     public NodeBoxDocument() {
         this(new NodeLibrary("untitled"));
     }
 
-    public NodeBoxDocument(NodeLibrary lib) {
+    public NodeBoxDocument(NodeLibrary library) {
+        setNodeLibrary(library);
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewPane = new ViewerPane(this);
         EditorPane editorPane = new EditorPane(this);
@@ -138,8 +78,8 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         addWindowListener(this);
         updateTitle();
         setJMenuBar(new NodeBoxMenuBar(this));
-        nodeLibrary = lib;
-        setNodeLibrary(nodeLibrary);
+        loaded = true;
+        requestActiveNetworkUpdate();
         //renderThread = new RenderThread();
         //renderThread.start();
     }
@@ -171,9 +111,10 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         return nodeLibrary;
     }
 
-    public void setNodeLibrary(NodeLibrary nodeLibrary) {
+    private void setNodeLibrary(NodeLibrary nodeLibrary) {
         this.nodeLibrary = nodeLibrary;
         setActiveNetwork(nodeLibrary.getRootNode());
+        nodeLibrary.addListener(this);
     }
 
     public Node getActiveNetwork() {
@@ -181,12 +122,7 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
     }
 
     public void setActiveNetwork(Node activeNetwork) {
-        Node oldNetwork = this.activeNetwork;
-        if (oldNetwork != null)
-            oldNetwork.removeDirtyListener(this);
         this.activeNetwork = activeNetwork;
-        if (activeNetwork != null)
-            activeNetwork.addDirtyListener(this);
         fireActiveNetworkChanged();
         if (activeNetwork != null && !activeNetwork.isEmpty()) {
             // Set the active node to the rendered child if available.
@@ -202,7 +138,6 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
         if (activeNetwork != null) {
             requestActiveNetworkUpdate();
         }
-        addressBar.setNode(activeNetwork);
     }
 
     public Node getActiveNode() {
@@ -535,12 +470,15 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
 
     //// Network events ////
 
-    public void nodeDirty(final Node node) {
-        if (node != activeNetwork) return;
-        requestActiveNetworkUpdate();
+    public void receive(NodeEvent event) {
+        if (event.getSource() != activeNetwork) return;
+        if (event instanceof NodeDirtyEvent) {
+            requestActiveNetworkUpdate();
+        }
     }
 
     private void requestActiveNetworkUpdate() {
+        if (!loaded) return;
         addressBar.setProgressVisible(true);
 
 
@@ -562,14 +500,6 @@ public class NodeBoxDocument extends JFrame implements DirtyListener, WindowList
                 }
             }
         });
-    }
-
-    private void doRender() {
-        //renderThread.render(activeNetwork);
-    }
-
-    public void nodeUpdated(Node node, ProcessingContext context) {
-        // Just here to statisfy DirtyListener interface.
     }
 
     //// Document Action classes ////

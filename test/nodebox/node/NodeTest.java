@@ -18,6 +18,9 @@
  */
 package nodebox.node;
 
+import nodebox.node.event.NodeAttributeChangedEvent;
+import nodebox.node.event.NodeDirtyEvent;
+import nodebox.node.event.NodeUpdatedEvent;
 import nodebox.node.polygraph.Polygon;
 
 import java.util.ArrayList;
@@ -25,10 +28,12 @@ import java.util.Collection;
 
 public class NodeTest extends NodeTestCase {
 
-    private class TestAttributeListener implements NodeAttributeListener {
+    private class TestAttributeListener implements NodeEventListener {
         public int libraryCounter, nameCounter, positionCounter, descriptionCounter, parameterCounter;
 
-        public void attributeChanged(Node source, Attribute attribute) {
+        public void receive(NodeEvent event) {
+            if (!(event instanceof NodeAttributeChangedEvent)) return;
+            Node.Attribute attribute = ((NodeAttributeChangedEvent) event).getAttribute();
             switch (attribute) {
                 case LIBRARY:
                     ++libraryCounter;
@@ -47,17 +52,24 @@ public class NodeTest extends NodeTestCase {
                     break;
             }
         }
+
     }
 
-    private class TestDirtyListener implements DirtyListener {
+    private class TestDirtyListener implements NodeEventListener {
+        public Node source;
         public int dirtyCounter, updatedCounter;
 
-        public void nodeDirty(Node node) {
-            ++dirtyCounter;
+        private TestDirtyListener(Node source) {
+            this.source = source;
         }
 
-        public void nodeUpdated(Node node, ProcessingContext context) {
-            ++updatedCounter;
+        public void receive(NodeEvent event) {
+            if (event.getSource() != source) return;
+            if (event instanceof NodeDirtyEvent) {
+                dirtyCounter++;
+            } else if (event instanceof NodeUpdatedEvent) {
+                updatedCounter++;
+            }
         }
     }
 
@@ -292,8 +304,8 @@ public class NodeTest extends NodeTestCase {
 
     public void testError() {
         Node bad = addDirectNode.newInstance(testLibrary, "bad");
-        TestDirtyListener listener = new TestDirtyListener();
-        bad.addDirtyListener(listener);
+        TestDirtyListener listener = new TestDirtyListener(bad);
+        testLibrary.addListener(listener);
         bad.setValue("v1", 12);
         bad.setValue("v2", 3);
         // Since the node starts out as dirty, setting values doesn't increase the counter.
@@ -612,7 +624,7 @@ public class NodeTest extends NodeTestCase {
     public void testNodeAttributeEvent() {
         TestAttributeListener l = new TestAttributeListener();
         Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
-        test.addNodeAttributeListener(l);
+        testLibrary.addListener(l);
         // Setting the name to itself does not trigger an event.
         test.setName("test");
         assertEquals(0, l.nameCounter);
@@ -629,7 +641,7 @@ public class NodeTest extends NodeTestCase {
         //assertEquals(4, l.parameterCounter);
         // Changing the value does not trigger the event.
         // The event only happens for metadata, not data.
-        // If you want to catch that, use DirtyListener.
+        // If you want to catch that, listen for NodeDirtyEvents.
         p1.setValue(20F);
         assertEquals(2, l.parameterCounter);
         test.removeParameter("parameter1");

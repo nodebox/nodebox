@@ -16,11 +16,7 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
 
 
     public NetworkPane(NodeBoxDocument document) {
-        this();
-        setDocument(document);
-    }
-
-    public NetworkPane() {
+        super(document);
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         newNodeButton = new NButton("New Node", "res/network-new-node.png");
@@ -31,12 +27,6 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
         networkView.addPropertyChangeListener(this);
         add(paneHeader, BorderLayout.NORTH);
         add(networkView, BorderLayout.CENTER);
-    }
-
-    @Override
-    public void setDocument(NodeBoxDocument document) {
-        super.setDocument(document);
-        if (document == null) return;
         setNode(document.getActiveNetwork());
     }
 

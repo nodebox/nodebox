@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.client.parameter.*;
 import nodebox.node.*;
+import nodebox.node.event.NodeAttributeChangedEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +12,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ParameterView extends JComponent implements PaneView, ParameterAttributeListener {
+public class ParameterView extends JComponent implements PaneView, NodeEventListener {
 
     private static Logger logger = Logger.getLogger("nodebox.client.ParameterView");
 
@@ -41,9 +42,6 @@ public class ParameterView extends JComponent implements PaneView, ParameterAttr
 
     private Node node;
 
-    private NodeEventHandler handler = new NodeEventHandler();
-    private NodeChildHandler childHandler = new NodeChildHandler();
-
     private JPanel controlPanel;
 
     public ParameterView() {
@@ -62,18 +60,12 @@ public class ParameterView extends JComponent implements PaneView, ParameterAttr
     }
 
     public void setNode(Node node) {
-        Node oldNode = this.node;
-        if (oldNode != null) {
-            oldNode.removeNodeAttributeListener(handler);
-            oldNode.removeParameterAttributeListener(this);
-            if (oldNode.hasParent()) oldNode.getParent().removeNodeChildListener(childHandler);
+        // If this is the first time the node is set, register to the library.
+        // This only needs to be done once, and this view is never re-used in another library.
+        if (this.node == null) {
+            node.getLibrary().addListener(this);
         }
         this.node = node;
-        if (node != null) {
-            node.addNodeAttributeListener(handler);
-            node.addParameterAttributeListener(this);
-            if (node.hasParent()) node.getParent().addNodeChildListener(childHandler);
-        }
         rebuildInterface();
         validate();
         repaint();
@@ -148,39 +140,9 @@ public class ParameterView extends JComponent implements PaneView, ParameterAttr
         rebuildInterface();
     }
 
-    //// Node events ////
-
-    private class NodeEventHandler implements NodeAttributeListener {
-        public void attributeChanged(Node source, Attribute attribute) {
-            if (source == getNode() && attribute == Attribute.PARAMETER) {
-                rebuildInterface();
-            }
-        }
-    }
-
-    private class NodeChildHandler implements NodeChildListener {
-        public void childAdded(Node source, Node child) {
-        }
-
-        public void childRemoved(Node source, Node child) {
-        }
-
-        public void connectionAdded(Node source, Connection connection) {
-            if (connection.getInputNode() == getNode()) {
-                rebuildInterface();
-            }
-        }
-
-        public void connectionRemoved(Node source, Connection connection) {
-            if (connection.getInputNode() == getNode()) {
-                rebuildInterface();
-            }
-        }
-
-        public void renderedChildChanged(Node source, Node child) {
-        }
-
-        public void childAttributeChanged(Node source, Node child, NodeAttributeListener.Attribute attribute) {
+    public void receive(NodeEvent event) {
+        if (event.getSource() == node && event instanceof NodeAttributeChangedEvent) {
+            rebuildInterface();
         }
     }
 

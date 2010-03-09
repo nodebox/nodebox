@@ -2,11 +2,8 @@ package nodebox.client.parameter;
 
 import nodebox.client.NButton;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ContainerEvent;
 
 public class ToggleControl extends AbstractParameterControl {
 

@@ -1,7 +1,7 @@
 package nodebox.client.parameter;
 
+import nodebox.node.NodeEventListener;
 import nodebox.node.Parameter;
-import nodebox.node.ParameterValueListener;
 
 /**
  * Interface for controls. We also expect the control to extend JComponent or a subclass.
@@ -11,7 +11,7 @@ import nodebox.node.ParameterValueListener;
  * <p/>
  * In the valueChanged event, they need to check if they are the source for the event.
  */
-public interface ParameterControl extends ParameterValueListener {
+public interface ParameterControl extends NodeEventListener {
 
     public Parameter getParameter();
 

@@ -22,7 +22,6 @@ import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.handle.Handle;
 
-import javax.swing.event.EventListenerList;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +45,7 @@ import java.util.regex.Pattern;
  * One of the vertexes in the graph is set as the rendered node, and from there on, the processing starts,
  * working its way upwards in the network, processing other nodes (and their inputs) as they come along.
  */
-public class Node implements NodeCode, NodeAttributeListener {
+public class Node implements NodeCode {
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
@@ -58,6 +57,10 @@ public class Node implements NodeCode, NodeAttributeListener {
     public static final String OUTPUT_PORT_NAME = "output";
 
     public static final Node ROOT_NODE;
+
+    public enum Attribute {
+        LIBRARY, NAME, POSITION, EXPORT, DESCRIPTION, IMAGE, PARAMETER, PORT
+    }
 
     static {
         ROOT_NODE = new Node(NodeLibrary.BUILTINS, "root", Object.class);
@@ -144,26 +147,9 @@ public class Node implements NodeCode, NodeAttributeListener {
     private DependencyGraph<Port, Connection> childGraph;
 
     /**
-     * All connections linked to the output port of this node.
-     */
-    //private List<Connection> downstreams = new ArrayList<Connection>();
-
-    /**
-     * All connections keyed by the input and going upstream to the output.
-     * Key = input port
-     * Value = a connection to the output node.
-     */
-    //private HashMap<Port, Connection> upstreams = new HashMap<Port, Connection>();
-
-    /**
      * The processing error. Null if no error occurred during processing.
      */
     private Throwable error;
-
-    /**
-     * Listeners list for all events that occur on this class.
-     */
-    private EventListenerList listenerList = new EventListenerList();
 
     //// Constructors ////
 
@@ -184,19 +170,14 @@ public class Node implements NodeCode, NodeAttributeListener {
     public void setName(String name) throws InvalidNameException {
         if (this.name.equals(name)) return;
         validateName(name);
+        this.parent.children.remove(this.name);
         this.name = name;
-        fireNodeAttributeChanged(Attribute.NAME);
+        this.parent.children.put(this.name, this);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.NAME);
     }
 
     public NodeLibrary getLibrary() {
         return library;
-    }
-
-    public void setLibrary(NodeLibrary library) {
-        this.library.remove(getName());
-        this.library = library;
-        this.library.add(this);
-        fireNodeAttributeChanged(Attribute.LIBRARY);
     }
 
     public String getIdentifier() {
@@ -226,7 +207,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setDescription(String description) {
         setValue("_description", description);
-        fireNodeAttributeChanged(Attribute.DESCRIPTION);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.DESCRIPTION);
     }
 
     public String getImage() {
@@ -235,7 +216,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setImage(String image) {
         setValue("_image", image);
-        fireNodeAttributeChanged(Attribute.IMAGE);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.IMAGE);
     }
 
     /**
@@ -296,7 +277,6 @@ public class Node implements NodeCode, NodeAttributeListener {
         this.parent = parent;
         if (parent != null) {
             parent.children.put(name, this);
-            addNodeAttributeListener(parent);
             for (Port p : ports.values()) {
                 if (parent.childGraph == null)
                     parent.childGraph = new DependencyGraph<Port, Connection>();
@@ -304,7 +284,7 @@ public class Node implements NodeCode, NodeAttributeListener {
             }
             // We're on the child node, so we need to fire the child added event
             // on the parent with this child as the argument.
-            parent.fireChildAdded(this);
+            getLibrary().fireChildAdded(parent, this);
         }
     }
 
@@ -328,11 +308,6 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (node == null)
             throw new IllegalArgumentException("The node cannot be null.");
         node.setParent(this);
-//        if (contains(node.getName())) {
-//            throw new InvalidNameException(this, node.getName(), "There is already a node named \"" + node.getName() + "\" in network " + getAbsolutePath());
-//        }
-//        node.parent = this;
-//        node.addNodeAttributeListener(this);
     }
 
     /**
@@ -398,8 +373,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (node == renderedChild) {
             setRenderedChild(null);
         }
-        node.removeNodeAttributeListener(this);
-        fireChildRemoved(node);
+        getLibrary().fireChildRemoved(this, node);
         return true;
     }
 
@@ -465,23 +439,6 @@ public class Node implements NodeCode, NodeAttributeListener {
         return new ArrayList<Node>(children.values());
     }
 
-    /**
-     * Whenever the name of a child node changes, this event gets called.
-     * Make sure the child node is still stored under the correct name.
-     *
-     * @param source    the Node this event comes from
-     * @param attribute the changed attribute
-     */
-    public void attributeChanged(Node source, Attribute attribute) {
-        // We only need to react to name changes.
-        if (attribute != Attribute.NAME) return;
-        // Check if the node exists and remove it in one operation.
-        // If remove() returns true, the given node is not a child
-        // and we should not store it.
-        if (!children.values().remove(source)) return;
-        children.put(source.getName(), source);
-    }
-
     //// Rendered ////
 
     public Node getRenderedChild() {
@@ -495,7 +452,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (this.renderedChild == renderedChild) return;
         this.renderedChild = renderedChild;
         markDirty();
-        fireRenderedChildChanged(renderedChild);
+        getLibrary().fireRenderedChildChanged(this, renderedChild);
     }
 
     public boolean isRendered() {
@@ -547,7 +504,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setX(double x) {
         this.x = x;
-        fireNodeAttributeChanged(Attribute.POSITION);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.POSITION);
     }
 
     public double getY() {
@@ -556,7 +513,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setY(double y) {
         this.y = y;
-        fireNodeAttributeChanged(Attribute.POSITION);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.POSITION);
     }
 
     public Point getPosition() {
@@ -571,7 +528,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (this.x == x && this.y == y) return;
         this.x = x;
         this.y = y;
-        fireNodeAttributeChanged(Attribute.POSITION);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.POSITION);
     }
 
     //// Export flag ////
@@ -583,7 +540,7 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setExported(boolean exported) {
         this.exported = exported;
-        fireNodeAttributeChanged(Attribute.EXPORT);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.EXPORT);
     }
 
 
@@ -605,14 +562,14 @@ public class Node implements NodeCode, NodeAttributeListener {
     public Parameter addParameter(String name, Parameter.Type type) {
         Parameter p = new Parameter(this, name, type);
         parameters.put(name, p);
-        fireNodeAttributeChanged(Attribute.PARAMETER);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.PARAMETER);
         return p;
     }
 
     public Parameter addParameter(String name, Parameter.Type type, Object value) {
         Parameter p = addParameter(name, type);
         p.setValue(value);
-        fireNodeAttributeChanged(Attribute.PARAMETER);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.PARAMETER);
         return p;
     }
 
@@ -631,7 +588,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         if (p == null) return false;
         p.removedEvent();
         parameters.remove(name);
-        fireNodeAttributeChanged(Attribute.PARAMETER);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.PARAMETER);
         markDirty();
         return true;
     }
@@ -645,7 +602,6 @@ public class Node implements NodeCode, NodeAttributeListener {
     public Parameter getParameter(String name) {
         return parameters.get(name);
     }
-
 
     /**
      * Checks if this node has a parameter with the given name.
@@ -746,7 +702,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 parent.childGraph = new DependencyGraph<Port, Connection>();
             parent.childGraph.addDependency(p, outputPort);
         }
-        fireNodeAttributeChanged(Attribute.PORT);
+        getLibrary().fireNodeAttributeChanged(this, Attribute.PORT);
         return p;
     }
 
@@ -806,268 +762,6 @@ public class Node implements NodeCode, NodeAttributeListener {
 
     public void setOutputValue(Object value) {
         outputPort.setValue(value);
-    }
-
-    //// Event handling ////
-
-    /**
-     * Add a listener that responds when this node is marked dirty.
-     *
-     * @param l the listener
-     */
-    public void addDirtyListener(DirtyListener l) {
-        listenerList.add(DirtyListener.class, l);
-    }
-
-    /**
-     * Remove a dirty listener.
-     *
-     * @param l the listener
-     */
-    public void removeDirtyListener(DirtyListener l) {
-        listenerList.remove(DirtyListener.class, l);
-    }
-
-    /**
-     * Invoked when the node is marked dirty.
-     */
-    public void fireNodeDirty() {
-        // Some event listeners remove themselves from the node as a
-        // result of handling the event. This modifies the listener list,
-        // and can cause some listeners to be skipped.
-        // By counting backwards, listeners can remove themselves
-        // without causing problems.
-        // This technique was adapted from Swing Hacks.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == DirtyListener.class) {
-                ((DirtyListener) listeners[i + 1]).nodeDirty(this);
-            }
-        }
-    }
-
-    /**
-     * Invoked when the node is updated.
-     *
-     * @param context the processing context.
-     */
-    public void fireNodeUpdated(ProcessingContext context) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == DirtyListener.class) {
-                ((DirtyListener) listeners[i + 1]).nodeUpdated(this, context);
-            }
-        }
-    }
-
-    /**
-     * Add a listener that responds to changes in the node's metadata.
-     *
-     * @param l the listener
-     */
-    public void addNodeAttributeListener(NodeAttributeListener l) {
-        listenerList.add(NodeAttributeListener.class, l);
-    }
-
-    /**
-     * Remove a node attribute listener.
-     *
-     * @param l the listener
-     */
-    public void removeNodeAttributeListener(NodeAttributeListener l) {
-        listenerList.remove(NodeAttributeListener.class, l);
-    }
-
-    /**
-     * Invoked when an attribute on the node was changed.
-     * <p/>
-     * Possible attributes are name, namespace, description, x, y.
-     *
-     * @param attribute the changed attribute
-     */
-    public void fireNodeAttributeChanged(Attribute attribute) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeAttributeListener.class) {
-                ((NodeAttributeListener) listeners[i + 1]).attributeChanged(this, attribute);
-            }
-        }
-        if (hasParent())
-            getParent().fireChildAttributeChanged(this, attribute);
-    }
-
-
-    /**
-     * Add a listener that responds to changes in the node's metadata.
-     *
-     * @param l the listener
-     */
-    public void addNodeChildListener(NodeChildListener l) {
-        listenerList.add(NodeChildListener.class, l);
-    }
-
-    /**
-     * Remove a node attribute listener.
-     *
-     * @param l the listener
-     */
-    public void removeNodeChildListener(NodeChildListener l) {
-        listenerList.remove(NodeChildListener.class, l);
-    }
-
-    /**
-     * Invoked when a child was added to this node.
-     *
-     * @param child the child node
-     */
-    public void fireChildAdded(Node child) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).childAdded(this, child);
-            }
-        }
-    }
-
-    /**
-     * Invoked when a child was removed from this node.
-     *
-     * @param child the child node
-     */
-    public void fireChildRemoved(Node child) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).childRemoved(this, child);
-            }
-        }
-    }
-
-    /**
-     * Invoked when a connection was added to this node.
-     *
-     * @param c the connection
-     */
-    public void fireConnectionAdded(Connection c) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).connectionAdded(this, c);
-            }
-        }
-    }
-
-    /**
-     * Invoked when a connection was removed from this node.
-     *
-     * @param c the connection
-     */
-    public void fireConnectionRemoved(Connection c) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).connectionRemoved(this, c);
-            }
-        }
-    }
-
-    /**
-     * Invoked when the rendered child was changed.
-     *
-     * @param child the child node
-     */
-    public void fireRenderedChildChanged(Node child) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).renderedChildChanged(this, child);
-            }
-        }
-    }
-
-    /**
-     * Invoked when an attribute on the child was changed.
-     *
-     * @param child     the child node
-     * @param attribute the changed attribute
-     * @see nodebox.node.NodeAttributeListener.Attribute
-     */
-    public void fireChildAttributeChanged(Node child, Attribute attribute) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == NodeChildListener.class) {
-                ((NodeChildListener) listeners[i + 1]).childAttributeChanged(this, child, attribute);
-            }
-        }
-    }
-
-    /**
-     * Add a listener that responds to changes in the value of a parameter.
-     *
-     * @param l the listener
-     */
-    public void addParameterValueListener(ParameterValueListener l) {
-        listenerList.add(ParameterValueListener.class, l);
-    }
-
-    /**
-     * Remove a parameter value listener.
-     *
-     * @param l the listener
-     */
-    public void removeParameterValueListener(ParameterValueListener l) {
-        listenerList.remove(ParameterValueListener.class, l);
-    }
-
-    /**
-     * Invoked when the value of the parameter was changed.
-     *
-     * @param source a Parameter
-     */
-    public void fireParameterValueChanged(Parameter source) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ParameterValueListener.class) {
-                ((ParameterValueListener) listeners[i + 1]).valueChanged(source);
-            }
-        }
-    }
-
-    /**
-     * Add a listener that responds to changes in the metadata of a parameter.
-     *
-     * @param l the listener
-     */
-    public void addParameterAttributeListener(ParameterAttributeListener l) {
-        listenerList.add(ParameterAttributeListener.class, l);
-    }
-
-    public void removeParameterAttributeListener(ParameterAttributeListener l) {
-        listenerList.remove(ParameterAttributeListener.class, l);
-    }
-
-    /**
-     * Invoked when an attribute on the parameter was changed.
-     *
-     * @param source a Parameter
-     */
-    public void fireParameterAttributeChanged(Parameter source) {
-        // See comment in #fireNodeDirty.
-        Object[] listeners = listenerList.getListenerList();
-        for (int i = listeners.length - 2; i >= 0; i -= 2) {
-            if (listeners[i] == ParameterAttributeListener.class) {
-                ((ParameterAttributeListener) listeners[i + 1]).attributeChanged(source);
-            }
-        }
     }
 
     //// Expression shortcuts ////
@@ -1166,7 +860,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         // but replacing it with itself doesn't hurt.
         parent.childGraph.addDependency(output, input, c);
         input.getNode().markDirty();
-        parent.fireConnectionAdded(c);
+        getLibrary().fireConnectionAdded(parent, c);
         return c;
     }
 
@@ -1214,7 +908,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 port.reset();
                 // This port was changed. Mark the node as dirty.
                 port.getNode().markDirty();
-                parent.fireConnectionRemoved(c);
+                getLibrary().fireConnectionRemoved(parent, c);
             }
             return removedSomething;
         } else { // Output port
@@ -1231,7 +925,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 p.reset();
                 p.getNode().markDirty();
                 removedSomething = true;
-                parent.fireConnectionRemoved(c);
+                getLibrary().fireConnectionRemoved(parent, c);
             }
             dg.removeDependents(port);
             return removedSomething;
@@ -1270,7 +964,7 @@ public class Node implements NodeCode, NodeAttributeListener {
             input.reset();
             // This port was changed. Mark the node as dirty.
             input.getNode().markDirty();
-            parent.fireConnectionRemoved(c);
+            getLibrary().fireConnectionRemoved(parent, c);
         }
         return removedSomething;
     }
@@ -1464,7 +1158,7 @@ public class Node implements NodeCode, NodeAttributeListener {
     /**
      * Check if the output port is connected to the given input port.
      *
-     * @param input the inpurt port
+     * @param input the input port
      * @return true if this node's output port is connected to the given input port.
      */
     public boolean isOutputConnectedTo(Port input) {
@@ -1497,7 +1191,7 @@ public class Node implements NodeCode, NodeAttributeListener {
                 }
             }
         }
-        fireNodeDirty();
+        getLibrary().fireNodeDirty(this);
     }
 
     public boolean isDirty() {
@@ -1590,7 +1284,7 @@ public class Node implements NodeCode, NodeAttributeListener {
         // It is important to mark the node as clean so that subsequent changes to the node mark it as dirty,
         // triggering an event. This allows you to fix the cause of the error in the node.
         dirty = false;
-        fireNodeUpdated(ctx);
+        getLibrary().fireNodeUpdated(this, ctx);
         // If exception occurs, throw it.
         if (pe != null)
             throw pe;
@@ -1678,7 +1372,6 @@ public class Node implements NodeCode, NodeAttributeListener {
         try {
             NodeCode code = asCode("_code");
             Object returnValue = code.cook(this, ctx);
-            // TODO: Adjust for cardinality
             outputPort.setValue(returnValue);
             error = null;
         } catch (ProcessingError e) {

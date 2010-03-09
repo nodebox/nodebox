@@ -1,23 +1,21 @@
 package nodebox.client;
 
-import nodebox.node.DirtyListener;
 import nodebox.node.Node;
-import nodebox.node.ProcessingContext;
+import nodebox.node.NodeEvent;
+import nodebox.node.NodeEventListener;
+import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class LoggingPane extends Pane implements DirtyListener {
+public class LoggingPane extends Pane implements NodeEventListener {
 
     private LoggingArea loggingArea;
     private Node node;
 
     public LoggingPane(NodeBoxDocument document) {
-        this();
-        setDocument(document);
-    }
-
-    public LoggingPane() {
+        super(document);
+        document.getNodeLibrary().addListener(this);
         setLayout(new BorderLayout(0, 0));
         PaneHeader paneHeader = new PaneHeader(this);
         loggingArea = new LoggingArea(80, 30);
@@ -30,23 +28,18 @@ public class LoggingPane extends Pane implements DirtyListener {
 
     @Override
     public void currentNodeChanged(Node activeNetwork) {
-        if (node != null) {
-            node.removeDirtyListener(this);
-        }
-        node = activeNetwork;
-        if (node != null)
-            node.addDirtyListener(this);
+        this.node = activeNetwork;
     }
 
-    public void nodeDirty(Node node) {
-    }
-
-    public void nodeUpdated(Node node, ProcessingContext context) {
-        StringBuffer sb = new StringBuffer();
-        if (node.hasError()) {
-            sb.append(node.getError().toString());
+    public void receive(NodeEvent event) {
+        if (event.getSource() != this.node) return;
+        if (event instanceof NodeUpdatedEvent) {
+            StringBuffer sb = new StringBuffer();
+            if (node.hasError()) {
+                sb.append(node.getError().toString());
+            }
+            loggingArea.setText(sb.toString());
         }
-        loggingArea.setText(sb.toString());
     }
 
     public Pane clone() {

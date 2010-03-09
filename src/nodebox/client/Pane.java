@@ -4,25 +4,15 @@ import nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
+import java.lang.reflect.Constructor;
 
 public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     private NodeBoxDocument document;
 
-    public Pane() {
-    }
-
     public Pane(NodeBoxDocument document) {
-        setDocument(document);
-    }
-
-    public void setDocument(NodeBoxDocument document) {
-        NodeBoxDocument oldDocument = this.document;
-        if (oldDocument != null)
-            oldDocument.removeDocumentFocusListener(this);
         this.document = document;
-        if (document != null)
-            document.addDocumentFocusListener(this);
+        document.addDocumentFocusListener(this);
     }
 
     public NodeBoxDocument getDocument() {
@@ -113,12 +103,11 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
         if (!Pane.class.isAssignableFrom(paneType)) return;
         Pane newPane;
         try {
-            newPane = (Pane) paneType.newInstance();
+            Constructor c = paneType.getConstructor(NodeBoxDocument.class);
+            newPane = (Pane) c.newInstance(this.document);
         } catch (Exception e) {
-            e.printStackTrace();
-            return;
+            throw new RuntimeException("Could not instantiate new " + paneType, e);
         }
-        newPane.setDocument(getDocument());
         Container parent = getParent();
         if (parent instanceof PaneSplitter) {
             PaneSplitter parentSplit = (PaneSplitter) parent;

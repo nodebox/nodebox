@@ -12,11 +12,7 @@ public class ViewerPane extends Pane {
     private NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck;
 
     public ViewerPane(NodeBoxDocument document) {
-        this();
-        setDocument(document);
-    }
-
-    public ViewerPane() {
+        super(document);
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         handlesCheck = new NButton(NButton.Mode.CHECK, "Handles");
@@ -35,6 +31,7 @@ public class ViewerPane extends Pane {
         viewer = new Viewer(this, null);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
+        setNode(document.getActiveNetwork());
     }
 
     public void toggleHandles() {
@@ -51,13 +48,6 @@ public class ViewerPane extends Pane {
 
     public void toggleOrigin() {
         viewer.setShowOrigin(originCheck.isChecked());
-    }
-
-    @Override
-    public void setDocument(NodeBoxDocument document) {
-        super.setDocument(document);
-        if (document == null) return;
-        setNode(document.getActiveNetwork());
     }
 
     public Node getNode() {

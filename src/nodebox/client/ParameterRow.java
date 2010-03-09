@@ -1,6 +1,11 @@
 package nodebox.client;
 
-import nodebox.node.*;
+import nodebox.node.ConnectionError;
+import nodebox.node.NodeEvent;
+import nodebox.node.NodeEventListener;
+import nodebox.node.Parameter;
+import nodebox.node.event.NodeAttributeChangedEvent;
+import nodebox.node.event.ValueChangedEvent;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -12,7 +17,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements MouseListener, ParameterValueListener, NodeAttributeListener, ActionListener {
+public class ParameterRow extends JComponent implements MouseListener, ActionListener, NodeEventListener {
 
     private static Image popupButtonImage;
 
@@ -85,15 +90,13 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
     @Override
     public void addNotify() {
         super.addNotify();
-        parameter.getNode().addParameterValueListener(this);
-        parameter.getNode().addNodeAttributeListener(this);
+        parameter.getLibrary().addListener(this);
     }
 
     @Override
     public void removeNotify() {
         super.removeNotify();
-        parameter.getNode().removeParameterValueListener(this);
-        parameter.getNode().removeNodeAttributeListener(this);
+        parameter.getLibrary().removeListener(this);
     }
 
     @Override
@@ -145,22 +148,20 @@ public class ParameterRow extends JComponent implements MouseListener, Parameter
         expressionMenuItem.setState(parameter.hasExpression());
     }
 
-    /**
-     * Check if the value change triggered a change in expression status.
-     * <p/>
-     * This can happen if revert to default switches from value to expression
-     * or vice versa.
-     *
-     * @param source the Parameter this event comes from
-     */
-    public void valueChanged(Parameter source) {
-        setEnabled(parameter.isEnabled());
-        if (parameter != source) return;
-        setExpressionStatus();
-    }
-
-    public void attributeChanged(Node source, Attribute attribute) {
-        setEnabled(parameter.isEnabled());
+    public void receive(NodeEvent event) {
+        if (event.getSource() != parameter.getNode()) return;
+        if (event instanceof ValueChangedEvent) {
+            // Check if the value change triggered a change in expression status.
+            // This can happen if revert to default switches from value to expression
+            // or vice versa.
+            ValueChangedEvent e = (ValueChangedEvent) event;
+            if (e.getParameter() != parameter) return;
+            setEnabled(parameter.isEnabled());
+            setExpressionStatus();
+        } else if (event instanceof NodeAttributeChangedEvent) {
+            setEnabled(parameter.isEnabled());
+        }
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
