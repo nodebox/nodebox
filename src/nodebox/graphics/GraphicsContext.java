@@ -85,12 +85,84 @@ public class GraphicsContext {
         return canvas.getHeight();
     }
 
-    public Color getBackground() {
+    public float getWIDTH() {
+        return canvas.getWidth();
+    }
+
+    public float getHEIGHT() {
+        return canvas.getHeight();
+    }
+
+    /**
+     * Get the current background color.
+     *
+     * @return the current background color.
+     */
+    public Color background() {
         return canvas.getBackground();
     }
 
-    public void setBackground(Color background) {
-        canvas.setBackground(background);
+    /**
+     * Set the current background color to given grayscale value.
+     *
+     * @param x the gray component.
+     * @return the current background color.
+     */
+    public Color background(float x) {
+        return canvas.setBackground(new Color(x, x, x));
+    }
+
+    /**
+     * Set the current background color to given grayscale and alpha value.
+     *
+     * @param x the grayscale value.
+     * @param y the alpha value.
+     * @return the current background color.
+     */
+    public Color background(float x, float y) {
+        return canvas.setBackground(new Color(x, x, x, y));
+    }
+
+    /**
+     * Set the current background color to the given R/G/B value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @return the current background color.
+     */
+    public Color background(float x, float y, float z) {
+        return canvas.setBackground(new Color(x, y, z));
+    }
+
+    /**
+     * Set the current background color to the given R/G/B/A value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @param a the alpha component.
+     * @return the current background color.
+     */
+    public Color background(float x, float y, float z, float a) {
+        return canvas.setBackground(new Color(x, y, z, a));
+    }
+
+    /**
+     * Set the current background color to the given color.
+     * <p/>
+     * The color object is cloned; you can change the original afterwards.
+     * If the color object is null, the current background color is turned off (same as nobackground).
+     *
+     * @param c the color object.
+     * @return the current background color.
+     */
+    public Color background(Color c) {
+        return canvas.setBackground(c == null ? null : c.clone());
+    }
+
+    public void nobackground() {
+        canvas.setBackground(null);
     }
 
     //// Attribute access ////
@@ -168,25 +240,25 @@ public class GraphicsContext {
 
     //// Path commands ////
 
-    public void beginPath() {
+    public void beginpath() {
         path = new Path();
         pathClosed = false;
     }
 
-    public void beginPath(float x, float y) {
-        beginPath();
+    public void beginpath(float x, float y) {
+        beginpath();
         moveto(x, y);
     }
 
     public void moveto(float x, float y) {
         if (path == null)
-            throw new NodeBoxError("No current path. Use beginPath() first.");
+            throw new NodeBoxError("No current path. Use beginpath() first.");
         path.moveto(x, y);
     }
 
     public void lineto(float x, float y) {
         if (path == null)
-            throw new NodeBoxError("No current path. Use beginPath() first.");
+            throw new NodeBoxError("No current path. Use beginpath() first.");
         path.lineto(x, y);
     }
 
@@ -196,24 +268,24 @@ public class GraphicsContext {
         path.curveto(x1, y1, x2, y2, x3, y3);
     }
 
-    public void closePath() {
+    public void closepath() {
         if (path == null)
-            throw new NodeBoxError("No current path. Use beginPath() first.");
+            throw new NodeBoxError("No current path. Use beginpath() first.");
         if (!pathClosed) {
             path.close();
             pathClosed = true;
         }
     }
 
-    public Path endPath() {
-        return endPath(true);
+    public Path endpath() {
+        return endpath(true);
     }
 
-    public Path endPath(boolean draw) {
+    public Path endpath(boolean draw) {
         if (path == null)
-            throw new NodeBoxError("No current path. Use beginPath() first.");
+            throw new NodeBoxError("No current path. Use beginpath() first.");
         if (autoClosePath)
-            closePath();
+            closepath();
         Path p = path;
         inheritFromContext(p);
         if (draw)
@@ -224,30 +296,38 @@ public class GraphicsContext {
         return p;
     }
 
-    public void drawPath(Path path) {
+    public void drawpath(Path path) {
         inheritFromContext(path);
         canvas.add(path);
     }
 
-    public boolean isAutoClosePath() {
+    public boolean autoclosepath() {
         return autoClosePath;
     }
 
-    public void setAutoClosePath(boolean autoClosePath) {
-        this.autoClosePath = autoClosePath;
+    public boolean autoclosepath(boolean c) {
+        return autoClosePath = c;
     }
 
-    public Path findPath(List<Point> points) {
-        return findPath(points, 1);
+    public Path findpath(List<Point> points) {
+        return findpath(points, 1);
     }
 
-    public Path findPath(List<Point> points, float curvature) {
-        throw new RuntimeException("Not implemented yet");
+    public Path findpath(List<Point> points, float curvature) {
+        throw new RuntimeException("findpath is not implemented yet.");
     }
 
     //// Clipping ////
 
     // TODO: implement clipping
+
+    public void beginclip(Path p) {
+        throw new RuntimeException("beginclip is not implemented yet.");
+    }
+
+    public void endclip() {
+        throw new RuntimeException("endclip is not implemented yet.");
+    }
 
     //// Transformation commands ////
 
@@ -256,13 +336,14 @@ public class GraphicsContext {
     }
 
     public void pop() {
-        if (transformStack.size() == 0)
+        if (transformStack.isEmpty())
             throw new NodeBoxError("Pop: too many pops!");
         transform = transformStack.get(0);
         transformStack.remove(0);
     }
 
     public void reset() {
+        transformStack.clear();
         transform = new Transform();
     }
 
@@ -292,84 +373,281 @@ public class GraphicsContext {
 
     //// Color commands ////
 
-    public Color getFill() {
+    public String outputmode() {
+        throw new RuntimeException("outputmode is not implemented yet.");
+    }
+
+    public String outputmode(String mode) {
+        throw new RuntimeException("outputmode is not implemented yet.");
+    }
+
+    public String colormode() {
+        throw new RuntimeException("colormode is not implemented yet.");
+    }
+
+    public String colormode(String mode) {
+        throw new RuntimeException("colormode is not implemented yet.");
+    }
+
+    /**
+     * Create an empty (black) color object.
+     *
+     * @return the new color.
+     */
+    public Color color() {
+        return new Color();
+    }
+
+    /**
+     * Create a new color with the given grayscale value.
+     *
+     * @param x the gray component.
+     * @return the new color.
+     */
+    public Color color(float x) {
+        return new Color(x, x, x);
+    }
+
+    /**
+     * Create a new color with the given grayscale and alpha value.
+     *
+     * @param x the grayscale value.
+     * @param y the alpha value.
+     * @return the new color.
+     */
+    public Color color(float x, float y) {
+        return new Color(x, x, x, y);
+    }
+
+    /**
+     * Create a new color with the the given R/G/B value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @return the new color.
+     */
+    public Color color(float x, float y, float z) {
+        return new Color(x, y, z);
+    }
+
+    /**
+     * Create a new color with the the given R/G/B/A value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @param a the alpha component.
+     * @return the new color.
+     */
+    public Color color(float x, float y, float z, float a) {
+        return new Color(x, y, z, a);
+    }
+
+    /**
+     * Create a new color with the the given color.
+     * <p/>
+     * The color object is cloned; you can change the original afterwards.
+     * If the color object is null, the new color is turned off (same as nocolor).
+     *
+     * @param c the color object.
+     * @return the new color.
+     */
+    public Color color(Color c) {
+        return c == null ? new Color(0, 0, 0, 0) : c.clone();
+    }
+
+    /**
+     * Get the current fill color.
+     *
+     * @return the current fill color.
+     */
+    public Color fill() {
         return fillColor;
     }
 
-    public Color getFillColor() {
-        return fillColor;
+    /**
+     * Set the current fill color to given grayscale value.
+     *
+     * @param x the gray component.
+     * @return the current fill color.
+     */
+    public Color fill(float x) {
+        return fillColor = new Color(x, x, x);
     }
 
-    public void setFill(Color fillColor) {
-        setFillColor(fillColor);
+    /**
+     * Set the current fill color to given grayscale and alpha value.
+     *
+     * @param x the grayscale value.
+     * @param y the alpha value.
+     * @return the current fill color.
+     */
+    public Color fill(float x, float y) {
+        return fillColor = new Color(x, x, x, y);
     }
 
-    public void setFillColor(Color fillColor) {
-        this.fillColor = fillColor == null ? null : fillColor.clone();
+    /**
+     * Set the current fill color to the given R/G/B value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @return the current fill color.
+     */
+    public Color fill(float x, float y, float z) {
+        return fillColor = new Color(x, y, z);
     }
 
-    public Color getStroke() {
+    /**
+     * Set the current fill color to the given R/G/B/A value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @param a the alpha component.
+     * @return the current fill color.
+     */
+    public Color fill(float x, float y, float z, float a) {
+        return fillColor = new Color(x, y, z, a);
+    }
+
+    /**
+     * Set the current fill color to the given color.
+     * <p/>
+     * The color object is cloned; you can change the original afterwards.
+     * If the color object is null, the current fill color is turned off (same as nofill).
+     *
+     * @param c the color object.
+     * @return the current fill color.
+     */
+    public Color fill(Color c) {
+        return fillColor = c == null ? null : c.clone();
+    }
+
+    public void nofill() {
+        fillColor = null;
+    }
+
+    /**
+     * Get the current stroke color.
+     *
+     * @return the current stroke color.
+     */
+    public Color stroke() {
         return strokeColor;
     }
 
-    public Color getStrokeColor() {
-        return strokeColor;
+    /**
+     * Set the current stroke color to given grayscale value.
+     *
+     * @param x the gray component.
+     * @return the current stroke color.
+     */
+    public Color stroke(float x) {
+        return strokeColor = new Color(x, x, x);
     }
 
-    public void setStroke(Color strokeColor) {
-        setStrokeColor(strokeColor);
+    /**
+     * Set the current stroke color to given grayscale and alpha value.
+     *
+     * @param x the grayscale value.
+     * @param y the alpha value.
+     * @return the current stroke color.
+     */
+    public Color stroke(float x, float y) {
+        return strokeColor = new Color(x, x, x, y);
     }
 
-    public void setStrokeColor(Color strokeColor) {
-        this.strokeColor = strokeColor == null ? null : strokeColor.clone();
+    /**
+     * Set the current stroke color to the given R/G/B value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @return the current stroke color.
+     */
+    public Color stroke(float x, float y, float z) {
+        return strokeColor = new Color(x, y, z);
     }
 
-    public float getStrokeWidth() {
+    /**
+     * Set the current stroke color to the given R/G/B/A value.
+     *
+     * @param x the red component.
+     * @param y the green component.
+     * @param z the blue component.
+     * @param a the alpha component.
+     * @return the current stroke color.
+     */
+    public Color stroke(float x, float y, float z, float a) {
+        return strokeColor = new Color(x, y, z, a);
+    }
+
+    /**
+     * Set the current stroke color to the given color.
+     * <p/>
+     * The color object is cloned; you can change the original afterwards.
+     * If the color object is null, the current stroke color is turned off (same as nostroke).
+     *
+     * @param c the color object.
+     * @return the current stroke color.
+     */
+    public Color stroke(Color c) {
+        return strokeColor = c == null ? null : c.clone();
+    }
+
+    public void nostroke() {
+        strokeColor = null;
+    }
+
+    public float strokewidth() {
         return strokeWidth;
     }
 
-    public void setStrokeWidth(float strokeWidth) {
-        this.strokeWidth = strokeWidth;
+    public float strokewidth(float w) {
+        return strokeWidth = w;
     }
 
     //// Font commands ////
 
-    public void setFont(String fontName, float fontSize) {
-        setFontName(fontName);
-        setFontSize(fontSize);
-    }
-
-    public String getFontName() {
+    public String font() {
         return fontName;
     }
 
-    public void setFontName(String fontName) {
+    public String font(String fontName) {
         if (!Text.fontExists(fontName))
             throw new NodeBoxError("Font '" + fontName + "' does not exist.");
-        this.fontName = fontName;
+        return this.fontName = fontName;
     }
 
-    public float getFontSize() {
+    public String font(String fontName, float fontSize) {
+        font(fontName);
+        fontsize(fontSize);
+        return fontName;
+    }
+
+    public float fontsize() {
         return fontSize;
     }
 
-    public void setFontSize(float fontSize) {
-        this.fontSize = fontSize;
+    public float fontsize(float s) {
+        return fontSize = s;
     }
 
-    public float getLineHeight() {
+    public float lineheight() {
         return lineHeight;
     }
 
-    public void setLineHeight(float lineHeight) {
-        this.lineHeight = lineHeight;
+    public float lineheight(float lineHeight) {
+        return this.lineHeight = lineHeight;
     }
 
-    public Text.Align getAlign() {
+    public Text.Align align() {
         return align;
     }
 
-    public void setAlign(Text.Align align) {
+    public void align(Text.Align align) {
         this.align = align;
     }
 
@@ -388,34 +666,51 @@ public class GraphicsContext {
         return t;
     }
 
-    public Path textPath(String text, float x, float y) {
-        return textPath(text, x, y, 0, 0);
+    public Path textpath(String text, float x, float y) {
+        return textpath(text, x, y, 0, 0);
     }
 
-    public Path textPath(String text, float x, float y, float width) {
-        return textPath(text, x, y, width, 0);
+    public Path textpath(String text, float x, float y, float width) {
+        return textpath(text, x, y, width, 0);
     }
 
-    public Path textPath(String text, float x, float y, float width, float height) {
+    public Path textpath(String text, float x, float y, float width, float height) {
         Text t = new Text(text, x, y, width, height);
+        inheritFromContext(t);
         Path p = new Path();
         p.text(t);
         inheritFromContext(p);
         return p;
     }
 
-    public Rect textMetrics(String text) {
-        return textMetrics(text, 0, 0);
+    public Rect textmetrics(String text) {
+        return textmetrics(text, 0, 0);
     }
 
-    public Rect textMetrics(String text, float width) {
-        return textMetrics(text, width, 0);
+    public Rect textmetrics(String text, float width) {
+        return textmetrics(text, width, 0);
     }
 
-    public Rect textMetrics(String text, float width, float height) {
+    public Rect textmetrics(String text, float width, float height) {
         Text t = new Text(text, 0, 0, width, height);
         inheritFromContext(t);
         return t.getMetrics();
+    }
+
+    public float textwidth(String text) {
+        return textmetrics(text, 0, 0).getWidth();
+    }
+
+    public float textwidth(String text, float width) {
+        return textmetrics(text, width).getWidth();
+    }
+
+    public float textheight(String text) {
+        return textmetrics(text, 0, 0).getHeight();
+    }
+
+    public float textheight(String text, float width) {
+        return textmetrics(text, width).getHeight();
     }
 
     //// Image methods ////
@@ -429,7 +724,7 @@ public class GraphicsContext {
         return img;
     }
 
-    public Size imageSize(String path) {
+    public Size imagesize(String path) {
         Image img = new Image(path);
         return img.getSize();
     }
@@ -444,6 +739,37 @@ public class GraphicsContext {
      */
     public void draw(Grob grob) {
         canvas.add(grob);
+    }
+
+    //// Utility methods ////
+
+    public void var(Object... args) {
+        throw new RuntimeException("var is no longer supported. Create parameters on the node instead.");
+    }
+
+    public double random() {
+        return Math.random();
+    }
+
+    public long random(int max) {
+        return Math.round(Math.random() * max);
+    }
+
+    public long random(int min, int max) {
+        return Math.round(min + (Math.random() * (max - min)));
+    }
+
+    public double random(double max) {
+        return Math.random() * max;
+    }
+
+    public double random(double min, double max) {
+        return min + (Math.random() * (max - min));
+    }
+
+    public Object choice(List objects) {
+        if (objects == null || objects.isEmpty()) return null;
+        return objects.get((int) random(objects.size()));
     }
 
     //// Context inheritance ////

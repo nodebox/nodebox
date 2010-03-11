@@ -33,8 +33,8 @@ public class ScaleHandle extends AbstractHandle {
     }
 
     public void draw(GraphicsContext ctx) {
-        ctx.setFillColor(null);
-        ctx.setStrokeColor(HANDLE_COLOR);
+        ctx.nofill();
+        ctx.stroke(HANDLE_COLOR);
         float halfWidth = handleWidth / 2;
         float halfHeight = handleHeight / 2;
         ctx.rect(0, 0, handleWidth, handleHeight);

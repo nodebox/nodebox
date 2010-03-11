@@ -52,8 +52,8 @@ public class Canvas extends AbstractTransformable {
         return background;
     }
 
-    public void setBackground(Color background) {
-        this.background = background;
+    public Color setBackground(Color background) {
+        return this.background = background;
     }
 
     public float getWidth() {

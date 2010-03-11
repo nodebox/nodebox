@@ -1,10 +1,6 @@
 package nodebox.handle;
 
-import nodebox.graphics.Color;
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Path;
-import nodebox.graphics.Point;
-import nodebox.graphics.Rect;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 import nodebox.util.Geometry;
 
@@ -34,7 +30,7 @@ public class RotateHandle extends AbstractHandle {
         this.xName = xName;
         this.yName = yName;
     }
-    
+
     private float getCenterX() {
         if (xName != null)
             return node.asFloat(xName);
@@ -52,8 +48,8 @@ public class RotateHandle extends AbstractHandle {
     public void draw(GraphicsContext ctx) {
         float cx = getCenterX();
         float cy = getCenterY();
-        ctx.setFillColor(null);
-        ctx.setStrokeColor(HANDLE_COLOR);
+        ctx.fill(null);
+        ctx.stroke(HANDLE_COLOR);
         ctx.ellipse(cx, cy, handleLength * 2, handleLength * 2);
         double[] xy;
         if (dragState == DragState.NONE || dragState == DragState.HANDLE)
@@ -66,7 +62,7 @@ public class RotateHandle extends AbstractHandle {
         float x = (float) xy[0];
         float y = (float) xy[1];
         ctx.line(cx, cy, x, y);
-        ctx.setFillColor(new Color(1, 1, 1));
+        ctx.fill(new Color(1, 1, 1));
         ctx.ellipse(x, y, 6, 6);
         if (dragState == DragState.HANDLE) {
             xy = Geometry.coordinates(cx, cy, handleLength, oa);
@@ -115,7 +111,7 @@ public class RotateHandle extends AbstractHandle {
             node.silentSet(angleName, oa + a - pa);
         return true;
     }
-    
+
     @Override
     public boolean mouseReleased(Point pt) {
         if (dragState == DragState.NONE) return false;

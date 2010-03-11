@@ -35,9 +35,9 @@ public class TranslateHandle extends AbstractHandle {
         float y = node.asFloat(tyName);
         Path p = new Path();
         p.setFillColor(HANDLE_COLOR);
-        ctx.setStrokeColor(HANDLE_COLOR);
+        ctx.stroke(HANDLE_COLOR);
         p.setStrokeColor(null);
-        ctx.setFillColor(null);
+        ctx.fill(null);
         drawDot(ctx, x, y);
 
         if (dragState == DragState.NONE) {
@@ -88,7 +88,7 @@ public class TranslateHandle extends AbstractHandle {
             p.lineto(x - 5, y1);
             p.lineto(x + 5, y1);
         }
-        ctx.setStrokeColor(null);
+        ctx.stroke(null);
         ctx.draw(p);
     }
 
