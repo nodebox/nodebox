@@ -80,6 +80,10 @@ public class Path extends AbstractGeometry implements Colorizable {
         return fillColor;
     }
 
+    public Color getFill() {
+        return fillColor;
+    }
+
     public void setFillColor(Color fillColor) {
         this.fillColor = fillColor;
     }
@@ -89,6 +93,10 @@ public class Path extends AbstractGeometry implements Colorizable {
     }
 
     public Color getStrokeColor() {
+        return strokeColor;
+    }
+
+    public Color getStroke() {
         return strokeColor;
     }
 
