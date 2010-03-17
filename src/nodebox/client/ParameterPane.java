@@ -13,7 +13,6 @@ public class ParameterPane extends Pane {
 
     public ParameterPane(NodeBoxDocument document) {
         super(document);
-        setNode(document.getActiveNode());
         setLayout(new BorderLayout());
         paneHeader = new PaneHeader(this);
         NButton metadataButton = new NButton("Metadata", "res/parameter-metadata.png");
@@ -22,6 +21,7 @@ public class ParameterPane extends Pane {
         parameterView = new ParameterView();
         add(paneHeader, BorderLayout.NORTH);
         add(parameterView, BorderLayout.CENTER);
+        setNode(document.getActiveNode());
     }
 
     public Pane clone() {

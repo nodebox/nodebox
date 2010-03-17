@@ -9,8 +9,6 @@ import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -54,10 +52,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
     }
 
-    public NodeBoxDocument() {
-        this(new NodeLibrary("untitled"));
-    }
-
     public NodeBoxDocument(NodeLibrary library) {
         setNodeLibrary(library);
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -84,6 +78,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         //renderThread.start();
     }
 
+    public NodeBoxDocument(File file) throws RuntimeException {
+        this(NodeLibrary.load(file, Application.getInstance().getManager()));
+        lastFilePath = file.getParentFile().getAbsolutePath();
+    }
 
     //// Document events ////
 
@@ -177,55 +175,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public boolean isChanged() {
         return documentChanged;
-    }
-
-    public static void open(File file) {
-        lastFilePath = file.getParentFile().getAbsolutePath();
-        String path;
-        try {
-            path = file.getCanonicalPath();
-            for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
-
-                try {
-                    if (doc.getDocumentFile() == null) continue;
-                    if (doc.getDocumentFile().getCanonicalPath().equals(path)) {
-                        doc.toFront();
-                        doc.requestFocus();
-                        NodeBoxMenuBar.addRecentFile(file);
-                        return;
-                    }
-                } catch (IOException e) {
-                    logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
-                }
-            }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
-        }
-        NodeBoxDocument doc = Application.getInstance().createNewDocument();
-        if (doc.readFromFile(file)) {
-            doc.setDocumentFile(file);
-        }
-        NodeBoxMenuBar.addRecentFile(file);
-    }
-
-    public boolean readFromFile(String path) {
-        return readFromFile(new File(path));
-    }
-
-    public boolean readFromFile(File file) {
-        try {
-            NodeLibrary library = NodeLibrary.load(file, getManager());
-            setNodeLibrary(library);
-            setDocumentFile(file);
-            // The parsed network is now stored in the reader
-            documentChanged = false;
-            return true;
-        } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Error while parsing" + file, e);
-            ExceptionDialog d = new ExceptionDialog(this, e);
-            d.setVisible(true);
-        }
-        return false;
     }
 
     public boolean shouldClose() {
@@ -500,22 +449,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                 }
             }
         });
-    }
-
-    //// Document Action classes ////
-
-    public class OpenAction extends AbstractAction {
-        public OpenAction() {
-            putValue(NAME, "Open...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_O));
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            File chosenFile = FileUtils.showOpenDialog(NodeBoxDocument.this, lastFilePath, "ndbx", "NodeBox Document");
-            if (chosenFile != null) {
-                open(chosenFile);
-            }
-        }
     }
 
 }

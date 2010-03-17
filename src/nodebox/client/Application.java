@@ -27,6 +27,7 @@ import nodebox.versioncheck.Version;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -139,9 +140,7 @@ public class Application implements Host {
 
     public boolean readFromFile(String path) {
         // This method looks unused, but is actually called using reflection by the OS X adapter.
-        NodeBoxDocument doc = createNewDocument();
-        doc.readFromFile(path);
-        return true;
+        return openDocument(new File(path));
     }
 
     private void load() {
@@ -192,12 +191,52 @@ public class Application implements Host {
     }
 
     public NodeBoxDocument createNewDocument() {
-        NodeBoxDocument doc = new NodeBoxDocument();
+        NodeBoxDocument doc = new NodeBoxDocument(new NodeLibrary("untitled"));
+        addDocument(doc);
+        return doc;
+    }
+
+    public boolean openDocument(File file) {
+        // Check if the document is already open.
+        String path;
+        try {
+            path = file.getCanonicalPath();
+            for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
+                try {
+                    if (doc.getDocumentFile() == null) continue;
+                    if (doc.getDocumentFile().getCanonicalPath().equals(path)) {
+                        // The document is already open. Bring it to the front.
+                        doc.toFront();
+                        doc.requestFocus();
+                        NodeBoxMenuBar.addRecentFile(file);
+                        return true;
+                    }
+                } catch (IOException e) {
+                    logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
+                }
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
+        }
+
+        try {
+            NodeBoxDocument doc = new NodeBoxDocument(file);
+            addDocument(doc);
+            NodeBoxMenuBar.addRecentFile(file);
+            return true;
+        } catch (RuntimeException e) {
+            logger.log(Level.SEVERE, "Error while loading " + file, e);
+            ExceptionDialog d = new ExceptionDialog(null, e);
+            d.setVisible(true);
+            return false;
+        }
+    }
+
+    private void addDocument(NodeBoxDocument doc) {
         doc.setVisible(true);
         doc.requestFocus();
         documents.add(doc);
         currentDocument = doc;
-        return doc;
     }
 
     public NodeBoxDocument getCurrentDocument() {

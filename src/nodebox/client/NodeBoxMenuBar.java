@@ -188,7 +188,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         public void actionPerformed(ActionEvent e) {
             File chosenFile = FileUtils.showOpenDialog(getDocument(), NodeBoxDocument.lastFilePath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
-                NodeBoxDocument.open(chosenFile);
+                Application.getInstance().openDocument(chosenFile);
             }
         }
     }
@@ -203,7 +203,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            NodeBoxDocument.open(file);
+            Application.getInstance().openDocument(file);
         }
     }
 
