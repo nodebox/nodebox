@@ -141,9 +141,10 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
     }
 
     public void receive(NodeEvent event) {
-        if (event.getSource() == node && event instanceof NodeAttributeChangedEvent) {
-            rebuildInterface();
-        }
+        if (event.getSource() != node) return;
+        if (!(event instanceof NodeAttributeChangedEvent)) return;
+        if (((NodeAttributeChangedEvent) event).getAttribute() == Node.Attribute.POSITION) return;
+        rebuildInterface();
     }
 
     private class ControlPanel extends JPanel {
