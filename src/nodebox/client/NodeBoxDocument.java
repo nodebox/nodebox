@@ -4,6 +4,7 @@ import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
+import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -81,6 +82,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public NodeBoxDocument(File file) throws RuntimeException {
         this(NodeLibrary.load(file, Application.getInstance().getManager()));
         lastFilePath = file.getParentFile().getAbsolutePath();
+        setDocumentFile(file);
     }
 
     //// Document events ////
@@ -260,7 +262,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
 
     public void markChanged() {
-        if (!documentChanged) {
+        if (!documentChanged && loaded) {
             documentChanged = true;
             updateTitle();
             getRootPane().putClientProperty(WINDOW_MODIFIED, Boolean.TRUE);
@@ -420,8 +422,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     //// Network events ////
 
     public void receive(NodeEvent event) {
-        if (event.getSource() != activeNetwork) return;
-        if (event instanceof NodeDirtyEvent) {
+        // Every event, except NodeDirty and NodeUpdated, will mark the document as changed.
+        if (!(event instanceof NodeDirtyEvent) && !(event instanceof NodeUpdatedEvent)) {
+            markChanged();
+        }
+        if (event instanceof NodeDirtyEvent && event.getSource() == activeNetwork) {
             requestActiveNetworkUpdate();
         }
     }
@@ -435,7 +440,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             public void run() {
                 // If meanwhile the node has been marked clean, ignore the event.
                 if (!activeNetwork.isDirty()) return;
-                markChanged();
                 try {
                     activeNetwork.update();
                 } catch (ProcessingError processingError) {
