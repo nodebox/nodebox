@@ -2599,39 +2599,13 @@ def cook(self):
     return p.asGeometry()]]></value>
         </param>
         <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import AbstractHandle, FourPointHandle
+            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle
 
-class StarHandle(AbstractHandle):
+class StarHandle(CombinedHandle):
     def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.innerHandle = FourPointHandle(node, "x", "y", "inner", "inner")
-        self.outerHandle = FourPointHandle(node, "x", "y", "outer", "outer")
-        self.mousedown = False
-
-    def draw(self, ctx):
-        self.innerHandle.draw(ctx)
-        self.outerHandle.draw(ctx)
-
-    def mousePressed(self, pt):
-        inner, outer = self.innerHandle, self.outerHandle
-
-        # if the inner diameter is larger than the outer,
-        # we should first check the handles of the outer rectangle,
-        # so treat the outer as if it was the inner.
-        if abs(self.node.asFloat("inner")) > abs(self.node.asFloat("outer")):
-            inner, outer = outer, inner
-
-        self.mousedown = inner.mousePressed(pt) or outer.mousePressed(pt)
-        return self.mousedown
-
-    def mouseDragged(self, pt):
-        if not self.mousedown: return False
-        return self.innerHandle.mouseDragged(pt) or self.outerHandle.mouseDragged(pt)
-
-    def mouseReleased(self, pt):
-        if not self.mousedown: return False
-        self.mousedown = False
-        return self.innerHandle.mouseReleased(pt) or self.outerHandle.mouseReleased(pt)
+        CombinedHandle.__init__(self, node)
+        self.addHandle(CircleScaleHandle(node, "inner", CircleScaleHandle.Mode.DIAMETER))
+        self.addHandle(CircleScaleHandle(node, "outer", CircleScaleHandle.Mode.DIAMETER))
 
 def cook(self):
     return StarHandle(self.node)]]></value>
