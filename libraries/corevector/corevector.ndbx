@@ -2362,8 +2362,8 @@ class SnapHandle(PointHandle):
         snap_x = self.node.asFloat("x")
         snap_y = self.node.asFloat("y")
         distance = self.node.asFloat("distance")
-        ctx.stroke = Color(0.4, 0.4, 0.4, 0.5)
-        ctx.strokeWidth = 1.0
+        ctx.stroke(0.4, 0.4, 0.4, 0.5)
+        ctx.strokewidth(1.0)
         for i in xrange(-100, 100):
             x = -snap_x + (i * distance)
             y = -snap_y + (i * distance)
