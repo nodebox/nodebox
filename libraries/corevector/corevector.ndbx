@@ -791,10 +791,10 @@ class BezierPathEditor(AbstractHandle):
 
         x, y = self.mouse()
         
-        _ctx.strokeWidth = self.strokewidth
+        _ctx.strokewidth(self.strokewidth)
         
         r = 4
-        _ctx.fillColor = None
+        _ctx.nofill()
         if len(self._points) > 0:
             first = True
             for i in range(len(self._points)):
@@ -807,19 +807,19 @@ class BezierPathEditor(AbstractHandle):
                 if ((i == self.edit and self.new == None) \
                 or pt == self.new) \
                 and pt.cmd == CURVETO:
-                    _ctx.strokeColor = self.handle_color
-                    _ctx.fillColor = None
+                    _ctx.stroke(self.handle_color)
+                    _ctx.nofill()
                     _ctx.ellipse(pt.x, pt.y, r*2, r*2)
-                    _ctx.strokeColor = self.handle_color
+                    _ctx.stroke(self.handle_color)
                     _ctx.line(pt.ctrl2.x, pt.ctrl2.y, pt.x, pt.y)
-                    _ctx.fillColor = self.handle_color
+                    _ctx.fill(self.handle_color)
                 # Display the new point's handle being dragged.
                 if pt == self.new:
                     rx, ry = self.reflect(pt.x, pt.y, pt.ctrl2.x, pt.ctrl2.y)
-                    _ctx.strokeColor = self.handle_color
+                    _ctx.stroke(self.handle_color)
                     _ctx.line(rx, ry, pt.x, pt.y)
-                    _ctx.strokeColor = None
-                    _ctx.fillColor = self.handle_color
+                    _ctx.nostroke()
+                    _ctx.fill(self.handle_color)
                     _ctx.ellipse(rx, ry, r, r)
                 # Display handles for point being edited.
                 if i == self.edit \
@@ -841,23 +841,23 @@ class BezierPathEditor(AbstractHandle):
                 # highlight it.
                 elif self.overlap(x, y, pt.x, pt.y):
                     self.insert = False # quit insert mode
-                    _ctx.fillColor = None
-                    _ctx.strokeColor = self.handle_color
+                    _ctx.nofill()
+                    _ctx.stroke(self.handle_color)
                     _ctx.ellipse(pt.x, pt.y, r*2, r*2)
                 
                 if pt.cmd != MOVETO:
-                    _ctx.fillColor = self.path_color
-                    _ctx.strokeColor = None
+                    _ctx.fill(self.path_color)
+                    _ctx.nostroke()
                 else:
-                    _ctx.strokeColor = self.path_color
-                    _ctx.fillColor = None
+                    _ctx.stroke(self.path_color)
+                    _ctx.nofill()
                 _ctx.ellipse(pt.x, pt.y, r, r)
                 
 
             # Possible to insert a point here.
             if self.insert:
-                _ctx.strokeColor = self.handle_color
-                _ctx.fillColor = None
+                _ctx.stroke(self.handle_color)
+                _ctx.nofill()
                 _ctx.ellipse(x, y, r*1.6, r*1.6)
                 
             # When not editing a node,
@@ -866,12 +866,12 @@ class BezierPathEditor(AbstractHandle):
             if self.edit == None \
             and self.new == None \
             and self.moveto != True:
-                _ctx.fillColor = None
-                _ctx.strokeColor = self.new_color
+                _ctx.nofill()
+                _ctx.stroke(self.new_color)
                 rx, ry = self.reflect(pt.x, pt.y, pt.ctrl2.x, pt.ctrl2.y)
-                _ctx.beginPath(pt.x, pt.y)
+                _ctx.beginpath(pt.x, pt.y)
                 _ctx.curveto(rx, ry, x, y, x, y)
-                _ctx.endPath()
+                _ctx.endpath()
 
                 # A dashed line indicates what
                 # a CLOSETO would look like.
@@ -885,8 +885,8 @@ class BezierPathEditor(AbstractHandle):
             elif self.edit == None \
             and self.new == None \
             and self.moveto != None:
-                _ctx.strokeColor = self.new_color
-                _ctx.fillColor = None
+                _ctx.stroke(self.new_color)
+                _ctx.nofill()
                 _ctx.ellipse(x, y, r*1.6, r*1.6)
             
             # Draws button for a point being edited.
@@ -899,20 +899,20 @@ class BezierPathEditor(AbstractHandle):
                 x = pt.x + self.btn_x
                 y = pt.y + self.btn_y
                 r = self.btn_r
-                _ctx.strokeColor = None
-                _ctx.fillColor = Color(0, 0, 0, 0.2)
-                _ctx.fillColor = self.handle_color
+                _ctx.nostroke()
+                _ctx.fill(0, 0, 0, 0.2)
+                _ctx.fill(self.handle_color)
                 _ctx.ellipse(x, y, r*2, r*2)
-                _ctx.fillColor = Color(1, 1, 1)
+                _ctx.fill(1, 1, 1)
                 _ctx.rotate(45)
                 _ctx.rect(x, y, r+1, 1.25)
                 _ctx.rotate(-90)
                 _ctx.rect(x, y, r+1, 1.25)
                 _ctx.reset()
                 if self.edit == len(self._points)-1:
-                    _ctx.fillColor = self.handle_color
+                    _ctx.fill(self.handle_color)
                     _ctx.ellipse(x+r*2+2, y, r*2, r*2)
-                    _ctx.fillColor = Color(1, 1, 1)
+                    _ctx.fill(1, 1, 1)
                     _ctx.rect(x+r*2+3-2.25, y, 1.5, r-1)
                     _ctx.rect(x+r*2+3+0.75, y, 1.5, r-1)
         
