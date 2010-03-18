@@ -1720,9 +1720,9 @@ class FreeHandEditor(AbstractHandle):
             
             # Draws the current location of the cursor.
             r = 4
-            _ctx.fillColor = None
-            _ctx.strokeWidth = self.strokewidth
-            _ctx.strokeColor = self.handle_color
+            _ctx.nofill()
+            _ctx.strokewidth(self.strokewidth)
+            _ctx.stroke(self.handle_color)
             _ctx.ellipse(x, y, r*2, r*2)
         
     def export(self):
