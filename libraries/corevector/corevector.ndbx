@@ -2229,6 +2229,11 @@ class ReflectHandle(CombinedHandle):
         CombinedHandle.__init__(self, node)
         self.addHandle(TranslateHandle(node, "x", "y"))
         self.addHandle(RotateHandle(node, "angle", "x", "y"))
+        self.update()
+        
+    def update(self):
+        CombinedHandle.update(self)
+        self.visible = self.node.getPort("shape").value is not None
     
     def draw(self, ctx):
         x = self.node.asFloat("x")
@@ -2236,7 +2241,7 @@ class ReflectHandle(CombinedHandle):
         a = self.node.asFloat("angle")
         x1, y1 = coordinates(x, y, -1000, a)
         x2, y2 = coordinates(x, y, 1000, a)
-        ctx.strokeColor = self.HANDLE_COLOR
+        ctx.stroke(self.HANDLE_COLOR)
         ctx.line(x1, y1, x2, y2)
         CombinedHandle.draw(self, ctx)
 
