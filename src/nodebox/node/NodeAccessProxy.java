@@ -143,12 +143,12 @@ public class NodeAccessProxy implements Map {
 
         // Network searches
         // If this is a network, search its nodes first.
-        if (node.contains(k)) {
+        if (node.containsChildNode(k)) {
             return new NodeAccessProxy(node.getChild(k), markedParameterReferences);
         }
 
         // Check the siblings (nodes in this node's network).
-        if (node.hasParent() && node.getParent().contains(k)) {
+        if (node.hasParent() && node.getParent().containsChildNode(k)) {
             return new NodeAccessProxy(node.getParent().getChild(k), markedParameterReferences);
         }
 

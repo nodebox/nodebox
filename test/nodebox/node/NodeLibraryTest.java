@@ -33,8 +33,8 @@ public class NodeLibraryTest extends TestCase {
         NodeLibrary test = new NodeLibrary("test");
         Node alpha = Node.ROOT_NODE.newInstance(test, "alpha");
         assertTrue(test.contains("alpha"));
-        assertTrue(test.getRootNode().contains("alpha"));
-        assertTrue(test.getRootNode().contains(alpha));
+        assertTrue(test.getRootNode().containsChildNode("alpha"));
+        assertTrue(test.getRootNode().containsChildNode(alpha));
     }
 
     public void testLoading() {

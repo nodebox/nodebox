@@ -44,17 +44,13 @@ public class ConnectionLayer extends PLayer {
         super.paint(pPaintContext);
         Graphics2D g = pPaintContext.getGraphics();
         Node node = networkView.getNode();
-        for (Node n : node.getChildren()) {
-            for (Connection c : n.getDownstreamConnections()) {
-                if (selection == c) {
-                    g.setColor(Theme.CONNECTION_ACTION_COLOR);
-                } else {
-                    g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
-                }
-                for (Node outputNode : c.getOutputNodes()) {
-                    paintConnection(g, outputNode, c.getInput());
-                }
+        for (Connection c : node.getConnections()) {
+            if (selection == c) {
+                g.setColor(Theme.CONNECTION_ACTION_COLOR);
+            } else {
+                g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
             }
+            paintConnection(g, c.getOutputNode(), c.getInput());
         }
         // Draw temporary connection
         if (networkView.isConnecting() && networkView.getConnectionPoint() != null) {
@@ -102,14 +98,10 @@ public class ConnectionLayer extends PLayer {
         // Make a rectangle out of the point that is slightly larger than the point itself.
         Rectangle2D clickRect = new Rectangle2D.Double(p.getX() - 3, p.getY() - 3, 6, 6);
         Node node = networkView.getNode();
-        for (Node n : node.getChildren()) {
-            for (Connection c : n.getDownstreamConnections()) {
-                for (Node outputNode : c.getOutputNodes()) {
-                    GeneralPath gp = connectionPath(outputNode, c.getInput());
-                    if (gp.intersects(clickRect))
-                        return c;
-                }
-            }
+        for (Connection c : node.getConnections()) {
+            GeneralPath gp = connectionPath(c.getOutputNode(), c.getInput());
+            if (gp.intersects(clickRect))
+                return c;
         }
         return null;
     }
@@ -119,9 +111,7 @@ public class ConnectionLayer extends PLayer {
      */
     public void deleteSelected() {
         if (selection == null) return;
-        for (Node outputNode : selection.getOutputNodes()) {
-            selection.getInputNode().disconnect(selection.getInput(), outputNode);
-        }
+        networkView.getNode().disconnect(selection);
     }
 
     /**

@@ -628,7 +628,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
 
     private class DeleteHandler extends KeyAdapter {
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_DELETE || e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
                 deleteSelected();
             }
         }

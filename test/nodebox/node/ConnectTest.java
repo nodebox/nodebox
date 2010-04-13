@@ -222,7 +222,7 @@ public class ConnectTest extends NodeTestCase {
         m.update();
         assertEquals(5, m.getPort("v1").getValue());
         assertEquals(10, m.getOutputValue());
-        assertNotNull(m.getPort("v1").getConnection());
+        assertFalse(m.getPort("v1").getConnections().isEmpty());
 
         // Disconnecting a port makes the dependent nodes dirty, but not the upstream nodes.
         // "Dirt flows downstream"
@@ -231,7 +231,7 @@ public class ConnectTest extends NodeTestCase {
         assertFalse(number1.isDirty());
         assertFalse(m.getPort("v1").isConnected());
         assertFalse(number1.isOutputConnected());
-        assertNull(m.getPort("v1").getConnection());
+        assertTrue(m.getPort("v1").getConnections().isEmpty());
         // The value of the input port is set to null after disconnection.
         // Since our simple multiply node doesn't handle null, it throws
         // a NullPointerException, which gets wrapped in a ProcessingError.
@@ -250,10 +250,10 @@ public class ConnectTest extends NodeTestCase {
         Port pValue = addConstant1.getPort("value");
         pValue.connect(number1);
         // Remove the specific connection and check if everything was removed.
-        addConstant1.disconnect(pValue, number1);
+        root.disconnectChildPort(pValue, number1);
         assertFalse(number1.isConnected());
         assertFalse(addConstant1.isConnected());
-        assertNull(pValue.getConnection());
+        assertFalse(pValue.isConnected());
     }
 
     /**
@@ -343,7 +343,7 @@ public class ConnectTest extends NodeTestCase {
         testLibrary.addListener(l);
         Node number1 = root.create(numberNode);
         Node addConstant1 = root.create(addConstantNode);
-        // No connect/disconnect events have been fired.
+        // No connect/disconnectChildPort events have been fired.
         assertEquals(0, l.connectCounter);
         assertEquals(0, l.disconnectCounter);
         // Creating a connection fires the event.
@@ -351,14 +351,14 @@ public class ConnectTest extends NodeTestCase {
         assertEquals(1, l.connectCounter);
         assertEquals(0, l.disconnectCounter);
         // Create a second number and connect it to the add constant.
-        // This should fire a disconnect event from number1, and a connect
+        // This should fire a disconnectChildPort event from number1, and a connect
         // event to number2.
         Node number2 = root.create(numberNode);
         addConstant1.getPort("value").connect(number2);
         assertEquals(2, l.connectCounter);
         assertEquals(1, l.disconnectCounter);
         // Disconnect the constant node. This should remove all (1) connections,
-        // and cause one disconnect event.
+        // and cause one disconnectChildPort event.
         addConstant1.disconnect();
         assertEquals(2, l.connectCounter);
         assertEquals(2, l.disconnectCounter);
@@ -372,41 +372,41 @@ public class ConnectTest extends NodeTestCase {
         Node number3 = root.create(numberNode);
         Node multiAdd = root.create(multiAddNode);
         Port pValues = multiAdd.getPort("values");
-        pValues.connect(number1);
-        pValues.connect(number2);
-        pValues.connect(number3);
+        Connection c1 = pValues.connect(number1);
+        Connection c2 = pValues.connect(number2);
+        Connection c3 = pValues.connect(number3);
         assertOrder(pValues, number1, number2, number3);
 
         // Move number 2 up.
-        pValues.getConnection().reorderOutput(number2.getOutputPort(), -1);
+        root.reorderConnection(c2, -1);
         assertOrder(pValues, number2, number1, number3);
         assertDirtyAndUpdate(multiAdd);
 
         // Move number 3 down. It was already last, so shouldn't change anything.
-        pValues.getConnection().reorderOutput(number3.getOutputPort(), 1);
+        root.reorderConnection(c3, 1);
         assertOrder(pValues, number2, number1, number3);
         assertFalse(multiAdd.isDirty());
 
         // Move number 3 up by a large amount. It should just move it to the first position.
-        pValues.getConnection().reorderOutput(number3.getOutputPort(), -5000);
+        root.reorderConnection(c3, -5000);
         assertOrder(pValues, number3, number2, number1);
         assertDirtyAndUpdate(multiAdd);
 
         // Move number 2 by a large amount, moving it to the end.
-        pValues.getConnection().reorderOutput(number2.getOutputPort(), 5000);
+        root.reorderConnection(c2, 5000);
         assertOrder(pValues, number3, number1, number2);
         assertDirtyAndUpdate(multiAdd);
 
         // Move number 1 by zero places. This should not move anything and not mark the node as dirty.
-        pValues.getConnection().reorderOutput(number1.getOutputPort(), 0);
+        root.reorderConnection(c1, 0);
         assertOrder(pValues, number3, number1, number2);
         assertFalse(multiAdd.isDirty());
     }
 
     private void assertOrder(Port port, Node... nodes) {
-        List<Port> outputs = port.getConnection().getOutputs();
+        List<Connection> connections = port.getConnections();
         for (int i = 0; i < nodes.length; i++) {
-            assertEquals(nodes[i], outputs.get(i).getNode());
+            assertEquals(nodes[i], connections.get(i).getOutputNode());
         }
     }
 

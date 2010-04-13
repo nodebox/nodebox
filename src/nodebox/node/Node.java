@@ -26,6 +26,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static nodebox.base.Preconditions.*;
+
 /**
  * A Node is a building block in a network and encapsulates specific functionality.
  * <p/>
@@ -141,10 +143,8 @@ public class Node implements NodeCode {
 
     /**
      * All child connections within this node.
-     * <p/>
-     * This data structure is created on-demand, and will be null by default.
      */
-    private DependencyGraph<Port, Connection> childGraph;
+    private List<Connection> connections = new ArrayList<Connection>();
 
     /**
      * The processing error. Null if no error occurred during processing.
@@ -266,8 +266,8 @@ public class Node implements NodeCode {
         // newInstance has set the parent, but has not added it to
         // the library yet. Therefore, we cannot do this.parent == parent,
         // but need to check parent.contains()
-        if (parent != null && parent.contains(this)) return;
-        if (parent != null && parent.contains(name))
+        if (parent != null && parent.containsChildNode(this)) return;
+        if (parent != null && parent.containsChildNode(name))
             throw new InvalidNameException(this, name, "There is already a node named \"" + name + "\" in " + parent);
         // Since this node will reside under a different parent, it can no longer maintain connections within
         // the previous parent. Break all connections. We need to do this before the parent changes.
@@ -277,11 +277,6 @@ public class Node implements NodeCode {
         this.parent = parent;
         if (parent != null) {
             parent.children.put(name, this);
-            for (Port p : ports.values()) {
-                if (parent.childGraph == null)
-                    parent.childGraph = new DependencyGraph<Port, Connection>();
-                parent.childGraph.addDependency(p, outputPort);
-            }
             // We're on the child node, so we need to fire the child added event
             // on the parent with this child as the argument.
             getLibrary().fireChildAdded(parent, this);
@@ -364,7 +359,7 @@ public class Node implements NodeCode {
 
     public boolean remove(Node node) {
         assert (node != null);
-        if (!contains(node))
+        if (!containsChildNode(node))
             return false;
         node.markDirty();
         node.disconnect();
@@ -390,7 +385,7 @@ public class Node implements NodeCode {
         }
         while (true) {
             String suggestedName = namePrefix + counter;
-            if (!contains(suggestedName)) {
+            if (!containsChildNode(suggestedName)) {
                 // We don't use rename here, since it assumes the node will be in
                 // this network.
                 return suggestedName;
@@ -399,12 +394,17 @@ public class Node implements NodeCode {
         }
     }
 
-    public boolean contains(String nodeName) {
+    public boolean containsChildNode(String nodeName) {
         return children.containsKey(nodeName);
     }
 
-    public boolean contains(Node node) {
+    public boolean containsChildNode(Node node) {
         return children.containsValue(node);
+    }
+
+    public boolean containsChildPort(Port port) {
+        // TODO: This check will need to change once we move to readonly.
+        return port.getParentNode() == this;
     }
 
     public Node getChild(String nodeName) {
@@ -446,7 +446,7 @@ public class Node implements NodeCode {
     }
 
     public void setRenderedChild(Node renderedChild) {
-        if (renderedChild != null && !contains(renderedChild)) {
+        if (renderedChild != null && !containsChildNode(renderedChild)) {
             throw new NotFoundException(this, renderedChild.getName(), "Node '" + renderedChild.getAbsolutePath() + "' is not in this network (" + getAbsolutePath() + ")");
         }
         if (this.renderedChild == renderedChild) return;
@@ -697,11 +697,12 @@ public class Node implements NodeCode {
     public Port addPort(String name, Port.Cardinality cardinality) {
         Port p = new Port(this, name, cardinality);
         ports.put(name, p);
-        if (parent != null) {
-            if (parent.childGraph == null)
-                parent.childGraph = new DependencyGraph<Port, Connection>();
-            parent.childGraph.addDependency(p, outputPort);
-        }
+        // TODO: Test this removal!
+//        if (parent != null) {
+//            if (parent.childGraph == null)
+//                parent.childGraph = new DependencyGraph<Port, Connection>();
+//            parent.childGraph.addDependency(p, outputPort);
+//        }
         getLibrary().fireNodeAttributeChanged(this, Attribute.PORT);
         return p;
     }
@@ -798,17 +799,31 @@ public class Node implements NodeCode {
     //// Connection shortcuts ////
 
     /**
-     * Connect the port on the given (input) node to the output port of the given (output) node.
+     * Check if the child ports can be connected.
+     *
+     * @param input  the input child port
+     * @param output the output child port
+     * @return true if the input port can connect to the output port
+     */
+    public boolean canConnectChildren(Port input, Port output) {
+        // TODO: Move implementation from Port here once we move to readonly.
+        checkNotNull(input);
+        checkNotNull(output);
+        return input.canConnectTo(output);
+    }
+
+    /**
+     * Connect the port on the given (input) child node to the output port of the given (output) child node.
      *
      * @param inputNode  the downstream node
      * @param portName   the downstream (input) port
      * @param outputNode the upstream node
      * @return the Connection object.
      */
-    public Connection connect(Node inputNode, String portName, Node outputNode) {
-        Port outputPort = outputNode.getOutputPort();
+    public Connection connectChildren(Node inputNode, String portName, Node outputNode) {
         Port inputPort = inputNode.getPort(portName);
-        return connect(inputPort, outputPort);
+        Port outputPort = outputNode.getOutputPort();
+        return connectChildren(inputPort, outputPort);
     }
 
     /**
@@ -820,48 +835,76 @@ public class Node implements NodeCode {
      *
      * @param input  the downstream port
      * @param output the upstream port
-     * @return the connection object.
+     * @return the connection object
+     * @throws IllegalArgumentException if the two ports could not be connected
      */
-    public Connection connect(Port input, Port output) {
-        // Sanity checks
-        if (output == null || input == null)
-            throw new IllegalArgumentException("The output and input ports cannot be null.");
-        if (output.getParentNode() == null)
-            throw new IllegalArgumentException("The output node does not have a parent.");
-        if (input.getParentNode() == null)
-            throw new IllegalArgumentException("The input node does not have a parent.");
-        if (output.getParentNode() != input.getParentNode())
-            throw new IllegalArgumentException("The output and input nodes do not have the same parent.");
-        if (!output.isOutputPort())
-            throw new IllegalArgumentException("The first argument is not an output port.");
-        if (!input.isInputPort())
-            throw new IllegalArgumentException("The second argument is not an input port.");
-        if (!input.canConnectTo(output))
-            throw new IllegalArgumentException("The input and output data classes are not compatible.");
-        // The child graph is lazily created.
-        if (parent.childGraph == null)
-            parent.childGraph = new DependencyGraph<Port, Connection>();
-        // If ports can have only one connection (cardinality == SINGLE), disconnect the port first.
-        Connection c;
+    public Connection connectChildren(Port input, Port output) {
+        checkNotNull(input, "The input port cannot be null.");
+        checkNotNull(output, "The output port cannot be null.");
+        checkState(containsChildPort(input), "The input port is not on a child node of this parent.");
+        checkState(containsChildPort(output), "The output port is not on a child node of this parent.");
+        checkArgument(input.isInputPort(), "The first argument is not an input port.");
+        checkArgument(output.isOutputPort(), "The second argument is not an output port.");
+        checkArgument(canConnectChildren(input, output), "The input and output data classes are not compatible.");
+        // If ports can have only one connection (cardinality == SINGLE), disconnectChildPort the port first.
         if (input.getCardinality() == Port.Cardinality.SINGLE) {
-            disconnect(input);
-            c = new Connection(output, input);
-        } else {
-            // Ports with multiple cardinality will add output ports to an existing connection.
-            // See if we can find an existing connection and add a port, otherwise create a new connection.
-            c = parent.childGraph.getInfo(input);
-            if (c == null) {
-                c = new Connection(output, input);
-            } else {
-                c.addOutput(output);
-            }
+            disconnectChildPort(input);
         }
-        // It could be that the connection is already in there (for existing multi-connections),
-        // but replacing it with itself doesn't hurt.
-        parent.childGraph.addDependency(output, input, c);
+        Connection c = new Connection(output, input);
+        // Create a new list of connections, and check this list for a cyclic dependency.
+        // We create a defensive copy of the original list to make sure we don't need to disconnect
+        // if we discover a cycle.
+        ArrayList<Connection> newConnections = new ArrayList<Connection>(connections);
+        newConnections.add(c);
+        CycleDetector detector = new CycleDetector(newConnections);
+        // This check will throw an IllegalArgumentException, which is the exception we want.
+        checkArgument(!detector.hasCycles(), "Creating this connection would cause a cyclic dependency.");
+        connections = newConnections;
         input.getNode().markDirty();
         getLibrary().fireConnectionAdded(parent, c);
         return c;
+    }
+
+    /**
+     * Changes the ordering of output ports by moving the given port a specified number of positions.
+     * <p/>
+     * To move the specified port up one position, set the deltaIndex to -1. To move a port down, set
+     * the deltaIndex to 1.
+     * <p/>
+     * If the delta index is larger or smaller than the number of positions this port can move, it will
+     * move the port to the beginning or end. This will not result in an error.
+     *
+     * @param connection the connection to reorder
+     * @param deltaIndex the number of places to move.
+     * @return true if changes were made to the ordering.
+     */
+    public boolean reorderConnection(Connection connection, int deltaIndex) {
+        int index = connections.indexOf(connection);
+        int newIndex = index + deltaIndex;
+        newIndex = Math.max(0, Math.min(connections.size() - 1, newIndex));
+        if (index == newIndex) return false;
+        connections.remove(connection);
+        connections.add(newIndex, connection);
+        connection.getInputNode().markDirty();
+        return true;
+    }
+
+    /**
+     * Remove all connections to and from the given child node.
+     *
+     * @param child the child node on this parent
+     * @return true if connections were removed
+     */
+    public boolean disconnectChildren(Node child) {
+        boolean removedSomething = false;
+        // Disconnect all my inputs.
+        for (Port p : child.getPorts()) {
+            // Due to lazy evaluation, removedSomething needs to be at the end.
+            removedSomething = disconnectChildPort(p) | removedSomething;
+        }
+        // Disconnect all my outputs.
+        removedSomething = disconnectChildPort(child.outputPort) | removedSomething;
+        return removedSomething;
     }
 
     /**
@@ -870,66 +913,44 @@ public class Node implements NodeCode {
      * @return true if connections were removed.
      */
     public boolean disconnect() {
-        if (parent == null) return false;
-        DependencyGraph<Port, Connection> dg = parent.childGraph;
-        if (dg == null) return false;
-        boolean removedSomething = false;
-        // Disconnect all my inputs.
-        for (Port p : getPorts()) {
-            // Due to lazy evaluation, removedSomething needs to be at the end.
-            removedSomething = disconnect(p) | removedSomething;
-        }
-        // Disconnect all my outputs.
-        removedSomething = disconnect(outputPort) | removedSomething;
-        return removedSomething;
+        if (!hasParent()) return false;
+        return parent.disconnectChildren(this);
+    }
+
+    public void disconnect(Connection c) {
+        checkNotNull(c);
+        checkArgument(connections.contains(c), "Connection %s is not one of my connections.", c);
+        connections.remove(c);
+        Port input = c.getInput();
+        input.reset();
+        input.getNode().markDirty();
+        getLibrary().fireConnectionRemoved(this, c);
     }
 
     /**
-     * Removes all connection from the given (input or output) port.
+     * Removes all connection from the given (input or output) child port.
      *
-     * @param port the (input or output) port on this node.
+     * @param port the (input or output) port on the child node.
      * @return true if a connection was removed.
      */
-    public boolean disconnect(Port port) {
-        if (port == null)
-            throw new IllegalArgumentException("The input port cannot be null.");
-        if (port.getNode() != this)
-            throw new IllegalArgumentException("The input port is not on this node.");
-        Node parent = port.getNode().getParent();
-        if (parent == null) return false;
-        DependencyGraph<Port, Connection> dg = parent.childGraph;
-        if (dg == null) return false;
-        if (!port.isConnected()) return false;
-        if (port.isInputPort()) {
-            boolean removedSomething = dg.removeDependencies(port);
-            Connection c = dg.getInfo(port);
-            dg.removeInfo(port);
-            if (removedSomething) {
+    public boolean disconnectChildPort(Port port) {
+        checkNotNull(port, "Port cannot be null.");
+        checkArgument(containsChildPort(port), "Port %s is not on a child node of this parent.", port);
+        List<Connection> connectionsToRemove = new ArrayList<Connection>();
+        for (Connection c : connections) {
+            if (port == c.getInput() || port == c.getOutput()) {
                 port.reset();
                 // This port was changed. Mark the node as dirty.
                 port.getNode().markDirty();
-                getLibrary().fireConnectionRemoved(parent, c);
+                getLibrary().fireConnectionRemoved(this, c);
+                connectionsToRemove.add(c);
             }
-            return removedSomething;
-        } else { // Output port
-            boolean removedSomething = false;
-            // Remove internal connections.
-            dg.removeDependencies(port);
-            for (Port p : dg.getDependents(port)) {
-                Connection c = dg.getInfo(p);
-                c.removeOutput(port);
-                // If this output was the last output in the connection,
-                // remove the connection.
-                if (!c.hasOutputs())
-                    dg.removeInfo(p);
-                p.reset();
-                p.getNode().markDirty();
-                removedSomething = true;
-                getLibrary().fireConnectionRemoved(parent, c);
-            }
-            dg.removeDependents(port);
-            return removedSomething;
         }
+        if (connectionsToRemove.isEmpty()) return false;
+        for (Connection c : connectionsToRemove) {
+            connections.remove(c);
+        }
+        return true;
     }
 
     /**
@@ -939,34 +960,26 @@ public class Node implements NodeCode {
      * @param outputNode the output node
      * @return true if a connection was found and removed.
      */
-    public boolean disconnect(Port input, Node outputNode) {
-        if (input == null)
-            throw new IllegalArgumentException("The input port cannot be null.");
-        if (outputNode == null)
-            throw new IllegalArgumentException("The output node cannot be null.");
-        if (input.getParentNode() != outputNode.getParent())
-            throw new IllegalArgumentException("The input and output are not under the same parent.");
-        if (!input.isInputPort())
-            throw new IllegalArgumentException("The given port is not an input.");
-        Node parent = input.getParentNode();
-        if (parent == null) return false;
-        DependencyGraph<Port, Connection> dg = parent.childGraph;
-        if (dg == null) return false;
-        Connection c = dg.getInfo(input);
-        Port output = outputNode.outputPort;
-        boolean removedSomething = dg.removeDependency(output, input);
-        if (removedSomething) {
-            // We remove the output port from the connection.
-            c.removeOutput(output);
-            // If the connection has no more output ports, remove the connection entirely.
-            if (!c.hasOutputs())
-                dg.removeInfo(input);
-            input.reset();
-            // This port was changed. Mark the node as dirty.
-            input.getNode().markDirty();
-            getLibrary().fireConnectionRemoved(parent, c);
+    public boolean disconnectChildPort(Port input, Node outputNode) {
+        checkNotNull(input, "The input port cannot be null.");
+        checkNotNull(outputNode, "The output node cannot be null.");
+        checkArgument(containsChildPort(input), "Port %s is not on a child node of this parent.", input);
+        checkArgument(containsChildNode(outputNode), "Node %s is not a child of this parent.", outputNode);
+        checkArgument(input.isInputPort(), "The given port is not an input.");
+        Connection toRemove = null;
+        for (Connection c : connections) {
+            if (input == c.getInput() && outputNode == c.getOutputNode()) {
+                toRemove = c;
+                break;
+            }
         }
-        return removedSomething;
+        if (toRemove == null) return false;
+        connections.remove(toRemove);
+        input.reset();
+        // This port was changed. Mark the node as dirty.
+        input.getNode().markDirty();
+        getLibrary().fireConnectionRemoved(this, toRemove);
+        return true;
     }
 
     /**
@@ -984,54 +997,12 @@ public class Node implements NodeCode {
         return compatiblePorts;
     }
 
-    public Connection getUpstreamConnection(Port input) {
-        if (childGraph == null) return null;
-        return childGraph.getInfo(input);
-    }
-
-    /**
-     * Get a list of all upstream connections on input ports of this node.
-     *
-     * @return a list of Connection objects. This list can safely be modified.
-     */
-    public Set<Connection> getUpstreamConnections() {
-        if (parent == null || parent.childGraph == null)
-            return new HashSet<Connection>(0);
-        Set<Connection> connections = new HashSet<Connection>();
-        for (Port p : ports.values()) {
-            Connection c = parent.childGraph.getInfo(p);
-            if (c != null)
-                connections.add(c);
-        }
-        return connections;
-    }
-
-    /**
-     * Get a list of all downstream connections on the output port of this node.
-     *
-     * @return a list of Connections objects. This list can safely be modified.
-     */
-    public Set<Connection> getDownstreamConnections() {
-        if (parent == null || parent.childGraph == null)
-            return new HashSet<Connection>(0);
-        Set<Connection> connections = new HashSet<Connection>();
-        // Connections are stored on the dependent (downstream) port.
-        // Get all dependents for the output port, and add the info.
-        for (Port p : parent.childGraph.getDependents(outputPort)) {
-            connections.add(parent.childGraph.getInfo(p));
-        }
-        return connections;
-    }
-
     /**
      * Get a set of all connection objects.
      *
-     * @return a set of Connections objects. This list can safely be modified.
+     * @return a set of Connections objects. This list should not be modified.
      */
-    public Set<Connection> getConnections() {
-        Set<Connection> connections = new HashSet<Connection>();
-        connections.addAll(getUpstreamConnections());
-        connections.addAll(getDownstreamConnections());
+    public List<Connection> getConnections() {
         return connections;
     }
 
@@ -1043,57 +1014,68 @@ public class Node implements NodeCode {
      * @return true if this node is connected.
      */
     public boolean isConnected() {
-        if (parent == null) return false;
-        if (parent.childGraph == null) return false;
-        // Check output port for downstream connections.
-        // We check this first because it goes fast.
-        if (parent.childGraph.getDependents(outputPort).size() > 0)
-            return true;
-        // Check parameters for upstream connections.
-        for (Port p : ports.values()) {
-            if (parent.childGraph.getDependencies(p).size() > 0)
+        if (!hasParent()) return false;
+        return getParent().isChildConnected(this);
+    }
+
+    /**
+     * Check if the given child node is connected
+     *
+     * @param node the child node to check
+     * @return true if the child is connected
+     */
+    public boolean isChildConnected(Node node) {
+        if (node == null) return false;
+        checkArgument(containsChildNode(node), "Node %s is not a child of this parent.", node);
+        for (Connection c : connections) {
+            if (node == c.getOutputNode() || node == c.getInputNode()) {
                 return true;
+            }
         }
         return false;
     }
 
     /**
-     * Check if the given port on this node is connected.
+     * Check if the given child port is connected.
      *
-     * @param port a port on this node.
-     * @return true if this port is connected.
+     * @param port a port on a child of this node.
+     * @return true if the port is connected.
      */
-    public boolean isConnected(Port port) {
-        if (port == null)
-            throw new IllegalArgumentException("Port cannot be null.");
-        if (port.getNode() != this)
-            throw new IllegalArgumentException("This node does not own the given port.");
-        // The port needs to be in a parent to be connected.
-        if (parent == null) return false;
-        if (parent.childGraph == null) return false;
-        if (port.isInputPort())
-            return parent.childGraph.getDependencies(port).size() > 0;
-        else
-            return parent.childGraph.getDependents(port).size() > 0;
+    public boolean isChildConnected(Port port) {
+        checkNotNull(port);
+        checkArgument(containsChildPort(port), "Port %s is not on a child node of this parent.", port);
+        for (Connection c : connections) {
+            if (port == c.getOutput() || port == c.getInput()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
-     * Check if the two ports are connected together.
-     * At least one of these ports needs to be on this node.
+     * Check if the two child ports are connected together.
+     * Both of these ports need to be on children of this node.
      *
      * @param port1 input or output port
      * @param port2 input or output port
      * @return true if the two ports are connected.
      * @throws IllegalArgumentException if neither of the ports are on this node.
      */
-    public boolean isConnectedTo(Port port1, Port port2) throws IllegalArgumentException {
+    public boolean isChildConnectedTo(Port port1, Port port2) throws IllegalArgumentException {
         // The order of the ports is unimportant, but one needs to be
         // an input and the other an output. If the two ports have
         // the same direction, they can never be connected.
         if (port1.getDirection() == port2.getDirection()) return false;
+        checkArgument(containsChildPort(port1), "Port %s is not on a child node of this parent.", port1);
+        checkArgument(containsChildPort(port2), "Port %s is not on a child node of this parent.", port2);
         Port output = port1.isOutputPort() ? port1 : port2;
         Port input = port1.isInputPort() ? port1 : port2;
-        return output.getNode().isConnectedTo(input.getNode());
+        for (Connection c : connections) {
+            if (output == c.getOutput() || input == c.getInput()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1142,17 +1124,10 @@ public class Node implements NodeCode {
      * @return true if this node's output is connected to the given node.
      */
     public boolean isOutputConnectedTo(Node inputNode) {
-        if (inputNode == null)
-            throw new IllegalArgumentException("Input node cannot be null.");
-        // Both nodes need to have the same parent to be connected.
-        if (parent == null || inputNode.parent == null || parent != inputNode.parent) return false;
-        if (parent.childGraph == null) return false;
-        Port output = getOutputPort();
-        for (Port p : inputNode.ports.values()) {
-            if (parent.childGraph.hasDependency(output, p))
-                return true;
-        }
-        return false;
+        checkNotNull(inputNode);
+        if (!inputNode.hasParent()) return false;
+        if (!hasParent()) return false;
+        return getParent().areChildrenConnected(this, inputNode);
     }
 
     /**
@@ -1162,11 +1137,51 @@ public class Node implements NodeCode {
      * @return true if this node's output port is connected to the given input port.
      */
     public boolean isOutputConnectedTo(Port input) {
-        if (input == null)
-            throw new IllegalArgumentException("Input port cannot be null.");
-        if (!input.isInputPort())
-            throw new IllegalArgumentException("The given port is not an input.");
-        return parent != null && parent.childGraph != null && parent.childGraph.hasDependency(outputPort, input);
+        checkNotNull(input);
+        checkArgument(input.isInputPort(), "Port %s is not an input.", input);
+        if (!input.hasParentNode()) return false;
+        return input.getParentNode().isChildConnectedTo(input, this);
+    }
+
+    /**
+     * Check if the given child nodes are connected to eachother.
+     *
+     * @param output the output child node
+     * @param input  the input child node
+     * @return true if they are connected.
+     */
+    public boolean areChildrenConnected(Node output, Node input) {
+        checkNotNull(output);
+        checkNotNull(input);
+        if (!containsChildNode(output)) return false;
+        if (!containsChildNode(input)) return false;
+        for (Connection c : connections) {
+            if (output == c.getOutputNode() && input == c.getInputNode()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * Check if the given output node is connected to the given input.
+     *
+     * @param input  the input port
+     * @param output the output node
+     * @return true if they are connected.
+     */
+    public boolean isChildConnectedTo(Port input, Node output) {
+        checkNotNull(input);
+        checkNotNull(output);
+        if (!containsChildPort(input)) return false;
+        if (!containsChildNode(output)) return false;
+        for (Connection c : connections) {
+            if (input == c.getInput() && output == c.getOutputNode()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //// Dirty handling ////
@@ -1175,15 +1190,9 @@ public class Node implements NodeCode {
         if (dirty)
             return;
         dirty = true;
-        if (parent != null) {
-            // Mark all downstream connections dirty.
-            // These are stored in the child graph of the parent.
-            if (parent.childGraph != null) {
-                for (Port p : parent.childGraph.getDependents(outputPort)) {
-                    p.getNode().markDirty();
-                }
-            }
-            if (!parent.dirty) {
+        if (hasParent()) {
+            parent.markChildDirty(this);
+            if (!parent.isDirty()) {
                 // Only changes to the rendered node should make the parent dirty.
                 // TODO: Check for corner cases.
                 if (parent.getRenderedChild() == this) {
@@ -1192,6 +1201,15 @@ public class Node implements NodeCode {
             }
         }
         getLibrary().fireNodeDirty(this);
+    }
+
+    private void markChildDirty(Node node) {
+        checkNotNull(node);
+        for (Connection c : connections) {
+            if (node == c.getOutputNode()) {
+                c.getInputNode().markDirty();
+            }
+        }
     }
 
     public boolean isDirty() {
@@ -1216,27 +1234,27 @@ public class Node implements NodeCode {
      * context.
      */
     public void stampDirty() {
-        stampDirty(false);
+        if (!hasParent()) return;
+        getParent().stampChildDirty(this, false);
     }
 
     /**
      * Mark all upstream nodes that have stamp expressions dirty, recursive.
      * This method does the actual upstream marking.
      *
+     * @param node     the child node to stamp
      * @param upstream if true, we're beyond the first node and can start marking parameters dirty.
      */
-    private void stampDirty(boolean upstream) {
-        if (parent != null && parent.childGraph != null) {
-            for (Port port : ports.values()) {
-                Connection conn = parent.childGraph.getInfo(port);
-                if (conn == null) continue;
-                for (Node n : conn.getOutputNodes()) {
-                    n.stampDirty(true);
-                }
+    private void stampChildDirty(Node node, boolean upstream) {
+        checkNotNull(node);
+        checkArgument(containsChildNode(node));
+        for (Connection c : connections) {
+            if (node == c.getInputNode()) {
+                stampChildDirty(c.getOutputNode(), true);
             }
         }
         if (upstream) {
-            for (Parameter p : parameters.values()) {
+            for (Parameter p : node.getParameters()) {
                 if (p.hasStampExpression())
                     p.markDirty();
 
@@ -1352,12 +1370,33 @@ public class Node implements NodeCode {
      */
     private void updatePorts(ProcessingContext ctx) throws ProcessingError {
         // Update all upstream nodes.
-        if (parent != null && parent.childGraph != null) {
-            for (Port port : ports.values()) {
-                Connection conn = parent.childGraph.getInfo(port);
-                if (conn == null) continue;
-                // Updating the connection sets the value of the corresponding input port.
-                conn.update(ctx);
+        if (!hasParent()) return;
+        for (Port port : ports.values()) {
+            port.reset();
+            parent.updateChildPort(port, ctx);
+        }
+    }
+
+    /**
+     * Update all dependencies on the child port.
+     *
+     * @param port a child port
+     * @param ctx  the processing context
+     * @throws ProcessingError if an error happens during processing.
+     */
+    private void updateChildPort(Port port, ProcessingContext ctx) throws ProcessingError {
+        for (Connection c : connections) {
+            if (port == c.getInput()) {
+                Node outputNode = c.getOutputNode();
+                outputNode.update(ctx);
+                // TODO: This does not work for multi-connections, where we should use input.addValue().
+                // Maybe the first time we encounter the input port we can call reset, and use addValue
+                // all the time.
+                if (port.getCardinality() == Port.Cardinality.SINGLE) {
+                    port.setValue(outputNode.getOutputValue());
+                } else {
+                    port.addValue(outputNode.getOutputValue());
+                }
             }
         }
     }
@@ -1551,7 +1590,7 @@ public class Node implements NodeCode {
      */
     public Node copy(Node newParent) {
         String name;
-        if (newParent.contains(getName())) {
+        if (newParent.containsChildNode(getName())) {
             name = newParent.uniqueName(getName());
         } else {
             name = getName();
@@ -1608,7 +1647,7 @@ public class Node implements NodeCode {
     public Collection<Node> copyChildren(Collection<Node> children, Node newParent) {
         HashMap<Node, Node> copyMap = new HashMap<Node, Node>(children.size());
         for (Node n : children) {
-            if (!contains(n)) {
+            if (!containsChildNode(n)) {
                 throw new IllegalArgumentException("The given node is not a child of this parent: " + n + " parent: " + this);
             }
             Node newNode = n.copy(newParent);

@@ -321,9 +321,8 @@ public class ParameterTest extends NodeTestCase {
         Connection c1 = multiAdd.getPort("values").connect(number1);
         Connection c2 = multiAdd.getPort("values").connect(number2);
         Connection c3 = multiAdd.getPort("values").connect(number3);
-        assertTrue(c1 == c2);
-        assertTrue(c1 == c3);
-        assertEquals(3, c1.getOutputs().size());
+        assertFalse(c1 == c2);
+        assertFalse(c1 == c3);
         multiAdd.update();
         assertEquals(1 + 2 + 3, multiAdd.getOutputValue());
         // Check dirty propagation
@@ -332,7 +331,7 @@ public class ParameterTest extends NodeTestCase {
         assertTrue(multiAdd.isDirty());
         multiAdd.update();
         assertEquals(1 + 200 + 3, multiAdd.getOutputValue());
-        // Check disconnect
+        // Check disconnectChildPort
         number2.disconnect();
         assertFalse(number2.isConnected());
         assertTrue(number1.isConnected());

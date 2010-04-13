@@ -54,25 +54,25 @@ public class PortTest extends NodeTestCase {
         assertValidValue(grobNode, path);
         assertValidValue(grobNode, text);
 
-        assertValidValue  (canvasNode, canvas);
+        assertValidValue(canvasNode, canvas);
         assertInvalidValue(canvasNode, image);
         assertInvalidValue(canvasNode, path);
         assertInvalidValue(canvasNode, text);
 
         assertInvalidValue(imageNode, canvas);
-        assertValidValue  (imageNode, image);
+        assertValidValue(imageNode, image);
         assertInvalidValue(imageNode, path);
         assertInvalidValue(imageNode, text);
 
         assertInvalidValue(pathNode, canvas);
         assertInvalidValue(pathNode, image);
-        assertValidValue  (pathNode, path);
+        assertValidValue(pathNode, path);
         assertInvalidValue(pathNode, text);
 
         assertInvalidValue(textNode, canvas);
         assertInvalidValue(textNode, image);
         assertInvalidValue(textNode, path);
-        assertValidValue  (textNode, text);
+        assertValidValue(textNode, text);
 
         //TODO: These tests would only work if input and outputs are not checked, which they are.
 //        assertTrue(ptGrob.canConnectTo(ptCanvas));
@@ -109,9 +109,9 @@ public class PortTest extends NodeTestCase {
         Node rect1 = rectNode.newInstance(testLibrary, "rect1");
         Node trans1 = translateNode.newInstance(testLibrary, "trans1");
         Port pPolygon = trans1.getPort("polygon");
-        assertNull(pPolygon.getConnection());
+        assertFalse(pPolygon.isConnected());
         pPolygon.connect(rect1);
-        Connection c = pPolygon.getConnection();
+        Connection c = pPolygon.getConnections().get(0);
         assertNotNull(c);
         assertEquals(rect1, c.getOutputNode());
         assertEquals(trans1, c.getInputNode());

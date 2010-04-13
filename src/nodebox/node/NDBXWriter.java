@@ -72,10 +72,8 @@ public class NDBXWriter {
             }
 
             // Write out all the child connections.
-            for (Node child : library.getRootNode().getChildren()) {
-                for (Connection conn : child.getUpstreamConnections()) {
-                    writeConnection(doc, rootElement, conn);
-                }
+            for (Connection conn : library.getRootNode().getConnections()) {
+                writeConnection(doc, rootElement, conn);
             }
 
             // Convert the document to XML.
@@ -161,10 +159,8 @@ public class NDBXWriter {
 
 
         // Add all child connections
-        for (Node child : node.getChildren()) {
-            for (Connection conn : child.getUpstreamConnections()) {
-                writeConnection(doc, el, conn);
-            }
+        for (Connection conn : node.getConnections()) {
+            writeConnection(doc, el, conn);
         }
     }
 
@@ -249,13 +245,12 @@ public class NDBXWriter {
     }
 
     private static void writeConnection(Document doc, Element parent, Connection conn) {
-        for (Port output : conn.getOutputs()) {
-            Element connElement = doc.createElement("conn");
-            connElement.setAttribute("output", output.getNode().getName());
-            connElement.setAttribute("input", conn.getInputNode().getName());
-            connElement.setAttribute("port", conn.getInput().getName());
-            parent.appendChild(connElement);
-        }
+        Port output = conn.getOutput();
+        Element connElement = doc.createElement("conn");
+        connElement.setAttribute("output", output.getNode().getName());
+        connElement.setAttribute("input", conn.getInputNode().getName());
+        connElement.setAttribute("port", conn.getInput().getName());
+        parent.appendChild(connElement);
     }
 
     private static void attributeToXml(Parameter param, Element el, String attrName, String xmlName, Parameter protoParam, Object defaultValue) {

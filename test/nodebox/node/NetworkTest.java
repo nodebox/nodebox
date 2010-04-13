@@ -60,10 +60,10 @@ public class NetworkTest extends NodeTestCase {
         Node grandParent = testNetworkNode.newInstance(testLibrary, "grandParent");
         Node parent = grandParent.create(testNetworkNode, "parent");
         Node child = parent.create(numberNode);
-        assertTrue(grandParent.contains(parent));
-        assertTrue(parent.contains(child));
+        assertTrue(grandParent.containsChildNode(parent));
+        assertTrue(parent.containsChildNode(child));
         // Contains doesn't go into child networks.
-        assertFalse(grandParent.contains(child));
+        assertFalse(grandParent.containsChildNode(child));
         assertTrue(child.hasParent());
         assertTrue(grandParent.hasParent());
         assertTrue(child.hasParent());
@@ -202,10 +202,10 @@ public class NetworkTest extends NodeTestCase {
         Node newRoot = newLibrary.getRootNode();
 
         assertEquals("root", newRoot.getName());
-        assertTrue(newRoot.contains("polynet1"));
+        assertTrue(newRoot.containsChildNode("polynet1"));
         Node nPolynet1 = newRoot.getChild("polynet1");
-        assertTrue(nPolynet1.contains("polygon1"));
-        assertTrue(nPolynet1.contains("translate1"));
+        assertTrue(nPolynet1.containsChildNode("polygon1"));
+        assertTrue(nPolynet1.containsChildNode("translate1"));
         Node nPolygon1 = nPolynet1.getChild("polygon1");
         Node nTranslate1 = nPolynet1.getChild("translate1");
         Node nRect1 = nPolynet1.getChild("rect1");
@@ -220,11 +220,11 @@ public class NetworkTest extends NodeTestCase {
         assertTrue(nMerge1.getPort("polygons").isConnectedTo(nTranslate1));
         // Check if this is the same connection
         Port nPolygons = nMerge1.getPort("polygons");
-        assertEquals(1, nTranslate1.getDownstreamConnections().size());
-        assertEquals(1, nRect1.getDownstreamConnections().size());
-        Connection c1 = nTranslate1.getDownstreamConnections().iterator().next();
-        Connection c2 = nRect1.getDownstreamConnections().iterator().next();
-        assertTrue(c1 == c2);
+        assertEquals(1, nTranslate1.getOutputPort().getConnections().size());
+        assertEquals(1, nRect1.getOutputPort().getConnections().size());
+        Connection c1 = nTranslate1.getOutputPort().getConnections().get(0);
+        Connection c2 = nRect1.getOutputPort().getConnections().get(0);
+        assertTrue(c1 != c2);
         // This tests for a bug where the connection would be created twice.
         nMerge1.getPort("polygons").disconnect();
         assertFalse(nPolygons.isConnectedTo(nRect1));
@@ -379,7 +379,7 @@ public class NetworkTest extends NodeTestCase {
      * @return the new library object.
      */
     private NodeLibrary storeAndLoad(NodeLibrary lib) {
-        String xml = testLibrary.toXml();
+        String xml = lib.toXml();
         return manager.load("newLibrary", xml);
     }
 

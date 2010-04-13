@@ -1,9 +1,8 @@
 package nodebox.node;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * The CycleDetector finds cycles in a Directed Acyclic Graph structure. The detector gets run each time a new
@@ -24,67 +23,54 @@ import java.util.Set;
  * rect1.x -> ellipse1.x and ellipse1.y -> rect1.y would cause a cycle, because on a node level this connection would be
  * cyclic. On a per-parameter basis, the example would not cause a cycle. This implementation works on a per-node basis.
  */
-// TODO: Remove, but copy comments to DependencyGraph first.
 public class CycleDetector {
 
     private enum Color {
         WHITE, GRAY, BLACK
     }
 
-    private Set<Node> vertices;
-    private Map<Node, Set<Node>> edges;
+    private Collection<Connection> connections;
     private Map<Node, Color> marks;
 
-    public CycleDetector(Node node) {
-        // If this code ever gets changed to a per-parameter basis, don't forget to create edges from the input
-        // parameters to the output parameter.
-        vertices = new HashSet<Node>();
-        edges = new HashMap<Node, Set<Node>>();
-        marks = new HashMap<Node, Color>();
-        vertices.addAll(node.getChildren());
-        for (Connection connection : node.getConnections()) {
-            Node inputNode = connection.getInputNode();
-            for (Node outputNode : connection.getOutputNodes()) {
-                Set<Node> edgesForNode = edges.get(inputNode);
-                if (edgesForNode == null) {
-                    edgesForNode = new HashSet<Node>();
-                    edges.put(inputNode, edgesForNode);
-                }
-                edgesForNode.add(outputNode);
-            }
-        }
+    public CycleDetector(Collection<Connection> connections) {
+        this.connections = connections;
+
     }
 
     public boolean hasCycles() {
-        for (Node vertex : vertices) {
-            marks.put(vertex, Color.WHITE);
+        marks = new HashMap<Node, Color>(connections.size());
+        for (Connection c : connections) {
+            marks.put(c.getOutputNode(), Color.WHITE);
         }
-        for (Node vertex : vertices) {
-            if (marks.get(vertex) == Color.WHITE) {
-                if (visit(vertex))
+        for (Connection c : connections) {
+            if (marks.get(c.getOutputNode()) == Color.WHITE) {
+                if (visit(c.getOutputNode())) {
                     return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean visit(Node vertex) {
-        marks.put(vertex, Color.GRAY);
-        Set<Node> outputNodes = edges.get(vertex);
-        if (outputNodes != null) {
-            for (Node output : outputNodes) {
-                if (!marks.containsKey(output)) continue;
-                if (marks.get(output) == Color.GRAY) {
-                    return true;
-                } else if (marks.get(output) == Color.WHITE) {
-                    if (visit(output))
-                        return true;
-                } else {
-                    // Visiting black vertices is okay.
                 }
             }
         }
-        marks.put(vertex, Color.BLACK);
+
+        return false;
+    }
+
+    private boolean visit(Node node) {
+        marks.put(node, Color.GRAY);
+        for (Connection c : connections) {
+            Node outputNode = c.getOutputNode();
+            // Only use the ones I'm the input for (downstream connections for this node).
+            if (c.getInputNode() != node) continue;
+            if (!marks.containsKey(outputNode)) continue;
+            if (marks.get(outputNode) == Color.GRAY) {
+                return true;
+            } else if (marks.get(outputNode) == Color.WHITE) {
+                if (visit(outputNode)) {
+                    return true;
+                }
+            } else {
+                // Visiting black vertices is okay.
+            }
+        }
+        marks.put(node, Color.BLACK);
         return false;
     }
 

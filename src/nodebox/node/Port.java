@@ -1,8 +1,11 @@
 package nodebox.node;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static nodebox.base.Preconditions.checkState;
 
 /**
  * A connectable object on a node. Ports provide input and output capabilities between nodes.
@@ -61,6 +64,10 @@ public class Port {
 
     public Node getParentNode() {
         return node.getParent();
+    }
+
+    public boolean hasParentNode() {
+        return getParentNode() != null;
     }
 
     public String getName() {
@@ -183,7 +190,8 @@ public class Port {
      * @return true if this port is connected.
      */
     public boolean isConnected() {
-        return node.isConnected(this);
+        checkState(hasParentNode(), "Port %s has no parent node.", this);
+        return getParentNode().isChildConnected(this);
     }
 
     /**
@@ -194,7 +202,8 @@ public class Port {
      */
     public boolean isConnectedTo(Port port) {
         if (!isConnected()) return false;
-        return node.isConnectedTo(this, port);
+        if (!hasParentNode()) return false;
+        return getParentNode().isChildConnectedTo(this, port);
     }
 
     /**
@@ -208,13 +217,20 @@ public class Port {
     }
 
     /**
-     * Get the connection on this node, if it exists.
+     * Get the connections on this port.
      *
-     * @return a connection object or null.
+     * @return a list of connections, possibly empty.
      */
-    public Connection getConnection() {
+    public List<Connection> getConnections() {
         Node parent = getParentNode();
-        return parent == null ? null : parent.getUpstreamConnection(this);
+        if (parent == null) return Collections.emptyList();
+        List<Connection> connections = new ArrayList<Connection>();
+        for (Connection c : parent.getConnections()) {
+            if (this == c.getInput() || this == c.getOutput()) {
+                connections.add(c);
+            }
+        }
+        return connections;
     }
 
     /**
@@ -260,21 +276,21 @@ public class Port {
      * @param outputNode the output node
      * @return the Connection objects
      * @throws IllegalArgumentException if the connection could not be made (because of cyclic dependency)
-     * @see Node#connect(Port, Port)
+     * @see Node#connectChildren(Port, Port)
      */
     public Connection connect(Node outputNode) throws IllegalArgumentException {
         if (outputNode == null)
             throw new IllegalArgumentException("Output node cannot be null.");
         if (getParentNode() == null)
             throw new IllegalArgumentException("This port has no parent node.");
-        return getNode().connect(this, outputNode.getOutputPort());
+        return getParentNode().connectChildren(this, outputNode.getOutputPort());
     }
 
     /**
      * Disconnects this port.
      */
     public void disconnect() {
-        getNode().disconnect(this);
+        getParentNode().disconnectChildPort(this);
     }
 
     /**
@@ -314,11 +330,9 @@ public class Port {
         assert newPort.name.equals(getName());
         assert newPort.cardinality == cardinality;
         assert newPort.node != node;
-        // The new port should not be connected to anything.
-        assert newPort.getConnection() == null;
-        Connection c = getConnection();
-        if (c == null) return;
-        for (Node n : c.getOutputNodes()) {
+        checkState(newPort.getConnections().isEmpty(), "The new port should not be connected to anything.");
+        for (Connection c : getConnections()) {
+            Node n = c.getOutputNode();
             Node outputNode;
             if (copyMap.containsKey(n)) {
                 outputNode = copyMap.get(n);

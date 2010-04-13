@@ -237,7 +237,7 @@ public class NodeTest extends NodeTestCase {
         Node net = Node.ROOT_NODE.newInstance(testLibrary, "net");
         Node rect = Node.ROOT_NODE.newInstance(testLibrary, "rect");
         rect.setParent(net);
-        assertTrue(net.contains("rect"));
+        assertTrue(net.containsChildNode("rect"));
     }
 
     public void testParameters() {
@@ -455,8 +455,8 @@ public class NodeTest extends NodeTestCase {
         // It does not retain connections to the downstream nodes since
         // that would replace existing connections.
         assertTrue(beta2.isConnectedTo(alpha1));
-        Connection newConn = beta2.getPort("betaPort1").getConnection();
-        assertNotSame(betaPort1.getConnection(), newConn);
+        Connection newConn = beta2.getPort("betaPort1").getConnections().get(0);
+        assertNotSame(betaPort1.getConnections().get(0), newConn);
         assertFalse(beta2.isConnectedTo(gamma1));
 
         // If the new node is under a different parent connections cannot be retained.
@@ -577,8 +577,8 @@ public class NodeTest extends NodeTestCase {
         // Create new node based on prototype.
         Node protoNet1 = root.create(protoNet);
         assertEquals("protoNet1", protoNet1.getName());
-        assertTrue(protoNet1.contains("number1"));
-        assertTrue(protoNet1.contains("negate1"));
+        assertTrue(protoNet1.containsChildNode("number1"));
+        assertTrue(protoNet1.containsChildNode("negate1"));
         assertTrue(protoNet1.getChild("negate1").isConnectedTo(protoNet1.getChild("number1")));
         assertEquals(0, protoNet1.getChild("number1").getValue("value"));
         assertEquals("40+2", protoNet1.getChild("number1").getParameter("value").getExpression());

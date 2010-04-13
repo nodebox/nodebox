@@ -202,7 +202,7 @@ public class NodeLibrary {
     }
 
     public boolean contains(String nodeName) {
-        return rootNode.contains(nodeName);
+        return rootNode.containsChildNode(nodeName);
     }
 
     //// Variables ////
