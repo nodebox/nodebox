@@ -2100,16 +2100,26 @@ def cook(self):
             p.moveto(x1, y1)
         else:
             p.lineto(x1, y1)
-    p.fillColor = self.fill
-    p.strokeColor = self.stroke
-    p.strokeWidth = self.strokeWidth
+    p.close()
+    p.fill = self.fill
+    if self.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
     return p.asGeometry()]]></value>
         </param>
         <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import CircleScaleHandle
+            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle, PointHandle
+
+class PolygonHandle(CombinedHandle):
+    def __init__(self, node):
+        CombinedHandle.__init__(self, node)
+        self.addHandle(PointHandle(node))
+        self.addHandle(CircleScaleHandle(node, "radius", CircleScaleHandle.Mode.RADIUS, "x", "y"))
 
 def cook(self):
-    return CircleScaleHandle(self.node)]]></value>
+    return PolygonHandle(self.node)]]></value>
         </param>
         <param name="_image">
             <value>polygon.png</value>
@@ -2604,13 +2614,14 @@ def cook(self):
     return p.asGeometry()]]></value>
         </param>
         <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle
+            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle, PointHandle
 
 class StarHandle(CombinedHandle):
     def __init__(self, node):
         CombinedHandle.__init__(self, node)
-        self.addHandle(CircleScaleHandle(node, "inner", CircleScaleHandle.Mode.DIAMETER))
-        self.addHandle(CircleScaleHandle(node, "outer", CircleScaleHandle.Mode.DIAMETER))
+        self.addHandle(PointHandle(node))
+        self.addHandle(CircleScaleHandle(node, "inner", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
+        self.addHandle(CircleScaleHandle(node, "outer", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
 
 def cook(self):
     return StarHandle(self.node)]]></value>
