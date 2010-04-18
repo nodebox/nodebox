@@ -2405,143 +2405,115 @@ def cook(self):
     <node exported="true" name="sort" prototype="filter" x="250" y="410">
         <description>Sort points or shapes using different sorting methods</description>
         <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Point
+            <value type="python"><![CDATA[from nodebox.graphics import IGeometry, Geometry, Path, Contour, Point
 from nodebox.util.Geometry import distance, angle
-from random import seed, shuffle
+from random import shuffle, seed
 
-def by_x(p1, p2):
-    if _sort_paths:
-        return cmp(p1.bounds.x, p2.bounds.x)
-    return cmp(p1.x, p2.x)
-
-def by_y(p1, p2):
-    if _sort_paths:
-        return cmp(p1.bounds.y, p2.bounds.y)
-    return cmp(p1.y, p2.y)
-
-def by_proximity(x, y):
-    def fn(p1, p2):
-        if _sort_paths:
-            p1 = p1.bounds
-            p2 = p2.bounds
-        dist1 = distance(p1.x, p1.y, x, y)
-        dist2 = distance(p2.x, p2.y, x, y)
-        return cmp(dist1, dist2)
-    return fn
-
-def by_angle(x, y):
-    def fn(p1, p2):
-        if _sort_paths:
-            p1 = p1.bounds
-            p2 = p2.bounds
-        dist1 = angle(p1.x, p1.y, x, y)
-        dist2 = angle(p2.x, p2.y, x, y)
-        return cmp(dist1, dist2)
-    return fn
-
-def sort_items(items, order, **kwargs):
-    if order == 'unchanged':
-        pass
-    elif order == 'by_x':
-        items.sort(by_x)
-    elif order == 'by_y':
-        items.sort(by_y)
-    elif order == 'random':
-        seed(kwargs["seed"])
-        shuffle(items)
-    elif order == 'reversed':
-        items.reverse()
-    elif order == 'shift':
-        offset = kwargs["offset"] % len(items)
+def shift(items, offset=0):
+    if items:
         for i in xrange(offset):
-            item = items[0]
-            items = items[1:]
-            items.append(item)
-    elif order == 'proximity':
-        items.sort(by_proximity(kwargs["x"], kwargs["y"]))
-    elif order == 'angle':
-        items.sort(by_angle(kwargs["x"], kwargs["y"]))
-    return items
+            first = items.pop(0)
+            items.append(first)
 
-def sort_points(shape, scope, order, **kwargs):
-    new_shape = Geometry()
-    if scope == "pt_g":
-        # Sorts points per group.
-        # Color information is discarded.
-        points = list(shape.points)
-        points = sort_items(points, order, **kwargs)
-        for point in points:
-            new_shape.addPoint(Point(point.x, point.y))
-        new_shape.paths[0].fillColor = None
-    elif scope == "pt_p":
-        # Sorts points per path.
-        # Color information is kept.
-        for path in shape.paths:
-            points = list(path.points)
-            points = sort_items(points, order, **kwargs)
-            p = path.clone()
-            for i, point in enumerate(points):
-                pp = p.points[i]
-                pp.x = point.x
-                pp.y = point.y
-                pp.type = point.LINE_TO
-            new_shape.add(p)
-    elif scope == "pt_c":
-        # Sorts points per contour.
-        # Color information is kept.
-        for path in shape.paths:
-            p = path.cloneAndClear()
-            for contour in path.contours:
-                points = list(contour.points)
-                points = sort_items(points, order, **kwargs)
-                c = contour.clone()
-                for i, point in enumerate(points):
-                    cp = c.points[i]
-                    cp.x = point.x
-                    cp.y = point.y
-                    cp.type = Point.LINE_TO
-                p.add(c)
-            new_shape.add(p)
-    return new_shape
+def points_within_geometry(new_shape, shape, sort, kwargs):
+    # The reason we wrap shape.points in a separate list is because 
+    # getPoints (or getPaths or getContours) returns a Java ArrayList
+    # which we can't perform a Python sort operation on.
+    points = list(shape.points)
+    sort(points, **kwargs)
+    for point in points:
+        new_shape.addPoint(point.x, point.y)
+    # Color information is discarded.
+    new_shape.fillColor = None
 
-def sort_paths(shape, order, **kwargs):
-    new_shape = Geometry()
-    paths = list(shape.paths)
-    paths = sort_items(paths, order, **kwargs)
-    for path in paths:
-        new_shape.add(path.clone())
-    return new_shape
+def points_within_path(new_shape, shape, sort, kwargs):
+    for path in shape.paths:
+        points = list(path.points)
+        sort(points, **kwargs)
+        p = path.clone()
+        # TODO: This implementation makes sure that the new path
+        # has exactly the same amount of contours as the original path,
+        # but since the points are all moved around (across contours)
+        # maybe it makes more sense to keep only one contour?
+        for i, point in enumerate(points):
+            pp = p.points[i]
+            pp.x = point.x
+            pp.y = point.y
+            pp.type = Point.LINE_TO
+        new_shape.add(p)
 
-def sort_contours(shape, order, **kwargs):
-    new_shape = Geometry()
+def points_within_contour(new_shape, shape, sort, kwargs):
+    for path in shape.paths:
+        p = path.cloneAndClear()
+        for contour in path.contours:
+            points = list(contour.points)
+            sort(points, **kwargs)
+            c = Contour()
+            for point in points:
+                c.addPoint(point.x, point.y)
+            p.add(c)
+        new_shape.add(p)
+
+def contours_within_path(new_shape, shape, sort, kwargs):
     for path in shape.paths:
         # Create an empty path with the current path's color information
         # Add the sorted contours to the path.
         p = path.cloneAndClear()
         contours = list(path.contours)
-        contours = sort_items(contours, order, **kwargs)
+        sort(contours, **kwargs)
         for c in contours:
-            p.add(c)
+            p.add(c.clone())
         new_shape.add(p)
-    return new_shape
-        
+
+def paths_within_geometry(new_shape, shape, sort, kwargs):
+    paths = list(shape.paths)
+    sort(paths, **kwargs)
+    for path in paths:
+        new_shape.add(path.clone())
+
+sort_scope = {
+    "pt_g": points_within_geometry,
+    "pt_p": points_within_path,
+    "pt_c": points_within_contour,
+    "c_p": contours_within_path,
+    "p_g": paths_within_geometry
+}
+
+sort_methods = {
+    (Point, "by_x"): {'key': Point.getX },
+    (Point, "by_y"): {'key': Point.getY },
+    (IGeometry, "by_x"): {'key': lambda g: g.bounds.x },
+    (IGeometry, "by_y"): {'key': lambda g: g.bounds.y },
+    "random": {'method': shuffle },
+    "reversed": {'kwargs': {'reverse': True}},
+}
+
 def cook(self):
     if self.shape is None: return None
+    if self.order == "unchanged": return self.shape.clone()
     
-    # whether the comparison functions should compare a points' x/y values (True)
-    # or a paths' bounding box x/y values. (False)
-    global _sort_paths
-    _sort_paths = True
+    # These functions are re-created on the fly since they depend
+    # on the user's given input.
+    sort_methods.update({
+        (Point, "angle"): {'key': lambda pt: angle(pt.x, pt.y, self.x, self.y) },
+        (Point, "proximity"): {'key': lambda pt: distance(pt.x, pt.y, self.x, self.y) },
+        (IGeometry, "angle"): {'key': lambda g: angle(g.bounds.x, g.bounds.y, self.x, self.y) },
+        (IGeometry, "proximity"): {'key': lambda g: distance(g.bounds.x, g.bounds.y, self.x, self.y) },
+        "shift": {'method': shift, 'kwargs': {'offset': self.offset}},
+    })
     
-    kwargs = {"seed": self.seed, "offset": self.offset, "x": self.x, "y": self.y}
-    if self.scope in ["pt_c", "pt_p", "pt_g"]:
-        _sort_paths = False
-        return sort_points(self.shape, self.scope, self.order, **kwargs)
-    elif self.scope == "p_g":
-        return sort_paths(self.shape, self.order, **kwargs)
-    elif self.scope == "c_p":
-        return sort_contours(self.shape, self.order, **kwargs)
-    return None]]></value>
+    klass = self.scope.startswith('pt') and Point or IGeometry
+    sort_method = sort_methods.get(self.order, sort_methods.get((klass, self.order)))
+    method = sort_method.get('method', list.sort)
+    kwargs = sort_method.get('kwargs', {})
+    key = sort_method.get('key')
+    if key is not None:
+        kwargs['key'] = key
+    
+    seed(self.seed)
+    new_shape = Geometry()
+    sort_scope[self.scope](new_shape, self.shape, method, kwargs)
+    return new_shape]]></value>
         </param>
         <param enableExpression="order == &quot;proximity&quot; || order == &quot;angle&quot;" name="_handle">
             <value type="python"><![CDATA[from nodebox.handle import PointHandle
