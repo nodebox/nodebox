@@ -353,9 +353,6 @@ public class Contour extends AbstractGeometry {
 
     //// Graphics ////
 
-    public void inheritFromContext(GraphicsContext ctx) {
-    }
-
     public void draw(Graphics2D g) {
         if (getPointCount() < 2) return;
         // Since a contour has no fill or stroke information, draw it in black.

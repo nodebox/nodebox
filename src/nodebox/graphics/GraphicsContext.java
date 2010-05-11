@@ -1,402 +1,220 @@
-/*
- * This file is part of NodeBox.
- *
- * Copyright (C) 2008 Frederik De Bleser (frederik@pandora.be)
- *
- * NodeBox is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * NodeBox is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with NodeBox. If not, see <http://www.gnu.org/licenses/>.
- */
 package nodebox.graphics;
 
-import java.util.ArrayList;
+import nodebox.node.Parameter;
+
+import java.util.Iterator;
 import java.util.List;
 
-public class GraphicsContext {
+public interface GraphicsContext {
 
-    private Canvas canvas;
-    // TODO: Support output mode
-    // TODO: Support color mode
-    private Color fillColor;
-    private Color strokeColor;
-    private float strokeWidth;
-    private Path path;
-    private boolean autoClosePath;
-    private boolean pathClosed;
-    private Transform transform = new Transform();
-    private ArrayList<Transform> transformStack;
-    private String fontName;
-    private float fontSize;
-    private float lineHeight;
-    private Text.Align align;
-
-    //// Initialization ////
-
-    public GraphicsContext() {
-        canvas = new Canvas();
-        resetContext(true);
+    public static final float inch = 72;
+    public static final float cm = 28.3465f;
+    public static final float mm = 2.8346f;
+    
+    public enum RectMode {
+        CORNER, CORNERS, CENTER, RADIUS
     }
 
-    public GraphicsContext(Canvas canvas) {
-        this.canvas = canvas;
-        resetContext(false);
+    public enum EllipseMode {
+        CENTER, RADIUS, CORNER, CORNERS
     }
 
-    public void resetContext() {
-        resetContext(true);
-    }
+    public static enum VarType {
+        NUMBER(Parameter.Type.FLOAT, Parameter.Widget.FLOAT),
+        TEXT(Parameter.Type.STRING, Parameter.Widget.TEXT),
+        BOOLEAN(Parameter.Type.INT, Parameter.Widget.TOGGLE),
+        FONT(Parameter.Type.STRING, Parameter.Widget.FONT);
 
-    public void resetContext(boolean resetBackground) {
-        fillColor = new Color();
-        strokeColor = null;
-        strokeWidth = 1f;
-        if (resetBackground)
-            canvas.setBackground(new Color(1, 1, 1));
-        path = null;
-        transform = new Transform();
-        transformStack = new ArrayList<Transform>();
-        fontName = "Helvetica";
-        fontSize = 24;
-        lineHeight = 1.2f;
-        align = Text.Align.CENTER;
-    }
+        public final Parameter.Type type;
+        public final Parameter.Widget widget;
 
-    //// Setup methods ////
-
-    public void size(float width, float height) {
-        canvas.setWidth(width);
-        canvas.setHeight(height);
-    }
-
-    public float getWidth() {
-        return canvas.getWidth();
-    }
-
-    public float getHeight() {
-        return canvas.getHeight();
-    }
-
-    public float getWIDTH() {
-        return canvas.getWidth();
-    }
-
-    public float getHEIGHT() {
-        return canvas.getHeight();
-    }
-
-    /**
-     * Get the current background color.
-     *
-     * @return the current background color.
-     */
-    public Color background() {
-        return canvas.getBackground();
-    }
-
-    /**
-     * Set the current background color to given grayscale value.
-     *
-     * @param x the gray component.
-     * @return the current background color.
-     */
-    public Color background(float x) {
-        return canvas.setBackground(new Color(x, x, x));
-    }
-
-    /**
-     * Set the current background color to given grayscale and alpha value.
-     *
-     * @param x the grayscale value.
-     * @param y the alpha value.
-     * @return the current background color.
-     */
-    public Color background(float x, float y) {
-        return canvas.setBackground(new Color(x, x, x, y));
-    }
-
-    /**
-     * Set the current background color to the given R/G/B value.
-     *
-     * @param x the red component.
-     * @param y the green component.
-     * @param z the blue component.
-     * @return the current background color.
-     */
-    public Color background(float x, float y, float z) {
-        return canvas.setBackground(new Color(x, y, z));
-    }
-
-    /**
-     * Set the current background color to the given R/G/B/A value.
-     *
-     * @param x the red component.
-     * @param y the green component.
-     * @param z the blue component.
-     * @param a the alpha component.
-     * @return the current background color.
-     */
-    public Color background(float x, float y, float z, float a) {
-        return canvas.setBackground(new Color(x, y, z, a));
-    }
-
-    /**
-     * Set the current background color to the given color.
-     * <p/>
-     * The color object is cloned; you can change the original afterwards.
-     * If the color object is null, the current background color is turned off (same as nobackground).
-     *
-     * @param c the color object.
-     * @return the current background color.
-     */
-    public Color background(Color c) {
-        return canvas.setBackground(c == null ? null : c.clone());
-    }
-
-    public void nobackground() {
-        canvas.setBackground(null);
-    }
-
-    //// Attribute access ////
-
-    public Canvas getCanvas() {
-        return canvas;
-    }
-
-    public Transform getTransform() {
-        return transform;
-    }
-
-    //// Primitives ////
-
-    public Path rect(Rect r) {
-        Path p = new Path();
-        p.rect(r);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path rect(float x, float y, float width, float height) {
-        Path p = new Path();
-        p.rect(x, y, width, height);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path rect(Rect r, float roundness) {
-        Path p = new Path();
-        p.rect(r, roundness);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path rect(float x, float y, float width, float height, float roundness) {
-        Path p = new Path();
-        p.rect(x, y, width, height, roundness);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path rect(float x, float y, float width, float height, float rx, float ry) {
-        Path p = new Path();
-        p.rect(x, y, width, height, rx, ry);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path oval(float x, float y, float width, float height) {
-        // TODO: Deprecation warning
-        return ellipse(x, y, width, height);
-    }
-
-    public Path ellipse(float x, float y, float width, float height) {
-        Path p = new Path();
-        p.ellipse(x, y, width, height);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    public Path line(float x1, float y1, float x2, float y2) {
-        Path p = new Path();
-        p.line(x1, y1, x2, y2);
-        inheritFromContext(p);
-        canvas.add(p);
-        return p;
-    }
-
-    //// Path commands ////
-
-    public void beginpath() {
-        path = new Path();
-        pathClosed = false;
-    }
-
-    public void beginpath(float x, float y) {
-        beginpath();
-        moveto(x, y);
-    }
-
-    public void moveto(float x, float y) {
-        if (path == null)
-            throw new NodeBoxError("No current path. Use beginpath() first.");
-        path.moveto(x, y);
-    }
-
-    public void lineto(float x, float y) {
-        if (path == null)
-            throw new NodeBoxError("No current path. Use beginpath() first.");
-        path.lineto(x, y);
-    }
-
-    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3) {
-        if (path == null)
-            throw new NodeBoxError("No current path. Use beginPath() first.");
-        path.curveto(x1, y1, x2, y2, x3, y3);
-    }
-
-    public void closepath() {
-        if (path == null)
-            throw new NodeBoxError("No current path. Use beginpath() first.");
-        if (!pathClosed) {
-            path.close();
-            pathClosed = true;
+        VarType(Parameter.Type type, Parameter.Widget widget) {
+            this.type = type;
+            this.widget = widget;
         }
     }
 
-    public Path endpath() {
-        return endpath(true);
-    }
+    public enum ArrowType { NORMAL, FORTYFIVE }
 
-    public Path endpath(boolean draw) {
-        if (path == null)
-            throw new NodeBoxError("No current path. Use beginpath() first.");
-        if (autoClosePath)
-            closepath();
-        Path p = path;
-        inheritFromContext(p);
-        if (draw)
-            canvas.add(p);
-        // Initialize a new path
-        path = null;
-        pathClosed = false;
-        return p;
-    }
+    public static String CORNER = "CORNER";
+    public static String CENTER = "CENTER";
+    public static String CORNERS = "CORNERS";
+    public static String RADIUS = "RADIUS";
 
-    public void drawpath(Path path) {
-        inheritFromContext(path);
-        canvas.add(path);
-    }
+    public static String LEFT = "LEFT";
+    public static String RIGHT = "RIGHT";
+    public static String JUSTIFY = "JUSTIFY";
 
-    public boolean autoclosepath() {
-        return autoClosePath;
-    }
+    public static String RGB = "RGB";
+    public static String HSB = "HSB";
+    public static String CMYK = "CMYK";
 
-    public boolean autoclosepath(boolean c) {
-        return autoClosePath = c;
-    }
+    public static String NUMBER = "NUMBER";
+    public static String TEXT = "TEXT";
+    public static String BOOLEAN = "BOOLEAN";
+    public static String FONT = "FONT";
 
-    public Path findpath(List<Point> points) {
-        return findpath(points, 1);
-    }
+    public static String NORMAL = "NORMAL";
+    public static String FORTYFIVE = "FORTYFIVE";
 
-    public Path findpath(List<Point> points, float curvature) {
-        throw new RuntimeException("findpath is not implemented yet.");
-    }
+    public RectMode rectmode();
 
-    //// Clipping ////
+    public RectMode rectmode(RectMode m);
 
-    // TODO: implement clipping
+    public RectMode rectmode(String m);
 
-    public void beginclip(Path p) {
-        throw new RuntimeException("beginclip is not implemented yet.");
-    }
+    public RectMode rectmode(int m);
 
-    public void endclip() {
-        throw new RuntimeException("endclip is not implemented yet.");
-    }
+    public Path rect(Rect r);
 
-    //// Transformation commands ////
+    public Path rect(float x, float y, float width, float height);
 
-    public void push() {
-        transformStack.add(0, transform.clone());
-    }
+    public Path rect(Rect r, float roundness);
 
-    public void pop() {
-        if (transformStack.isEmpty())
-            throw new NodeBoxError("Pop: too many pops!");
-        transform = transformStack.get(0);
-        transformStack.remove(0);
-    }
+    public Path rect(float x, float y, float width, float height, float roundness);
 
-    public void reset() {
-        transformStack.clear();
-        transform = new Transform();
-    }
+    public Path rect(float x, float y, float width, float height, float rx, float ry);
 
-    public void translate(float tx, float ty) {
-        transform.translate(tx, ty);
-    }
+    public EllipseMode ellipsemode();
 
-    public void rotate(float r) {
-        transform.rotate(r);
-    }
+    public EllipseMode ellipsemode(EllipseMode m);
 
-    public void scale(float scale) {
-        transform.scale(scale);
-    }
+    public EllipseMode ellipsemode(String m);
 
-    public void scale(float sx, float sy) {
-        transform.scale(sx, sy);
-    }
+    public EllipseMode ellipsemode(int m);
 
-    public void skew(float skew) {
-        transform.skew(skew);
-    }
+    public Path oval(float x, float y, float width, float height);
 
-    public void skew(float kx, float ky) {
-        transform.skew(kx, ky);
-    }
+    public Path oval(float x, float y, float width, float height, boolean draw);
 
-    //// Color commands ////
+    public Path ellipse(float x, float y, float width, float height);
 
-    public String outputmode() {
-        throw new RuntimeException("outputmode is not implemented yet.");
-    }
+    public Path ellipse(float x, float y, float width, float height, boolean draw);
 
-    public String outputmode(String mode) {
-        throw new RuntimeException("outputmode is not implemented yet.");
-    }
+    public Path line(float x1, float y1, float x2, float y2);
 
-    public String colormode() {
-        throw new RuntimeException("colormode is not implemented yet.");
-    }
+    public Path line(float x1, float y1, float x2, float y2, boolean draw);
 
-    public String colormode(String mode) {
-        throw new RuntimeException("colormode is not implemented yet.");
-    }
+    public Path star(float cx, float cy);
+
+    public Path star(float cx, float cy, int points);
+
+    public Path star(float cx, float cy, int points, float outer);
+
+    public Path star(float cx, float cy, int points, float outer, float inner);
+
+    public Path star(float cx, float cy, int points, float outer, float inner, boolean draw);
+
+    public Path arrow(float x, float y);
+
+    public Path arrow(float x, float y, ArrowType type);
+
+    public Path arrow(float x, float y, String type);
+
+    public Path arrow(float x, float y, int type);
+
+    public Path arrow(float x, float y, float width);
+
+    public Path arrow(float x, float y, float width, boolean draw);
+
+    public Path arrow(float x, float y, float width, ArrowType type);
+
+    public Path arrow(float x, float y, float width, String type);
+
+    public Path arrow(float x, float y, float width, int type);
+
+    public Path arrow(float x, float y, float width, ArrowType type, boolean draw);
+
+    public Path arrow(float x, float y, float width, String type, boolean draw);
+
+    public Path arrow(float x, float y, float width, int type, boolean draw);
+
+    public void beginpath();
+
+    public void beginpath(float x, float y);
+
+    public void moveto(float x, float y);
+
+    public void lineto(float x, float y);
+
+    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3);
+
+    public void closepath();
+
+    public Path endpath();
+
+    public Path endpath(boolean draw);
+
+    public void drawpath(Path path);
+
+    public void drawpath(Iterable<Point> points);
+
+    public boolean autoclosepath();
+
+    public boolean autoclosepath(boolean c);
+
+    public Path findpath(List<Point> points);
+
+    public Path findpath(List<Point> points, float curvature);
+
+    public void beginclip(Path p);
+
+    public void endclip();
+
+    public Transform.Mode transform();
+
+    public Transform.Mode transform(Transform.Mode mode);
+
+    public Transform.Mode transform(int mode);
+
+    public Transform.Mode transform(String mode);
+
+    public void push();
+
+    public void pop();
+
+    public void reset();
+
+    public void translate(float tx, float ty);
+
+    public void rotate(float r);
+
+    public void scale(float scale);
+
+    public void scale(float sx, float sy);
+
+    public void skew(float skew);
+
+    public void skew(float kx, float ky);
+
+    public String outputmode();
+
+    public String outputmode(String mode);
+
+    public Color.Mode colormode();
+
+    public Color.Mode colormode(Color.Mode mode);
+
+    public Color.Mode colormode(Color.Mode mode, Float range);
+
+    public Color.Mode colormode(String mode);
+
+    public Color.Mode colormode(String mode, Float range);
+
+    public Color.Mode colormode(int mode);
+
+    public Color.Mode colormode(int mode, Float range);
+
+    public float colorrange();
+
+    public float colorrange(float range);
 
     /**
      * Create an empty (black) color object.
      *
      * @return the new color.
      */
-    public Color color() {
-        return new Color();
-    }
+    public Color color();
 
     /**
      * Create a new color with the given grayscale value.
@@ -404,9 +222,7 @@ public class GraphicsContext {
      * @param x the gray component.
      * @return the new color.
      */
-    public Color color(float x) {
-        return new Color(x, x, x);
-    }
+    public Color color(float x);
 
     /**
      * Create a new color with the given grayscale and alpha value.
@@ -415,9 +231,7 @@ public class GraphicsContext {
      * @param y the alpha value.
      * @return the new color.
      */
-    public Color color(float x, float y) {
-        return new Color(x, x, x, y);
-    }
+    public Color color(float x, float y);
 
     /**
      * Create a new color with the the given R/G/B value.
@@ -427,9 +241,7 @@ public class GraphicsContext {
      * @param z the blue component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z) {
-        return new Color(x, y, z);
-    }
+    public Color color(float x, float y, float z);
 
     /**
      * Create a new color with the the given R/G/B/A value.
@@ -440,9 +252,7 @@ public class GraphicsContext {
      * @param a the alpha component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z, float a) {
-        return new Color(x, y, z, a);
-    }
+    public Color color(float x, float y, float z, float a);
 
     /**
      * Create a new color with the the given color.
@@ -453,18 +263,14 @@ public class GraphicsContext {
      * @param c the color object.
      * @return the new color.
      */
-    public Color color(Color c) {
-        return c == null ? new Color(0, 0, 0, 0) : c.clone();
-    }
+    public Color color(Color c);
 
     /**
      * Get the current fill color.
      *
      * @return the current fill color.
      */
-    public Color fill() {
-        return fillColor;
-    }
+    public Color fill();
 
     /**
      * Set the current fill color to given grayscale value.
@@ -472,9 +278,7 @@ public class GraphicsContext {
      * @param x the gray component.
      * @return the current fill color.
      */
-    public Color fill(float x) {
-        return fillColor = new Color(x, x, x);
-    }
+    public Color fill(float x);
 
     /**
      * Set the current fill color to given grayscale and alpha value.
@@ -483,9 +287,7 @@ public class GraphicsContext {
      * @param y the alpha value.
      * @return the current fill color.
      */
-    public Color fill(float x, float y) {
-        return fillColor = new Color(x, x, x, y);
-    }
+    public Color fill(float x, float y);
 
     /**
      * Set the current fill color to the given R/G/B value.
@@ -495,9 +297,7 @@ public class GraphicsContext {
      * @param z the blue component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z) {
-        return fillColor = new Color(x, y, z);
-    }
+    public Color fill(float x, float y, float z);
 
     /**
      * Set the current fill color to the given R/G/B/A value.
@@ -508,9 +308,7 @@ public class GraphicsContext {
      * @param a the alpha component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z, float a) {
-        return fillColor = new Color(x, y, z, a);
-    }
+    public Color fill(float x, float y, float z, float a);
 
     /**
      * Set the current fill color to the given color.
@@ -521,22 +319,19 @@ public class GraphicsContext {
      * @param c the color object.
      * @return the current fill color.
      */
-    public Color fill(Color c) {
-        return fillColor = c == null ? null : c.clone();
-    }
+    public Color fill(Color c);
 
-    public void nofill() {
-        fillColor = null;
-    }
+    /**
+     * Turn off the fill color.
+     */
+    public void nofill();
 
     /**
      * Get the current stroke color.
      *
      * @return the current stroke color.
      */
-    public Color stroke() {
-        return strokeColor;
-    }
+    public Color stroke();
 
     /**
      * Set the current stroke color to given grayscale value.
@@ -544,9 +339,7 @@ public class GraphicsContext {
      * @param x the gray component.
      * @return the current stroke color.
      */
-    public Color stroke(float x) {
-        return strokeColor = new Color(x, x, x);
-    }
+    public Color stroke(float x);
 
     /**
      * Set the current stroke color to given grayscale and alpha value.
@@ -555,9 +348,7 @@ public class GraphicsContext {
      * @param y the alpha value.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y) {
-        return strokeColor = new Color(x, x, x, y);
-    }
+    public Color stroke(float x, float y);
 
     /**
      * Set the current stroke color to the given R/G/B value.
@@ -567,9 +358,7 @@ public class GraphicsContext {
      * @param z the blue component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z) {
-        return strokeColor = new Color(x, y, z);
-    }
+    public Color stroke(float x, float y, float z);
 
     /**
      * Set the current stroke color to the given R/G/B/A value.
@@ -580,9 +369,7 @@ public class GraphicsContext {
      * @param a the alpha component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z, float a) {
-        return strokeColor = new Color(x, y, z, a);
-    }
+    public Color stroke(float x, float y, float z, float a);
 
     /**
      * Set the current stroke color to the given color.
@@ -593,203 +380,114 @@ public class GraphicsContext {
      * @param c the color object.
      * @return the current stroke color.
      */
-    public Color stroke(Color c) {
-        return strokeColor = c == null ? null : c.clone();
-    }
-
-    public void nostroke() {
-        strokeColor = null;
-    }
-
-    public float strokewidth() {
-        return strokeWidth;
-    }
-
-    public float strokewidth(float w) {
-        return strokeWidth = w;
-    }
-
-    //// Font commands ////
-
-    public String font() {
-        return fontName;
-    }
-
-    public String font(String fontName) {
-        if (!Text.fontExists(fontName))
-            throw new NodeBoxError("Font '" + fontName + "' does not exist.");
-        return this.fontName = fontName;
-    }
-
-    public String font(String fontName, float fontSize) {
-        font(fontName);
-        fontsize(fontSize);
-        return fontName;
-    }
-
-    public float fontsize() {
-        return fontSize;
-    }
-
-    public float fontsize(float s) {
-        return fontSize = s;
-    }
-
-    public float lineheight() {
-        return lineHeight;
-    }
-
-    public float lineheight(float lineHeight) {
-        return this.lineHeight = lineHeight;
-    }
-
-    public Text.Align align() {
-        return align;
-    }
-
-    public void align(Text.Align align) {
-        this.align = align;
-    }
-
-    public Text text(String text, float x, float y) {
-        return text(text, x, y, 0, 0);
-    }
-
-    public Text text(String text, float x, float y, float width) {
-        return text(text, x, y, width, 0);
-    }
-
-    public Text text(String text, float x, float y, float width, float height) {
-        Text t = new Text(text, x, y, width, height);
-        inheritFromContext(t);
-        canvas.add(t);
-        return t;
-    }
-
-    public Path textpath(String text, float x, float y) {
-        return textpath(text, x, y, 0, 0);
-    }
-
-    public Path textpath(String text, float x, float y, float width) {
-        return textpath(text, x, y, width, 0);
-    }
-
-    public Path textpath(String text, float x, float y, float width, float height) {
-        Text t = new Text(text, x, y, width, height);
-        inheritFromContext(t);
-        Path p = new Path();
-        p.text(t);
-        inheritFromContext(p);
-        return p;
-    }
-
-    public Rect textmetrics(String text) {
-        return textmetrics(text, 0, 0);
-    }
-
-    public Rect textmetrics(String text, float width) {
-        return textmetrics(text, width, 0);
-    }
-
-    public Rect textmetrics(String text, float width, float height) {
-        Text t = new Text(text, 0, 0, width, height);
-        inheritFromContext(t);
-        return t.getMetrics();
-    }
-
-    public float textwidth(String text) {
-        return textmetrics(text, 0, 0).getWidth();
-    }
-
-    public float textwidth(String text, float width) {
-        return textmetrics(text, width).getWidth();
-    }
-
-    public float textheight(String text) {
-        return textmetrics(text, 0, 0).getHeight();
-    }
-
-    public float textheight(String text, float width) {
-        return textmetrics(text, width).getHeight();
-    }
-
-    //// Image methods ////
-
-    public Image image(String path, float x, float y) {
-        Image img = new Image(path);
-        img.setX(x);
-        img.setY(y);
-        inheritFromContext(img);
-        canvas.add(img);
-        return img;
-    }
-
-    public Size imagesize(String path) {
-        Image img = new Image(path);
-        return img.getSize();
-    }
-
-    /// Drawing methods ////
+    public Color stroke(Color c);
 
     /**
-     * The draw method doesn't actually draw anything, but rather appends grobs to the canvas.
-     * When the canvas gets drawn, this grob will be drawn also.
-     *
-     * @param grob the grob to append to the canvas
+     * Turn off the stroke color.
      */
-    public void draw(Grob grob) {
-        canvas.add(grob);
-    }
+    public void nostroke();
 
-    //// Utility methods ////
+    public float strokewidth();
 
-    public void var(Object... args) {
-        throw new RuntimeException("var is no longer supported. Create parameters on the node instead.");
-    }
+    public float strokewidth(float w);
 
-    public double random() {
-        return Math.random();
-    }
+    public String font();
 
-    public long random(int max) {
-        return Math.round(Math.random() * max);
-    }
+    public String font(String fontName);
 
-    public long random(int min, int max) {
-        return Math.round(min + (Math.random() * (max - min)));
-    }
+    public String font(String fontName, float fontSize);
 
-    public double random(double max) {
-        return Math.random() * max;
-    }
+    public float fontsize();
 
-    public double random(double min, double max) {
-        return min + (Math.random() * (max - min));
-    }
+    public float fontsize(float s);
 
-    public Object choice(List objects) {
-        if (objects == null || objects.isEmpty()) return null;
-        return objects.get((int) random(objects.size()));
-    }
+    public float lineheight();
 
-    //// Context inheritance ////
+    public float lineheight(float lineHeight);
 
-    private void inheritFromContext(Path p) {
-        p.setFillColor(fillColor == null ? null : fillColor.clone());
-        p.setStrokeColor(strokeColor == null ? null : strokeColor.clone());
-        p.setStrokeWidth(strokeWidth);
-    }
+    public Text.Align align();
 
-    private void inheritFromContext(Text t) {
-        t.setFillColor(fillColor == null ? null : fillColor.clone());
-        t.setFontName(fontName);
-        t.setFontSize(fontSize);
-        t.setLineHeight(lineHeight);
-        t.setAlign(align);
-    }
+    public Text.Align align(Text.Align align);
 
-    private void inheritFromContext(Image i) {
-        i.setTransform(transform.clone());
-    }
+    public Text.Align align(String align);
 
+    public Text.Align align(int align);
+
+    public Image image(String path, float x, float y);
+
+    public Image image(String path, float x, float y, Float width);
+
+    public Image image(String path, float x, float y, Float width, Float height);
+
+    public Image image(String path, float x, float y, Float width, Float height, float alpha);
+
+    public Image image(String path, float x, float y, Float width, Float height, boolean draw);
+
+    public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw);
+
+    public Size imagesize(String path);
+
+    public Text text(String text, float x, float y);
+
+    public Text text(String text, float x, float y, float width);
+
+    public Text text(String text, float x, float y, float width, float height);
+
+    public Text text(String text, float x, float y, float width, float height, boolean draw);
+
+    public Path textpath(String text, float x, float y);
+
+    public Path textpath(String text, float x, float y, float width);
+
+    public Path textpath(String text, float x, float y, float width, float height);
+
+    public Rect textmetrics(String text);
+
+    public Rect textmetrics(String text, float width);
+
+    public Rect textmetrics(String text, float width, float height);
+
+    public float textwidth(String text);
+
+    public float textwidth(String text, float width);
+
+    public float textheight(String text);
+
+    public float textheight(String text, float width);
+
+    public void var(String name, VarType type);
+
+    public void var(String name, String type);
+
+    public void var(String name, int type);
+
+    public void var(String name, VarType type, Object value);
+
+    public void var(String name, String type, Object value);
+
+    public void var(String name, int type, Object value);
+
+    public void var(String name, VarType type, Object value, Float min, Float max);
+
+    public void var(String name, String type, Object value, Float min, Float max);
+
+    public void var(String name, int type, Object value, Float min, Float max);
+
+    public double random();
+
+    public long random(int max);
+
+    public long random(int min, int max);
+
+    public double random(double max);
+
+    public double random(double min, double max);
+
+    public Object choice(List objects);
+
+    public Iterator<Point> grid(int columns, int rows);
+
+    public Iterator<Point> grid(int columns, int rows, double columnSize, double rowSize);
+
+    public void draw(Grob g);
 }

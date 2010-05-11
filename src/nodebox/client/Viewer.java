@@ -5,10 +5,8 @@ import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PAffineTransform;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Grob;
-import nodebox.graphics.IGeometry;
-import nodebox.graphics.Path;
+import nodebox.graphics.Canvas;
+import nodebox.graphics.*;
 import nodebox.handle.Handle;
 import nodebox.node.Node;
 import nodebox.node.NodeEvent;
@@ -18,6 +16,7 @@ import nodebox.node.event.NodeAttributeChangedEvent;
 import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
+import java.awt.Color;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -42,6 +41,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     private boolean showOrigin = false;
     private PLayer viewerLayer;
     private JPopupMenu viewerMenu;
+    private Class outputClass;
 
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
@@ -190,13 +190,24 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         // Set bounds from output value.
         if (getNode() != null) {
             Object outputValue = getNode().getOutputValue();
-            if (outputValue instanceof Grob) {
-                viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
-            } else if (outputValue != null) {
-                resetView();
-                viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                viewerLayer.setOffset(5, 5);
+            if (outputValue != null && outputClass != outputValue.getClass()) {
+                if (outputValue instanceof Canvas) {
+                    // The canvas is placed in the top-left corner, as in NodeBox 1.
+                    resetView();
+                    viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                    viewerLayer.setOffset(0, 0);
+                } else if (outputValue instanceof Grob) {
+                    // Other graphic objects are displayed in the center.
+                    resetView();
+                    viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                    viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
+                } else {
+                    // Other output will be converted to a string, and placed just off the top-left corner.
+                    resetView();
+                    viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                    viewerLayer.setOffset(5, 5);
+                }
+                outputClass = outputValue.getClass();
             }
         }
         repaint();
@@ -319,6 +330,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
             if (outputValue instanceof Grob) {
+                if (outputValue instanceof Canvas)
+                    g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
                 ((Grob) outputValue).draw(g2);
             } else if (outputValue != null) {
                 String s = outputValue.toString();
@@ -332,7 +345,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 // Create a canvas with a transparent background
                 nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
                 canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
-                GraphicsContext ctx = new GraphicsContext(canvas);
+                CanvasContext ctx = new CanvasContext(canvas);
                 handle.draw(ctx);
                 ctx.getCanvas().draw(g2);
             }

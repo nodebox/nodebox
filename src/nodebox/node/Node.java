@@ -1273,7 +1273,7 @@ public class Node implements NodeCode {
      * @throws nodebox.node.ProcessingError when an error happened during procesing.
      */
     public void update() throws ProcessingError {
-        update(new ProcessingContext());
+        update(new ProcessingContext(this));
     }
 
     /**
@@ -1287,6 +1287,10 @@ public class Node implements NodeCode {
      */
     public void update(ProcessingContext ctx) throws ProcessingError {
         if (!dirty) return;
+        // Set the current context global. 
+        ProcessingContext.setCurrentContext(ctx);
+        // Set the current node as the one being processed.
+        ctx.setNode(this);
         // Update the dependencies.
         // This might cause an exception which we don't catch, instead letting it boil up.
         updateDependencies(ctx);
@@ -1510,7 +1514,7 @@ public class Node implements NodeCode {
         NodeCode handleCode = asCode("_handle");
         if (handleCode == null) return null;
         // TODO: Do we need the ProcessingContext in the handle or can we pass null?
-        Object handleObj = handleCode.cook(this, new ProcessingContext());
+        Object handleObj = handleCode.cook(this, new ProcessingContext(this));
         if (handleObj == null) return null;
         if (!(handleObj instanceof Handle))
             throw new AssertionError("Handle code for node " + getName() + " does not return Handle object.");

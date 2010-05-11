@@ -1,5 +1,6 @@
 package nodebox.handle;
 
+import nodebox.graphics.CanvasContext;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
 import nodebox.graphics.Rect;
@@ -37,6 +38,7 @@ public class ScaleHandle extends AbstractHandle {
         ctx.stroke(HANDLE_COLOR);
         float halfWidth = handleWidth / 2;
         float halfHeight = handleHeight / 2;
+        ctx.rectmode(GraphicsContext.RectMode.CENTER);
         ctx.rect(0, 0, handleWidth, handleHeight);
         drawDot(ctx, -halfWidth, -halfHeight);
         drawDot(ctx, halfWidth, -halfHeight);

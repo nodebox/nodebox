@@ -48,7 +48,8 @@ public class RotateHandle extends AbstractHandle {
     public void draw(GraphicsContext ctx) {
         float cx = getCenterX();
         float cy = getCenterY();
-        ctx.fill(null);
+        ctx.ellipsemode(GraphicsContext.EllipseMode.CENTER);
+        ctx.nofill();
         ctx.stroke(HANDLE_COLOR);
         ctx.ellipse(cx, cy, handleLength * 2, handleLength * 2);
         double[] xy;
@@ -62,7 +63,7 @@ public class RotateHandle extends AbstractHandle {
         float x = (float) xy[0];
         float y = (float) xy[1];
         ctx.line(cx, cy, x, y);
-        ctx.fill(new Color(1, 1, 1));
+        ctx.fill(1);
         ctx.ellipse(x, y, 6, 6);
         if (dragState == DragState.HANDLE) {
             xy = Geometry.coordinates(cx, cy, handleLength, oa);

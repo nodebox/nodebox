@@ -54,6 +54,18 @@ public class Rect implements Iterable {
         return new Rect(cx - width / 2, cy - height / 2, width, height);
     }
 
+    public static Rect centeredRect(Rect r) {
+        return centeredRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+    }
+
+    public static Rect corneredRect(float cx, float cy, float width, float height) {
+        return new Rect(cx + width / 2, cy + height / 2, width, height);
+    }
+
+    public static Rect corneredRect(Rect r) {
+        return corneredRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+    }
+
     public float getHeight() {
         return height;
     }

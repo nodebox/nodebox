@@ -20,11 +20,13 @@
 package nodebox.graphics;
 
 import java.awt.geom.Point2D;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * @author Frederik
  */
-public class Point {
+public class Point implements Iterable<Float> {
 
     public static final int LINE_TO = 1;
     public static final int CURVE_TO = 2;
@@ -132,5 +134,23 @@ public class Point {
     @Override
     public Point clone() {
         return new Point(this);
+    }
+
+    public Iterator<Float> iterator() {
+        return new Iterator<Float>() {
+            int pos = 0;
+
+            public boolean hasNext() {
+                return pos < 2;
+            }
+
+            public Float next() {
+                if (pos >= 2) throw new NoSuchElementException("A point has only two elements.");
+                return (pos++) == 0 ? x : y;
+            }
+
+            public void remove() {
+            }
+        };
     }
 }

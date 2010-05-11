@@ -184,7 +184,7 @@ public class Expression {
      * @throws ExpressionError if an error occurs whilst evaluating the expression.
      */
     public Object evaluate() throws ExpressionError {
-        return evaluate(new ProcessingContext());
+        return evaluate(new ProcessingContext(parameter.getNode()));
     }
 
     /**

@@ -129,21 +129,10 @@ public class Image extends AbstractGrob {
 
     //// Transformations ////
 
-    public Transform getCenteredTransform() {
-        Rect bounds = getBounds();
-        Transform t = new Transform();
-        float dx = bounds.getX() + bounds.getWidth() / 2;
-        float dy = bounds.getY() + bounds.getHeight() / 2;
-        t.translate(dx, dy);
-        t.append(getTransform());
-        t.translate(-dx, -dy);
-        return t;
-    }
-
     protected void setupTransform(Graphics2D g) {
         saveTransform(g);
         AffineTransform trans = g.getTransform();
-        trans.concatenate(getCenteredTransform().getAffineTransform());
+        trans.concatenate(getTransform().getAffineTransform());
         g.setTransform(trans);
     }
 
@@ -177,10 +166,6 @@ public class Image extends AbstractGrob {
         } else {
             return 1;
         }
-    }
-
-    public void inheritFromContext(GraphicsContext ctx) {
-        // TODO: Implement
     }
 
     public void draw(Graphics2D g) {

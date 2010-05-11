@@ -57,8 +57,7 @@ public class PythonCodeTest extends TestCase {
      */
     public void testErrors() {
         Node node1 = Node.ROOT_NODE.newInstance(testLibrary, "node1");
-        // Test for intialization errors.
-        assertCodeFails("# No source code", null, "does not contain a function");
+        // Test for initialization errors.
         assertSnippetFails("/////// hello?", null, "SyntaxError");
         // Change the cook function to a number.
         assertCodeFails("cook = 5", null, "not a function.");

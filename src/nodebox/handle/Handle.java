@@ -2,6 +2,7 @@ package nodebox.handle;
 
 
 import nodebox.client.Viewer;
+import nodebox.graphics.CanvasContext;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
 import nodebox.node.Node;

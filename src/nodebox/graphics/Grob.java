@@ -24,8 +24,6 @@ public interface Grob extends Cloneable {
 
     //// Operations on the current context. ////
 
-    public void inheritFromContext(GraphicsContext ctx);
-
     public void draw(Graphics2D g);
 
     //// Geometric queries ////

@@ -7,6 +7,10 @@ import java.awt.geom.Point2D;
 
 public class Transform implements Cloneable {
 
+    public enum Mode {
+        CORNER, CENTER
+    }
+
     private AffineTransform affineTransform;
 
     public static Transform translated(float tx, float ty) {
@@ -97,7 +101,7 @@ public class Transform implements Cloneable {
     public void skew(double kx, double ky) {
         kx = Math.PI * kx / 180.0;
         ky = Math.PI * ky / 180.0;
-        affineTransform.preConcatenate(new AffineTransform(1, Math.tan(ky), -Math.tan(kx), 1, 0, 0));
+        affineTransform.concatenate(new AffineTransform(1, Math.tan(ky), -Math.tan(kx), 1, 0, 0));
     }
 
     public boolean invert() {

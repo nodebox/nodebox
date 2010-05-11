@@ -1,9 +1,6 @@
 package nodebox.handle;
 
-import nodebox.graphics.Color;
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Point;
-import nodebox.graphics.Rect;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 
 public class PointHandle extends AbstractHandle {

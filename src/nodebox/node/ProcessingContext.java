@@ -13,11 +13,22 @@ import java.util.Set;
  */
 public class ProcessingContext {
 
+    private static ThreadLocal<ProcessingContext> currentContext = new ThreadLocal<ProcessingContext>();
+
+    static void setCurrentContext(ProcessingContext context) {
+        currentContext.set(context);
+    }
+
+    public static ProcessingContext getCurrentContext() {
+        return currentContext.get();
+    }
+
     private HashMap<String, Object> valueMap = new HashMap<String, Object>();
     private ByteArrayOutputStream outputBytes;
     private ByteArrayOutputStream errorBytes;
     private PrintStream outputStream;
     private PrintStream errorStream;
+    private Node node;
 
     private enum State {
         UPDATING, PROCESSED
@@ -35,6 +46,26 @@ public class ProcessingContext {
         outputStream = new PrintStream(outputBytes);
         errorBytes = new ByteArrayOutputStream();
         errorStream = new PrintStream(errorBytes);
+    }
+
+    public ProcessingContext(Node node) {
+        this();
+        this.node = node;
+    }
+
+    //// Current node ////
+
+    /**
+     * Get the node that is currently processing.
+     *
+     * @return the current node.
+     */
+    public Node getNode() {
+        return node;
+    }
+
+    void setNode(Node node) {
+        this.node = node;
     }
 
     //// Map operations ////
@@ -80,6 +111,7 @@ public class ProcessingContext {
     }
 
     // TODO: These are no longer used. Check and remove.
+
     public void beginUpdating(Parameter parameter) {
         State state = updatedParameters.get(parameter);
         if (state == null) {

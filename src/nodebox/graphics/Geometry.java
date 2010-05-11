@@ -365,10 +365,6 @@ public class Geometry extends AbstractGeometry implements Colorizable {
 
     //// Drawing operations ////
 
-    public void inheritFromContext(GraphicsContext ctx) {
-        throw new UnsupportedOperationException();
-    }
-
     public void draw(Graphics2D g) {
         for (Grob grob : paths) {
             grob.draw(g);

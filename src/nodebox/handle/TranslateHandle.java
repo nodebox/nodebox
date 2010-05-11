@@ -1,9 +1,6 @@
 package nodebox.handle;
 
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Path;
-import nodebox.graphics.Point;
-import nodebox.graphics.Rect;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 
 public class TranslateHandle extends AbstractHandle {
@@ -33,11 +30,12 @@ public class TranslateHandle extends AbstractHandle {
     public void draw(GraphicsContext ctx) {
         float x = node.asFloat(txName);
         float y = node.asFloat(tyName);
+        ctx.rectmode(GraphicsContext.RectMode.CENTER);
         Path p = new Path();
         p.setFillColor(HANDLE_COLOR);
         ctx.stroke(HANDLE_COLOR);
         p.setStrokeColor(null);
-        ctx.fill(null);
+        ctx.nofill();
         drawDot(ctx, x, y);
 
         if (dragState == DragState.NONE) {
@@ -88,7 +86,7 @@ public class TranslateHandle extends AbstractHandle {
             p.lineto(x - 5, y1);
             p.lineto(x + 5, y1);
         }
-        ctx.stroke(null);
+        ctx.nostroke();
         ctx.draw(p);
     }
 

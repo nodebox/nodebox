@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import junit.framework.TestCase;
+import nodebox.client.PythonUtils;
 import nodebox.node.polygraph.PolygraphLibrary;
 
 public class NodeTestCase extends TestCase {
@@ -14,6 +15,7 @@ public class NodeTestCase extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        PythonUtils.initializePython();
         manager = new NodeLibraryManager();
         testNodes = new TestNodes();
         testLibrary = new NodeLibrary("test");

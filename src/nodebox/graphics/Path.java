@@ -2,12 +2,12 @@ package nodebox.graphics;
 
 import java.awt.*;
 import java.awt.geom.*;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Base class for all geometric (vector) data.
  */
-public class Path extends AbstractGeometry implements Colorizable {
+public class Path extends AbstractGeometry implements Colorizable, Iterable<Point> {
 
     // Simulate a quarter of a circle.
     private static final float ONE_MINUS_QUARTER = 1.0f - 0.552f;
@@ -268,6 +268,30 @@ public class Path extends AbstractGeometry implements Colorizable {
         roundedRect(cx, cy, width, height, rx, ry);
     }
 
+    public void cornerRect(float x, float y, float width, float height) {
+        addPoint(x, y);
+        addPoint(x + width, y);
+        addPoint(x + width, y + height);
+        addPoint(x, y + height);
+        close();
+    }
+
+    public void cornerRect(Rect r, float roundness) {
+        roundedRect(Rect.corneredRect(r), roundness);
+    }
+
+    public void cornerRect(Rect r, float rx, float ry) {
+        roundedRect(Rect.corneredRect(r), rx, ry);
+    }
+
+    public void cornerRect(float cx, float cy, float width, float height, float r) {
+        roundedRect(Rect.corneredRect(cx, cy, width, height), r);
+    }
+
+    public void cornerRect(float cx, float cy, float width, float height, float rx, float ry) {
+        roundedRect(Rect.corneredRect(cx, cy, width, height), rx, ry);
+    }
+
     public void roundedRect(Rect r, float roundness) {
         roundedRect(r, roundness, roundness);
     }
@@ -290,7 +314,7 @@ public class Path extends AbstractGeometry implements Colorizable {
         float right = cx + halfWidth;
         float top = cy - halfHeight;
         float bottom = cy + halfHeight;
-        // rx/ry cannot be greater than half of the width of the retoctangle
+        // rx/ry cannot be greater than half of the width of the rectangle
         // (required by SVG spec)
         dx = Math.min(dx, width * 0.5f);
         dy = Math.min(dy, height * 0.5f);
@@ -321,6 +345,11 @@ public class Path extends AbstractGeometry implements Colorizable {
      */
     public void ellipse(float cx, float cy, float width, float height) {
         Ellipse2D.Float e = new Ellipse2D.Float(cx - width / 2, cy - height / 2, width, height);
+        extend(e);
+    }
+
+    public void cornerEllipse(float x, float y, float width, float height) {
+        Ellipse2D.Float e = new Ellipse2D.Float(x, y, width, height);
         extend(e);
     }
 
@@ -658,6 +687,19 @@ public class Path extends AbstractGeometry implements Colorizable {
         return currentContour.pointAt(resT);
     }
 
+    /**
+     * Same as pointAt(t).
+     * <p/>
+     * This method is here for compatibility with NodeBox 1.
+     *
+     * @param t relative coordinate of the point.
+     * @return coordinates for point at t.
+     * @see #pointAt(float)
+     */
+    public Point point(float t) {
+        return pointAt(t);
+    }
+
     //// Geometric operations ////
 
     /**
@@ -715,6 +757,100 @@ public class Path extends AbstractGeometry implements Colorizable {
         }
         return p;
     }
+
+    public static Path findPath(java.util.List<Point> points) {
+        Point[] pts = new Point[points.size()];
+        points.toArray(pts);
+        return findPath(pts, 1);
+    }
+
+    public static Path findPath(java.util.List<Point> points, float curvature) {
+        Point[] pts = new Point[points.size()];
+        points.toArray(pts);
+        return findPath(pts, curvature);
+    }
+
+    public static Path findPath(Point[] points) {
+        return findPath(points, 1);
+    }
+
+    /**
+     * Constructs a path between the given list of points.
+     * </p>
+     * Interpolates the list of points and determines
+     * a smooth bezier path betweem them.
+     * Curvature is only useful if the path has more than  three points.
+     * </p>
+     * @param points     the points of which to construct the path from.
+     * @param curvature  the smoothness of the generated path (0: straight, 1: smooth)
+     * @return a new Path.
+     */
+    public static Path findPath(Point[] points, float curvature) {
+        if (points.length == 0) return null;
+        if (points.length == 1) {
+            Path path = new Path();
+            path.moveto(points[0].x, points[0].y);
+            return path;
+        }
+        if (points.length == 2) {
+            Path path = new Path();
+            path.moveto(points[0].x, points[0].y);
+            path.lineto(points[1].x, points[1].y);
+            return path;
+        }
+
+        // Zero curvature means straight lines.
+
+        curvature = Math.max(0, Math.min(1, curvature));
+        if (curvature == 0) {
+            Path path = new Path();
+            path.moveto(points[0].x, points[0].y);
+            for (int i = 0; i < points.length; i++)
+                path.lineto(points[i].x, points[i].y);
+            return path;
+        }
+
+        curvature = (float) (4 + (1.0-curvature)*40);
+
+        HashMap<Integer, Float> dx, dy, bi, ax, ay;
+        dx = new HashMap<Integer, Float>();
+        dy = new HashMap<Integer, Float>();
+        bi = new HashMap<Integer, Float>();
+        ax = new HashMap<Integer, Float>();
+        ay = new HashMap<Integer, Float>();
+        dx.put(0, 0f);
+        dx.put(points.length-1, 0f);
+        dy.put(0, 0f);
+        dy.put(points.length-1, 0f);
+        bi.put(1, -0.25f);
+        ax.put(1, (points[2].x-points[0].x-dx.get(0)) / 4);
+        ay.put(1, (points[2].y-points[0].y-dy.get(0)) / 4);
+
+        for (int i = 2; i < points.length-1; i++) {
+            bi.put(i, -1 / (curvature + bi.get(i-1)));
+            ax.put(i, -(points[i+1].x-points[i-1].x-ax.get(i-1)) * bi.get(i));
+            ay.put(i, -(points[i+1].y-points[i-1].y-ay.get(i-1)) * bi.get(i));
+        }
+
+        for (int i = points.length - 2; i >= 1; i--) {
+            dx.put(i, ax.get(i) + dx.get(i+1) * bi.get(i));
+            dy.put(i, ay.get(i) + dy.get(i+1) * bi.get(i));
+        }
+
+        Path path = new Path();
+        path.moveto(points[0].x, points[0].y);
+        for (int i = 0; i < points.length-1; i++) {
+            path.curveto(points[i].x + dx.get(i),
+                         points[i].y + dy.get(i),
+                         points[i+1].x - dx.get(i+1),
+                         points[i+1].y - dy.get(i+1),
+                         points[i+1].x,
+                         points[i+1].y);
+        }
+
+        return path;
+    }
+
 
     //// Geometric queries ////
 
@@ -863,9 +999,6 @@ public class Path extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public void inheritFromContext(GraphicsContext ctx) {
-    }
-
     public Path clone() {
         return new Path(this);
     }
@@ -873,6 +1006,13 @@ public class Path extends AbstractGeometry implements Colorizable {
     public Path cloneAndClear() {
         return new Path(this, false);
     }
+
+    //// Iterator implementation
+
+    public Iterator<Point> iterator() {
+        return getPoints().iterator();
+    }
+
 
     private class Bezier {
         private float x1, y1, x2, y2, x3, y3, x4, y4;

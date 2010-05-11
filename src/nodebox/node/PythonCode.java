@@ -1,5 +1,6 @@
 package nodebox.node;
 
+import nodebox.graphics.CanvasContext;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
@@ -29,22 +30,31 @@ public class PythonCode implements NodeCode {
     private String source;
     private PyDictionary namespace;
     private PyFunction cookFunction;
+    private CanvasContext ctx;
 
     public PythonCode(String source) {
         this.source = source;
+        namespace = new PyDictionary();
     }
 
     private void preCook() {
         // The namespace will remain bound to the interpreter.
         // Changes to this dictionary will affect the namespace of the interpreter.
-        namespace = new PyDictionary();
         PythonInterpreter interpreter = new PythonInterpreter(namespace);
         // Immediately run the code to extract the cook(self) method.
+        interpreter.exec("from nodebox1.graphics import Context\n" +
+                "_g = globals()\n" +
+                "_ctx = Context(ns=_g)\n" +
+                "for n in dir(_ctx):\n" +
+                "    _g[n] = getattr(_ctx, n)");
+        //PyCode code = interpreter.compile(source);
+        //code.__call__();
         interpreter.exec(source);
+        ctx = (CanvasContext) interpreter.get("_ctx").__tojava__(CanvasContext.class);
         try {
             cookFunction = (PyFunction) interpreter.get("cook");
-            if (cookFunction == null)
-                throw new RuntimeException("Source code does not contain a function \"cook(self)\".");
+            //if (cookFunction == null)
+            //    throw new RuntimeException("Source code does not contain a function \"cook(self)\".");
         } catch (ClassCastException e) {
             throw new RuntimeException("Attribute \"cook\" in source code is not a function.");
         }
@@ -53,18 +63,6 @@ public class PythonCode implements NodeCode {
     }
 
     public Object cook(Node node, ProcessingContext context) throws RuntimeException {
-        if (cookFunction == null) preCook();
-
-        // Add globals into the function namespace.
-        namespace.put("context", context);
-        namespace.put("FRAME", context.getFrame());
-        PyObject self;
-        if (node == null) {
-            self = Py.None;
-        } else {
-            self = new SelfWrapper(node);
-        }
-
         // Reassign the output and error streams.
         PrintStream oldOutStream = System.out;
         PrintStream oldErrStream = System.err;
@@ -88,9 +86,24 @@ public class PythonCode implements NodeCode {
         }
 
         // Run the Python function.
-        PyObject pyResult;
+        PyObject pyResult = null;
         try {
-            pyResult = cookFunction.__call__(self);
+            PyObject self;
+            if (node == null) {
+                self = Py.None;
+            } else {
+                self = new SelfWrapper(node);
+            }
+            // Add globals into the function namespace.
+            namespace.put("context", context);
+            namespace.put("node", self);
+            namespace.put("FRAME", context.getFrame());
+            if (ctx != null)
+                ctx.getCanvas().clear();
+            if (cookFunction == null) preCook();
+            if (cookFunction != null) {
+                pyResult = cookFunction.__call__(self);
+            }
         } finally {
             // Reset the output streams.
             System.setOut(oldOutStream);
@@ -100,11 +113,22 @@ public class PythonCode implements NodeCode {
         }
 
         // Unwrap the result.
-        Object result = pyResult.__tojava__(Object.class);
-        if (result == Py.NoConversion) {
-            throw new RuntimeException("Cannot convert Python object " + pyResult + " to java.");
-        }
+        Object result;
+        if (pyResult != null) {
+            result = pyResult.__tojava__(Object.class);
 
+            if (result == Py.NoConversion) {
+                throw new RuntimeException("Cannot convert Python object " + pyResult + " to java.");
+            }
+        } else {
+            CanvasContext g = null;
+            try {
+                g = (CanvasContext) namespace.get("_ctx");
+                result = g.getCanvas();
+            } catch (ClassCastException e) {
+                result = null;
+            }
+        }
         // Reset the current working directory.
         if (originalWorkingDir != null) {
             Py.getSystemState().setCurrentWorkingDir(originalWorkingDir);

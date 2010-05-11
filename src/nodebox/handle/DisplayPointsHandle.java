@@ -1,9 +1,6 @@
 package nodebox.handle;
 
-import nodebox.graphics.GraphicsContext;
-import nodebox.graphics.Path;
-import nodebox.graphics.Point;
-import nodebox.graphics.Text;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 
 public class DisplayPointsHandle extends AbstractHandle {

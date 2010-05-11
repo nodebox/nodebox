@@ -437,7 +437,7 @@ public class ExpressionTest extends NodeTestCase {
     public void assertExpressionEquals(Object expected, Parameter p, String expression) throws ExpressionError {
         // We don't catch the ExpressionError but let it bubble up.
         p.setExpression(expression);
-        p.update(new ProcessingContext());
+        p.update(new ProcessingContext(p.getNode()));
         assertEquals(expected, p.getValue());
     }
 

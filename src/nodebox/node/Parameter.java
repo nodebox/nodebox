@@ -898,6 +898,7 @@ public class Parameter {
      */
     public void update(ProcessingContext context) throws ExpressionError {
         if (!dirty) return;
+        context.setNode(node);
         // To avoid infinite recursion, we set dirty to false before processing
         // any of the dependencies. If we come by this parameter again, we have
         // already updated it.

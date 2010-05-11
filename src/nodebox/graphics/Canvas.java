@@ -160,12 +160,10 @@ public class Canvas extends AbstractTransformable {
     }
 
     public void draw(Graphics2D g) {
-        float halfWidth = width / 2;
-        float halfHeight = height / 2;
-        float left = -halfWidth;
-        float top = -halfHeight;
-        g.setColor(background.getAwtColor());
-        g.fillRect((int) left, (int) top, (int) width, (int) height);
+        if (background != null) {
+            g.setColor(background.getAwtColor());
+            g.fillRect(0, 0, Math.round(width), Math.round(height));
+        }
         //Rectangle clip = g.getClipBounds();
         //int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
         //int clipheight = clip != null && height > clip.height ? clip.height : (int) width;

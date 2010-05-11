@@ -43,7 +43,7 @@ public class FourPointHandle extends AbstractHandle {
         drawDot(cornerPath, right, bottom);
         drawDot(cornerPath, left, bottom);
         drawDot(cornerPath, cx, cy);
-        ctx.getCanvas().add(cornerPath);
+        ctx.draw(cornerPath);
         Path strokePath = new Path();
         strokePath.setFillColor(null);
         strokePath.setStrokeColor(HANDLE_COLOR);

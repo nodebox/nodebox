@@ -22,7 +22,7 @@ public class Text extends AbstractGrob {
     private double height = 0;
     private String fontName = "Helvetica";
     private double fontSize = 24;
-    private double lineHeight;
+    private double lineHeight = 1.2;
     private Align align = Align.CENTER;
     private Color fillColor = new Color();
 
@@ -170,13 +170,16 @@ public class Text extends AbstractGrob {
 
     //// Metrics ////
 
-    private AttributedString getStyledText() {
+    private AttributedString getStyledText(String text) {
+        // TODO: Find a better way to handle empty Strings (like for example paragraph line breaks)
+        if (text.isEmpty())
+            text = " ";
         AttributedString attrString = new AttributedString(text);
         attrString.addAttribute(TextAttribute.FONT, getFont());
         if (fillColor != null)
             attrString.addAttribute(TextAttribute.FOREGROUND, fillColor.getAwtColor());
         if (align == Align.RIGHT) {
-            attrString.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
+            //attrString.addAttribute(TextAttribute.RUN_DIRECTION, TextAttribute.RUN_DIRECTION_RTL);
         } else if (align == Align.CENTER) {
             // TODO: Center alignment?
         } else if (align == Align.JUSTIFY) {
@@ -197,15 +200,18 @@ public class Text extends AbstractGrob {
         return new Rect(bounds);
     }
 
-    //// Drawing ////
+    //// Transformations ////
 
-    public void inheritFromContext(GraphicsContext ctx) {
-        // TODO: Implement
+    protected void setupTransform(Graphics2D g) {
+        saveTransform(g);
+        AffineTransform trans = g.getTransform();
+        trans.concatenate(getTransform().getAffineTransform());
+        g.setTransform(trans);
     }
 
     public void draw(Graphics2D g) {
         if (fillColor == null) return;
-        saveTransform(g);
+        setupTransform(g);
         if (text == null || text.length() == 0) return;
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
@@ -247,20 +253,41 @@ public class Text extends AbstractGrob {
 
         private float x, y;
         private float ascent;
-        private AttributedString styledText;
-        private LineBreakMeasurer measurer;
+        private int currentIndex = 0;
+        private String[] textParts;
+        private LineBreakMeasurer[] measurers;
+        private LineBreakMeasurer currentMeasurer;
+        private String currentText;
         private boolean first;
 
         private TextLayoutIterator() {
             x = 0;
             y = 0;
-            styledText = getStyledText();
-            measurer = new LineBreakMeasurer(styledText.getIterator(), new FontRenderContext(new AffineTransform(), true, true));
+            textParts = text.split("\n");
+            measurers = new LineBreakMeasurer[textParts.length];
+            FontRenderContext frc = new FontRenderContext(new AffineTransform(), true, true);
+            for (int i = 0; i < textParts.length; i++) {
+                AttributedString s = getStyledText(textParts[i]);
+                measurers[i] = new LineBreakMeasurer(s.getIterator(), frc);
+            }
+            currentMeasurer = measurers[currentIndex];
+            currentText = textParts[currentIndex];
             first = true;
         }
 
         public boolean hasNext() {
-            return measurer.getPosition() < text.length();
+            if (currentMeasurer.getPosition() < currentText.length())
+                return true;
+            else {
+                currentIndex++;
+                if (currentIndex < textParts.length) {
+                    currentMeasurer = measurers[currentIndex];
+                    currentText = textParts[currentIndex];
+                    return hasNext();
+                } else {
+                    return false;
+                }
+            }
         }
 
         public TextLayout next() {
@@ -270,7 +297,8 @@ public class Text extends AbstractGrob {
                 y += ascent * lineHeight;
             }
             float layoutWidth = width == 0 ? Float.MAX_VALUE : (float) width;
-            TextLayout layout = measurer.nextLayout(layoutWidth);
+
+            TextLayout layout = currentMeasurer.nextLayout(layoutWidth);
             if (width == 0) {
                 layoutWidth = layout.getAdvance();
                 if (align == Align.RIGHT) {
@@ -284,12 +312,13 @@ public class Text extends AbstractGrob {
                 x = (float) ((width - layout.getAdvance()) / 2.0F);
             } else if (align == Align.JUSTIFY) {
                 // Don't justify the last line.
-                if (measurer.getPosition() < text.length()) {
+                if (currentMeasurer.getPosition() < currentText.length()) {
                     layout = layout.getJustifiedLayout((float) width);
                 }
             }
             ascent = layout.getAscent();
             // y += layout.getDescent() + layout.getLeading() + layout.getAscent();
+
             return layout;
         }
 
