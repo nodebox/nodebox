@@ -67,7 +67,8 @@ public class CircleScaleHandle extends AbstractHandle {
         float x = getCenterX();
         float y = getCenterY();
         float radius = getRadius();
-        ctx.fill(null);
+        ctx.nofill();
+        ctx.ellipsemode(GraphicsContext.EllipseMode.CENTER);
         ctx.stroke(HANDLE_COLOR);
         ctx.ellipse(x, y, radius * 2, radius * 2);
         if (pt != null)
