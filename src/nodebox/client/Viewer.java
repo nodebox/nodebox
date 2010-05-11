@@ -240,8 +240,11 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         } catch (NoninvertibleTransformException ex) {
             return new nodebox.graphics.Point(0, 0);
         }
-        double cx = -getWidth() / 2.0 + transformedPoint.getX();
-        double cy = -getHeight() / 2.0 + transformedPoint.getY();
+        Point2D offset = viewerLayer.getOffset();
+        double cx = -offset.getX() + transformedPoint.getX();
+        double cy = -offset.getY() + transformedPoint.getY();
+//        double cx = -getWidth() / 2.0 + transformedPoint.getX();
+//        double cy = -getHeight() / 2.0 + transformedPoint.getY();
         return new nodebox.graphics.Point((float) cx, (float) cy);
     }
 
