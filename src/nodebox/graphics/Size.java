@@ -1,8 +1,11 @@
 package nodebox.graphics;
 
 import java.awt.geom.Dimension2D;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-public class Size {
+public class Size implements Iterable {
 
     private double width, height;
 
@@ -48,6 +51,13 @@ public class Size {
     @Override
     public String toString() {
         return "Size(" + width + ", " + height + ")";
+    }
+
+    public Iterator<Double> iterator() {
+        List<Double> list = new ArrayList<Double>();
+        list.add(width);
+        list.add(height);
+        return list.iterator();
     }
 
     @Override
