@@ -79,6 +79,19 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
+    private Path createPath() {
+        Path p = new Path();
+        return p;
+    }
+
+    public Path Path() {
+        return createPath();
+    }
+
+    public Path BezierPath() {
+        return createPath();
+    }
+
     public Path rect(Rect r) {
         return rect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), true);
     }
@@ -92,7 +105,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Path rect(float x, float y, float width, float height, boolean draw) {
-        Path p = new Path();
+        Path p = createPath();
         switch (rectMode) {
             case CENTER:
                 p.rect(x, y, width, height);
@@ -128,7 +141,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Path rect(float x, float y, float width, float height, float rx, float ry, boolean draw) {
-        Path p = new Path();
+        Path p = createPath();
         switch (rectMode) {
             case CENTER:
                 p.rect(x, y, width, height, rx, ry);
@@ -184,7 +197,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Path ellipse(float x, float y, float width, float height, boolean draw) {
-        Path p = new Path();
+        Path p = createPath();
         switch (ellipseMode) {
             case CENTER:
                 p.ellipse(x, y, width, height);
@@ -204,7 +217,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Path line(float x1, float y1, float x2, float y2, boolean draw) {
-        Path p = new Path();
+        Path p = createPath();
         p.line(x1, y1, x2, y2);
         inheritFromContext(p);
         if (draw)
@@ -230,7 +243,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Path star(float cx, float cy, int points, float outer, float inner, boolean draw) {
         float PI = (float) Math.PI;
-        Path p = new Path();
+        Path p = createPath();
         p.moveto(cx, cy + outer);
         for (int i = 1; i < points * 2; i++) {
             float angle = i * PI / points;
@@ -313,7 +326,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         float head = width * .4f;
         float tail = width * .2f;
 
-        Path p = new Path();
+        Path p = createPath();
         p.moveto(x, y);
         p.lineto(x - head, y + head);
         p.lineto(x - head, y + tail);
@@ -333,7 +346,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         float head = .3f;
         float tail = 1 + head;
 
-        Path p = new Path();
+        Path p = createPath();
         p.moveto(x, y);
         p.lineto(x, y + width * (1 - head));
         p.lineto(x - width * head, y + width);
@@ -354,7 +367,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     //// Path commands ////
 
     public void beginpath() {
-        path = new Path();
+        path = createPath();
         pathClosed = false;
     }
 
@@ -415,7 +428,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public void drawpath(Iterable<Point> points) {
-        Path path = new Path();
+        Path path = createPath();
         for (Point pt : points) {
             path.addPoint(pt);
         }
