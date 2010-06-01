@@ -225,13 +225,22 @@ class Context(CanvasContext):
     ### Image commands ###
 
     def image(self, path, x, y, width=None, height=None, alpha=1.0, data=None, draw=True, **kwargs):
-        img = CanvasContext.image(self, path, x, y, width, height, alpha, Boolean(draw))
+        if data is not None:
+            from nodebox.graphics import Image
+            arg = Image.fromData(data).awtImage
+        else:
+            arg = path
+        img = CanvasContext.image(self, arg, x, y, width, height, alpha, Boolean(draw))
         # todo: handle data and kwargs
         return img
 
     def imagesize(self, path, data=None):
-        # todo: handle data
-        return CanvasContext.imagesize(self, path)
+        if data is not None:
+            from nodebox.graphics import Image
+            arg = Image.fromData(data).awtImage
+        else:
+            arg = path
+        return CanvasContext.imagesize(self, arg)
 
     def _setAttributesFromKwargs(self, item, **kwargs):
         if isinstance(item, Path):

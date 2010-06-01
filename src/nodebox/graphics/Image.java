@@ -7,8 +7,7 @@ import javax.management.RuntimeErrorException;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 
 public class Image extends AbstractGrob {
@@ -65,6 +64,15 @@ public class Image extends AbstractGrob {
         this.desiredHeight = other.desiredHeight;
         this.alpha = other.alpha;
         this.image = other.image;
+    }
+
+    public static Image fromData(byte[] data) {
+        InputStream istream = new BufferedInputStream(new ByteArrayInputStream(data));
+        try {
+            return new Image(ImageIO.read(istream));
+        } catch (IOException e) {
+            throw new RuntimeErrorException(null, "Could not read image data.");
+        }
     }
 
     //// Attribute access ////

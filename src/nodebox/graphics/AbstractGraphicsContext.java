@@ -4,6 +4,7 @@ import nodebox.node.Node;
 import nodebox.node.Parameter;
 import nodebox.node.ProcessingContext;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -832,7 +833,23 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
+    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+        throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
+    }
+
+    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+        throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
+    }
+
     public Size imagesize(String path) {
+        throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
+    }
+
+    public Size imagesize(Image img) {
+        throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
+    }
+
+    public Size imagesize(BufferedImage img) {
         throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
     }
 

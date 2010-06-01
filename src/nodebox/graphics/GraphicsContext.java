@@ -2,6 +2,7 @@ package nodebox.graphics;
 
 import nodebox.node.Parameter;
 
+import java.awt.image.BufferedImage;
 import java.util.Iterator;
 import java.util.List;
 
@@ -425,7 +426,15 @@ public interface GraphicsContext {
 
     public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw);
 
+    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw);
+
+    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw);
+
     public Size imagesize(String path);
+
+    public Size imagesize(Image img);
+
+    public Size imagesize(BufferedImage img);
 
     public Text text(String text, float x, float y);
 

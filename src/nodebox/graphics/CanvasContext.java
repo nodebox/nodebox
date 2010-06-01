@@ -18,6 +18,8 @@
  */
 package nodebox.graphics;
 
+import java.awt.image.BufferedImage;
+
 public class CanvasContext extends AbstractGraphicsContext {
 
     public static final float DEFAULT_WIDTH = 1000;
@@ -194,7 +196,20 @@ public class CanvasContext extends AbstractGraphicsContext {
 
     @Override
     public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw) {
-        Image img = new Image(path);
+        return loadImage(new Image(path), x, y, width, height, alpha, draw);
+    }
+
+    @Override
+    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+        return loadImage(img.clone(), x, y, width, height, alpha, draw);
+    }
+
+    @Override
+    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+        return loadImage(new Image(img), x, y, width, height, alpha, draw);
+    }
+
+    private Image loadImage(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
         if (width != null) img.setWidth(width);
         if (height != null) img.setHeight(height);
         switch (imageMode) {
@@ -222,6 +237,16 @@ public class CanvasContext extends AbstractGraphicsContext {
         return img.getSize();
     }
 
+    @Override
+    public Size imagesize(Image img) {
+        return img.getSize();
+    }
+
+    @Override
+    public Size imagesize(BufferedImage img) {
+        return new Size(img.getWidth(), img.getHeight());
+    }
+
     /// Drawing methods ////
 
     /**
@@ -242,6 +267,10 @@ public class CanvasContext extends AbstractGraphicsContext {
     @Override
     protected void addText(Text t) {
         canvas.add(t);
+    }
+
+    protected void addImage(Image i) {
+        canvas.add(i);
     }
 
     //// Context inheritance ////
