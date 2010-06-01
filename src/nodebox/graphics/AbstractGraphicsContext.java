@@ -943,6 +943,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Path textpath(String text, float x, float y, float width, float height) {
         Text t = new Text(text, x, y, width, height);
+        inheritFontAttributesFromContext(t);
         return t.getPath();
     }
 
@@ -1160,10 +1161,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     protected void inheritFromContext(Text t) {
         t.setFillColor(fillColor == null ? null : fillColor.clone());
-        t.setFontName(fontName);
-        t.setFontSize(fontSize);
-        t.setLineHeight(lineHeight);
-        t.setAlign(align);
+        inheritFontAttributesFromContext(t);
         Rect r = t.getBounds();
         float dx = r.getX() + r.getWidth() / 2;
         float dy = r.getY() + r.getHeight() / 2;
@@ -1178,5 +1176,11 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
+    private void inheritFontAttributesFromContext(Text t) {
+        t.setFontName(fontName);
+        t.setFontSize(fontSize);
+        t.setLineHeight(lineHeight);
+        t.setAlign(align);
+    }
 
 }
