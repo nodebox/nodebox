@@ -268,7 +268,7 @@ public class Color implements Cloneable {
 
     public void setHue(double h) {
         this.h = clamp(h);
-        updateHSB();
+        updateRGB();
         updateCMYK();
     }
 
@@ -286,7 +286,7 @@ public class Color implements Cloneable {
 
     public void setSaturation(double s) {
         this.s = clamp(s);
-        updateHSB();
+        updateRGB();
         updateCMYK();
     }
 
@@ -304,7 +304,7 @@ public class Color implements Cloneable {
 
     public void setBrightness(double v) {
         this.v = clamp(v);
-        updateHSB();
+        updateRGB();
         updateCMYK();
     }
 
