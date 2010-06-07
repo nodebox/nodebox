@@ -2,6 +2,7 @@ package nodebox.node;
 
 import junit.framework.TestCase;
 import nodebox.client.PlatformUtils;
+import nodebox.client.PythonUtils;
 import nodebox.graphics.Geometry;
 import nodebox.graphics.Rect;
 import nodebox.graphics.Transform;
@@ -16,6 +17,7 @@ public class CoreVectorTest extends TestCase {
     private Node rootNode;
 
     public void setUp() {
+        PythonUtils.initializePython();
         manager = new NodeLibraryManager();
         manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
         manager.lookForLibraries();

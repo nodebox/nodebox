@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import junit.framework.TestCase;
+import nodebox.client.PythonUtils;
 import nodebox.node.polygraph.Polygon;
 import nodebox.node.polygraph.Rectangle;
 
@@ -10,6 +11,7 @@ public class PythonCodeTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception {
+        PythonUtils.initializePython();
         testLibrary = new NodeLibrary("test");
     }
 

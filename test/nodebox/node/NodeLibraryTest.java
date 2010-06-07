@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import junit.framework.TestCase;
+import nodebox.client.PythonUtils;
 import nodebox.node.polygraph.Polygon;
 import nodebox.node.polygraph.Rectangle;
 
@@ -10,6 +11,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NodeLibraryTest extends TestCase {
+
+    @Override
+    protected void setUp() throws Exception {
+        PythonUtils.initializePython();
+    }
 
     /**
      * Test if changing the node name updates the correspondent mapping in the library.
