@@ -74,7 +74,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         });
         numberField.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent e) {
-                commitNumberField();
+                if (numberField.isVisible())
+                    commitNumberField();
             }
         });
         add(numberField);
