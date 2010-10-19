@@ -172,7 +172,7 @@ public class Text extends AbstractGrob {
 
     private AttributedString getStyledText(String text) {
         // TODO: Find a better way to handle empty Strings (like for example paragraph line breaks)
-        if (text.isEmpty())
+        if (text.length() == 0)
             text = " ";
         AttributedString attrString = new AttributedString(text);
         attrString.addAttribute(TextAttribute.FONT, getFont());
