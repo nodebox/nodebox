@@ -7,10 +7,7 @@ import com.sun.jna.win32.W32APITypeMapper;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.net.URI;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -160,14 +157,30 @@ public class PlatformUtils {
     }
 
     public static void openURL(String url) {
-        if (Desktop.isDesktopSupported()) {
-            URI uri = URI.create(url);
-            try {
-                Desktop.getDesktop().browse(uri);
+        try {
+            if (onMac()) {
+                Class fileManagerClass = Class.forName("com.apple.eio.FileManager");
+                Method openURLMethod = fileManagerClass.getDeclaredMethod("openURL", String.class);
+                openURLMethod.invoke(null, url);
+            } else if (onWindows()) {
+                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+            } else {
+                String[] browsers = {"firefox", "konqueror", "mozilla", "opera"};
+                String availableBrowser = null;
+                for (String browser : browsers) {
+                    if (Runtime.getRuntime().exec(new String[]{"which", browser}).waitFor() == 0) {
+                        availableBrowser = browser;
+                        break;
+                    }
+                }
+                if (availableBrowser != null) {
+                    Runtime.getRuntime().exec(new String[]{availableBrowser, url});
+                } else {
+                    JOptionPane.showMessageDialog(null, "Could not find a web browser. Go to " + url + " directly.");
+                }
             }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null, "Could not open browser window. Go to " + url + " directly. \n" + ex.getLocalizedMessage());
         }
     }
 
