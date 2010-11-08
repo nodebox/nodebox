@@ -81,6 +81,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     private Path createPath() {
         Path p = new Path();
+        p.setTransformDelegate(new ContextTransformDelegate(this));
         return p;
     }
 
@@ -940,6 +941,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Text text(String text, float x, float y, float width, float height, boolean draw) {
         Text t = new Text(text, x, y, width, height);
+        t.setTransformDelegate(new ContextTransformDelegate(this));
         inheritFromContext(t);
         if (draw)
             addText(t);
@@ -957,7 +959,10 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     public Path textpath(String text, float x, float y, float width, float height) {
         Text t = new Text(text, x, y, width, height);
         inheritFontAttributesFromContext(t);
-        return t.getPath();
+        Path path = t.getPath();
+        path.setTransformDelegate(new ContextTransformDelegate(this));
+        inheritFromContext(path);
+        return path;
     }
 
     public Rect textmetrics(String text) {
@@ -1158,24 +1163,17 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         p.setFillColor(fillColor == null ? null : fillColor.clone());
         p.setStrokeColor(strokeColor == null ? null : strokeColor.clone());
         p.setStrokeWidth(strokeWidth);
-        Rect r = p.getBounds();
-        float dx = r.getX() + r.getWidth() / 2;
-        float dy = r.getY() + r.getHeight() / 2;
-        if (transformMode == Transform.Mode.CENTER) {
-            Transform t = new Transform();
-            t.translate(dx, dy);
-            t.append(transform);
-            t.translate(-dx, -dy);
-            t.map(p.getPoints());
-        } else {
-            transform.map(p.getPoints());
-        }
+        TransformDelegate d = p.getTransformDelegate();
+        d.transform(p, transform, true);
     }
 
     protected void inheritFromContext(Text t) {
         t.setFillColor(fillColor == null ? null : fillColor.clone());
         inheritFontAttributesFromContext(t);
-        Rect r = t.getBounds();
+        // todo: check if this is sufficient.
+        TransformDelegate d = t.getTransformDelegate();
+        d.transform(t, transform, true);
+/*        Rect r = t.getBounds();
         float dx = r.getX() + r.getWidth() / 2;
         float dy = r.getY() + r.getHeight() / 2;
         if (transformMode == Transform.Mode.CENTER) {
@@ -1186,7 +1184,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
             t.setTransform(trans);
         } else {
             t.setTransform(transform);
-        }
+        } */
     }
 
     private void inheritFontAttributesFromContext(Text t) {

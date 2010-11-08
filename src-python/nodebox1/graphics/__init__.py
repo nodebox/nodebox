@@ -9,6 +9,11 @@ class Context(CanvasContext):
         if ns is None:
             ns = {}
         self._ns = ns
+        
+        # todo: better way to handle mouse events
+        self._ns["MOUSEX"] = 0
+        self._ns["MOUSEY"] = 0
+        self._ns["mousedown"] = False
 
     def ximport(self, libName):
         lib = __import__(libName)

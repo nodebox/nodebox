@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 
 public abstract class AbstractGrob implements Grob {
 
+    private TransformDelegate transformDelegate = DefaultTransformDelegate.getDefaultDelegate();
     private Transform transform;
     private AffineTransform savedTransform;
 
@@ -41,31 +42,38 @@ public abstract class AbstractGrob implements Grob {
     }
 
     public void translate(float tx, float ty) {
-        transform.translate(tx, ty);
+        Transform t = Transform.translated(tx, ty);
+        transformDelegate.transform(this, t);
     }
 
     public void rotate(float degrees) {
-        transform.rotate(degrees);
+        Transform t = Transform.rotated(degrees);
+        transformDelegate.transform(this, t);
     }
 
     public void rotateRadians(float radians) {
-        transform.rotateRadians(radians);
+        Transform t = Transform.rotatedRadians(radians);
+        transformDelegate.transform(this, t);
     }
 
     public void scale(float scale) {
-        transform.scale(scale);
+        Transform t = Transform.scaled(scale);
+        transformDelegate.transform(this, t);
     }
 
     public void scale(float sx, float sy) {
-        transform.scale(sx, sy);
+        Transform t = Transform.scaled(sx, sy);
+        transformDelegate.transform(this, t);
     }
 
     public void skew(float skew) {
-        transform.skew(skew);
+        Transform t = Transform.skewed(skew);
+        transformDelegate.transform(this, t);
     }
 
     public void skew(float kx, float ky) {
-        transform.skew(kx, ky);
+        Transform t = Transform.skewed(kx, ky);
+        transformDelegate.transform(this, t);
     }
 
     //// Graphics context ////
@@ -79,6 +87,14 @@ public abstract class AbstractGrob implements Grob {
         assert (savedTransform != null);
         g.setTransform(savedTransform);
         savedTransform = null;
+    }
+
+    public TransformDelegate getTransformDelegate() {
+        return transformDelegate;
+    }
+
+    public void setTransformDelegate(TransformDelegate d) {
+        transformDelegate = d;
     }
 
     //// Object methods ////

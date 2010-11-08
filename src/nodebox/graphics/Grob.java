@@ -53,4 +53,10 @@ public interface Grob extends Cloneable {
     void skew(float skew);
 
     void skew(float kx, float ky);
+
+    //// Transform Delegate ////
+
+    void setTransformDelegate(TransformDelegate d);
+
+    TransformDelegate getTransformDelegate();
 }

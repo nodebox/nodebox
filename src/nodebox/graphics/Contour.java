@@ -223,6 +223,19 @@ public class Contour extends AbstractGeometry {
     }
 
     /**
+     * Same as pointAt(t).
+     * <p/>
+     * This method is here for compatibility with NodeBox 1.
+     *
+     * @param t relative coordinate of the point.
+     * @return coordinates for point at t.
+     * @see #pointAt(float)
+     */
+    public Point point(float t) {
+        return pointAt(t);
+    }
+
+    /**
      * Calculate the point index for the segment number. Segments lie between points. The first point of the segment
      * is returned. The point index will be a valid index, even if the segment number doesn't exist.
      *

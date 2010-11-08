@@ -223,6 +223,8 @@ public class CanvasContext extends AbstractGraphicsContext {
                 img.setX(x);
                 img.setY(y);
         }
+        // todo: differentiate between newly constructed objects and copies.
+        img.setTransformDelegate(new ContextTransformDelegate(this));
         inheritFromContext(img);
         if (alpha != 1.0)
             img.setAlpha(alpha);
@@ -275,18 +277,7 @@ public class CanvasContext extends AbstractGraphicsContext {
 
     //// Context inheritance ////
 
-    private void inheritFromContext(Image i) {
-        if (transformMode == Transform.Mode.CENTER) {
-            Transform t = new Transform();
-            Rect bounds = i.getBounds();
-            float dx = bounds.getX() + bounds.getWidth() / 2;
-            float dy = bounds.getY() + bounds.getHeight() / 2;
-            t.translate(dx, dy);
-            t.append(transform.clone());
-            t.translate(-dx, -dy);
-            i.setTransform(t);
-        } else {
-            i.setTransform(transform.clone());
-        }
-    }
+    protected void inheritFromContext(Image i) {
+        TransformDelegate d = i.getTransformDelegate();
+        d.transform(i, transform, true);    }
 }
