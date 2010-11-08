@@ -175,7 +175,7 @@ public class NDBXWriter {
         el.setAttribute("name", param.getName());
         // Write parameter type
         if (protoParam == null || !param.getType().equals(protoParam.getType()))
-            el.setAttribute(NDBXHandler.PARAMETER_TYPE, param.getType().toString().toLowerCase());
+            el.setAttribute(NDBXHandler.PARAMETER_TYPE, param.getType().toString().toLowerCase(Locale.US));
         // Write parameter attributes
         attributeToXml(param, el, "widget", NDBXHandler.PARAMETER_WIDGET, protoParam, Parameter.WIDGET_MAPPING.get(param.getType()));
         attributeToXml(param, el, "label", NDBXHandler.PARAMETER_LABEL, protoParam, StringUtils.humanizeName(param.getName()));
@@ -240,7 +240,7 @@ public class NDBXWriter {
         Element el = doc.createElement("port");
         el.setAttribute("name", port.getName());
         if (port.getCardinality() != Port.Cardinality.SINGLE)
-            el.setAttribute("cardinality", port.getCardinality().toString().toLowerCase());
+            el.setAttribute("cardinality", port.getCardinality().toString().toLowerCase(Locale.US));
         parent.appendChild(el);
     }
 
@@ -255,7 +255,7 @@ public class NDBXWriter {
 
     private static void attributeToXml(Parameter param, Element el, String attrName, String xmlName, Parameter protoParam, Object defaultValue) {
         try {
-            String methodName = "get" + attrName.substring(0, 1).toUpperCase() + attrName.substring(1);
+            String methodName = "get" + attrName.substring(0, 1).toUpperCase(Locale.US) + attrName.substring(1);
             Method m = param.getClass().getMethod(methodName);
             Object myValue = m.invoke(param);
             if (myValue == null) return;
@@ -263,7 +263,7 @@ public class NDBXWriter {
             if (!myValue.equals(protoValue) && !myValue.equals(defaultValue)) {
                 // Values that are already strings are written as is.
                 // Other values, such as enums, are written as lowercase.
-                String stringValue = myValue instanceof String ? (String) myValue : myValue.toString().toLowerCase();
+                String stringValue = myValue instanceof String ? (String) myValue : myValue.toString().toLowerCase(Locale.US);
                 el.setAttribute(xmlName, stringValue);
             }
         } catch (Exception e) {

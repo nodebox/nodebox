@@ -8,6 +8,7 @@ import javax.swing.event.EventListenerList;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.prefs.Preferences;
 
 public class ColorDialog extends JDialog implements ChangeListener {
@@ -426,7 +427,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
         private DraggableNumber draggableNumber;
 
         public ColorPanel(String colorComponent) {
-            this(ColorComponent.valueOf(colorComponent.toUpperCase()));
+            this(ColorComponent.valueOf(colorComponent.toUpperCase(Locale.US)));
         }
 
         public ColorPanel(ColorComponent colorComponent) {
@@ -436,7 +437,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
             setMinimumSize(d);
             setPreferredSize(d);
             setMaximumSize(d);
-            JLabel label = new JLabel(nodebox.util.StringUtils.humanizeName(colorComponent.toString().toLowerCase()), JLabel.RIGHT);
+            JLabel label = new JLabel(nodebox.util.StringUtils.humanizeName(colorComponent.toString().toLowerCase(Locale.US)), JLabel.RIGHT);
             Dimension size = label.getSize();
             label.setFont(Theme.SMALL_BOLD_FONT);
             label.setForeground(new Color(66, 66, 66));

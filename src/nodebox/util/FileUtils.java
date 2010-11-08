@@ -3,6 +3,7 @@ package nodebox.util;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
@@ -53,7 +54,7 @@ public class FileUtils {
     public static String getExtension(String fileName) {
         int i = fileName.lastIndexOf('.');
         if (i == -1) return "";
-        return fileName.substring(i + 1).toLowerCase();
+        return fileName.substring(i + 1).toLowerCase(Locale.US);
     }
 
 

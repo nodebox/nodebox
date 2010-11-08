@@ -9,6 +9,7 @@ import java.awt.*;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class PlatformUtils {
@@ -94,7 +95,7 @@ public class PlatformUtils {
             }
             userDataDirectory = new File(localAppData, Application.NAME);
         } else {
-            userDataDirectory = new File(getHomeDirectory(), Application.NAME.toLowerCase());
+            userDataDirectory = new File(getHomeDirectory(), Application.NAME.toLowerCase(Locale.US));
         }
         return userDataDirectory;
     }

@@ -5,6 +5,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -192,7 +193,7 @@ public class NDBXHandler extends DefaultHandler {
         String type = attributes.getValue(CODE_TYPE);
         if (type == null) throw new SAXException("Type attribute is required in code tags.");
         try {
-            currentCodeType = CodeType.valueOf(type.toUpperCase());
+            currentCodeType = CodeType.valueOf(type.toUpperCase(Locale.US));
         } catch (IllegalArgumentException e) {
             throw new SAXException("Invalid type attribute in code tag: should be python or java, not " + type + ".");
         }
@@ -283,7 +284,7 @@ public class NDBXHandler extends DefaultHandler {
             // TODO: If type is given and parameter exists, migrate type.
             if (currentNode.hasParameter(name))
                 throw new SAXException("Parameter '" + name + "' for node '" + currentNode.getName() + "' already exists.");
-            Parameter.Type type = Parameter.Type.valueOf(typeAsString.toUpperCase());
+            Parameter.Type type = Parameter.Type.valueOf(typeAsString.toUpperCase(Locale.US));
             currentParameter = currentNode.addParameter(name, type);
         }
         // Parse parameter attributes.
@@ -296,17 +297,17 @@ public class NDBXHandler extends DefaultHandler {
         String minimumValue = attributes.getValue(PARAMETER_MINIMUM_VALUE);
         String maximumValue = attributes.getValue(PARAMETER_MAXIMUM_VALUE);
         if (widget != null)
-            currentParameter.setWidget(Parameter.Widget.valueOf(widget.toUpperCase()));
+            currentParameter.setWidget(Parameter.Widget.valueOf(widget.toUpperCase(Locale.US)));
         if (label != null)
             currentParameter.setLabel(label);
         if (helpText != null)
             currentParameter.setHelpText(helpText);
         if (displayLevel != null)
-            currentParameter.setDisplayLevel(Parameter.DisplayLevel.valueOf(displayLevel.toUpperCase()));
+            currentParameter.setDisplayLevel(Parameter.DisplayLevel.valueOf(displayLevel.toUpperCase(Locale.US)));
         if (enableExpression != null)
             currentParameter.setEnableExpression(enableExpression);
         if (boundingMethod != null)
-            currentParameter.setBoundingMethod(Parameter.BoundingMethod.valueOf(boundingMethod.toUpperCase()));
+            currentParameter.setBoundingMethod(Parameter.BoundingMethod.valueOf(boundingMethod.toUpperCase(Locale.US)));
         if (minimumValue != null)
             currentParameter.setMinimumValue(Float.parseFloat(minimumValue));
         if (maximumValue != null)
@@ -329,7 +330,7 @@ public class NDBXHandler extends DefaultHandler {
         String type = attributes.getValue(VALUE_TYPE);
         if (type == null) throw new SAXException("Type attribute is required in code type parameters.");
         try {
-            currentCodeType = CodeType.valueOf(type.toUpperCase());
+            currentCodeType = CodeType.valueOf(type.toUpperCase(Locale.US));
         } catch (IllegalArgumentException e) {
             throw new SAXException("Invalid type attribute in code tag: should be python or java, not " + type + ".");
         }
@@ -443,7 +444,7 @@ public class NDBXHandler extends DefaultHandler {
         Port.Cardinality cardinality = Port.Cardinality.SINGLE;
         if (cardinalityAsString != null) {
             try {
-                cardinality = Port.Cardinality.valueOf(cardinalityAsString.toUpperCase());
+                cardinality = Port.Cardinality.valueOf(cardinalityAsString.toUpperCase(Locale.US));
             } catch (IllegalArgumentException e) {
                 throw new SAXException("Invalid cardinality attribute in port tag: should be single or multiple, not " + cardinalityAsString + ".");
             }

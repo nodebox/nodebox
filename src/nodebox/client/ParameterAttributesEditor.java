@@ -9,6 +9,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Locale;
 
 public class ParameterAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
@@ -187,7 +188,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         valueField.setText(parameter.getValue().toString());
         enableIfField.setText(parameter.getEnableExpression());
         Parameter.BoundingMethod boundingMethod = parameter.getBoundingMethod();
-        boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase());
+        boundingMethodBox.setSelectedItem(boundingMethod.toString().toLowerCase(Locale.US));
         Object minimumValue = parameter.getMinimumValue();
         String minimumValueString = minimumValue == null ? "" : minimumValue.toString();
         minimumValueCheck.setSelected(minimumValue != null);
@@ -198,7 +199,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         maximumValueCheck.setSelected(maximumValue != null);
         maximumValueField.setText(maximumValueString);
         maximumValueField.setEnabled(maximumValue != null);
-        displayLevelBox.setSelectedItem(parameter.getDisplayLevel().toString().toLowerCase());
+        displayLevelBox.setSelectedItem(parameter.getDisplayLevel().toString().toLowerCase(Locale.US));
         menuItemsTable.tableChanged(new TableModelEvent(menuItemsTable.getModel()));
         revalidate();
     }
@@ -229,7 +230,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             if (newEnableExpression.equals(parameter.getEnableExpression())) return;
             parameter.setEnableExpression(newEnableExpression);
         } else if (e.getSource() == boundingMethodBox) {
-            Parameter.BoundingMethod newMethod = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase());
+            Parameter.BoundingMethod newMethod = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase(Locale.US));
             if (parameter.getBoundingMethod().equals(newMethod)) return;
             parameter.setBoundingMethod(newMethod);
         } else if (e.getSource() == minimumValueCheck) {
@@ -255,7 +256,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
                 showError("Value " + maximumValueField.getText() + " is invalid: " + e1.getMessage());
             }
         } else if (e.getSource() == displayLevelBox) {
-            Parameter.DisplayLevel newDisplayLevel = Parameter.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase());
+            Parameter.DisplayLevel newDisplayLevel = Parameter.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase(Locale.US));
             if (parameter.getDisplayLevel() == newDisplayLevel) return;
             parameter.setDisplayLevel(newDisplayLevel);
         } else if (e.getSource() == addButton) {

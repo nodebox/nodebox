@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.Locale;
 
 public class PortAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
@@ -53,7 +54,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         if (e.getSource() == nameField) {
             //port.setName(nameField.getText());
         } else if (e.getSource() == cardinalityBox) {
-            Port.Cardinality cardinality = Port.Cardinality.valueOf(cardinalityBox.getSelectedItem().toString().toUpperCase());
+            Port.Cardinality cardinality = Port.Cardinality.valueOf(cardinalityBox.getSelectedItem().toString().toUpperCase(Locale.US));
             //port.setCardinality(cardinality);
         } else {
             throw new AssertionError("Unknown source " + e.getSource());

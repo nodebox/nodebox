@@ -1136,7 +1136,7 @@ public class Parameter {
 
     @Override
     public String toString() {
-        return "<Parameter " + getNode().getName() + "." + getName() + " (" + getType().toString().toLowerCase() + ")>";
+        return "<Parameter " + getNode().getName() + "." + getName() + " (" + getType().toString().toLowerCase(Locale.US) + ")>";
     }
 
     /**

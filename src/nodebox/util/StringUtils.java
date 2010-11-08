@@ -20,6 +20,7 @@
 package nodebox.util;
 
 import java.util.List;
+import java.util.Locale;
 
 public class StringUtils {
 
@@ -28,7 +29,7 @@ public class StringUtils {
         String[] tokens = name.split("_");
         for (String t : tokens) {
             if (t.length() == 0) continue;
-            sb.append(t.substring(0, 1).toUpperCase());
+            sb.append(t.substring(0, 1).toUpperCase(Locale.US));
             sb.append(t.substring(1));
             sb.append(" ");
         }
@@ -37,7 +38,7 @@ public class StringUtils {
 
 
     public static String humanizeConstant(String constant) {
-        return humanizeName(constant.toLowerCase());
+        return humanizeName(constant.toLowerCase(Locale.US));
     }
 
     public static String join(List items, String separator) {

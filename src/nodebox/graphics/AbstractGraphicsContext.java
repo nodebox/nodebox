@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public abstract class AbstractGraphicsContext implements GraphicsContext {
 
@@ -63,7 +64,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public RectMode rectmode(String m) {
         try {
-            RectMode newMode = RectMode.valueOf(m.toUpperCase());
+            RectMode newMode = RectMode.valueOf(m.toUpperCase(Locale.US));
             return rectMode = newMode;
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("rectmode: available types for rectmode() are CORNER, CENTER, CORNERS and RADIUS\\n\"");
@@ -167,7 +168,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public EllipseMode ellipsemode(String m) {
         try {
-            EllipseMode newMode = EllipseMode.valueOf(m.toUpperCase());
+            EllipseMode newMode = EllipseMode.valueOf(m.toUpperCase(Locale.US));
             return ellipseMode = newMode;
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("ellipsemode: available types for ellipsemode() are CORNER, CENTER, CORNERS and RADIUS\\n\"");
@@ -300,7 +301,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Path arrow(float x, float y, float width, String type, boolean draw) {
         try {
-            ArrowType arrowType = ArrowType.valueOf(type.toUpperCase());
+            ArrowType arrowType = ArrowType.valueOf(type.toUpperCase(Locale.US));
             return arrow(x, y, width, arrowType, draw);
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("arrow: available types for arrow() are NORMAL and FORTYFIVE\\n\"");
@@ -482,7 +483,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Transform.Mode transform(String mode) {
         try {
-            Transform.Mode newMode = Transform.Mode.valueOf(mode.toUpperCase());
+            Transform.Mode newMode = Transform.Mode.valueOf(mode.toUpperCase(Locale.US));
             return transformMode = newMode;
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("transform: available types for transform() are CORNER and CENTER\\n\"");
@@ -567,7 +568,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Color.Mode colormode(String mode, Float range) {
         try {
-            Color.Mode newMode = Color.Mode.valueOf(mode.toUpperCase());
+            Color.Mode newMode = Color.Mode.valueOf(mode.toUpperCase(Locale.US));
             return colormode(newMode, range);
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("colormode: available types for colormode() are RGB, HSB and CMYK\\n\"");
@@ -911,7 +912,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public Text.Align align(String align) {
         try {
-            Text.Align newAlign = Text.Align.valueOf(align.toUpperCase());
+            Text.Align newAlign = Text.Align.valueOf(align.toUpperCase(Locale.US));
             return this.align = newAlign;
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("align: available types for align() are LEFT, RIGHT, CENTER and JUSTIFY\\n\"");
@@ -1023,7 +1024,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
 
     public void var(String name, String type, Object value, Float min, Float max) {
         try {
-            var(name, VarType.valueOf(type.toUpperCase()), value, min, max);
+            var(name, VarType.valueOf(type.toUpperCase(Locale.US)), value, min, max);
         } catch (IllegalArgumentException e) {
             throw new NodeBoxError("var: available types for var() are NUMBER, TEXT, BOOLEAN and FONT \\n\"");
         }

@@ -3,6 +3,7 @@ package nodebox.client;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 public class FileUtils {
@@ -27,7 +28,7 @@ public class FileUtils {
         int i = fileName.lastIndexOf('.');
 
         if (i > 0 && i < fileName.length() - 1) {
-            ext = fileName.substring(i + 1).toLowerCase();
+            ext = fileName.substring(i + 1).toLowerCase(Locale.US);
         }
         return ext;
     }

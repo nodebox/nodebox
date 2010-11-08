@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -243,7 +244,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         } catch (IOException e) {
             throw new RuntimeException("Unable to access file " + file, e);
         }
-        if (!fullPath.toLowerCase().endsWith(".pdf")) {
+        if (!fullPath.toLowerCase(Locale.US).endsWith(".pdf")) {
             fullPath = fullPath.concat(".pdf");
         }
         file = new File(fullPath);
