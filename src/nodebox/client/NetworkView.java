@@ -410,6 +410,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         if (pt == null) {
             pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));
         }
+        pt = (Point) getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
             Node n = getNode().create(dialog.getSelectedNode());
