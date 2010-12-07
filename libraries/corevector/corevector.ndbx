@@ -180,8 +180,7 @@ def cook(self):
             <menu key="subtracted">difference</menu>
             <menu key="intersected">intersect</menu>
         </param>
-        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)"
-               name="invert_difference" type="int" widget="toggle">
+        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)" name="invert_difference" type="int" widget="toggle">
             <value>0</value>
         </param>
         <param name="fill" type="color">
@@ -192,6 +191,40 @@ def cook(self):
         </param>
         <param name="strokeWidth" type="float">
             <value>0.0</value>
+        </param>
+    </node>
+    <node exported="true" name="connect" prototype="filter" x="410" y="490">
+        <description>Connects all points in a path.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Transform,Path
+
+def cook(self):
+    if self.shape is None: return None
+    points = self.shape.points
+    start = points[0]
+    p = Path()
+    p.moveto(start.x,start.y)
+    for i,point in enumerate(points):
+        print len(points)
+        p.fill = self.fill
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+        p.lineto(point.x,point.y)
+        start = points[i]
+    p.close()
+    return p.asGeometry()]]></value>
+        </param>
+        <param name="_image">
+            <value>connect.png</value>
+        </param>
+        <param name="fill" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>1.0</value>
         </param>
     </node>
     <node exported="true" name="copy" prototype="filter" x="170" y="250">
@@ -271,8 +304,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr"
-               type="string" widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -1050,6 +1082,99 @@ def cook(self):
             <value>1.0</value>
         </param>
     </node>
+    <node exported="true" name="datastamp" prototype="filter" x="250" y="580">
+        <description>Generate new geometry for each row in a CSV file.</description>
+        <port name="template"/>
+        <param name="_code">
+            <value type="python"><![CDATA[# Data stamp generates new geometry for each row in a CSV file.
+# The first row is skipped by default since we assume it is the header row.
+# It copies the incoming shape geometry and provides a number of stamp keys that you can refer to.
+# If you provide a template shape it will be used as a point source and for each row, the source shape will
+# be translated to the point.
+# The table name is appended as a prefix, so with a prefix of "data", you get the following keys:
+# - data_row_count: the amount of rows in the file
+# - data_column_count: the amount of columns in the file
+# - data_row_index: the current index of the row, starting from zero.
+# - data_row_position: the relative position in the file, from 0.0-1.0
+# - data_value_0: the value of the first column. If the value can be parsed as a number, it will.
+# - data_value_1: the value for the second column.
+# - ....
+# - data_value_n: the value for the last column (which is data_column_count - 1)
+# - data_relative_value_0 -> data_relative_value_n: a value between 0.0 and 1.0,
+#      the total of the column divided by the current value. This is only available if the column
+#      has numbers in it.
+# - column_total_0 -> column_total_n: the total value for this column. This is only available if 
+#      the column has numbers in it.
+
+import csv
+
+from nodebox.graphics import Geometry, Transform, Point
+from nodebox.node import StampExpression
+
+def cook(self):
+    if self.shape is None: return None
+    geo = Geometry()
+    prefix = self.tableName + "_"
+    # We read in all the rows as a list.
+    # We can't use "for row in reader" since we want to know the total length. 
+    rows = list(csv.reader(open(self.file, "rb")))
+    header_row = rows[0]
+    column_count = len(header_row)
+    rows = rows[1:]
+    row_count = len(rows)
+    
+    # Go through all the rows once to calculate the total.
+    sums = {}
+    for row in rows:
+        for i, value in enumerate(row):
+            try:
+                value = float(value)
+                sums[i] = sums.get(i, 0) + float(value)
+            except ValueError:
+                pass
+    for key, value in sums.items():
+        context.put(prefix + 'column_total_' + str(key), value)
+
+    # Now copy the geometry.
+    context.put(prefix + 'row_count', row_count)
+    context.put(prefix + 'column_count', column_count)
+    
+    if self.template is None:
+        points = [Point()] * len(rows)
+    else:
+        points = self.template.points[:len(rows)]
+    
+    
+    for row_index, pt in enumerate(points):
+        row = rows[row_index]
+        context.put(prefix + 'row_index', row_index)
+        context.put(prefix + 'row_position', row_index/float(row_count))
+        for col_index, value in enumerate(row):
+            # Try to convert the value to a number. Otherwise, just output it.
+            try:
+                value = float(value)
+                if sums.has_key(col_index):
+                    relative = value / float(sums[col_index])
+                    context.put(prefix + 'relative_value_' + str(col_index), relative)
+            except ValueError:
+                pass
+            context.put(prefix + 'value_' + str(col_index), value)
+        self.node.stampExpressions(context)
+        t = Transform()
+        t.translate(pt.x, pt.y)
+        geo.extend(t.map(self.shape))
+    return geo]]></value>
+        </param>
+        <param name="_image">
+            <value>csv.png</value>
+        </param>
+        <param name="file" type="string" widget="file">
+            <value/>
+        </param>
+        <param label="Table Name" name="tableName" type="string">
+            <value>data</value>
+        </param>
+    </node>
     <node exported="true" name="delete" prototype="filter" x="170" y="490">
         <description>Delete points or paths that lie within certain bounds.</description>
         <port name="bounding"/>
@@ -1125,6 +1250,7 @@ def cook(self):
         </param>
     </node>
     <node exported="true" name="distribute" prototype="filter" x="250" y="490">
+        <description>Distributes shapes on a horizontal and/or vertical axis.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
 
@@ -1223,6 +1349,9 @@ def cook(self):
     for path in new_paths:
         g.add(path)
     return g]]></value>
+        </param>
+        <param name="_image">
+            <value>distribute.png</value>
         </param>
         <param name="hor" type="string" widget="menu">
             <value>none</value>
@@ -1589,6 +1718,7 @@ def cook(self):
         </param>
     </node>
     <node exported="true" name="freehand" prototype="generator" x="410" y="170">
+        <description>Freehand drawing.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path
 
@@ -1784,8 +1914,7 @@ def cook(self):
             <value>1.0</value>
         </param>
     </node>
-    <node exported="true" name="geonet" prototype="builtins.root" rendered="true" type="nodebox.graphics.Geometry"
-          x="10" y="10">
+    <node exported="true" name="geonet" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="10">
         <description>A network of geometry nodes.</description>
         <param name="_image">
             <value>geonet.png</value>
@@ -2049,6 +2178,7 @@ def cook(self):
         </param>
     </node>
     <node exported="true" name="place" prototype="filter" x="250" y="330">
+        <description>Place shapes on points of a template</description>
         <port name="template"/>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.node import StampExpression
@@ -2080,8 +2210,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string"
-               widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2308,8 +2437,7 @@ def cook(self):
         <param bounding="hard" enableExpression="method == &quot;amount&quot;" min="1.0" name="points" type="int">
             <value>10</value>
         </param>
-        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int"
-               widget="toggle">
+        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int" widget="toggle">
             <value>0</value>
         </param>
     </node>
@@ -2346,6 +2474,72 @@ def cook(self):
         </param>
         <param bounding="hard" min="0.0" name="seed" type="int">
             <value>0</value>
+        </param>
+    </node>
+    <node exported="true" name="shapeonpath" prototype="filter" x="90" y="580">
+        <description>Copies shapes on a path.</description>
+        <port name="template"/>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Path,Color,Transform
+from nodebox.util.Geometry import angle
+from nodebox.node import StampExpression
+from random import seed, uniform
+
+def cook(self):
+    if self.shape is None: return None
+    if self.template is None: return None
+    #if not self.text: return None
+    
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+    
+    g = Geometry()
+
+    if self.keep_geometry:
+        g.extend(self.template.clone())
+           
+    first = True  
+    for i in range(self.amount):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            self.node.stampExpressions(context)
+        if first:
+            t = .1 / 100
+            first = False
+        else:
+            t += self.dist/500.0
+        pt1 = self.template.pointAt(t)
+        pt2 = self.template.pointAt(t + 0.00001)
+        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
+        tp = Transform()
+        tp.translate(pt1.x, pt1.y)
+        tp.rotate(a-180)
+        newShape = tp.map(self.shape)
+        g.extend(newShape)
+        
+    return g]]></value>
+        </param>
+        <param name="_image">
+            <value>shapeonpath.png</value>
+        </param>
+        <param name="keep_geometry" type="int" widget="toggle">
+            <value>1</value>
+        </param>
+        <param name="amount" type="int">
+            <value>20</value>
+        </param>
+        <param name="dist" type="float">
+            <value>20.0</value>
+        </param>
+        <param name="stamp" type="int" widget="toggle">
+            <value>0</value>
+        </param>
+        <param name="expr" type="string" widget="stamp_expression">
+            <value>=</value>
+        </param>
+        <param name="seed" type="int" widget="seed">
+            <value>20</value>
         </param>
     </node>
     <node exported="true" name="snap" prototype="filter" x="410" y="410">
@@ -2632,6 +2826,123 @@ def cook(self):
         </param>
         <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
+        </param>
+    </node>
+    <node exported="true" name="switch" prototype="merge" x="330" y="490">
+        <description>Switches between multiple inputs.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
+
+def cook(self):
+    g = Geometry()
+    if self.shapes is None or len(self.shapes)==0: return g
+    return self.shapes[self.select % len(self.shapes)]]]></value>
+        </param>
+        <param name="_image">
+            <value>switch.png</value>
+        </param>
+        <param name="select" type="int">
+            <expression>stamp("CNUM", 0)</expression>
+        </param>
+    </node>
+    <node exported="true" name="textonpath" prototype="filter" x="170" y="580">
+        <description>Text following a path</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Text
+from nodebox.util.Geometry import angle
+
+def textwidth(text, font_metrics):
+    if not text:
+        return 0.0
+    elif len(text) == 1:
+        return float(font_metrics.charWidth(text))
+    else:
+        return float(font_metrics.stringWidth(text))
+
+def get_font_metrics(font_name, font_size):
+    from java.awt.image import BufferedImage
+    from java.awt import Font
+    tmp_img = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
+    g = tmp_img.createGraphics()
+    return g.getFontMetrics((Font(font_name, Font.PLAIN, int(font_size))))
+
+def cook(self):
+    if self.shape is None: return None
+    if not self.text: return None
+    
+    g = Geometry()
+
+    if self.keep_geometry:
+        g.extend(self.shape.clone())
+    
+    fm = get_font_metrics(self.font, self.size)
+    string_width = textwidth(self.text, fm)
+    dw = string_width / self.shape.length
+    
+    first = True
+    for i, char in enumerate(self.text):
+        char_width = textwidth(char, fm)
+        
+        if first:
+            t = self.start / 100.0
+            first = False
+        else:
+            t += char_width / string_width * dw
+        
+        if self.loop:    
+            t = t % 1.0
+            
+        pt1 = self.shape.pointAt(t)
+        pt2 = self.shape.pointAt(t + 0.001)
+        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
+        
+        tp = Text(char, -char_width, -self.dy)
+        tp.align = Text.Align.LEFT
+        tp.fontName = self.font
+        tp.fontSize = self.size
+        tp.translate(pt1.x, pt1.y)
+        tp.rotate(a - 180)
+        
+        p = tp.path
+        p.fillColor = self.fill
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+        g.add(p)
+    
+    return g]]></value>
+        </param>
+        <param name="_image">
+            <value>txtonpath.png</value>
+        </param>
+        <param name="text" type="string">
+            <value>text following a path</value>
+        </param>
+        <param name="font" type="string" widget="font">
+            <value>Verdana</value>
+        </param>
+        <param name="size" type="float">
+            <value>20.0</value>
+        </param>
+        <param name="start" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="loop" type="int" widget="toggle">
+            <value>1</value>
+        </param>
+        <param name="dy" type="float">
+            <value>2.0</value>
+        </param>
+        <param name="fill" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="keep_geometry" type="int" widget="toggle">
+            <value>1</value>
         </param>
     </node>
     <node exported="true" name="textpath" prototype="generator" x="90" y="170">
