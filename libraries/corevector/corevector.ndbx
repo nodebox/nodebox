@@ -93,6 +93,34 @@ def cook(self):
             <menu key="bottom">Bottom</menu>
         </param>
     </node>
+    <node exported="true" name="code" prototype="generator" x="330" y="580">
+        <description>Create geometry using NodeBox 1 code.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[# This node serves as a template for writing nodes that use NB1 code
+from nodebox.graphics import Path,Geometry
+
+def cook(self):
+    p = Path()
+    g = Geometry()
+
+    # create a bunch of circles using NB 1 code
+    for i in range(10):
+        fill(.5,random(.5,1.0),random())
+        x = random(-100,100)
+        y = random(-100,100)
+        s = random(20,50)
+        ellipse(x,y,s,s)
+
+    # add all shapes on the canvas to the geometry object
+    for item in _ctx.canvas.items:
+        g.add(item.clone())
+
+    return g]]></value>
+        </param>
+        <param name="_image">
+            <value>code.png</value>
+        </param>
+    </node>
     <node exported="true" name="color" prototype="filter" x="250" y="250">
         <description>Change the color of a shape.</description>
         <param name="_code">
