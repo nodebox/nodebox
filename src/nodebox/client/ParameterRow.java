@@ -154,9 +154,9 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
             // Check if the value change triggered a change in expression status.
             // This can happen if revert to default switches from value to expression
             // or vice versa.
+            setEnabled(parameter.isEnabled());
             ValueChangedEvent e = (ValueChangedEvent) event;
             if (e.getParameter() != parameter) return;
-            setEnabled(parameter.isEnabled());
             setExpressionStatus();
         } else if (event instanceof NodeAttributeChangedEvent) {
             setEnabled(parameter.isEnabled());
