@@ -20,7 +20,7 @@ public class ChildRemovedEvent extends NodeEvent {
     public String toString() {
         return "ChildRemovedEvent{" +
                 "source=" + getSource() +
-                "child=" + child +
+                ", child=" + child +
                 '}';
     }
 }

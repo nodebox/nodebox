@@ -20,7 +20,7 @@ public class NodeAttributeChangedEvent extends NodeEvent {
     public String toString() {
         return "NodeAttributeChangedEvent{" +
                 "source=" + getSource() +
-                "attribute=" + attribute +
+                ", attribute=" + attribute +
                 '}';
     }
 }

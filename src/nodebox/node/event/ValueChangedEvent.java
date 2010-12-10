@@ -21,7 +21,7 @@ public class ValueChangedEvent extends NodeEvent {
     public String toString() {
         return "ValueChangedEvent{" +
                 "source=" + getSource() +
-                "parameter=" + parameter +
+                ", parameter=" + parameter +
                 '}';
     }
 }

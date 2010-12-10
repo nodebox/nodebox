@@ -21,7 +21,7 @@ public class ConnectionRemovedEvent extends NodeEvent {
     public String toString() {
         return "ConnectionRemovedEvent{" +
                 "source=" + getSource() +
-                "connection=" + connection +
+                ", connection=" + connection +
                 '}';
     }
 }

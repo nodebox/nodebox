@@ -21,7 +21,7 @@ public class ConnectionAddedEvent extends NodeEvent {
     public String toString() {
         return "ConnectionAddedEvent{" +
                 "source=" + getSource() +
-                "connection=" + connection +
+                ", connection=" + connection +
                 '}';
     }
 }

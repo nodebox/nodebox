@@ -20,7 +20,7 @@ public class RenderedChildChangedEvent extends NodeEvent {
     public String toString() {
         return "RenderedChildChangedEvent{" +
                 "source=" + getSource() +
-                "renderedChild=" + renderedChild +
+                ", renderedChild=" + renderedChild +
                 '}';
     }
 }
