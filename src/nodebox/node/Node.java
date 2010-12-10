@@ -861,7 +861,7 @@ public class Node implements NodeCode {
         checkArgument(!detector.hasCycles(), "Creating this connection would cause a cyclic dependency.");
         connections = newConnections;
         input.getNode().markDirty();
-        getLibrary().fireConnectionAdded(parent, c);
+        getLibrary().fireConnectionAdded(this, c);
         return c;
     }
 
