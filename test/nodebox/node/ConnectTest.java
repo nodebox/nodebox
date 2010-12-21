@@ -403,6 +403,47 @@ public class ConnectTest extends NodeTestCase {
         assertFalse(multiAdd.isDirty());
     }
 
+    public void testReorderMultiple() {
+        Node root = testLibrary.getRootNode();
+        addNewConnection(root);
+        Node number1 = root.create(numberNode);
+        Node number2 = root.create(numberNode);
+        Node number3 = root.create(numberNode);
+        Node multiAdd = root.create(multiAddNode);
+        Port pValues = multiAdd.getPort("values");
+        Connection c1 = pValues.connect(number1);
+        Connection c2 = pValues.connect(number2);
+        Connection c3 = pValues.connect(number3);
+        addNewConnection(root);
+        assertOrder(pValues, number1, number2, number3);
+        assertDirtyAndUpdate(multiAdd);
+
+        // Move number 1 up within the multiport. It was already first, so shouldn't change anything.
+        root.reorderConnection(c1, -1, true);
+        assertOrder(pValues, number1, number2, number3);
+        assertFalse(multiAdd.isDirty());
+        // Move number 1 up within the multiport.
+        root.reorderConnection(c1, 1, true);
+        assertOrder(pValues, number2, number1, number3);
+        assertDirtyAndUpdate(multiAdd);
+
+        // Move number 3 down within the multiport. It was already last, so shouldn't change anything.
+        root.reorderConnection(c3, 1, true);
+        assertOrder(pValues, number2, number1, number3);
+        assertFalse(multiAdd.isDirty());
+        // Move number 3 down within the multiport.
+        root.reorderConnection(c3, -1, true);
+        assertOrder(pValues, number2, number3, number1);
+        assertDirtyAndUpdate(multiAdd);
+    }
+
+    private void addNewConnection(Node root) {
+        Node number = root.create(numberNode);
+        Node add = root.create(addNode);
+        Port addValue = add.getPort("v1");
+        addValue.connect(number);
+    }
+
     private void assertOrder(Port port, Node... nodes) {
         List<Connection> connections = port.getConnections();
         for (int i = 0; i < nodes.length; i++) {

@@ -866,13 +866,13 @@ public class Node implements NodeCode {
     }
 
     /**
-     * Changes the ordering of output ports by moving the given port a specified number of positions.
+     * Changes the ordering of output connections by moving the given connection a specified number of positions.
      * <p/>
-     * To move the specified port up one position, set the deltaIndex to -1. To move a port down, set
+     * To move the specified connection up one position, set the deltaIndex to -1. To move a connection down, set
      * the deltaIndex to 1.
      * <p/>
-     * If the delta index is larger or smaller than the number of positions this port can move, it will
-     * move the port to the beginning or end. This will not result in an error.
+     * If the delta index is larger or smaller than the number of positions this connection can move, it will
+     * move the connection to the beginning or end. This will not result in an error.
      *
      * @param connection the connection to reorder
      * @param deltaIndex the number of places to move.
@@ -887,6 +887,37 @@ public class Node implements NodeCode {
         connections.add(newIndex, connection);
         connection.getInputNode().markDirty();
         return true;
+    }
+
+    /**
+     * Changes the ordering of output connections by moving the given connection a specified number of positions.
+     * <p/>
+     * To move the specified connection up one position, set the deltaIndex to -1. To move a connection down, set
+     * the deltaIndex to 1.
+     * <p/>
+     * If the delta index is larger or smaller than the number of positions this connection can move, it will
+     * move the connection to the beginning or end. This will not result in an error.
+     *
+     * @param connection the connection to reorder
+     * @param deltaIndex the number of places to move.
+     * @param multi the connection should only be reordered among connections connected to the same input port (with cardinality MULTIPLE).
+     * @return true if changes were made to the ordering.
+     */
+    public boolean reorderConnection(Connection connection, int deltaIndex, boolean multi) {
+        if (multi) {
+            List<Connection> mConnections = connection.getInput().getConnections();
+            int index = mConnections.indexOf(connection);
+            int newIndex = index + deltaIndex;
+            newIndex = Math.max(0, Math.min(mConnections.size() - 1, newIndex));
+            if (index == newIndex) return false;
+            connections.removeAll(mConnections);
+            mConnections.remove(connection);
+            mConnections.add(newIndex, connection);
+            connections.addAll(0, mConnections);
+            connection.getInputNode().markDirty();
+            return true;
+        } else
+            return reorderConnection(connection, deltaIndex);
     }
 
     /**

@@ -81,7 +81,7 @@ public class MultiConnectionPanel extends JPanel {
         java.util.List<Connection> connections = getConnections();
         int index = connections.indexOf(selectedConnection);
         checkState(index >= 0, "Selected connection %s could not be found.", selectedConnection);
-        boolean reordered = input.getParentNode().reorderConnection(selectedConnection, delta);
+        boolean reordered = input.getParentNode().reorderConnection(selectedConnection, delta, true);
         if (reordered) {
             reloadList();
             connectionList.setSelectedIndex(index + delta);
