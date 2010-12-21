@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.client.parameter.*;
 import nodebox.node.*;
+import nodebox.node.event.ConnectionAddedEvent;
 import nodebox.node.event.NodeAttributeChangedEvent;
 
 import javax.swing.*;
@@ -141,6 +142,11 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
     }
 
     public void receive(NodeEvent event) {
+        if (event instanceof ConnectionAddedEvent){
+            if (((ConnectionAddedEvent) event).getConnection().getInputNode() == node)
+                rebuildInterface();
+            return;
+        }
         if (event.getSource() != node) return;
         if (!(event instanceof NodeAttributeChangedEvent)) return;
         if (((NodeAttributeChangedEvent) event).getAttribute() == Node.Attribute.POSITION) return;
