@@ -48,6 +48,23 @@ public class Canvas extends AbstractTransformable {
         }
     }
 
+    /**
+     * Convert the current canvas into a geometry object.
+     * Only objects of a geometric nature can be present in the output.
+     *
+     * @return a Geometry object
+     */
+    public Geometry asGeometry() {
+        Geometry g = new Geometry();
+        for (Grob item : items) {
+            if (item instanceof Path)
+                g.add((Path) item.clone());
+            else if (item instanceof Geometry)
+                g.extend((Geometry) item.clone());
+        }
+        return g;
+    }
+
     public Color getBackground() {
         return background;
     }
