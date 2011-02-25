@@ -35,6 +35,7 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
 
     public AddressBar(NodeBoxDocument document) {
         this.document = document;
+        document.addDocumentFocusListener(this);
         addMouseListener(this);
         setMinimumSize(new Dimension(0, 25));
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
