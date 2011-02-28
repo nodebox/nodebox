@@ -1,6 +1,7 @@
 package nodebox.client;
 
 import javax.swing.*;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -23,12 +24,18 @@ public class NodeBoxMenuBar extends JMenuBar {
     private static Preferences recentFilesPreferences = Preferences.userRoot().node("/nodebox/recent");
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxMenuBar");
 
+    private UndoManager undoManager;
+    private UndoAction undoAction;
+    private RedoAction redoAction;
+
     public NodeBoxMenuBar() {
         this(null);
     }
 
     public NodeBoxMenuBar(NodeBoxDocument document) {
         this.document = document;
+        if (document != null)
+            this.undoManager = document.getUndoManager();
         // File menu
         JMenu fileMenu = new JMenu("File");
         fileMenu.add(new NewAction());
@@ -52,8 +59,8 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         // Edit menu
         JMenu editMenu = new JMenu("Edit");
-        editMenu.add(new UndoAction());
-        editMenu.add(new RedoAction());
+        editMenu.add(undoAction = new UndoAction());
+        editMenu.add(redoAction = new RedoAction());
         editMenu.addSeparator();
         editMenu.add(new CutAction());
         editMenu.add(new CopyAction());
@@ -92,6 +99,11 @@ public class NodeBoxMenuBar extends JMenuBar {
         helpMenu.add(new CheckForUpdatesAction());
         helpMenu.add(new NodeboxSiteAction());
         add(helpMenu);
+    }
+
+    public void updateUndoRedoState() {
+        undoAction.update();
+        redoAction.update();
     }
 
     public NodeBoxDocument getDocument() {
@@ -163,7 +175,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public abstract class AbstractDocumentAction extends AbstractAction {
         @Override
         public boolean isEnabled() {
-            return NodeBoxMenuBar.this.isEnabled();
+            return NodeBoxMenuBar.this.isEnabled() && super.isEnabled();
         }
     }
 
@@ -273,34 +285,52 @@ public class NodeBoxMenuBar extends JMenuBar {
     }
 
     public class UndoAction extends AbstractDocumentAction {
-        public UndoAction() {
-            putValue(NAME, "Undo");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z));
-        }
+        private String undoText = UIManager.getString("AbstractUndoableEdit.undoText");
 
-        @Override
-        public boolean isEnabled() {
-            return super.isEnabled() && getDocument() != null && getDocument().getUndoManager().canUndo();
+        public UndoAction() {
+            putValue(NAME, undoText);
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z));
+            setEnabled(false);
         }
 
         public void actionPerformed(ActionEvent e) {
             getDocument().undo();
+            updateUndoRedoState();
+        }
+
+        public void update() {
+            if (undoManager != null && undoManager.canUndo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undoManager.getUndoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, undoText);
+            }
         }
     }
 
     public class RedoAction extends AbstractDocumentAction {
-        public RedoAction() {
-            putValue(NAME, "Redo");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
-        }
+        private String redoText = UIManager.getString("AbstractUndoableEdit.redoText");
 
-        @Override
-        public boolean isEnabled() {
-            return super.isEnabled() && getDocument() != null && getDocument().getUndoManager().canRedo();
+        public RedoAction() {
+            putValue(NAME, redoText);
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
+            setEnabled(false);
         }
 
         public void actionPerformed(ActionEvent e) {
             getDocument().redo();
+            updateUndoRedoState();
+        }
+
+        public void update() {
+            if (undoManager != null && undoManager.canRedo()) {
+                setEnabled(true);
+                putValue(Action.NAME, undoManager.getRedoPresentationName());
+            } else {
+                setEnabled(false);
+                putValue(Action.NAME, redoText);
+            }
         }
     }
 

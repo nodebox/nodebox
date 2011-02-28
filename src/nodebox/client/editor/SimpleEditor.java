@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 
 public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
@@ -23,6 +24,14 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
         JScrollPane codeScroll = new JScrollPane(codeArea);
         codeScroll.setBorder(null);
         add(codeScroll, BorderLayout.CENTER);
+    }
+
+    public UndoManager getUndoManager() {
+        return codeArea.getUndoManager();
+    }
+
+    public void setUndoManager(UndoManager undoManager) {
+        codeArea.setUndoManager(undoManager);
     }
 
     public String getSource() {

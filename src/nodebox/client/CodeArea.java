@@ -4,15 +4,19 @@ import nodebox.util.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
+import javax.swing.undo.CannotUndoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CodeArea extends JEditorPane {
+public class CodeArea extends JEditorPane implements UndoableEditListener {
 
     /**
      * The last search string is the last search the user actually typed.
@@ -28,6 +32,7 @@ public class CodeArea extends JEditorPane {
     public final static Logger LOG = Logger.getLogger(CodeArea.class.getName());
     private Element rootElement;
     private boolean wrap;
+    private UndoManager undoManager = new UndoManager();
 
     public static InputMap defaultInputMap;
 
@@ -43,24 +48,34 @@ public class CodeArea extends JEditorPane {
         defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN), DefaultEditorKit.endAction);
         defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_UP, Event.SHIFT_MASK), DefaultEditorKit.selectionBeginAction);
         defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_DOWN, Event.SHIFT_MASK), DefaultEditorKit.selectionEndAction);
-
     }
+
 
     private void init() {
         this.setMargin(new Insets(0, 5, 0, 5));
         setFont(Theme.EDITOR_FONT);
         setEditorKit(new PythonEditorKit());
         rootElement = getDocument().getDefaultRootElement();
-
+        //getDocument().addUndoableEditListener(this);
         // todo:this code should be in the kit
         for (KeyStroke ks : defaultInputMap.allKeys()) {
             getInputMap().put(ks, defaultInputMap.get(ks));
         }
+        //defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z), new UndoAction());
+        //defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK), new RedoAction());
         addMouseListener(new DragDetector());
     }
 
     public CodeArea() {
         init();
+    }
+
+    public UndoManager getUndoManager() {
+        return undoManager;
+    }
+
+    public void setUndoManager(UndoManager undoManager) {
+        this.undoManager = undoManager;
     }
 
     public void setWrap(boolean wrap) {
@@ -220,6 +235,10 @@ public class CodeArea extends JEditorPane {
         super.paintComponent(g);
     }
 
+    public void undoableEditHappened(UndoableEditEvent e) {
+        undoManager.addEdit(e.getEdit());
+    }
+
     public class Dragger extends MouseMotionAdapter {
         public void mouseDragged(MouseEvent e) {
             super.mouseDragged(e);
@@ -329,6 +348,32 @@ public class CodeArea extends JEditorPane {
 
     public void setCurrentSearchString(String currentSearchString) {
         this.currentSearchString = currentSearchString;
+    }
+
+    private class UndoAction extends AbstractAction {
+        private UndoAction() {
+            super("Undo");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undoManager.undo();
+            } catch (CannotUndoException ignored) {
+            }
+        }
+    }
+
+    private class RedoAction extends AbstractAction {
+        private RedoAction() {
+            super("Redo");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            try {
+                undoManager.redo();
+            } catch (CannotUndoException ignored) {
+            }
+        }
     }
 
 }

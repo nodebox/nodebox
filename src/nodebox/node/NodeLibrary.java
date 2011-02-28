@@ -337,6 +337,10 @@ public class NodeLibrary {
         return eventBus.removeListener(l);
     }
 
+    public List<NodeEventListener> getListeners() {
+        return eventBus.getListeners();
+    }
+
     public void fireNodeDirty(Node source) {
         eventBus.send(new NodeDirtyEvent(source));
     }

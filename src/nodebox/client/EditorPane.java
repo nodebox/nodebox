@@ -40,6 +40,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         paneHeader.add(new PaneCodeMenu(this));
         editor = new SimpleEditor();
         editor.addCaretListener(this);
+        editor.setUndoManager(getDocument().getUndoManager());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);

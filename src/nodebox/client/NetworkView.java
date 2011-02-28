@@ -418,10 +418,12 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         pt = (Point) getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
+            doc.startEdits("Create Node");
             Node n = doc.createNode(dialog.getSelectedNode());
             doc.setNodePosition(n, new nodebox.graphics.Point(pt));
             doc.setRenderedNode(n);
             doc.setActiveNode(n);
+            doc.stopEdits();
         }
     }
 
@@ -453,8 +455,9 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
 
     /**
      * This method gets called from the NodeView to connect the output port to the input port.
+     *
      * @param output the output port
-     * @param input the input port
+     * @param input  the input port
      */
     public void connect(Port output, Port input) {
         getDocument().connect(output, input);

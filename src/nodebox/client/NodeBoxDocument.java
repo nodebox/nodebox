@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
 import nodebox.node.*;
@@ -15,6 +16,7 @@ import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +38,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxDocument");
     private EventListenerList documentFocusListeners = new EventListenerList();
     private UndoManager undoManager = new UndoManager();
+    private boolean holdEdits = false;
     private AddressBar addressBar;
+    private NodeBoxMenuBar menuBar;
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
@@ -70,7 +74,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         updateTitle();
-        setJMenuBar(new NodeBoxMenuBar(this));
+        menuBar = new NodeBoxMenuBar(this);
+        setJMenuBar(menuBar);
         loaded = true;
         requestActiveNetworkUpdate();
         //renderThread = new RenderThread();
@@ -109,10 +114,36 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         return nodeLibrary;
     }
 
-    private void setNodeLibrary(NodeLibrary nodeLibrary) {
-        this.nodeLibrary = nodeLibrary;
-        setActiveNetwork(nodeLibrary.getRootNode());
-        nodeLibrary.addListener(this);
+    public void setNodeLibrary(NodeLibrary newNodeLibrary) {
+        Preconditions.checkNotNull(newNodeLibrary, "Node library cannot be null.");
+        List<NodeEventListener> listeners = null;
+        NodeLibrary oldLibrary = this.nodeLibrary;
+        if (oldLibrary != null) {
+            // Remove the listeners from the old node library.
+            listeners = oldLibrary.getListeners();
+            for (NodeEventListener listener : listeners) {
+                oldLibrary.removeListener(listener);
+            }
+        }
+        this.nodeLibrary = newNodeLibrary;
+        // Add the listeners to the new library.
+        if (listeners != null) {
+            for (NodeEventListener listener : listeners) {
+                newNodeLibrary.addListener(listener);
+            }
+        } else {
+            newNodeLibrary.addListener(this);
+
+        }
+        setActiveNetwork(newNodeLibrary.getRootNode());
+    }
+
+    public void addNodeLibraryListener(NodeEventListener listener) {
+        nodeLibrary.addListener(listener);
+    }
+
+    public void removeNodeLibraryListener(NodeEventListener listener) {
+        nodeLibrary.removeListener(listener);
     }
 
     public Node getActiveNetwork() {
@@ -149,6 +180,48 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public NodeLibraryManager getManager() {
         return Application.getInstance().getManager();
+    }
+
+    //// Undo ////
+
+    /**
+     * Edits are no longer recorded until you call stopEdits. This allows you to batch edits.
+     *
+     * @param command the command name of the edit batch
+     */
+    public void startEdits(String command) {
+        addEdit(command);
+        holdEdits = true;
+    }
+
+    /**
+     * Edits are recorded again.
+     */
+    public void stopEdits() {
+        holdEdits = false;
+    }
+
+    public void addEdit(String command) {
+        if (!holdEdits) {
+            undoManager.addEdit(new NodeLibraryUndoableEdit(this, command));
+            menuBar.updateUndoRedoState();
+        }
+    }
+
+    public UndoManager getUndoManager() {
+        return undoManager;
+    }
+
+    public void undo() {
+        if (!undoManager.canUndo()) return;
+        undoManager.undo();
+        menuBar.updateUndoRedoState();
+    }
+
+    public void redo() {
+        if (!undoManager.canRedo()) return;
+        undoManager.redo();
+        menuBar.updateUndoRedoState();
     }
 
     //// Parameter editor actions ////
@@ -267,20 +340,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
     }
 
-    public UndoManager getUndoManager() {
-        return undoManager;
-    }
-
-    public void undo() {
-        // TODO: Implement undo
-        JOptionPane.showMessageDialog(this, "Undo is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
-    }
-
-    public void redo() {
-        // TODO: Implement redo
-        JOptionPane.showMessageDialog(this, "Redo is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
-    }
-
     public void cut() {
         NetworkView networkView = currentNetworkView();
         if (networkView == null) {
@@ -300,6 +359,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public void paste() {
+        addEdit("Paste node");
         NetworkView networkView = currentNetworkView();
         if (networkView == null) {
             beep();
@@ -370,6 +430,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @return the newly created node.
      */
     public Node createNode(Node prototype) {
+        addEdit("Create Node");
         return getActiveNetwork().create(prototype);
     }
 
@@ -380,6 +441,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param point the point to move to
      */
     public void setNodePosition(Node node, nodebox.graphics.Point point) {
+        addEdit("Move Node");
         node.setPosition(point);
     }
 
@@ -389,6 +451,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param node the node to set rendered
      */
     public void setRenderedNode(Node node) {
+        addEdit("Set Rendered");
         node.setRendered();
     }
 
@@ -398,6 +461,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param node the node to remove.
      */
     public void removeNode(Node node) {
+        addEdit("Remove Node");
         getActiveNetwork().remove(node);
     }
 
@@ -409,6 +473,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @return the created connection
      */
     public Connection connect(Port output, Port input) {
+        addEdit("Connect");
         return getActiveNetwork().connectChildren(input, output);
     }
 
@@ -418,6 +483,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param connection the connection to remove
      */
     public void disconnect(Connection connection) {
+        addEdit("Disconnect");
         getActiveNetwork().disconnect(connection);
     }
 
@@ -430,6 +496,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @return the newly copied node
      */
     public Collection<Node> copyChildren(Collection<Node> children, Node oldParent, Node newParent) {
+        addEdit("Copy");
         return oldParent.copyChildren(children, newParent);
     }
 
@@ -440,6 +507,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param value     the new value
      */
     public void setParameterValue(Parameter parameter, Object value) {
+        addEdit("Change Value");
         parameter.set(value);
     }
 
