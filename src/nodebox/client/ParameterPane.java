@@ -57,23 +57,26 @@ public class ParameterPane extends Pane {
 
     public void editMetadata() {
         if (node == null) return;
+        getDocument().addEdit("Node Metadata");
         NodeAttributesEditor editor = new NodeAttributesEditor(node);
-        JFrame editorFrame = new JFrame(node.getName() + " Metadata");
-        editorFrame.getContentPane().add(editor);
-        editorFrame.setSize(580, 751);
-        editorFrame.setResizable(false);
-        // Center the frame based on the current window.
         Window w = SwingUtilities.getWindowAncestor(this);
+        JDialog editorDialog = new JDialog(w, node.getName() + " Metadata");
+        editorDialog.getContentPane().add(editor);
+        editorDialog.setSize(580, 751);
+        editorDialog.setResizable(false);
+        editorDialog.setModal(true);
+        editorDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+        // Center the frame based on the current window.
         if (w == null) {
             // If the current window could not be found, set to the default location.
-            editorFrame.setLocationByPlatform(true);
+            editorDialog.setLocationByPlatform(true);
         } else {
             int ancestorCenterX = w.getX() + w.getWidth() / 2;
             int ancestorCenterY = w.getY() + w.getHeight() / 2;
-            int x = ancestorCenterX - editorFrame.getWidth() / 2;
-            int y = ancestorCenterY - editorFrame.getHeight() / 2;
-            editorFrame.setLocation(x, y);
+            int x = ancestorCenterX - editorDialog.getWidth() / 2;
+            int y = ancestorCenterY - editorDialog.getHeight() / 2;
+            editorDialog.setLocation(x, y);
         }
-        editorFrame.setVisible(true);
+        editorDialog.setVisible(true);
     }
 }
