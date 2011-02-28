@@ -1,11 +1,12 @@
 package nodebox.client.parameter;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.node.Parameter;
 
 public class ImageControl extends FileControl {
 
-    public ImageControl(Parameter parameter) {
-        super(parameter);
+    public ImageControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
     }
 
     @Override

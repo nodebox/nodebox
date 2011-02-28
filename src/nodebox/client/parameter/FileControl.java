@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.FileUtils;
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
@@ -15,8 +16,8 @@ public class FileControl extends AbstractParameterControl implements ActionListe
     private JTextField fileField;
     private JButton chooseButton;
 
-    public FileControl(Parameter parameter) {
-        super(parameter);
+    public FileControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fileField = new JTextField();
         fileField.putClientProperty("JComponent.sizeVariant", "small");
@@ -57,9 +58,9 @@ public class FileControl extends AbstractParameterControl implements ActionListe
             File libraryFile = parameter.getLibrary().getFile();
             if (libraryFile != null) {
                 String relativePath = nodebox.util.FileUtils.getRelativePath(f, libraryFile.getParentFile());
-                parameter.setValue(relativePath);
+                setParameterValue(relativePath);
             } else {
-                parameter.setValue(f.getAbsolutePath());
+                setParameterValue(f.getAbsolutePath());
             }
         }
     }

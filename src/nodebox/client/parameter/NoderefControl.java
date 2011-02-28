@@ -1,5 +1,6 @@
 package nodebox.client.parameter;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.PathDialog;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
@@ -14,8 +15,8 @@ public class NoderefControl extends AbstractParameterControl implements ActionLi
     private JTextField pathField;
     private JButton chooseButton;
 
-    public NoderefControl(Parameter parameter) {
-        super(parameter);
+    public NoderefControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         pathField = new JTextField();
         pathField.putClientProperty("JComponent.sizeVariant", "small");
@@ -44,6 +45,6 @@ public class NoderefControl extends AbstractParameterControl implements ActionLi
 
     public void actionPerformed(ActionEvent e) {
         String newPath = PathDialog.choosePath(parameter.getNode().getRoot(), parameter.asString());
-        parameter.setValue(newPath);
+        setParameterValue(newPath);
     }
 }

@@ -25,6 +25,10 @@ public class ConnectionLayer extends PLayer {
         return networkView;
     }
 
+    public NodeBoxDocument getDocument() {
+        return networkView.getDocument();
+    }
+
     public void select(Connection connection) {
         selection = connection;
     }
@@ -111,7 +115,7 @@ public class ConnectionLayer extends PLayer {
      */
     public void deleteSelected() {
         if (selection == null) return;
-        networkView.getNode().disconnect(selection);
+        getDocument().disconnect(selection);
     }
 
     /**

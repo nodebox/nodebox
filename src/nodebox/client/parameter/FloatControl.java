@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.DraggableNumber;
+import nodebox.client.NodeBoxDocument;
 import nodebox.node.Parameter;
 
 import javax.swing.event.ChangeEvent;
@@ -13,8 +14,8 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
 
     private DraggableNumber draggable;
 
-    public FloatControl(Parameter parameter) {
-        super(parameter);
+    public FloatControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
@@ -62,7 +63,7 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
             }
         }
         if (value != (Float) parameter.getValue()) {
-            parameter.setValue((float) value);
+            setParameterValue((float) value);
         }
     }
 

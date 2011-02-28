@@ -16,8 +16,8 @@ public class TextControl extends AbstractParameterControl implements ActionListe
     private JTextField textField;
     private JButton externalWindowButton;
 
-    public TextControl(Parameter parameter) {
-        super(parameter);
+    public TextControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new BorderLayout(0, 0));
         textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");
@@ -46,7 +46,7 @@ public class TextControl extends AbstractParameterControl implements ActionListe
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == textField) {
-            parameter.setValue(textField.getText());
+            setParameterValue(textField.getText());
         } else if (e.getSource() == externalWindowButton) {
             NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
             if (doc == null) throw new RuntimeException("No current active document.");

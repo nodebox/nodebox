@@ -41,11 +41,12 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         CONTROL_MAP.put(Parameter.Widget.STAMP_EXPRESSION, StampExpressionControl.class);
     }
 
+    private Pane pane;
     private Node node;
-
     private JPanel controlPanel;
 
-    public ParameterView() {
+    public ParameterView(Pane pane) {
+        this.pane = pane;
         setLayout(new BorderLayout());
         controlPanel = new ControlPanel(new GridBagLayout());
         // controlPanel = new JPanel(new GridBagLayout());
@@ -54,6 +55,10 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    public NodeBoxDocument getDocument() {
+        return pane.getDocument();
     }
 
     public Node getNode() {
@@ -129,8 +134,8 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
 
     private ParameterControl constructControl(Class controlClass, Parameter p) {
         try {
-            Constructor constructor = controlClass.getConstructor(Parameter.class);
-            return (ParameterControl) constructor.newInstance(p);
+            Constructor constructor = controlClass.getConstructor(NodeBoxDocument.class, Parameter.class);
+            return (ParameterControl) constructor.newInstance(getDocument(), p);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Cannot construct control", e);
             throw new AssertionError("Cannot construct control:" + e);
@@ -179,18 +184,6 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
                 g.fillRect(LABEL_WIDTH, 0, width - LABEL_WIDTH, height);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node n = manager.getNode("corevector.rect").newInstance(testLibrary, "myrect");
-        ParameterView p = new ParameterView();
-        p.setNode(n);
-        frame.setContentPane(p);
-        frame.setSize(500, 500);
-        frame.setVisible(true);
     }
 
 }

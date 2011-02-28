@@ -1,5 +1,6 @@
 package nodebox.client.parameter;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
@@ -12,8 +13,8 @@ public class StringControl extends AbstractParameterControl implements ActionLis
 
     private JTextField textField;
 
-    public StringControl(Parameter parameter) {
-        super(parameter);
+    public StringControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new BorderLayout());
         textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");
@@ -37,7 +38,7 @@ public class StringControl extends AbstractParameterControl implements ActionLis
     public void actionPerformed(ActionEvent e) {
         String newValue = textField.getText();
         if (!newValue.equals(parameter.asString())) {
-            parameter.set(newValue);
+            setParameterValue(newValue);
         }
     }
 

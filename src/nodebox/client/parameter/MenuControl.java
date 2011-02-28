@@ -1,5 +1,6 @@
 package nodebox.client.parameter;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
@@ -15,8 +16,8 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
     private JComboBox menuBox;
     private MenuDataModel menuModel;
 
-    public MenuControl(Parameter parameter) {
-        super(parameter);
+    public MenuControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         menuBox = new JComboBox();
         menuModel = new MenuDataModel(parameter);
@@ -52,7 +53,7 @@ public class MenuControl extends AbstractParameterControl implements ActionListe
         Parameter.MenuItem item = (Parameter.MenuItem) menuBox.getSelectedItem();
         String value = item.getKey();
         if (!parameter.getValue().equals(value)) {
-            parameter.setValue(item.getKey());
+            setParameterValue(item.getKey());
         }
     }
 

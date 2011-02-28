@@ -8,6 +8,7 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.node.Node;
 import nodebox.node.NodeEvent;
 import nodebox.node.NodeEventListener;
+import nodebox.node.Port;
 import nodebox.node.event.*;
 
 import javax.swing.*;
@@ -42,7 +43,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
     public NetworkView(Pane pane, Node node) {
         this.pane = pane;
         this.node = node;
-        this.pane.getDocument().getNodeLibrary().addListener(this);
+        getDocument().getNodeLibrary().addListener(this);
         if (node != null)
             this.networkError = node.hasError();
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
@@ -85,6 +86,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         initMenus();
         // This is disabled so we can detect the tab key.
         setFocusTraversalKeysEnabled(false);
+    }
+
+    public NodeBoxDocument getDocument() {
+        return pane.getDocument();
     }
 
     private void initMenus() {
@@ -291,7 +296,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
     public void deleteSelected() {
         Set<NodeView> nodesToRemove = new HashSet<NodeView>(selection);
         for (NodeView nodeView : nodesToRemove) {
-            node.remove(nodeView.getNode());
+            getDocument().removeNode(nodeView.getNode());
         }
         connectionLayer.deleteSelected();
     }
@@ -304,7 +309,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
             nodesToCopy.add(n);
         }
         for (Node n : nodesToCopy) {
-            parent.remove(n);
+            getDocument().removeNode(n);
         }
         Application.getInstance().setNodeClipboard(nodesToCopy);
     }
@@ -326,7 +331,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         // TODO: Cut operation removes parent from child nodes, so no parent is available.
         // This is a problem for connections.
         if (parent == null) return;
-        Collection<Node> newNodes = parent.copyChildren(nodesToCopy, newParent);
+        Collection<Node> newNodes = getDocument().copyChildren(nodesToCopy, parent, newParent);
         deselectAll();
         for (Node newNode : newNodes) {
             NodeView nv = getNodeView(newNode);
@@ -404,7 +409,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
     //// Node manager ////
 
     public void showNodeSelectionDialog() {
-        NodeBoxDocument doc = getPane().getDocument();
+        NodeBoxDocument doc = getDocument();
         NodeSelectionDialog dialog = new NodeSelectionDialog(doc, doc.getNodeLibrary(), doc.getManager());
         Point pt = getMousePosition();
         if (pt == null) {
@@ -413,9 +418,9 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         pt = (Point) getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
-            Node n = getNode().create(dialog.getSelectedNode());
-            n.setPosition(new nodebox.graphics.Point(pt));
-            n.setRendered();
+            Node n = doc.createNode(dialog.getSelectedNode());
+            doc.setNodePosition(n, new nodebox.graphics.Point(pt));
+            doc.setRenderedNode(n);
             doc.setActiveNode(n);
         }
     }
@@ -444,6 +449,16 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
      */
     public void startConnection(NodeView connectionSource) {
         this.connectionSource = connectionSource;
+    }
+
+    /**
+     * This method gets called from the NodeView to connect the output port to the input port.
+     * @param output the output port
+     * @param input the input port
+     */
+    public void connect(Port output, Port input) {
+        getDocument().connect(output, input);
+
     }
 
     /**
@@ -516,7 +531,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
             Toolkit.getDefaultToolkit().beep();
             return;
         }
-        NodeBoxDocument.getCurrentDocument().setActiveNetwork(node.getParent());
+        getDocument().setActiveNetwork(node.getParent());
     }
 
     private void goDown() {
@@ -525,7 +540,17 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
             return;
         }
         NodeView selectedNode = selection.iterator().next();
-        NodeBoxDocument.getCurrentDocument().setActiveNetwork(selectedNode.getNode());
+        getDocument().setActiveNetwork(selectedNode.getNode());
+    }
+
+    //// Other node operations ////
+
+    public void setRenderedNode(Node node) {
+        getDocument().setRenderedNode(node);
+    }
+
+    public void removeNode(Node node) {
+        getDocument().removeNode(node);
     }
 
     //// Inner classes ////

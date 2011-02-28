@@ -1,5 +1,6 @@
 package nodebox.client.parameter;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
@@ -13,8 +14,8 @@ public class StampExpressionControl extends AbstractParameterControl implements 
     private JTextField keyField;
     private JTextField expressionField;
 
-    public StampExpressionControl(Parameter parameter) {
-        super(parameter);
+    public StampExpressionControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new BorderLayout(5, 0));
         keyField = new JTextField();
         keyField.putClientProperty("JComponent.sizeVariant", "small");
@@ -55,7 +56,7 @@ public class StampExpressionControl extends AbstractParameterControl implements 
     public void actionPerformed(ActionEvent e) {
         String newValue = keyField.getText() + "=" + expressionField.getText();
         if (!newValue.equals(parameter.asString())) {
-            parameter.set(newValue);
+            setParameterValue(newValue);
         }
     }
 

@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.NButton;
+import nodebox.client.NodeBoxDocument;
 import nodebox.node.Parameter;
 
 import java.awt.*;
@@ -10,8 +11,8 @@ public class ToggleControl extends AbstractParameterControl {
     //private JCheckBox checkBox;
     private NButton checkBox;
 
-    public ToggleControl(Parameter parameter) {
-        super(parameter);
+    public ToggleControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         checkBox = new NButton(NButton.Mode.CHECK, parameter.getLabel());
         checkBox.setActionMethod(this, "toggle");
@@ -40,7 +41,7 @@ public class ToggleControl extends AbstractParameterControl {
     }
 
     public void toggle() {
-        parameter.set(checkBox.isChecked() ? 1 : 0);
+        setParameterValue(checkBox.isChecked() ? 1 : 0);
 
     }
 

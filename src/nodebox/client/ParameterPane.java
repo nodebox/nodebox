@@ -18,7 +18,7 @@ public class ParameterPane extends Pane {
         NButton metadataButton = new NButton("Metadata", "res/parameter-metadata.png");
         metadataButton.setActionMethod(this, "editMetadata");
         paneHeader.add(metadataButton);
-        parameterView = new ParameterView();
+        parameterView = new ParameterView(this);
         add(paneHeader, BorderLayout.NORTH);
         add(parameterView, BorderLayout.CENTER);
         setNode(document.getActiveNode());

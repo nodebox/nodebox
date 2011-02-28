@@ -76,6 +76,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         updateIcon();
     }
 
+    public NodeBoxDocument getDocument() {
+        return networkView.getDocument();
+    }
+
     /**
      * Tries to find an image representation for the node.
      * The image should be located near the library, and have the same name as the library.
@@ -274,8 +278,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 if (y > NODE_FULL_SIZE - 4) {
                     doRename();
                 } else {
-                    node.setRendered();
-                    //networkView.getPane().getDocument().setActiveNetwork(node);
+                    getDocument().setRenderedNode(node);
                 }
             }
             e.setHandled(true);
@@ -347,7 +350,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                         // Only one possible connection, make it now.
                         Port inputPort = compatiblePorts.get(0);
                         try {
-                            inputPort.connect(source);
+                            getDocument().connect(source.getOutputPort(), inputPort);
                         } catch (ConnectionError e) {
                             JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
                         }
@@ -384,7 +387,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
         public void actionPerformed(ActionEvent e) {
             try {
-                inputPort.connect(outputNode);
+                getDocument().connect(outputNode.getOutputPort(), inputPort);
             } catch (ConnectionError ce) {
                 JOptionPane.showMessageDialog(networkView, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
             }
@@ -411,7 +414,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            node.setRendered();
+            getDocument().setRenderedNode(node);
             networkView.repaint();
         }
     }
@@ -435,7 +438,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            node.getParent().remove(node);
+            getDocument().removeNode(node);
         }
     }
 
@@ -446,7 +449,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         public void actionPerformed(ActionEvent e) {
-            NodeBoxDocument.getCurrentDocument().setActiveNetwork(node);
+            getDocument().setActiveNetwork(node);
         }
     }
 

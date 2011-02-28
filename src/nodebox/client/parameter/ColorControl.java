@@ -1,6 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.*;
+import nodebox.graphics.*;
 import nodebox.node.Node;
 import nodebox.node.Parameter;
 
@@ -8,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -16,8 +18,8 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
     private ColorButton colorButton;
     private ColorDialog colorDialog;
 
-    public ColorControl(Parameter parameter) {
-        super(parameter);
+    public ColorControl(NodeBoxDocument document, Parameter parameter) {
+        super(document, parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));
@@ -31,8 +33,7 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
     }
 
     private void setValueFromControl() {
-        parameter.setValue(new nodebox.graphics.Color(colorDialog.getColor()));
-        //parameter.setValue(colorWell.getColor());
+        setParameterValue(new nodebox.graphics.Color(colorDialog.getColor()));
     }
 
     public void setValueForControl(Object v) {

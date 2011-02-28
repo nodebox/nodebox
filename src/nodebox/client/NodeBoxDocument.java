@@ -14,10 +14,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EventListener;
-import java.util.Locale;
-import java.util.Observable;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -361,6 +358,89 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         Pane p = SwingUtils.getPaneForComponent(getFocusOwner());
         if (p == null || !(p instanceof EditorPane)) return false;
         return ((EditorPane) p).reload();
+    }
+
+    //// Node operations ////
+
+    /**
+     * Create a node in the active network.
+     * This node is based on a prototype.
+     *
+     * @param prototype the prototype node
+     * @return the newly created node.
+     */
+    public Node createNode(Node prototype) {
+        return getActiveNetwork().create(prototype);
+    }
+
+    /**
+     * Change the node position of the given node.
+     *
+     * @param node  the node to move
+     * @param point the point to move to
+     */
+    public void setNodePosition(Node node, nodebox.graphics.Point point) {
+        node.setPosition(point);
+    }
+
+    /**
+     * Change the rendered node to the given node
+     *
+     * @param node the node to set rendered
+     */
+    public void setRenderedNode(Node node) {
+        node.setRendered();
+    }
+
+    /**
+     * Remove the given node from the active network.
+     *
+     * @param node the node to remove.
+     */
+    public void removeNode(Node node) {
+        getActiveNetwork().remove(node);
+    }
+
+    /**
+     * Create a connection from the given output to the given input.
+     *
+     * @param output the output port
+     * @param input  the input port
+     * @return the created connection
+     */
+    public Connection connect(Port output, Port input) {
+        return getActiveNetwork().connectChildren(input, output);
+    }
+
+    /**
+     * Remove the given connection from the network.
+     *
+     * @param connection the connection to remove
+     */
+    public void disconnect(Connection connection) {
+        getActiveNetwork().disconnect(connection);
+    }
+
+    /**
+     * Copy children of this network to the new parent.
+     *
+     * @param children  the children to copy
+     * @param oldParent the old parent
+     * @param newParent the new parent
+     * @return the newly copied node
+     */
+    public Collection<Node> copyChildren(Collection<Node> children, Node oldParent, Node newParent) {
+        return oldParent.copyChildren(children, newParent);
+    }
+
+    /**
+     * Set the parameter to the given value.
+     *
+     * @param parameter the parameter to set
+     * @param value     the new value
+     */
+    public void setParameterValue(Parameter parameter, Object value) {
+        parameter.set(value);
     }
 
 //    public void createNewLibrary(String libraryName) {
