@@ -41,6 +41,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private boolean holdEdits = false;
     private AddressBar addressBar;
     private NodeBoxMenuBar menuBar;
+    private String lastEditType = "";
+    private Object lastEditObject = null;
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
@@ -201,10 +203,38 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         holdEdits = false;
     }
 
+    /**
+     * Add an edit to the undo manager.
+     * <p/>
+     * Since we don't specify the edit type or name, further edits will not be staggered.
+     *
+     * @param command the command name.
+     */
     public void addEdit(String command) {
         if (!holdEdits) {
             undoManager.addEdit(new NodeLibraryUndoableEdit(this, command));
             menuBar.updateUndoRedoState();
+        }
+    }
+
+    /**
+     * Add an edit to the undo manager.
+     *
+     * @param command the command name.
+     * @param type    the type of edit
+     * @param object  the edited object. This will be compared using ==.
+     */
+    public void addEdit(String command, String type, Object object) {
+        if (!holdEdits) {
+            if (lastEditType.equals(type) && lastEditObject == object) {
+                // If the last edit type and last edit id are the same,
+                // we combine the two edits into one.
+                // Since we've saved the last state, we don't need to do anything.
+            } else {
+                addEdit(command);
+                lastEditType = type;
+                lastEditObject = object;
+            }
         }
     }
 
@@ -441,7 +471,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param point the point to move to
      */
     public void setNodePosition(Node node, nodebox.graphics.Point point) {
-        addEdit("Move Node");
+        addEdit("Move Node", "moveNode", node);
         node.setPosition(point);
     }
 
@@ -507,7 +537,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param value     the new value
      */
     public void setParameterValue(Parameter parameter, Object value) {
-        addEdit("Change Value");
+        addEdit("Change Value", "changeValue", parameter);
         parameter.set(value);
     }
 
