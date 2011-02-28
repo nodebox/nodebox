@@ -295,9 +295,11 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
 
     public void deleteSelected() {
         Set<NodeView> nodesToRemove = new HashSet<NodeView>(selection);
+        getDocument().startEdits("Delete Nodes");
         for (NodeView nodeView : nodesToRemove) {
             getDocument().removeNode(nodeView.getNode());
         }
+        getDocument().stopEdits();
         connectionLayer.deleteSelected();
     }
 
