@@ -556,6 +556,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         getDocument().removeNode(node);
     }
 
+    public void setNodePosition(Node node, nodebox.graphics.Point point) {
+        getDocument().setNodePosition(node, point);
+    }
+
     //// Inner classes ////
 
     private class SelectionMarker extends PNode {

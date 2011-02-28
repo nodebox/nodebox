@@ -167,7 +167,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
 
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals(PROPERTY_TRANSFORM)) {
-            node.setPosition(new nodebox.graphics.Point(super.getOffset()));
+            networkView.setNodePosition(node, new nodebox.graphics.Point(super.getOffset()));
         }
     }
 
