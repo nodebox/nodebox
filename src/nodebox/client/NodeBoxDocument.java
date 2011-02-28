@@ -511,6 +511,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         parameter.set(value);
     }
 
+    public void setParameterExpression(Parameter parameter, String expression) {
+        addEdit("Change Parameter Expression");
+        parameter.setExpression(expression);
+    }
+
+    public void clearParameterExpression(Parameter parameter) {
+        addEdit("Clear Parameter Expression");
+        parameter.clearExpression();
+    }
+
+    public void revertParameterToDefault(Parameter parameter) {
+        addEdit("Revert Parameter to Default");
+        parameter.revertToDefault();
+    }
+
 //    public void createNewLibrary(String libraryName) {
 //        // First check if a library with this name already exists.
 //        if (getManager().hasLibrary(libraryName)) {

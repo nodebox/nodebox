@@ -29,6 +29,7 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
         }
     }
 
+    private NodeBoxDocument document;
     private Parameter parameter;
     private JLabel label;
     private JComponent control;
@@ -40,9 +41,10 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
     private static final int TOP_PADDING = 2;
     private static final int BOTTOM_PADDING = 2;
 
-    public ParameterRow(Parameter parameter, JComponent control) {
-        addMouseListener(this);
+    public ParameterRow(NodeBoxDocument document, Parameter parameter, JComponent control) {
+        this.document = document;
         this.parameter = parameter;
+        addMouseListener(this);
 
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
@@ -193,11 +195,13 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
         }
 
         public void actionPerformed(ActionEvent e) {
+            document.startEdits("Toggle Parameter Expression");
             if (parameter.hasExpression()) {
-                parameter.clearExpression();
+                document.clearParameterExpression(parameter);
             } else {
-                parameter.setExpression(parameter.asExpression());
+                document.setParameterExpression(parameter, parameter.asExpression());
             }
+            document.stopEdits();
             // We don't have to change the expression status here.
             // Instead, we respond to the valueChanged event to update our status.
             // This makes the handling consistent even with multiple parameter views.
@@ -210,7 +214,7 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
         }
 
         public void actionPerformed(ActionEvent e) {
-            parameter.revertToDefault();
+            document.revertParameterToDefault(parameter);
             // Reverting to default could cause an expression to be set/cleared.
             // This triggers an valueChanged event, where we check if our expression field is
             // still up-to-date.
@@ -220,7 +224,7 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
     private class ExpressionFieldChangedAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
             try {
-                parameter.setExpression(expressionField.getText());
+                document.setParameterExpression(parameter, expressionField.getText());
             } catch (ConnectionError ce) {
                 JOptionPane.showMessageDialog(ParameterRow.this, ce.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
             }

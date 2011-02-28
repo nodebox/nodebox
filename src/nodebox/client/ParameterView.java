@@ -104,7 +104,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
             } else {
                 control = new JLabel("  ");
             }
-            ParameterRow parameterRow = new ParameterRow(p, control);
+            ParameterRow parameterRow = new ParameterRow(getDocument(), p, control);
             parameterRow.setEnabled(p.isEnabled());
             GridBagConstraints rowConstraints = new GridBagConstraints();
             rowConstraints.gridx = 0;
@@ -147,7 +147,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
     }
 
     public void receive(NodeEvent event) {
-        if (event instanceof ConnectionAddedEvent){
+        if (event instanceof ConnectionAddedEvent) {
             if (((ConnectionAddedEvent) event).getConnection().getInputNode() == node)
                 rebuildInterface();
             return;
