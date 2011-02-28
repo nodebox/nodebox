@@ -471,7 +471,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * @param point the point to move to
      */
     public void setNodePosition(Node node, nodebox.graphics.Point point) {
-        addEdit("Move Node", "moveNode", node);
+        // Note that we're passing in the parent network of the node.
+        // This means that all move changes to the parent network are grouped
+        // together under one edit, instead of for each node individually.
+        addEdit("Move Node", "moveNode", node.getParent());
         node.setPosition(point);
     }
 
