@@ -41,7 +41,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private boolean holdEdits = false;
     private AddressBar addressBar;
     private NodeBoxMenuBar menuBar;
-    private String lastEditType = "";
+    private String lastEditType = null;
     private Object lastEditObject = null;
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
@@ -214,6 +214,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         if (!holdEdits) {
             undoManager.addEdit(new NodeLibraryUndoableEdit(this, command));
             menuBar.updateUndoRedoState();
+            stopCombiningEdits();
         }
     }
 
@@ -226,16 +227,29 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      */
     public void addEdit(String command, String type, Object object) {
         if (!holdEdits) {
-            if (lastEditType.equals(type) && lastEditObject == object) {
+            if (lastEditType != null && lastEditType.equals(type) && lastEditObject == object) {
                 // If the last edit type and last edit id are the same,
                 // we combine the two edits into one.
-                // Since we've saved the last state, we don't need to do anything.
+                // Since we've already saved the last state, we don't need to do anything.
             } else {
                 addEdit(command);
                 lastEditType = type;
                 lastEditObject = object;
             }
         }
+    }
+
+    /**
+     * Normally edits of the same type and object are combined into one.
+     * Calling this method will ensure that you create a  new edit.
+     * <p/>
+     * Use this method e.g. for breaking apart overzealous edit grouping.
+     */
+    public void stopCombiningEdits() {
+        // We just reset the last edit type and object so that addEdit will be forced to create a new edit.
+        lastEditType = null;
+        lastEditObject = null;
+
     }
 
     public UndoManager getUndoManager() {

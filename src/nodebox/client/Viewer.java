@@ -30,6 +30,9 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     public static final float MIN_ZOOM = 0.1f;
     public static final float MAX_ZOOM = 16.0f;
 
+    private static final String HANDLE_UNDO_TEXT = "Handle Changes";
+    private static final String HANDLE_UNDO_TYPE = "handle";
+
     private Pane pane;
     private Node node;
     private Node activeNode;
@@ -88,6 +91,10 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         initMenus();
     }
 
+    public NodeBoxDocument getDocument() {
+        return pane.getDocument();
+    }
+
     private void initMenus() {
         viewerMenu = new JPopupMenu();
         viewerMenu.add(new ResetViewAction());
@@ -144,6 +151,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     }
 
     public void setActiveNode(Node node) {
+        getDocument().stopCombiningEdits();
         activeNode = node;
         if (activeNode != null) {
             handle = activeNode.createHandle();
@@ -250,44 +258,58 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     public void mouseClicked(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseClicked(pointForEvent(e));
+        }
     }
 
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mousePressed(pointForEvent(e));
+        }
     }
 
     public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseReleased(pointForEvent(e));
+        }
     }
 
     public void mouseEntered(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseEntered(pointForEvent(e));
+        }
     }
 
     public void mouseExited(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseExited(pointForEvent(e));
+        }
     }
 
     public void mouseDragged(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseDragged(pointForEvent(e));
+        }
     }
 
     public void mouseMoved(MouseEvent e) {
         if (e.isPopupTrigger()) return;
-        if (hasVisibleHandle())
+        if (hasVisibleHandle()) {
+            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseMoved(pointForEvent(e));
+        }
     }
 
     public void keyTyped(KeyEvent e) {
