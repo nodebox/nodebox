@@ -51,6 +51,9 @@ public class ProcessingContext {
     public ProcessingContext(Node node) {
         this();
         this.node = node;
+        if (node != null) {
+            put("FRAME", node.getLibrary().getFrame());
+        }
     }
 
     //// Current node ////
@@ -88,8 +91,8 @@ public class ProcessingContext {
 
     //// Map shortcuts ////
 
-    public int getFrame() {
-        return (Integer) get("FRAME");
+    public float getFrame() {
+        return (Float) get("FRAME");
     }
 
     //// Output/error streams  ////

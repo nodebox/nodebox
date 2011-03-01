@@ -31,6 +31,7 @@ public class NodeLibrary {
     private String name;
     private File file;
     private Node rootNode;
+    private float frame = 1F;
     private HashMap<String, String> variables;
     private NodeCode code;
     private NodeEventBus eventBus = new NodeEventBus();
@@ -250,6 +251,16 @@ public class NodeLibrary {
 
     public NodeCode getCode() {
         return code;
+    }
+
+    //// Animation ////
+
+    public float getFrame() {
+        return frame;
+    }
+
+    public void setFrame(float frame) {
+        this.frame = frame;
     }
 
     //// Persistence /////

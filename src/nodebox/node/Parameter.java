@@ -613,7 +613,7 @@ public class Parameter {
     /**
      * Mark this parameter and its node as dirty. Also notify dependent parameters.
      */
-    /* package private */ void markDirty() {
+    public void markDirty() {
         if (dirty) return;
         dirty = true;
         fireValueChanged();
