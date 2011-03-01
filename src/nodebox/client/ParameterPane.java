@@ -59,20 +59,20 @@ public class ParameterPane extends Pane {
         if (node == null) return;
         getDocument().addEdit("Node Metadata");
         NodeAttributesEditor editor = new NodeAttributesEditor(node);
-        Window w = SwingUtilities.getWindowAncestor(this);
-        JDialog editorDialog = new JDialog(w, node.getName() + " Metadata");
+        Frame frame = (Frame) SwingUtilities.getRoot(this);
+        JDialog editorDialog = new JDialog(frame, node.getName() + " Metadata");
         editorDialog.getContentPane().add(editor);
         editorDialog.setSize(580, 751);
         editorDialog.setResizable(false);
         editorDialog.setModal(true);
         editorDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
         // Center the frame based on the current window.
-        if (w == null) {
+        if (frame == null) {
             // If the current window could not be found, set to the default location.
             editorDialog.setLocationByPlatform(true);
         } else {
-            int ancestorCenterX = w.getX() + w.getWidth() / 2;
-            int ancestorCenterY = w.getY() + w.getHeight() / 2;
+            int ancestorCenterX = frame.getX() + frame.getWidth() / 2;
+            int ancestorCenterY = frame.getY() + frame.getHeight() / 2;
             int x = ancestorCenterX - editorDialog.getWidth() / 2;
             int y = ancestorCenterY - editorDialog.getHeight() / 2;
             editorDialog.setLocation(x, y);
