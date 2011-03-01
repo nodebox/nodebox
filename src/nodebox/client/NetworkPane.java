@@ -75,7 +75,7 @@ public class NetworkPane extends Pane implements PropertyChangeListener {
         Set<NodeView> selection = (Set<NodeView>) evt.getNewValue();
         // If there is no selection, set the active node to null.
         if (selection == null || selection.isEmpty()) {
-            getDocument().setActiveNode(null);
+            getDocument().setActiveNode((Node) null);
         } else {
             // If the active node is in the new selection leave the active node as is.
             NodeView nv = networkView.getNodeView(getDocument().getActiveNode());

@@ -152,6 +152,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         return activeNetwork;
     }
 
+    public String getActiveNetworkPath() {
+        if (activeNetwork == null) return "";
+        return activeNetwork.getAbsolutePath();
+    }
+
     public void setActiveNetwork(Node activeNetwork) {
         this.activeNetwork = activeNetwork;
         fireActiveNetworkChanged();
@@ -164,20 +169,57 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                 setActiveNode(activeNetwork.getChildAt(0));
             }
         } else {
-            setActiveNode(null);
+            setActiveNode((Node) null);
         }
         if (activeNetwork != null) {
             requestActiveNetworkUpdate();
         }
     }
 
+    public void setActiveNetwork(String path) {
+        Node network = nodeLibrary.getNodeForPath(path);
+        setActiveNetwork(network);
+    }
+
     public Node getActiveNode() {
         return activeNode;
     }
 
+    public String getActiveNodePath() {
+        if (activeNode == null) return "";
+        return activeNode.getAbsolutePath();
+    }
+
+    /**
+     * Set the active node to the given node.
+     * <p/>
+     * The active node is the one whose parameters are displayed in the parameter pane,
+     * and whose handle is displayed in the viewer.
+     * <p/>
+     * This will also change the active network if necessary.
+     *
+     * @param activeNode the node to change to.
+     */
     public void setActiveNode(Node activeNode) {
+        // Ensure that the active node is in the active network.
+        if (activeNode != null && activeNode.getParent() != activeNetwork) {
+            setActiveNetwork(activeNode.getParent());
+        }
         this.activeNode = activeNode;
         fireActiveNodeChanged();
+    }
+
+    /**
+     * Set the active node based on an absolute path.
+     * This will also change the active network if necessary.
+     *
+     * @param path the absolute path
+     * @see #getActiveNodePath()
+     * @see nodebox.node.Node#getAbsolutePath()
+     */
+    public void setActiveNode(String path) {
+        Node node = nodeLibrary.getNodeForPath(path);
+        setActiveNode(node);
     }
 
     public NodeLibraryManager getManager() {

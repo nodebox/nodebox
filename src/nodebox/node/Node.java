@@ -21,6 +21,7 @@ package nodebox.node;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.handle.Handle;
+import nodebox.util.StringUtils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -467,14 +468,18 @@ public class Node implements NodeCode {
     //// Path ////
 
     public String getAbsolutePath() {
-        StringBuffer name = new StringBuffer("/");
-        Node parent = getParent();
-        while (parent != null) {
-            name.insert(1, parent.getName() + "/");
-            parent = parent.getParent();
+        ArrayList<String> parts = new ArrayList<String>();
+        Node child = this;
+        Node root = getLibrary().getRootNode();
+        while (child != null && child != root) {
+            parts.add(0, child.getName());
+            child = child.getParent();
         }
-        name.append(getName());
-        return name.toString();
+        if (parts.isEmpty()) {
+            return "/";
+        } else {
+            return "/" + StringUtils.join(parts, "/");
+        }
     }
 
     //// Prototype ////
@@ -900,7 +905,7 @@ public class Node implements NodeCode {
      *
      * @param connection the connection to reorder
      * @param deltaIndex the number of places to move.
-     * @param multi the connection should only be reordered among connections connected to the same input port (with cardinality MULTIPLE).
+     * @param multi      the connection should only be reordered among connections connected to the same input port (with cardinality MULTIPLE).
      * @return true if changes were made to the ordering.
      */
     public boolean reorderConnection(Connection connection, int deltaIndex, boolean multi) {

@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -13,12 +14,18 @@ public class NodeLibraryUndoableEdit extends AbstractUndoableEdit {
 
     private NodeBoxDocument document;
     private String command;
-    private String undoXml, redoXml;
+    private UndoState undoState, redoState;
+
+    private class UndoState {
+        private String xml;
+        private String activeNetworkPath;
+        private String activeNodeName;
+    }
 
     public NodeLibraryUndoableEdit(NodeBoxDocument document, String command) {
         this.document = document;
         this.command = command;
-        undoXml = saveState();
+        undoState = saveState();
     }
 
     @Override
@@ -29,24 +36,40 @@ public class NodeLibraryUndoableEdit extends AbstractUndoableEdit {
     @Override
     public void undo() throws CannotUndoException {
         super.undo();
-        if (redoXml == null)
-            redoXml = saveState();
-        restoreState(undoXml);
+        if (redoState == null)
+            redoState = saveState();
+        restoreState(undoState);
     }
 
     @Override
     public void redo() throws CannotRedoException {
         super.redo();
-        restoreState(redoXml);
+        restoreState(redoState);
     }
 
-    public String saveState() {
-        return document.getNodeLibrary().toXml();
+    public UndoState saveState() {
+        UndoState state = new UndoState();
+        state.xml = document.getNodeLibrary().toXml();
+        state.activeNetworkPath = document.getActiveNetworkPath();
+        Node activeNode = document.getActiveNode();
+        if (activeNode == null) {
+            state.activeNodeName = null;
+        } else {
+            state.activeNodeName = activeNode.getName();
+        }
+        return state;
     }
 
-    public void restoreState(String xml) {
-        NodeLibrary nodeLibrary = NodeLibrary.load(document.getNodeLibrary().getName(), xml, document.getManager());
+    public void restoreState(UndoState state) {
+        NodeLibrary nodeLibrary = NodeLibrary.load(document.getNodeLibrary().getName(), state.xml, document.getManager());
         document.setNodeLibrary(nodeLibrary);
+        document.setActiveNetwork(state.activeNetworkPath);
+        if (state.activeNodeName != null) {
+            Node child = document.getActiveNetwork().getChild(state.activeNodeName);
+            if (child != null) {
+                document.setActiveNode(child);
+            }
+        }
     }
 
 }

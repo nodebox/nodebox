@@ -186,6 +186,29 @@ public class NodeLibrary {
         return rootNode.getExportedChild(name);
     }
 
+    /**
+     * Get the node at the given absolute path.
+     * This method does a best effort to get the most specific node. If it fails to find a given segment,
+     * it stops and returns the parent.
+     *
+     * @param path the path to parse
+     * @return a node somewhere within the path, hopefully at the end.
+     * @see nodebox.node.Node#getAbsolutePath()
+     */
+    public Node getNodeForPath(String path) {
+        Node parent = getRootNode();
+        if (!path.startsWith("/")) return parent;
+        for (String part : path.substring(1).split("/")) {
+            Node child = parent.getChild(part);
+            if (child == null) {
+                break;
+            } else {
+                parent = child;
+            }
+        }
+        return parent;
+    }
+
     public Node remove(String name) {
         Node node = rootNode.getChild(name);
         if (node == null) return null;

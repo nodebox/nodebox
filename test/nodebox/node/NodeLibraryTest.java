@@ -369,6 +369,24 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
+     * Test if we can retrieve absolute paths.
+     */
+    public void testGetNodeForPath() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node root = library.getRootNode();
+        Node alpha = root.create(Node.ROOT_NODE, "alpha");
+        Node beta = alpha.create(Node.ROOT_NODE, "beta");
+        assertSame(root, library.getNodeForPath(root.getAbsolutePath()));
+        assertSame(alpha, library.getNodeForPath(alpha.getAbsolutePath()));
+        assertSame(beta, library.getNodeForPath(beta.getAbsolutePath()));
+        assertSame(root, library.getNodeForPath("xxx"));
+        assertSame(alpha, library.getNodeForPath("/alpha/xxx"));
+        assertSame(beta, library.getNodeForPath("/alpha/beta/////"));
+        // If you forget the first slash, the path cannot be interpreted.
+        assertSame(root, library.getNodeForPath("alpha/beta"));
+    }
+
+    /**
      * Assert that the search string only appears once in the source.
      *
      * @param source       the source string to search in

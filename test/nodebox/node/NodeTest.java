@@ -782,6 +782,18 @@ public class NodeTest extends NodeTestCase {
         assertFalse(c.isDirty());
     }
 
+    /**
+     * Test the generation of network paths.
+     */
+    public void testAbsolutePath() {
+        Node root = testLibrary.getRootNode();
+        Node alpha = root.create(Node.ROOT_NODE, "alpha");
+        Node beta = alpha.create(Node.ROOT_NODE, "beta");
+        assertEquals("/", root.getAbsolutePath());
+        assertEquals("/alpha", alpha.getAbsolutePath());
+        assertEquals("/alpha/beta", beta.getAbsolutePath());
+    }
+
     //// Helper functions ////
 
     private void assertInvalidName(Node n, String newName, String reason) {
