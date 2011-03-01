@@ -1,5 +1,6 @@
 package nodebox.handle;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.client.Viewer;
 import nodebox.graphics.*;
 import nodebox.node.Node;
@@ -46,6 +47,12 @@ public abstract class AbstractHandle implements Handle {
         this.visible = visible;
     }
 
+    public void stopCombiningEdits() {
+        NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
+        if (document != null) {
+            document.stopCombiningEdits();
+        }
+    }
 
     //// Stub implementations of event handling ////
 
@@ -78,7 +85,7 @@ public abstract class AbstractHandle implements Handle {
     }
 
     public boolean keyTyped(int keyCode, int modifiers) {
-       return false;
+        return false;
     }
 
     public boolean keyPressed(int keyCode, int modifiers) {

@@ -2,7 +2,6 @@ package nodebox.handle;
 
 
 import nodebox.client.Viewer;
-import nodebox.graphics.CanvasContext;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
 import nodebox.node.Node;
@@ -18,6 +17,13 @@ public interface Handle {
     public Node getNode();
 
     public void update();
+
+    /**
+     * Indicates that the undo mechanism should create a new undo "step".
+     * <p/>
+     * Use this when something significant has happened in your code, e.g. when you've drawn a line in the freehand node.
+     */
+    public void stopCombiningEdits();
 
     public void draw(GraphicsContext ctx);
 
