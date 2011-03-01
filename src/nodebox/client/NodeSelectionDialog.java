@@ -40,7 +40,7 @@ public class NodeSelectionDialog extends JDialog {
         }
 
         public void setSearchString(String searchString) {
-            this.searchString = searchString.trim();
+            this.searchString = searchString = searchString.trim().toLowerCase();
             if (searchString.length() == 0) {
                 // Add all the nodes from the manager.
                 filteredNodes = manager.getNodes();
@@ -61,13 +61,13 @@ public class NodeSelectionDialog extends JDialog {
                         nodes.add(node);
                 }
 
-                filteredNodes = sortNodes(nodes, searchString);
+                filteredNodes = sortNodes(nodes, this.searchString);
             }
         }
 
         private boolean contains(Node node, String searchString) {
-            String description = node.getDescription() == null ? "" : node.getDescription();
-            return node.getName().contains(searchString) || description.contains(searchString);
+            String description = node.getDescription() == null ? "" : node.getDescription().toLowerCase();
+            return node.getName().toLowerCase().contains(searchString) || description.contains(searchString);
         }
 
 
