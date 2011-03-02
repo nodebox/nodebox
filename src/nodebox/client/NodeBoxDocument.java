@@ -41,6 +41,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private boolean holdEdits = false;
     private AddressBar addressBar;
     private NodeBoxMenuBar menuBar;
+    private AnimationBar animationBar;
+    private AnimationTimer animationTimer;
     private String lastEditType = null;
     private Object lastEditObject = null;
     //private RenderThread renderThread;
@@ -68,8 +70,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         PaneSplitter parameterNetworkSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, parameterPane, networkPane);
         PaneSplitter topSplit = new PaneSplitter(NSplitter.Orientation.HORIZONTAL, viewEditorSplit, parameterNetworkSplit);
         addressBar = new AddressBar(this);
+        animationTimer = new AnimationTimer(this);
+        animationBar = new AnimationBar(this);
         rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
+        rootPanel.add(animationBar, BorderLayout.SOUTH);
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);
@@ -613,6 +618,44 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void revertParameterToDefault(Parameter parameter) {
         addEdit("Revert Parameter to Default");
         parameter.revertToDefault();
+    }
+
+    public float getFrame() {
+        return nodeLibrary.getFrame();
+    }
+
+    public void setFrame(float frame) {
+        nodeLibrary.setFrame(frame);
+        animationBar.updateFrame();
+        // TODO: This is a really hacky version of finding time-dependent nodes.
+        // We simply traverse through the first level of the network and find all
+        // nodes that have parameters with expression with the word FRAME in them.
+        // Those are marked dirty.
+        for (Node n : activeNetwork.getChildren()) {
+            for (Parameter p:n.getParameters()) {
+                if (p.hasExpression() && p.getExpression().contains("FRAME")) {
+                    p.markDirty();
+                }
+            }
+        }
+        requestActiveNetworkUpdate();
+    }
+
+    public void nextFrame() {
+        setFrame(getFrame() + 1);
+    }
+
+    public void startAnimation() {
+        animationTimer.start();
+    }
+
+    public void stopAnimation() {
+        animationTimer.stop();
+    }
+
+    public void resetAnimation() {
+        stopAnimation();
+        setFrame(1);
     }
 
 //    public void createNewLibrary(String libraryName) {

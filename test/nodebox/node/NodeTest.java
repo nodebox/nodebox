@@ -794,6 +794,17 @@ public class NodeTest extends NodeTestCase {
         assertEquals("/alpha/beta", beta.getAbsolutePath());
     }
 
+    /**
+     * Check if we can detect that the node is time dependent.
+     */
+    public void testIsTimeDependent() {
+        Node root = testLibrary.getRootNode();
+        Node alpha = root.create(Node.ROOT_NODE, "alpha");
+        alpha.addParameter("x", Parameter.Type.FLOAT);
+        Node beta = root.create(Node.ROOT_NODE, "beta");
+        alpha.addParameter("y", Parameter.Type.FLOAT);
+    }
+
     //// Helper functions ////
 
     private void assertInvalidName(Node n, String newName, String reason) {
