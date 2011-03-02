@@ -70,11 +70,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         PaneSplitter parameterNetworkSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, parameterPane, networkPane);
         PaneSplitter topSplit = new PaneSplitter(NSplitter.Orientation.HORIZONTAL, viewEditorSplit, parameterNetworkSplit);
         addressBar = new AddressBar(this);
-        animationTimer = new AnimationTimer(this);
-        animationBar = new AnimationBar(this);
         rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
-        rootPanel.add(animationBar, BorderLayout.SOUTH);
+
+        if (Application.FLAG_ENABLE_ANIMATION) {
+            animationTimer = new AnimationTimer(this);
+            animationBar = new AnimationBar(this);
+            rootPanel.add(animationBar, BorderLayout.SOUTH);
+        }
+
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);
