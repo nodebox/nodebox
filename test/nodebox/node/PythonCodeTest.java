@@ -51,7 +51,7 @@ public class PythonCodeTest extends TestCase {
      * Test if the code can access context globals.
      */
     public void testGlobals() {
-        assertSnippetEquals(11, "FRAME + 10", null, new ProcessingContext());
+        assertSnippetEquals(11.0, "FRAME + 10", null, new ProcessingContext());
     }
 
     /**

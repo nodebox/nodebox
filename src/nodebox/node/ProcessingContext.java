@@ -41,7 +41,7 @@ public class ProcessingContext {
     private Map<Parameter, State> updatedParameters = new HashMap<Parameter, State>();
 
     public ProcessingContext() {
-        put("FRAME", 1);
+        put("FRAME", 1f);
         outputBytes = new ByteArrayOutputStream();
         outputStream = new PrintStream(outputBytes);
         errorBytes = new ByteArrayOutputStream();
@@ -51,9 +51,11 @@ public class ProcessingContext {
     public ProcessingContext(Node node) {
         this();
         this.node = node;
+        float frame = 1f;
         if (node != null) {
-            put("FRAME", node.getLibrary().getFrame());
+            frame = node.getLibrary().getFrame();
         }
+        put("FRAME", frame);
     }
 
     //// Current node ////
