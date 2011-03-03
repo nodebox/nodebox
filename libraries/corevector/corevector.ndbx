@@ -1179,7 +1179,7 @@ def cook(self):
                     relative = value / float(sums[col_index])
                     context.put(prefix + 'relative_value_' + str(col_index), relative)
             except ValueError:
-                pass
+                value = value.decode("utf-8", "replace")
             context.put(prefix + 'value_' + str(col_index), value)
         self.node.stampExpressions(context)
         t = Transform()
