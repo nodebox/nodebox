@@ -55,6 +55,8 @@ public class Expression {
             parserContext.addImport("random", ExpressionHelper.class.getMethod("random", long.class, double[].class));
             parserContext.addImport("randint", ExpressionHelper.class.getMethod("randint", long.class, int.class, int.class));
             parserContext.addImport("color", ExpressionHelper.class.getMethod("color", double[].class));
+            parserContext.addImport("rgb", ExpressionHelper.class.getMethod("color", double[].class));
+            parserContext.addImport("hsb", ExpressionHelper.class.getMethod("hsb", double[].class));
             parserContext.addImport("stamp", ExpressionHelper.class.getMethod("stamp", String.class, Object.class));
             parserContext.addImport("int", ExpressionHelper.class.getMethod("toInt", double.class));
             parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));

@@ -37,6 +37,15 @@ public class Color implements Cloneable {
         return Math.max(0.0, Math.min(1.0, v));
     }
 
+    public static Color fromHSB(double hue, double saturation, double brightness) {
+        return new Color(hue, saturation, brightness, Mode.HSB);
+    }
+
+
+    public static Color fromHSB(double hue, double saturation, double brightness, double alpha) {
+        return new Color(hue, saturation, brightness, alpha, Mode.HSB);
+    }
+
     /**
      * Create an empty (black) color object.
      */

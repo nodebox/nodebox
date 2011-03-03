@@ -88,6 +88,39 @@ public class ExpressionHelper {
         return new Color(red, green, blue, alpha);
     }
 
+    public static Color hsb(double... values) {
+        switch (values.length) {
+            case 0:
+                return new Color();
+            case 1:
+                return new Color(values[0], values[0], values[0]);
+            case 2:
+                return new Color(values[0], values[1]);
+            case 3:
+                return Color.fromHSB(values[0], values[1], values[2]);
+            case 4:
+                return Color.fromHSB(values[0], values[1], values[2], values[3]);
+            default:
+                return new Color();
+        }
+    }
+
+    public static Color hsb(double gray) {
+        return new Color(gray, gray, gray);
+    }
+
+    public static Color hsb(double gray, double alpha) {
+        return new Color(gray, gray, gray, alpha);
+    }
+
+    public static Color hsb(double hue, double saturation, double brightness) {
+        return Color.fromHSB(hue, saturation, brightness);
+    }
+
+    public static Color hsb(double hue, double saturation, double brightness, double alpha) {
+        return Color.fromHSB(hue, saturation, brightness, alpha);
+    }
+
     public static Object stamp(String key, Object defaultValue) {
         if (currentContext == null) return defaultValue;
         currentParameter.markStampExpression();
