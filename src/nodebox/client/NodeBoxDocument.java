@@ -5,7 +5,6 @@ import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
-import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
 import javax.swing.event.EventListenerList;
@@ -263,6 +262,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      */
     public void addEdit(String command) {
         if (!holdEdits) {
+            markChanged();
             undoManager.addEdit(new NodeLibraryUndoableEdit(this, command));
             menuBar.updateUndoRedoState();
             stopCombiningEdits();
@@ -278,6 +278,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      */
     public void addEdit(String command, String type, Object object) {
         if (!holdEdits) {
+            markChanged();
             if (lastEditType != null && lastEditType.equals(type) && lastEditObject == object) {
                 // If the last edit type and last edit id are the same,
                 // we combine the two edits into one.
@@ -636,7 +637,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         // nodes that have parameters with expression with the word FRAME in them.
         // Those are marked dirty.
         for (Node n : activeNetwork.getChildren()) {
-            for (Parameter p:n.getParameters()) {
+            for (Parameter p : n.getParameters()) {
                 if (p.hasExpression() && p.getExpression().contains("FRAME")) {
                     p.markDirty();
                 }
@@ -722,10 +723,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     //// Network events ////
 
     public void receive(NodeEvent event) {
-        // Every event, except NodeDirty and NodeUpdated, will mark the document as changed.
-        if (!(event instanceof NodeDirtyEvent) && !(event instanceof NodeUpdatedEvent)) {
-            markChanged();
-        }
         if (event instanceof NodeDirtyEvent && event.getSource() == activeNetwork) {
             requestActiveNetworkUpdate();
         }
