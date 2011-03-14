@@ -1066,6 +1066,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
                 p.setMinimumValue(min);
                 p.setMaximumValue(max);
             }
+            node.updateDependencies(ProcessingContext.getCurrentContext());
         }
     }
 
