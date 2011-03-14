@@ -1070,6 +1070,12 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
+    public Parameter findVar(String name) {
+        Node node = ProcessingContext.getCurrentContext().getNode();
+        if (node == null) return null;
+        return node.getParameter(name);
+    }
+
     protected float normalize(float v) {
         // Bring the color into the 0-1 scale for the current colorrange
         if (colorRange == 1f) return v;

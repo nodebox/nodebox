@@ -302,3 +302,9 @@ class Context(CanvasContext):
 
     def choice(self, *args):
         return choice(*args)
+    
+    def var(self, *args):
+        CanvasContext.var(self, *args)
+        v = self.findVar(args[0])
+        if v is not None:
+            self._ns[v.name] = v.value
