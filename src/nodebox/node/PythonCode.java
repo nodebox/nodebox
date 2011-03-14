@@ -28,6 +28,7 @@ public class PythonCode implements NodeCode {
 
     public static final String TYPE = "python";
     private String source;
+    private PyCode code;
     private PyDictionary namespace;
     private PyFunction cookFunction;
     private CanvasContext ctx;
@@ -47,9 +48,11 @@ public class PythonCode implements NodeCode {
                 "_ctx = Context(ns=_g)\n" +
                 "for n in dir(_ctx):\n" +
                 "    _g[n] = getattr(_ctx, n)");
-        //PyCode code = interpreter.compile(source);
-        //code.__call__();
-        interpreter.exec(source);
+
+        if (code == null)
+            code = new PythonInterpreter().compile(source);
+
+        interpreter.exec(code);
         ctx = (CanvasContext) interpreter.get("_ctx").__tojava__(CanvasContext.class);
         try {
             cookFunction = (PyFunction) interpreter.get("cook");
