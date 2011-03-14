@@ -4,15 +4,19 @@ import nodebox.node.Node;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.lang.reflect.Constructor;
 
-public abstract class Pane extends JPanel implements DocumentFocusListener {
+public abstract class Pane extends JPanel implements DocumentFocusListener, FocusListener {
 
     private NodeBoxDocument document;
+    private Component mainComponent;
 
     public Pane(NodeBoxDocument document) {
         this.document = document;
         document.addDocumentFocusListener(this);
+        addFocusListener(this);
     }
 
     public NodeBoxDocument getDocument() {
@@ -101,7 +105,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
 
     public void changePaneType(Class paneType) {
         if (!Pane.class.isAssignableFrom(paneType)) return;
-        Pane newPane;
+        final Pane newPane;
         try {
             Constructor c = paneType.getConstructor(NodeBoxDocument.class);
             newPane = (Pane) c.newInstance(this.document);
@@ -124,6 +128,27 @@ public abstract class Pane extends JPanel implements DocumentFocusListener {
             newPane.setSize(d);
         }
         parent.validate();
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                newPane.requestFocus();
+            }
+        });
     }
 
+    public Component getMainComponent() {
+        return mainComponent;
+    }
+
+    public void setMainComponent(Component c) {
+        this.mainComponent = c;
+    }
+
+    public void focusGained(FocusEvent focusEvent) {
+        if (mainComponent != null) {
+            mainComponent.requestFocus();
+        }
+    }
+
+    public void focusLost(FocusEvent focusEvent) {
+    }
 }

@@ -1,71 +1,104 @@
 package nodebox.client;
 
+import nodebox.base.Preconditions;
 import nodebox.node.Parameter;
 import org.python.util.PythonInterpreter;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.text.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Console extends JTextPane implements PaneView {
+public class Console extends JPanel implements PaneView, FocusListener {
+
+    private static final Color PROMPT_COLOR = new Color(72, 134, 242);
+    private static final Color PROMPT_BORDER_TOP_COLOR = new Color(240, 240, 240);
+    private static final Color ERROR_COLOR = new Color(255, 0, 0);
+    private static final SimpleAttributeSet ATTRIBUTES_REGULAR = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRIBUTES_ERROR = new SimpleAttributeSet();
+    private static final SimpleAttributeSet ATTRIBUTES_COMMAND = new SimpleAttributeSet();
+
+    static {
+        ATTRIBUTES_COMMAND.addAttribute(StyleConstants.ColorConstants.Foreground, PROMPT_COLOR);
+        ATTRIBUTES_ERROR.addAttribute(StyleConstants.ColorConstants.Foreground, ERROR_COLOR);
+    }
 
     private Pane pane;
     private static Logger logger = Logger.getLogger("nodebox.client.Console");
     private PythonInterpreter interpreter;
-    public static final String PROMPT = ">>> ";
-    private ArrayList<String> inputHistory = new ArrayList<String>();
+    private ArrayList<String> history = new ArrayList<String>();
+    private int historyOffset = 0;
+    private String temporarySavedCommand = null;
+    private JTextPane consoleMessages;
+    private JTextField consolePrompt;
+    private Document messagesDocument;
+    private JScrollPane messagesScroll;
 
     public Console(Pane pane) {
         this.pane = pane;
-        this.setMargin(new Insets(0, 5, 0, 5));
-        setFont(Theme.EDITOR_FONT);
-        StyleContext styles = new StyleContext();
-        StyledDocument doc = new DefaultStyledDocument(styles);
-        setDocument(doc);
+        consoleMessages = new JTextPane();
+        consoleMessages.setMargin(new Insets(2, 20, 2, 5));
+        consoleMessages.setFont(Theme.EDITOR_FONT);
+        consoleMessages.setEditable(false);
+        consoleMessages.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent mouseEvent) {
+                consolePrompt.requestFocus();
+            }
+        });
+        messagesDocument = consoleMessages.getDocument();
+        messagesScroll = new JScrollPane(consoleMessages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        messagesScroll.setBorder(BorderFactory.createEmptyBorder());
+
+        consolePrompt = new JTextField();
+        consolePrompt.setFont(Theme.EDITOR_FONT);
         Keymap defaultKeymap = JTextComponent.getKeymap(JTextComponent.DEFAULT_KEYMAP);
         Keymap keymap = JTextComponent.addKeymap(null, defaultKeymap);
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), new EnterAction());
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), new HistoryUpAction());
         keymap.addActionForKeyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), new HistoryDownAction());
-        setKeymap(keymap);
+        consolePrompt.setKeymap(keymap);
+        consolePrompt.setBorder(new PromptBorder());
+
+        setLayout(new BorderLayout());
+        add(messagesScroll, BorderLayout.CENTER);
+        add(consolePrompt, BorderLayout.SOUTH);
+
         interpreter = new PythonInterpreter();
-        newPrompt();
+        consolePrompt.requestFocus();
+        addFocusListener(this);
     }
 
-    private void newPrompt() {
-        addString(PROMPT);
-    }
-
-    public String getLastLine() {
-        Element rootElement = getDocument().getDefaultRootElement();
-        if (rootElement.getElementCount() == 0) return "";
-        Element lastElement = rootElement.getElement(rootElement.getElementCount() - 1);
+    private void addMessage(String s, AttributeSet attributes) {
         try {
-            int start = lastElement.getStartOffset() + PROMPT.length();
-            int length = lastElement.getEndOffset() - start;
-            return getDocument().getText(start, length);
+            messagesDocument.insertString(messagesDocument.getLength(), s, attributes);
         } catch (BadLocationException e) {
-            logger.log(Level.WARNING, "Bad location", e);
-            return "";
+            logger.log(Level.WARNING, "addMessage: bad location (" + s + ")", e);
         }
     }
 
-    private void addString(String s) {
-        try {
-            getDocument().insertString(getDocument().getLength(), s, null);
-        } catch (BadLocationException e) {
-            logger.log(Level.WARNING, "addString: bad location (" + s + ")", e);
-        }
+    private void addMessage(String s) {
+        addMessage(s, ATTRIBUTES_REGULAR);
+    }
+
+    private void addCommandMessage(String s) {
+        addMessage(s, ATTRIBUTES_COMMAND);
+    }
+
+    private void addErrorMessage(String s) {
+        addMessage(s, ATTRIBUTES_ERROR);
     }
 
     public void doEnter() {
-        String lastLine = getLastLine();
+        String command = getCommand();
+        addCommandToHistory(command);
+        setCommand("");
+        addCommandMessage(command + "\n");
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         interpreter.setOut(outputStream);
@@ -74,39 +107,72 @@ public class Console extends JTextPane implements PaneView {
         interpreter.set("root", pane.getDocument().getActiveNetwork().getRoot());
         interpreter.set("parent", pane.getDocument().getActiveNetwork());
         interpreter.set("node", pane.getDocument().getActiveNode());
+        interpreter.exec("from nodebox.node import *");
+        for (Parameter.Type type: Parameter.Type.values()) {
+            interpreter.set(type.name(), type);
+        }
         for (Parameter.Type t : Parameter.Type.values())
             interpreter.set(t.name(), t);
         Exception pythonException = null;
         try {
-            interpreter.exec(lastLine);
+            Object result = interpreter.eval(command);
+            if (result != null) {
+                addMessage(result.toString() + "\n");
+            }
         } catch (Exception e) {
             pythonException = e;
-            logger.log(Level.INFO, "Error on exec", e);
         }
-        addString("\n");
         String os = outputStream.toString();
         if (os.length() > 0) {
-            addString(os);
+            addMessage(os);
             if (!os.endsWith("\n"))
-                addString("\n");
+                addMessage("\n");
         }
         if (pythonException != null)
-            addString(pythonException.toString() + "\n");
-        newPrompt();
+            addErrorMessage(pythonException.toString());
     }
 
-    public void doHistoryUp() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
+    public String getCommand() {
+        return consolePrompt.getText();
     }
 
-    public void doHistoryDown() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
+    public void setCommand(String command) {
+        consolePrompt.setText(command);
     }
 
-    public void handleLine(String string) {
-        Element[] elements = getDocument().getRootElements();
+    public void moveBackInHistory() {
+        if (historyOffset == history.size())
+            return;
+        if (historyOffset == 0) {
+            temporarySavedCommand = getCommand();
+        }
+        historyOffset++;
+        setCommand(history.get(history.size() - historyOffset));
+    }
+
+    public void moveForwardInHistory() {
+        if (historyOffset == 0)
+            return;
+        historyOffset--;
+        if (historyOffset == 0) {
+            Preconditions.checkNotNull(temporarySavedCommand, "temporarySavedCommand is null.");
+            setCommand(temporarySavedCommand);
+            temporarySavedCommand = null;
+        } else {
+            setCommand(history.get(history.size() - historyOffset));
+        }
+    }
+
+    public void addCommandToHistory(String command) {
+        history.add(command);
+        historyOffset = 0;
+    }
+
+    public void focusGained(FocusEvent focusEvent) {
+        consolePrompt.requestFocus();
+    }
+
+    public void focusLost(FocusEvent focusEvent) {
     }
 
     private class EnterAction extends AbstractAction {
@@ -117,13 +183,30 @@ public class Console extends JTextPane implements PaneView {
 
     private class HistoryUpAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            doHistoryUp();
+            moveBackInHistory();
         }
     }
 
     private class HistoryDownAction extends AbstractAction {
         public void actionPerformed(ActionEvent e) {
-            doHistoryDown();
+            moveForwardInHistory();
+        }
+    }
+
+    private class PromptBorder implements Border {
+        public void paintBorder(Component component, Graphics g, int x, int y, int width, int height) {
+            g.setColor(PROMPT_BORDER_TOP_COLOR);
+            g.drawLine(0, 0, width, 0);
+            g.setColor(PROMPT_COLOR);
+            g.drawString(">", 5, 14);
+        }
+
+        public Insets getBorderInsets(Component component) {
+            return new Insets(3, 20, 3, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
         }
     }
 }

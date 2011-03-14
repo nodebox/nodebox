@@ -2,8 +2,10 @@ package nodebox.client;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
-public class ConsolePane extends Pane {
+public class ConsolePane extends Pane implements FocusListener {
 
     private PaneHeader paneHeader;
     private Console console;
@@ -13,10 +15,9 @@ public class ConsolePane extends Pane {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         console = new Console(this);
-        JScrollPane consoleScroll = new JScrollPane(console, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        consoleScroll.setBorder(BorderFactory.createEmptyBorder());
         add(paneHeader, BorderLayout.NORTH);
-        add(consoleScroll, BorderLayout.CENTER);
+        add(console, BorderLayout.CENTER);
+        setMainComponent(console);
     }
 
     public String getPaneName() {
@@ -34,4 +35,5 @@ public class ConsolePane extends Pane {
     public Pane clone() {
         return new ConsolePane(getDocument());
     }
+
 }
