@@ -124,7 +124,7 @@ public class PythonCode implements NodeCode {
             CanvasContext g = null;
             try {
                 g = (CanvasContext) namespace.get("_ctx");
-                result = g.getCanvas();
+                result = g.getCanvas().asGeometry();
             } catch (ClassCastException e) {
                 result = null;
             }
