@@ -10,7 +10,7 @@ SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
 
-!define CLASSPATH "lib\nodebox.jar;lib\iText.jar;lib\asm.jar;lib\jython.jar;lib\mvel.jar;lib\piccolo.jar;lib\xercesImpl.jar"
+!define CLASSPATH "lib\nodebox.jar;lib\jna.jar;lib\iText.jar;lib\asm.jar;lib\jython.jar;lib\mvel.jar;lib\piccolo.jar;lib\xercesImpl.jar"
 !define CLASS "nodebox.client.Application"
 
 Section ""
