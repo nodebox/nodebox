@@ -5,10 +5,7 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.node.Node;
-import nodebox.node.NodeEvent;
-import nodebox.node.NodeEventListener;
-import nodebox.node.Port;
+import nodebox.node.*;
 import nodebox.node.event.*;
 
 import javax.swing.*;
@@ -304,36 +301,31 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
     }
 
     public void cutSelected() {
-        Node parent = getNode();
-        ArrayList<Node> nodesToCopy = new ArrayList<Node>(selection.size());
-        for (NodeView nv : selection) {
-            Node n = nv.getNode();
-            nodesToCopy.add(n);
-        }
-        for (Node n : nodesToCopy) {
+        copySelected();
+        List<Node> nodes = getSelectedNodes();
+        for (Node n : nodes) {
             getDocument().removeNode(n);
         }
-        Application.getInstance().setNodeClipboard(nodesToCopy);
     }
 
     public void copySelected() {
-        ArrayList<Node> nodesToCopy = new ArrayList<Node>(selection.size());
-        for (NodeView nv : selection) {
-            Node n = nv.getNode();
-            nodesToCopy.add(n);
-        }
-        Application.getInstance().setNodeClipboard(nodesToCopy);
+        // When copying, create copies of all the nodes and store them under a new parent.
+        // The parent is used to preserve the connections, and also to save the state of the
+        // copied nodes.
+        // This parent is the root of a new library.
+        NodeLibrary clipboardLibrary = new NodeLibrary("clipboard");
+        Node clipboardRoot = clipboardLibrary.getRootNode();
+        getDocument().copyChildren(getSelectedNodes(), getNode(), clipboardRoot);
+        Application.getInstance().setNodeClipboard(clipboardLibrary);
     }
 
     public void pasteSelected() {
         Node newParent = getNode();
-        List<Node> nodesToCopy = Application.getInstance().getNodeClipboard();
-        if (nodesToCopy == null || nodesToCopy.size() == 0) return;
-        Node parent = nodesToCopy.get(0).getParent();
-        // TODO: Cut operation removes parent from child nodes, so no parent is available.
-        // This is a problem for connections.
-        if (parent == null) return;
-        Collection<Node> newNodes = getDocument().copyChildren(nodesToCopy, parent, newParent);
+        NodeLibrary clipboardLibrary = Application.getInstance().getNodeClipboard();
+        if (clipboardLibrary == null) return;
+        Node clipboardRoot = clipboardLibrary.getRootNode();
+        if (clipboardRoot.size() == 0) return;
+        Collection<Node> newNodes = getDocument().copyChildren(clipboardRoot.getChildren(), clipboardRoot, newParent);
         deselectAll();
         for (Node newNode : newNodes) {
             NodeView nv = getNodeView(newNode);
@@ -341,6 +333,14 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
             nv.updateIcon();
             addToSelection(nv);
         }
+    }
+
+    private List<Node> getSelectedNodes() {
+        ArrayList<Node> nodes = new ArrayList<Node>();
+        for (NodeView nv : selection) {
+            nodes.add(nv.getNode());
+        }
+        return nodes;
     }
 
     //// Events ////
