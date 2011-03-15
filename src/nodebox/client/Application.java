@@ -53,7 +53,7 @@ public class Application implements Host {
     private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
     private Version version;
-    private List<Node> nodeClipboard;
+    private NodeLibrary clipboardLibrary;
 
     public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
@@ -249,12 +249,12 @@ public class Application implements Host {
         currentDocument = document;
     }
 
-    public List<Node> getNodeClipboard() {
-        return nodeClipboard;
+    public NodeLibrary getNodeClipboard() {
+        return clipboardLibrary;
     }
 
-    public void setNodeClipboard(List<Node> nodeClipboard) {
-        this.nodeClipboard = nodeClipboard;
+    public void setNodeClipboard(NodeLibrary clipboardLibrary) {
+        this.clipboardLibrary = clipboardLibrary;
     }
 
     public NodeLibraryManager getManager() {
@@ -349,7 +349,7 @@ public class Application implements Host {
 
 
     public static void main(String[] args) {
-        for (String arg: args) {
+        for (String arg : args) {
             if (arg.contains("--enable-animation")) {
                 FLAG_ENABLE_ANIMATION = true;
             }
