@@ -95,12 +95,12 @@ public class Theme {
             SMALL_BOLD_FONT = new Font("Lucida Grande", Font.BOLD, 11);
             SMALL_MONO_FONT = new Font("Monaco", Font.PLAIN, 10);
         } else {
-            EDITOR_FONT = new Font("Courier", Font.PLAIN, 11);
+            EDITOR_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 11);
             MESSAGE_FONT = new Font("Verdana", Font.BOLD, 11);
             INFO_FONT = new Font("Verdana", Font.PLAIN, 10);
             SMALL_FONT = new Font("Verdana", Font.PLAIN, 10);
             SMALL_BOLD_FONT = new Font("Verdana", Font.BOLD, 10);
-            SMALL_MONO_FONT = new Font("Courier", Font.PLAIN, 10);
+            SMALL_MONO_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 10);
         }
     }
 
