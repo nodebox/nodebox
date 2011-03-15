@@ -11,7 +11,7 @@ public interface GraphicsContext {
     public static final float inch = 72;
     public static final float cm = 28.3465f;
     public static final float mm = 2.8346f;
-    
+
     public enum RectMode {
         CORNER, CORNERS, CENTER, RADIUS
     }
@@ -35,28 +35,28 @@ public interface GraphicsContext {
         }
     }
 
-    public enum ArrowType { NORMAL, FORTYFIVE }
+    public enum ArrowType {NORMAL, FORTYFIVE}
 
-    public static String CORNER = "CORNER";
-    public static String CENTER = "CENTER";
-    public static String CORNERS = "CORNERS";
-    public static String RADIUS = "RADIUS";
+    public static final String CORNER = "CORNER";
+    public static final String CENTER = "CENTER";
+    public static final String CORNERS = "CORNERS";
+    public static final String RADIUS = "RADIUS";
 
-    public static String LEFT = "LEFT";
-    public static String RIGHT = "RIGHT";
-    public static String JUSTIFY = "JUSTIFY";
+    public static final String LEFT = "LEFT";
+    public static final String RIGHT = "RIGHT";
+    public static final String JUSTIFY = "JUSTIFY";
 
-    public static String RGB = "RGB";
-    public static String HSB = "HSB";
-    public static String CMYK = "CMYK";
+    public static final String RGB = "RGB";
+    public static final String HSB = "HSB";
+    public static final String CMYK = "CMYK";
 
-    public static String NUMBER = "NUMBER";
-    public static String TEXT = "TEXT";
-    public static String BOOLEAN = "BOOLEAN";
-    public static String FONT = "FONT";
+    public static final String NUMBER = "NUMBER";
+    public static final String TEXT = "TEXT";
+    public static final String BOOLEAN = "BOOLEAN";
+    public static final String FONT = "FONT";
 
-    public static String NORMAL = "NORMAL";
-    public static String FORTYFIVE = "FORTYFIVE";
+    public static final String NORMAL = "NORMAL";
+    public static final String FORTYFIVE = "FORTYFIVE";
 
     public RectMode rectmode();
 
