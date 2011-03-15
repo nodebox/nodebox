@@ -25,7 +25,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     private JTextArea messages;
     private NButton messagesCheck;
     private String codeName, codeType;
-    private boolean changed = false;
+    private boolean codeChanged = false;
     private NButton reloadButton;
 
     public EditorPane(NodeBoxDocument document) {
@@ -96,7 +96,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
 
     public void setNode(Node node) {
         if (this.node == node && node != null) return;
-        if (changed && this.node != null) {
+        if (codeChanged && this.node != null) {
             Parameter param = this.node.getParameter(codeType);
             getDocument().setChangedCodeForParameter(param, editor.getSource());
         }
@@ -105,7 +105,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     }
 
     private void setCode() {
-        changed = false;
+        codeChanged = false;
         Parameter pCode = null;
         if (node != null) {
             pCode = node.getParameter(codeType);
@@ -116,7 +116,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
             splitter.setPosition(1.0f);
-            setChanged(false);
+            setCodeChanged(false);
             updateMessages(node, null);
         } else {
             String code = getDocument().getChangedCodeForParameter(pCode);
@@ -125,7 +125,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
                 code = pCode.asCode().getSource();
             editor.setSource(code);
             editor.setEnabled(true);
-            setChanged(changed);
+            setCodeChanged(changed);
             messages.setEnabled(true);
             messages.setBackground(Color.white);
             updateMessages(node, null);
@@ -140,7 +140,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         pCode.set(code);
         if (codeType.equals("_handle"))
             getDocument().setActiveNode(node); // to make Viewer reload handle
-        setChanged(false);
+        setCodeChanged(false);
         getDocument().removeChangedCodeForParameter(pCode);
         return true;
     }
@@ -246,11 +246,11 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
 
     public void stateChanged(ChangeEvent changeEvent) {
         // The document has changed.
-        setChanged(node != null);
+        setCodeChanged(node != null);
     }
 
-    private void setChanged(boolean changed) {
-        this.changed = changed;
+    private void setCodeChanged(boolean changed) {
+        codeChanged = changed;
         reloadButton.setWarning(changed);
     }
 }
