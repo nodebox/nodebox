@@ -59,6 +59,8 @@ public class Canvas extends AbstractTransformable {
         for (Grob item : items) {
             if (item instanceof Path)
                 g.add((Path) item.clone());
+            else if (item instanceof Text)
+                g.add(((Text) item).getPath());
             else if (item instanceof Geometry)
                 g.extend((Geometry) item.clone());
         }
