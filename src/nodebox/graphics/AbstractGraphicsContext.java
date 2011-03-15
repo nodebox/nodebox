@@ -1066,7 +1066,14 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
                 p.setMinimumValue(min);
                 p.setMaximumValue(max);
             }
+            node.updateDependencies(ProcessingContext.getCurrentContext());
         }
+    }
+
+    public Parameter findVar(String name) {
+        Node node = ProcessingContext.getCurrentContext().getNode();
+        if (node == null) return null;
+        return node.getParameter(name);
     }
 
     protected float normalize(float v) {

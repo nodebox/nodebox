@@ -482,6 +482,8 @@ public interface GraphicsContext {
 
     public void var(String name, int type, Object value, Float min, Float max);
 
+    public Parameter findVar(String name);
+
     public double random();
 
     public long random(int max);
