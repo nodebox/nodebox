@@ -35,7 +35,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public static final int GRID_SIZE = 10;
 
 
-    private static BufferedImage nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeRim;
+    private static BufferedImage nodeMask, nodeGlow, nodeConnectionGlow, nodeInPort, nodeOutPort, nodeGeneric, nodeError, nodeRendered, nodeCodeChanged, nodeRim;
 
     static {
         try {
@@ -47,6 +47,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
             nodeGeneric = ImageIO.read(new File("res/node-generic.png"));
             nodeError = ImageIO.read(new File("res/node-error.png"));
             nodeRendered = ImageIO.read(new File("res/node-rendered.png"));
+            nodeCodeChanged = ImageIO.read(new File("res/node-codechanged.png"));
             nodeRim = ImageIO.read(new File("res/node-rim.png"));
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,12 +61,14 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     private Border border;
 
     private boolean selected;
+    private transient boolean codeChanged;
     private transient double fakeX, fakeY;
 
     public NodeView(NetworkView networkView, Node node) {
         this.networkView = networkView;
         this.node = node;
         this.selected = false;
+        this.codeChanged = false;
         setTransparency(1.0F);
         addInputEventListener(new NodeHandler());
         setOffset(node.getX(), node.getY());
@@ -201,6 +204,8 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         if (networkView.getConnectionTarget() == this)
             g.drawImage(nodeConnectionGlow, 0, 0, null);
         g.drawImage(fullIcon, 0, 0, null);
+        if (codeChanged)
+            g.drawImage(nodeCodeChanged, 0, 0, null);
         if (node.hasError())
             g.drawImage(nodeError, 0, 0, null);
         if (node.isRendered())
@@ -225,6 +230,16 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
     public void setSelected(boolean s) {
         if (selected == s) return;
         selected = s;
+        repaint();
+    }
+
+    public boolean hasCodeChanged() {
+        return codeChanged;
+    }
+
+    public void setCodeChanged(boolean changed) {
+        if (codeChanged == changed) return;
+        codeChanged = changed;
         repaint();
     }
 

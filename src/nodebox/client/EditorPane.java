@@ -26,6 +26,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     private NButton messagesCheck;
     private String codeName, codeType;
     private boolean codeChanged = false;
+    private boolean fireCodeChange = true;
     private NButton reloadButton;
 
     public EditorPane(NodeBoxDocument document) {
@@ -123,9 +124,11 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
             boolean changed = code != null;
             if (! changed)
                 code = pCode.asCode().getSource();
+            fireCodeChange = false;
             editor.setSource(code);
             editor.setEnabled(true);
             setCodeChanged(changed);
+            fireCodeChange = true;
             messages.setEnabled(true);
             messages.setBackground(Color.white);
             updateMessages(node, null);
@@ -252,5 +255,9 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     private void setCodeChanged(boolean changed) {
         codeChanged = changed;
         reloadButton.setWarning(changed);
+
+        if (fireCodeChange) {
+            getDocument().fireCodeChanged(node, true);
+        }
     }
 }

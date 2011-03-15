@@ -36,6 +36,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private boolean documentChanged;
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxDocument");
     private EventListenerList documentFocusListeners = new EventListenerList();
+    private EventListenerList codeChangeListeners = new EventListenerList();
     private UndoManager undoManager = new UndoManager();
     private boolean holdEdits = false;
     private AddressBar addressBar;
@@ -335,6 +336,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     //// Code editor actions ////
 
+    public void addCodeChangeListener(CodeChangeListener l) {
+        codeChangeListeners.add(CodeChangeListener.class, l);
+    }
+
+    public void removeCodeChangeListener(CodeChangeListener l) {
+        codeChangeListeners.remove(CodeChangeListener.class, l);
+    }
+
     public String getChangedCodeForParameter(Parameter parameter) {
         return changedCodeParameters.get(parameter);
     }
@@ -345,8 +354,19 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public void removeChangedCodeForParameter(Parameter parameter) {
         changedCodeParameters.remove(parameter);
+        Node node = parameter.getNode();
+        for (Parameter p : changedCodeParameters.keySet()) {
+            if (p.getNode() == node)
+                return;
+        }
+        fireCodeChanged(node, false);
     }
 
+    public void fireCodeChanged(Node node, boolean changed) {
+        for (EventListener l : codeChangeListeners.getListeners(CodeChangeListener.class)) {
+            ((CodeChangeListener) l).codeChanged(node, changed);
+        }
+    }
 
     //// Document actions ////
 

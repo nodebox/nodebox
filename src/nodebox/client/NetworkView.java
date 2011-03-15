@@ -17,7 +17,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-public class NetworkView extends PCanvas implements PaneView, NodeEventListener {
+public class NetworkView extends PCanvas implements PaneView, NodeEventListener, CodeChangeListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -41,6 +41,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         this.pane = pane;
         this.node = node;
         getDocument().getNodeLibrary().addListener(this);
+        getDocument().addCodeChangeListener(this);
         if (node != null)
             this.networkError = node.hasError();
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
@@ -408,6 +409,13 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
         repaint();
     }
 
+    public void codeChanged(Node node, boolean changed) {
+        NodeView nv = getNodeView(node);
+        if (nv == null) return;
+        nv.setCodeChanged(changed);
+        repaint();
+    }
+
     //// Node manager ////
 
     public void showNodeSelectionDialog() {
@@ -561,6 +569,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener 
     public void setNodePosition(Node node, nodebox.graphics.Point point) {
         getDocument().setNodePosition(node, point);
     }
+
 
     //// Inner classes ////
 
