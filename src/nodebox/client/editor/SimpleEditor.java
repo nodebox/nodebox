@@ -5,14 +5,14 @@ import nodebox.client.PaneView;
 import nodebox.client.Theme;
 
 import javax.swing.*;
-import javax.swing.event.CaretListener;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.event.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
 
+    private ArrayList<ChangeListener> changeListeners = new ArrayList<ChangeListener>();
     private CodeArea codeArea;
     private boolean changed = false;
 
@@ -60,6 +60,9 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
 
     public void setChanged(boolean changed) {
         this.changed = changed;
+        if (changed) {
+            fireDocumentChanged();
+        }
     }
 
     public void insertUpdate(DocumentEvent e) {
@@ -80,5 +83,20 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
 
     public void removeCaretListener(CaretListener l) {
         codeArea.removeCaretListener(l);
+    }
+
+    public void addChangeListener(ChangeListener l) {
+        changeListeners.add(l);
+    }
+
+    public void removeChangeListener(ChangeListener l) {
+        changeListeners.remove(l);
+    }
+
+    public void fireDocumentChanged() {
+        ChangeEvent e = new ChangeEvent(this);
+        for (ChangeListener l : changeListeners) {
+            l.stateChanged(e);
+        }
     }
 }
