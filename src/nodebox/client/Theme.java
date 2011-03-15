@@ -200,4 +200,28 @@ public class Theme {
             return true;
         }
     }
+
+    public static class InsetsBorder implements Border {
+        private Insets insets;
+
+        public InsetsBorder(Insets insets) {
+            this.insets = insets;
+        }
+
+        public InsetsBorder(int x, int y, int width, int height) {
+            this.insets = new Insets(x, y, width, height);
+        }
+
+        public void paintBorder(Component component, Graphics graphics, int i, int i1, int i2, int i3) {
+        }
+
+        public Insets getBorderInsets(Component component) {
+            return insets;
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
+    }
+
 }

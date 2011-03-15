@@ -26,16 +26,25 @@ public class AnimationBar extends JPanel implements ChangeListener {
     private float frame;
 
     public AnimationBar(final NodeBoxDocument document) {
-        super(new FlowLayout(FlowLayout.LEADING, 5, 2));
+        super(new FlowLayout(FlowLayout.LEADING, 5, 0));
         setPreferredSize(new Dimension(100, ANIMATION_BAR_HEIGHT));
         setMinimumSize(new Dimension(100, ANIMATION_BAR_HEIGHT));
         setMaximumSize(new Dimension(100, ANIMATION_BAR_HEIGHT));
 
         this.document = document;
 
+        // We use a number of tricks here to make the frame number line up with the buttons.
+        // - We use a panel with a flow layout so we can set a border. (Setting it directly on the DraggableNumber does not work)
+        // - We use an inset border with a positive top margin (the actual space we want to move) and a negative bottom margin
+        //   (to compensate for the effect).
+        JPanel frameNumberPanel = new JPanel();
+        frameNumberPanel.setOpaque(false);
+        frameNumberPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        frameNumberPanel.setBorder(new Theme.InsetsBorder(5, 0, -4, 0));
         frameNumber = new DraggableNumber();
         frameNumber.addChangeListener(this);
-        add(frameNumber);
+        frameNumberPanel.add(frameNumber);
+        add(frameNumberPanel);
         NButton startButton = new NButton("Start", "res/animation-start.png");
         startButton.setToolTipText("Start Animation");
         startButton.setActionMethod(this, "startAnimation");
@@ -80,3 +89,5 @@ public class AnimationBar extends JPanel implements ChangeListener {
     }
 
 }
+
+
