@@ -57,12 +57,13 @@ public class AnimationBar extends JPanel implements ChangeListener {
         add(startButton);
         add(stopButton);
         add(resetButton);
+        updateFrame();
     }
 
     public void updateFrame() {
         if (document.getFrame() != frame) {
+            frame = document.getFrame();
             frameNumber.setValue(frame);
-            this.frame = document.getFrame();
         }
     }
 
