@@ -26,19 +26,17 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     private NButton messagesCheck;
     private String codeName, codeType;
     private boolean changed = false;
-    private JLabel changedLabel;
+    private NButton reloadButton;
 
     public EditorPane(NodeBoxDocument document) {
         super(document);
         document.getNodeLibrary().addListener(this);
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
-        NButton reloadButton = new NButton("Reload", "res/code-reload.png");
+        reloadButton = new NButton("Reload", "res/code-reload.png");
         reloadButton.setActionMethod(this, "reload");
         messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
         messagesCheck.setActionMethod(this, "toggleMessages");
-        changedLabel = new JLabel();
-        paneHeader.add(changedLabel);
         paneHeader.add(reloadButton);
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
@@ -253,6 +251,6 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
 
     private void setChanged(boolean changed) {
         this.changed = changed;
-        changedLabel.setText(changed ? "!" : "");
+        reloadButton.setWarning(changed);
     }
 }

@@ -44,6 +44,7 @@ public class NButton extends JComponent implements MouseListener {
     private boolean armed = false;
     private boolean pressed = false;
     private boolean checked = false;
+    private boolean warn = false;
 
     /**
      * Create a push button.
@@ -151,6 +152,16 @@ public class NButton extends JComponent implements MouseListener {
         repaint();
     }
 
+    public boolean isWarning() {
+        return warn;
+    }
+
+    public void setWarning(boolean warn) {
+        if (warn == this.warn) return;
+        this.warn = warn;
+        repaint();
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
@@ -170,7 +181,9 @@ public class NButton extends JComponent implements MouseListener {
         }
         int w = normalImage.getWidth(null);
         g2.setFont(Theme.SMALL_BOLD_FONT);
-        if (armed) {
+        if (warn) {
+            g2.setColor(Theme.TEXT_WARNING_COLOR);
+        } else if (armed) {
             g2.setColor(Theme.TEXT_ARMED_COLOR);
         } else if(!isEnabled()) {
             g2.setColor(Theme.TEXT_DISABLED_COLOR);
