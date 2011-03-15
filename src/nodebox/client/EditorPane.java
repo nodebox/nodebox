@@ -7,6 +7,8 @@ import nodebox.node.event.NodeUpdatedEvent;
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.text.Element;
 import java.awt.*;
 import java.awt.event.ComponentEvent;
@@ -14,7 +16,7 @@ import java.awt.event.ComponentListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class EditorPane extends Pane implements ComponentListener, CaretListener, NodeEventListener {
+public class EditorPane extends Pane implements ComponentListener, CaretListener, NodeEventListener, ChangeListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
@@ -23,6 +25,8 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
     private JTextArea messages;
     private NButton messagesCheck;
     private String codeName, codeType;
+    private boolean changed = false;
+    private JLabel changedLabel;
 
     public EditorPane(NodeBoxDocument document) {
         super(document);
@@ -33,6 +37,8 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         reloadButton.setActionMethod(this, "reload");
         messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
         messagesCheck.setActionMethod(this, "toggleMessages");
+        changedLabel = new JLabel();
+        paneHeader.add(changedLabel);
         paneHeader.add(reloadButton);
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
@@ -40,6 +46,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         paneHeader.add(new PaneCodeMenu(this));
         editor = new SimpleEditor();
         editor.addCaretListener(this);
+        editor.addChangeListener(this);
         editor.setUndoManager(getDocument().getUndoManager());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
@@ -91,11 +98,16 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
 
     public void setNode(Node node) {
         if (this.node == node && node != null) return;
+        if (changed && this.node != null) {
+            Parameter param = this.node.getParameter(codeType);
+            getDocument().setChangedCodeForParameter(param, editor.getSource());
+        }
         this.node = node;
         setCode();
     }
 
     private void setCode() {
+        changed = false;
         Parameter pCode = null;
         if (node != null) {
             pCode = node.getParameter(codeType);
@@ -106,11 +118,16 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
             splitter.setPosition(1.0f);
+            setChanged(false);
             updateMessages(node, null);
         } else {
-            String code = pCode.asCode().getSource();
+            String code = getDocument().getChangedCodeForParameter(pCode);
+            boolean changed = code != null;
+            if (! changed)
+                code = pCode.asCode().getSource();
             editor.setSource(code);
             editor.setEnabled(true);
+            setChanged(changed);
             messages.setEnabled(true);
             messages.setBackground(Color.white);
             updateMessages(node, null);
@@ -125,6 +142,8 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         pCode.set(code);
         if (codeType.equals("_handle"))
             getDocument().setActiveNode(node); // to make Viewer reload handle
+        setChanged(false);
+        getDocument().removeChangedCodeForParameter(pCode);
         return true;
     }
 
@@ -227,4 +246,13 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         splitter.setLocation(linenum, columnnum);
     }
 
+    public void stateChanged(ChangeEvent changeEvent) {
+        // The document has changed.
+        setChanged(node != null);
+    }
+
+    private void setChanged(boolean changed) {
+        this.changed = changed;
+        changedLabel.setText(changed ? "!" : "");
+    }
 }
