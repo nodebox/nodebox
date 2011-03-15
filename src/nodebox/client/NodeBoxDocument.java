@@ -14,6 +14,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -507,6 +508,71 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             return exportToFile(chosenFile);
         }
         return false;
+    }
+
+    public boolean exportRange() {
+        File exportDirectory = lastExportPath == null ? null : new File(lastExportPath);
+        ExportRangeDialog d = new ExportRangeDialog(this, exportDirectory);
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+        String exportPrefix = d.getExportPrefix();
+        File directory = d.getExportDirectory();
+        int fromValue = d.getFromValue();
+        int toValue = d.getToValue();
+        if (directory == null) return false;
+        lastExportPath = directory.getAbsolutePath();
+        exportRange(exportPrefix, directory, fromValue, toValue);
+        return true;
+    }
+
+    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue) {
+        // Shield off all input
+        final Component oldGlassPane = getGlassPane();
+        final JPanel progressGlassPane = new JPanel();
+        progressGlassPane.setBackground(new Color(0, 0, 0, 100));
+        progressGlassPane.setOpaque(true);
+        setGlassPane(progressGlassPane);
+        progressGlassPane.setVisible(true);
+
+        // Show the progress dialog
+        final ProgressDialog d = new ProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        d.setVisible(true);
+        d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        d.setAlwaysOnTop(true);
+
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    for (int frame = fromValue; frame <= toValue; frame++) {
+                        final int theFrame = frame;
+                        try {
+                            SwingUtilities.invokeAndWait(new Runnable() {
+                                public void run() {
+                                    setFrame(theFrame);
+                                    activeNetwork.update();
+                                    d.tick();
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        File exportFile = new File(directory, exportPrefix + "-" + frame);
+                        exportToFile(exportFile);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            d.setVisible(false);
+                            setGlassPane(oldGlassPane);
+                            progressGlassPane.setVisible(false);
+                        }
+                    });
+                }
+            }
+        });
+        t.start();
     }
 
     public boolean reloadActiveNode() {
