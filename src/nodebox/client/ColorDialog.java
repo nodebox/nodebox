@@ -176,6 +176,8 @@ public class ColorDialog extends JDialog implements ChangeListener {
             red = green = blue = brightness;
         else {
             float h = hue;
+            if (hue == 1.0)
+                h = 0.999998f;
             float s = saturation;
             float v = brightness;
             float r, g, b, f, p, q, t;

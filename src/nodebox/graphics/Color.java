@@ -326,6 +326,8 @@ public class Color implements Cloneable {
             this.r = this.g = this.b = this.v;
         else {
             double h = this.h;
+            if (this.h == 1.0)
+                h = 0.999998;
             double s = this.s;
             double v = this.v;
             double f, p, q, t;
