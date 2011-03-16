@@ -204,7 +204,8 @@ def cook(self):
             <menu key="subtracted">difference</menu>
             <menu key="intersected">intersect</menu>
         </param>
-        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)" name="invert_difference" type="int" widget="toggle">
+        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)"
+               name="invert_difference" type="int" widget="toggle">
             <value>0</value>
         </param>
         <param name="fill" type="color">
@@ -329,7 +330,8 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr" type="string" widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr"
+               type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -1356,19 +1358,19 @@ def cook(self):
     paths = self.shape.paths
     
     if len(paths) < 3 or \
-        (self.hor == "none" and self.vert == "none"):
+        (self.horizontal == "none" and self.vertical == "none"):
             return self.shape.clone()
     
     d = { "left": left, "right": right, "center": center,
           "top": top, "bottom": bottom, "middle": middle }
     
-    if self.hor == "none":
+    if self.horizontal == "none":
         new_paths = self.shape.clone().paths
     else:
-        new_paths = distribute(paths, d[self.hor])
+        new_paths = distribute(paths, d[self.horizontal])
     
-    if self.vert != "none":
-        new_paths = distribute(new_paths, d[self.vert])
+    if self.vertical != "none":
+        new_paths = distribute(new_paths, d[self.vertical])
         
     g = Geometry()
     for path in new_paths:
@@ -1378,19 +1380,19 @@ def cook(self):
         <param name="_image">
             <value>distribute.png</value>
         </param>
-        <param name="hor" type="string" widget="menu">
+        <param name="horizontal" type="string" widget="menu">
             <value>none</value>
             <menu key="none">No Change</menu>
             <menu key="left">Left</menu>
-            <menu key="right">Right</menu>
             <menu key="center">Center</menu>
+            <menu key="right">Right</menu>
         </param>
-        <param name="vert" type="string" widget="menu">
+        <param name="vertical" type="string" widget="menu">
             <value>none</value>
             <menu key="none">No Change</menu>
             <menu key="top">Top</menu>
-            <menu key="bottom">Bottom</menu>
             <menu key="middle">Middle</menu>
+            <menu key="bottom">Bottom</menu>
         </param>
     </node>
     <node exported="true" name="edit" prototype="filter" x="330" y="250">
@@ -2236,7 +2238,8 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string" widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string"
+               widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2463,7 +2466,8 @@ def cook(self):
         <param bounding="hard" enableExpression="method == &quot;amount&quot;" min="1.0" name="points" type="int">
             <value>10</value>
         </param>
-        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int" widget="toggle">
+        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int"
+               widget="toggle">
             <value>0</value>
         </param>
     </node>
