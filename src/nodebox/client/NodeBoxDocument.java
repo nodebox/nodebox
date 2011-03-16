@@ -48,7 +48,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
-    public HashMap<Parameter, String> changedCodeParameters;
+    public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -89,7 +89,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
         loaded = true;
-        changedCodeParameters = new HashMap<Parameter, String>();
         requestActiveNetworkUpdate();
         //renderThread = new RenderThread();
         //renderThread.start();
