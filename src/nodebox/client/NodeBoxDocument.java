@@ -526,38 +526,44 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue) {
-        // Shield off all input
-        final Component oldGlassPane = getGlassPane();
-        final JPanel progressGlassPane = new JPanel();
-        progressGlassPane.setBackground(new Color(0, 0, 0, 100));
-        progressGlassPane.setOpaque(true);
-        setGlassPane(progressGlassPane);
-        progressGlassPane.setVisible(true);
-
         // Show the progress dialog
         final ProgressDialog d = new ProgressDialog(this, "Exporting...", toValue - fromValue + 1);
         d.setVisible(true);
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
 
+        String xml = nodeLibrary.toXml();
+        final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+
+        // TODO: Make thread interruptable.
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
                     for (int frame = fromValue; frame <= toValue; frame++) {
-                        final int theFrame = frame;
+                        // TODO: Check if rendered node is not null.
+                        // TODO: Export activeNetwork.
                         try {
-                            SwingUtilities.invokeAndWait(new Runnable() {
-                                public void run() {
-                                    setFrame(theFrame);
-                                    activeNetwork.update();
-                                    d.tick();
-                                }
-                            });
+                            exportLibrary.setFrame(frame);
+                            // TODO: Make nodes that have parameters referring to FRAME dirty.
+                            // See NodeBoxDocument#setFrame(frame)
+                            exportLibrary.getRootNode().update();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        File exportFile = new File(directory, exportPrefix + "-" + frame);
-                        exportToFile(exportFile);
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                d.tick();
+                            }
+                        });
+                        // TODO: Make sure this code is not repeated from exportToFile.
+                        File exportFile = new File(directory, exportPrefix + "-" + frame + ".pdf");
+                        Object outputValue = exportLibrary.getRootNode().getRenderedChild().getOutputValue();
+                        if (outputValue instanceof Grob) {
+                            Grob g = (Grob) outputValue;
+                            PDFRenderer.render(g, exportFile);
+                        } else {
+                            throw new RuntimeException("This type of output cannot be exported " + outputValue);
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -565,8 +571,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
                             d.setVisible(false);
-                            setGlassPane(oldGlassPane);
-                            progressGlassPane.setVisible(false);
                         }
                     });
                 }
