@@ -581,12 +581,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                 try {
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         // TODO: Check if rendered node is not null.
-                        // TODO: Export activeNetwork.
+                        Node exportNetwork = exportLibrary.getRootNode();
                         try {
                             exportLibrary.setFrame(frame);
-                            // TODO: Make nodes that have parameters referring to FRAME dirty.
-                            // See NodeBoxDocument#setFrame(frame)
-                            exportLibrary.getRootNode().update();
+                            markTimeDependentNodesDirty(exportNetwork, frame);
+                            exportNetwork.update();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -596,7 +595,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                             }
                         });
                         File exportFile = new File(directory, exportPrefix + "-" + frame + ".pdf");
-                        exportToFile(exportFile, exportLibrary.getRootNode());
+                        exportToFile(exportFile, exportNetwork);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -735,18 +734,22 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void setFrame(float frame) {
         nodeLibrary.setFrame(frame);
         animationBar.updateFrame();
+        markTimeDependentNodesDirty(activeNetwork, frame);
+        requestActiveNetworkUpdate();
+    }
+
+    public void markTimeDependentNodesDirty(Node network, float frame) {
         // TODO: This is a really hacky version of finding time-dependent nodes.
         // We simply traverse through the first level of the network and find all
         // nodes that have parameters with expression with the word FRAME in them.
         // Those are marked dirty.
-        for (Node n : activeNetwork.getChildren()) {
+        for (Node n : network.getChildren()) {
             for (Parameter p : n.getParameters()) {
                 if (p.hasExpression() && p.getExpression().contains("FRAME")) {
                     p.markDirty();
                 }
             }
         }
-        requestActiveNetworkUpdate();
     }
 
     public void nextFrame() {
