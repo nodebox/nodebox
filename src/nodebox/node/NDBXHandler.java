@@ -322,6 +322,9 @@ public class NDBXHandler extends DefaultHandler {
      */
     private void startValueTag(Attributes attributes) throws SAXException {
         if (currentParameter == null) throw new SAXException("Value tag encountered without current parameter.");
+        // If the prototype parameter has an expression clear it, or the node will fail to load.
+        if (currentParameter.hasExpression())
+            currentParameter.clearExpression();
         state = ParseState.IN_VALUE;
         characterData = new StringBuffer();
         // The value tag should be empty except when the parameter type is code.

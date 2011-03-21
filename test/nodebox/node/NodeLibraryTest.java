@@ -69,6 +69,50 @@ public class NodeLibraryTest extends TestCase {
         assertEquals(new Rectangle(20, 30, 40, 50), polygon.getBounds());
     }
 
+
+    /**
+     * Test to check if a node where a parameter has a value set but in its prototype
+     * contains an expression (and thus is overridden) loads without errors.
+     */
+    public void testLoadingOverriddenExpression() {
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node rect = manager.getNode("polynodes.rect");
+        Node rect1 = rect.newInstance(testLibrary, "rect1");
+        rect1.clearExpression("height");
+        rect1.setValue("height", 120);
+        rect1.setExpression("y", "x+20");
+        rect1.setExported(true);
+        manager = new NodeLibraryManager();
+        manager.add(library);
+        NodeLibrary newLibrary = null;
+        try {
+            newLibrary = NodeLibrary.load("test", testLibrary.toXml(), manager);
+            assertNotNull(newLibrary);
+            manager.add(newLibrary);
+        } catch (RuntimeException e) {
+            fail(e.getMessage());
+        }
+
+        // Perform the same check for a parameter without expression but whose parent have an expression set,
+        // but whose original prototype doesn't.
+        rect = manager.getNode("test.rect1");
+        Node rect2 = rect.newInstance(newLibrary, "rect2");
+        assertEquals("x+20", rect2.getParameter("y").getExpression());
+        rect2.clearExpression("y");
+        rect2.setValue("y", 20);
+        manager = new NodeLibraryManager();
+        manager.add(library);
+        manager.add(newLibrary);
+        try {
+            newLibrary = NodeLibrary.load("test", newLibrary.toXml(), manager);
+            assertNotNull(newLibrary);
+        } catch (RuntimeException e) {
+            fail(e.getMessage());
+        }
+    }
+
     public void testLoadingErrors() {
         // Use one manager with the polynodes library loaded in,
         // and restore it using a manager without the polynodes library.
