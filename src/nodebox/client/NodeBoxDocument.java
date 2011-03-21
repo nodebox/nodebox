@@ -440,6 +440,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public boolean exportToFile(File file) {
+        return exportToFile(file, activeNetwork);
+    }
+
+    public boolean exportToFile(File file, Node exportNetwork) {
         // Make sure the file ends with ".pdf".
         String fullPath = null;
         try {
@@ -453,8 +457,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         file = new File(fullPath);
 
         // todo: file export only works on grobs.
-        if (activeNetwork == null || activeNetwork.getRenderedChild() == null) return false;
-        Object outputValue = activeNetwork.getRenderedChild().getOutputValue();
+        if (exportNetwork == null || exportNetwork.getRenderedChild() == null) return false;
+        Object outputValue = exportNetwork.getRenderedChild().getOutputValue();
         if (outputValue instanceof Grob) {
             Grob g = (Grob) outputValue;
             PDFRenderer.render(g, file);
@@ -591,15 +595,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                                 d.tick();
                             }
                         });
-                        // TODO: Make sure this code is not repeated from exportToFile.
                         File exportFile = new File(directory, exportPrefix + "-" + frame + ".pdf");
-                        Object outputValue = exportLibrary.getRootNode().getRenderedChild().getOutputValue();
-                        if (outputValue instanceof Grob) {
-                            Grob g = (Grob) outputValue;
-                            PDFRenderer.render(g, exportFile);
-                        } else {
-                            throw new RuntimeException("This type of output cannot be exported " + outputValue);
-                        }
+                        exportToFile(exportFile, exportLibrary.getRootNode());
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
