@@ -14,6 +14,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -543,6 +544,75 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             return exportToFile(chosenFile);
         }
         return false;
+    }
+
+    public boolean exportRange() {
+        File exportDirectory = lastExportPath == null ? null : new File(lastExportPath);
+        ExportRangeDialog d = new ExportRangeDialog(this, exportDirectory);
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+        String exportPrefix = d.getExportPrefix();
+        File directory = d.getExportDirectory();
+        int fromValue = d.getFromValue();
+        int toValue = d.getToValue();
+        if (directory == null) return false;
+        lastExportPath = directory.getAbsolutePath();
+        exportRange(exportPrefix, directory, fromValue, toValue);
+        return true;
+    }
+
+    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue) {
+        // Show the progress dialog
+        final ProgressDialog d = new ProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        d.setVisible(true);
+        d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        d.setAlwaysOnTop(true);
+
+        String xml = nodeLibrary.toXml();
+        final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+
+        // TODO: Make thread interruptable.
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    for (int frame = fromValue; frame <= toValue; frame++) {
+                        // TODO: Check if rendered node is not null.
+                        // TODO: Export activeNetwork.
+                        try {
+                            exportLibrary.setFrame(frame);
+                            // TODO: Make nodes that have parameters referring to FRAME dirty.
+                            // See NodeBoxDocument#setFrame(frame)
+                            exportLibrary.getRootNode().update();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                d.tick();
+                            }
+                        });
+                        // TODO: Make sure this code is not repeated from exportToFile.
+                        File exportFile = new File(directory, exportPrefix + "-" + frame + ".pdf");
+                        Object outputValue = exportLibrary.getRootNode().getRenderedChild().getOutputValue();
+                        if (outputValue instanceof Grob) {
+                            Grob g = (Grob) outputValue;
+                            PDFRenderer.render(g, exportFile);
+                        } else {
+                            throw new RuntimeException("This type of output cannot be exported " + outputValue);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            d.setVisible(false);
+                        }
+                    });
+                }
+            }
+        });
+        t.start();
     }
 
     public boolean reloadActiveNode() {
