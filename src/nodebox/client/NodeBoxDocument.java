@@ -567,7 +567,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue) {
         // Show the progress dialog
-        final ProgressDialog d = new ProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...", toValue - fromValue + 1);
         d.setVisible(true);
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
@@ -575,11 +575,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
 
-        // TODO: Make thread interruptable.
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
                     for (int frame = fromValue; frame <= toValue; frame++) {
+                        if (Thread.currentThread().isInterrupted())
+                            break;
                         // TODO: Check if rendered node is not null.
                         Node exportNetwork = exportLibrary.getRootNode();
                         try {
@@ -608,6 +609,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                 }
             }
         });
+        ((InterruptableProgressDialog) d).setThread(t);
         t.start();
     }
 
