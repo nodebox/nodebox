@@ -204,8 +204,7 @@ def cook(self):
             <menu key="subtracted">difference</menu>
             <menu key="intersected">intersect</menu>
         </param>
-        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)"
-               name="invert_difference" type="int" widget="toggle">
+        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)" name="invert_difference" type="int" widget="toggle">
             <value>0</value>
         </param>
         <param name="fill" type="color">
@@ -330,8 +329,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr"
-               type="string" widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2238,8 +2236,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string"
-               widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2466,8 +2463,7 @@ def cook(self):
         <param bounding="hard" enableExpression="method == &quot;amount&quot;" min="1.0" name="points" type="int">
             <value>10</value>
         </param>
-        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int"
-               widget="toggle">
+        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int" widget="toggle">
             <value>0</value>
         </param>
     </node>
@@ -3444,18 +3440,49 @@ def cook(self):
     <node exported="true" name="wiggle" prototype="filter" x="170" y="410">
         <description>Shift points by a random amount.</description>
         <param name="_code">
-            <value type="python"><![CDATA[from random import seed, uniform
+            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
+from random import seed, uniform
 
+def wiggle_points(shape, wx, wy):
+    new_shape = shape.clone()
+    for point in new_shape.points:
+        dx = (uniform(0, 1) - 0.5) * wx * 2
+        dy = (uniform(0, 1) - 0.5) * wy * 2
+        point.x += dx
+        point.y += dy
+    return new_shape
+    
+def wiggle_paths(shape, wx, wy):
+    new_shape = Geometry()
+    for path in shape.paths:
+        dx = (uniform(0, 1) - 0.5) * wx * 2
+        dy = (uniform(0, 1) - 0.5) * wy * 2
+        t = Transform()
+        t.translate(dx, dy)
+        new_shape.add(t.map(path))
+    return new_shape
+
+def wiggle_contours(shape, wx, wy):
+    new_shape = shape.clone()
+    for path in new_shape.paths:
+        for contour in path.contours:
+            dx = (uniform(0, 1) - 0.5) * wx * 2
+            dy = (uniform(0, 1) - 0.5) * wy * 2
+            for point in contour.points:
+                point.x += dx
+                point.y += dy
+    return new_shape
+    
 def cook(self):
     seed(self.seed)
     if self.shape is None: return None
-    new_shape = self.shape.clone()
-    for point in new_shape.points:
-        dx = (uniform(0, 1) - 0.5) * self.wx * 2
-        dy = (uniform(0, 1) - 0.5) * self.wy * 2
-        point.x += dx
-        point.y += dy
-    return new_shape]]></value>
+    functions = { "points": wiggle_points, 
+                  "contours": wiggle_contours, 
+                  "paths": wiggle_paths}
+    fn = functions.get(self.scope)
+    if fn is None: return None
+    return fn(self.shape, self.wx, self.wy)
+]]></value>
         </param>
         <param name="_handle">
             <value type="python"><![CDATA[from nodebox.handle import PointHandle
@@ -3474,6 +3501,12 @@ def cook(self):
         </param>
         <param name="_image">
             <value>wiggle.png</value>
+        </param>
+        <param name="scope" type="string" widget="menu">
+            <value>points</value>
+            <menu key="points">Points</menu>
+            <menu key="contours">Contours</menu>
+            <menu key="paths">Paths</menu>
         </param>
         <param label="Wiggle X" name="wx" type="float">
             <value>30.0</value>
