@@ -574,6 +574,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+        final Node exportNetwork = exportLibrary.getRootNode();
+        final ExportViewer viewer = new ExportViewer(exportNetwork);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
@@ -582,11 +584,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                         if (Thread.currentThread().isInterrupted())
                             break;
                         // TODO: Check if rendered node is not null.
-                        Node exportNetwork = exportLibrary.getRootNode();
                         try {
                             exportLibrary.setFrame(frame);
                             markTimeDependentNodesDirty(exportNetwork, frame);
                             exportNetwork.update();
+                            viewer.updateFrame();
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -604,6 +606,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
                             d.setVisible(false);
+                            viewer.setVisible(false);
                         }
                     });
                 }
@@ -611,6 +614,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         });
         ((InterruptableProgressDialog) d).setThread(t);
         t.start();
+        viewer.setVisible(true);
     }
 
     public boolean reloadActiveNode() {
@@ -859,5 +863,4 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         });
     }
-
 }
