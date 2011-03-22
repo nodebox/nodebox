@@ -260,7 +260,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             if (parameter.getDisplayLevel() == newDisplayLevel) return;
             parameter.setDisplayLevel(newDisplayLevel);
         } else if (e.getSource() == addButton) {
-            MenuItemDialog dialog = new MenuItemDialog((Frame) SwingUtilities.getRoot(this));
+            MenuItemDialog dialog = new MenuItemDialog((Dialog) SwingUtilities.getRoot(this));
             dialog.setVisible(true);
             if (dialog.isSuccessful()) {
                 parameter.addMenuItem(dialog.getKey(), dialog.getLabel());
@@ -407,12 +407,12 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         private JTextField labelField;
         private JButton okButton, cancelButton;
 
-        private MenuItemDialog(Frame frame) {
-            this(frame, new Parameter.MenuItem("", ""));
+        private MenuItemDialog(Dialog dialog) {
+            this(dialog, new Parameter.MenuItem("", ""));
         }
 
-        private MenuItemDialog(Frame frame, Parameter.MenuItem item) {
-            super(frame, "Menu Item", true);
+        private MenuItemDialog(Dialog dialog, Parameter.MenuItem item) {
+            super(dialog, "Menu Item", true);
             setResizable(false);
             setLocationByPlatform(true);
             JPanel content = new JPanel(new BorderLayout());
