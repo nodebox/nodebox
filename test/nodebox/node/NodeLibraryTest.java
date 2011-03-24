@@ -131,6 +131,51 @@ public class NodeLibraryTest extends TestCase {
         }
     }
 
+    public void testLoadingChangedType() {
+        NodeLibraryManager manager = new NodeLibraryManager();
+        manager.load(new File("test/polynodes.ndbx"));
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node polyRect = manager.getNode("polynodes.rect");
+        Node myrect = polyRect.newInstance(testLibrary, "myrect");
+        myrect.getParameter("x").setType(Parameter.Type.INT);
+        String xml = testLibrary.toXml();
+        assertOnlyOnce(xml, "name=\"x\"");
+        try {
+            manager.load("test", xml);
+        } catch (RuntimeException e) {
+            fail(e.getMessage());
+        }
+    }
+
+    public void testLoadingChangedWidget() {
+        NodeLibrary library = new NodeLibrary("lib");
+        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
+        alpha.addParameter("x", Parameter.Type.FLOAT);
+        alpha.setValue("x", 20);
+        alpha.addParameter("y", Parameter.Type.INT);
+        alpha.setValue("x", 30);
+        alpha.addParameter("s", Parameter.Type.STRING);
+        alpha.setValue("s", "hello");
+        alpha.setExported(true);
+        NodeLibraryManager manager = new NodeLibraryManager();
+        NodeLibrary newLibrary = manager.load("newlib", library.toXml());
+        Node n = manager.getNode("newlib.alpha");
+        NodeLibrary testLibrary = new NodeLibrary("test");
+        Node alpha1 = n.newInstance(testLibrary, "alpha1");
+        alpha1.getParameter("x").setWidget(Parameter.Widget.INT);
+        alpha1.getParameter("y").setWidget(Parameter.Widget.TOGGLE);
+        alpha1.getParameter("s").setWidget(Parameter.Widget.MENU);
+        String xml = testLibrary.toXml();
+        assertOnlyOnce(xml, "name=\"x\"");
+        assertOnlyOnce(xml, "name=\"y\"");
+        assertOnlyOnce(xml, "name=\"s\"");
+        try {
+            manager.load("test", xml);
+        } catch (RuntimeException e) {
+            fail(e.getMessage());
+        }
+    }
+
     /**
      * There is a difference between loading a library using a static method on NodeLibrary
      * and using the NodeManager.load(). NodeManager.load() automatically adds the library

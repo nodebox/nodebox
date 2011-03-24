@@ -280,12 +280,14 @@ public class NDBXHandler extends DefaultHandler {
             if (currentParameter == null)
                 throw new SAXException("Parameter '" + name + "' for node '" + currentNode.getName() + "' does not exist.");
         } else {
-            // Type was given, so this is a new parameter.
-            // TODO: If type is given and parameter exists, migrate type.
-            if (currentNode.hasParameter(name))
-                throw new SAXException("Parameter '" + name + "' for node '" + currentNode.getName() + "' already exists.");
             Parameter.Type type = Parameter.Type.valueOf(typeAsString.toUpperCase(Locale.US));
-            currentParameter = currentNode.addParameter(name, type);
+            if (currentNode.hasParameter(name)) {
+                currentParameter = currentNode.getParameter(name);
+                currentParameter.setType(type);
+            } else {
+                // Type was given, so this is a new parameter.
+                currentParameter = currentNode.addParameter(name, type);
+            }
         }
         // Parse parameter attributes.
         String widget = attributes.getValue(PARAMETER_WIDGET);
