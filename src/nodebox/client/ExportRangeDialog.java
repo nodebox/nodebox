@@ -151,21 +151,35 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
      * @param e the action event
      */
     public void actionPerformed(ActionEvent e) {
-        FileDialog fileDialog = new FileDialog((Frame) null);
-        System.setProperty("apple.awt.fileDialogForDirectories", "true");
-        fileDialog.setVisible(true);
-        System.setProperty("apple.awt.fileDialogForDirectories", "false");
-        String chosenFile = fileDialog.getFile();
-        if (chosenFile == null) {
-            setExportDirectory(null);
-            return;
-        }
-        String dir = fileDialog.getDirectory();
-        File f = new File(dir, chosenFile);
-        if (!f.isDirectory()) {
-            setExportDirectory(f.getParentFile());
+        if (PlatformUtils.onMac()) {
+            // On Mac, we can use the native FileDialog to choose a directory using a special property.
+            FileDialog fileDialog = new FileDialog((Frame) null);
+            System.setProperty("apple.awt.fileDialogForDirectories", "true");
+            fileDialog.setVisible(true);
+            System.setProperty("apple.awt.fileDialogForDirectories", "false");
+            String chosenFile = fileDialog.getFile();
+            if (chosenFile == null) {
+                setExportDirectory(null);
+                return;
+            }
+            String dir = fileDialog.getDirectory();
+            File f = new File(dir, chosenFile);
+            if (!f.isDirectory()) {
+                setExportDirectory(f.getParentFile());
+            } else {
+                setExportDirectory(f);
+            }
         } else {
-            setExportDirectory(f);
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int retVal = chooser.showOpenDialog(null);
+            if (retVal == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                assert file.isDirectory();
+                setExportDirectory(file);
+            } else {
+                setExportDirectory(null);
+            }
         }
     }
 
