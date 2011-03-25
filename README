@@ -22,8 +22,8 @@ To get started on Mac:
   cd nodebox
   ant run
   
-  # To create a full app:
-  ant dist-mac # The build will be in dist/mac
+  # To create a full app (the build will be in dist/mac):
+  ant dist-mac
 
 To get started on Windows:
 
@@ -43,8 +43,8 @@ To get started on Windows:
   cd nodebox
   ant run
   
-  # To create a full app:
-  ant dist-win # The build will be in dist/win
+  # To create a full app (the EXE will be in dist):
+  ant dist-win
 
 To get started on Linux (Ubuntu):
 
