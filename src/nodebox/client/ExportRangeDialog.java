@@ -11,6 +11,7 @@ import java.io.File;
  */
 public class ExportRangeDialog extends JDialog implements ActionListener {
 
+    private boolean dialogSuccessful = false;
     private JTextField fromField;
     private JTextField toField;
     private JTextField directoryField;
@@ -74,6 +75,13 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         // Buttons
         mainPanel.add(Box.createVerticalStrut(10));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 0));
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                doCancel();
+            }
+        });
+        buttonPanel.add(cancelButton);
         JButton exportButton = new JButton("Export");
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
@@ -88,6 +96,10 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         setExportDirectory(exportDirectory);
     }
 
+    private void doCancel() {
+        setVisible(false);
+    }
+
     private void doExport() {
         exportPrefix = prefixField.getText();
         try {
@@ -100,7 +112,12 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         } catch (NumberFormatException e) {
             toValue = 100;
         }
+        dialogSuccessful = true;
         setVisible(false);
+    }
+
+    public boolean isDialogSuccessful() {
+        return dialogSuccessful;
     }
 
     public String getExportPrefix() {

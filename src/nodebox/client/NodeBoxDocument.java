@@ -14,7 +14,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -49,7 +48,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
-    public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();;
+    public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();
+    ;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -555,6 +555,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         ExportRangeDialog d = new ExportRangeDialog(this, exportDirectory);
         d.setLocationRelativeTo(this);
         d.setVisible(true);
+        if (!d.isDialogSuccessful()) return false;
         String exportPrefix = d.getExportPrefix();
         File directory = d.getExportDirectory();
         int fromValue = d.getFromValue();
