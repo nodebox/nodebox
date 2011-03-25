@@ -1,0 +1,54 @@
+NodeBox 2
+=========
+NodeBox is a new software application for creating generative art using 
+procedural graphics and a new way to approach graphic design.
+
+NodeBox is:
+- Node based -- the software uses a non-destructive workflow where every operation 
+  is represented by a visual block of code.
+- Open Source -- NodeBox is completely free to use and extend under the GPL license.
+- Python -- Nodes are written in the popular dynamic programming language.
+
+For downloads, documentation and the forum, visit the website:
+
+http://beta.nodebox.net/
+
+To get started on Mac:
+
+- Install Git (http://git-scm.com/)
+- From the Terminal, run:
+
+  git clone git://github.com/nodebox/nodebox.git
+  cd nodebox
+  ant run
+  
+  # To create a full app:
+  ant dist-mac # The build will be in dist/mac
+
+To get started on Windows:
+
+- Install Git (http://git-scm.com/)
+- Install the Java SDK  (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+- Install Unicode NSIS (http://www.scratchpaper.com/)
+- Install Ant (http://ant.apache.org/)
+- From the command prompt, run:
+
+  # Setup the correct environment variables
+  set PATH=%PATH%;c:\java\apache-ant-1.8.2\bin
+  set JAVA_HOME=c:\java\jdk6
+
+  git clone git://github.com/nodebox/nodebox.git
+  # Modify build.properties to point to the correct installation paths of the JRE and NSIS.
+
+  cd nodebox
+  ant run
+  
+  # To create a full app:
+  ant dist-win # The build will be in dist/win
+
+To get started on Linux (Ubuntu):
+
+  sudo apt-get install git-core openjdk-6-jdk ant
+  git clone git://github.com/nodebox/nodebox.git
+  cd nodebox
+  ant run
