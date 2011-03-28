@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="0.9" type="file">
+<node name="color1" prototype="corevector.color" x="110" y="170">
+<param name="fill">
+<expression>color(1.5-stamp("v",2)/50.0+Math.sin(stamp("v",2)),.3+stamp("v",2)/100.0, Math.cos(stamp("v",2)), .60)</expression>
+</param>
+<param name="strokeWidth">
+<value>0.1</value>
+</param>
+</node>
+<node name="copy1" prototype="corevector.copy" rendered="true" x="420" y="180">
+<param name="copies">
+<value>50</value>
+</param>
+<param name="stamp">
+<value>1</value>
+</param>
+<param name="expr">
+<value>v=random(CNUM,1,100)</value>
+</param>
+</node>
+<node name="ellipse1" prototype="corevector.ellipse" x="30" y="170">
+<param name="width">
+<value>1.0</value>
+</param>
+<param name="height">
+<expression>width</expression>
+</param>
+</node>
+<node name="henonphase" prototype="corevector.generator" x="110" y="250">
+<param name="_code">
+<value type="python"><![CDATA[from nodebox.graphics import Path
+from math import sin,cos
+from random import randint
+
+def henonPhase(a,ct,n,scale):
+    p = Path()
+    p.fill = None
+    x0,y0 = ct,0.0
+    for i in range(n):
+        macht = x0*x0
+        Co = cos(a)
+        Si = sin(a)
+        cc = (y0-macht)*Co
+        ss = (y0-macht)*Si
+        x1 = (x0 * Co) - ss
+        y1 = (x0 * Si) + cc   
+        p.addPoint(x1*scale,y1*scale)    
+        x0 = x1
+        y0 =y1
+    return p
+
+
+def cook(self):
+    r = self.sx/100.0
+    po=henonPhase(self.w,r,self.number,self.scale)
+    return po.asGeometry()]]></value>
+</param>
+<param name="_image">
+<value>henon.png</value>
+</param>
+<param name="number" type="float">
+<value>300.0</value>
+</param>
+<param name="scale" type="float">
+<value>140.0</value>
+</param>
+<param name="sx" type="float">
+<expression>stamp("v",40)</expression>
+</param>
+<param name="w" type="float">
+<value>-17.499987</value>
+</param>
+</node>
+<node name="place3" prototype="corevector.place" x="200" y="180"/>
+<conn input="copy1" output="place3" port="shape"/>
+<conn input="place3" output="color1" port="shape"/>
+<conn input="place3" output="henonphase" port="template"/>
+<conn input="color1" output="ellipse1" port="shape"/>
+</ndbx>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="0.9" type="file">
+<node name="delete1" prototype="corevector.delete" x="210" y="120"/>
+<node name="ellipse1" prototype="corevector.ellipse" x="290" y="50">
+<param name="width">
+<value>5.0</value>
+</param>
+<param name="height">
+<value>5.0</value>
+</param>
+<param name="fill">
+<value>#830000ff</value>
+</param>
+</node>
+<node name="grid1" prototype="corevector.grid" x="70" y="110">
+<param name="width">
+<value>250.0</value>
+</param>
+<param name="height">
+<value>250.0</value>
+</param>
+<param name="rows">
+<value>35</value>
+</param>
+<param name="columns">
+<value>35</value>
+</param>
+</node>
+<node name="merge1" prototype="corevector.merge" rendered="true" x="450" y="220"/>
+<node name="place1" prototype="corevector.place" x="350" y="150"/>
+<node name="star1" prototype="corevector.star" x="70" y="200">
+<param name="points">
+<value>7</value>
+</param>
+<param name="fill">
+<value>#00000000</value>
+</param>
+<param name="stroke">
+<value>#c80000ff</value>
+</param>
+<param name="strokeWidth">
+<value>5.0</value>
+</param>
+</node>
+<conn input="delete1" output="grid1" port="shape"/>
+<conn input="delete1" output="star1" port="bounding"/>
+<conn input="place1" output="ellipse1" port="shape"/>
+<conn input="place1" output="delete1" port="template"/>
+<conn input="merge1" output="place1" port="shapes"/>
+<conn input="merge1" output="star1" port="shapes"/>
+</ndbx>

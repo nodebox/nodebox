@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="0.9" type="file">
+    <node name="align2" prototype="corevector.align" x="440" y="-250">
+        <param name="halign">
+            <value>center</value>
+        </param>
+        <param name="valign">
+            <value>middle</value>
+        </param>
+    </node>
+    <node name="connect1" prototype="corevector.connect" x="490" y="-10">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Transform, Path
+
+def cook(self):
+    if self.shape is None: return None
+    if self.shape.pointCount < 2: return None
+    start = self.shape.points[0]
+    p = Path()
+    p.moveto(start.x, start.y)
+    for point in self.shape.points:
+        p.lineto(point.x, point.y)
+    #p.close()
+    p.fillColor = self.fill
+    if self.strokeWidth > 0:
+        p.strokeColor = self.stroke
+        p.strokeWidth = self.strokeWidth
+    else:
+        p.strokeColor = None
+    return p.asGeometry()]]></value>
+        </param>
+        <param name="fill">
+            <value>#00000000</value>
+        </param>
+        <param name="stroke">
+            <value>#aa0000ff</value>
+        </param>
+        <param name="strokeWidth">
+            <value>10.0</value>
+        </param>
+    </node>
+    <node name="geonet1" prototype="corevector.geonet" x="260" y="-220">
+        <param name="size" type="float">
+            <value>158.0</value>
+        </param>
+        <param bounding="hard" min="1.0" name="divide" type="float">
+            <value>6.0</value>
+        </param>
+        <node name="ellipse2" prototype="corevector.ellipse" x="440" y="0">
+            <param name="width">
+                <expression>ellipse1.width/parent.divide</expression>
+            </param>
+            <param name="height">
+                <expression>width</expression>
+            </param>
+        </node>
+        <node name="scatter1" prototype="corevector.scatter" x="520" y="-150"/>
+        <node name="ellipse1" prototype="corevector.ellipse" x="400" y="-110">
+            <param name="x">
+                <value>-53.040695</value>
+            </param>
+            <param name="y">
+                <value>-29.172379</value>
+            </param>
+            <param name="width">
+                <expression>parent.size</expression>
+            </param>
+            <param name="height">
+                <expression>width</expression>
+            </param>
+        </node>
+        <node name="place1" prototype="corevector.place" x="640" y="-100"/>
+        <node name="compound1" prototype="corevector.compound" rendered="true" x="610" y="-180">
+            <param name="function">
+                <value>subtracted</value>
+            </param>
+        </node>
+        <conn input="scatter1" output="ellipse1" port="shape"/>
+        <conn input="place1" output="ellipse2" port="shape"/>
+        <conn input="place1" output="scatter1" port="template"/>
+        <conn input="compound1" output="ellipse1" port="shape"/>
+        <conn input="compound1" output="place1" port="shapeB"/>
+    </node>
+    <node name="grid8" prototype="corevector.grid" x="350" y="-10">
+        <param name="_code">
+            <value type="python"><![CDATA[
+from nodebox.graphics import Path
+from random import uniform,seed
+
+def cook(self):
+    p = Path()
+    seed(self.seed)
+    p.fill = None
+    column_size = 0
+    left = 0
+    if self.columns > 1:
+        column_size = self.width / (self.columns - 1)
+        left = self.x - self.width / 2
+    row_size = 0
+    top = 0
+    if self.rows > 1:
+        row_size = self.height / (self.rows - 1)
+        top = self.y - self.height / 2
+    for ri in xrange(self.rows):
+        for ci in xrange(self.columns):
+            if uniform(0,1) < .5:
+                p.addPoint(left + ci * column_size, top + ri * row_size)
+            else:
+                pass
+    return p.asGeometry()]]></value>
+        </param>
+        <param name="width">
+            <value>600.0</value>
+        </param>
+        <param name="height">
+            <value>900.0</value>
+        </param>
+        <param name="rows">
+            <value>6</value>
+        </param>
+        <param name="columns">
+            <value>4</value>
+        </param>
+        <param name="seed" type="int" widget="seed">
+            <value>17</value>
+        </param>
+    </node>
+    <node name="merge1" prototype="corevector.merge" x="580" y="-110"/>
+    <node name="place6" prototype="corevector.place" x="450" y="-110">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.node import StampExpression
+from nodebox.graphics import Path, Geometry, Transform
+
+def cook(self):
+    if self.shape is None: return None
+    if self.template is None: return self.shape.clone()
+
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+        stamp1 = StampExpression(self.node, "expr1")
+    g = Geometry()
+    for i, point in enumerate(self.template.points):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            stamp1.evaluate(context)
+            self.node.stampExpressions(context)
+            
+        t = Transform()
+        t.translate(point.x, point.y)
+        newShape = t.map(self.shape)
+        g.extend(newShape)
+    return g]]></value>
+        </param>
+        <param name="stamp">
+            <value>1</value>
+        </param>
+        <param name="expr">
+            <value>c=int(random(CNUM+seed,0,2))</value>
+        </param>
+        <param name="seed" type="int" widget="seed">
+            <expression>stamp("v",1)</expression>
+        </param>
+        <param name="expr1" type="string" widget="stamp_expression">
+            <value>r=random(CNUM,10,100)</value>
+        </param>
+    </node>
+    <node name="reflect3" prototype="corevector.reflect" rendered="true" x="680" y="-110">
+        <param name="x">
+            <value>400.0</value>
+        </param>
+        <param name="angle">
+            <value>90.0</value>
+        </param>
+    </node>
+    <node name="snap3" prototype="corevector.snap" x="350" y="-250">
+        <param name="_code">
+            <value type="python"><![CDATA[def snap(v, offset=0.0, distance=10.0, strength=1.0):
+    return (v * (1.0-strength)) + (strength * round(v / distance) * distance)
+
+
+def cook(self):
+    if self.shape is None: return None
+    new_shape = self.shape.clone()
+    distance = self.distance
+    strength = self.strength / 100.0
+    for pt in new_shape.points:
+       pt.x = snap(pt.x+self.x, self.x, distance, strength) - self.x
+       pt.y = snap(pt.y + self.y, self.y, distance, strength)  - self.y
+    
+    
+    return new_shape]]></value>
+        </param>
+        <param name="distance">
+            <expression>stamp("r",2)*2</expression>
+        </param>
+        <param name="strength">
+            <value>50.0</value>
+        </param>
+    </node>
+    <conn input="place6" output="grid8" port="template"/>
+    <conn input="align2" output="snap3" port="shape"/>
+    <conn input="snap3" output="geonet1" port="shape"/>
+    <conn input="connect1" output="grid8" port="shape"/>
+    <conn input="place6" output="align2" port="shape"/>
+    <conn input="merge1" output="connect1" port="shapes"/>
+    <conn input="merge1" output="place6" port="shapes"/>
+    <conn input="reflect3" output="merge1" port="shape"/>
+</ndbx>

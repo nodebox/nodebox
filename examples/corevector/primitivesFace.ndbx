@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="0.9" type="file">
+<node name="compound1" prototype="corevector.compound" x="230" y="310">
+<param name="function">
+<value>subtracted</value>
+</param>
+</node>
+<node name="compound2" prototype="corevector.compound" x="480" y="-120">
+<param name="function">
+<value>intersected</value>
+</param>
+<param name="fill">
+<value>#fafafaff</value>
+</param>
+<param name="stroke">
+<value>#e50000ff</value>
+</param>
+<param name="strokeWidth">
+<value>0.5</value>
+</param>
+</node>
+<node name="copy1" prototype="corevector.copy" x="180" y="110">
+<param name="copies">
+<value>2</value>
+</param>
+<param name="tx">
+<value>50.0</value>
+</param>
+</node>
+<node name="copy2" prototype="corevector.copy" x="180" y="190">
+<param name="copies">
+<value>2</value>
+</param>
+<param name="tx">
+<value>50.0</value>
+</param>
+</node>
+<node name="copy3" prototype="corevector.copy" x="350" y="-30">
+<param name="copies">
+<value>10</value>
+</param>
+<param name="ty">
+<value>5.0</value>
+</param>
+<param name="sx">
+<value>-3.0</value>
+</param>
+<param name="sy">
+<value>-3.0</value>
+</param>
+</node>
+<node name="edit1" prototype="corevector.edit" x="240" y="-160">
+<param name="pointDeltas">
+<value>P 2 -1.672 0.225 P 3 -0.394 -0.359 P 5 -15.124 -0.796 P 6 -15.124 2.247 P 7 -22.319 -0.399 P 8 -22.319 -0.399 P 9 26.026 -0.399 P 10 22.497 -0.885 P 11 15.431 -0.310 P 12 15.431 -0.310</value>
+</param>
+</node>
+<node name="ellipse1" prototype="corevector.ellipse" x="100" y="110">
+<param name="x">
+<value>-25.0</value>
+</param>
+<param name="y">
+<value>-15.0</value>
+</param>
+<param name="width">
+<value>30.0</value>
+</param>
+<param name="height">
+<value>30.0</value>
+</param>
+<param name="fill">
+<value>#f8f8f8fc</value>
+</param>
+<param name="stroke">
+<value>#fd0000ff</value>
+</param>
+<param name="strokeWidth">
+<value>3.0</value>
+</param>
+</node>
+<node name="ellipse2" prototype="corevector.ellipse" x="100" y="380">
+<param name="y">
+<value>52.0</value>
+</param>
+<param name="width">
+<value>200.0</value>
+</param>
+</node>
+<node name="ellipse3" prototype="corevector.ellipse" x="100" y="190">
+<param name="x">
+<value>-25.0</value>
+</param>
+<param name="y">
+<value>-15.0</value>
+</param>
+<param name="width">
+<expression>ellipse1.width/2</expression>
+</param>
+<param name="height">
+<expression>width</expression>
+</param>
+<param name="fill">
+<value>#0c0c0cfc</value>
+</param>
+</node>
+<node name="ellipse4" prototype="corevector.ellipse" x="100" y="20">
+<param name="y">
+<value>3.0</value>
+</param>
+<param name="width">
+<value>97.0</value>
+</param>
+<param name="height">
+<value>40.0</value>
+</param>
+</node>
+<node name="ellipse5" prototype="corevector.ellipse" x="100" y="500">
+<param name="y">
+<value>63.0</value>
+</param>
+<param name="width">
+<value>66.0</value>
+</param>
+<param name="height">
+<value>25.0</value>
+</param>
+</node>
+<node name="merge2" prototype="corevector.merge" rendered="true" x="650" y="30"/>
+<node name="polygon1" prototype="corevector.polygon" x="100" y="-70">
+<param name="radius">
+<value>6.0</value>
+</param>
+<param name="align">
+<value>1</value>
+</param>
+<param name="fill">
+<value>#c90000ff</value>
+</param>
+<param name="strokeWidth">
+<value>0.5</value>
+</param>
+</node>
+<node name="rect1" prototype="corevector.rect" x="100" y="-160">
+<param name="y">
+<value>10.0</value>
+</param>
+<param name="height">
+<value>130.0</value>
+</param>
+<param name="rx">
+<value>20.0</value>
+</param>
+<param name="ry">
+<value>20.0</value>
+</param>
+</node>
+<node name="shapeonpath1" prototype="corevector.shapeonpath" x="240" y="-60">
+<param name="_code">
+<value type="python"><![CDATA[from nodebox.graphics import Geometry, Path, Color, Transform
+from nodebox.util.Geometry import angle
+from nodebox.node import StampExpression
+
+def cook(self):
+    if self.shape is None: return None
+    if self.template is None: return None
+    
+    if self.stamp:
+        stamp = StampExpression(self.node, "expr")
+    
+    g = Geometry()
+
+    if self.keepGeometry:
+        g.extend(self.template.clone())
+           
+    first = True  
+    for i in range(self.amount):
+        if self.stamp:
+            context.put('CNUM', i)
+            stamp.evaluate(context)
+            self.node.stampExpressions(context)
+        if first:
+            t = .1 / 100
+            first = False
+        else:
+            t += self.dist / 500.0
+        pt1 = self.template.pointAt(t)
+        pt2 = self.template.pointAt(t + 0.00001)
+        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
+        tp = Transform()
+        tp.translate(pt1.x, pt1.y)
+        tp.rotate(a - 180)
+        newShape = tp.map(self.shape)
+        g.extend(newShape)
+        
+    return g]]></value>
+</param>
+<param name="amount">
+<value>15</value>
+</param>
+<param name="dist">
+<value>18.0</value>
+</param>
+<param name="keepGeometry">
+<value>0</value>
+</param>
+</node>
+<node name="star1" prototype="corevector.star" x="100" y="300">
+<param name="points">
+<value>6</value>
+</param>
+</node>
+<node name="transform1" prototype="corevector.transform" x="310" y="300">
+<param name="ty">
+<value>-36.0</value>
+</param>
+</node>
+<conn input="copy1" output="ellipse1" port="shape"/>
+<conn input="compound1" output="star1" port="shape"/>
+<conn input="compound1" output="ellipse2" port="shapeB"/>
+<conn input="transform1" output="compound1" port="shape"/>
+<conn input="copy2" output="ellipse3" port="shape"/>
+<conn input="shapeonpath1" output="ellipse4" port="template"/>
+<conn input="shapeonpath1" output="polygon1" port="shape"/>
+<conn input="edit1" output="rect1" port="shape"/>
+<conn input="compound2" output="edit1" port="shape"/>
+<conn input="copy3" output="shapeonpath1" port="shape"/>
+<conn input="compound2" output="copy3" port="shapeB"/>
+<conn input="merge2" output="transform1" port="shapes"/>
+<conn input="merge2" output="edit1" port="shapes"/>
+<conn input="merge2" output="compound2" port="shapes"/>
+<conn input="merge2" output="copy1" port="shapes"/>
+<conn input="merge2" output="copy2" port="shapes"/>
+</ndbx>
