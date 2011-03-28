@@ -21,6 +21,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
     private int fromValue;
     private int toValue;
     private JTextField prefixField;
+    private JButton exportButton;
 
     public ExportRangeDialog(Frame frame, File exportDirectory) {
         super(frame, "Export Range");
@@ -82,12 +83,14 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
             }
         });
         buttonPanel.add(cancelButton);
-        JButton exportButton = new JButton("Export");
+        exportButton = new JButton("Export");
         exportButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
                 doExport();
             }
         });
+        if (exportDirectory == null)
+            exportButton.setEnabled(false);
         buttonPanel.add(exportButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         pack();
@@ -135,6 +138,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         } else {
             directoryField.setText(this.exportDirectory.getAbsolutePath());
         }
+        exportButton.setEnabled(this.exportDirectory != null);
     }
 
     public int getFromValue() {
