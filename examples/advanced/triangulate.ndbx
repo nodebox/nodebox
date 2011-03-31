@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
-<node name="delaunay" prototype="corevector.filter" x="200" y="100">
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Text,Color,Geometry
+    <node name="delaunay" prototype="corevector.filter" x="200" y="100">
+        <description>Returns a set of delaunay triangles from a list of points</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path, Text,Color,Geometry
 from random import uniform,seed
 #############################################################################
 #
@@ -764,66 +765,58 @@ def cook(self):
     if self.shape is None: return None
     c = Context()
     computeDelaunayTriangulation(self,self.shape.points,c)
-    #print pop
     geo = Geometry()
-    print len(c.triangles)
     r = Rect(self.x-self.width/2, self.y-self.height/2, self.width, self.height)
     for v1, v2, v3 in c.triangles:
-        print self.shape.points[v1]
-        print v1,v2,v3
-        #print v1,c.vertices[v1]
-        p1 = self.shape.points[v1]#c.vertices[v1]
-        p2 = self.shape.points[v2]#c.vertices[v2]
-        p3 = self.shape.points[v3]#c.vertices[v3]
-        '''
-        if self.crop:
-            if not r.contains(Point(x1, y1)): continue
-            if not r.contains(Point(x2, y2)): continue
-            if not r.contains(Point(x3, y3)): continue
-        '''
+        p1 = self.shape.points[v1]
+        p2 = self.shape.points[v2]
+        p3 = self.shape.points[v3]
         p = Path()
         p.fill = None
         p.stroke = self.stroke
         p.strokeWidth = self.strokeWidth
-        p.moveto(p1.x,p1.y)
-        p.lineto(p2.x,p2.y)
-        p.lineto(p3.x,p3.y)
+        p.moveto(p1.x, p1.y)
+        p.lineto(p2.x, p2.y)
+        p.lineto(p3.x, p3.y)
         p.close()
         geo.add(p)
 
     return geo]]></value>
-</param>
-<param name="_handle">
-<value type="python"><![CDATA[from nodebox.handle import FourPointHandle
+        </param>
+        <param name="_handle">
+            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
 
 def cook(self):
     return FourPointHandle(self.node)]]></value>
-</param>
-<param name="x" type="float">
-<value>449.00476</value>
-</param>
-<param name="y" type="float">
-<value>-160.54346</value>
-</param>
-<param name="width" type="float">
-<value>4000.0</value>
-</param>
-<param name="height" type="float">
-<value>4000.0</value>
-</param>
-<param name="crop" type="int" widget="toggle">
-<value>1</value>
-</param>
-<param name="stroke" type="color">
-<value>#ff0000ff</value>
-</param>
-<param label="Stroke Width" name="strokeWidth" type="float">
-<value>1.0</value>
-</param>
-</node>
-<node name="rect1" prototype="corevector.rect" x="30" y="100">
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+        </param>
+        <param name="_image">
+            <value>delaunay.png</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="crop" type="int" widget="toggle">
+            <value>1</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#ff0000ff</value>
+        </param>
+        <param label="Stroke Width" name="strokeWidth" type="float">
+            <value>1.0</value>
+        </param>
+    </node>
+    <node name="rect1" prototype="corevector.rect" x="30" y="100">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
 
 def cook(self):
     p = Path()
@@ -838,109 +831,110 @@ def cook(self):
     else:
         p.strokeColor = None
     return p.asGeometry()]]></value>
-</param>
-<param name="width">
-<value>1500.0</value>
-</param>
-<param name="height">
-<value>1000.0</value>
-</param>
-</node>
-<node name="rect2" prototype="corevector.rect" x="20" y="440">
-<param name="width">
-<value>1000.0</value>
-</param>
-<param name="height">
-<value>1000.0</value>
-</param>
-</node>
-<node name="scatter1" prototype="corevector.scatter" x="170" y="490">
-<param name="amount">
-<value>33</value>
-</param>
-<param name="seed">
-<value>69</value>
-</param>
-</node>
-<node name="scatter2" prototype="corevector.scatter" x="120" y="100">
-<param name="amount">
-<value>34</value>
-</param>
-<param name="seed">
-<value>7</value>
-</param>
-</node>
-<node name="texture" prototype="corevector.filter" rendered="true" x="300" y="100">
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path, Text,Color,Geometry
+        </param>
+        <param name="width">
+            <value>1500.0</value>
+        </param>
+        <param name="height">
+            <value>1000.0</value>
+        </param>
+    </node>
+    <node name="rect2" prototype="corevector.rect" x="20" y="440">
+        <param name="width">
+            <value>1000.0</value>
+        </param>
+        <param name="height">
+            <value>1000.0</value>
+        </param>
+    </node>
+    <node name="scatter1" prototype="corevector.scatter" x="170" y="490">
+        <param name="amount">
+            <value>33</value>
+        </param>
+        <param name="seed">
+            <value>69</value>
+        </param>
+    </node>
+    <node name="scatter2" prototype="corevector.scatter" x="120" y="100">
+        <param name="amount">
+            <value>34</value>
+        </param>
+        <param name="seed">
+            <value>7</value>
+        </param>
+    </node>
+    <node name="texture" prototype="corevector.filter" rendered="true" x="300" y="100">
+        <description>A recursive triangulation effect</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path, Text,Color,Geometry
 from random import uniform,seed
 
 
-def trian(self,s,sc,g):
-    x,y = s[0].x,s[0].y
-    xx,yy = s[1].x,s[1].y
-    xxx,yyy = s[2].x,s[2].y
+def triangulate(self, points, level, g):
+    x,y = points[0].x, points[0].y
+    xx,yy = points[1].x, points[1].y
+    xxx,yyy = points[2].x, points[2].y
     fac = self.factor
-    a,aa,aaa = uniform(-sc,sc)*fac,uniform(-sc,sc)*fac,uniform(-sc,sc)*fac
-    nx = (x+xxx)/2+a
-    ny = (y+yyy)/2+a
-    nxx = (xxx+xx)/2+aa
-    nyy =(yyy+yy)/2+aa
-    nxxx = (x+xx)/2+aaa
-    nyyy =(y+yy)/2+aaa
-    sc*=.5
-    if sc > 1:
+
+    nx = (x + xxx) / 2 * fac
+    ny = (y + yyy) / 2 * fac
+    nxx = (xxx + xx) / 2 * fac
+    nyy =(yyy + yy) / 2 * fac
+    nxxx = (x + xx) / 2 * fac
+    nyyy =(y + yy) / 2 * fac
+    level*=.5
+    
+    if level > 1:
         p = Path()
-        p.fillColor = Color(uniform(0,1),0,0,.5)
-        p.strokeColor = Color(0,0,0)
+        p.fillColor = Color(uniform(0, 1), 0, 0, .5)
+        p.strokeColor = Color(0, 0, 0)
         p.strokeWidth = self.strokewidth
         
-        p.moveto(x,y)
-        p.lineto(nx,ny)
-        p.lineto(nxxx,nyyy)
+        p.moveto(x, y)
+        p.lineto(nx, ny)
+        p.lineto(nxxx, nyyy)
         p.close()
-        if sc < self.drawlevel:
+        if level < self.drawlevel:
             g.add(p)
        
         p1 = Path()
         p1.fillColor = None
-        p1.fillColor = Color(0,uniform(0,1),0,.5)
-        p1.strokeColor = Color(0,0,0)
+        p1.fillColor = Color(0, uniform(0, 1), 0, .5)
+        p1.strokeColor = Color(0, 0, 0)
         p1.strokeWidth = self.strokewidth
-        p1.moveto(nx,ny)
-        p1.lineto(xxx,yyy)
-        p1.lineto(nxx,nyy)
+        p1.moveto(nx, ny)
+        p1.lineto(xxx, yyy)
+        p1.lineto(nxx, nyy)
         p1.close()
-        if sc < self.drawlevel:
+        if level < self.drawlevel:
             g.add(p1)
 
         p2 = Path()
-        p2.fillColor = Color(0,0,uniform(0,1),.5)
-        p2.strokeColor = Color(0,0,0)
+        p2.fillColor = Color(0, 0, uniform(0, 1), .5)
+        p2.strokeColor = Color(0, 0, 0)
         p2.strokeWidth = self.strokewidth
-        p2.moveto(nxx,nyy)
-        p2.lineto(xx,yy)
-        p2.lineto(nxxx,nyyy)
+        p2.moveto(nxx, nyy)
+        p2.lineto(xx, yy)
+        p2.lineto(nxxx, nyyy)
         p2.close()
-        if sc < self.drawlevel:
+        if level < self.drawlevel:
             g.add(p2)
         
         p3 = Path()
-        p3.fillColor = Color(1,1,1,.5)
-        p3.strokeColor = Color(0,0,0)
+        p3.fillColor = Color(1, 1, 1, .5)
+        p3.strokeColor = Color(0, 0, 0)
         p3.strokeWidth = self.strokewidth
-        p3.moveto(nx,ny)
-        p3.lineto(nxx,nyy)
-        p3.lineto(nxxx,nyyy)
+        p3.moveto(nx, ny)
+        p3.lineto(nxx, nyy)
+        p3.lineto(nxxx, nyyy)
         p3.close()
-        if sc < self.drawlevel:
+        if level< self.drawlevel:
             g.add(p3)
        
-        #print p.points
-        trian(self,p.points,sc,g)
-        trian(self,p1.points,sc,g)
-        trian(self,p2.points,sc,g)
-        trian(self,p3.points,sc,g)
+        triangulate(self, p.points, level, g)
+        triangulate(self, p1.points, level, g)
+        triangulate(self, p2.points, level, g)
+        triangulate(self, p3.points, level, g)
     return g
     
     
@@ -954,27 +948,30 @@ def cook(self):
         pat.fillColor = None
         g.add(pat)
         pat.resampleByAmount(3, True)
-        m = trian(self,pat.points,self.level,g)
-    return m]]></value>
-</param>
-<param name="factor" type="float">
-<value>0.0</value>
-</param>
-<param name="level" type="float">
-<value>20.0</value>
-</param>
-<param name="strokewidth" type="float">
-<value>0.4</value>
-</param>
-<param name="seed" type="int" widget="seed">
-<value>0</value>
-</param>
-<param name="drawlevel" type="int">
-<value>2</value>
-</param>
-</node>
-<conn input="texture" output="delaunay" port="shape"/>
-<conn input="scatter2" output="rect1" port="shape"/>
-<conn input="delaunay" output="scatter2" port="shape"/>
-<conn input="scatter1" output="rect2" port="shape"/>
+        triangulater = triangulate(self, pat.points, self.level, g)
+    return triangulater]]></value>
+        </param>
+        <param name="_image">
+            <value>triangulate.png</value>
+        </param>
+        <param name="factor" type="float">
+            <value>1.0</value>
+        </param>
+        <param name="level" type="float">
+            <value>20.0</value>
+        </param>
+        <param name="strokewidth" type="float">
+            <value>0.1</value>
+        </param>
+        <param name="seed" type="int" widget="seed">
+            <value>0</value>
+        </param>
+        <param name="drawlevel" type="int">
+            <value>2</value>
+        </param>
+    </node>
+    <conn input="texture" output="delaunay" port="shape"/>
+    <conn input="scatter2" output="rect1" port="shape"/>
+    <conn input="delaunay" output="scatter2" port="shape"/>
+    <conn input="scatter1" output="rect2" port="shape"/>
 </ndbx>
