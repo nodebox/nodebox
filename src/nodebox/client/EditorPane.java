@@ -35,6 +35,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         reloadButton = new NButton("Reload", "res/code-reload.png");
+        reloadButton.setEnabled(false); // Only enable the button if the code has changed.
         reloadButton.setActionMethod(this, "reload");
         messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
         messagesCheck.setActionMethod(this, "toggleMessages");
@@ -254,6 +255,7 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
 
     private void setCodeChanged(boolean changed) {
         codeChanged = changed;
+        reloadButton.setEnabled(changed);
         reloadButton.setWarning(changed);
 
         if (fireCodeChange) {
