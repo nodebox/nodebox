@@ -32,7 +32,7 @@
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleGetInfoString</key>
-    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2009</string>
+    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2011</string>
     <key>CFBundleShortVersionString</key>
     <string>@@VERSION@@</string>
     <key>CFBundleVersion</key>
@@ -42,7 +42,7 @@
       <key>ClassPath</key>
       <string>$APP_PACKAGE/Contents/Resources/Java/lib/nodebox.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jna.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jython.jar:$APP_PACKAGE/Contents/Resources/Java/lib/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/lib/piccolo.jar:$APP_PACKAGE/Contents/Resources/Java/asm.jar:$APP_PACKAGE/Contents/Resources/Java/lib/iText.jar:$APP_PACKAGE/Contents/Resources/Java/lib/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/lib/xercesImpl.jar</string>
       <key>JVMVersion</key>
-      <string>1.5*</string>
+      <string>1.6+</string>
       <key>MainClass</key>
       <string>nodebox.client.Application</string>
       <key>Properties</key>

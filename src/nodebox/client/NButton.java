@@ -172,12 +172,16 @@ public class NButton extends JComponent implements MouseListener {
                 g2.drawImage(normalImage, 0, 0, null);
             }
         } else {
-            if (checked) {
+            if (mode == Mode.CHECK && checked) {
                 g2.drawImage(checkDisabledOn, 0, 0, null);
-            } else {
+            } else if (mode == Mode.CHECK && !checked) {
                 g2.drawImage(checkDisabledOff, 0, 0, null);
+            } else {
+                Composite oldComposite = g2.getComposite();
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
+                g2.drawImage(normalImage, 0, 0, null);
+                g2.setComposite(oldComposite);
             }
-
         }
         int w = normalImage.getWidth(null);
         g2.setFont(Theme.SMALL_BOLD_FONT);

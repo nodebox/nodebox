@@ -132,7 +132,8 @@ public class Application implements Host {
     }
 
     public void showAbout() {
-        JOptionPane.showMessageDialog(null, NAME + " version " + getVersion(), NAME, JOptionPane.INFORMATION_MESSAGE);
+        String javaVersion = System.getProperty("java.runtime.version");
+        JOptionPane.showMessageDialog(null, NAME + " version " + getVersion()+ "\nJava " + javaVersion, NAME, JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void showPreferences() {

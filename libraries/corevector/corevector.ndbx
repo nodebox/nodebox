@@ -2862,7 +2862,7 @@ def cook(self):
             <value>switch.png</value>
         </param>
         <param name="select" type="int">
-            <expression>stamp("CNUM", 0)</expression>
+            <value>0</value>
         </param>
     </node>
     <node exported="true" name="textonpath" prototype="filter" x="170" y="580">
