@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="0.9" type="file">
+    <node name="copy1" prototype="corevector.copy" rendered="true" x="520" y="110">
+        <param name="copies">
+            <value>8</value>
+        </param>
+        <param name="order">
+            <value>rst</value>
+        </param>
+        <param name="sx">
+            <value>-15.899998</value>
+        </param>
+        <param name="sy">
+            <value>-3.0</value>
+        </param>
+    </node>
+    <node name="copy2" prototype="corevector.copy" x="130" y="160">
+        <param name="copies">
+            <value>7</value>
+        </param>
+        <param name="order">
+            <value>srt</value>
+        </param>
+        <param name="tx">
+            <value>-2.0</value>
+        </param>
+        <param name="r">
+            <value>6.0</value>
+        </param>
+    </node>
+    <node name="edit1" prototype="corevector.edit" x="170" y="240">
+        <param name="pointDeltas">
+            <value>P 0 7.963 -0.000 P 1 -7.963 0.000 P 2 0.000 -10.000</value>
+        </param>
+    </node>
+    <node name="ellipse1" prototype="corevector.ellipse" x="90" y="70">
+        <param name="y">
+            <value>-19.0</value>
+        </param>
+        <param name="width">
+            <value>10.0</value>
+        </param>
+        <param name="height">
+            <expression>width</expression>
+        </param>
+        <param name="fill">
+            <expression>hsb(.90, .50, 1.0, 1.00)</expression>
+        </param>
+    </node>
+    <node name="ellipse2" prototype="corevector.ellipse" x="350" y="150">
+        <param name="width">
+            <value>200.0</value>
+        </param>
+        <param name="height">
+            <expression>width</expression>
+        </param>
+    </node>
+    <node name="line1" prototype="corevector.line" x="30" y="160">
+        <param name="y">
+            <value>-43.0</value>
+        </param>
+        <param name="angle">
+            <value>90.0</value>
+        </param>
+        <param name="distance">
+            <value>20.0</value>
+        </param>
+        <param name="stroke">
+            <expression>hsb(.9, .50, 0.40, 1.00)</expression>
+        </param>
+        <param name="strokeWidth">
+            <value>0.2</value>
+        </param>
+    </node>
+    <node name="merge1" prototype="corevector.merge" x="350" y="70"/>
+    <node name="polygon1" prototype="corevector.polygon" x="90" y="240">
+        <param name="radius">
+            <value>5.0</value>
+        </param>
+        <param name="align">
+            <value>1</value>
+        </param>
+        <param name="fill">
+            <expression>hsb(1.0, .50, 0.70, .80)</expression>
+        </param>
+    </node>
+    <node name="reflect1" prototype="corevector.reflect" x="230" y="160">
+        <param name="x">
+            <value>0.0</value>
+        </param>
+        <param name="angle">
+            <value>90.0</value>
+        </param>
+    </node>
+    <node name="shapeonpath1" prototype="corevector.shapeonpath" x="430" y="110">
+        <param name="amount">
+            <value>31</value>
+        </param>
+        <param name="dist">
+            <value>16.110003</value>
+        </param>
+        <param name="keepGeometry">
+            <value>0</value>
+        </param>
+    </node>
+    <conn input="merge1" output="edit1" port="shapes"/>
+    <conn input="merge1" output="reflect1" port="shapes"/>
+    <conn input="merge1" output="ellipse1" port="shapes"/>
+    <conn input="edit1" output="polygon1" port="shape"/>
+    <conn input="copy1" output="shapeonpath1" port="shape"/>
+    <conn input="copy2" output="line1" port="shape"/>
+    <conn input="reflect1" output="copy2" port="shape"/>
+    <conn input="shapeonpath1" output="merge1" port="shape"/>
+    <conn input="shapeonpath1" output="ellipse2" port="template"/>
+</ndbx>

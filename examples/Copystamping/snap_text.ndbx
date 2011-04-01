@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="0.9" type="file">
+    <node name="copy1" prototype="corevector.copy" rendered="true" x="300" y="60">
+        <param name="copies">
+            <value>10</value>
+        </param>
+        <param name="tx">
+            <value>10.0</value>
+        </param>
+        <param name="ty">
+            <value>10.0</value>
+        </param>
+        <param name="sx">
+            <value>20.0</value>
+        </param>
+        <param name="sy">
+            <value>20.0</value>
+        </param>
+        <param name="stamp">
+            <value>1</value>
+        </param>
+        <param name="expr">
+            <value>snapdist=1 + CNUM * (100.0 / copies)</value>
+        </param>
+    </node>
+    <node name="snap1" prototype="corevector.snap" x="170" y="60">
+        <param name="distance">
+            <expression>stamp("snapdist",1)</expression>
+        </param>
+        <param name="strength">
+            <value>50.0</value>
+        </param>
+        <param name="x">
+            <value>-10.0</value>
+        </param>
+    </node>
+    <node name="textpath1" prototype="corevector.textpath" x="60" y="60">
+        <param name="text">
+            <value>A B C </value>
+        </param>
+        <param name="size">
+            <value>125.0</value>
+        </param>
+        <param name="fill">
+            <expression>hsb(stamp("snapdist",1)/100.0, 1.00, 1.00, 0.1)</expression>
+        </param>
+        <param name="strokeWidth">
+            <value>1.0</value>
+        </param>
+    </node>
+    <conn input="copy1" output="snap1" port="shape"/>
+    <conn input="snap1" output="textpath1" port="shape"/>
+</ndbx>
