@@ -863,7 +863,7 @@ def cook(self):
             <value>7</value>
         </param>
     </node>
-    <node name="texture" prototype="corevector.filter" rendered="true" x="300" y="100">
+    <node name="triangleFX" prototype="corevector.filter" rendered="true" x="300" y="100">
         <description>A recursive triangulation effect</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path, Text,Color,Geometry
@@ -958,7 +958,7 @@ def cook(self):
             <value>1.0</value>
         </param>
         <param name="level" type="float">
-            <value>20.0</value>
+            <value>10.0</value>
         </param>
         <param name="strokewidth" type="float">
             <value>0.1</value>
@@ -970,7 +970,7 @@ def cook(self):
             <value>2</value>
         </param>
     </node>
-    <conn input="texture" output="delaunay" port="shape"/>
+    <conn input="triangleFX" output="delaunay" port="shape"/>
     <conn input="scatter2" output="rect1" port="shape"/>
     <conn input="delaunay" output="scatter2" port="shape"/>
     <conn input="scatter1" output="rect2" port="shape"/>
