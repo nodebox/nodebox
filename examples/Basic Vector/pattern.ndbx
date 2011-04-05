@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx formatVersion="0.9" type="file">
-<node name="align1" prototype="align.align" x="180" y="10">
+<node name="align1" prototype="corevector.align" x="180" y="10">
 <param name="halign">
 <value>center</value>
 </param>
@@ -8,12 +8,12 @@
 <value>top</value>
 </param>
 </node>
-<node name="align2" prototype="align.align" x="180" y="110">
+<node name="align2" prototype="corevector.align" x="180" y="110">
 <param name="y">
 <value>-17.0</value>
 </param>
 </node>
-<node name="align3" prototype="align.align" x="340" y="110">
+<node name="align3" prototype="corevector.align" x="340" y="110">
 <param name="x">
 <value>-160.0</value>
 </param>
