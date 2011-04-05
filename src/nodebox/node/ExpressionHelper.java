@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
+import nodebox.util.waves.*;
 
 import java.util.Random;
 
@@ -119,6 +120,26 @@ public class ExpressionHelper {
 
     public static Color hsb(double hue, double saturation, double brightness, double alpha) {
         return Color.fromHSB(hue, saturation, brightness, alpha);
+    }
+
+    public static double sinewave(double frame, double min, double max, double speed) {
+        AbstractWave wave = SineWave.from((float) min, (float) max, (float) speed);
+        return wave.getValueAt((float) frame);
+    }
+
+    public static double trianglewave(double frame, double min, double max, double speed) {
+        AbstractWave wave = TriangleWave.from((float) min, (float) max, (float) speed);
+        return wave.getValueAt((float) frame);
+    }
+
+    public static double squarewave(double frame, double min, double max, double speed) {
+        AbstractWave wave = SquareWave.from((float) min, (float) max, (float) speed);
+        return wave.getValueAt((float) frame);
+    }
+
+    public static double sawtoothwave(double frame, double min, double max, double speed) {
+        AbstractWave wave = SawtoothWave.from((float) min, (float) max, (float) speed);
+        return wave.getValueAt((float) frame);
     }
 
     public static Object stamp(String key, Object defaultValue) {

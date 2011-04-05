@@ -60,6 +60,16 @@ public class Expression {
             parserContext.addImport("stamp", ExpressionHelper.class.getMethod("stamp", String.class, Object.class));
             parserContext.addImport("int", ExpressionHelper.class.getMethod("toInt", double.class));
             parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));
+            parserContext.addImport("wave", ExpressionHelper.class.getMethod("sinewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("sinewave", ExpressionHelper.class.getMethod("sinewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("triangle", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("zigzag", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("trianglewave", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("block", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("square", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("squarewave", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("sawtooth", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("sawtoothwave", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
             parserContext.addImport("math", Math.class);
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Unknown static method for expression." + e);
