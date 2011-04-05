@@ -79,7 +79,7 @@ def cook(self):
             <expression>stamp("d",40)</expression>
         </param>
         <param name="a" type="float">
-            <value>2.5</value>
+            <value>3.5</value>
         </param>
     </node>
     <node name="place3" prototype="corevector.place" x="230" y="180">
