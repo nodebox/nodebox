@@ -13,6 +13,15 @@ public class SineWave extends AbstractWave {
         super(period, phase, amplitude, offset);
     }
 
+    /**
+     * Creates a suitable SineWave object from other than the constructor arguments.
+     * The wave oscillates between min and max values
+     *
+     * @param min     the minimum value
+     * @param max     the maximum value
+     * @param period  the length (expressed in time) over which the wave makes a full sinusoidal movement
+     * @return        a new SineWave
+     */
     public static SineWave from(float min, float max, float period) {
         float amplitude = (max - min) / 2;
         float offset = min + amplitude;

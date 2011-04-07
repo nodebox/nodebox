@@ -28,12 +28,24 @@ public abstract class AbstractWave {
         setPhase(phase);
     }
 
+
+    /**
+     * (Re)sets the starting position of the wave.
+     *
+     * @param phase the new starting phase
+     */
     public void setPhase(float phase) {
         phase %= TWO_PI;
         if (phase < 0) phase += TWO_PI;
         this.phase = this.originalPhase = phase;
     }
 
+    /**
+     * Calculates and returns the value at time unit t for the wave.
+     *
+     * @param t  time coordinate on the wave continuum
+     * @return   the new value
+     */
     public float getValueAt(float t) {
         float phase;
         if (t % period == 0)
@@ -44,5 +56,11 @@ public abstract class AbstractWave {
         return computeValue(phase) + offset;
     }
 
+    /**
+     * Calculates and returns the value at phase for the wave.
+     *
+     * @param  phase
+     * @return the new value
+     */
     protected abstract float computeValue(float phase);
 }
