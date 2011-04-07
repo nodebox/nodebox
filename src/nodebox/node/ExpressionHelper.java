@@ -56,6 +56,10 @@ public class ExpressionHelper {
         return (double) v;
     }
 
+    public static double clamp(double v, double min, double max) {
+        return min > v ? min : max < v ? max : v;
+    }
+
     public static Color color(double... values) {
         switch (values.length) {
             case 0:
@@ -140,6 +144,10 @@ public class ExpressionHelper {
     public static double sawtoothwave(double frame, double min, double max, double speed) {
         AbstractWave wave = SawtoothWave.from((float) min, (float) max, (float) speed);
         return wave.getValueAt((float) frame);
+    }
+
+    public static double hold(double frame, double minFrame, double functionValue, double defaultValue) {
+        return frame < minFrame ? defaultValue : functionValue;
     }
 
     public static Object stamp(String key, Object defaultValue) {

@@ -54,6 +54,7 @@ public class Expression {
             // We lookup the varargs version here, but only the non-varargs will get called.
             parserContext.addImport("random", ExpressionHelper.class.getMethod("random", long.class, double[].class));
             parserContext.addImport("randint", ExpressionHelper.class.getMethod("randint", long.class, int.class, int.class));
+            parserContext.addImport("clamp", ExpressionHelper.class.getMethod("clamp", double.class, double.class, double.class));
             parserContext.addImport("color", ExpressionHelper.class.getMethod("color", double[].class));
             parserContext.addImport("rgb", ExpressionHelper.class.getMethod("color", double[].class));
             parserContext.addImport("hsb", ExpressionHelper.class.getMethod("hsb", double[].class));
@@ -70,6 +71,7 @@ public class Expression {
             parserContext.addImport("squarewave", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
             parserContext.addImport("sawtooth", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
             parserContext.addImport("sawtoothwave", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
+            parserContext.addImport("hold", ExpressionHelper.class.getMethod("hold", double.class, double.class, double.class, double.class));
             parserContext.addImport("math", Math.class);
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Unknown static method for expression." + e);
