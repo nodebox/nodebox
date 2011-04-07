@@ -7,7 +7,6 @@ public abstract class AbstractWave {
 
     private float period;
     private float phase;
-    private float originalPhase;
     private float frequency;
     protected float amplitude;
     private float offset;
@@ -28,7 +27,6 @@ public abstract class AbstractWave {
         setPhase(phase);
     }
 
-
     /**
      * (Re)sets the starting position of the wave.
      *
@@ -37,7 +35,7 @@ public abstract class AbstractWave {
     public void setPhase(float phase) {
         phase %= TWO_PI;
         if (phase < 0) phase += TWO_PI;
-        this.phase = this.originalPhase = phase;
+        this.phase = phase;
     }
 
     /**
@@ -49,7 +47,7 @@ public abstract class AbstractWave {
     public float getValueAt(float t) {
         float phase;
         if (t % period == 0)
-            phase = originalPhase;
+            phase = this.phase;
         else
             phase = (this.phase + t * frequency) % TWO_PI;
         if (phase < 0) phase += TWO_PI;
