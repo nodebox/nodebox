@@ -27,6 +27,26 @@ public abstract class AbstractWave {
         setPhase(phase);
     }
 
+    public float getPeriod() {
+        return period;
+    }
+
+    public float getFrequency() {
+        return frequency;
+    }
+
+    public float getAmplitude() {
+        return amplitude;
+    }
+
+    public float getOffset() {
+        return offset;
+    }
+
+    public float getPhase() {
+        return phase;
+    }
+
     /**
      * (Re)sets the starting position of the wave.
      *
