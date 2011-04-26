@@ -126,23 +126,27 @@ public class ExpressionHelper {
         return Color.fromHSB(hue, saturation, brightness, alpha);
     }
 
-    public static double sinewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SineWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
-    }
+    public static double wave(AbstractWave.Type type, double min, double max, double speed, double frame) {
+        float fmin = (float) min;
+        float fmax = (float) max;
+        float fspeed = (float) speed;
 
-    public static double trianglewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = TriangleWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
-    }
-
-    public static double squarewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SquareWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
-    }
-
-    public static double sawtoothwave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SawtoothWave.from((float) min, (float) max, (float) speed);
+        AbstractWave wave;
+        switch (type) {
+            case TRIANGLE:
+                wave = TriangleWave.from(fmin, fmax, fspeed);
+                break;
+            case SQUARE:
+                wave = SquareWave.from(fmin, fmax, fspeed);
+                break;
+            case SAWTOOTH:
+                wave = SawtoothWave.from(fmin, fmax, fspeed);
+                break;
+            case SINE:
+            default:
+                wave = SineWave.from(fmin, fmax, fspeed);
+                break;
+        }
         return wave.getValueAt((float) frame);
     }
 

@@ -5,6 +5,8 @@ public abstract class AbstractWave {
     public static final float PI = 3.14159265358979323846f;
     public static final float TWO_PI = 2 * PI;
 
+    public static enum Type { SINE, TRIANGLE, SQUARE, SAWTOOTH };
+
     private float period;
     private float phase;
     private float frequency;

@@ -19,13 +19,16 @@
 package nodebox.node;
 
 import nodebox.graphics.Color;
+import nodebox.util.waves.AbstractWave;
 import org.mvel2.CompileException;
 import org.mvel2.MVEL;
 import org.mvel2.ParserContext;
 import org.mvel2.UnresolveablePropertyException;
 import org.mvel2.integration.VariableResolver;
 import org.mvel2.integration.impl.BaseVariableResolverFactory;
+import org.mvel2.integration.impl.SimpleValueResolver;
 import org.mvel2.optimizers.OptimizerFactory;
+import org.python.google.common.collect.ImmutableMap;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
@@ -36,6 +39,7 @@ import java.util.Set;
 public class Expression {
 
     static ParserContext parserContext = new ParserContext();
+    private static ImmutableMap<String, VariableResolver> defaultResolvers;
 
     static {
         // Initialize MVEL.
@@ -61,21 +65,17 @@ public class Expression {
             parserContext.addImport("stamp", ExpressionHelper.class.getMethod("stamp", String.class, Object.class));
             parserContext.addImport("int", ExpressionHelper.class.getMethod("toInt", double.class));
             parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));
-            parserContext.addImport("wave", ExpressionHelper.class.getMethod("sinewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("sinewave", ExpressionHelper.class.getMethod("sinewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("triangle", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("zigzag", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("trianglewave", ExpressionHelper.class.getMethod("trianglewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("block", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("square", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("squarewave", ExpressionHelper.class.getMethod("squarewave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("sawtooth", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
-            parserContext.addImport("sawtoothwave", ExpressionHelper.class.getMethod("sawtoothwave", double.class, double.class, double.class, double.class));
             parserContext.addImport("hold", ExpressionHelper.class.getMethod("hold", double.class, double.class, double.class, double.class));
+            parserContext.addImport("wave", ExpressionHelper.class.getMethod("wave", AbstractWave.Type.class, double.class, double.class, double.class, double.class));
             parserContext.addImport("math", Math.class);
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Unknown static method for expression." + e);
         }
+
+        ImmutableMap.Builder<String, VariableResolver> resolvers = ImmutableMap.builder();
+        for (AbstractWave.Type wave : AbstractWave.Type.values())
+            resolvers.put(wave.name(), new SimpleValueResolver(wave));
+        defaultResolvers = resolvers.build();
     }
 
     private final Parameter parameter;
@@ -268,16 +268,19 @@ public class Expression {
         private NodeAccessProxy proxy;
         private ProcessingContext context;
 
+
         public ProxyResolverFactory(Node node, ProcessingContext context) {
             this.node = node;
             proxy = new NodeAccessProxy(node);
             this.context = context;
+            variableResolvers.putAll(defaultResolvers);
         }
 
         public ProxyResolverFactory(Node node, ProcessingContext context, Set<WeakReference<Parameter>> markedParameterReferences) {
             this.node = node;
             proxy = new NodeAccessProxy(node, markedParameterReferences);
             this.context = context;
+            variableResolvers.putAll(defaultResolvers);
         }
 
         public Node getNode() {
@@ -298,7 +301,10 @@ public class Expression {
 
         @Override
         public VariableResolver getVariableResolver(String name) {
-            if (variableResolvers == null) variableResolvers = new HashMap<String, VariableResolver>();
+            if (variableResolvers == null) {
+                variableResolvers = new HashMap<String, VariableResolver>();
+                variableResolvers.putAll(defaultResolvers);
+            }
             VariableResolver vr = variableResolvers.get(name);
             if (vr != null) {
                 return vr;
