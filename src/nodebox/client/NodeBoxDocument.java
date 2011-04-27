@@ -750,11 +750,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void markTimeDependentNodesDirty(Node network, float frame) {
         // TODO: This is a really hacky version of finding time-dependent nodes.
         // We simply traverse through the first level of the network and find all
-        // nodes that have parameters with expression with the word FRAME in them.
+        // nodes that have parameters with expression with the words FRAME or wave in them.
         // Those are marked dirty.
         for (Node n : network.getChildren()) {
             for (Parameter p : n.getParameters()) {
-                if (p.hasExpression() && p.getExpression().contains("FRAME")) {
+                if (p.hasExpression() && (p.getExpression().contains("FRAME") || p.getExpression().contains("wave"))) {
                     p.markDirty();
                 }
             }

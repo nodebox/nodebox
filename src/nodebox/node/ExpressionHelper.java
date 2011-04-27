@@ -126,6 +126,41 @@ public class ExpressionHelper {
         return Color.fromHSB(hue, saturation, brightness, alpha);
     }
 
+    public static double wave(AbstractWave.Type type, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 0:
+                return wave(type, 0, 1, 60, frame);
+            case 1:
+                return wave(type, values[0], 1, 60, frame);
+            case 2:
+                return wave(type, values[0], values[1], 60, frame);
+            case 3:
+                return wave(type, values[0], values[2], values[3], frame);
+            case 4:
+                return wave(type, values[0], values[2], values[3], values[4]);
+            default:
+                return wave(type, 0, 1, 60, frame);
+        }
+    }
+
+    public static double wave(AbstractWave.Type type) {
+        return wave(type, 0, 1, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min) {
+        return wave(type, min, 1, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min, double max) {
+        return wave(type, min, max, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min, double max, double speed) {
+        return wave(type, min, max, speed, currentContext.getFrame());
+    }
+
     public static double wave(AbstractWave.Type type, double min, double max, double speed, double frame) {
         float fmin = (float) min;
         float fmax = (float) max;
