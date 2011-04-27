@@ -32,9 +32,7 @@ import org.python.google.common.collect.ImmutableMap;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class Expression {
 
@@ -67,6 +65,8 @@ public class Expression {
             parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));
             parserContext.addImport("hold", ExpressionHelper.class.getMethod("hold", double.class, double.class, double[].class));
             parserContext.addImport("schedule", ExpressionHelper.class.getMethod("schedule", double.class, double.class, double.class, double[].class));
+            parserContext.addImport("timeloop", ExpressionHelper.class.getMethod("timeloop", double.class, List.class));
+            parserContext.addImport("timeloop", ExpressionHelper.class.getMethod("timeloop", double.class, List.class, double.class));
             parserContext.addImport("wave", ExpressionHelper.class.getMethod("wave"));
             parserContext.addImport("wave", ExpressionHelper.class.getMethod("wave", AbstractWave.Type.class, double[].class));
             parserContext.addImport("math", Math.class);

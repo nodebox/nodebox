@@ -3,6 +3,7 @@ package nodebox.node;
 import nodebox.graphics.Color;
 import nodebox.util.waves.*;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -241,11 +242,24 @@ public class ExpressionHelper {
         return start <= frame && frame < end ? functionValue : defaultValue;
     }
 
+    public static double timeloop(double speed, List<Number> values) {
+        return timeloop(speed, values, currentContext.getFrame());
+    }
+
+    public static double timeloop(double speed, List<Number> values, double frame) {
+        if (values.size() == 0) return 0;
+        int index = (int) (frame / speed);
+        try {
+            return values.get(index % values.size()).doubleValue();
+        } catch (ClassCastException e) {
+            return 0;
+        }
+    }
+
     public static Object stamp(String key, Object defaultValue) {
         if (currentContext == null) return defaultValue;
         currentParameter.markStampExpression();
         Object v = currentContext.get(key);
         return v != null ? v : defaultValue;
     }
-
 }
