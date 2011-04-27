@@ -189,7 +189,29 @@ public class ExpressionHelper {
         return wave.getValueAt((float) frame);
     }
 
-    public static double hold(double frame, double minFrame, double functionValue, double defaultValue) {
+    public static double hold(double minFrame, double functionValue, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 1:
+                return hold(minFrame, functionValue, values[0], frame);
+            case 2:
+                return hold(minFrame, functionValue, values[0], values[1]);
+            case 0:
+            default:
+                return hold(minFrame, functionValue, 0, frame);
+        }
+    }
+
+    public static double hold(double minFrame, double functionValue) {
+        return hold(minFrame, functionValue, 0, currentContext.getFrame());
+    }
+
+    public static double hold(double minFrame, double functionValue, double defaultValue) {
+        return hold(minFrame, functionValue, defaultValue, currentContext.getFrame());
+    }
+
+    public static double hold(double minFrame, double functionValue, double defaultValue, double frame) {
         return frame < minFrame ? defaultValue : functionValue;
     }
 
