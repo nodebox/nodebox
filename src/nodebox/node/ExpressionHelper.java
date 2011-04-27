@@ -145,12 +145,16 @@ public class ExpressionHelper {
         }
     }
 
+    public static double wave() {
+        return wave(AbstractWave.Type.SINE, 0, 1, 60, currentContext.getFrame());
+    }
+
     public static double wave(AbstractWave.Type type) {
         return wave(type, 0, 1, 60, currentContext.getFrame());
     }
 
-    public static double wave(AbstractWave.Type type, double min) {
-        return wave(type, min, 1, 60, currentContext.getFrame());
+    public static double wave(AbstractWave.Type type, double max) {
+        return wave(type, 0, max, 60, currentContext.getFrame());
     }
 
     public static double wave(AbstractWave.Type type, double min, double max) {
