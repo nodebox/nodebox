@@ -215,6 +215,32 @@ public class ExpressionHelper {
         return frame < minFrame ? defaultValue : functionValue;
     }
 
+    public static double schedule(double start, double end, double functionValue, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 1:
+                return schedule(start, end, functionValue, values[0], frame);
+            case 2:
+                return schedule(start, end, functionValue, values[0], values[1]);
+            case 0:
+            default:
+                return schedule(start, end, functionValue, 0, frame);
+        }
+    }
+
+    public static double schedule(double start, double end, double functionValue) {
+        return schedule(start, end, functionValue, 0, currentContext.getFrame());
+    }
+
+    public static double schedule(double start, double end, double functionValue, double defaultValue) {
+        return schedule(start, end, functionValue, defaultValue, currentContext.getFrame());
+    }
+
+    public static double schedule(double start, double end, double functionValue, double defaultValue, double frame) {
+        return start <= frame && frame < end ? functionValue : defaultValue;
+    }
+
     public static Object stamp(String key, Object defaultValue) {
         if (currentContext == null) return defaultValue;
         currentParameter.markStampExpression();

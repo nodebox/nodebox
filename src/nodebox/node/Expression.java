@@ -66,6 +66,7 @@ public class Expression {
             parserContext.addImport("int", ExpressionHelper.class.getMethod("toInt", double.class));
             parserContext.addImport("float", ExpressionHelper.class.getMethod("toFloat", int.class));
             parserContext.addImport("hold", ExpressionHelper.class.getMethod("hold", double.class, double.class, double[].class));
+            parserContext.addImport("schedule", ExpressionHelper.class.getMethod("schedule", double.class, double.class, double.class, double[].class));
             parserContext.addImport("wave", ExpressionHelper.class.getMethod("wave"));
             parserContext.addImport("wave", ExpressionHelper.class.getMethod("wave", AbstractWave.Type.class, double[].class));
             parserContext.addImport("math", Math.class);

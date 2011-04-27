@@ -756,7 +756,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             for (Parameter p : n.getParameters()) {
                 if (p.hasExpression() && (p.getExpression().contains("FRAME") ||
                                           p.getExpression().contains("wave") ||
-                                          p.getExpression().contains("hold"))) {
+                                          p.getExpression().contains("hold") ||
+                                          p.getExpression().contains("schedule") )) {
                     p.markDirty();
                 }
             }
