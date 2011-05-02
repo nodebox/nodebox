@@ -18,6 +18,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * A NodeBoxDocument manages a NodeLibrary.
@@ -25,6 +26,7 @@ import java.util.logging.Logger;
 public class NodeBoxDocument extends JFrame implements WindowListener, NodeEventListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
+    private static final Pattern TIME_DEPENDENT_KEYWORDS = Pattern.compile("FRAME|wave|hold|schedule|timeloop");
 
     public static String lastFilePath;
     public static String lastExportPath;
@@ -750,17 +752,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void markTimeDependentNodesDirty(Node network, float frame) {
         // TODO: This is a really hacky version of finding time-dependent nodes.
         // We simply traverse through the first level of the network and find all
-        // nodes that have parameters with expression with the words FRAME or wave in them.
+        // nodes that have parameters with expression with some predefined keywords in them.
+        // Look at TIME_DEPENDENT_KEYWORDS to see which ones they are.
         // Those are marked dirty.
         for (Node n : network.getChildren()) {
             for (Parameter p : n.getParameters()) {
-                if (p.hasExpression() && (p.getExpression().contains("FRAME") ||
-                                          p.getExpression().contains("wave") ||
-                                          p.getExpression().contains("hold") ||
-                                          p.getExpression().contains("schedule") ||
-                                          p.getExpression().contains("timeloop") )) {
+                if (p.hasExpression() && TIME_DEPENDENT_KEYWORDS.matcher(p.getExpression()).find())
                     p.markDirty();
-                }
             }
         }
     }
