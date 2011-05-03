@@ -25,7 +25,10 @@ public class PDFRenderer {
     }
 
     public static void render(Grob g, File file) {
-        Rect bounds = g.getBounds();
+        render(g, g.getBounds(), null, file);
+    }
+
+    public static void render(Grob g, Rect bounds, Color background, File file) {
         // I'm using fully qualified class names here so as not to polute the class' namespace.
         com.itextpdf.text.Rectangle size = new com.itextpdf.text.Rectangle(bounds.getWidth(), bounds.getHeight());
         com.itextpdf.text.Document document = new com.itextpdf.text.Document(size);
@@ -45,6 +48,10 @@ public class PDFRenderer {
         com.itextpdf.text.pdf.PdfContentByte contentByte = writer.getDirectContent();
         Graphics2D graphics = contentByte.createGraphics(bounds.getWidth(), bounds.getHeight(), fontMapper);
         graphics.translate(-bounds.getX(), -bounds.getY());
+        if (background != null) {
+            graphics.setColor(background.getAwtColor());
+            graphics.fillRect((int) bounds.getX(), (int) bounds.getY(), (int) bounds.getWidth(), (int) bounds.getHeight());
+        }
         g.draw(graphics);
         graphics.dispose();
         document.close();

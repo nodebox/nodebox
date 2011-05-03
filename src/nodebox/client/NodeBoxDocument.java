@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -487,7 +488,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         Object outputValue = exportNetwork.getRenderedChild().getOutputValue();
         if (outputValue instanceof Grob) {
             Grob g = (Grob) outputValue;
-            PDFRenderer.render(g, file);
+            Node root = nodeLibrary.getRootNode();
+            float x = root.asFloat("canvasX");
+            float y = root.asFloat("canvasY");
+            float width = root.asFloat("canvasWidth");
+            float height = root.asFloat("canvasHeight");
+            Rect bounds = Rect.centeredRect(x, y, width, height);
+            PDFRenderer.render(g, bounds, root.asColor("canvasBackground"), file);
             return true;
         } else {
             throw new RuntimeException("This type of output cannot be exported " + outputValue);
