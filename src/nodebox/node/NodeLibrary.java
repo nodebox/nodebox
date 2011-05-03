@@ -135,7 +135,15 @@ public class NodeLibrary {
         this.name = name;
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
+        this.rootNode.addParameter("canvasX", Parameter.Type.FLOAT);
+        this.rootNode.addParameter("canvasY", Parameter.Type.FLOAT);
+        this.rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000.0);
+        this.rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000.0);
         this.variables = new HashMap<String, String>();
+        for (Parameter param : this.rootNode.getParameters()) {
+            if (param.getName().startsWith("canvas"))
+                this.variables.put(param.getName(), param.asString());
+        }
     }
 
     public String getName() {
