@@ -141,6 +141,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         }
         this.nodeLibrary = newNodeLibrary;
+
+        setCanvasParameter("canvasX", 0f);
+        setCanvasParameter("canvasY", 0f);
+        setCanvasParameter("canvasWidth", 1000f);
+        setCanvasParameter("canvasHeight", 1000f);
+        setCanvasParameter("canvasBackground", new nodebox.graphics.Color(1, 1, 1, 0));
+
         // Add the listeners to the new library.
         if (listeners != null) {
             for (NodeEventListener listener : listeners) {
@@ -148,9 +155,26 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         } else {
             newNodeLibrary.addListener(this);
-
         }
         setActiveNetwork(newNodeLibrary.getRootNode());
+    }
+
+    private void setCanvasParameter(String name, Float value) {
+        String valueAsString = nodeLibrary.getVariable(name);
+        Parameter param = nodeLibrary.getRootNode().addParameter(name, Parameter.Type.FLOAT, value);
+        if (valueAsString != null)
+            param.set(Float.parseFloat(valueAsString));
+        else
+            nodeLibrary.setVariable(name, value.toString());
+    }
+
+    private void setCanvasParameter(String name, nodebox.graphics.Color value) {
+        String valueAsString = nodeLibrary.getVariable(name);
+        Parameter param = nodeLibrary.getRootNode().addParameter(name, Parameter.Type.COLOR, value);
+        if (valueAsString != null)
+            param.set(nodebox.graphics.Color.parseColor(valueAsString));
+        else
+            nodeLibrary.setVariable(name, value.toString());
     }
 
     public void addNodeLibraryListener(NodeEventListener listener) {
@@ -721,6 +745,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void setParameterValue(Parameter parameter, Object value) {
         addEdit("Change Value", "changeValue", parameter);
         parameter.set(value);
+        if (parameter.getNode() == nodeLibrary.getRootNode()) {
+            nodeLibrary.setVariable(parameter.getName(), parameter.asString());
+        }
     }
 
     public void setParameterExpression(Parameter parameter, String expression) {

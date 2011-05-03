@@ -8,10 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Node library stores a set of (possibly hierarchical) nodes.
@@ -135,15 +132,7 @@ public class NodeLibrary {
         this.name = name;
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
-        this.rootNode.addParameter("canvasX", Parameter.Type.FLOAT);
-        this.rootNode.addParameter("canvasY", Parameter.Type.FLOAT);
-        this.rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000.0);
-        this.rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000.0);
-        this.variables = new HashMap<String, String>();
-        for (Parameter param : this.rootNode.getParameters()) {
-            if (param.getName().startsWith("canvas"))
-                this.variables.put(param.getName(), param.asString());
-        }
+        this.variables = new LinkedHashMap<String, String>();
     }
 
     public String getName() {

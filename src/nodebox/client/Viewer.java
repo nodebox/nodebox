@@ -358,16 +358,26 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
+            Shape oldClip = g2.getClip();
             if (outputValue instanceof Grob) {
                 if (outputValue instanceof Canvas)
                     g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
+                else {
+                    Node root = getNode().getRoot();
+                    Rect r = Rect.centeredRect(root.asFloat("canvasX"), root.asFloat("canvasY"), root.asFloat("canvasWidth"), root.asFloat("canvasHeight"));
+                    g2.clip(r.getRectangle2D());
+                    g2.setColor(root.asColor("canvasBackground").getAwtColor());
+                    g2.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
+                }
                 ((Grob) outputValue).draw(g2);
+
             } else if (outputValue != null) {
                 String s = outputValue.toString();
                 g2.setColor(Theme.TEXT_NORMAL_COLOR);
                 g2.setFont(Theme.EDITOR_FONT);
                 g2.drawString(s, 5, 20);
             }
+            g2.setClip(oldClip);
 
             // Draw the handle.
             if (hasVisibleHandle()) {
