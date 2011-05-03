@@ -54,7 +54,8 @@ public class NDBXWriter {
             for (String variableName : library.getVariableNames()) {
                 String variableValue = library.getVariable(variableName);
                 Element varElement = doc.createElement("var");
-                doc.appendChild(varElement);
+                rootElement.appendChild(varElement);
+                varElement.setAttribute("name", variableName);
                 varElement.setAttribute("value", variableValue);
             }
 
