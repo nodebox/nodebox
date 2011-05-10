@@ -115,6 +115,18 @@ public class NodeLibrary {
         SAXParser parser = spf.newSAXParser();
         NDBXHandler handler = new NDBXHandler(library, manager);
         parser.parse(is, handler);
+        setCanvasParameter(library, "canvasX");
+        setCanvasParameter(library, "canvasY");
+        setCanvasParameter(library, "canvasWidth");
+        setCanvasParameter(library, "canvasHeight");
+        setCanvasParameter(library, "canvasBackground");
+    }
+
+    private static void setCanvasParameter(NodeLibrary library, String name) {
+        String valueAsString = library.getVariable(name);
+        Parameter param = library.getRootNode().getParameter(name);
+        if (param != null && valueAsString != null)
+            param.set(param.parseValue(valueAsString));
     }
 
     private NodeLibrary() {
@@ -133,6 +145,12 @@ public class NodeLibrary {
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
         this.variables = new LinkedHashMap<String, String>();
+        rootNode.addParameter("canvasX", Parameter.Type.FLOAT, 0f);
+        rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
+        rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
+        rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
+        rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1, 1, 1, 0));
+        getRootNode().setValue("_code", new WrapInCanvasCode());
     }
 
     public String getName() {

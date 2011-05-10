@@ -143,11 +143,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
         this.nodeLibrary = newNodeLibrary;
 
-        setCanvasParameter("canvasX", 0f);
-        setCanvasParameter("canvasY", 0f);
-        setCanvasParameter("canvasWidth", 1000f);
-        setCanvasParameter("canvasHeight", 1000f);
-        setCanvasParameter("canvasBackground", new nodebox.graphics.Color(1, 1, 1, 0));
 
         // Add the listeners to the new library.
         if (listeners != null) {
@@ -160,23 +155,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         setActiveNetwork(newNodeLibrary.getRootNode());
     }
 
-    private void setCanvasParameter(String name, Float value) {
-        String valueAsString = nodeLibrary.getVariable(name);
-        Parameter param = nodeLibrary.getRootNode().addParameter(name, Parameter.Type.FLOAT, value);
-        if (valueAsString != null)
-            param.set(Float.parseFloat(valueAsString));
-        else
-            nodeLibrary.setVariable(name, value.toString());
-    }
 
-    private void setCanvasParameter(String name, nodebox.graphics.Color value) {
-        String valueAsString = nodeLibrary.getVariable(name);
-        Parameter param = nodeLibrary.getRootNode().addParameter(name, Parameter.Type.COLOR, value);
-        if (valueAsString != null)
-            param.set(nodebox.graphics.Color.parseColor(valueAsString));
-        else
-            nodeLibrary.setVariable(name, value.toString());
-    }
 
     public void addNodeLibraryListener(NodeEventListener listener) {
         nodeLibrary.addListener(listener);
@@ -484,17 +463,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         file = new File(fullPath);
 
         // todo: file export only works on grobs.
-        if (exportNetwork == null || exportNetwork.getRenderedChild() == null) return false;
-        Object outputValue = exportNetwork.getRenderedChild().getOutputValue();
+        if (exportNetwork == null) return false;
+        Object outputValue = exportNetwork.getOutputValue();
         if (outputValue instanceof Grob) {
             Grob g = (Grob) outputValue;
-            Node root = nodeLibrary.getRootNode();
-            float x = root.asFloat("canvasX");
-            float y = root.asFloat("canvasY");
-            float width = root.asFloat("canvasWidth");
-            float height = root.asFloat("canvasHeight");
-            Rect bounds = Rect.centeredRect(x, y, width, height);
-            PDFRenderer.render(g, bounds, root.asColor("canvasBackground"), file);
+            PDFRenderer.render(g, file);
             return true;
         } else {
             throw new RuntimeException("This type of output cannot be exported " + outputValue);

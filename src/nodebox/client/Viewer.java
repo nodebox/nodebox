@@ -202,9 +202,10 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 if (outputValue instanceof Canvas) {
                     // The canvas is placed in the top-left corner, as in NodeBox 1.
                     resetView();
-                    viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                    viewerLayer.setOffset(0, 0);
-                } else if (outputValue instanceof Grob) {
+                    Canvas canvas = (Canvas) outputValue;
+                    viewerLayer.setBounds(canvas.getBounds().getRectangle2D());
+                    viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
+                } else  if (outputValue instanceof Grob) {
                     // Other graphic objects are displayed in the center.
                     resetView();
                     viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -360,15 +361,15 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             Object outputValue = getNode().getOutputValue();
             Shape oldClip = g2.getClip();
             if (outputValue instanceof Grob) {
-                if (outputValue instanceof Canvas)
-                    g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
-                else {
+/*                if (outputValue instanceof Canvas)
+//                    g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
+//                else {
                     Node root = getNode().getRoot();
                     Rect r = Rect.centeredRect(root.asFloat("canvasX"), root.asFloat("canvasY"), root.asFloat("canvasWidth"), root.asFloat("canvasHeight"));
                     g2.clip(r.getRectangle2D());
                     g2.setColor(root.asColor("canvasBackground").getAwtColor());
                     g2.fillRect((int) r.getX(), (int) r.getY(), (int) r.getWidth(), (int) r.getHeight());
-                }
+//                } */
                 ((Grob) outputValue).draw(g2);
 
             } else if (outputValue != null) {
