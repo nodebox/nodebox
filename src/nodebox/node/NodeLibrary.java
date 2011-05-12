@@ -145,11 +145,16 @@ public class NodeLibrary {
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
         this.variables = new LinkedHashMap<String, String>();
-        rootNode.addParameter("canvasX", Parameter.Type.FLOAT, 0f);
-        rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
-        rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
-        rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
-        rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1, 1, 1, 0));
+        Parameter pCanvasX = rootNode.addParameter("canvasX", Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasY = rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasWidth = rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
+        Parameter pCanvasHeight = rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
+        Parameter pCanvasBackground = rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1, 1, 1, 0));
+        pCanvasX.setLabel("Offset X");
+        pCanvasY.setLabel("Offset Y");
+        pCanvasWidth.setLabel("Canvas Width");
+        pCanvasHeight.setLabel("Canvas Height");
+        pCanvasBackground.setLabel("Background Color");
         getRootNode().setValue("_code", new WrapInCanvasCode());
     }
 
