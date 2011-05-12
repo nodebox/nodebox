@@ -173,7 +173,7 @@ public class Canvas extends AbstractTransformable {
      * @return a bounding box with x/y at the center and width/height of the canvas.
      */
     public Rect getBounds() {
-        return new Rect(-width/2 + offsetX, -height/2 + offsetY, width, height);
+        return new Rect(-width / 2 + offsetX, -height / 2 + offsetY, width, height);
     }
 
     public Canvas clone() {
@@ -201,14 +201,7 @@ public class Canvas extends AbstractTransformable {
         if (background != null) {
             g.setColor(background.getAwtColor());
             g.fill(getBounds().getRectangle2D());
-            //g.fillRect(0, 0, Math.round(width), Math.round(height));
         }
-        //Rectangle clip = g.getClipBounds();
-        //int clipwidth = clip != null && width > clip.width ? clip.width : (int) height;
-        //int clipheight = clip != null && height > clip.height ? clip.height : (int) width;
-        //g.setClip(clip != null ? clip.x : 0, clip != null ? clip.y : 0, clipwidth, clipheight);
-
-
         g.clip(getBounds().getRectangle2D());
         for (Grob grob : items) {
             grob.draw(g);
