@@ -41,6 +41,7 @@ public abstract class AbstractParameterControl extends JComponent implements Par
     public void receive(NodeEvent event) {
         if (!(event instanceof ValueChangedEvent)) return;
         if (((ValueChangedEvent) event).getParameter() != parameter) return;
+        if (!isVisible()) return;
         setValueForControl(parameter.getValue());
     }
 
