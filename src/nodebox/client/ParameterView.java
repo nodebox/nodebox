@@ -166,7 +166,8 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
                 control.setValueForControl(e.getParameter().getValue());
             }
         } else if (event instanceof ConnectionAddedEvent) {
-            // TODO: Why? We only show parameters, not ports.
+            // We need to know when connections are changed because we display multi-port
+            // connections in the parameter view to allow users to order and remove them.
             if (((ConnectionAddedEvent) event).getConnection().getInputNode() == node)
                 rebuildInterface();
         } else if (event instanceof NodeAttributeChangedEvent) {
