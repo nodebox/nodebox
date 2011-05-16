@@ -18,7 +18,6 @@
  */
 package nodebox.client;
 
-import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeLibraryManager;
 import nodebox.versioncheck.Host;
@@ -133,7 +132,7 @@ public class Application implements Host {
 
     public void showAbout() {
         String javaVersion = System.getProperty("java.runtime.version");
-        JOptionPane.showMessageDialog(null, NAME + " version " + getVersion()+ "\nJava " + javaVersion, NAME, JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(null, NAME + " version " + getVersion() + "\nJava " + javaVersion, NAME, JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void showPreferences() {
