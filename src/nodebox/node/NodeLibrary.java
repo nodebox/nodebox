@@ -8,10 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A Node library stores a set of (possibly hierarchical) nodes.
@@ -118,6 +115,18 @@ public class NodeLibrary {
         SAXParser parser = spf.newSAXParser();
         NDBXHandler handler = new NDBXHandler(library, manager);
         parser.parse(is, handler);
+        setCanvasParameter(library, "canvasX");
+        setCanvasParameter(library, "canvasY");
+        setCanvasParameter(library, "canvasWidth");
+        setCanvasParameter(library, "canvasHeight");
+        setCanvasParameter(library, "canvasBackground");
+    }
+
+    private static void setCanvasParameter(NodeLibrary library, String name) {
+        String valueAsString = library.getVariable(name);
+        Parameter param = library.getRootNode().getParameter(name);
+        if (param != null && valueAsString != null)
+            param.set(param.parseValue(valueAsString));
     }
 
     private NodeLibrary() {
@@ -135,7 +144,18 @@ public class NodeLibrary {
         this.name = name;
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
-        this.variables = new HashMap<String, String>();
+        this.variables = new LinkedHashMap<String, String>();
+        Parameter pCanvasX = rootNode.addParameter("canvasX", Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasY = rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasWidth = rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
+        Parameter pCanvasHeight = rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
+        Parameter pCanvasBackground = rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1, 1, 1, 0));
+        pCanvasX.setLabel("Offset X");
+        pCanvasY.setLabel("Offset Y");
+        pCanvasWidth.setLabel("Canvas Width");
+        pCanvasHeight.setLabel("Canvas Height");
+        pCanvasBackground.setLabel("Background Color");
+        getRootNode().setValue("_code", new WrapInCanvasCode());
     }
 
     public String getName() {

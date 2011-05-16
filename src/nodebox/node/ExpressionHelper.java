@@ -3,6 +3,7 @@ package nodebox.node;
 import nodebox.graphics.Color;
 import nodebox.util.waves.*;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -126,28 +127,133 @@ public class ExpressionHelper {
         return Color.fromHSB(hue, saturation, brightness, alpha);
     }
 
-    public static double sinewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SineWave.from((float) min, (float) max, (float) speed);
+    public static double wave(AbstractWave.Type type, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 0:
+                return wave(type, 0, 1, 60, frame);
+            case 1:
+                return wave(type, values[0], 1, 60, frame);
+            case 2:
+                return wave(type, values[0], values[1], 60, frame);
+            case 3:
+                return wave(type, values[0], values[2], values[3], frame);
+            case 4:
+                return wave(type, values[0], values[2], values[3], values[4]);
+            default:
+                return wave(type, 0, 1, 60, frame);
+        }
+    }
+
+    public static double wave() {
+        return wave(AbstractWave.Type.SINE, 0, 1, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type) {
+        return wave(type, 0, 1, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double max) {
+        return wave(type, 0, max, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min, double max) {
+        return wave(type, min, max, 60, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min, double max, double speed) {
+        return wave(type, min, max, speed, currentContext.getFrame());
+    }
+
+    public static double wave(AbstractWave.Type type, double min, double max, double speed, double frame) {
+        float fmin = (float) min;
+        float fmax = (float) max;
+        float fspeed = (float) speed;
+
+        AbstractWave wave;
+        switch (type) {
+            case TRIANGLE:
+                wave = TriangleWave.from(fmin, fmax, fspeed);
+                break;
+            case SQUARE:
+                wave = SquareWave.from(fmin, fmax, fspeed);
+                break;
+            case SAWTOOTH:
+                wave = SawtoothWave.from(fmin, fmax, fspeed);
+                break;
+            case SINE:
+            default:
+                wave = SineWave.from(fmin, fmax, fspeed);
+                break;
+        }
         return wave.getValueAt((float) frame);
     }
 
-    public static double trianglewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = TriangleWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
+    public static double hold(double minFrame, double functionValue, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 1:
+                return hold(minFrame, functionValue, values[0], frame);
+            case 2:
+                return hold(minFrame, functionValue, values[0], values[1]);
+            case 0:
+            default:
+                return hold(minFrame, functionValue, 0, frame);
+        }
     }
 
-    public static double squarewave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SquareWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
+    public static double hold(double minFrame, double functionValue) {
+        return hold(minFrame, functionValue, 0, currentContext.getFrame());
     }
 
-    public static double sawtoothwave(double frame, double min, double max, double speed) {
-        AbstractWave wave = SawtoothWave.from((float) min, (float) max, (float) speed);
-        return wave.getValueAt((float) frame);
+    public static double hold(double minFrame, double functionValue, double defaultValue) {
+        return hold(minFrame, functionValue, defaultValue, currentContext.getFrame());
     }
 
-    public static double hold(double frame, double minFrame, double functionValue, double defaultValue) {
+    public static double hold(double minFrame, double functionValue, double defaultValue, double frame) {
         return frame < minFrame ? defaultValue : functionValue;
+    }
+
+    public static double schedule(double start, double end, double functionValue, double... values) {
+        double frame = currentContext.getFrame();
+
+        switch (values.length) {
+            case 1:
+                return schedule(start, end, functionValue, values[0], frame);
+            case 2:
+                return schedule(start, end, functionValue, values[0], values[1]);
+            case 0:
+            default:
+                return schedule(start, end, functionValue, 0, frame);
+        }
+    }
+
+    public static double schedule(double start, double end, double functionValue) {
+        return schedule(start, end, functionValue, 0, currentContext.getFrame());
+    }
+
+    public static double schedule(double start, double end, double functionValue, double defaultValue) {
+        return schedule(start, end, functionValue, defaultValue, currentContext.getFrame());
+    }
+
+    public static double schedule(double start, double end, double functionValue, double defaultValue, double frame) {
+        return start <= frame && frame < end ? functionValue : defaultValue;
+    }
+
+    public static double timeloop(double speed, List<Number> values) {
+        return timeloop(speed, values, currentContext.getFrame());
+    }
+
+    public static double timeloop(double speed, List<Number> values, double frame) {
+        if (values.size() == 0) return 0;
+        int index = (int) (frame / speed);
+        try {
+            return values.get(index % values.size()).doubleValue();
+        } catch (ClassCastException e) {
+            return 0;
+        }
     }
 
     public static Object stamp(String key, Object defaultValue) {
@@ -156,5 +262,4 @@ public class ExpressionHelper {
         Object v = currentContext.get(key);
         return v != null ? v : defaultValue;
     }
-
 }

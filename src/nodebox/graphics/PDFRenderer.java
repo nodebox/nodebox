@@ -25,8 +25,8 @@ public class PDFRenderer {
     }
 
     public static void render(Grob g, File file) {
+        // I'm using fully qualified class names here so as not to pollute the class' namespace.
         Rect bounds = g.getBounds();
-        // I'm using fully qualified class names here so as not to polute the class' namespace.
         com.itextpdf.text.Rectangle size = new com.itextpdf.text.Rectangle(bounds.getWidth(), bounds.getHeight());
         com.itextpdf.text.Document document = new com.itextpdf.text.Document(size);
         FileOutputStream fos;

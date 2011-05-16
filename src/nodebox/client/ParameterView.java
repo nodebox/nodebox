@@ -71,6 +71,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         if (this.node == null) {
             node.getLibrary().addListener(this);
         }
+        if (node == null) return;
         this.node = node;
         rebuildInterface();
         validate();

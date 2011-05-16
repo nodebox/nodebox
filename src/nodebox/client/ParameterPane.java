@@ -45,6 +45,11 @@ public class ParameterPane extends Pane {
     }
 
     public void setNode(Node node) {
+        if (node == null) {
+            Node rootNode = getDocument().getNodeLibrary().getRootNode();
+            if (parameterView.getNode() == rootNode) return;
+            parameterView.setNode(rootNode);
+        }
         if (this.node == node) return;
         this.node = node;
         parameterView.setNode(node);

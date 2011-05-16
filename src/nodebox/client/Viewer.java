@@ -16,12 +16,13 @@ import nodebox.node.event.NodeAttributeChangedEvent;
 import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.swing.*;
-import java.awt.Color;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener, NodeEventListener {
 
@@ -202,8 +203,9 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 if (outputValue instanceof Canvas) {
                     // The canvas is placed in the top-left corner, as in NodeBox 1.
                     resetView();
-                    viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                    viewerLayer.setOffset(0, 0);
+                    Canvas canvas = (Canvas) outputValue;
+                    viewerLayer.setBounds(canvas.getBounds().getRectangle2D());
+                    viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
                 } else if (outputValue instanceof Grob) {
                     // Other graphic objects are displayed in the center.
                     resetView();
@@ -358,10 +360,18 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
+            // Draw the canvas bounds
+            if (outputValue instanceof Canvas) {
+                Canvas c = (Canvas) outputValue;
+                Rectangle2D canvasBounds = c.getBounds().getRectangle2D();
+                g2.setColor(Color.DARK_GRAY);
+                g2.setStroke(new BasicStroke(1f));
+                g2.draw(canvasBounds);
+            }
             if (outputValue instanceof Grob) {
-                if (outputValue instanceof Canvas)
-                    g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
+                Shape oldClip = g2.getClip();
                 ((Grob) outputValue).draw(g2);
+                g2.setClip(oldClip);
             } else if (outputValue != null) {
                 String s = outputValue.toString();
                 g2.setColor(Theme.TEXT_NORMAL_COLOR);

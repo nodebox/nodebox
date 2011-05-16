@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * A NodeBoxDocument manages a NodeLibrary.
@@ -25,6 +27,7 @@ import java.util.logging.Logger;
 public class NodeBoxDocument extends JFrame implements WindowListener, NodeEventListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
+    private static final Pattern TIME_DEPENDENT_KEYWORDS = Pattern.compile("FRAME|wave|hold|schedule|timeloop");
 
     public static String lastFilePath;
     public static String lastExportPath;
@@ -139,6 +142,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         }
         this.nodeLibrary = newNodeLibrary;
+
+
         // Add the listeners to the new library.
         if (listeners != null) {
             for (NodeEventListener listener : listeners) {
@@ -146,10 +151,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         } else {
             newNodeLibrary.addListener(this);
-
         }
         setActiveNetwork(newNodeLibrary.getRootNode());
     }
+
+
 
     public void addNodeLibraryListener(NodeEventListener listener) {
         nodeLibrary.addListener(listener);
@@ -457,8 +463,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         file = new File(fullPath);
 
         // todo: file export only works on grobs.
-        if (exportNetwork == null || exportNetwork.getRenderedChild() == null) return false;
-        Object outputValue = exportNetwork.getRenderedChild().getOutputValue();
+        if (exportNetwork == null) return false;
+        Object outputValue = exportNetwork.getOutputValue();
         if (outputValue instanceof Grob) {
             Grob g = (Grob) outputValue;
             PDFRenderer.render(g, file);
@@ -719,6 +725,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void setParameterValue(Parameter parameter, Object value) {
         addEdit("Change Value", "changeValue", parameter);
         parameter.set(value);
+        if (parameter.getNode() == nodeLibrary.getRootNode()) {
+            nodeLibrary.setVariable(parameter.getName(), parameter.asString());
+        }
     }
 
     public void setParameterExpression(Parameter parameter, String expression) {
@@ -750,13 +759,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void markTimeDependentNodesDirty(Node network, float frame) {
         // TODO: This is a really hacky version of finding time-dependent nodes.
         // We simply traverse through the first level of the network and find all
-        // nodes that have parameters with expression with the word FRAME in them.
+        // nodes that have parameters with expression with some predefined keywords in them.
+        // Look at TIME_DEPENDENT_KEYWORDS to see which ones they are.
         // Those are marked dirty.
         for (Node n : network.getChildren()) {
             for (Parameter p : n.getParameters()) {
-                if (p.hasExpression() && p.getExpression().contains("FRAME")) {
+                if (p.hasExpression() && TIME_DEPENDENT_KEYWORDS.matcher(p.getExpression()).find())
                     p.markDirty();
-                }
             }
         }
     }
