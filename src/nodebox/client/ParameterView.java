@@ -4,6 +4,7 @@ import nodebox.client.parameter.*;
 import nodebox.node.*;
 import nodebox.node.event.ConnectionAddedEvent;
 import nodebox.node.event.NodeAttributeChangedEvent;
+import nodebox.node.event.ValueChangedEvent;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,6 +45,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
     private Pane pane;
     private Node node;
     private JPanel controlPanel;
+    private Map<Parameter, ParameterControl> controlMap = new HashMap<Parameter, ParameterControl>();
 
     public ParameterView(Pane pane) {
         this.pane = pane;
@@ -55,6 +57,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         JScrollPane scrollPane = new JScrollPane(controlPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
+        getDocument().getNodeLibrary().addListener(this);
     }
 
     public NodeBoxDocument getDocument() {
@@ -78,8 +81,10 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         repaint();
     }
 
+
     private void rebuildInterface() {
         controlPanel.removeAll();
+        controlMap.clear();
         if (node == null) return;
         int rowindex = 0;
         for (Port p : node.getPorts()) {
@@ -102,6 +107,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
             JComponent control;
             if (widgetClass != null) {
                 control = (JComponent) constructControl(widgetClass, p);
+                controlMap.put(p, (ParameterControl) control);
             } else {
                 control = new JLabel("  ");
             }
@@ -143,20 +149,33 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         }
     }
 
-    public void attributeChanged(Parameter source) {
-        rebuildInterface();
+    public ParameterControl getControlForParameter(Parameter p) {
+        return controlMap.get(p);
     }
 
     public void receive(NodeEvent event) {
-        if (event instanceof ConnectionAddedEvent) {
+        if (event instanceof ValueChangedEvent) {
+            if (event.getSource() != node) return;
+            ValueChangedEvent e = (ValueChangedEvent) event;
+            Parameter p = e.getParameter();
+            // Nodes that have expressions set don't display the actual value but the expression.
+            // Since the expression doesn't change, we can return immediately.
+            if (p.hasExpression()) return;
+            ParameterControl control = getControlForParameter(p);
+            if (control != null && control.isVisible()) {
+                control.setValueForControl(e.getParameter().getValue());
+            }
+        } else if (event instanceof ConnectionAddedEvent) {
+            // TODO: Why? We only show parameters, not ports.
             if (((ConnectionAddedEvent) event).getConnection().getInputNode() == node)
                 rebuildInterface();
-            return;
+        } else if (event instanceof NodeAttributeChangedEvent) {
+            // Rebuild the interface when one of the node attributes is changed.
+            // We don't care about the position, since we don't actually display it.
+            if (((NodeAttributeChangedEvent) event).getAttribute() == Node.Attribute.POSITION) return;
+            if (event.getSource() != node) return;
+            rebuildInterface();
         }
-        if (event.getSource() != node) return;
-        if (!(event instanceof NodeAttributeChangedEvent)) return;
-        if (((NodeAttributeChangedEvent) event).getAttribute() == Node.Attribute.POSITION) return;
-        rebuildInterface();
     }
 
     private class ControlPanel extends JPanel {

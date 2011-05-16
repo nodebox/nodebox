@@ -1,9 +1,7 @@
 package nodebox.client.parameter;
 
 import nodebox.client.NodeBoxDocument;
-import nodebox.node.NodeEvent;
 import nodebox.node.Parameter;
-import nodebox.node.event.ValueChangedEvent;
 
 import javax.swing.*;
 
@@ -24,25 +22,6 @@ public abstract class AbstractParameterControl extends JComponent implements Par
 
     public Parameter getParameter() {
         return parameter;
-    }
-
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        parameter.getLibrary().addListener(this);
-    }
-
-    @Override
-    public void removeNotify() {
-        super.removeNotify();
-        parameter.getLibrary().removeListener(this);
-    }
-
-    public void receive(NodeEvent event) {
-        if (!(event instanceof ValueChangedEvent)) return;
-        if (((ValueChangedEvent) event).getParameter() != parameter) return;
-        if (!isVisible()) return;
-        setValueForControl(parameter.getValue());
     }
 
     public void valueChanged(Parameter source) {
