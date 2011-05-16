@@ -51,9 +51,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
-        if (Application.FLAG_ENABLE_ANIMATION) {
-            fileMenu.add(new ExportRangeAction());
-        }
+        fileMenu.add(new ExportRangeAction());
         if (!PlatformUtils.onMac()) {
             fileMenu.addSeparator();
             fileMenu.add(new ExitAction());
@@ -277,7 +275,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-     public class ExportRangeAction extends AbstractDocumentAction {
+    public class ExportRangeAction extends AbstractDocumentAction {
         public ExportRangeAction() {
             putValue(NAME, "Export Range...");
             putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_E, Event.SHIFT_MASK));

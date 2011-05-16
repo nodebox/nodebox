@@ -3,7 +3,6 @@ package nodebox.client;
 import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
-import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -78,11 +77,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
 
-        if (Application.FLAG_ENABLE_ANIMATION) {
-            animationTimer = new AnimationTimer(this);
-            animationBar = new AnimationBar(this);
-            rootPanel.add(animationBar, BorderLayout.SOUTH);
-        }
+        // Animation properties.
+        animationTimer = new AnimationTimer(this);
+        animationBar = new AnimationBar(this);
+        rootPanel.add(animationBar, BorderLayout.SOUTH);
 
         setContentPane(rootPanel);
         setLocationByPlatform(true);
@@ -154,7 +152,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
         setActiveNetwork(newNodeLibrary.getRootNode());
     }
-
 
 
     public void addNodeLibraryListener(NodeEventListener listener) {
@@ -558,7 +555,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public boolean exportRange() {
         File exportDirectory = lastExportPath == null ? null : new File(lastExportPath);
-        if (exportDirectory != null && ! exportDirectory.exists())
+        if (exportDirectory != null && !exportDirectory.exists())
             exportDirectory = null;
         ExportRangeDialog d = new ExportRangeDialog(this, exportDirectory);
         d.setLocationRelativeTo(this);

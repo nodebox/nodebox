@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 
 public class Application implements Host {
 
-    public static boolean FLAG_ENABLE_ANIMATION = false;
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -349,11 +348,6 @@ public class Application implements Host {
 
 
     public static void main(String[] args) {
-        for (String arg : args) {
-            if (arg.contains("--enable-animation")) {
-                FLAG_ENABLE_ANIMATION = true;
-            }
-        }
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 instance = new Application();
