@@ -51,7 +51,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
     public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();
-    ;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();

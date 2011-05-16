@@ -18,6 +18,7 @@
  */
 package nodebox.client;
 
+import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeLibraryManager;
 import nodebox.versioncheck.Host;
@@ -192,7 +193,12 @@ public class Application implements Host {
     }
 
     public NodeBoxDocument createNewDocument() {
-        NodeBoxDocument doc = new NodeBoxDocument(new NodeLibrary("untitled"));
+        NodeLibrary newLibrary = new NodeLibrary("untitled");
+        Node root = newLibrary.getRootNode();
+        Node rectNode = root.create(manager.getNode("corevector.rect"));
+        rectNode.setPosition(40, 40);
+        rectNode.setRendered();
+        NodeBoxDocument doc = new NodeBoxDocument(newLibrary);
         addDocument(doc);
         return doc;
     }
