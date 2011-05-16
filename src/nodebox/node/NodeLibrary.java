@@ -149,12 +149,12 @@ public class NodeLibrary {
         Parameter pCanvasY = rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
         Parameter pCanvasWidth = rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
         Parameter pCanvasHeight = rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
-        Parameter pCanvasBackground = rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1, 1, 1, 0));
+        Parameter pCanvasBackground = rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1));
         pCanvasX.setLabel("Offset X");
         pCanvasY.setLabel("Offset Y");
         pCanvasWidth.setLabel("Canvas Width");
         pCanvasHeight.setLabel("Canvas Height");
-        pCanvasBackground.setLabel("Background Color");
+        pCanvasBackground.setLabel("Background");
         getRootNode().setValue("_code", new WrapInCanvasCode());
     }
 
