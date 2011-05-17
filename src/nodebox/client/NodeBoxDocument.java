@@ -638,7 +638,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         final Movie movie = new Movie(file.getAbsolutePath(), width, height);
         for (int frame = 0; frame <= 100; frame++) {
             exportLibrary.setFrame(frame);
-            markTimeDependentNodesDirty(exportNetwork, frame);
             exportNetwork.update();
             Object outputValue = exportNetwork.getOutputValue();
             if (outputValue instanceof Grob) {
