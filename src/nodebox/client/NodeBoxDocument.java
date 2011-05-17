@@ -12,6 +12,7 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -617,6 +618,43 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         ((InterruptableProgressDialog) d).setThread(t);
         t.start();
         viewer.setVisible(true);
+    }
+
+    public boolean exportMovie() {
+        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "mov", "MOV file");
+        if (chosenFile != null) {
+            lastExportPath = chosenFile.getParentFile().getAbsolutePath();
+            return exportToMovieFile(chosenFile);
+        }
+        return false;
+    }
+
+    private boolean exportToMovieFile(File file) {
+        String xml = nodeLibrary.toXml();
+        final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+        final Node exportNetwork = exportLibrary.getRootNode();
+        final int width = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_WIDTH).asInt();
+        final int height = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_HEIGHT).asInt();
+        final Movie movie = new Movie(file.getAbsolutePath(), width, height);
+        for (int frame = 0; frame <= 100; frame++) {
+            exportLibrary.setFrame(frame);
+            markTimeDependentNodesDirty(exportNetwork, frame);
+            exportNetwork.update();
+            Object outputValue = exportNetwork.getOutputValue();
+            if (outputValue instanceof Grob) {
+                Grob g = (Grob) outputValue;
+                BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2d = img.createGraphics();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.translate(width/2, height/2);
+                g.draw(g2d);
+                img.flush();
+                movie.addFrame(img);
+            } else
+                return false;
+        }
+        movie.save();
+        return true;
     }
 
     public boolean reloadActiveNode() {

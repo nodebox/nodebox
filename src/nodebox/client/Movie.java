@@ -34,7 +34,7 @@ public class Movie {
         String binaryName = "ffmpeg";
         if (osName.equals("Windows"))
             binaryName = "ffmpeg.exe";
-        File packagedBinary = new File(String.format("platform/%s/bin/%s", osName, binaryName));
+        File packagedBinary = new File(String.format("bin/%s", binaryName));
         if (packagedBinary.exists()) {
             FFMPEG_BINARY = packagedBinary;
         } else {

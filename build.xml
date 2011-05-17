@@ -199,7 +199,6 @@
         <mkdir dir="${mac.application.plugins}"/>
         <mkdir dir="${mac.application.libraries}"/>
         <mkdir dir="${mac.application.res}"/>
-        <mkdir dir="${mac.application.bin}"/>
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
             <fileset dir="${lib}">
@@ -215,9 +214,10 @@
         <copy todir="${mac.application.res}">
             <fileset dir="${res}"/>
         </copy>
-        <copy todir="${mac.application.bin}">
-            <fileset dir="${platform.bin}"/>
-        </copy>
+        <exec executable="cp">
+            <arg line="-p -R ${platform.bin} ${mac.application.resources.java}"/>
+        </exec>
+
         <!-- Copy bundled libraries -->
         <copy todir="${mac.application.libraries}">
             <fileset dir="${libraries}"/>
@@ -248,13 +248,18 @@
     <target name="install" depends="dist-mac" description="Create application">
     </target>
 
-    <target name="bindir" depends="properties" >
+    <target name="bindir-unix" depends="properties" unless="platform.windows">
+        <exec executable="cp">
+            <arg line="-p -R ${platform.bin} ."/>
+        </exec>
+    </target>
+    <target name="bindir-win" depends="properties" if="platform.windows">
         <mkdir dir="${bin}"/>
         <copy todir="${bin}">
             <fileset dir="${platform.bin}"/>
         </copy>
     </target>
-
+    <target name="bindir" depends="bindir-unix,bindir-win"/>
     <target name="run" depends="compile,bindir">
         <java classname="nodebox.client.Application" fork="true">
             <classpath refid="project.classpath"/>
