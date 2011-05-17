@@ -476,6 +476,95 @@ public class NodeLibraryTest extends TestCase {
     }
 
     /**
+     * Test the handling of external dependencies.
+     */
+    public void testExternalDependencies() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node root = library.getRootNode();
+        Node n = root.create(Node.ROOT_NODE, "n");
+        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
+        n.update();
+        assertFalse(n.isDirty());
+
+        // After setting the external dependency on the parameter, triggering the dependency makes the node dirty.
+        library.addExternalDependency(p, NodeLibrary.ExternalEvent.FRAME);
+        library.externalDependencyTriggered(NodeLibrary.ExternalEvent.FRAME);
+        assertTrue(n.isDirty());
+
+        // Updating the node makes it clean.
+        n.update();
+        assertFalse(n.isDirty());
+        // After removing all external dependencies on the parameter,
+        // triggering an external dependency does not make the node dirty.
+        library.removeExternalDependencies(p);
+        library.externalDependencyTriggered(NodeLibrary.ExternalEvent.FRAME);
+        assertFalse(n.isDirty());
+    }
+
+    /**
+     * Test handling dependencies on the current frame number by setting expressions.
+     */
+    public void testFrameDependency() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node root = library.getRootNode();
+        Node n = root.create(Node.ROOT_NODE, "n");
+        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
+        // Setting the expression to frame declares an external dependency on the parameter.
+        p.setExpression("FRAME + 5");
+
+        n.update();
+        assertFalse(n.isDirty());
+
+        // Changing the frame should trigger the external dependency.
+        library.setFrame(100);
+        assertTrue(n.isDirty());
+        n.update();
+        assertFalse(n.isDirty());
+        assertEquals(105f, p.asFloat());
+
+        // Clearing the expression removes the external dependency.
+        p.clearExpression();
+        // Update the node again to make it clean.
+        n.update();
+        assertFalse(n.isDirty());
+        assertEquals(105f, p.asFloat());
+
+        // Because we no longer refer to frame, setting the frame does not mark the node dirty.
+        library.setFrame(200);
+        assertFalse(n.isDirty());
+    }
+
+    public void testCanvasDependency() {
+        NodeLibrary library = new NodeLibrary("test");
+        Node root = library.getRootNode();
+        Node n = root.create(Node.ROOT_NODE, "n");
+        n.setRendered();
+        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
+        // Setting the expression to WIDTH declares an external dependency on the parameter.
+        p.setExpression("WIDTH / 2");
+        root.update();
+        assertFalse(n.isDirty());
+
+        // Changing the canvas values should trigger the external dependency.
+        root.setValue(NodeLibrary.CANVAS_WIDTH, 500f);
+        assertTrue(n.isDirty());
+        n.update();
+        assertFalse(n.isDirty());
+        assertEquals(250f, p.asFloat());
+
+        // Clearing the expression removes the external dependency.
+        p.clearExpression();
+        // Update the node again to make it clean.
+        n.update();
+        assertFalse(n.isDirty());
+        assertEquals(250f, p.asFloat());
+
+        // Because we no longer refer to frame, setting the frame does not mark the node dirty.
+        root.setValue(NodeLibrary.CANVAS_WIDTH, 400f);
+        assertFalse(n.isDirty());
+    }
+
+    /**
      * Assert that the search string only appears once in the source.
      *
      * @param source       the source string to search in

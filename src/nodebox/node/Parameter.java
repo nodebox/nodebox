@@ -22,6 +22,7 @@ import nodebox.graphics.Color;
 import nodebox.util.StringUtils;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * A parameter controls the operation of a Node. It provide an interface into the workings of a node and allows a user
@@ -130,6 +131,9 @@ public class Parameter {
     public static final HashMap<Type, Widget> WIDGET_MAPPING;
     public static final HashMap<Widget, Type> REVERSE_WIDGET_MAPPING;
     public static final NodeCode emptyCode = new EmptyCode();
+
+    private static final Pattern TIME_DEPENDENT_KEYWORDS = Pattern.compile("FRAME|wave|hold|schedule|timeloop");
+    private static final Pattern CANVAS_DEPENDENT_KEYWORDS = Pattern.compile("TOP|LEFT|BOTTOM|RIGHT|WIDTH|HEIGHT");
 
     static {
         TYPE_MAPPING = new HashMap<Type, Class>();
@@ -692,6 +696,7 @@ public class Parameter {
         this.expression = null;
         hasStampExpression = false;
         removeDependencies();
+        removeExternalDependencies();
         markDirty();
     }
 
@@ -748,6 +753,15 @@ public class Parameter {
             this.expression.setError(e);
             return false;
         }
+        // Find and set external dependencies.
+        removeExternalDependencies();
+        NodeLibrary library = getLibrary();
+        if (TIME_DEPENDENT_KEYWORDS.matcher(expression).find()) {
+            library.addExternalDependency(this, NodeLibrary.ExternalEvent.FRAME);
+        }
+        if (CANVAS_DEPENDENT_KEYWORDS.matcher(expression).find()) {
+            library.addExternalDependency(this, NodeLibrary.ExternalEvent.CANVAS);
+        }
         return true;
     }
 
@@ -781,6 +795,8 @@ public class Parameter {
      */
     private void updateDependencies() throws DependencyError {
         removeDependencies();
+        // Because this relates to expressions referring to other expressions, we don't need to remove external
+        // dependencies here.
         for (Parameter p : expression.getDependencies()) {
             // Add the parameter I depend on to as a dependency.
             // This also makes the reverse connection in the dependency graph.
@@ -809,6 +825,14 @@ public class Parameter {
      */
     private void removeDependencies() {
         getLibrary().removeParameterDependencies(this);
+    }
+
+    /**
+     * This method gets called whenever the expression was cleared.
+     * It removes all external dependencies to frame and canvas.
+     */
+    private void removeExternalDependencies() {
+        getLibrary().removeExternalDependencies(this);
     }
 
     /**
@@ -885,6 +909,7 @@ public class Parameter {
      */
     public void removedEvent() {
         removeDependencies();
+        removeExternalDependencies();
         removeDependents();
     }
 

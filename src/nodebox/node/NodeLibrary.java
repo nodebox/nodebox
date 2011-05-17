@@ -23,6 +23,8 @@ import java.util.*;
  */
 public class NodeLibrary {
 
+    public static enum ExternalEvent {FRAME, CANVAS}
+
     public static final NodeLibrary BUILTINS = new NodeLibrary();
 
     public static final String CANVAS_X = "canvasX";
@@ -42,9 +44,10 @@ public class NodeLibrary {
     private HashMap<String, String> variables;
     private NodeCode code;
     private NodeEventBus eventBus = new NodeEventBus();
+    private CanvasListener canvasListener = new CanvasListener();
 
     private DependencyGraph<Parameter, Object> parameterGraph = new DependencyGraph<Parameter, Object>();
-
+    private Map<ExternalEvent, HashSet<Parameter>> externalDependencies = new HashMap<ExternalEvent, HashSet<Parameter>>();
 
     /**
      * Load a library from the given XML.
@@ -165,7 +168,11 @@ public class NodeLibrary {
         pCanvasWidth.setLabel("Canvas Width");
         pCanvasHeight.setLabel("Canvas Height");
         pCanvasBackground.setLabel("Background");
-        getRootNode().setValue("_code", new WrapInCanvasCode());
+        this.rootNode.setValue("_code", new WrapInCanvasCode());
+        // We listen to our own library for changes to canvas settings.
+        // The listener object needs to be stored in a field, otherwise it will get garbage-collected.
+        // The event bus only stores weak references.
+        addListener(canvasListener);
     }
 
     public String getName() {
@@ -291,6 +298,7 @@ public class NodeLibrary {
 
     public void setFrame(float frame) {
         this.frame = frame;
+        externalDependencyTriggered(ExternalEvent.FRAME);
     }
 
     //// Persistence /////
@@ -391,6 +399,59 @@ public class NodeLibrary {
         return parameterGraph.getDependencies(p);
     }
 
+    //// External event dependencies ////
+
+    /**
+     * Indicates that Parameter p depends on an external event, such as a change to the frame or canvas size.
+     * This method is called whenever an expression is set that refers to e.g. FRAME.
+     * <p/>
+     * Whenever this external event happens, the parameter will be marked dirty.
+     *
+     * @param p     the parameter
+     * @param event the event
+     */
+    public void addExternalDependency(Parameter p, ExternalEvent event) {
+        HashSet<Parameter> parameters = externalDependencies.get(event);
+        if (parameters == null) {
+            parameters = new HashSet<Parameter>();
+            externalDependencies.put(event, parameters);
+        }
+        parameters.add(p);
+    }
+
+    /**
+     * Removes all external dependencies for Parameter p.
+     * This happens when an expression is cleared.
+     *
+     * @param p the parameter.
+     */
+    public void removeExternalDependencies(Parameter p) {
+        for (HashSet<Parameter> parameters : externalDependencies.values()) {
+            for (Iterator<Parameter> iterator = parameters.iterator(); iterator.hasNext(); ) {
+                Parameter parameter = iterator.next();
+                if (parameter == p) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    /**
+     * This method is called when an external event, such as a frame change, happened.
+     * <p/>
+     * All the parameters that depend on this event will be marked dirty.
+     *
+     * @param event the event that was triggered
+     */
+    public void externalDependencyTriggered(ExternalEvent event) {
+        HashSet<Parameter> parameters = externalDependencies.get(event);
+        if (parameters != null) {
+            for (Parameter p : parameters) {
+                p.markDirty();
+            }
+        }
+    }
+
     //// Events ////
 
     public void addListener(NodeEventListener l) {
@@ -448,4 +509,16 @@ public class NodeLibrary {
         return getName();
     }
 
+    /**
+     * Custom listener that listens to changes in canvas properties and triggers an external event change.
+     */
+    private class CanvasListener implements NodeEventListener {
+        public void receive(NodeEvent event) {
+            if (event.getSource() != getRootNode()) return;
+            if (!(event instanceof ValueChangedEvent)) return;
+            ValueChangedEvent vce = (ValueChangedEvent) event;
+            if (!vce.getParameter().getName().startsWith("canvas")) return;
+            externalDependencyTriggered(ExternalEvent.CANVAS);
+        }
+    }
 }
