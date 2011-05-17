@@ -3,6 +3,7 @@ build
 dist
 out
 reports
+/bin
 
 # Mac OS X custom attribute files
 .DS_Store

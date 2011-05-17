@@ -12,6 +12,7 @@
         <property name="lib" value="lib"/>
         <property name="libraries" value="libraries"/>
         <property name="examples" value="examples"/>
+        <property name="bin" value="bin"/>
         <property name="build" value="build"/>
         <property name="build.prod" location="${build}/prod"/>
         <property name="build.test" location="${build}/test"/>
@@ -36,9 +37,11 @@
         <property name="mac.application.lib" location="${mac.application.resources.java}/lib"/>
         <property name="mac.application.libraries" location="${mac.application.resources.java}/libraries"/>
         <property name="mac.application.res" location="${mac.application.resources.java}/res"/>
+        <property name="mac.application.bin" location="${mac.application.resources.java}/bin"/>
         <property name="dist.windows.nodebox.lib" location="${dist.windows.nodebox}/lib"/>
         <property name="dist.windows.nodebox.res" location="${dist.windows.nodebox}/res"/>
         <property name="dist.windows.nodebox.libraries" location="${dist.windows.nodebox}/libraries"/>
+        <property name="dist.windows.nodebox.bin" location="${dist.windows.nodebox}/bin"/>
         <property name="reports" value="reports"/>
 
         <!-- Determine the platform family: windows, mac or linux. -->
@@ -67,6 +70,8 @@
         <property name="platform.src" location="${platform.dir}/src"/>
         <property name="platform.lib" location="${platform.dir}/lib"/>
         <property name="platform.res" location="${platform.dir}/res"/>
+        <property name="platform.bin" location="${platform.dir}/bin"/>
+
 
         <path id="project.classpath">
             <pathelement location="${build.prod}"/>
@@ -148,6 +153,7 @@
         <mkdir dir="${dist.windows.nodebox.lib}"/>
         <mkdir dir="${dist.windows.nodebox.res}"/>
         <mkdir dir="${dist.windows.nodebox.libraries}"/>
+        <mkdir dir="${dist.windows.nodebox.bin}"/>
         <!-- Copy version number -->
         <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <!-- Copy library and program archives-->
@@ -170,6 +176,9 @@
         <copy todir="${dist.windows.nodebox.examples}">
             <fileset dir="${examples}"/>
         </copy>
+        <copy todir="${dist.windows.nodebox.bin}">
+            <fileset dir="${platform.bin}"/>
+        </copy>
         <copy todir="${dist.windows.nodebox.jre}">
             <fileset dir="${windows.jre}"/>
         </copy>
@@ -190,6 +199,7 @@
         <mkdir dir="${mac.application.plugins}"/>
         <mkdir dir="${mac.application.libraries}"/>
         <mkdir dir="${mac.application.res}"/>
+        <mkdir dir="${mac.application.bin}"/>
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
             <fileset dir="${lib}">
@@ -204,6 +214,9 @@
         <!-- Copy resources-->
         <copy todir="${mac.application.res}">
             <fileset dir="${res}"/>
+        </copy>
+        <copy todir="${mac.application.bin}">
+            <fileset dir="${platform.bin}"/>
         </copy>
         <!-- Copy bundled libraries -->
         <copy todir="${mac.application.libraries}">
@@ -235,7 +248,14 @@
     <target name="install" depends="dist-mac" description="Create application">
     </target>
 
-    <target name="run" depends="compile">
+    <target name="bindir" depends="properties" >
+        <mkdir dir="${bin}"/>
+        <copy todir="${bin}">
+            <fileset dir="${platform.bin}"/>
+        </copy>
+    </target>
+
+    <target name="run" depends="compile,bindir">
         <java classname="nodebox.client.Application" fork="true">
             <classpath refid="project.classpath"/>
         </java>
