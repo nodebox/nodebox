@@ -25,6 +25,16 @@ public class NodeLibrary {
 
     public static final NodeLibrary BUILTINS = new NodeLibrary();
 
+    public static final String CANVAS_X = "canvasX";
+    public static final String CANVAS_Y = "canvasY";
+    public static final String CANVAS_WIDTH = "canvasWidth";
+    public static final String CANVAS_HEIGHT = "canvasHeight";
+    public static final String CANVAS_BACKGROUND = "canvasBackground";
+    public static final float DEFAULT_CANVAS_WIDTH = 1000f;
+    public static final float DEFAULT_CANVAS_HEIGHT = 1000f;
+    // TODO: If the background color can be changed somewhere, all libraries are changed.
+    public static final nodebox.graphics.Color DEFAULT_CANVAS_BACKGROUND = new nodebox.graphics.Color(1);
+
     private String name;
     private File file;
     private Node rootNode;
@@ -115,11 +125,11 @@ public class NodeLibrary {
         SAXParser parser = spf.newSAXParser();
         NDBXHandler handler = new NDBXHandler(library, manager);
         parser.parse(is, handler);
-        setCanvasParameter(library, "canvasX");
-        setCanvasParameter(library, "canvasY");
-        setCanvasParameter(library, "canvasWidth");
-        setCanvasParameter(library, "canvasHeight");
-        setCanvasParameter(library, "canvasBackground");
+        setCanvasParameter(library, CANVAS_X);
+        setCanvasParameter(library, CANVAS_Y);
+        setCanvasParameter(library, CANVAS_WIDTH);
+        setCanvasParameter(library, CANVAS_HEIGHT);
+        setCanvasParameter(library, CANVAS_BACKGROUND);
     }
 
     private static void setCanvasParameter(NodeLibrary library, String name) {
@@ -145,11 +155,11 @@ public class NodeLibrary {
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
         this.variables = new LinkedHashMap<String, String>();
-        Parameter pCanvasX = rootNode.addParameter("canvasX", Parameter.Type.FLOAT, 0f);
-        Parameter pCanvasY = rootNode.addParameter("canvasY", Parameter.Type.FLOAT, 0f);
-        Parameter pCanvasWidth = rootNode.addParameter("canvasWidth", Parameter.Type.FLOAT, 1000f);
-        Parameter pCanvasHeight = rootNode.addParameter("canvasHeight", Parameter.Type.FLOAT, 1000f);
-        Parameter pCanvasBackground = rootNode.addParameter("canvasBackground", Parameter.Type.COLOR, new nodebox.graphics.Color(1));
+        Parameter pCanvasX = rootNode.addParameter(CANVAS_X, Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasY = rootNode.addParameter(CANVAS_Y, Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasWidth = rootNode.addParameter(CANVAS_WIDTH, Parameter.Type.FLOAT, DEFAULT_CANVAS_WIDTH);
+        Parameter pCanvasHeight = rootNode.addParameter(CANVAS_HEIGHT, Parameter.Type.FLOAT, DEFAULT_CANVAS_HEIGHT);
+        Parameter pCanvasBackground = rootNode.addParameter(CANVAS_BACKGROUND, Parameter.Type.COLOR, DEFAULT_CANVAS_BACKGROUND);
         pCanvasX.setLabel("Offset X");
         pCanvasY.setLabel("Offset Y");
         pCanvasWidth.setLabel("Canvas Width");

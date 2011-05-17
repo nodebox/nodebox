@@ -13,6 +13,14 @@ import java.util.Set;
  */
 public class ProcessingContext {
 
+    public static final String FRAME = "FRAME";
+    public static final String TOP = "TOP";
+    public static final String LEFT = "LEFT";
+    public static final String BOTTOM = "BOTTOM";
+    public static final String RIGHT = "RIGHT";
+    public static final String WIDTH = "WIDTH";
+    public static final String HEIGHT = "HEIGHT";
+
     private static ThreadLocal<ProcessingContext> currentContext = new ThreadLocal<ProcessingContext>();
 
     static void setCurrentContext(ProcessingContext context) {
@@ -41,7 +49,8 @@ public class ProcessingContext {
     private Map<Parameter, State> updatedParameters = new HashMap<Parameter, State>();
 
     public ProcessingContext() {
-        put("FRAME", 1f);
+        put(FRAME, 1f);
+        putBounds(0f, 0f, 1000f, 1000f);
         outputBytes = new ByteArrayOutputStream();
         outputStream = new PrintStream(outputBytes);
         errorBytes = new ByteArrayOutputStream();
@@ -52,10 +61,29 @@ public class ProcessingContext {
         this();
         this.node = node;
         float frame = 1f;
+        float canvasX = 0f;
+        float canvasY = 0f;
+        float canvasWidth = 1000f;
+        float canvasHeight = 1000f;
         if (node != null) {
             frame = node.getLibrary().getFrame();
+            Node root = node.getLibrary().getRootNode();
+            canvasX = root.asFloat(NodeLibrary.CANVAS_X);
+            canvasY = root.asFloat(NodeLibrary.CANVAS_Y);
+            canvasWidth = root.asFloat(NodeLibrary.CANVAS_WIDTH);
+            canvasHeight = root.asFloat(NodeLibrary.CANVAS_HEIGHT);
         }
-        put("FRAME", frame);
+        put(FRAME, frame);
+        putBounds(canvasX, canvasY, canvasWidth, canvasHeight);
+    }
+
+    private void putBounds(float x, float y, float width, float height) {
+        put(WIDTH, width);
+        put(HEIGHT, height);
+        put(TOP, y - height / 2);
+        put(LEFT, x - width / 2);
+        put(BOTTOM, y + height / 2);
+        put(RIGHT, x + width / 2);
     }
 
     //// Current node ////

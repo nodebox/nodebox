@@ -10,10 +10,10 @@ public class WrapInCanvasCode implements NodeCode {
         // We also wrap null, which is the result if there are no child nodes.
         if (o == null || o instanceof Geometry) {
             Canvas canvas = new Canvas();
-            canvas.setOffsetX(node.asFloat("canvasX"));
-            canvas.setOffsetY(node.asFloat("canvasY"));
-            canvas.setSize(node.asFloat("canvasWidth"), node.asFloat("canvasHeight"));
-            canvas.setBackground(node.asColor("canvasBackground"));
+            canvas.setOffsetX(node.asFloat(NodeLibrary.CANVAS_X));
+            canvas.setOffsetY(node.asFloat(NodeLibrary.CANVAS_Y));
+            canvas.setSize(node.asFloat(NodeLibrary.CANVAS_WIDTH), node.asFloat(NodeLibrary.CANVAS_HEIGHT));
+            canvas.setBackground(node.asColor(NodeLibrary.CANVAS_BACKGROUND));
             if (o != null) {
                 Geometry geo = (Geometry) o;
                 canvas.add(geo);
