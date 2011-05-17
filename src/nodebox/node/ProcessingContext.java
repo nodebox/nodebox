@@ -63,18 +63,27 @@ public class ProcessingContext {
         float frame = 1f;
         float canvasX = 0f;
         float canvasY = 0f;
-        float canvasWidth = 1000f;
-        float canvasHeight = 1000f;
+        float canvasWidth = NodeLibrary.DEFAULT_CANVAS_WIDTH;
+        float canvasHeight = NodeLibrary.DEFAULT_CANVAS_HEIGHT;
         if (node != null) {
             frame = node.getLibrary().getFrame();
             Node root = node.getLibrary().getRootNode();
-            canvasX = root.asFloat(NodeLibrary.CANVAS_X);
-            canvasY = root.asFloat(NodeLibrary.CANVAS_Y);
-            canvasWidth = root.asFloat(NodeLibrary.CANVAS_WIDTH);
-            canvasHeight = root.asFloat(NodeLibrary.CANVAS_HEIGHT);
+            canvasX = getParameterValue(root, NodeLibrary.CANVAS_X, 0f);
+            canvasY = getParameterValue(root, NodeLibrary.CANVAS_Y, 0f);
+            canvasWidth = getParameterValue(root, NodeLibrary.CANVAS_WIDTH, NodeLibrary.DEFAULT_CANVAS_WIDTH);
+            canvasHeight = getParameterValue(root, NodeLibrary.CANVAS_HEIGHT, NodeLibrary.DEFAULT_CANVAS_HEIGHT);
         }
         put(FRAME, frame);
         putBounds(canvasX, canvasY, canvasWidth, canvasHeight);
+    }
+
+    private float getParameterValue(Node node, String parameterName, float defaultValue) {
+        Parameter p = node.getParameter(parameterName);
+        if (p != null) {
+            return p.asFloat();
+        } else {
+            return defaultValue;
+        }
     }
 
     private void putBounds(float x, float y, float width, float height) {
