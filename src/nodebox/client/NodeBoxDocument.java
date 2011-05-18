@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -20,6 +21,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -634,39 +636,87 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public boolean exportMovie() {
-        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "mov", "MOV file");
+        ExportMovieDialog d = new ExportMovieDialog(this, lastExportPath == null ? null : new File(lastExportPath));
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+        if (!d.isDialogSuccessful()) return false;
+        File chosenFile = d.getExportPath();
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            return exportToMovieFile(chosenFile);
+            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
+            return true;
         }
         return false;
     }
 
-    private boolean exportToMovieFile(File file) {
+    private void exportToMovieFile(File file, final int fromValue, final int toValue) {
+        final ProgressDialog d = new InterruptableProgressDialog(this, null, toValue - fromValue + 1);
+        d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
+        d.setVisible(true);
+        d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        d.setAlwaysOnTop(true);
+
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         final Node exportNetwork = exportLibrary.getRootNode();
-        final int width = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_WIDTH).asInt();
-        final int height = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_HEIGHT).asInt();
+        final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
+        final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
         final Movie movie = new Movie(file.getAbsolutePath(), width, height);
-        for (int frame = 0; frame <= 100; frame++) {
-            exportLibrary.setFrame(frame);
-            exportNetwork.update();
-            Object outputValue = exportNetwork.getOutputValue();
-            if (outputValue instanceof Grob) {
-                Grob g = (Grob) outputValue;
-                BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = img.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.translate(width / 2, height / 2);
-                g.draw(g2d);
-                img.flush();
-                movie.addFrame(img);
-            } else
-                return false;
-        }
-        movie.save();
-        return true;
+        final ExportViewer viewer = new ExportViewer(exportNetwork);
+
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    for (int frame = fromValue; frame <= toValue; frame++) {
+                        if (Thread.currentThread().isInterrupted())
+                            break;
+                        // TODO: Check if rendered node is not null.
+                        try {
+                            exportLibrary.setFrame(frame);
+                            exportNetwork.update();
+                            viewer.updateFrame();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                d.tick();
+                            }
+                        });
+
+                        Object outputValue = exportNetwork.getOutputValue();
+                        if (outputValue instanceof Grob) {
+                            Grob g = (Grob) outputValue;
+                            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                            Graphics2D g2d = img.createGraphics();
+                            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            Rect bounds = g.getBounds();
+                            g2d.translate(-bounds.getX(), -bounds.getY());
+                            g.draw(g2d);
+                            img.flush();
+                            movie.addFrame(img);
+                        } else break;
+                    }
+                    d.setTitle("Converting frames to movie...");
+                    d.reset();
+                    FramesWriter w = new FramesWriter(d);
+                    movie.save(w);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            d.setVisible(false);
+                            viewer.setVisible(false);
+                        }
+                    });
+                }
+            }
+        });
+        ((InterruptableProgressDialog) d).setThread(t);
+        t.start();
+        viewer.setVisible(true);
     }
 
     public boolean reloadActiveNode() {
@@ -951,5 +1001,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
 
     }
+    private class FramesWriter extends StringWriter {
+        private final ProgressDialog dialog;
 
+        public FramesWriter(ProgressDialog d) {
+            super();
+            dialog = d;
+        }
+
+        @Override
+        public void write(String s, int n1, int n2) {
+           super.write(s, n1, n2);
+            if (s.startsWith("frame=")) {
+                int frame = Integer.parseInt(s.substring(6, s.indexOf("fps")).trim());
+                dialog.updateProgress(frame);
+            }
+        }
+    }
 }
