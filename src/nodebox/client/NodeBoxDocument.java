@@ -110,6 +110,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         this(NodeLibrary.load(file, Application.getInstance().getManager()));
         lastFilePath = file.getParentFile().getAbsolutePath();
         setDocumentFile(file);
+        spotlightPanel.hideSpotlightPanel();
     }
 
     //// Document events ////
