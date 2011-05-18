@@ -417,6 +417,13 @@ public class ExpressionTest extends NodeTestCase {
         assertExpressionEquals(1, pInt, "FRAME");
     }
 
+    public void testRandom() throws ExpressionError {
+        Node alpha = Node.ROOT_NODE.newInstance(testLibrary, "alpha");
+        Parameter pFloat = alpha.addParameter("float", Parameter.Type.FLOAT);
+        assertExpressionAlmostEquals(ExpressionHelper.random(1), pFloat, "random(1)");
+        assertExpressionAlmostEquals(ExpressionHelper.random((double) 1), pFloat, "random((double)1)");
+    }
+
     /**
      * A bit silly test to see if the random range is correct.
      */
@@ -439,6 +446,13 @@ public class ExpressionTest extends NodeTestCase {
         p.setExpression(expression);
         p.update(new ProcessingContext(p.getNode()));
         assertEquals(expected, p.getValue());
+    }
+
+    public void assertExpressionAlmostEquals(double expected, Parameter p, String expression) throws ExpressionError {
+        // We don't catch the ExpressionError but let it bubble up.
+        p.setExpression(expression);
+        p.update(new ProcessingContext(p.getNode()));
+        assertEquals(expected, p.asFloat(), 0.001);
     }
 
     private void assertInvalidExpression(Parameter p, String expression, String expectedMessage) throws ExpressionError {

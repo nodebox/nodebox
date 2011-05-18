@@ -19,7 +19,7 @@ public class ExpressionHelper {
 
     public static Random randomGenerator = new Random();
 
-    public static double random(long seed, double... minmax) {
+    public static double random(Object seed, double... minmax) {
         switch (minmax.length) {
             case 0:
                 return random(seed);
@@ -30,21 +30,21 @@ public class ExpressionHelper {
         }
     }
 
-    public static double random(long seed) {
-        randomGenerator.setSeed(seed * 100000000);
+    public static double random(Object seed) {
+        randomGenerator.setSeed(seed.hashCode());
         return randomGenerator.nextDouble();
     }
 
-    public static double random(long seed, double max) {
+    public static double random(Object seed, double max) {
         return random(seed) * max;
     }
 
-    public static double random(long seed, double min, double max) {
+    public static double random(Object seed, double min, double max) {
         return min + random(seed) * (max - min);
     }
 
-    public static int randint(long seed, int min, int max) {
-        randomGenerator.setSeed(seed * 100000000);
+    public static int randint(Object seed, int min, int max) {
+        randomGenerator.setSeed(seed.hashCode());
         // nextInt's specified value is exclusive, whereas we want to include it, so add 1.
         return min + randomGenerator.nextInt(max - min + 1);
     }

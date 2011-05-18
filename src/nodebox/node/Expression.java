@@ -32,7 +32,10 @@ import org.python.google.common.collect.ImmutableMap;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Expression {
 
@@ -54,8 +57,8 @@ public class Expression {
             // MVEL has a bug where it accepts methods with varargs, but only executes the method with
             // non-varargs. So in our ExpressionHelper we have both the varargs and non-varargs methods.
             // We lookup the varargs version here, but only the non-varargs will get called.
-            parserContext.addImport("random", ExpressionHelper.class.getMethod("random", long.class, double[].class));
-            parserContext.addImport("randint", ExpressionHelper.class.getMethod("randint", long.class, int.class, int.class));
+            parserContext.addImport("random", ExpressionHelper.class.getMethod("random", Object.class, double[].class));
+            parserContext.addImport("randint", ExpressionHelper.class.getMethod("randint", Object.class, int.class, int.class));
             parserContext.addImport("clamp", ExpressionHelper.class.getMethod("clamp", double.class, double.class, double.class));
             parserContext.addImport("color", ExpressionHelper.class.getMethod("color", double[].class));
             parserContext.addImport("rgb", ExpressionHelper.class.getMethod("color", double[].class));
