@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.base.Preconditions;
 import nodebox.graphics.Grob;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -687,7 +688,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                             BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
                             Graphics2D g2d = img.createGraphics();
                             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                            g2d.translate(width / 2, height / 2);
+                            Rect bounds = g.getBounds();
+                            g2d.translate(-bounds.getX(), -bounds.getY());
                             g.draw(g2d);
                             img.flush();
                             movie.addFrame(img);
