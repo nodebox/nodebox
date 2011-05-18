@@ -634,22 +634,26 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public boolean exportMovie() {
-        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "mov", "MOV file");
+        ExportMovieDialog d = new ExportMovieDialog(this, lastExportPath == null ? null : new File(lastExportPath));
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+        if (!d.isDialogSuccessful()) return false;
+        File chosenFile = d.getExportPath();
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            return exportToMovieFile(chosenFile);
+            return exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
         }
         return false;
     }
 
-    private boolean exportToMovieFile(File file) {
+    private boolean exportToMovieFile(File file, final int fromValue, final int toValue) {
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         final Node exportNetwork = exportLibrary.getRootNode();
-        final int width = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_WIDTH).asInt();
-        final int height = exportNetwork.getRoot().getParameter(NodeLibrary.CANVAS_HEIGHT).asInt();
+        final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
+        final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
         final Movie movie = new Movie(file.getAbsolutePath(), width, height);
-        for (int frame = 0; frame <= 100; frame++) {
+        for (int frame = fromValue; frame <= toValue; frame++) {
             exportLibrary.setFrame(frame);
             exportNetwork.update();
             Object outputValue = exportNetwork.getOutputValue();
