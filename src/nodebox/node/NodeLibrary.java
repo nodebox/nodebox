@@ -158,16 +158,16 @@ public class NodeLibrary {
         this.file = file;
         this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
         this.variables = new LinkedHashMap<String, String>();
-        Parameter pCanvasX = rootNode.addParameter(CANVAS_X, Parameter.Type.FLOAT, 0f);
-        Parameter pCanvasY = rootNode.addParameter(CANVAS_Y, Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasBackground = rootNode.addParameter(CANVAS_BACKGROUND, Parameter.Type.COLOR, DEFAULT_CANVAS_BACKGROUND);
         Parameter pCanvasWidth = rootNode.addParameter(CANVAS_WIDTH, Parameter.Type.FLOAT, DEFAULT_CANVAS_WIDTH);
         Parameter pCanvasHeight = rootNode.addParameter(CANVAS_HEIGHT, Parameter.Type.FLOAT, DEFAULT_CANVAS_HEIGHT);
-        Parameter pCanvasBackground = rootNode.addParameter(CANVAS_BACKGROUND, Parameter.Type.COLOR, DEFAULT_CANVAS_BACKGROUND);
+        Parameter pCanvasX = rootNode.addParameter(CANVAS_X, Parameter.Type.FLOAT, 0f);
+        Parameter pCanvasY = rootNode.addParameter(CANVAS_Y, Parameter.Type.FLOAT, 0f);
+        pCanvasBackground.setLabel("Background Color");
+        pCanvasWidth.setLabel("Document Width");
+        pCanvasHeight.setLabel("Document Height");
         pCanvasX.setLabel("Offset X");
         pCanvasY.setLabel("Offset Y");
-        pCanvasWidth.setLabel("Canvas Width");
-        pCanvasHeight.setLabel("Canvas Height");
-        pCanvasBackground.setLabel("Background");
         this.rootNode.setValue("_code", new WrapInCanvasCode());
         // We listen to our own library for changes to canvas settings.
         // The listener object needs to be stored in a field, otherwise it will get garbage-collected.
