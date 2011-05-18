@@ -641,36 +641,75 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         File chosenFile = d.getExportPath();
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            return exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
+            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
+            return true;
         }
         return false;
     }
 
-    private boolean exportToMovieFile(File file, final int fromValue, final int toValue) {
+    private void exportToMovieFile(File file, final int fromValue, final int toValue) {
+        final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        d.setVisible(true);
+        d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        d.setAlwaysOnTop(true);
+
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
         final Movie movie = new Movie(file.getAbsolutePath(), width, height);
-        for (int frame = fromValue; frame <= toValue; frame++) {
-            exportLibrary.setFrame(frame);
-            exportNetwork.update();
-            Object outputValue = exportNetwork.getOutputValue();
-            if (outputValue instanceof Grob) {
-                Grob g = (Grob) outputValue;
-                BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2d = img.createGraphics();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.translate(width / 2, height / 2);
-                g.draw(g2d);
-                img.flush();
-                movie.addFrame(img);
-            } else
-                return false;
-        }
-        movie.save();
-        return true;
+        final ExportViewer viewer = new ExportViewer(exportNetwork);
+
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                try {
+                    for (int frame = fromValue; frame <= toValue; frame++) {
+                        if (Thread.currentThread().isInterrupted())
+                            break;
+                        // TODO: Check if rendered node is not null.
+                        try {
+                            exportLibrary.setFrame(frame);
+                            exportNetwork.update();
+                            viewer.updateFrame();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        SwingUtilities.invokeLater(new Runnable() {
+                            public void run() {
+                                d.tick();
+                            }
+                        });
+
+                        Object outputValue = exportNetwork.getOutputValue();
+                        if (outputValue instanceof Grob) {
+                            Grob g = (Grob) outputValue;
+                            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                            Graphics2D g2d = img.createGraphics();
+                            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            g2d.translate(width / 2, height / 2);
+                            g.draw(g2d);
+                            img.flush();
+                            movie.addFrame(img);
+                        } else break;
+                    }
+                    movie.save();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            d.setVisible(false);
+                            viewer.setVisible(false);
+                        }
+                    });
+                }
+            }
+        });
+        ((InterruptableProgressDialog) d).setThread(t);
+        t.start();
+        viewer.setVisible(true);
     }
 
     public boolean reloadActiveNode() {
