@@ -34,7 +34,20 @@ public class ProgressDialog extends JDialog {
         SwingUtils.centerOnScreen(this, owner);
     }
 
+    public void reset() {
+        reset(taskCount);
+    }
+
+    public void reset(int taskCount) {
+        this.taskCount = taskCount;
+        this.tasksCompleted = 0;
+    }
+
     public void updateProgress() {
+        updateProgress(this.tasksCompleted);
+    }
+
+    public void updateProgress(int tasksCompleted) {
         progressBar.setValue(tasksCompleted);
         double percentage = (double) (tasksCompleted) / (double) (taskCount);
         int ip = (int) (percentage * 100);

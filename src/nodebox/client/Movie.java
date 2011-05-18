@@ -131,13 +131,15 @@ public class Movie {
         }
     }
 
+    public void save() {
+        save(new StringWriter());
+    }
+
     /**
      * Finishes the export and save the movie.
      */
-    public void save() {
-        StringWriter sw = new StringWriter();
+    public void save(StringWriter sw) {
         PrintWriter out = new PrintWriter(sw, true);
-
         String type = codecTypeMap.get(codecType);
         int bitRate = bitRateForSize(width, height);
         String quality = compressionQualityMap.get(compressionQuality);

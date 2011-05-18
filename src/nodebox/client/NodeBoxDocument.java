@@ -21,6 +21,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -649,7 +650,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     private void exportToMovieFile(File file, final int fromValue, final int toValue) {
-        final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        final ProgressDialog d = new InterruptableProgressDialog(this, null, toValue - fromValue + 1);
+        d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
         d.setVisible(true);
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
@@ -695,7 +697,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                             movie.addFrame(img);
                         } else break;
                     }
-                    movie.save();
+                    d.setTitle("Converting frames to movie...");
+                    d.reset();
+                    FramesWriter w = new FramesWriter(d);
+                    movie.save(w);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -996,5 +1001,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
 
     }
+    private class FramesWriter extends StringWriter {
+        private final ProgressDialog dialog;
 
+        public FramesWriter(ProgressDialog d) {
+            super();
+            dialog = d;
+        }
+
+        @Override
+        public void write(String s, int n1, int n2) {
+           super.write(s, n1, n2);
+            if (s.startsWith("frame=")) {
+                int frame = Integer.parseInt(s.substring(6, s.indexOf("fps")).trim());
+                dialog.updateProgress(frame);
+            }
+        }
+    }
 }
