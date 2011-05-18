@@ -10,8 +10,13 @@ import javax.swing.*;
 import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.event.AWTEventListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +55,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
     public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();
+    private SpotlightPanel spotlightPanel;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -92,6 +98,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         requestActiveNetworkUpdate();
         //renderThread = new RenderThread();
         //renderThread.start();
+
+        spotlightPanel = new SpotlightPanel(networkPane);
+        setGlassPane(spotlightPanel);
+        spotlightPanel.setVisible(true);
+        spotlightPanel.setOpaque(false);
+
     }
 
     public NodeBoxDocument(File file) throws RuntimeException {
@@ -645,7 +657,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                 BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2d = img.createGraphics();
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.translate(width/2, height/2);
+                g2d.translate(width / 2, height / 2);
                 g.draw(g2d);
                 img.flush();
                 movie.addFrame(img);
@@ -890,4 +902,53 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             }
         });
     }
+
+    private static class SpotlightPanel extends JPanel {
+
+        private Pane networkPane;
+        private AWTEventListener eventListener;
+
+        private SpotlightPanel(Pane networkPane) {
+            this.networkPane = networkPane;
+            this.eventListener = new AWTEventListener() {
+                public void eventDispatched(AWTEvent e) {
+                    MouseEvent me = (MouseEvent) e;
+                    if (me.getButton() > 0) {
+                        hideSpotlightPanel();
+                    }
+                }
+            };
+            Toolkit.getDefaultToolkit().addAWTEventListener(this.eventListener, AWTEvent.MOUSE_EVENT_MASK);
+        }
+
+        private void hideSpotlightPanel() {
+            setVisible(false);
+            // We don't need the glass pane anymore.
+            Toolkit.getDefaultToolkit().removeAWTEventListener(this.eventListener);
+            // Remove our reference to the network pane.
+            // Since panes can change, holding on to the network pane would cause a memory leak.
+            networkPane = null;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Mask out the spotlight
+            // The point refers to the location of the "new node" button in the network pane.
+            // This position is hard-coded.
+            Point pt = SwingUtilities.convertPoint(networkPane, 159, 12, getRootPane());
+            Rectangle2D screen = new Rectangle2D.Double(0, 0, getWidth(), getHeight());
+            Ellipse2D spotlight = new Ellipse2D.Float(pt.x - 42, pt.y - 42, 84, 84);
+            Area mask = new Area(screen);
+            mask.subtract(new Area(spotlight));
+
+            // Fill the mask
+            g2.setColor(new Color(0, 0, 0, 100));
+            g2.fill(mask);
+        }
+
+    }
+
 }
