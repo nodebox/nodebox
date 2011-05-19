@@ -360,17 +360,25 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             if (getNode() == null) return;
             Object outputValue = getNode().getOutputValue();
+            // If the output value is geometry, store it in a geometry object.
+            // This is used to draw the points / point numbers.
+            IGeometry geo = null;
             // Draw the canvas bounds
             if (outputValue instanceof Canvas) {
                 Canvas c = (Canvas) outputValue;
+                geo = c.asGeometry(false);
                 Rectangle2D canvasBounds = c.getBounds().getRectangle2D();
                 g2.setColor(Color.DARK_GRAY);
                 g2.setStroke(new BasicStroke(1f));
                 g2.draw(canvasBounds);
             }
             if (outputValue instanceof Grob) {
+                Grob g = (Grob) outputValue;
+                if (g instanceof IGeometry) {
+                    geo = (IGeometry) outputValue;
+                }
                 Shape oldClip = g2.getClip();
-                ((Grob) outputValue).draw(g2);
+                g.draw(g2);
                 g2.setClip(oldClip);
             } else if (outputValue != null) {
                 String s = outputValue.toString();
@@ -390,14 +398,13 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             }
 
             // Draw the points.
-            if (showPoints && outputValue instanceof IGeometry) {
+            if (showPoints && geo != null) {
                 // Create a canvas with a transparent background
                 Path onCurves = new Path();
                 Path offCurves = new Path();
                 onCurves.setFill(new nodebox.graphics.Color(0f, 0f, 1f));
                 offCurves.setFill(new nodebox.graphics.Color(1f, 0f, 0f));
-                IGeometry p = (IGeometry) outputValue;
-                for (nodebox.graphics.Point pt : p.getPoints()) {
+                for (nodebox.graphics.Point pt : geo.getPoints()) {
                     if (pt.isOnCurve()) {
                         onCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
                     } else {
@@ -409,13 +416,12 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             }
 
             // Draw the point numbers.
-            if (showPointNumbers && outputValue instanceof IGeometry) {
+            if (showPointNumbers && geo != null) {
                 g2.setFont(Theme.SMALL_MONO_FONT);
                 g2.setColor(Color.BLUE);
                 // Create a canvas with a transparent background
-                IGeometry p = (IGeometry) outputValue;
                 int index = 0;
-                for (nodebox.graphics.Point pt : p.getPoints()) {
+                for (nodebox.graphics.Point pt : geo.getPoints()) {
                     if (pt.isOnCurve()) {
                         g2.setColor(Color.BLUE);
                     } else {
