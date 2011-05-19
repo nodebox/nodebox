@@ -2638,6 +2638,10 @@ def shift(items, offset=0):
             first = items.pop(0)
             items.append(first)
 
+def reverse(items):
+    if items:
+        items.reverse()
+
 def points_within_geometry(new_shape, shape, sort, kwargs):
     # The reason we wrap shape.points in a separate list is because 
     # getPoints (or getPaths or getContours) returns a Java ArrayList
@@ -2708,7 +2712,7 @@ sort_methods = {
     (IGeometry, "by_x"): {'key': lambda g: g.bounds.x },
     (IGeometry, "by_y"): {'key': lambda g: g.bounds.y },
     "random": {'method': shuffle },
-    "reversed": {'kwargs': {'reverse': True}},
+    "reversed": {'method': reverse},
 }
 
 def cook(self):
