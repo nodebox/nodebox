@@ -31,7 +31,12 @@ public class ExpressionHelper {
     }
 
     public static double random(Object seed) {
-        randomGenerator.setSeed(seed.hashCode());
+        if (seed instanceof Number) {
+            Number number = (Number) seed;
+            randomGenerator.setSeed(number.longValue() * 100000000);
+        } else {
+            randomGenerator.setSeed(seed.hashCode());
+        }
         return randomGenerator.nextDouble();
     }
 
@@ -44,7 +49,12 @@ public class ExpressionHelper {
     }
 
     public static int randint(Object seed, int min, int max) {
-        randomGenerator.setSeed(seed.hashCode());
+        if (seed instanceof Number) {
+            Number number = (Number) seed;
+            randomGenerator.setSeed(number.longValue() * 100000000);
+        } else {
+            randomGenerator.setSeed(seed.hashCode());
+        }
         // nextInt's specified value is exclusive, whereas we want to include it, so add 1.
         return min + randomGenerator.nextInt(max - min + 1);
     }
