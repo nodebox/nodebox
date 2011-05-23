@@ -213,7 +213,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param name="strokeWidth" type="float">
+        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
         </param>
     </node>
@@ -248,7 +248,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param name="strokeWidth" type="float">
+        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
             <value>1.0</value>
         </param>
     </node>
@@ -2962,7 +2962,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param name="strokeWidth" type="float">
+        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
         </param>
         <param label="Keep Geometry" name="keepGeometry" type="int" widget="toggle">
