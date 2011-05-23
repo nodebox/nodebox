@@ -213,7 +213,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
         </param>
     </node>
@@ -248,7 +248,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>1.0</value>
         </param>
     </node>
@@ -1611,7 +1611,7 @@ def cook(self):
         <param help="" name="_image">
             <value>edit.png</value>
         </param>
-        <param name="pointDeltas" type="string">
+        <param label="Point Deltas" name="pointDeltas" type="string">
             <value/>
         </param>
     </node>
@@ -1936,7 +1936,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>1.0</value>
         </param>
     </node>
@@ -2030,7 +2030,7 @@ def cook(self):
         <param name="file" type="string" widget="file">
             <value/>
         </param>
-        <param label="Center on canvas" name="centered" type="int" widget="toggle">
+        <param label="Center on Canvas" name="centered" type="int" widget="toggle">
             <value>0</value>
         </param>
         <param name="x" type="float">
@@ -2307,7 +2307,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
         </param>
     </node>
@@ -2433,7 +2433,7 @@ def cook(self):
         <param name="angle" type="float" widget="angle">
             <value>120.0</value>
         </param>
-        <param name="keepOriginal" type="int" widget="toggle">
+        <param label="Keep Original" name="keepOriginal" type="int" widget="toggle">
             <value>1</value>
         </param>
     </node>
@@ -2550,13 +2550,13 @@ def cook(self):
         <param name="amount" type="int">
             <value>20</value>
         </param>
-        <param name="dist" type="float">
+        <param label="Distribution" name="dist" type="float">
             <value>20.0</value>
         </param>
-        <param name="stamp" type="int" widget="toggle">
+        <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param name="expr" type="string" widget="stamp_expression">
+        <param label="Expression" name="expr" type="string" widget="stamp_expression">
             <value>=</value>
         </param>
         <param label="Keep Geometry" name="keepGeometry" type="int" widget="toggle">
@@ -2837,10 +2837,10 @@ def cook(self):
         <param bounding="hard" min="1.0" name="points" type="int">
             <value>20</value>
         </param>
-        <param name="outer" type="float">
+        <param label="Outer Diameter" name="outer" type="float">
             <value>200.0</value>
         </param>
-        <param name="inner" type="float">
+        <param label="Inner Diameter" name="inner" type="float">
             <value>100.0</value>
         </param>
         <param name="fill" type="color">
@@ -2962,7 +2962,7 @@ def cook(self):
         <param name="stroke" type="color">
             <value>#000000ff</value>
         </param>
-        <param bounding="hard" min="0.0" name="strokeWidth" type="float">
+        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
             <value>0.0</value>
         </param>
         <param label="Keep Geometry" name="keepGeometry" type="int" widget="toggle">
