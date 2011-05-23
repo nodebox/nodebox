@@ -81,7 +81,6 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
         repaint();
     }
 
-
     private void rebuildInterface() {
         controlPanel.removeAll();
         controlMap.clear();
@@ -102,7 +101,9 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
 
         for (Parameter p : node.getParameters()) {
             // Parameters starting with underscores are hidden.
-            if (p.getName().startsWith("_")) continue;
+            boolean nodeDescriptionShown = p.getName().equals("_description") &&
+                                                              !p.prototypeEquals(p.getPrototype());
+            if (p.getName().startsWith("_") && !nodeDescriptionShown) continue;
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
             if (widgetClass != null) {
@@ -111,14 +112,20 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
             } else {
                 control = new JLabel("  ");
             }
-            ParameterRow parameterRow = new ParameterRow(getDocument(), p, control);
-            parameterRow.setEnabled(p.isEnabled());
+
             GridBagConstraints rowConstraints = new GridBagConstraints();
             rowConstraints.gridx = 0;
             rowConstraints.gridy = rowindex;
             rowConstraints.fill = GridBagConstraints.HORIZONTAL;
             rowConstraints.weightx = 1.0;
-            controlPanel.add(parameterRow, rowConstraints);
+            if (! nodeDescriptionShown) {
+                ParameterRow parameterRow = new ParameterRow(getDocument(), p, control);
+                parameterRow.setEnabled(p.isEnabled());
+                controlPanel.add(parameterRow, rowConstraints);
+            } else {
+                ParameterReadOnlyRow row = new ParameterReadOnlyRow(getDocument(), p);
+                controlPanel.add(row, rowConstraints);
+            }
             rowindex++;
         }
 
