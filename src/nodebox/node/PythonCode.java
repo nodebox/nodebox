@@ -33,6 +33,20 @@ public class PythonCode implements NodeCode {
     private PyFunction cookFunction;
     private CanvasContext ctx;
 
+    static {
+        // Monkey patch to facilitate access to a node's prototype cook code.
+        PythonInterpreter interpreter = new PythonInterpreter();
+        interpreter.exec("from nodebox.node import Node, PythonCode\n" +
+            "_cook = Node.cook\n" +
+            "def cook(self, *args):\n" +
+            "    if len(args) == 1 and isinstance(args[0], PythonCode.SelfWrapper):\n" +
+            "        wrapper = args[0]\n" +
+            "        return self.asCode(\"_code\").cook(wrapper.node, wrapper.context)\n" +
+            "    else:\n" +
+            "        return _cook(self, *args)\n" +
+            "Node.cook = cook");
+    }
+
     public PythonCode(String source) {
         this.source = source;
         namespace = new PyDictionary();
@@ -95,7 +109,7 @@ public class PythonCode implements NodeCode {
             if (node == null) {
                 self = Py.None;
             } else {
-                self = new SelfWrapper(node);
+                self = new SelfWrapper(node, context);
             }
             // Add globals into the function namespace.
             namespace.put("context", context);
@@ -162,14 +176,17 @@ public class PythonCode implements NodeCode {
     public class SelfWrapper extends PyObject {
 
         private Node node;
+        private ProcessingContext context;
 
-        public SelfWrapper(Node node) {
+        public SelfWrapper(Node node, ProcessingContext context) {
             this.node = node;
+            this.context = context;
         }
 
         @Override
         public PyObject __findattr_ex__(String name) {
             if ("node".equals(name)) return Py.java2py(node);
+            if ("context".equals(name)) return Py.java2py(context);
             Parameter p = node.getParameter(name);
             if (p == null) {
                 Port port = node.getPort(name);
