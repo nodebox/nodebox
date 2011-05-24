@@ -329,6 +329,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         Collection<Node> newNodes = getDocument().copyChildren(clipboardRoot.getChildren(), clipboardRoot, newParent);
         deselectAll();
         for (Node newNode : newNodes) {
+            nodebox.graphics.Point pt = newNode.getPosition();
+            pt.x += 5;
+            pt.y += 5;
+            newNode.setPosition(pt);
             NodeView nv = getNodeView(newNode);
             assert nv != null;
             nv.updateIcon();
