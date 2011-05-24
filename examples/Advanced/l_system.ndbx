@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasY" value="-300.0"/>
+    <var name="canvasBackground" value="#2b4700ff"/>
     <node name="fit1" prototype="corevector.fit" x="200" y="150">
         <param name="y">
             <expression>0-width/2</expression>
@@ -147,6 +149,9 @@ def cook(self):
         </param>
         <param name="size">
             <value>14.0</value>
+        </param>
+        <param name="fill">
+            <value>#ffffffff</value>
         </param>
         <param name="n" type="int">
             <expression>stamp("letter",2)</expression>

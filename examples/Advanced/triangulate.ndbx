@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasX" value="40.0"/>
+    <var name="canvasWidth" value="1100.0"/>
     <node name="delaunay" prototype="corevector.filter" x="200" y="100">
         <description>Returns a set of delaunay triangles from a list of points</description>
         <param name="_code">
@@ -832,11 +834,14 @@ def cook(self):
         p.strokeColor = None
     return p.asGeometry()]]></value>
         </param>
+        <param name="x">
+            <value>60.0</value>
+        </param>
         <param name="width">
-            <value>1500.0</value>
+            <value>800.0</value>
         </param>
         <param name="height">
-            <value>1000.0</value>
+            <value>700.0</value>
         </param>
     </node>
     <node name="rect2" prototype="corevector.rect" x="20" y="440">
@@ -858,9 +863,6 @@ def cook(self):
     <node name="scatter2" prototype="corevector.scatter" x="120" y="100">
         <param name="amount">
             <value>34</value>
-        </param>
-        <param name="seed">
-            <value>7</value>
         </param>
     </node>
     <node name="triangleFX" prototype="corevector.filter" rendered="true" x="300" y="100">

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasBackground" value="#113e3eff"/>
+    <var name="canvasWidth" value="500.0"/>
+    <var name="canvasHeight" value="500.0"/>
     <node name="ellipse1" prototype="corevector.ellipse" x="70" y="210">
         <param name="width">
             <value>250.0</value>
@@ -9,6 +12,9 @@
         </param>
     </node>
     <node name="ellipse2" prototype="corevector.ellipse" x="70" y="30">
+        <param name="x">
+            <value>-5.0</value>
+        </param>
         <param name="width">
             <expression>stamp("num",2)/10</expression>
         </param>
@@ -16,7 +22,7 @@
             <expression>width</expression>
         </param>
         <param name="fill">
-            <expression>rgb(stamp("num",2)%4, 0.27, 0.20, 0.62)</expression>
+            <expression>rgb(stamp("num",2)/1000.0, 0.7, 0.90, 0.62)</expression>
         </param>
         <param name="strokeWidth">
             <value>0.27</value>
@@ -43,10 +49,10 @@
             <value>proximity</value>
         </param>
         <param name="x">
-            <value>73.98003</value>
+            <value>-15.0</value>
         </param>
         <param name="y">
-            <value>3.8940277</value>
+            <value>10.0</value>
         </param>
     </node>
     <conn input="place1" output="sort1" port="template"/>

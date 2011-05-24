@@ -1,43 +1,46 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
-<node name="align1" prototype="corevector.align" x="370" y="140">
-<param name="x">
-<value>24.0</value>
-</param>
-<param name="y">
-<value>30.0</value>
-</param>
-</node>
-<node name="copy1" prototype="corevector.copy" rendered="true" x="470" y="220">
-<param name="copies">
-<value>6</value>
-</param>
-<param name="r">
-<value>60.0</value>
-</param>
-</node>
-<node name="delete1" prototype="corevector.delete" x="270" y="140">
-<param name="operation">
-<value>0</value>
-</param>
-</node>
-<node name="grid1" prototype="corevector.grid" x="50" y="170">
-<param name="width">
-<value>540.0</value>
-</param>
-<param name="rows">
-<value>40</value>
-</param>
-<param name="columns">
-<value>40</value>
-</param>
-<param name="x">
-<value>-8.0</value>
-</param>
-</node>
-<node name="line1" prototype="corevector.line" x="50" y="70">
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.graphics import Path
+    <var name="canvasWidth" value="800.0"/>
+    <var name="canvasHeight" value="800.0"/>
+    <var name="canvasBackground" value="#152428ff"/>
+    <node name="align1" prototype="corevector.align" x="370" y="140">
+        <param name="x">
+            <value>24.0</value>
+        </param>
+        <param name="y">
+            <value>30.0</value>
+        </param>
+    </node>
+    <node name="copy1" prototype="corevector.copy" rendered="true" x="470" y="220">
+        <param name="copies">
+            <value>6</value>
+        </param>
+        <param name="r">
+            <value>60.0</value>
+        </param>
+    </node>
+    <node name="delete1" prototype="corevector.delete" x="270" y="140">
+        <param name="operation">
+            <value>0</value>
+        </param>
+    </node>
+    <node name="grid1" prototype="corevector.grid" x="50" y="170">
+        <param name="width">
+            <value>540.0</value>
+        </param>
+        <param name="rows">
+            <value>40</value>
+        </param>
+        <param name="columns">
+            <value>40</value>
+        </param>
+        <param name="x">
+            <value>-8.0</value>
+        </param>
+    </node>
+    <node name="line1" prototype="corevector.line" x="50" y="70">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
 from nodebox.util.Geometry import coordinates
 
 def cook(self):
@@ -52,43 +55,43 @@ def cook(self):
     # Resample the path so it contains the desired amount of points.
     p = p.resampleByAmount(self.points, True)
     return p.asGeometry()]]></value>
-</param>
-<param name="angle">
-<value>90.0</value>
-</param>
-<param name="distance">
-<value>5.0</value>
-</param>
-<param name="stroke">
-<expression>color(strokeWidth/10.0, 0.50, 1-strokeWidth/10.0, 1.00)</expression>
-</param>
-<param name="strokeWidth">
-<expression>1.0*Math.abs(Math.sin(stamp("n",1)*2.5)*10)</expression>
-</param>
-</node>
-<node name="place1" prototype="corevector.place" x="150" y="70">
-<param name="stamp">
-<value>1</value>
-</param>
-<param name="expr">
-<value>n=CNUM</value>
-</param>
-</node>
-<node name="polygon1" prototype="corevector.polygon" x="140" y="250">
-<param name="y">
-<value>46.0</value>
-</param>
-<param name="radius">
-<value>150.0</value>
-</param>
-<param name="align">
-<value>1</value>
-</param>
-</node>
-<conn input="place1" output="line1" port="shape"/>
-<conn input="place1" output="grid1" port="template"/>
-<conn input="delete1" output="place1" port="shape"/>
-<conn input="delete1" output="polygon1" port="bounding"/>
-<conn input="align1" output="delete1" port="shape"/>
-<conn input="copy1" output="align1" port="shape"/>
+        </param>
+        <param name="angle">
+            <value>90.0</value>
+        </param>
+        <param name="distance">
+            <value>5.0</value>
+        </param>
+        <param name="stroke">
+            <expression>color(strokeWidth/10.0, 0.50, 1-strokeWidth/10.0, 1.00)</expression>
+        </param>
+        <param name="strokeWidth">
+            <expression>1.0*Math.abs(Math.sin(stamp("n",1)*2.5)*10)</expression>
+        </param>
+    </node>
+    <node name="place1" prototype="corevector.place" x="150" y="70">
+        <param name="stamp">
+            <value>1</value>
+        </param>
+        <param name="expr">
+            <value>n=CNUM</value>
+        </param>
+    </node>
+    <node name="polygon1" prototype="corevector.polygon" x="140" y="250">
+        <param name="y">
+            <value>46.0</value>
+        </param>
+        <param name="radius">
+            <value>150.0</value>
+        </param>
+        <param name="align">
+            <value>1</value>
+        </param>
+    </node>
+    <conn input="place1" output="line1" port="shape"/>
+    <conn input="place1" output="grid1" port="template"/>
+    <conn input="delete1" output="place1" port="shape"/>
+    <conn input="delete1" output="polygon1" port="bounding"/>
+    <conn input="align1" output="delete1" port="shape"/>
+    <conn input="copy1" output="align1" port="shape"/>
 </ndbx>

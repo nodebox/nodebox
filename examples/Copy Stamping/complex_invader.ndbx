@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasX" value="40.0"/>
+    <var name="canvasY" value="70.0"/>
+    <var name="canvasBackground" value="#ffececff"/>
     <node name="align2" prototype="corevector.align" x="80" y="10">
         <param name="halign">
             <value>center</value>
@@ -36,12 +39,15 @@ def cook(self):
             <value>#aa0000ff</value>
         </param>
         <param name="strokeWidth">
-            <value>5.0</value>
+            <value>3.0</value>
         </param>
     </node>
-    <node name="fit1" prototype="corevector.fit" x="410" y="160">
+    <node name="fit1" prototype="corevector.fit" x="460" y="160">
+        <param name="x">
+            <value>20.0</value>
+        </param>
         <param name="width">
-            <value>500.0</value>
+            <value>270.0</value>
         </param>
         <param name="height">
             <value>500.0</value>
@@ -49,16 +55,16 @@ def cook(self):
     </node>
     <node name="grid1" prototype="corevector.grid" x="300" y="300">
         <param name="width">
-            <value>1500.0</value>
+            <value>330.0</value>
         </param>
         <param name="height">
-            <value>1500.0</value>
+            <value>200.0</value>
         </param>
         <param name="rows">
-            <value>4</value>
+            <value>2</value>
         </param>
         <param name="columns">
-            <value>3</value>
+            <value>2</value>
         </param>
     </node>
     <node name="grid8" prototype="corevector.grid" x="-80" y="250">
@@ -90,10 +96,7 @@ def cook(self):
     return p.asGeometry()]]></value>
         </param>
         <param name="width">
-            <value>600.0</value>
-        </param>
-        <param name="height">
-            <value>900.0</value>
+            <value>200.0</value>
         </param>
         <param name="rows">
             <value>5</value>
@@ -107,7 +110,7 @@ def cook(self):
     </node>
     <node name="invaderpartnet" prototype="corevector.geonet" x="-100" y="10">
         <param name="size" type="float">
-            <value>250.0</value>
+            <value>70.0</value>
         </param>
         <param bounding="hard" min="1.0" name="divide" type="float">
             <value>6.0</value>
@@ -135,12 +138,21 @@ def cook(self):
                 <expression>width</expression>
             </param>
         </node>
-        <node name="place1" prototype="corevector.place" x="-470" y="220"/>
         <node name="compound1" prototype="corevector.compound" rendered="true" x="-330" y="100">
             <param name="function">
                 <value>subtracted</value>
             </param>
+            <param name="fill">
+                <value>#c1ebcbff</value>
+            </param>
+            <param name="stroke">
+                <value>#d00000ff</value>
+            </param>
+            <param name="strokeWidth">
+                <value>0.25</value>
+            </param>
         </node>
+        <node name="place1" prototype="corevector.place" x="-470" y="220"/>
         <conn input="scatter1" output="ellipse1" port="shape"/>
         <conn input="place1" output="ellipse2" port="shape"/>
         <conn input="place1" output="scatter1" port="template"/>
@@ -159,12 +171,12 @@ def cook(self):
   return g]]></value>
         </param>
     </node>
-    <node name="place1" prototype="corevector.place" x="510" y="240">
+    <node name="place1" prototype="corevector.place" rendered="true" x="510" y="290">
         <param name="stamp">
             <value>1</value>
         </param>
         <param name="expr">
-            <value>variation=CNUM</value>
+            <value>variation=CNUM+7</value>
         </param>
     </node>
     <node name="place6" prototype="corevector.place" x="90" y="150">
@@ -201,9 +213,9 @@ def cook(self):
             <value>0</value>
         </param>
     </node>
-    <node name="reflect3" prototype="corevector.reflect" rendered="true" x="300" y="150">
+    <node name="reflect3" prototype="corevector.reflect" x="300" y="150">
         <param name="x">
-            <value>450.0</value>
+            <value>150.0</value>
         </param>
         <param name="angle">
             <value>90.0</value>

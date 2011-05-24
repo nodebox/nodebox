@@ -1,24 +1,26 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
-<node name="align1" prototype="corevector.align" x="110" y="100">
-<param name="halign">
-<value>center</value>
-</param>
-<param name="valign">
-<value>middle</value>
-</param>
-</node>
-<node name="align2" prototype="corevector.align" x="360" y="180">
-<param name="halign">
-<value>center</value>
-</param>
-<param name="valign">
-<value>middle</value>
-</param>
-</node>
-<node name="copy1" prototype="corevector.copy" x="200" y="100">
-<param name="_code">
-<value type="python"><![CDATA[from nodebox.node import StampExpression
+    <var name="canvasWidth" value="1500.0"/>
+    <var name="canvasHeight" value="1200.0"/>
+    <node name="align1" prototype="corevector.align" x="110" y="100">
+        <param name="halign">
+            <value>center</value>
+        </param>
+        <param name="valign">
+            <value>middle</value>
+        </param>
+    </node>
+    <node name="align2" prototype="corevector.align" x="370" y="100">
+        <param name="halign">
+            <value>center</value>
+        </param>
+        <param name="valign">
+            <value>middle</value>
+        </param>
+    </node>
+    <node name="copy1" prototype="corevector.copy" x="200" y="100">
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.node import StampExpression
 from nodebox.graphics import Geometry, Transform
 
 def cook(self):
@@ -51,73 +53,73 @@ def cook(self):
         sx += self.sx / 100.0
         sy += self.sy / 100.0
     return g]]></value>
-</param>
-<param name="copies">
-<value>30</value>
-</param>
-<param name="ty">
-<value>6.0</value>
-</param>
-<param name="r">
-<expression>if (int(stamp("num",2))%3==0) { 6.0 } else { -6.0 }</expression>
-</param>
-</node>
-<node name="grid1" prototype="corevector.grid" x="360" y="260">
-<param name="width">
-<value>980.0</value>
-</param>
-<param name="height">
-<value>740.0</value>
-</param>
-<param name="rows">
-<value>5</value>
-</param>
-<param name="columns">
-<value>5</value>
-</param>
-</node>
-<node name="line1" prototype="corevector.line" x="20" y="100">
-<param name="strokeWidth">
-<value>2.0</value>
-</param>
-</node>
-<node name="merge1" prototype="corevector.merge" x="440" y="10"/>
-<node name="place1" prototype="corevector.place" rendered="true" x="550" y="170">
-<param name="stamp">
-<value>1</value>
-</param>
-<param name="expr">
-<value>num=CNUM</value>
-</param>
-</node>
-<node name="rect1" prototype="corevector.rect" x="280" y="-10">
-<param name="width">
-<value>240.0</value>
-</param>
-<param name="height">
-<value>180.0</value>
-</param>
-<param name="fill">
-<expression>if (int(stamp("num",2))%2==0) { color(1,.5,0,1) } else { color(.5,1.0,1) }</expression>
-</param>
-<param name="strokeWidth">
-<value>1.0</value>
-</param>
-</node>
-<node name="reflect1" prototype="corevector.reflect" x="290" y="100">
-<param name="x">
-<value>60.0</value>
-</param>
-<param name="angle">
-<value>90.0</value>
-</param>
-</node>
-<conn input="align1" output="line1" port="shape"/>
-<conn input="copy1" output="align1" port="shape"/>
-<conn input="reflect1" output="copy1" port="shape"/>
-<conn input="place1" output="grid1" port="template"/>
-<conn input="merge1" output="rect1" port="shapes"/>
-<conn input="align2" output="reflect1" port="shape"/>
-<conn input="merge1" output="align2" port="shapes"/>
-<conn input="place1" output="merge1" port="shape"/>
+        </param>
+        <param name="copies">
+            <value>30</value>
+        </param>
+        <param name="ty">
+            <value>6.0</value>
+        </param>
+        <param name="r">
+            <expression>if (int(stamp("num",2))%3==0) { 6.0 } else { -6.0 }</expression>
+        </param>
+    </node>
+    <node name="grid1" prototype="corevector.grid" x="370" y="210">
+        <param name="width">
+            <value>980.0</value>
+        </param>
+        <param name="height">
+            <value>740.0</value>
+        </param>
+        <param name="rows">
+            <value>5</value>
+        </param>
+        <param name="columns">
+            <value>5</value>
+        </param>
+    </node>
+    <node name="line1" prototype="corevector.line" x="20" y="100">
+        <param name="strokeWidth">
+            <value>2.0</value>
+        </param>
+    </node>
+    <node name="merge1" prototype="corevector.merge" x="480" y="-10"/>
+    <node name="place1" prototype="corevector.place" rendered="true" x="570" y="200">
+        <param name="stamp">
+            <value>1</value>
+        </param>
+        <param name="expr">
+            <value>num=CNUM</value>
+        </param>
+    </node>
+    <node name="rect1" prototype="corevector.rect" x="370" y="-10">
+        <param name="width">
+            <value>240.0</value>
+        </param>
+        <param name="height">
+            <value>180.0</value>
+        </param>
+        <param name="fill">
+            <expression>if (int(stamp("num",2))%2==0) { color(1,.5,0,1) } else { color(.5,1.0,1) }</expression>
+        </param>
+        <param name="strokeWidth">
+            <value>1.0</value>
+        </param>
+    </node>
+    <node name="reflect1" prototype="corevector.reflect" x="290" y="100">
+        <param name="x">
+            <value>60.0</value>
+        </param>
+        <param name="angle">
+            <value>90.0</value>
+        </param>
+    </node>
+    <conn input="align1" output="line1" port="shape"/>
+    <conn input="copy1" output="align1" port="shape"/>
+    <conn input="reflect1" output="copy1" port="shape"/>
+    <conn input="place1" output="grid1" port="template"/>
+    <conn input="merge1" output="rect1" port="shapes"/>
+    <conn input="align2" output="reflect1" port="shape"/>
+    <conn input="merge1" output="align2" port="shapes"/>
+    <conn input="place1" output="merge1" port="shape"/>
 </ndbx>

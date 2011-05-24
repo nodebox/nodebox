@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasWidth" value="400.0"/>
+    <var name="canvasHeight" value="200.0"/>
+    <var name="canvasBackground" value="#232323ff"/>
     <node name="compound1" prototype="corevector.compound" rendered="true" x="380" y="50">
         <param name="function">
             <value>subtracted</value>

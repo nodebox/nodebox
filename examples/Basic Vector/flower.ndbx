@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="0.9" type="file">
+    <var name="canvasWidth" value="500.0"/>
+    <var name="canvasHeight" value="500.0"/>
+    <var name="canvasBackground" value="#ffffffff"/>
     <node name="copy1" prototype="corevector.copy" rendered="true" x="520" y="110">
         <param name="copies">
             <value>8</value>
