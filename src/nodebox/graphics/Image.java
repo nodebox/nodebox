@@ -8,11 +8,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.HashMap;
 
 public class Image extends AbstractGrob {
-
-    private static HashMap<String, BufferedImage> imageCache = new HashMap<String, BufferedImage>();
 
     private float x, y;
     private float desiredWidth, desiredHeight;
@@ -30,14 +27,10 @@ public class Image extends AbstractGrob {
         if (file == null || file.getPath().equals(BLANK_IMAGE)) {
             image = blankImage;
         } else {
-            image = imageCache.get(file.getAbsolutePath());
-            if (image == null) {
-                try {
-                    image = ImageIO.read(file);
-                    imageCache.put(file.getAbsolutePath(), image);
-                } catch (IOException e) {
-                    throw new RuntimeErrorException(null, "Could not read image " + file);
-                }
+            try {
+                image = ImageIO.read(file);
+            } catch (IOException e) {
+                throw new RuntimeErrorException(null, "Could not read image " + file);
             }
         }
     }
