@@ -183,6 +183,13 @@ public class NodeLibrary {
         return file;
     }
 
+    public void setFile(File file) {
+        if (this.file != null) {
+            throw new AssertionError("File can only be set if no file was set before.");
+        }
+        this.file = file;
+    }
+
     //// Node management ////
 
     public Node getRootNode() {

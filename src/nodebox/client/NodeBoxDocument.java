@@ -593,6 +593,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+        exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final ExportViewer viewer = new ExportViewer(exportNetwork);
 
@@ -658,6 +659,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
+        exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
@@ -1001,6 +1003,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
 
     }
+
     private class FramesWriter extends StringWriter {
         private final ProgressDialog dialog;
 
@@ -1011,7 +1014,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
         @Override
         public void write(String s, int n1, int n2) {
-           super.write(s, n1, n2);
+            super.write(s, n1, n2);
             if (s.startsWith("frame=")) {
                 int frame = Integer.parseInt(s.substring(6, s.indexOf("fps")).trim());
                 dialog.updateProgress(frame);
