@@ -40,6 +40,7 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
 
     public void setSource(String source) {
         codeArea.setText(source);
+        codeArea.setCaretPosition(0);
         changed = false;
     }
 
