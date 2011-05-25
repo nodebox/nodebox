@@ -60,6 +60,7 @@ public class Theme {
     public static Border TOP_BOTTOM_BORDER;
     public static Border BOTTOM_BORDER;
     public static Border PARAMETER_ROW_BORDER;
+    public static Border PARAMETER_NOTES_BORDER;
 
     // Fonts
     public static Font EDITOR_FONT;
@@ -86,6 +87,7 @@ public class Theme {
         Color whiteColor = new Color(255, 255, 255);
         BOTTOM_BORDER = new BottomBorder(whiteColor);
         PARAMETER_ROW_BORDER = new RowBorder();
+        PARAMETER_NOTES_BORDER = new NotesBorder();
 
         // Initialize fonts.
         if (PlatformUtils.onMac()) {
@@ -189,6 +191,36 @@ public class Theme {
             // Draw border on parameter side
             g.setColor(PARAMETER_UP_COLOR);
             g.fillRect(x + labelWidth + 1, y + height - 2, width - labelWidth - 1, 1);
+            g.setColor(PARAMETER_DOWN_COLOR);
+            g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(4, 0, 4, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
+    }
+
+    public static class NotesBorder implements Border {
+
+        private static final Color LABEL_UP_COLOR = new Color(140, 140, 140);
+        private static final Color LABEL_DOWN_COLOR = new Color(166, 166, 166);
+        private static final Color PARAMETER_UP_COLOR = new Color(150, 154, 43);
+        private static final Color PARAMETER_DOWN_COLOR = new Color(213, 213, 213);
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            int labelWidth = ParameterView.LABEL_WIDTH;
+            // Draw border on the side of the label
+            g.setColor(LABEL_UP_COLOR);
+            g.fillRect(x, y + height - 2, labelWidth - 2, 1);
+            g.setColor(LABEL_DOWN_COLOR);
+            g.fillRect(x, y + height - 1, labelWidth - 2, 1);
+            // Draw border on parameter side
+            g.setColor(PARAMETER_UP_COLOR);
+            g.fillRect(x + labelWidth, y + height - 2, width - labelWidth, 1);
             g.setColor(PARAMETER_DOWN_COLOR);
             g.fillRect(x + labelWidth + 1, y + height - 1, width - labelWidth - 1, 1);
         }

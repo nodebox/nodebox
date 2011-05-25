@@ -123,7 +123,7 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
                 parameterRow.setEnabled(p.isEnabled());
                 controlPanel.add(parameterRow, rowConstraints);
             } else {
-                ParameterReadOnlyRow row = new ParameterReadOnlyRow(getDocument(), p);
+                ParameterNotesRow row = new ParameterNotesRow(p.asString());
                 controlPanel.add(row, rowConstraints);
             }
             rowindex++;
@@ -213,5 +213,4 @@ public class ParameterView extends JComponent implements PaneView, NodeEventList
             }
         }
     }
-
 }
