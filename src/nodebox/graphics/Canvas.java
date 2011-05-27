@@ -18,8 +18,13 @@
  */
 package nodebox.graphics;
 
+import nodebox.util.FileUtils;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Canvas extends AbstractTransformable {
@@ -219,11 +224,26 @@ public class Canvas extends AbstractTransformable {
         }
     }
 
+    public BufferedImage asImage() {
+        Rect bounds = getBounds();
+        BufferedImage img = new BufferedImage(Math.round(bounds.getWidth()), Math.round(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.translate(-bounds.getX(), -bounds.getY());
+        draw(g);
+        img.flush();
+        return img;
+    }
+
     public void save(File file) {
         if (file.getName().endsWith(".pdf")) {
             PDFRenderer.render(this, file);
         } else {
-            throw new UnsupportedOperationException("Unsupported file extension " + file);
+            try {
+                ImageIO.write(asImage(), FileUtils.getExtension(file), file);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not write image file " + file, e);
+            }
         }
     }
 

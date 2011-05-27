@@ -1,9 +1,6 @@
 package nodebox.client;
 
 import nodebox.base.Preconditions;
-import nodebox.graphics.Grob;
-import nodebox.graphics.PDFRenderer;
-import nodebox.graphics.Rect;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -18,7 +15,6 @@ import java.awt.event.WindowListener;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -455,35 +451,22 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     }
 
-    public boolean exportToFile(File file) {
-        return exportToFile(file, activeNetwork);
+    public boolean exportToFile(File file, ImageFormat format) {
+        return exportToFile(file, activeNetwork, format);
     }
 
-    public boolean exportToFile(File file, Node exportNetwork) {
-        // Make sure the file ends with ".pdf".
-        String fullPath = null;
-        try {
-            fullPath = file.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to access file " + file, e);
-        }
-        if (!fullPath.toLowerCase(Locale.US).endsWith(".pdf")) {
-            fullPath = fullPath.concat(".pdf");
-        }
-        file = new File(fullPath);
-
-        // todo: file export only works on grobs.
+    public boolean exportToFile(File file, Node exportNetwork, ImageFormat format) {
+        file = format.ensureFileExtension(file);
         if (exportNetwork == null) return false;
         Object outputValue = exportNetwork.getOutputValue();
-        if (outputValue instanceof Grob) {
-            Grob g = (Grob) outputValue;
-            PDFRenderer.render(g, file);
+        if (outputValue instanceof nodebox.graphics.Canvas) {
+            nodebox.graphics.Canvas c = (nodebox.graphics.Canvas) outputValue;
+            c.save(file);
             return true;
         } else {
             throw new RuntimeException("This type of output cannot be exported " + outputValue);
         }
     }
-
 
     public void markChanged() {
         if (!documentChanged && loaded) {
@@ -561,7 +544,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "pdf", "PDF file");
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            return exportToFile(chosenFile);
+            return exportToFile(chosenFile, ImageFormat.PDF);
         }
         return false;
     }
@@ -578,13 +561,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         File directory = d.getExportDirectory();
         int fromValue = d.getFromValue();
         int toValue = d.getToValue();
+        ImageFormat format = d.getFormat();
         if (directory == null) return false;
         lastExportPath = directory.getAbsolutePath();
-        exportRange(exportPrefix, directory, fromValue, toValue);
+        exportRange(exportPrefix, directory, fromValue, toValue, format);
         return true;
     }
 
-    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue) {
+    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ImageFormat format) {
         // Show the progress dialog
         final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...", toValue - fromValue + 1);
         d.setVisible(true);
@@ -616,8 +600,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                                 d.tick();
                             }
                         });
-                        File exportFile = new File(directory, exportPrefix + "-" + frame + ".pdf");
-                        exportToFile(exportFile, exportNetwork);
+                        File exportFile = new File(directory, exportPrefix + "-" + frame);
+                        exportToFile(exportFile, exportNetwork, format);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -687,16 +671,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
                         });
 
                         Object outputValue = exportNetwork.getOutputValue();
-                        if (outputValue instanceof Grob) {
-                            Grob g = (Grob) outputValue;
-                            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                            Graphics2D g2d = img.createGraphics();
-                            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                            Rect bounds = g.getBounds();
-                            g2d.translate(-bounds.getX(), -bounds.getY());
-                            g.draw(g2d);
-                            img.flush();
-                            movie.addFrame(img);
+                        if (outputValue instanceof nodebox.graphics.Canvas) {
+                            nodebox.graphics.Canvas c = (nodebox.graphics.Canvas) outputValue;
+                            movie.addFrame(c.asImage());
                         } else break;
                     }
                     d.setTitle("Converting frames to movie...");

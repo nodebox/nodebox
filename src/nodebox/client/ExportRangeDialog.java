@@ -15,11 +15,13 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
     private JTextField fromField;
     private JTextField toField;
     private JTextField directoryField;
+    private JComboBox formatBox;
 
     private String exportPrefix;
     private File exportDirectory;
     private int fromValue;
     private int toValue;
+    private ImageFormat format;
     private JTextField prefixField;
     private JButton exportButton;
 
@@ -70,6 +72,16 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         toField = new JTextField("100", 5);
         rangePanel.add(toField);
         mainPanel.add(rangePanel);
+
+        // Format
+        JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        formatPanel.add(new JLabel("Format:"));
+        formatBox = new JComboBox();
+        formatBox.addItem("PDF");
+        formatBox.addItem("PNG");
+        formatBox.setSelectedItem("PDF");
+        formatPanel.add(formatBox);
+        mainPanel.add(formatPanel);
 
         mainPanel.add(Box.createVerticalGlue());
 
@@ -147,6 +159,10 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
 
     public int getToValue() {
         return toValue;
+    }
+
+    public ImageFormat getFormat() {
+        return ImageFormat.of(formatBox.getSelectedItem().toString());
     }
 
     /**
