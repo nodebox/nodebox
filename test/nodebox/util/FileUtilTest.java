@@ -11,6 +11,7 @@ public class FileUtilTest extends TestCase {
         assertEquals("MixedCase", FileUtils.stripExtension("MixedCase.GIF")); // Retain case
         assertEquals("a.lot.of.dots", FileUtils.stripExtension("a.lot.of.dots.dot")); // Extension = last dot
         assertEquals("noextension", FileUtils.stripExtension("noextension"));
+        assertEquals("/a/b/c.d/some", FileUtils.stripExtension("/a/b/c.d/some.file")); // Dots in path name
         assertEquals("", FileUtils.stripExtension("")); // Retain case
     }
 

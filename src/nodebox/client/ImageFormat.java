@@ -42,8 +42,9 @@ public final class ImageFormat {
     }
 
     public String ensureFileExtension(String file) {
-        String baseName = nodebox.util.FileUtils.stripExtension(file);
-        return baseName + "." + getExtension();
+        if (file.endsWith("." + getExtension()))
+            return file;
+        return file + "." + getExtension();
     }
 
 }
