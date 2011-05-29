@@ -71,6 +71,10 @@ public class NodeBoxMenuBar extends JMenuBar {
         editMenu.add(new PasteAction());
         editMenu.addSeparator();
         editMenu.add(new DeleteAction());
+        if (!PlatformUtils.onMac()) {
+            editMenu.addSeparator();
+            editMenu.add(new PreferencesAction());
+        }
         add(editMenu);
 
         // Node menu
@@ -400,6 +404,16 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             getDocument().deleteSelected();
+        }
+    }
+
+     public static class PreferencesAction extends AbstractAction {
+        public PreferencesAction() {
+            putValue(NAME, "Preferences");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Application.getInstance().showPreferences();
         }
     }
 

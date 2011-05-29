@@ -61,10 +61,7 @@ public class PaneMenu extends JComponent implements MouseListener {
 
         g2.setFont(Theme.SMALL_BOLD_FONT);
         g2.setColor(Theme.TEXT_NORMAL_COLOR);
-        int textPosition = 9;
-        if (!isEnabled()) {
-            textPosition += 18;
-        }
+        int textPosition = isEnabled() ? 9 : 5;
         SwingUtils.drawShadowText(g2, getMenuName(), textPosition, 14);
     }
 

@@ -34,11 +34,15 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.prefs.Preferences;
 
 public class Application implements Host {
 
+    public static final String PREFERENCE_ENABLE_PANE_CUSTOMIZATION = "NBEnablePaneCustomization";
+
     public static boolean FLAG_ENABLE_MOVIE_EXPORT = false;
     public static boolean ENABLE_PANE_CUSTOMIZATION = false;
+
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -73,6 +77,7 @@ public class Application implements Host {
         try {
             setNodeBoxVersion();
             createNodeBoxDataDirectories();
+            applyPreferences();
             registerForMacOSXEvents();
             updater = new Updater(this);
         } catch (RuntimeException e) {
@@ -96,6 +101,11 @@ public class Application implements Host {
         PlatformUtils.getUserDataDirectory().mkdir();
         PlatformUtils.getUserScriptsDirectory().mkdir();
         PlatformUtils.getUserPythonDirectory().mkdir();
+    }
+
+    private void applyPreferences() {
+        Preferences preferences = Preferences.userNodeForPackage(this.getClass());
+        ENABLE_PANE_CUSTOMIZATION = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false"));
     }
 
     private void registerForMacOSXEvents() throws RuntimeException {
@@ -137,8 +147,9 @@ public class Application implements Host {
     }
 
     public void showPreferences() {
-        // TODO: Implement
-        Toolkit.getDefaultToolkit().beep();
+        PreferencesDialog dialog = new PreferencesDialog();
+        dialog.setModal(true);
+        dialog.setVisible(true);
     }
 
     public boolean readFromFile(String path) {
