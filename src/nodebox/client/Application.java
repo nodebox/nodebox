@@ -25,7 +25,6 @@ import nodebox.versioncheck.Updater;
 import nodebox.versioncheck.Version;
 
 import javax.swing.*;
-import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -70,21 +69,35 @@ public class Application implements Host {
         } catch (Exception ignored) {
         }
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                startupDialog = new ProgressDialog(null, "Starting " + NAME);
+                startupDialog.setVisible(true);
+            }
+        });
+
         Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
         // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
 
-        // Create the user's NodeBox library directories. 
-        try {
-            setNodeBoxVersion();
-            createNodeBoxDataDirectories();
-            applyPreferences();
-            registerForMacOSXEvents();
-            updater = new Updater(this);
-        } catch (RuntimeException e) {
-            ExceptionDialog ed = new ExceptionDialog(null, e);
-            ed.setVisible(true);
-            System.exit(-1);
-        }
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+
+                // Create the user's NodeBox library directories.
+                try {
+                    setNodeBoxVersion();
+                    createNodeBoxDataDirectories();
+                    applyPreferences();
+                    registerForMacOSXEvents();
+                    updater = new Updater(Application.this);
+                } catch (RuntimeException e) {
+                    ExceptionDialog ed = new ExceptionDialog(null, e);
+                    ed.setVisible(true);
+                    System.exit(-1);
+                }
+            }
+        });
+        t.start();
     }
 
     private void setNodeBoxVersion() {
@@ -158,16 +171,7 @@ public class Application implements Host {
     }
 
     private void load() {
-        manager = new NodeLibraryManager();
-        manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
-        manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
-        manager.lookForLibraries();
-        int tasks = manager.getLibraries().size() + 1;
-        startupDialog = new ProgressDialog(null, "Starting " + NAME, tasks);
-        startupDialog.setVisible(true);
-
         // Initialize Jython
-        startupDialog.setMessage("Loading Python");
         Thread t = new Thread(new PythonLoader());
         t.start();
     }
@@ -302,6 +306,23 @@ public class Application implements Host {
 
     public class PythonLoader implements Runnable {
         public void run() {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    startupDialog.setMessage("Loading Python");
+                }
+            });
+            manager = new NodeLibraryManager();
+            manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
+            manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
+            manager.lookForLibraries();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    int tasks = manager.getLibraries().size() + 1;
+                    startupDialog.setTaskCount(tasks);
+                    startupDialog.setMessage("Loading Python");
+
+                }
+            });
             PythonUtils.initializePython();
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {

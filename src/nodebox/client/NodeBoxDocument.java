@@ -570,7 +570,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ImageFormat format) {
         // Show the progress dialog
-        final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...", toValue - fromValue + 1);
+        final ProgressDialog d = new InterruptableProgressDialog(this, "Exporting...");
+        d.setTaskCount(toValue - fromValue + 1);
         d.setVisible(true);
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
@@ -635,7 +636,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     private void exportToMovieFile(File file, final int fromValue, final int toValue) {
-        final ProgressDialog d = new InterruptableProgressDialog(this, null, toValue - fromValue + 1);
+        final ProgressDialog d = new InterruptableProgressDialog(this, null);
+        d.setTaskCount(toValue - fromValue + 1);
         d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
         d.setVisible(true);
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);

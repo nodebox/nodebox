@@ -10,8 +10,8 @@ public class InterruptableProgressDialog extends ProgressDialog {
     private JButton cancelButton;
     private Thread thread;
 
-    public InterruptableProgressDialog(Frame owner, String title, int taskCount) {
-        super(owner, title, taskCount);
+    public InterruptableProgressDialog(Frame owner, String title) {
+        super(owner, title);
         cancelButton = new JButton("Cancel");
         cancelButton.setBounds(270, 50, 80, 32);
         getContentPane().add(cancelButton);

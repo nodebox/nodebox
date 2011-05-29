@@ -11,7 +11,7 @@ public class ProgressDialog extends JDialog {
     private int tasksCompleted;
     private int taskCount;
 
-    public ProgressDialog(Frame owner, String title, int taskCount) {
+    public ProgressDialog(Frame owner, String title) {
         super(owner, title, false);
         getRootPane().putClientProperty("Window.style", "small");
         setResizable(false);
@@ -19,12 +19,14 @@ public class ProgressDialog extends JDialog {
         Container contentPane = getContentPane();
         contentPane.setLayout(null);
         tasksCompleted = 0;
-        this.taskCount = taskCount;
+        this.taskCount = 0;
         progressBar = new JProgressBar(JProgressBar.HORIZONTAL, 0, taskCount);
+        progressBar.setIndeterminate(true);
         progressBar.setBounds(10, 10, 300, 32);
         contentPane.add(progressBar);
         progressLabel = new JLabel();
         progressLabel.setBounds(320, 10, 50, 32);
+        progressLabel.setVisible(false);
         contentPane.add(progressLabel);
         messageLabel = new JLabel();
         messageLabel.setBounds(10, 40, 380, 32);
@@ -34,13 +36,17 @@ public class ProgressDialog extends JDialog {
         SwingUtils.centerOnScreen(this, owner);
     }
 
-    public void reset() {
-        reset(taskCount);
-    }
-
-    public void reset(int taskCount) {
+    public void setTaskCount(int taskCount) {
         this.taskCount = taskCount;
         this.tasksCompleted = 0;
+        progressBar.setIndeterminate(false);
+        progressBar.setMaximum(taskCount);
+        progressLabel.setVisible(true);
+
+    }
+
+    public void reset() {
+        setTaskCount(this.taskCount);
     }
 
     public void updateProgress() {
