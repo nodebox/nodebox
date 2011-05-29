@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 public class Application implements Host {
 
     public static boolean FLAG_ENABLE_MOVIE_EXPORT = false;
+    public static boolean ENABLE_PANE_CUSTOMIZATION = false;
     private static Application instance;
 
     private JFrame hiddenFrame;

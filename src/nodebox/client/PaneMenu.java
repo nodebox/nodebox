@@ -30,7 +30,7 @@ public class PaneMenu extends JComponent implements MouseListener {
         setMinimumSize(d);
         setMaximumSize(d);
         setPreferredSize(d);
-        addMouseListener(this);
+        setEnabled(true);
     }
 
     public Pane getPane() {
@@ -38,17 +38,34 @@ public class PaneMenu extends JComponent implements MouseListener {
     }
 
     @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        if (enabled) {
+            addMouseListener(this);
+        } else {
+            removeMouseListener(this);
+        }
+        repaint();
+    }
+
+    @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         // Full width minus left side and right side
         int contentWidth = getWidth() - 9 - 21;
-        g.drawImage(paneMenuLeft, 0, 0, null);
-        g.drawImage(paneMenuBackground, 9, 0, contentWidth, 21, null);
-        g.drawImage(paneMenuRight, 9 + contentWidth, 0, null);
+        if (isEnabled()) {
+            g.drawImage(paneMenuLeft, 0, 0, null);
+            g.drawImage(paneMenuBackground, 9, 0, contentWidth, 21, null);
+            g.drawImage(paneMenuRight, 9 + contentWidth, 0, null);
+        }
 
         g2.setFont(Theme.SMALL_BOLD_FONT);
         g2.setColor(Theme.TEXT_NORMAL_COLOR);
-        SwingUtils.drawShadowText(g2, getMenuName(), 9, 14);
+        int textPosition = 9;
+        if (!isEnabled()) {
+            textPosition += 18;
+        }
+        SwingUtils.drawShadowText(g2, getMenuName(), textPosition, 14);
     }
 
     public String getMenuName() {

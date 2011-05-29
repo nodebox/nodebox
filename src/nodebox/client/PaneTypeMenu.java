@@ -12,6 +12,7 @@ public class PaneTypeMenu extends PaneMenu {
     public PaneTypeMenu(Pane pane) {
         super(pane);
         paneTypePopup = new PaneTypePopup();
+        setEnabled(Application.ENABLE_PANE_CUSTOMIZATION);
     }
 
     @Override
@@ -22,7 +23,9 @@ public class PaneTypeMenu extends PaneMenu {
     }
 
     @Override
-    public String getMenuName() { return getPane().getPaneName(); }
+    public String getMenuName() {
+        return getPane().getPaneName();
+    }
 
     private class PaneTypePopup extends JPopupMenu {
         public PaneTypePopup() {

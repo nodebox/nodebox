@@ -48,8 +48,10 @@ public class PaneHeader extends JPanel implements MouseListener {
     }
 
     public void mousePressed(MouseEvent e) {
-        if (e.getX() < this.getWidth() - 20) return;
-        paneOptionsMenu.show(this, e.getX(), e.getY());
+        if (Application.ENABLE_PANE_CUSTOMIZATION) {
+            if (e.getX() < this.getWidth() - 20) return;
+            paneOptionsMenu.show(this, e.getX(), e.getY());
+        }
     }
 
     public void mouseReleased(MouseEvent e) {
@@ -64,7 +66,9 @@ public class PaneHeader extends JPanel implements MouseListener {
     @Override
     protected void paintComponent(Graphics g) {
         g.drawImage(paneHeaderBackground, 0, 0, getWidth(), 25, null);
-        g.drawImage(paneHeaderOptions, getWidth() - 20, 0, null);
+        if (Application.ENABLE_PANE_CUSTOMIZATION) {
+            g.drawImage(paneHeaderOptions, getWidth() - 20, 0, null);
+        }
 
     }
 }
