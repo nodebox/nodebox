@@ -381,10 +381,14 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 g.draw(g2);
                 g2.setClip(oldClip);
             } else if (outputValue != null) {
-                String s = outputValue.toString();
                 g2.setColor(Theme.TEXT_NORMAL_COLOR);
                 g2.setFont(Theme.EDITOR_FONT);
-                g2.drawString(s, 5, 20);
+                String s = outputValue.toString();
+                int y = 20;
+                for (String line : s.split("\n")) {
+                    g2.drawString(line, 5, y);
+                    y += 14;
+                }
             }
 
             // Draw the handle.
