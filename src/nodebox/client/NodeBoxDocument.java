@@ -629,13 +629,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         File chosenFile = d.getExportPath();
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
+            // TODO: support different codec types as well.
+            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue(), d.getQuality(), d.getFormat());
             return true;
         }
         return false;
     }
 
-    private void exportToMovieFile(File file, final int fromValue, final int toValue) {
+    private void exportToMovieFile(File file, final int fromValue, final int toValue, final Movie.CompressionQuality quality, final MovieFormat format) {
         final ProgressDialog d = new InterruptableProgressDialog(this, null);
         d.setTaskCount(toValue - fromValue + 1);
         d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
@@ -643,13 +644,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
 
+        file = format.ensureFileExtension(file);
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
-        final Movie movie = new Movie(file.getAbsolutePath(), width, height);
+        final Movie movie = new Movie(file.getAbsolutePath(), width, height, Movie.CodecType.H264, quality, format,  false);
         final ExportViewer viewer = new ExportViewer(exportNetwork);
 
         Thread t = new Thread(new Runnable() {

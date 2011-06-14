@@ -26,6 +26,7 @@ public class Movie {
     private static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
     private static final Map<CodecType, String> codecTypeMap;
     private static final Map<CompressionQuality, String> compressionQualityMap;
+    private static final Map<MovieFormat, String> formatMap;
 
 
     static {
@@ -53,26 +54,32 @@ public class Movie {
         compressionQualityMap.put(CompressionQuality.MEDIUM, "default");
         compressionQualityMap.put(CompressionQuality.HIGH, "hq");
         compressionQualityMap.put(CompressionQuality.BEST, "lossless_max");
+        formatMap = new HashMap<MovieFormat, String>();
+        formatMap.put(MovieFormat.MOV, "mov");
+        formatMap.put(MovieFormat.AVI, "avi");
+        formatMap.put(MovieFormat.MP4, "mp4");
     }
 
     private String movieFilename;
     private int width, height;
     private CodecType codecType;
     private CompressionQuality compressionQuality;
+    private MovieFormat format;
     private boolean verbose;
     private int frameCount = 0;
     private String temporaryFileTemplate;
 
     public Movie(String movieFilename, int width, int height) {
-        this(movieFilename, width, height, CodecType.H264, CompressionQuality.BEST, false);
+        this(movieFilename, width, height, CodecType.H264, CompressionQuality.BEST, MovieFormat.MOV,  false);
     }
 
-    public Movie(String movieFilename, int width, int height, CodecType codecType, CompressionQuality compressionQuality, boolean verbose) {
+    public Movie(String movieFilename, int width, int height, CodecType codecType, CompressionQuality compressionQuality, MovieFormat format, boolean verbose) {
         this.movieFilename = movieFilename;
         this.width = width;
         this.height = height;
         this.codecType = codecType;
         this.compressionQuality = compressionQuality;
+        this.format = format;
         this.verbose = verbose;
         // Generate the prefix for a temporary file.
         // We generate a temporary file, then use that as the prefix for our own files.
@@ -107,6 +114,10 @@ public class Movie {
 
     public File temporaryFileForFrame(int frame) {
         return new File(String.format(temporaryFileTemplate, frame));
+    }
+
+    public MovieFormat getFormat() {
+        return format;
     }
 
     /**
@@ -159,6 +170,8 @@ public class Movie {
             commandList.add("-b");
             commandList.add(bitRate + "k"); // Target bit rate
         }
+        commandList.add("-f");
+        commandList.add(formatMap.get(format));
         commandList.add(movieFilename); // Target file name
 
         ProcessBuilder pb = new ProcessBuilder(commandList);
