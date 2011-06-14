@@ -69,7 +69,6 @@ public class ProgressDialog extends JDialog {
 
     public void setMessage(String message) {
         messageLabel.setText(message);
-        repaint();
     }
 
 
