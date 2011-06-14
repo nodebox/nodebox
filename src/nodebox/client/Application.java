@@ -29,8 +29,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -50,6 +52,8 @@ public class Application implements Host {
         return instance;
     }
 
+    private AtomicBoolean startingUp = new AtomicBoolean(true);
+    private SwingWorker<Throwable, String> startupWorker;
     private Updater updater;
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
@@ -57,50 +61,120 @@ public class Application implements Host {
     private ProgressDialog startupDialog;
     private Version version;
     private NodeLibrary clipboardLibrary;
+    private List<File> filesToLoad = Collections.synchronizedList(new ArrayList<File>());
 
     public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
 
-
     private Application() {
+        instance = this;
+
+        initLastResortHandler();
+        initLookAndFeel();
+    }
+
+    //// Application Load ////
+
+    /**
+     * Starts a SwingWorker that loads the application in the background.
+     * <p/>
+     * Called in the event dispatch thread using invokeLater.
+     */
+    private void run() {
+        showProgressDialog();
+        startupWorker = new SwingWorker<Throwable, String>() {
+            @Override
+            protected Throwable doInBackground() throws Exception {
+                try {
+                    publish("Starting NodeBox");
+                    setNodeBoxVersion();
+                    createNodeBoxDataDirectories();
+                    applyPreferences();
+                    registerForMacOSXEvents();
+                    updater = new Updater(Application.this);
+                    updater.checkForUpdatesInBackground();
+                    publish("Loading Python");
+                    initPython();
+                } catch (RuntimeException ex) {
+                    return ex;
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<String> strings) {
+                final String firstString = strings.get(0);
+                startupDialog.setMessage(firstString);
+            }
+
+            @Override
+            protected void done() {
+                startingUp.set(false);
+                startupDialog.setVisible(false);
+
+                // See if application startup has generated an exception.
+                Throwable t;
+                try {
+                    t = get();
+                } catch (Exception e) {
+                    t = e;
+                }
+                if (t != null) {
+                    ExceptionDialog ed = new ExceptionDialog(null, t);
+                    ed.setVisible(true);
+                    System.exit(-1);
+                }
+
+                if (documents.isEmpty() && filesToLoad.isEmpty()) {
+                    instance.createNewDocument();
+                } else {
+                    for (File f : filesToLoad) {
+                        openDocument(f);
+                    }
+                }
+            }
+        };
+        startupWorker.execute();
+    }
+
+    /**
+     * Sets a handler for uncaught exceptions that pops up a message dialog with the exception.
+     * <p/>
+     * Called from the constructor, in the main thread.
+     */
+    private void initLastResortHandler() {
+        Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
+    }
+
+    /**
+     * Initializes Swing's look and feel to the system native look and feel.
+     * On Mac, uses the system menu bar.
+     */
+    private void initLookAndFeel() {
         try {
             UIManager.setLookAndFeel(
                     UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
         }
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                startupDialog = new ProgressDialog(null, "Starting " + NAME);
-                startupDialog.setVisible(true);
-            }
-        });
-
-        Thread.currentThread().setUncaughtExceptionHandler(new LastResortHandler());
-        // System.setProperty("sun.awt.exception.handler", LastResortHandler.class.getName());
-
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-
-                // Create the user's NodeBox library directories.
-                try {
-                    setNodeBoxVersion();
-                    createNodeBoxDataDirectories();
-                    applyPreferences();
-                    registerForMacOSXEvents();
-                    updater = new Updater(Application.this);
-                } catch (RuntimeException e) {
-                    ExceptionDialog ed = new ExceptionDialog(null, e);
-                    ed.setVisible(true);
-                    System.exit(-1);
-                }
-            }
-        });
-        t.start();
     }
 
-    private void setNodeBoxVersion() {
+    /**
+     * Shows the progress dialog.
+     * <p/>
+     * Called from the run() method (which is called in invokeLater).
+     */
+    private void showProgressDialog() {
+        startupDialog = new ProgressDialog(null, "Starting " + NAME);
+        startupDialog.setVisible(true);
+    }
+
+    /**
+     * Retrieves the NodeBox version number from the version.properties file and sets it in the app.
+     *
+     * @throws RuntimeException if we're not able to retrieve the version number. This is fatal.
+     */
+    private void setNodeBoxVersion() throws RuntimeException {
         Properties properties = new Properties();
         try {
             properties.load(new FileInputStream("version.properties"));
@@ -110,17 +184,31 @@ public class Application implements Host {
         }
     }
 
+    /**
+     * Creates the necessary directories used for storing user scripts and Python libraries.
+     *
+     * @throws RuntimeException if we can't create the user directories. This is fatal.
+     */
     private void createNodeBoxDataDirectories() throws RuntimeException {
         PlatformUtils.getUserDataDirectory().mkdir();
         PlatformUtils.getUserScriptsDirectory().mkdir();
         PlatformUtils.getUserPythonDirectory().mkdir();
     }
 
+    /**
+     * Load the preferences and make them available to the Application object.
+     */
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(this.getClass());
         ENABLE_PANE_CUSTOMIZATION = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false"));
     }
 
+    /**
+     * Register for special events available on the Mac, such as showing the about screen,
+     * showing the preferences or double-clicking a file.
+     *
+     * @throws RuntimeException if the adapter methods could not be loaded.
+     */
     private void registerForMacOSXEvents() throws RuntimeException {
         if (!PlatformUtils.onMac()) return;
         try {
@@ -133,14 +221,26 @@ public class Application implements Host {
         } catch (Exception e) {
             throw new RuntimeException("Error while loading the OS X Adapter.", e);
         }
-        // Create hidden window.
+        // On the Mac, if all windows are closed the menu bar will be empty.
+        // To solve this, we create an off-screen window with the same menu bar as visible windows.
         hiddenFrame = new JFrame();
         hiddenFrame.setJMenuBar(new NodeBoxMenuBar());
         hiddenFrame.setUndecorated(true);
         hiddenFrame.setSize(0, 0);
+        hiddenFrame.setLocation(-100, -100);
         hiddenFrame.pack();
         hiddenFrame.setVisible(true);
     }
+
+    private void initPython() {
+        manager = new NodeLibraryManager();
+        manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
+        manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
+        manager.lookForLibraries();
+        PythonUtils.initializePython();
+    }
+
+    //// Application events ////
 
     public boolean quit() {
         // Because documents will disappear from the list once they are closed,
@@ -165,36 +265,17 @@ public class Application implements Host {
         dialog.setVisible(true);
     }
 
-    public boolean readFromFile(String path) {
+    public void readFromFile(String path) {
         // This method looks unused, but is actually called using reflection by the OS X adapter.
-        return openDocument(new File(path));
+        // If the application is still starting up, don't open the document immediately but place it in a file loading queue.
+        if (startingUp.get()) {
+            filesToLoad.add(new File(path));
+        } else {
+            openDocument(new File(path));
+        }
     }
 
-    private void load() {
-        // Initialize Jython
-        Thread t = new Thread(new PythonLoader());
-        t.start();
-    }
-
-    private void pythonLoadedEvent() {
-        startupDialog.tick();
-        Thread t = new Thread(new LibraryLoader());
-        t.start();
-    }
-
-    private void librariesLoadedEvent() {
-        startupDialog.setVisible(false);
-        if (documents.isEmpty())
-            instance.createNewDocument();
-        updater.checkForUpdatesInBackground();
-    }
-
-    private void librariesErrorEvent(String libraryName, Exception exception) {
-        startupDialog.setVisible(false);
-        ExceptionDialog ed = new ExceptionDialog(null, exception, "Library: " + libraryName);
-        ed.setVisible(true);
-    }
-
+    //// Document management ////
 
     public List<NodeBoxDocument> getDocuments() {
         return documents;
@@ -278,9 +359,7 @@ public class Application implements Host {
         return manager;
     }
 
-
     //// Host implementation ////
-
 
     public String getName() {
         return "NodeBox";
@@ -302,96 +381,16 @@ public class Application implements Host {
         return updater;
     }
 
-    //// Loader classes ////
-
-    public class PythonLoader implements Runnable {
-        public void run() {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    startupDialog.setMessage("Loading Python");
-                }
-            });
-            manager = new NodeLibraryManager();
-            manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
-            manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
-            manager.lookForLibraries();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    int tasks = manager.getLibraries().size() + 1;
-                    startupDialog.setTaskCount(tasks);
-                    startupDialog.setMessage("Loading Python");
-
-                }
-            });
-            PythonUtils.initializePython();
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    Application.getInstance().pythonLoadedEvent();
-                }
-            });
-        }
-    }
-
-    public class LibraryLoader implements Runnable {
-        public void run() {
-            String libraryName = "";
-            Exception currentException = null;
-            // Load libraries
-            for (NodeLibrary library : manager.getLibraries()) {
-                SwingUtilities.invokeLater(new MessageSetter("Loading " + library.getName() + " library"));
-                try {
-                    // TODO: Implement explicit loading of libraries.
-                    //library.load();
-                } catch (Exception e) {
-                    logger.log(Level.WARNING, "Could not load library " + library.getName(), e);
-                    currentException = e;
-                    libraryName = library.getName();
-                    break;
-                }
-
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        startupDialog.tick();
-                    }
-                });
-            }
-            final Exception finalException = currentException;
-            final String finalLibraryName = libraryName;
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    if (finalException != null) {
-                        Application.getInstance().librariesErrorEvent(finalLibraryName, finalException);
-                    } else {
-                        Application.getInstance().librariesLoadedEvent();
-                    }
-                }
-            });
-        }
-    }
-
-    private class MessageSetter implements Runnable {
-        private String message;
-
-        private MessageSetter(String message) {
-            this.message = message;
-        }
-
-        public void run() {
-            startupDialog.setMessage(message);
-        }
-    }
-
-
     public static void main(String[] args) {
         for (String arg : args) {
             if (arg.contains("--enable-movie-export")) {
                 FLAG_ENABLE_MOVIE_EXPORT = true;
             }
         }
+        final Application app = new Application();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                instance = new Application();
-                instance.load();
+                app.run();
             }
         });
     }
