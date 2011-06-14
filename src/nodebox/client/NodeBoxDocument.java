@@ -382,6 +382,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     //// Document actions ////
 
+    public List<Pane> getDocumentPanes() {
+        List<Pane> panes = new ArrayList<Pane>();
+        for (DocumentFocusListener listener : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
+            if (listener instanceof Pane)
+                panes.add((Pane) listener);
+        }
+        return panes;
+    }
+
     public File getDocumentFile() {
         return documentFile;
     }

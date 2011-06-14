@@ -1,5 +1,7 @@
 package nodebox.client;
 
+import com.sun.tools.internal.ws.processor.model.java.JavaMethod;
+
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -79,6 +81,7 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         // Node menu
         JMenu pythonMenu = new JMenu("Node");
+        pythonMenu.add(new NewNodeAction());
         pythonMenu.add(new ReloadAction());
         //pythonMenu.add(newLibraryAction);
         add(pythonMenu);
@@ -414,6 +417,24 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             Application.getInstance().showPreferences();
+        }
+    }
+
+    public class NewNodeAction extends AbstractDocumentAction {
+        public NewNodeAction() {
+            putValue(NAME, "Create New Node...");
+            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            java.util.List<Pane> documentPanes = getDocument().getDocumentPanes();
+            for (Pane pane : documentPanes) {
+                if (pane instanceof NetworkPane) {
+                    ((NetworkPane) pane).createNewNode();
+                    return;
+                }
+            }
+             JOptionPane.showMessageDialog(getDocument(), "Please make sure a network view is present in the document.", "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 

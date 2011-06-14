@@ -79,6 +79,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
     }
 
     public void close() {
+        document.removeDocumentFocusListener(this);
         Container parent = getParent();
         if (!(parent instanceof PaneSplitter)) return;
         PaneSplitter split = (PaneSplitter) parent;
