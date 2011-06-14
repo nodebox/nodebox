@@ -72,7 +72,7 @@ public class NodeLibrary {
         } catch (ParserConfigurationException e) {
             throw new RuntimeException("Error in the XML parser configuration", e);
         } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing: " + e.getMessage(), e);
+            throw new RuntimeException("Error while parsing " + libraryName + ": " + e.getMessage(), e);
         } catch (IOException e) {
             throw new RuntimeException("I/O error while parsing.", e);
         }
@@ -103,7 +103,7 @@ public class NodeLibrary {
         } catch (ParserConfigurationException e) {
             throw new RuntimeException("Error in the XML parser configuration", e);
         } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing: " + e.getMessage(), e);
+            throw new RuntimeException("Error while parsing " + f + ": " + e.getMessage(), e);
         } catch (FileNotFoundException e) {
             throw new RuntimeException("File not found " + f, e);
         } catch (IOException e) {
