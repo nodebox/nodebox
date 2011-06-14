@@ -62,6 +62,7 @@ public class NodeLibraryUndoableEdit extends AbstractUndoableEdit {
 
     public void restoreState(UndoState state) {
         NodeLibrary nodeLibrary = NodeLibrary.load(document.getNodeLibrary().getName(), state.xml, document.getManager());
+        nodeLibrary.setFile(document.getNodeLibrary().getFile());
         document.setNodeLibrary(nodeLibrary);
         document.setActiveNetwork(state.activeNetworkPath);
         if (state.activeNodeName != null) {
