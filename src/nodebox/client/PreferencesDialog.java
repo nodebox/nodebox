@@ -13,6 +13,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
     private Preferences preferences;
     private JCheckBox enablePaneCustomizationCheck;
+    private JCheckBox enableMovieExportCheck;
     private JButton saveButton;
     private JButton cancelButton;
 
@@ -25,6 +26,12 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
         enablePaneCustomizationCheck = new JCheckBox("Enable Pane Customization");
         rootPanel.add(enablePaneCustomizationCheck);
+
+        rootPanel.add(Box.createVerticalStrut(10));
+
+        // TODO: provide tooltip indicating movie export is an experimental feature.
+        enableMovieExportCheck = new JCheckBox("Enable Movie Export");
+        rootPanel.add(enableMovieExportCheck);
 
         rootPanel.add(Box.createVerticalStrut(100));
 
@@ -48,24 +55,30 @@ public class PreferencesDialog extends JDialog implements ActionListener {
     private void readPreferences() {
         this.preferences = Preferences.userNodeForPackage(Application.class);
         enablePaneCustomizationCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false")));
-
+        enableMovieExportCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, "false")));
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getSource() == saveButton) {
             setEnablePaneCustomization(enablePaneCustomizationCheck.isSelected());
-            JOptionPane.showMessageDialog(this, "Please restart NodeBox to enable/disable pane customization.");
+            setEnableMovieExport(enableMovieExportCheck.isSelected());
+            JOptionPane.showMessageDialog(this, "Please restart NodeBox for the changes to take effect.");
+            try {
+                preferences.flush();
+            } catch (BackingStoreException e) {
+                throw new RuntimeException(e);
+            }
         }
         dispose();
     }
 
     private void setEnablePaneCustomization(boolean enabled) {
-        Application.ENABLE_PANE_CUSTOMIZATION = true;
+        Application.ENABLE_PANE_CUSTOMIZATION = enabled;
         preferences.put(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, Boolean.toString(enabled));
-        try {
-            preferences.flush();
-        } catch (BackingStoreException e) {
-            throw new RuntimeException(e);
-        }
+    }
+
+    private void setEnableMovieExport(boolean enabled) {
+        Application.ENABLE_MOVIE_EXPORT = enabled;
+        preferences.put(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, Boolean.toString(enabled));
     }
 }

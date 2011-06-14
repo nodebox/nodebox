@@ -52,7 +52,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
-        if (Application.FLAG_ENABLE_MOVIE_EXPORT) {
+        if (Application.ENABLE_MOVIE_EXPORT) {
             fileMenu.add(new ExportMovieAction());
         }
         if (!PlatformUtils.onMac()) {

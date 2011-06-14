@@ -40,9 +40,10 @@ import java.util.prefs.Preferences;
 public class Application implements Host {
 
     public static final String PREFERENCE_ENABLE_PANE_CUSTOMIZATION = "NBEnablePaneCustomization";
+    public static final String PREFERENCE_ENABLE_MOVIE_EXPORT = "NBEnableMovieExport";
 
-    public static boolean FLAG_ENABLE_MOVIE_EXPORT = false;
     public static boolean ENABLE_PANE_CUSTOMIZATION = false;
+    public static boolean ENABLE_MOVIE_EXPORT = false;
 
     private static Application instance;
 
@@ -201,6 +202,7 @@ public class Application implements Host {
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(this.getClass());
         ENABLE_PANE_CUSTOMIZATION = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false"));
+        ENABLE_MOVIE_EXPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, "false"));
     }
 
     /**
@@ -382,11 +384,6 @@ public class Application implements Host {
     }
 
     public static void main(String[] args) {
-        for (String arg : args) {
-            if (arg.contains("--enable-movie-export")) {
-                FLAG_ENABLE_MOVIE_EXPORT = true;
-            }
-        }
         final Application app = new Application();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
