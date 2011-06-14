@@ -857,6 +857,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
 
     public void close() {
+        stopAnimation();
         if (shouldClose()) {
             //renderThread.shutdown();
             Application.getInstance().getManager().remove(nodeLibrary);
