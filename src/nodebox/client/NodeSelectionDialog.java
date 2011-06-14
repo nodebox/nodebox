@@ -30,9 +30,10 @@ public class NodeSelectionDialog extends JDialog {
         private FilteredNodeListModel(NodeLibrary library, NodeLibraryManager manager) {
             this.library = library;
             this.manager = manager;
-            this.searchString = "";
-            this.filteredNodes = manager.getNodes();
-            this.filteredNodes.addAll(library.getExportedNodes());
+            searchString = "";
+            filteredNodes = manager.getNodes();
+            filteredNodes.addAll(library.getExportedNodes());
+            Collections.sort(filteredNodes, new NodeNameComparator());
         }
 
         public String getSearchString() {
@@ -46,6 +47,7 @@ public class NodeSelectionDialog extends JDialog {
                 filteredNodes = manager.getNodes();
                 // Add all the exported nodes from the current library.
                 filteredNodes.addAll(library.getExportedNodes());
+                Collections.sort(filteredNodes, new NodeNameComparator());
             } else {
                 java.util.List<Node> nodes = new ArrayList<Node>();
 
@@ -89,7 +91,9 @@ public class NodeSelectionDialog extends JDialog {
             }
             Collections.sort(startsWithNodes, new NodeNameComparator());
             sortedNodes.addAll(startsWithNodes);
+            Collections.sort(containsNodes, new NodeNameComparator());
             sortedNodes.addAll(containsNodes);
+            Collections.sort(descriptionNodes, new NodeNameComparator());
             sortedNodes.addAll(descriptionNodes);
             return sortedNodes;
         }
