@@ -43,6 +43,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     private boolean showPoints = false;
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
+    private boolean panEnabled = false;
     private PLayer viewerLayer;
     private JPopupMenu viewerMenu;
     private Class outputClass;
@@ -63,9 +64,14 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         removeInputEventListener(getPanEventHandler());
         removeInputEventListener(getZoomEventHandler());
         // Install custom panning and zooming
-        PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON2_MASK);
+        PInputEventFilter panFilter = new PInputEventFilter();
         panFilter.setNotMask(InputEvent.CTRL_MASK);
-        PPanEventHandler panHandler = new PPanEventHandler();
+        PPanEventHandler panHandler = new PPanEventHandler() {
+            public void processEvent(final PInputEvent evt, final int i) {
+                if (evt.isMouseEvent() && evt.isLeftMouseButton() && panEnabled)
+                    super.processEvent(evt, i);
+            }
+        };
         panHandler.setAutopan(false);
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
@@ -324,11 +330,13 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     }
 
     public void keyPressed(KeyEvent e) {
+        panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
         if (hasVisibleHandle())
             handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyReleased(KeyEvent e) {
+        panEnabled = false;
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }

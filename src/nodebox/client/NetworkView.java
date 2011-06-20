@@ -17,7 +17,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.List;
 
-public class NetworkView extends PCanvas implements PaneView, NodeEventListener, CodeChangeListener {
+public class NetworkView extends PCanvas implements PaneView, NodeEventListener, CodeChangeListener, KeyListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -37,6 +37,8 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
     private NodeView connectionSource, connectionTarget;
     private Point2D connectionPoint;
 
+    private boolean panEnabled = false;
+
     public NetworkView(Pane pane, Node node) {
         this.pane = pane;
         this.node = node;
@@ -53,9 +55,14 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         removeInputEventListener(getPanEventHandler());
         removeInputEventListener(getZoomEventHandler());
         // Install custom panning and zooming
-        PInputEventFilter panFilter = new PInputEventFilter(InputEvent.BUTTON2_MASK);
+        PInputEventFilter panFilter = new PInputEventFilter();
         panFilter.setNotMask(InputEvent.CTRL_MASK);
-        PPanEventHandler panHandler = new PPanEventHandler();
+        PPanEventHandler panHandler = new PPanEventHandler() {
+            public void processEvent(final PInputEvent evt, final int i) {
+                if (evt.isMouseEvent() && evt.isLeftMouseButton() && panEnabled)
+                    super.processEvent(evt, i);
+            }
+        };
         panHandler.setAutopan(false);
         panHandler.setEventFilter(panFilter);
         addInputEventListener(panHandler);
@@ -81,6 +88,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         addKeyListener(dialogHandler);
         addKeyListener(new DeleteHandler());
         addKeyListener(new UpDownHandler());
+        addKeyListener(this);
         initMenus();
         // This is disabled so we can detect the tab key.
         setFocusTraversalKeysEnabled(false);
@@ -572,6 +580,17 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
 
     public void setNodePosition(Node node, nodebox.graphics.Point point) {
         getDocument().setNodePosition(node, point);
+    }
+
+    public void keyTyped(KeyEvent e) {
+    }
+
+    public void keyPressed(KeyEvent e) {
+        panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
+    }
+
+    public void keyReleased(KeyEvent e) {
+        panEnabled = false;
     }
 
 
