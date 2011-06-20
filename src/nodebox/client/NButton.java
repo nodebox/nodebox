@@ -152,6 +152,20 @@ public class NButton extends JComponent implements MouseListener {
         repaint();
     }
 
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+        int width = measureWidth();
+        Dimension d = new Dimension(width, BUTTON_HEIGHT);
+        setSize(d);
+        setPreferredSize(d);
+        setMinimumSize(d);
+        setMaximumSize(d);
+    }
+
     public boolean isWarning() {
         return warn;
     }

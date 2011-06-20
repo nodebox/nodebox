@@ -24,6 +24,7 @@ public class AnimationBar extends JPanel implements ChangeListener {
     private final NodeBoxDocument document;
     private DraggableNumber frameNumber;
     private float frame;
+    private NButton playButton;
 
     public AnimationBar(final NodeBoxDocument document) {
         super(new FlowLayout(FlowLayout.LEADING, 5, 0));
@@ -45,17 +46,14 @@ public class AnimationBar extends JPanel implements ChangeListener {
         frameNumber.addChangeListener(this);
         frameNumberPanel.add(frameNumber);
         add(frameNumberPanel);
-        NButton playButton = new NButton("Play", "res/animation-play.png");
+        playButton = new NButton("Play", "res/animation-play.png",  "res/animation-stop.png");
         playButton.setToolTipText("Play Animation");
         playButton.setActionMethod(this, "playAnimation");
-        NButton stopButton = new NButton("Stop", "res/animation-stop.png");
-        stopButton.setToolTipText("Stop Animation");
-        stopButton.setActionMethod(this, "stopAnimation");
+        forcePlayButtonWidth(45);
         NButton rewindButton = new NButton("Rewind", "res/animation-rewind.png");
         rewindButton.setToolTipText("Rewind Animation");
         rewindButton.setActionMethod(this, "rewindAnimation");
         add(playButton);
-        add(stopButton);
         add(rewindButton);
         updateFrame();
     }
@@ -73,15 +71,34 @@ public class AnimationBar extends JPanel implements ChangeListener {
     }
 
     public void playAnimation() {
+        if (! playButton.isChecked()) playButton.setChecked(true);
         document.playAnimation();
+        playButton.setText("Stop");
+        playButton.setToolTipText("Stop Animation");
+        playButton.setActionMethod(this, "stopAnimation");
+        forcePlayButtonWidth(45);
     }
 
     public void stopAnimation() {
+        if (playButton.isChecked()) playButton.setChecked(false);
         document.stopAnimation();
+        playButton.setText("Play");
+        playButton.setToolTipText("Play Animation");
+        playButton.setActionMethod(this, "playAnimation");
+        forcePlayButtonWidth(45);
     }
 
     public void rewindAnimation() {
+        stopAnimation();
         document.rewindAnimation();
+    }
+
+    private void forcePlayButtonWidth(int width) {
+        Dimension d = new Dimension(width, NButton.BUTTON_HEIGHT);
+        playButton.setSize(d);
+        playButton.setPreferredSize(d);
+        playButton.setMinimumSize(d);
+        playButton.setMaximumSize(d);
     }
 
     @Override
