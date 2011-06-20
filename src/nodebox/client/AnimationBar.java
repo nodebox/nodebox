@@ -45,18 +45,18 @@ public class AnimationBar extends JPanel implements ChangeListener {
         frameNumber.addChangeListener(this);
         frameNumberPanel.add(frameNumber);
         add(frameNumberPanel);
-        NButton startButton = new NButton("Start", "res/animation-start.png");
-        startButton.setToolTipText("Start Animation");
-        startButton.setActionMethod(this, "startAnimation");
+        NButton playButton = new NButton("Play", "res/animation-play.png");
+        playButton.setToolTipText("Play Animation");
+        playButton.setActionMethod(this, "playAnimation");
         NButton stopButton = new NButton("Stop", "res/animation-stop.png");
         stopButton.setToolTipText("Stop Animation");
         stopButton.setActionMethod(this, "stopAnimation");
-        NButton resetButton = new NButton("Reset", "res/animation-reset.png");
-        resetButton.setToolTipText("Reset Animation");
-        resetButton.setActionMethod(this, "resetAnimation");
-        add(startButton);
+        NButton rewindButton = new NButton("Rewind", "res/animation-rewind.png");
+        rewindButton.setToolTipText("Rewind Animation");
+        rewindButton.setActionMethod(this, "rewindAnimation");
+        add(playButton);
         add(stopButton);
-        add(resetButton);
+        add(rewindButton);
         updateFrame();
     }
 
@@ -72,16 +72,16 @@ public class AnimationBar extends JPanel implements ChangeListener {
         document.setFrame(frame);
     }
 
-    public void startAnimation() {
-        document.startAnimation();
+    public void playAnimation() {
+        document.playAnimation();
     }
 
     public void stopAnimation() {
         document.stopAnimation();
     }
 
-    public void resetAnimation() {
-        document.resetAnimation();
+    public void rewindAnimation() {
+        document.rewindAnimation();
     }
 
     @Override

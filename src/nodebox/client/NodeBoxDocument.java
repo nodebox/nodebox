@@ -844,7 +844,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         setFrame(getFrame() + 1);
     }
 
-    public void startAnimation() {
+    public void playAnimation() {
         animationTimer.start();
     }
 
@@ -852,7 +852,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         animationTimer.stop();
     }
 
-    public void resetAnimation() {
+    public void rewindAnimation() {
         stopAnimation();
         setFrame(1);
     }
