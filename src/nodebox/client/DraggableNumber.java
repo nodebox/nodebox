@@ -18,7 +18,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
-
     static {
         try {
             draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
@@ -36,7 +35,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private JTextField numberField;
     private double oldValue, value;
-    private int previousX;
+
+    private Robot robot;
+    private int pressedX;
+    private int pressedY;
 
     private Double minimumValue;
     private Double maximumValue;
@@ -244,9 +246,15 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mousePressed(MouseEvent e) {
         if (!isEnabled()) return;
+        pressedX = e.getXOnScreen();
+        pressedY = e.getYOnScreen();
+        try {
+            robot = new Robot();
+        } catch(Exception ex) {
+        }
+
         if (e.getButton() == MouseEvent.BUTTON1) {
             oldValue = getValue();
-            previousX = e.getX();
         }
     }
 
@@ -276,6 +284,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseReleased(MouseEvent e) {
         if (!isEnabled()) return;
+        setCursor(Cursor.getDefaultCursor());
         if (oldValue != value)
             fireStateChanged();
     }
@@ -290,8 +299,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseDragged(MouseEvent e) {
+        setCursor(new Cursor(Cursor.TEXT_CURSOR));
         if (!isEnabled()) return;
-        float deltaX = e.getX() - previousX;
+        float deltaX = e.getXOnScreen() - pressedX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
             deltaX *= 10;
@@ -299,7 +309,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             deltaX *= 0.01;
         }
         setValue(getValue() + deltaX);
-        previousX = e.getX();
+        robot.mouseMove(pressedX, pressedY);
         fireStateChanged();
     }
 
