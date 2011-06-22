@@ -622,8 +622,14 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
             if (selectionMarker == null) return;
             Point2D prev = selectionMarker.getOffset();
             Point2D p = e.getPosition();
-            selectionMarker.setWidth(p.getX() - prev.getX());
-            selectionMarker.setHeight(p.getY() - prev.getY());
+            double width = p.getX() - prev.getX();
+            double absWidth = Math.abs(width);
+            double height = p.getY() - prev.getY();
+            double absHeight = Math.abs(height);
+            selectionMarker.setWidth(absWidth);
+            selectionMarker.setHeight(absHeight);
+            selectionMarker.setX(absWidth != width ? width : 0);
+            selectionMarker.setY(absHeight != height ? height : 0);
             ListIterator childIter = getLayer().getChildrenIterator();
             connectionLayer.deselect();
             temporarySelection.clear();
