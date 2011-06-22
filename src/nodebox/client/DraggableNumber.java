@@ -18,6 +18,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
+    private static Cursor draggerCursor;
     static {
         try {
             draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
@@ -29,6 +30,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        draggerCursor = new Cursor(Cursor.TEXT_CURSOR);
     }
 
     // todo: could use something like BoundedRangeModel (but then for floats) for checking bounds.
@@ -299,8 +301,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseDragged(MouseEvent e) {
-        setCursor(new Cursor(Cursor.TEXT_CURSOR));
         if (!isEnabled()) return;
+        if (! getCursor().equals(draggerCursor))
+            setCursor(draggerCursor);
         float deltaX = e.getXOnScreen() - pressedX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
