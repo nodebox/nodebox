@@ -330,13 +330,17 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     }
 
     public void keyPressed(KeyEvent e) {
-        panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            panEnabled = true;
+            setCursor(new Cursor(Cursor.MOVE_CURSOR));
+        }
         if (hasVisibleHandle())
             handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyReleased(KeyEvent e) {
         panEnabled = false;
+        setCursor(Cursor.getDefaultCursor());
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
