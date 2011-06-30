@@ -18,8 +18,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
-    private static Cursor draggerCursor;
+    private static Cursor draggerCursor, hoverCursor;
+
     static {
+        Image cursorDrag, cursorHover;
         try {
             draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
             draggerRight = ImageIO.read(new File("res/dragger-right.png"));
@@ -27,10 +29,14 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
+            cursorDrag = ImageIO.read(new File("res/dragger-cursor-drag.png"));
+            cursorHover = ImageIO.read(new File("res/dragger-cursor-hover.png"));
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            draggerCursor =toolkit.createCustomCursor(cursorDrag, new Point(0, 0), "DragCursor");
+            hoverCursor =toolkit.createCustomCursor(cursorHover, new Point(0, 0), "HoverCursor");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        draggerCursor = new Cursor(Cursor.TEXT_CURSOR);
     }
 
     // todo: could use something like BoundedRangeModel (but then for floats) for checking bounds.
@@ -292,9 +298,15 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseEntered(MouseEvent e) {
+        if (!isEnabled()) return;
+        if (! getCursor().equals(draggerCursor))
+            setCursor(hoverCursor);
     }
 
     public void mouseExited(MouseEvent e) {
+        if (!isEnabled()) return;
+        if (! getCursor().equals(draggerCursor))
+            setCursor(Cursor.getDefaultCursor());
     }
 
     public void mouseMoved(MouseEvent e) {
