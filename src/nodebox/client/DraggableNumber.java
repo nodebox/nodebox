@@ -29,7 +29,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
-            cursorDrag = ImageIO.read(new File("res/dragger-cursor-drag.png"));
+            if (PlatformUtils.onWindows())
+                    cursorDrag = ImageIO.read(new File("res/dragger-cursor-drag-32.png"));
+                else
+                    cursorDrag = ImageIO.read(new File("res/dragger-cursor-drag.png"));
             cursorHover = ImageIO.read(new File("res/dragger-cursor-hover.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             draggerCursor = toolkit.createCustomCursor(cursorDrag, new Point(0, 0), "DragCursor");
