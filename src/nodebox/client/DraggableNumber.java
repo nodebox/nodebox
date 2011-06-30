@@ -35,7 +35,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
                 else
                     cursorHover = ImageIO.read(new File("res/dragger-cursor-hover.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
-            draggerCursor = toolkit.createCustomCursor(cursorDrag, new Point(0, 0), "DragCursor");
             hoverCursor = toolkit.createCustomCursor(cursorHover, new Point(0, 0), "HoverCursor");
             defaultCursor = Cursor.getDefaultCursor();
         } catch (IOException e) {
@@ -47,10 +46,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private JTextField numberField;
     private double oldValue, value;
-
-    private Robot robot;
-    private int pressedX;
-    private int pressedY;
+    private int previousX;
 
     private Double minimumValue;
     private Double maximumValue;
@@ -258,16 +254,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mousePressed(MouseEvent e) {
         if (!isEnabled()) return;
-        pressedX = e.getXOnScreen();
-        pressedY = e.getYOnScreen();
-
-        try {
-            robot = new Robot();
-        } catch(Exception ex) {
-        }
-
         if (e.getButton() == MouseEvent.BUTTON1) {
             oldValue = getValue();
+            previousX = e.getX();
         }
     }
 
@@ -297,7 +286,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseReleased(MouseEvent e) {
         if (!isEnabled()) return;
-        setCursor(isDragAreaHovered(e.getPoint()) ? hoverCursor : defaultCursor);
+        NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
         if (oldValue != value)
             fireStateChanged();
     }
@@ -306,6 +295,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseExited(MouseEvent e) {
+        setCursor(defaultCursor);
     }
 
     public void mouseMoved(MouseEvent e) {
@@ -321,9 +311,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseDragged(MouseEvent e) {
         if (!isEnabled()) return;
-        if (! getCursor().equals(draggerCursor))
-            setCursor(draggerCursor);
-        float deltaX = e.getXOnScreen() - pressedX;
+        if (! getCursor().equals(defaultCursor))
+            setCursor(defaultCursor);
+        float deltaX = e.getX() - previousX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
             deltaX *= 10;
@@ -331,7 +321,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             deltaX *= 0.01;
         }
         setValue(getValue() + deltaX);
-        robot.mouseMove(pressedX, pressedY);
+        previousX = e.getX();
         fireStateChanged();
     }
 
