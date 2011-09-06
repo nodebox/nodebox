@@ -49,7 +49,7 @@ public class FileUtils {
             if (document != null) {
                 File documentFile = document.getDocumentFile();
                 if (documentFile != null) {
-                    fileDialog.setFile(documentFile.getParentFile().getPath());
+                    fileDialog.setDirectory(documentFile.getParentFile().getPath());
                 }
             }
         } else {
@@ -57,7 +57,8 @@ public class FileUtils {
             if (f.isDirectory()) {
                 fileDialog.setDirectory(pathName);
             } else {
-                fileDialog.setFile(pathName);
+                fileDialog.setDirectory(f.getParentFile().getPath());
+                fileDialog.setFile(f.getName());
             }
         }
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
