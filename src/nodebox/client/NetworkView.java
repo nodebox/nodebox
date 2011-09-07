@@ -48,7 +48,10 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         Image panCursorImage;
 
         try {
-            panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
+            if (PlatformUtils.onWindows())
+                panCursorImage = ImageIO.read(new File("res/view-cursor-pan-32.png"));
+            else
+                panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
             defaultCursor = Cursor.getDefaultCursor();
