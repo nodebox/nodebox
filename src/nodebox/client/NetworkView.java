@@ -8,12 +8,15 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.node.*;
 import nodebox.node.event.*;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -27,6 +30,8 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
 
+    private static Cursor defaultCursor, panCursor;
+
     private Pane pane;
     private Node node;
     private Set<NodeView> selection = new HashSet<NodeView>();
@@ -38,6 +43,19 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
     private Point2D connectionPoint;
 
     private boolean panEnabled = false;
+
+    static {
+        Image panCursorImage;
+
+        try {
+            panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
+            defaultCursor = Cursor.getDefaultCursor();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public NetworkView(Pane pane, Node node) {
         this.pane = pane;
@@ -587,10 +605,14 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
 
     public void keyPressed(KeyEvent e) {
         panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
+        if (panEnabled && ! getCursor().equals(panCursor))
+            setCursor(panCursor);
     }
 
     public void keyReleased(KeyEvent e) {
         panEnabled = false;
+        if (! getCursor().equals(defaultCursor))
+            setCursor(defaultCursor);
     }
 
 

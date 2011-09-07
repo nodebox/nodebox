@@ -15,14 +15,19 @@ import nodebox.node.Parameter;
 import nodebox.node.event.NodeAttributeChangedEvent;
 import nodebox.node.event.NodeUpdatedEvent;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Color;
+import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
 
 public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener, NodeEventListener {
 
@@ -33,6 +38,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     private static final String HANDLE_UNDO_TEXT = "Handle Changes";
     private static final String HANDLE_UNDO_TYPE = "handle";
+
+    private static Cursor defaultCursor, panCursor;
 
     private Pane pane;
     private Node node;
@@ -47,6 +54,19 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     private PLayer viewerLayer;
     private JPopupMenu viewerMenu;
     private Class outputClass;
+
+    static {
+        Image panCursorImage;
+
+        try {
+            panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
+            Toolkit toolkit = Toolkit.getDefaultToolkit();
+            panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
+            defaultCursor = Cursor.getDefaultCursor();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Viewer(Pane pane, Node node) {
         this.pane = pane;
@@ -332,7 +352,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             panEnabled = true;
-            setCursor(new Cursor(Cursor.MOVE_CURSOR));
+             if (! getCursor().equals(panCursor))
+                setCursor(panCursor);
         }
         if (hasVisibleHandle())
             handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
@@ -340,7 +361,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     public void keyReleased(KeyEvent e) {
         panEnabled = false;
-        setCursor(Cursor.getDefaultCursor());
+        if (! getCursor().equals(defaultCursor))
+            setCursor(defaultCursor);
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
