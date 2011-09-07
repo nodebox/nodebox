@@ -18,10 +18,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
-    private static Cursor defaultCursor, draggerCursor, hoverCursor;
+    private static Cursor defaultCursor, hoverCursor;
 
     static {
-        Image cursorDrag, cursorHover;
+        Image cursorHover;
         try {
             draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
             draggerRight = ImageIO.read(new File("res/dragger-right.png"));
@@ -29,7 +29,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
-            cursorDrag = ImageIO.read(new File("res/dragger-cursor-drag.png"));
             if (PlatformUtils.onWindows())
                     cursorHover = ImageIO.read(new File("res/dragger-cursor-hover-32.png"));
                 else
