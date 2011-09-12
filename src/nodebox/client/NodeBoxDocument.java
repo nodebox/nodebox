@@ -639,7 +639,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
             // TODO: support different codec types as well.
-            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue(), d.getQuality(), d.getFormat());
+            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue(), Movie.CompressionQuality.HIGH, MovieFormat.MP4);
             return true;
         }
         return false;
