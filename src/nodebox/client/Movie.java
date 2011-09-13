@@ -16,16 +16,10 @@ public class Movie {
         ANIMATION, FLV, H263, H264, MPEG4, RAW, THEORA, WMV
     }
 
-    public static enum CompressionQuality {
-        LOW, MEDIUM, HIGH, BEST
-    }
-
-
     private static final File FFMPEG_BINARY;
     private static final String TEMPORARY_FILE_PREFIX = "sme";
     private static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
     private static final Map<CodecType, String> codecTypeMap;
-    private static final Map<CompressionQuality, String> compressionQualityMap;
     private static final Map<MovieFormat, String> formatMap;
 
 
@@ -49,11 +43,6 @@ public class Movie {
         codecTypeMap.put(CodecType.MPEG4, "mpeg4");
         codecTypeMap.put(CodecType.RAW, "rawvideo");
         codecTypeMap.put(CodecType.WMV, "wmv");
-        compressionQualityMap = new HashMap<CompressionQuality, String>(CompressionQuality.values().length);
-        compressionQualityMap.put(CompressionQuality.LOW, "baseline");
-        compressionQualityMap.put(CompressionQuality.MEDIUM, "default");
-        compressionQualityMap.put(CompressionQuality.HIGH, "hq");
-        compressionQualityMap.put(CompressionQuality.BEST, "lossless_max");
         formatMap = new HashMap<MovieFormat, String>();
         formatMap.put(MovieFormat.MOV, "mov");
         formatMap.put(MovieFormat.AVI, "avi");
@@ -63,22 +52,20 @@ public class Movie {
     private String movieFilename;
     private int width, height;
     private CodecType codecType;
-    private CompressionQuality compressionQuality;
     private MovieFormat format;
     private boolean verbose;
     private int frameCount = 0;
     private String temporaryFileTemplate;
 
     public Movie(String movieFilename, int width, int height) {
-        this(movieFilename, width, height, CodecType.H264, CompressionQuality.BEST, MovieFormat.MOV,  false);
+        this(movieFilename, width, height, CodecType.H264, MovieFormat.MOV,  false);
     }
 
-    public Movie(String movieFilename, int width, int height, CodecType codecType, CompressionQuality compressionQuality, MovieFormat format, boolean verbose) {
+    public Movie(String movieFilename, int width, int height, CodecType codecType, MovieFormat format, boolean verbose) {
         this.movieFilename = movieFilename;
         this.width = width;
         this.height = height;
         this.codecType = codecType;
-        this.compressionQuality = compressionQuality;
         this.format = format;
         this.verbose = verbose;
         // Generate the prefix for a temporary file.
@@ -153,8 +140,6 @@ public class Movie {
         PrintWriter out = new PrintWriter(sw, true);
         String type = codecTypeMap.get(codecType);
         int bitRate = bitRateForSize(width, height);
-        String quality = compressionQualityMap.get(compressionQuality);
-
 
         ArrayList<String> commandList = new ArrayList<String>();
         commandList.add(FFMPEG_BINARY.getAbsolutePath());
@@ -163,13 +148,12 @@ public class Movie {
         commandList.add(temporaryFileTemplate); // Input images
         commandList.add("-vcodec");
         commandList.add(type); // Target video codec
-        if (codecType == CodecType.H264) {
-            commandList.add("-fpre");
-            commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, quality));
-        } else {
-            commandList.add("-b");
-            commandList.add(bitRate + "k"); // Target bit rate
-        }
+
+        commandList.add("-fpre");
+        commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, "main"));
+        commandList.add("-fpre");
+        commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, "slow"));
+
         commandList.add("-f");
         commandList.add(formatMap.get(format));
         commandList.add(movieFilename); // Target file name

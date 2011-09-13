@@ -639,13 +639,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
             // TODO: support different codec types as well.
-            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue(), Movie.CompressionQuality.HIGH, MovieFormat.MP4);
+            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
             return true;
         }
         return false;
     }
 
-    private void exportToMovieFile(File file, final int fromValue, final int toValue, final Movie.CompressionQuality quality, final MovieFormat format) {
+    private void exportToMovieFile(File file, final int fromValue, final int toValue) {
         final ProgressDialog d = new InterruptableProgressDialog(this, null);
         d.setTaskCount(toValue - fromValue + 1);
         d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
@@ -653,14 +653,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
 
-        file = format.ensureFileExtension(file);
+        file = MovieFormat.MP4.ensureFileExtension(file);
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
-        final Movie movie = new Movie(file.getAbsolutePath(), width, height, Movie.CodecType.H264, quality, format,  false);
+        final Movie movie = new Movie(file.getAbsolutePath(), width, height, Movie.CodecType.H264, MovieFormat.MP4,  false);
         final ExportViewer viewer = new ExportViewer(exportNetwork);
 
         Thread t = new Thread(new Runnable() {
