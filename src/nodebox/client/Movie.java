@@ -12,15 +12,11 @@ import java.util.Random;
 
 public class Movie {
 
-    public static enum CodecType {
-        ANIMATION, FLV, H263, H264, MPEG4, RAW, THEORA, WMV
-    }
-
     private static final File FFMPEG_BINARY;
     private static final String TEMPORARY_FILE_PREFIX = "sme";
     private static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
-    private static final Map<CodecType, String> codecTypeMap;
-    private static final Map<MovieFormat, String> formatMap;
+    private static final String DEFAULT_CODEC = "libx264";
+    private static final String DEFAULT_FORMAT = "mp4";
 
 
     static {
@@ -35,38 +31,22 @@ public class Movie {
         } else {
             FFMPEG_BINARY = new File("/usr/bin/ffmpeg");
         }
-        codecTypeMap = new HashMap<CodecType, String>(CodecType.values().length);
-        codecTypeMap.put(CodecType.ANIMATION, "qtrle");
-        codecTypeMap.put(CodecType.FLV, "flv");
-        codecTypeMap.put(CodecType.H263, "h263");
-        codecTypeMap.put(CodecType.H264, "libx264");
-        codecTypeMap.put(CodecType.MPEG4, "mpeg4");
-        codecTypeMap.put(CodecType.RAW, "rawvideo");
-        codecTypeMap.put(CodecType.WMV, "wmv");
-        formatMap = new HashMap<MovieFormat, String>();
-        formatMap.put(MovieFormat.MOV, "mov");
-        formatMap.put(MovieFormat.AVI, "avi");
-        formatMap.put(MovieFormat.MP4, "mp4");
     }
 
     private String movieFilename;
     private int width, height;
-    private CodecType codecType;
-    private MovieFormat format;
     private boolean verbose;
     private int frameCount = 0;
     private String temporaryFileTemplate;
 
     public Movie(String movieFilename, int width, int height) {
-        this(movieFilename, width, height, CodecType.H264, MovieFormat.MOV,  false);
+        this(movieFilename, width, height, false);
     }
 
-    public Movie(String movieFilename, int width, int height, CodecType codecType, MovieFormat format, boolean verbose) {
+    public Movie(String movieFilename, int width, int height, boolean verbose) {
         this.movieFilename = movieFilename;
         this.width = width;
         this.height = height;
-        this.codecType = codecType;
-        this.format = format;
         this.verbose = verbose;
         // Generate the prefix for a temporary file.
         // We generate a temporary file, then use that as the prefix for our own files.
@@ -103,10 +83,6 @@ public class Movie {
         return new File(String.format(temporaryFileTemplate, frame));
     }
 
-    public MovieFormat getFormat() {
-        return format;
-    }
-
     /**
      * Add the image to the movie.
      * <p/>
@@ -138,7 +114,7 @@ public class Movie {
      */
     public void save(StringWriter sw) {
         PrintWriter out = new PrintWriter(sw, true);
-        String type = codecTypeMap.get(codecType);
+        String type = DEFAULT_CODEC;
         int bitRate = bitRateForSize(width, height);
 
         ArrayList<String> commandList = new ArrayList<String>();
@@ -155,7 +131,7 @@ public class Movie {
         commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, "slow"));
 
         commandList.add("-f");
-        commandList.add(formatMap.get(format));
+        commandList.add(DEFAULT_FORMAT);
         commandList.add(movieFilename); // Target file name
 
         ProcessBuilder pb = new ProcessBuilder(commandList);

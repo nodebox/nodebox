@@ -653,14 +653,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
 
-        file = MovieFormat.MP4.ensureFileExtension(file);
+        //file = MovieFormat.MP4.ensureFileExtension(file);
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
-        final Movie movie = new Movie(file.getAbsolutePath(), width, height, Movie.CodecType.H264, MovieFormat.MP4,  false);
+        final Movie movie = new Movie(file.getAbsolutePath(), width, height, false);
         final ExportViewer viewer = new ExportViewer(exportNetwork);
 
         Thread t = new Thread(new Runnable() {
