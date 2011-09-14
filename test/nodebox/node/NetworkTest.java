@@ -140,7 +140,6 @@ public class NetworkTest extends NodeTestCase {
         Node net = testNetworkNode.newInstance(testLibrary, "net");
         Node v1 = net.create(numberNode);
         v1.setValue("value", 42);
-        assertProcessingError(net, "no child node to render");
         assertEquals(null, net.getOutputValue());
         v1.setRendered();
         net.update();

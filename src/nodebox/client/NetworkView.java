@@ -5,8 +5,9 @@ import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PBounds;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.node.*;
-import nodebox.node.event.*;
+import nodebox.node.Node;
+import nodebox.node.NodeLibrary;
+import nodebox.node.Port;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -20,7 +21,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
-public class NetworkView extends PCanvas implements PaneView, NodeEventListener, CodeChangeListener, KeyListener {
+public class NetworkView extends PCanvas implements PaneView, CodeChangeListener, KeyListener {
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -29,18 +30,20 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
 
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
+    
+    private NodeBoxDocument document;
+    private Node activeNetwork;
+    private Node activeNode;
 
     private static Cursor defaultCursor, panCursor;
 
-    private Pane pane;
-    private Node node;
     private Set<NodeView> selection = new HashSet<NodeView>();
     private ConnectionLayer connectionLayer;
     private SelectionMarker selectionMarker;
     private JPopupMenu networkMenu;
-    private boolean networkError;
     private NodeView connectionSource, connectionTarget;
     private Point2D connectionPoint;
+    private Delegate delegate;
 
     private boolean panEnabled = false;
 
@@ -60,13 +63,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         }
     }
 
-    public NetworkView(Pane pane, Node node) {
-        this.pane = pane;
-        this.node = node;
-        getDocument().getNodeLibrary().addListener(this);
-        getDocument().addCodeChangeListener(this);
-        if (node != null)
-            this.networkError = node.hasError();
+    public NetworkView() {
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
         SelectionHandler selectionHandler = new SelectionHandler();
         addInputEventListener(selectionHandler);
@@ -115,10 +112,6 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         setFocusTraversalKeysEnabled(false);
     }
 
-    public NodeBoxDocument getDocument() {
-        return pane.getDocument();
-    }
-
     private void initMenus() {
         networkMenu = new JPopupMenu();
         networkMenu.add(new NewNodeAction());
@@ -134,30 +127,66 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         connectionLayer.setBounds(getBounds());
     }
 
-    public Pane getPane() {
-        return pane;
+    public NodeBoxDocument getDocument() {
+        return document;
     }
 
-    public Node getNode() {
-        return node;
+    // TODO Turn this into a delegate.
+    public void setDocument(NodeBoxDocument document) {
+        this.document = document;
     }
 
-    public void setNode(Node node) {
-        if (this.node == node) return;
-        Node oldNode = this.node;
-        this.node = node;
+    public Node getActiveNetwork() {
+        return activeNetwork;
+    }
+
+    /**
+     * Refresh the nodes and connections cache.
+     */
+    public void updateAll() {
+        updateNodes();
+        updateConnections();
+    }
+
+    public void updateNodes() {
         getLayer().removeAllChildren();
         deselectAll();
-        if (node == null) return;
-        networkError = node.hasError();
+        if (activeNetwork == null) return;
         // Add nodes
-        for (Node n : node.getChildren()) {
+        for (Node n : activeNetwork.getChildren()) {
             NodeView nv = new NodeView(this, n);
             getLayer().addChild(nv);
         }
+        // TODO: Do we need validate?
         validate();
         repaint();
-        firePropertyChange(NETWORK_PROPERTY, oldNode, node);
+    }
+
+    public void updateConnections() {
+        connectionLayer.repaint();
+    }
+
+    public void updatePosition(Node node) {
+        NodeView nv = getNodeView(node);
+        if (nv == null) return;
+        // TODO Make this work.
+        //nv.setOffset(node.getX(), node.getY());
+        updateConnections();
+    }
+
+    public void setActiveNetwork(Node activeNetwork) {
+        this.activeNetwork = activeNetwork;
+        updateNodes();
+    }
+
+    public Node getActiveNode() {
+        return activeNode;
+    }
+
+    public void setActiveNode(Node activeNode) {
+        this.activeNode = activeNode;
+        singleSelect(activeNode);
+        repaint();
     }
 
     //// View queries ////
@@ -206,10 +235,9 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
      * <p/>
      * All other selected nodes will be deselected.
      *
-     * @param node the node to select.
+     * @param node The node to select. If node is null, everything is deselected.
      */
     public void singleSelect(Node node) {
-        if (node == null) return;
         NodeView nodeView = getNodeView(node);
         singleSelect(nodeView);
     }
@@ -219,19 +247,20 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
      * <p/>
      * All other selected nodes will be deselected.
      *
-     * @param nodeView the node view to select.
+     * @param nodeView The node view to select or null to deselect everything.
      */
     public void singleSelect(NodeView nodeView) {
+        connectionLayer.deselect();
         if (nodeView == null) return;
         if (selection.size() == 1 && selection.contains(nodeView)) return;
         for (NodeView nv : selection) {
             nv.setSelected(false);
         }
-        connectionLayer.deselect();
         selection.clear();
         selection.add(nodeView);
         nodeView.setSelected(true);
         firePropertyChange(SELECT_PROPERTY, null, selection);
+        delegate.activeNodeChanged(nodeView.getNode());
     }
 
     public void select(Set<NodeView> newSelection) {
@@ -317,16 +346,20 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         }
         selection.clear();
         connectionLayer.deselect();
-        firePropertyChange(SELECT_PROPERTY, null, selection);
+    }
+
+    private Set<Node> nodeViewsToNodes(Iterable<NodeView> nodeViews) {
+        Set<Node> nodes = new HashSet<Node>();
+        for (NodeView nodeView : nodeViews) {
+            nodes.add(nodeView.getNode());
+        }
+        return nodes;
     }
 
     public void deleteSelected() {
-        Set<NodeView> nodesToRemove = new HashSet<NodeView>(selection);
-        getDocument().startEdits("Delete Nodes");
-        for (NodeView nodeView : nodesToRemove) {
-            getDocument().removeNode(nodeView.getNode());
-        }
-        getDocument().stopEdits();
+        Set<NodeView> nodeViews = new HashSet<NodeView>(selection);
+        Set<Node> nodes = nodeViewsToNodes(nodeViews);
+        getDocument().removeNodes(nodes);
         connectionLayer.deleteSelected();
     }
 
@@ -345,12 +378,12 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         // This parent is the root of a new library.
         NodeLibrary clipboardLibrary = new NodeLibrary("clipboard");
         Node clipboardRoot = clipboardLibrary.getRootNode();
-        getDocument().copyChildren(getSelectedNodes(), getNode(), clipboardRoot);
+        getDocument().copyChildren(getSelectedNodes(), getActiveNetwork(), clipboardRoot);
         Application.getInstance().setNodeClipboard(clipboardLibrary);
     }
 
     public void pasteSelected() {
-        Node newParent = getNode();
+        Node newParent = getActiveNetwork();
         NodeLibrary clipboardLibrary = Application.getInstance().getNodeClipboard();
         if (clipboardLibrary == null) return;
         Node clipboardRoot = clipboardLibrary.getRootNode();
@@ -379,25 +412,6 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
 
     //// Events ////
 
-    public void receive(NodeEvent event) {
-        if (event instanceof NodeAttributeChangedEvent) {
-            if (event.getSource().getParent() != node) return;
-            childAttributeChanged(event.getSource(), ((NodeAttributeChangedEvent) event).getAttribute());
-        }
-        if (event.getSource() != node) return;
-        if (event instanceof ChildAddedEvent) {
-            childAdded(((ChildAddedEvent) event).getChild());
-        } else if (event instanceof ChildRemovedEvent) {
-            childRemoved(((ChildRemovedEvent) event).getChild());
-        } else if (event instanceof ConnectionAddedEvent || event instanceof ConnectionRemovedEvent) {
-            connectionLayer.repaint();
-        } else if (event instanceof RenderedChildChangedEvent) {
-            repaint();
-        } else if (event instanceof NodeUpdatedEvent) {
-            checkErrorAndRepaint();
-        }
-    }
-
     public void childAdded(Node child) {
         NodeView nv = new NodeView(this, child);
         getLayer().addChild(nv);
@@ -422,8 +436,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         if (attribute == Node.Attribute.PORT) {
             nv.updateIcon();
         } else if (attribute == Node.Attribute.NAME
-                || attribute == Node.Attribute.IMAGE
-                || attribute == Node.Attribute.PORT) {
+                || attribute == Node.Attribute.IMAGE) {
             // When visual attributes change, repaint the node view.
             nv.repaint();
         } else if (attribute == Node.Attribute.POSITION) {
@@ -437,8 +450,8 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
     }
 
     public void checkErrorAndRepaint() {
-        if (!networkError && !node.hasError()) return;
-        networkError = node.hasError();
+        //if (!networkError && !activeNetwork.hasError()) return;
+        //networkError = activeNetwork.hasError();
         repaint();
     }
 
@@ -451,6 +464,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
 
     //// Node manager ////
 
+    // TODO move to the document.
     public void showNodeSelectionDialog() {
         NodeBoxDocument doc = getDocument();
         NodeSelectionDialog dialog = new NodeSelectionDialog(doc, doc.getNodeLibrary(), doc.getManager());
@@ -461,12 +475,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         pt = (Point) getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
-            doc.startEdits("Create Node");
-            Node n = doc.createNode(dialog.getSelectedNode());
-            doc.setNodePosition(n, new nodebox.graphics.Point(pt));
-            doc.setRenderedNode(n);
-            doc.setActiveNode(n);
-            doc.stopEdits();
+            doc.createNode(dialog.getSelectedNode(), pt);
         }
     }
 
@@ -504,7 +513,6 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
      */
     public void connect(Port output, Port input) {
         getDocument().connect(output, input);
-
     }
 
     /**
@@ -573,11 +581,11 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
     //// Network navigation ////
 
     private void goUp() {
-        if (node.getParent() == null) {
+        if (activeNetwork.getParent() == null) {
             Toolkit.getDefaultToolkit().beep();
             return;
         }
-        getDocument().setActiveNetwork(node.getParent());
+        getDocument().setActiveNetwork(activeNetwork.getParent());
     }
 
     private void goDown() {
@@ -644,6 +652,7 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
         public void mouseClicked(PInputEvent e) {
             if (e.getButton() != MouseEvent.BUTTON1) return;
             deselectAll();
+            getDocument().setActiveNode(null);
             connectionLayer.mouseClickedEvent(e);
         }
 
@@ -771,4 +780,27 @@ public class NetworkView extends PCanvas implements PaneView, NodeEventListener,
             goUp();
         }
     }
+
+    public Delegate getDelegate() {
+        return delegate;
+    }
+
+    public void setDelegate(Delegate delegate) {
+        this.delegate = delegate;
+    }
+
+    /**
+     * A callback interface for listening to changes in the network view.
+     */
+    public static interface Delegate {
+
+        /**
+         * Callback method invoked when the active node was changed.
+         *
+         * @param node The new active node.
+         */
+        public void activeNodeChanged(Node node);
+
+    }
+
 }

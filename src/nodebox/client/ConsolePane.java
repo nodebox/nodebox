@@ -1,8 +1,6 @@
 package nodebox.client;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
 public class ConsolePane extends Pane implements FocusListener {
@@ -10,8 +8,7 @@ public class ConsolePane extends Pane implements FocusListener {
     private PaneHeader paneHeader;
     private Console console;
 
-    public ConsolePane(NodeBoxDocument document) {
-        super(document);
+    public ConsolePane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         console = new Console(this);
@@ -32,8 +29,8 @@ public class ConsolePane extends Pane implements FocusListener {
         return console;
     }
 
-    public Pane clone() {
-        return new ConsolePane(getDocument());
+    public Pane duplicate() {
+        return new ConsolePane();
     }
 
 }

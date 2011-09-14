@@ -299,8 +299,7 @@ public class ConnectTest extends NodeTestCase {
         // Now remove and update again
         net.remove(number1);
         assertNull(net.getRenderedChild());
-        // This should cause the network to complain that there is no node to render.
-        assertProcessingError(net, ProcessingError.class);
+        net.update();
         // The output value should revert to null.
         assertEquals(null, net.getOutputValue());
     }

@@ -1,18 +1,14 @@
 package nodebox.client;
 
-import nodebox.node.Node;
-
 import java.awt.*;
 
 public class ViewerPane extends Pane {
 
     private PaneHeader paneHeader;
     private Viewer viewer;
-    private Node node;
     private NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck;
 
-    public ViewerPane(NodeBoxDocument document) {
-        super(document);
+    public ViewerPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         handlesCheck = new NButton(NButton.Mode.CHECK, "Handles");
@@ -28,10 +24,13 @@ public class ViewerPane extends Pane {
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
         paneHeader.add(originCheck);
-        viewer = new Viewer(this, null);
+        viewer = new Viewer();
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
-        setNode(document.getActiveNetwork());
+    }
+
+    public Viewer getViewer() {
+        return viewer;
     }
 
     public void toggleHandles() {
@@ -50,31 +49,8 @@ public class ViewerPane extends Pane {
         viewer.setShowOrigin(originCheck.isChecked());
     }
 
-    public Node getNode() {
-        return node;
-    }
-
-    public void setNode(Node node) {
-        this.node = node;
-        viewer.setNode(node);
-    }
-
-    public void setActiveNode(Node node) {
-        viewer.setActiveNode(node);
-    }
-
-    @Override
-    public void currentNodeChanged(Node activeNetwork) {
-        setNode(activeNetwork);
-    }
-
-    @Override
-    public void focusedNodeChanged(Node activeNode) {
-        setActiveNode(activeNode);
-    }
-
-    public Pane clone() {
-        return new ViewerPane(getDocument());
+    public Pane duplicate() {
+        return new ViewerPane();
     }
 
     public String getPaneName() {

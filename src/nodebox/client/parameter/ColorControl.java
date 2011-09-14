@@ -1,25 +1,25 @@
 package nodebox.client.parameter;
 
-import nodebox.client.*;
-import nodebox.graphics.*;
-import nodebox.node.Node;
+import nodebox.client.ColorDialog;
+import nodebox.client.NodeBoxDocument;
+import nodebox.client.SwingUtils;
+import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ColorControl extends AbstractParameterControl implements ChangeListener, ActionListener, DocumentFocusListener {
+public class ColorControl extends AbstractParameterControl implements ChangeListener, ActionListener {
 
     private ColorButton colorButton;
     private ColorDialog colorDialog;
 
-    public ColorControl(NodeBoxDocument document, Parameter parameter) {
-        super(document, parameter);
+    public ColorControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));
@@ -61,8 +61,6 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         while (!(component instanceof NodeBoxDocument)) {
             component = component.getParent();
         }
-        NodeBoxDocument doc = (NodeBoxDocument) component;
-        doc.addDocumentFocusListener(this);
 
         if (colorDialog == null) {
             colorDialog = new ColorDialog((Frame) SwingUtilities.getWindowAncestor(this));
@@ -80,15 +78,6 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         } else {
             colorDialog.setVisible(true);
             colorDialog.requestFocus();
-        }
-    }
-
-    public void currentNodeChanged(Node node) {
-    }
-
-    public void focusedNodeChanged(Node node) {
-        if (colorDialog != null) {
-            colorDialog.dispose();
         }
     }
 

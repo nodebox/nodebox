@@ -423,14 +423,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            java.util.List<Pane> documentPanes = getDocument().getDocumentPanes();
-            for (Pane pane : documentPanes) {
-                if (pane instanceof NetworkPane) {
-                    ((NetworkPane) pane).createNewNode();
-                    return;
-                }
-            }
-            JOptionPane.showMessageDialog(getDocument(), "Please make sure a network view is present in the document.", "Warning", JOptionPane.WARNING_MESSAGE);
+            document.createNewNode();
         }
     }
 
@@ -441,7 +434,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().reloadActiveNode();
+            getDocument().reload();
         }
     }
 

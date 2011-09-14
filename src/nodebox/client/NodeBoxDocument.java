@@ -3,11 +3,10 @@ package nodebox.client;
 import nodebox.client.movie.Movie;
 import nodebox.base.Preconditions;
 import nodebox.client.movie.VideoFormat;
+
 import nodebox.node.*;
-import nodebox.node.event.NodeDirtyEvent;
 
 import javax.swing.*;
-import javax.swing.event.EventListenerList;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.AWTEventListener;
@@ -20,64 +19,127 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static nodebox.base.Preconditions.checkArgument;
+import static nodebox.base.Preconditions.checkNotNull;
 
 /**
  * A NodeBoxDocument manages a NodeLibrary.
  */
-public class NodeBoxDocument extends JFrame implements WindowListener, NodeEventListener {
+public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEventListener {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
     public static String lastFilePath;
     public static String lastExportPath;
 
-    private NodeLibrary nodeLibrary;
-    private Node activeNetwork;
-    private Node activeNode;
     private File documentFile;
     private boolean documentChanged;
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxDocument");
-    private EventListenerList documentFocusListeners = new EventListenerList();
-    private EventListenerList codeChangeListeners = new EventListenerList();
-    private UndoManager undoManager = new UndoManager();
-    private boolean holdEdits = false;
-    private AddressBar addressBar;
-    private NodeBoxMenuBar menuBar;
-    private AnimationBar animationBar;
     private AnimationTimer animationTimer;
-    private String lastEditType = null;
-    private Object lastEditObject = null;
-    //private RenderThread renderThread;
     private ArrayList<ParameterEditor> parameterEditors = new ArrayList<ParameterEditor>();
     private boolean loaded = false;
-    public HashMap<Parameter, String> changedCodeParameters = new HashMap<Parameter, String>();
     private SpotlightPanel spotlightPanel;
+
+    private final Map<Node, String> workingCodeMap = new WeakHashMap<Node, String>();
+
+    private UndoManager undoManager = new UndoManager();
+    private boolean holdEdits = false;
+    private String lastEditType = null;
+    private Object lastEditObject = null;
+
+    private NodeLibrary nodeLibrary;
+    private Node activeNetwork;
+    private Node activeNode;
+    private String activeCodeParameter = "_code";
+
+    // GUI components
+    private final NodeBoxMenuBar menuBar;
+    private final AnimationBar animationBar;
+    private final AddressBar addressBar;
+    private final Viewer viewer;
+    private final EditorPane editorPane;
+    private final ParameterView parameterView;
+    private final NetworkView networkView;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
     }
 
-    private class DocumentObservable extends Observable {
-        public void setChanged() {
-            super.setChanged();
-        }
+    public static NodeLibraryManager getManager() {
+        return Application.getInstance().getManager();
     }
 
     public NodeBoxDocument(NodeLibrary library) {
         setNodeLibrary(library);
         JPanel rootPanel = new JPanel(new BorderLayout());
-        ViewerPane viewPane = new ViewerPane(this);
-        EditorPane editorPane = new EditorPane(this);
-        ParameterPane parameterPane = new ParameterPane(this);
-        NetworkPane networkPane = new NetworkPane(this);
-        PaneSplitter viewEditorSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, viewPane, editorPane);
+        ViewerPane viewerPane = new ViewerPane();
+        viewer = viewerPane.getViewer();
+        viewer.setEventListener(this);
+        editorPane = new EditorPane();
+        editorPane.setDelegate(new EditorPane.Delegate() {
+            public void codeEdited(EditorPane editorPane, String source) {
+                Parameter codeParameter = activeNode.getParameter(activeCodeParameter);
+                String currentSource = codeParameter.asCode().getSource();
+                if (!currentSource.equals(source)) {
+                    workingCodeMap.put(activeNode, source);
+                    networkView.codeChanged(activeNode, true);
+                } else {
+                    workingCodeMap.remove(activeNode);
+                }
+            }
+
+            public void codeReloaded(EditorPane editorPane, String source) {
+                setActiveNodeCode(source);
+            }
+
+            public void codeParameterChanged(EditorPane editorPane, String codeParameter) {
+
+                // TODO Implement
+            }
+        });
+        ParameterPane parameterPane = new ParameterPane();
+        parameterPane.setEditMetadataListener(new ParameterPane.EditMetadataListener() {
+            public void onEditMetadata() {
+                if (activeNode == null) return;
+                addEdit("Node Metadata");
+                NodeAttributesEditor editor = new NodeAttributesEditor(activeNode);
+                JDialog editorDialog = new JDialog(NodeBoxDocument.this, activeNode.getName() + " Metadata");
+                editorDialog.getContentPane().add(editor);
+                editorDialog.setSize(580, 751);
+                editorDialog.setResizable(false);
+                editorDialog.setModal(true);
+                editorDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
+                editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
+                editorDialog.setVisible(true);
+            }
+        });
+        parameterView = parameterPane.getParameterView();
+        parameterView.setDocument(this); // TODO Remove this once parameter view is fully decoupled.
+        NetworkPane networkPane = new NetworkPane();
+        networkView = networkPane.getNetworkView();
+        networkView.setDocument(this); // TODO Remove this once it is fully decoupled.
+        networkView.setDelegate(new NetworkView.Delegate() {
+            public void activeNodeChanged(Node node) {
+                setActiveNode(node);
+            }
+        });
+        PaneSplitter viewEditorSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, viewerPane, editorPane);
         PaneSplitter parameterNetworkSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, parameterPane, networkPane);
         PaneSplitter topSplit = new PaneSplitter(NSplitter.Orientation.HORIZONTAL, viewEditorSplit, parameterNetworkSplit);
-        addressBar = new AddressBar(this);
+        addressBar = new AddressBar();
+        addressBar.setOnPartClickListener(new AddressBar.OnPartClickListener() {
+            public void onPartClicked(Node n) {
+                setActiveNetwork(n);
+            }
+        });
+
         rootPanel.add(addressBar, BorderLayout.NORTH);
         rootPanel.add(topSplit, BorderLayout.CENTER);
 
@@ -95,15 +157,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
         loaded = true;
-        requestActiveNetworkUpdate();
-        //renderThread = new RenderThread();
-        //renderThread.start();
+
+        setActiveNetwork(library.getRootNode());
 
         spotlightPanel = new SpotlightPanel(networkPane);
         setGlassPane(spotlightPanel);
         spotlightPanel.setVisible(true);
         spotlightPanel.setOpaque(false);
-
     }
 
     public NodeBoxDocument(File file) throws RuntimeException {
@@ -113,66 +173,261 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         spotlightPanel.hideSpotlightPanel();
     }
 
-    //// Document events ////
-
-    public void addDocumentFocusListener(DocumentFocusListener l) {
-        documentFocusListeners.add(DocumentFocusListener.class, l);
-    }
-
-    public void removeDocumentFocusListener(DocumentFocusListener l) {
-        documentFocusListeners.remove(DocumentFocusListener.class, l);
-    }
-
-    public void fireActiveNetworkChanged() {
-        for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
-            ((DocumentFocusListener) l).currentNodeChanged(activeNetwork);
-        }
-    }
-
-    public void fireActiveNodeChanged() {
-        for (EventListener l : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
-            ((DocumentFocusListener) l).focusedNodeChanged(activeNode);
-        }
-    }
+    //// Node Library management ////
 
     public NodeLibrary getNodeLibrary() {
         return nodeLibrary;
     }
 
-    public void setNodeLibrary(NodeLibrary newNodeLibrary) {
-        Preconditions.checkNotNull(newNodeLibrary, "Node library cannot be null.");
-        List<NodeEventListener> listeners = null;
-        NodeLibrary oldLibrary = this.nodeLibrary;
-        if (oldLibrary != null) {
-            // Remove the listeners from the old node library.
-            listeners = oldLibrary.getListeners();
-            for (NodeEventListener listener : listeners) {
-                oldLibrary.removeListener(listener);
-            }
+    public void setNodeLibrary(NodeLibrary newLibrary) {
+        checkNotNull(newLibrary, "Node library cannot be null.");
+        boolean startingUp = this.nodeLibrary == null;
+        this.nodeLibrary = newLibrary;
+        if (!startingUp) {
+            setActiveNetwork(newLibrary.getRootNode());
         }
-        this.nodeLibrary = newNodeLibrary;
+    }
 
+    //// Node operations ////
 
-        // Add the listeners to the new library.
-        if (listeners != null) {
-            for (NodeEventListener listener : listeners) {
-                newNodeLibrary.addListener(listener);
-            }
-        } else {
-            newNodeLibrary.addListener(this);
+    /**
+     * Create a node in the active network.
+     * This node is based on a prototype.
+     *
+     * @param prototype The prototype node.
+     * @param pt        The initial node position.
+     */
+    public void createNode(Node prototype, Point pt) {
+        startEdits("Create Node");
+        Node n = getActiveNetwork().create(prototype);
+        setNodePosition(n, new nodebox.graphics.Point(pt));
+        setRenderedNode(n);
+        setActiveNode(n);
+        stopEdits();
+
+        networkView.updateNodes();
+        networkView.setActiveNode(activeNode);
+        updateEditorPaneSource();
+        parameterView.setActiveNode(activeNode);
+    }
+
+    /**
+     * Change the node position of the given node.
+     *
+     * @param node  the node to move
+     * @param point the point to move to
+     */
+    public void setNodePosition(Node node, nodebox.graphics.Point point) {
+        // Note that we're passing in the parent network of the node.
+        // This means that all move changes to the parent network are grouped
+        // together under one edit, instead of for each node individually.
+        addEdit("Move Node", "moveNode", node.getParent());
+        node.setPosition(point);
+
+        networkView.updatePosition(node);
+    }
+
+    /**
+     * Change the node name.
+     *
+     * @param node The node to rename.
+     * @param name The new node name.
+     */
+    public void setNodeName(Node node, String name) {
+        node.setName(name);
+        networkView.updateNodes();
+        // Renaming the node can have an effect on expressions, so recalculate the network.
+        render();
+    }
+
+    /**
+     * Set the node metadata to the given metadata.
+     * Note that this method is not called when the node position or name changes.
+     *
+     * @param node     The node to change.
+     * @param metadata A map of metadata.
+     */
+    public void setNodeMetadata(Node node, Object metadata) {
+        // TODO: Implement
+        // TODO: Make NodeAttributesEditor use this.
+        // Metadata changes could mean the icon has changed.
+        networkView.updateNodes();
+        if (node == activeNode) {
+            parameterView.updateAll();
+            // Updating the metadata could cause changes to a handle.
+            viewer.repaint();
         }
-        setActiveNetwork(newNodeLibrary.getRootNode());
+        render();
     }
 
-
-    public void addNodeLibraryListener(NodeEventListener listener) {
-        nodeLibrary.addListener(listener);
+    /**
+     * Change the rendered node to the given node
+     *
+     * @param node the node to set rendered
+     */
+    public void setRenderedNode(Node node) {
+        addEdit("Set Rendered");
+        node.setRendered();
+        networkView.updateNodes();
+        networkView.setActiveNode(activeNode);
+        render();
     }
 
-    public void removeNodeLibraryListener(NodeEventListener listener) {
-        nodeLibrary.removeListener(listener);
+    /**
+     * Remove the given node from the active network.
+     *
+     * @param node The node to remove.
+     */
+    public void removeNode(Node node) {
+        addEdit("Remove Node");
+        removeNodeImpl(node);
+        networkView.updateAll();
+        render();
     }
 
+    /**
+     * Remove the given nodes from the active network.
+     *
+     * @param nodes The node to remove.
+     */
+    public void removeNodes(Iterable<Node> nodes) {
+        addEdit("Delete Nodes");
+        for (Node node : nodes) {
+            removeNodeImpl(node);
+        }
+        networkView.updateAll();
+        render();
+    }
+
+    /**
+     * Helper method used by removeNode and removeNodes to do the removal and update the parameter view, if needed.
+     *
+     * @param node The node to remove.
+     */
+    private void removeNodeImpl(Node node) {
+        checkNotNull(node, "Node to remove cannot be null.");
+        checkArgument(node.getParent() == activeNetwork, "Node to remove is not in active network.");
+        getActiveNetwork().remove(node);
+        // If the removed node was the active one, reset the parameter view.
+        if (node == activeNode) {
+            setActiveNode(null);
+        }
+    }
+
+    /**
+     * Create a connection from the given output to the given input.
+     *
+     * @param output the output port
+     * @param input  the input port
+     */
+    public void connect(Port output, Port input) {
+        addEdit("Connect");
+        getActiveNetwork().connectChildren(input, output);
+
+        if (input.getNode() == activeNode) {
+            parameterView.updateConnectionPanel();
+        }
+        render();
+    }
+
+    /**
+     * Changes the ordering of output connections by moving the given connection a specified number of positions.
+     * <p/>
+     * To move the specified connection up one position, set the deltaIndex to -1. To move a connection down, set
+     * the deltaIndex to 1.
+     * <p/>
+     * If the delta index is larger or smaller than the number of positions this connection can move, it will
+     * move the connection to the beginning or end. This will not result in an error.
+     *
+     * @param connection the connection to reorder
+     * @param deltaIndex the number of places to move.
+     * @param multi      the connection should only be reordered among connections connected to the same input port (with cardinality MULTIPLE).
+     */
+    public void reorderConnection(Connection connection, int deltaIndex, boolean multi) {
+        connection.getInput().getParentNode().reorderConnection(connection, deltaIndex, multi);
+
+        parameterView.updateConnectionPanel();
+        networkView.updateConnections();
+        render();
+    }
+
+    /**
+     * Remove the given connection from the network.
+     *
+     * @param connection the connection to remove
+     */
+    public void disconnect(Connection connection) {
+        addEdit("Disconnect");
+        getActiveNetwork().disconnect(connection);
+
+        networkView.updateConnections();
+        if (connection.getInputNode() == activeNode) {
+            parameterView.updateConnectionPanel();
+        }
+        render();
+    }
+
+    /**
+     * Copy children of this network to the new parent.
+     *
+     * @param children  the children to copy
+     * @param oldParent the old parent
+     * @param newParent the new parent
+     * @return the newly copied node
+     */
+    public Collection<Node> copyChildren(Collection<Node> children, Node oldParent, Node newParent) {
+        addEdit("Copy");
+        return oldParent.copyChildren(children, newParent);
+    }
+
+    /**
+     * Set the parameter to the given value.
+     *
+     * @param parameter the parameter to set
+     * @param value     the new value
+     */
+    public void setParameterValue(Parameter parameter, Object value) {
+        addEdit("Change Value", "changeValue", parameter);
+        parameter.set(value);
+        if (parameter.getNode() == nodeLibrary.getRootNode()) {
+            nodeLibrary.setVariable(parameter.getName(), parameter.asString());
+        }
+
+        parameterView.updateParameterValue(parameter, value);
+        render();
+    }
+
+    public void setParameterExpression(Parameter parameter, String expression) {
+        addEdit("Change Parameter Expression");
+        parameter.setExpression(expression);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void clearParameterExpression(Parameter parameter) {
+        addEdit("Clear Parameter Expression");
+        parameter.clearExpression();
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void revertParameterToDefault(Parameter parameter) {
+        addEdit("Revert Parameter to Default");
+        parameter.revertToDefault();
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    //// Active network / node ////
+
+    /**
+     * Return the network that is currently "open": shown in the network view.
+     *
+     * @return The currently active network.
+     */
     public Node getActiveNetwork() {
         return activeNetwork;
     }
@@ -183,22 +438,23 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public void setActiveNetwork(Node activeNetwork) {
+        checkNotNull(activeNetwork, "Active network cannot be null.");
         this.activeNetwork = activeNetwork;
-        fireActiveNetworkChanged();
-        if (activeNetwork != null && !activeNetwork.isEmpty()) {
-            // Set the active node to the rendered child if available.
-            if (activeNetwork.getRenderedChild() != null) {
-                setActiveNode(activeNetwork.getRenderedChild());
-            } else {
-                // Otherwise set it to the first node.
-                setActiveNode(activeNetwork.getChildAt(0));
-            }
+        if (activeNetwork.getRenderedChild() != null) {
+            setActiveNode(activeNetwork.getRenderedChild());
+        } else if (!activeNetwork.isEmpty()) {
+            setActiveNode(activeNetwork.getChildAt(0));
         } else {
-            setActiveNode((Node) null);
+            setActiveNode(null);
         }
-        if (activeNetwork != null) {
-            requestActiveNetworkUpdate();
-        }
+
+        addressBar.setActiveNetwork(activeNetwork);
+        viewer.setHandleEnabled(activeNetwork.hasEnabledHandle());
+        viewer.repaint();
+        networkView.setActiveNetwork(activeNetwork);
+        networkView.setActiveNode(activeNode);
+
+        render();
     }
 
     public void setActiveNetwork(String path) {
@@ -206,6 +462,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         setActiveNetwork(network);
     }
 
+    /**
+     * Return the node that is currently focused:
+     * visible in the parameter view, and whose handles are displayed in the viewer.
+     *
+     * @return
+     */
     public Node getActiveNode() {
         return activeNode;
     }
@@ -223,32 +485,137 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
      * <p/>
      * This will also change the active network if necessary.
      *
-     * @param activeNode the node to change to.
+     * @param node the node to change to.
      */
-    public void setActiveNode(Node activeNode) {
-        // Ensure that the active node is in the active network.
-        if (activeNode != null && activeNode.getParent() != activeNetwork) {
-            setActiveNetwork(activeNode.getParent());
+    public void setActiveNode(Node node) {
+        stopCombiningEdits();
+        if (activeNode == node) return;
+        activeNode = node;
+//        if (activeNode != null) {
+//            handle = activeNode.createHandle();
+//            if (handle != null) {
+//                handle.setViewer(this);
+//            }
+//        } else {
+//            handle = null;
+//        }
+//        checkIfHandleEnabled();
+        viewer.repaint();
+        parameterView.setActiveNode(activeNode);
+        networkView.setActiveNode(activeNode);
+        updateEditorPaneSource();
+    }
+
+    private void updateEditorPaneSource() {
+        if (activeNode != null) {
+            if (workingCodeMap.containsKey(activeNode)) {
+                editorPane.setSource(workingCodeMap.get(activeNode));
+            } else {
+                Parameter codeParameter = activeNode.getParameter(activeCodeParameter);
+                editorPane.setSource(codeParameter.asCode().getSource());
+            }
+        } else {
+            editorPane.setSource(null);
         }
-        this.activeNode = activeNode;
-        fireActiveNodeChanged();
+    }
+
+    //// Animation ////
+
+    public float getFrame() {
+        return nodeLibrary.getFrame();
+    }
+
+    public void setFrame(float frame) {
+        nodeLibrary.setFrame(frame);
+        animationBar.updateFrame();
+        render();
+    }
+
+    public void nextFrame() {
+        setFrame(getFrame() + 1);
+    }
+
+    public void playAnimation() {
+        animationTimer.start();
+    }
+
+    public void stopAnimation() {
+        animationTimer.stop();
+    }
+
+    public void rewindAnimation() {
+        stopAnimation();
+        setFrame(1);
+    }
+
+    //// Rendering ////
+
+    /**
+     * Called when the active network will start rendering.
+     * Called on the Swing EDT so you can update the GUI.
+     *
+     * @param context The processing context.
+     */
+    public void startRendering(ProcessingContext context) {
+        addressBar.setProgressVisible(true);
     }
 
     /**
-     * Set the active node based on an absolute path.
-     * This will also change the active network if necessary.
+     * Called when the active network has finished rendering.
      *
-     * @param path the absolute path
-     * @see #getActiveNodePath()
-     * @see nodebox.node.Node#getAbsolutePath()
+     * @param context The processing context.
      */
-    public void setActiveNode(String path) {
-        Node node = nodeLibrary.getNodeForPath(path);
-        setActiveNode(node);
+    public void finishedRendering(ProcessingContext context) {
+        addressBar.setProgressVisible(false);
+        editorPane.updateMessages(activeNode, context);
+        viewer.setOutputValue(activeNetwork.getOutputValue());
+        networkView.checkErrorAndRepaint();
+        // TODO: Why?
+        if (activeNode != null) {
+            viewer.setHandleEnabled(activeNode.hasEnabledHandle());
+        }
     }
 
-    public NodeLibraryManager getManager() {
-        return Application.getInstance().getManager();
+    private void render() {
+        if (!loaded) return;
+        if (!activeNetwork.isDirty()) return;
+        final ProcessingContext context = new ProcessingContext(activeNetwork);
+        startRendering(context);
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                // If meanwhile the node has been marked clean, ignore the event.
+                // This avoids double renders.
+                if (!activeNetwork.isDirty()) return;
+                try {
+                    activeNetwork.update(context);
+                } catch (ProcessingError processingError) {
+                    Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
+                } finally {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            finishedRendering(context);
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    public void setActiveNodeCode(String source) {
+        if (activeNode == null) return;
+        Parameter pCode = activeNode.getParameter(activeCodeParameter);
+        if (pCode == null) return;
+        NodeCode code = new PythonCode(source);
+        pCode.set(code);
+        if (activeCodeParameter.equals("_handle")) {
+            viewer.reloadHandle();
+        }
+        // Since the code is now up-to-date, remove it from the temporary map.
+        workingCodeMap.remove(activeNode);
+        networkView.codeChanged(activeNode, false);
+
+        render();
     }
 
     //// Undo ////
@@ -350,48 +717,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     //// Code editor actions ////
 
-    public void addCodeChangeListener(CodeChangeListener l) {
-        codeChangeListeners.add(CodeChangeListener.class, l);
-    }
-
-    public void removeCodeChangeListener(CodeChangeListener l) {
-        codeChangeListeners.remove(CodeChangeListener.class, l);
-    }
-
-    public String getChangedCodeForParameter(Parameter parameter) {
-        return changedCodeParameters.get(parameter);
-    }
-
-    public void setChangedCodeForParameter(Parameter parameter, String code) {
-        changedCodeParameters.put(parameter, code);
-    }
-
-    public void removeChangedCodeForParameter(Parameter parameter) {
-        changedCodeParameters.remove(parameter);
-        Node node = parameter.getNode();
-        for (Parameter p : changedCodeParameters.keySet()) {
-            if (p.getNode() == node)
-                return;
-        }
-        fireCodeChanged(node, false);
-    }
-
     public void fireCodeChanged(Node node, boolean changed) {
-        for (EventListener l : codeChangeListeners.getListeners(CodeChangeListener.class)) {
-            ((CodeChangeListener) l).codeChanged(node, changed);
-        }
+        networkView.codeChanged(node, changed);
     }
 
     //// Document actions ////
-
-    public List<Pane> getDocumentPanes() {
-        List<Pane> panes = new ArrayList<Pane>();
-        for (DocumentFocusListener listener : documentFocusListeners.getListeners(DocumentFocusListener.class)) {
-            if (listener instanceof Pane)
-                panes.add((Pane) listener);
-        }
-        return panes;
-    }
 
     public File getDocumentFile() {
         return documentFile;
@@ -406,7 +736,30 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         return documentChanged;
     }
 
-    public boolean shouldClose() {
+    public boolean close() {
+        stopAnimation();
+        if (shouldClose()) {
+            //renderThread.shutdown();
+            Application.getInstance().getManager().remove(nodeLibrary);
+            Application.getInstance().removeDocument(NodeBoxDocument.this);
+            for (ParameterEditor editor : parameterEditors) {
+                editor.dispose();
+            }
+            dispose();
+            // On Mac the application does not close if the last window is closed.
+            if (!PlatformUtils.onMac()) {
+                // If there are no more documents, exit the application.
+                if (Application.getInstance().getDocumentCount() == 0) {
+                    System.exit(0);
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean shouldClose() {
         if (isChanged()) {
             SaveDialog sd = new SaveDialog();
             int retVal = sd.show(this);
@@ -448,7 +801,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         JOptionPane.showMessageDialog(this, "Revert is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
     }
 
-    public boolean saveToFile(File file) {
+    private boolean saveToFile(File file) {
         try {
             nodeLibrary.store(file);
         } catch (IOException e) {
@@ -462,11 +815,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
 
     }
 
-    public boolean exportToFile(File file, ImageFormat format) {
+    private boolean exportToFile(File file, ImageFormat format) {
         return exportToFile(file, activeNetwork, format);
     }
 
-    public boolean exportToFile(File file, Node exportNetwork, ImageFormat format) {
+    private boolean exportToFile(File file, Node exportNetwork, ImageFormat format) {
         file = format.ensureFileExtension(file);
         if (exportNetwork == null) return false;
         Object outputValue = exportNetwork.getOutputValue();
@@ -479,7 +832,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         }
     }
 
-    public void markChanged() {
+    private void markChanged() {
         if (!documentChanged && loaded) {
             documentChanged = true;
             updateTitle();
@@ -488,57 +841,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     }
 
     public void cut() {
-        NetworkView networkView = currentNetworkView();
-        if (networkView == null) {
-            beep();
-            return;
-        }
         networkView.cutSelected();
     }
 
     public void copy() {
-        NetworkView networkView = currentNetworkView();
-        if (networkView == null) {
-            beep();
-            return;
-        }
         networkView.copySelected();
     }
 
     public void paste() {
         addEdit("Paste node");
-        NetworkView networkView = currentNetworkView();
-        if (networkView == null) {
-            beep();
-            return;
-        }
         networkView.pasteSelected();
     }
 
-    private NetworkView currentNetworkView() {
-        // Find current network view.
-        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (focusOwner == null) return null;
-        Pane pane = (Pane) SwingUtilities.getAncestorOfClass(Pane.class, focusOwner);
-        if (pane == null) return null;
-        PaneView paneView = pane.getPaneView();
-        if (!(paneView instanceof NetworkView)) return null;
-        return (NetworkView) paneView;
-    }
-
-
     public void deleteSelected() {
-        NetworkView networkView = currentNetworkView();
-        if (networkView == null) {
-            beep();
-            return;
-        }
         networkView.deleteSelected();
     }
 
     private void updateTitle() {
         String postfix = "";
-        if (!PlatformUtils.onMac()) { // todo: mac only code
+        if (!PlatformUtils.onMac()) {
             postfix = (documentChanged ? " *" : "");
         } else {
             getRootPane().putClientProperty("Window.documentModified", documentChanged);
@@ -549,6 +870,18 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
             setTitle(documentFile.getName() + postfix);
             getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
+    }
+
+    /**
+     * Start the dialog that allows a user to create a new node.
+     */
+    public void createNewNode() {
+        // TODO Move this from the NetworkView to here.
+        networkView.showNodeSelectionDialog();
+    }
+
+    public void reload() {
+        setActiveNodeCode(editorPane.getSource());
     }
 
     public boolean export() {
@@ -713,185 +1046,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         viewer.setVisible(true);
     }
 
-    public boolean reloadActiveNode() {
-        if (activeNode == null) return false;
-        Pane p = SwingUtils.getPaneForComponent(getFocusOwner());
-        if (p == null || !(p instanceof EditorPane)) return false;
-        return ((EditorPane) p).reload();
-    }
-
-    //// Node operations ////
-
-    /**
-     * Create a node in the active network.
-     * This node is based on a prototype.
-     *
-     * @param prototype the prototype node
-     * @return the newly created node.
-     */
-    public Node createNode(Node prototype) {
-        addEdit("Create Node");
-        return getActiveNetwork().create(prototype);
-    }
-
-    /**
-     * Change the node position of the given node.
-     *
-     * @param node  the node to move
-     * @param point the point to move to
-     */
-    public void setNodePosition(Node node, nodebox.graphics.Point point) {
-        // Note that we're passing in the parent network of the node.
-        // This means that all move changes to the parent network are grouped
-        // together under one edit, instead of for each node individually.
-        addEdit("Move Node", "moveNode", node.getParent());
-        node.setPosition(point);
-    }
-
-    /**
-     * Change the rendered node to the given node
-     *
-     * @param node the node to set rendered
-     */
-    public void setRenderedNode(Node node) {
-        addEdit("Set Rendered");
-        node.setRendered();
-    }
-
-    /**
-     * Remove the given node from the active network.
-     *
-     * @param node the node to remove.
-     */
-    public void removeNode(Node node) {
-        addEdit("Remove Node");
-        getActiveNetwork().remove(node);
-    }
-
-    /**
-     * Create a connection from the given output to the given input.
-     *
-     * @param output the output port
-     * @param input  the input port
-     * @return the created connection
-     */
-    public Connection connect(Port output, Port input) {
-        addEdit("Connect");
-        return getActiveNetwork().connectChildren(input, output);
-    }
-
-    /**
-     * Remove the given connection from the network.
-     *
-     * @param connection the connection to remove
-     */
-    public void disconnect(Connection connection) {
-        addEdit("Disconnect");
-        getActiveNetwork().disconnect(connection);
-    }
-
-    /**
-     * Copy children of this network to the new parent.
-     *
-     * @param children  the children to copy
-     * @param oldParent the old parent
-     * @param newParent the new parent
-     * @return the newly copied node
-     */
-    public Collection<Node> copyChildren(Collection<Node> children, Node oldParent, Node newParent) {
-        addEdit("Copy");
-        return oldParent.copyChildren(children, newParent);
-    }
-
-    /**
-     * Set the parameter to the given value.
-     *
-     * @param parameter the parameter to set
-     * @param value     the new value
-     */
-    public void setParameterValue(Parameter parameter, Object value) {
-        addEdit("Change Value", "changeValue", parameter);
-        parameter.set(value);
-        if (parameter.getNode() == nodeLibrary.getRootNode()) {
-            nodeLibrary.setVariable(parameter.getName(), parameter.asString());
-        }
-    }
-
-    public void setParameterExpression(Parameter parameter, String expression) {
-        addEdit("Change Parameter Expression");
-        parameter.setExpression(expression);
-    }
-
-    public void clearParameterExpression(Parameter parameter) {
-        addEdit("Clear Parameter Expression");
-        parameter.clearExpression();
-    }
-
-    public void revertParameterToDefault(Parameter parameter) {
-        addEdit("Revert Parameter to Default");
-        parameter.revertToDefault();
-    }
-
-    public float getFrame() {
-        return nodeLibrary.getFrame();
-    }
-
-    public void setFrame(float frame) {
-        nodeLibrary.setFrame(frame);
-        animationBar.updateFrame();
-        requestActiveNetworkUpdate();
-    }
-
-    public void nextFrame() {
-        setFrame(getFrame() + 1);
-    }
-
-    public void playAnimation() {
-        animationTimer.start();
-    }
-
-    public void stopAnimation() {
-        animationTimer.stop();
-    }
-
-    public void rewindAnimation() {
-        stopAnimation();
-        setFrame(1);
-    }
-
-//    public void createNewLibrary(String libraryName) {
-//        // First check if a library with this name already exists.
-//        if (getManager().hasLibrary(libraryName)) {
-//            JOptionPane.showMessageDialog(this, "A library with the name \"" + libraryName + "\" already exists.");
-//            return;
-//        }
-//        getManager().createPythonLibrary(libraryName);
-//    }
-
-
-    public void close() {
-        stopAnimation();
-        if (shouldClose()) {
-            //renderThread.shutdown();
-            Application.getInstance().getManager().remove(nodeLibrary);
-            Application.getInstance().removeDocument(NodeBoxDocument.this);
-            for (ParameterEditor editor : parameterEditors) {
-                editor.dispose();
-            }
-            dispose();
-            // On Mac the application does not close if the last window is closed.
-            if (PlatformUtils.onMac()) return;
-            // If there are no more documents, exit the application.
-            if (Application.getInstance().getDocumentCount() == 0) {
-                System.exit(0);
-            }
-        }
-    }
-
-    private void beep() {
-        Toolkit.getDefaultToolkit().beep();
-    }
-
     //// Window events ////
 
     public void windowOpened(WindowEvent e) {
@@ -917,37 +1071,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
     public void windowDeactivated(WindowEvent e) {
     }
 
-    //// Network events ////
-
-    public void receive(NodeEvent event) {
-        if (event instanceof NodeDirtyEvent && event.getSource() == activeNetwork) {
-            requestActiveNetworkUpdate();
-        }
-    }
-
-    private void requestActiveNetworkUpdate() {
-        if (!loaded) return;
-        addressBar.setProgressVisible(true);
-
-
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                // If meanwhile the node has been marked clean, ignore the event.
-                if (!activeNetwork.isDirty()) return;
-                try {
-                    activeNetwork.update();
-                } catch (ProcessingError processingError) {
-                    Logger.getLogger("NodeBoxDocument").log(Level.WARNING, "Error while processing", processingError);
-                } finally {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            addressBar.setProgressVisible(false);
-                        }
-                    });
-                }
-            }
-        });
-    }
+    //// Spotlight ////
 
     private static class SpotlightPanel extends JPanel {
 

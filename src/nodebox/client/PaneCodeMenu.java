@@ -16,7 +16,8 @@ public class PaneCodeMenu extends PaneMenu {
 
     @Override
     public String getMenuName() {
-        return ((EditorPane) getPane()).getCodeName();
+        // TODO Implement
+        return "Code";
     }
 
     @Override
@@ -29,8 +30,8 @@ public class PaneCodeMenu extends PaneMenu {
     private class PaneCodePopup extends JPopupMenu {
         public PaneCodePopup() {
             add(new ChangePaneCodeAction("Code", "_code"));
-            add(new ChangePaneCodeAction("Handle", "_handle"));
-            ((EditorPane) getPane()).setCodeType("Code", "_code");
+            add(new ChangePaneCodeAction("Handle", "_code"));
+            // ((EditorPane) getPane()).onCodeParameterChanged("Code", "_code");
         }
     }
 
@@ -46,7 +47,7 @@ public class PaneCodeMenu extends PaneMenu {
         }
 
         public void actionPerformed(ActionEvent e) {
-            ((EditorPane) getPane()).setCodeType(codeName, codeType);
+            ((EditorPane) getPane()).onCodeParameterChanged(codeType);
         }
     }
 }

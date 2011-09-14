@@ -1,7 +1,6 @@
 package nodebox.client.parameter;
 
 import nodebox.client.NodeBoxDocument;
-import nodebox.client.PlatformUtils;
 import nodebox.client.TextWindow;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
@@ -16,8 +15,8 @@ public class TextControl extends AbstractParameterControl implements ActionListe
     private JTextField textField;
     private JButton externalWindowButton;
 
-    public TextControl(NodeBoxDocument document, Parameter parameter) {
-        super(document, parameter);
+    public TextControl(Parameter parameter) {
+        super(parameter);
         setLayout(new BorderLayout(0, 0));
         textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");

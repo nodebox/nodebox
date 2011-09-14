@@ -1,7 +1,6 @@
 package nodebox.client.parameter;
 
 import nodebox.client.DraggableNumber;
-import nodebox.client.NodeBoxDocument;
 import nodebox.node.Parameter;
 
 import javax.swing.event.ChangeEvent;
@@ -15,8 +14,8 @@ public class IntControl extends AbstractParameterControl implements ChangeListen
 
     private DraggableNumber draggable;
 
-    public IntControl(NodeBoxDocument document, Parameter parameter) {
-        super(document, parameter);
+    public IntControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);

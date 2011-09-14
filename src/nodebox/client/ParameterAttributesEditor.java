@@ -13,6 +13,9 @@ import java.util.Locale;
 
 public class ParameterAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
+    // TODO: Decouple from the Parameter.
+    // TODO: Don't update immediately, use save/cancel buttons.
+
     private JTextField nameField;
     private JTextField labelField;
     private JTextField helpTextField;

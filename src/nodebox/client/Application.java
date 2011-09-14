@@ -245,7 +245,7 @@ public class Application implements Host {
         // make a copy of the list.
         java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
         for (NodeBoxDocument d : documents) {
-            if (!d.shouldClose())
+            if (!d.close())
                 return false;
         }
         System.exit(0);

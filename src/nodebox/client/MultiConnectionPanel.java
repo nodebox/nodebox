@@ -7,7 +7,6 @@ import nodebox.node.NodeLibrary;
 import nodebox.node.Port;
 
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
@@ -19,9 +18,11 @@ public class MultiConnectionPanel extends JPanel {
 
     private ConnectionListModel connectionListModel;
     private JList connectionList;
+    private NodeBoxDocument document;
 
-    public MultiConnectionPanel(Port input) {
+    public MultiConnectionPanel(NodeBoxDocument document, Port input) {
         super(new BorderLayout(5, 0));
+        this.document = document;
         setOpaque(false);
         this.input = input;
         connectionListModel = new ConnectionListModel();
@@ -58,6 +59,10 @@ public class MultiConnectionPanel extends JPanel {
         add(buttonPanel, BorderLayout.EAST);
     }
 
+    public NodeBoxDocument getDocument() {
+        return document;
+    }
+
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(200, 100);
@@ -81,29 +86,25 @@ public class MultiConnectionPanel extends JPanel {
         java.util.List<Connection> connections = getConnections();
         int index = connections.indexOf(selectedConnection);
         checkState(index >= 0, "Selected connection %s could not be found.", selectedConnection);
-        boolean reordered = input.getParentNode().reorderConnection(selectedConnection, delta, true);
-        if (reordered) {
-            reloadList();
-            connectionList.setSelectedIndex(index + delta);
-        }
+        getDocument().reorderConnection(selectedConnection, delta, true);
+        update();
+        connectionList.setSelectedValue(selectedConnection, true);
     }
 
     private void removeSelected() {
         Connection selectedConnection = (Connection) connectionList.getSelectedValue();
         if (selectedConnection == null) return;
-        input.getParentNode().disconnect(selectedConnection);
+        getDocument().disconnect(selectedConnection);
         int lastIndex = connectionList.getSelectedIndex();
-        reloadList();
+        update();
         connectionList.setSelectedIndex(Math.max(0, lastIndex - 1));
     }
 
-    private void reloadList() {
-        connectionList.setModel(connectionListModel);
-        connectionList.repaint();
+    public void update() {
+        connectionListModel.update();
     }
 
-    private class ConnectionListModel implements ListModel {
-
+    private class ConnectionListModel extends AbstractListModel {
         public int getSize() {
             return getConnections().size();
         }
@@ -112,12 +113,9 @@ public class MultiConnectionPanel extends JPanel {
             return getConnections().get(index);
         }
 
-        public void addListDataListener(ListDataListener l) {
+        public void update() {
+            fireContentsChanged(this, 0, getSize());
         }
-
-        public void removeListDataListener(ListDataListener l) {
-        }
-
     }
 
     private class PortCellRenderer extends DefaultListCellRenderer {
@@ -146,7 +144,7 @@ public class MultiConnectionPanel extends JPanel {
         d.setModal(true);
         d.getContentPane().setLayout(new BorderLayout());
 
-        MultiConnectionPanel panel = new MultiConnectionPanel(shapesPort);
+        MultiConnectionPanel panel = new MultiConnectionPanel(null, shapesPort);
         d.getContentPane().add(panel, BorderLayout.CENTER);
         d.setSize(400, 400);
         d.setVisible(true);

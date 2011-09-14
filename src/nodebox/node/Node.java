@@ -1472,19 +1472,21 @@ public class Node implements NodeCode {
      * <p/>
      * If the node doesn't have children, this method returns null.
      *
-     * @param node    the node to process
-     * @param context the processing context
-     * @return the return value of the rendered child or null if the node doesn't have children
-     * @throws ProcessingError if there are children, but no child note to render, or if the update of the child failed.
+     * @param node    The node to process.
+     * @param context The processing context.
+     * @return The return value of the rendered child or null if the node doesn't have children.
+     * @throws ProcessingError if the update of the child node failed.
      */
     public Object cook(Node node, ProcessingContext context) throws ProcessingError {
         if (!node.hasChildren())
             return null;
         Node renderedChild = node.getRenderedChild();
-        if (renderedChild == null)
-            throw new ProcessingError(this, "No child node to render.");
-        renderedChild.update(context);
-        return renderedChild.getOutputValue();
+        if (renderedChild != null) {
+            renderedChild.update(context);
+            return renderedChild.getOutputValue();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -1555,6 +1557,16 @@ public class Node implements NodeCode {
         if (!(handleObj instanceof Handle))
             throw new AssertionError("Handle code for node " + getName() + " does not return Handle object.");
         return (Handle) handleObj;
+    }
+
+    /**
+     * Check if the node has a handle parameter and if it is enabled.
+     *
+     * @return true if the node has an enabled handle.
+     */
+    public boolean hasEnabledHandle() {
+        Parameter handleParameter = getParameter("_handle");
+        return handleParameter != null && handleParameter.isEnabled();
     }
 
 

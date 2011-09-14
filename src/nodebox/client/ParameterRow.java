@@ -1,11 +1,7 @@
 package nodebox.client;
 
 import nodebox.node.ConnectionError;
-import nodebox.node.NodeEvent;
-import nodebox.node.NodeEventListener;
 import nodebox.node.Parameter;
-import nodebox.node.event.NodeAttributeChangedEvent;
-import nodebox.node.event.ValueChangedEvent;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -17,7 +13,7 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
-public class ParameterRow extends JComponent implements MouseListener, ActionListener, NodeEventListener {
+public class ParameterRow extends JComponent implements MouseListener, ActionListener {
 
     private static Image popupButtonImage;
 
@@ -90,18 +86,6 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
     }
 
     @Override
-    public void addNotify() {
-        super.addNotify();
-        parameter.getLibrary().addListener(this);
-    }
-
-    @Override
-    public void removeNotify() {
-        super.removeNotify();
-        parameter.getLibrary().removeListener(this);
-    }
-
-    @Override
     public Dimension getPreferredSize() {
         return new Dimension(400, control.getPreferredSize().height + TOP_PADDING + BOTTOM_PADDING);
     }
@@ -148,22 +132,6 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
             expressionPanel.setVisible(false);
         }
         expressionMenuItem.setState(parameter.hasExpression());
-    }
-
-    public void receive(NodeEvent event) {
-        if (event.getSource() != parameter.getNode()) return;
-        if (event instanceof ValueChangedEvent) {
-            // Check if the value change triggered a change in expression status.
-            // This can happen if revert to default switches from value to expression
-            // or vice versa.
-            setEnabled(parameter.isEnabled());
-            ValueChangedEvent e = (ValueChangedEvent) event;
-            if (e.getParameter() != parameter) return;
-            setExpressionStatus();
-        } else if (event instanceof NodeAttributeChangedEvent) {
-            setEnabled(parameter.isEnabled());
-        }
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

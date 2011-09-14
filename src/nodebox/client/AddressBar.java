@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class AddressBar extends JPanel implements MouseListener, DocumentFocusListener {
+public class AddressBar extends JPanel implements MouseListener {
 
     public static Image addressGradient;
     public static Image addressArrow;
@@ -28,14 +28,11 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
     //private ArrayList<Node> parts = new List<Node>[]{"root", "poster", "background"};
     private int[] positions;
     private int armed = -1;
-
-    private NodeBoxDocument document;
-    private Node node;
+    private OnPartClickListener onPartClickListener;
+    private Node activeNetwork;
     private JProgressBar progressBar;
 
-    public AddressBar(NodeBoxDocument document) {
-        this.document = document;
-        document.addDocumentFocusListener(this);
+    public AddressBar() {
         addMouseListener(this);
         setMinimumSize(new Dimension(0, 25));
         setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
@@ -47,15 +44,33 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
         progressBar.setBorderPainted(false);
         progressBar.setVisible(false);
         add(progressBar);
-        currentNodeChanged(document.getActiveNetwork());
     }
 
-    public void currentNodeChanged(Node node) {
-        this.node = node;
+    public Node getActiveNetwork() {
+        return activeNetwork;
+    }
+
+    public void setActiveNetwork(Node activeNetwork) {
+        this.activeNetwork = activeNetwork;
         repaint();
     }
 
-    public void focusedNodeChanged(Node node) {
+    /**
+     * Returns the part-click callback registered for this address bar.
+     *
+     * @return The callback, or null if one is not registered.
+     */
+    public OnPartClickListener getOnPartClickListener() {
+        return onPartClickListener;
+    }
+
+    /**
+     * Register a callback to be invoked when a part was clicked in the address bar.
+     *
+     * @param l the callback that will run.
+     */
+    public void setOnPartClickListener(OnPartClickListener l) {
+        onPartClickListener = l;
     }
 
     public boolean getProgressVisible() {
@@ -68,8 +83,8 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
 
     private java.util.List<Node> getNetworkParts() {
         ArrayList<Node> parts = new ArrayList<Node>();
-        if (node == null) return parts;
-        Node currentNode = node;
+        if (activeNetwork == null) return parts;
+        Node currentNode = activeNetwork;
         parts.add(0, currentNode);
         while (currentNode.getParent() != null) {
             parts.add(0, currentNode.getParent());
@@ -123,9 +138,8 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
         if (partIndex == -1) return;
         java.util.List<Node> nodes = getNetworkParts();
         Node selectedNode = nodes.get(partIndex);
-        //System.out.println("part = " + selectedNode);
-        if (selectedNode != null)
-            document.setActiveNetwork(selectedNode);
+        if (selectedNode != null && onPartClickListener != null)
+            onPartClickListener.onPartClicked(selectedNode);
         repaint();
     }
 
@@ -152,4 +166,19 @@ public class AddressBar extends JPanel implements MouseListener, DocumentFocusLi
         final int width = getWidth();
         progressBar.setBounds(width - 23, 3, 20, 20);
     }
+
+    /**
+     * Callback listener to be invoked when an address part has been clicked.
+     */
+    public static interface OnPartClickListener {
+
+        /**
+         * Called when a part has been clicked.
+         *
+         * @param n the part that was clicked.
+         */
+        public void onPartClicked(Node n);
+
+    }
+
 }

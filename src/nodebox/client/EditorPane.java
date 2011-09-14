@@ -1,8 +1,8 @@
 package nodebox.client;
 
 import nodebox.client.editor.SimpleEditor;
-import nodebox.node.*;
-import nodebox.node.event.NodeUpdatedEvent;
+import nodebox.node.Node;
+import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
 import javax.swing.event.CaretEvent;
@@ -11,27 +11,20 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.Element;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class EditorPane extends Pane implements ComponentListener, CaretListener, NodeEventListener, ChangeListener {
+public class EditorPane extends Pane implements CaretListener, ChangeListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
-    private Node node;
     private EditorSplitter splitter;
     private JTextArea messages;
     private NButton messagesCheck;
-    private String codeName, codeType;
-    private boolean codeChanged = false;
-    private boolean fireCodeChange = true;
     private NButton reloadButton;
+    private Delegate delegate;
 
-    public EditorPane(NodeBoxDocument document) {
-        super(document);
-        document.getNodeLibrary().addListener(this);
+    public EditorPane() {
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         reloadButton = new NButton("Reload", "res/code-reload.png");
@@ -43,11 +36,12 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
         paneHeader.add(new Divider());
+        // TODO Use a listener for the PaneCodeMenu.
         paneHeader.add(new PaneCodeMenu(this));
         editor = new SimpleEditor();
         editor.addCaretListener(this);
         editor.addChangeListener(this);
-        editor.setUndoManager(getDocument().getUndoManager());
+        //editor.setUndoManager(getDocument().getUndoManager());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
@@ -59,12 +53,10 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         splitter.setEnabled(false);
         splitter.setPosition(1.0f);
         add(splitter, BorderLayout.CENTER);
-        addComponentListener(this);
-        setNode(document.getActiveNode());
     }
 
-    public Pane clone() {
-        return new EditorPane(getDocument());
+    public Pane duplicate() {
+        return new EditorPane();
     }
 
     public String getPaneName() {
@@ -79,74 +71,32 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         return editor;
     }
 
-    public void setCodeType(String name, String codeType) {
-        this.codeName = name;
-        this.codeType = codeType;
+    public void onCodeParameterChanged(String codeParameter) {
+        delegate.codeParameterChanged(this, codeParameter);
         paneHeader.repaint();
-        if (node != null) {
-            setCode();
-        }
     }
 
-    public String getCodeName() {
-        return codeName;
+    public void reload() {
+        delegate.codeReloaded(this, editor.getSource());
     }
 
-    public Node getNode() {
-        return node;
+    public String getSource() {
+        return editor.getSource();
     }
 
-    public void setNode(Node node) {
-        if (this.node == node && node != null) return;
-        if (codeChanged && this.node != null) {
-            Parameter param = this.node.getParameter(codeType);
-            getDocument().setChangedCodeForParameter(param, editor.getSource());
-        }
-        this.node = node;
-        setCode();
-    }
-
-    private void setCode() {
-        codeChanged = false;
-        Parameter pCode = null;
-        if (node != null) {
-            pCode = node.getParameter(codeType);
-        }
-        if (pCode == null) {
+    public void setSource(String source) {
+        if (source == null) {
             editor.setSource("");
             editor.setEnabled(false);
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
             splitter.setPosition(1.0f);
-            setCodeChanged(false);
-            updateMessages(node, null);
         } else {
-            String code = getDocument().getChangedCodeForParameter(pCode);
-            boolean changed = code != null;
-            if (! changed)
-                code = pCode.asCode().getSource();
-            fireCodeChange = false;
-            editor.setSource(code);
+            editor.setSource(source);
             editor.setEnabled(true);
-            setCodeChanged(changed);
-            fireCodeChange = true;
             messages.setEnabled(true);
             messages.setBackground(Color.white);
-            updateMessages(node, null);
         }
-    }
-
-    public boolean reload() {
-        if (node == null) return false;
-        Parameter pCode = node.getParameter(codeType);
-        if (pCode == null) return false;
-        NodeCode code = new PythonCode(editor.getSource());
-        pCode.set(code);
-        if (codeType.equals("_handle"))
-            getDocument().setActiveNode(node); // to make Viewer reload handle
-        setCodeChanged(false);
-        getDocument().removeChangedCodeForParameter(pCode);
-        return true;
     }
 
     public void toggleMessages() {
@@ -165,20 +115,8 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         messagesCheck.setChecked(v);
     }
 
-    @Override
-    public void focusedNodeChanged(Node activeNode) {
-        setNode(activeNode);
-    }
-
-
-    public void receive(NodeEvent event) {
-        if (event.getSource() != this.node) return;
-        if (event instanceof NodeUpdatedEvent) {
-            updateMessages(event.getSource(), ((NodeUpdatedEvent) event).getContext());
-        }
-    }
-
-    private void updateMessages(Node node, ProcessingContext context) {
+    public void updateMessages(Node node, ProcessingContext context) {
+        // TODO Replace with StringBuilder
         StringBuffer sb = new StringBuffer();
 
         if (node != null) {
@@ -218,48 +156,69 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         }
     }
 
-    //// Component events /////
-
-    public void componentResized(ComponentEvent e) {
-        // splitter.setDividerLocation(splitter.getHeight());
-    }
-
-    public void componentMoved(ComponentEvent e) {
-    }
-
-    public void componentShown(ComponentEvent e) {
-    }
-
-    public void componentHidden(ComponentEvent e) {
-    }
-
     public void caretUpdate(CaretEvent e) {
         JEditorPane editArea = (JEditorPane) e.getSource();
-        int caretpos = editArea.getCaretPosition();
+        int caretPosition = editArea.getCaretPosition();
         Element root = editArea.getDocument().getDefaultRootElement();
-        int linenum = root.getElementIndex(caretpos) + 1;
+        int line = root.getElementIndex(caretPosition) + 1;
         // Subtract the offset of the start of the line from the caret position.
         // Add one because line numbers are zero-based.
-        int columnnum = 1 + caretpos - root.getElement(linenum - 1).getStartOffset();
-        updatePosition(linenum, columnnum);
+        int column = 1 + caretPosition - root.getElement(line - 1).getStartOffset();
+        updatePosition(line, column);
     }
 
-    private void updatePosition(int linenum, int columnnum) {
-        splitter.setLocation(linenum, columnnum);
+    private void updatePosition(int line, int column) {
+        splitter.setLocation(line, column);
     }
 
     public void stateChanged(ChangeEvent changeEvent) {
+        // TODO: This gets fired way too much, for example, once for every line when using setSource(s).
         // The document has changed.
-        setCodeChanged(node != null);
+        reloadButton.setEnabled(true);
+        reloadButton.setWarning(true);
+        // TODO Re-enable the delegate call when the method is not called so often.
+        //delegate.codeEdited(this, getSource());
     }
 
-    private void setCodeChanged(boolean changed) {
-        codeChanged = changed;
-        reloadButton.setEnabled(changed);
-        reloadButton.setWarning(changed);
-
-        if (fireCodeChange) {
-            getDocument().fireCodeChanged(node, true);
-        }
+    public Delegate getDelegate() {
+        return delegate;
     }
+
+    public void setDelegate(Delegate delegate) {
+        this.delegate = delegate;
+    }
+
+    /**
+     * A callback interface for listening to code edits.
+     */
+    public static interface Delegate {
+
+        /**
+         * Callback method invoked when code was edited.
+         *
+         * @param editorPane The editor pane that triggered the event.
+         * @param source     The new source code.
+         */
+        public void codeEdited(EditorPane editorPane, String source);
+
+        /**
+         * Callback method invoked when code was reloaded.
+         *
+         * @param editorPane The editor pane that triggered the event.
+         * @param source     The new source code.
+         */
+        public void codeReloaded(EditorPane editorPane, String source);
+
+        /**
+         * Callback method invoked when the code parameter was changed.
+         * The code parameter is the name of the parameter that contains the code.
+         * This is either "_code" or "_handle".
+         *
+         * @param editorPane    The editor pane that triggered the event.
+         * @param codeParameter The name of the code parameter.
+         */
+        public void codeParameterChanged(EditorPane editorPane, String codeParameter);
+    }
+
+
 }

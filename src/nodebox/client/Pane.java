@@ -1,29 +1,20 @@
 package nodebox.client;
 
-import nodebox.node.Node;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.lang.reflect.Constructor;
 
-public abstract class Pane extends JPanel implements DocumentFocusListener, FocusListener {
+public abstract class Pane extends JPanel implements FocusListener {
 
-    private NodeBoxDocument document;
     private Component mainComponent;
 
-    public Pane(NodeBoxDocument document) {
-        this.document = document;
-        document.addDocumentFocusListener(this);
+    public Pane() {
         addFocusListener(this);
     }
 
-    public NodeBoxDocument getDocument() {
-        return document;
-    }
-
-    public abstract Pane clone();
+    public abstract Pane duplicate();
 
     public abstract String getPaneName();
 
@@ -31,15 +22,9 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
 
     public abstract PaneView getPaneView();
 
-    public void currentNodeChanged(Node activeNetwork) {
-    }
-
-    public void focusedNodeChanged(Node activeNode) {
-    }
-
     /**
      * Splits the pane into two vertically aligned panes. This pane will be relocated as the top pane.
-     * The bottom pane will be a clone of this pane.
+     * The bottom pane will be a duplicate of this pane.
      */
     public void splitTopBottom() {
         split(NSplitter.Orientation.VERTICAL);
@@ -47,7 +32,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
 
     /**
      * Splits the pane into two horizontally aligned panes. This pane will be relocated as the left pane.
-     * The right pane will be a clone of this pane.
+     * The right pane will be a duplicate of this pane.
      */
     public void splitLeftRight() {
         split(NSplitter.Orientation.HORIZONTAL);
@@ -63,7 +48,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
             } else {
                 parentSplit.setSecondComponent(null);
             }
-            PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
+            PaneSplitter split = new PaneSplitter(orientation, this, this.duplicate());
             if (first) {
                 parentSplit.setFirstComponent(split);
             } else {
@@ -72,14 +57,13 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
             parentSplit.validate();
         } else {
             parent.remove(this);
-            PaneSplitter split = new PaneSplitter(orientation, this, this.clone());
+            PaneSplitter split = new PaneSplitter(orientation, this, this.duplicate());
             parent.add(split);
             parent.validate();
         }
     }
 
     public void close() {
-        document.removeDocumentFocusListener(this);
         Container parent = getParent();
         if (!(parent instanceof PaneSplitter)) return;
         PaneSplitter split = (PaneSplitter) parent;
@@ -109,7 +93,7 @@ public abstract class Pane extends JPanel implements DocumentFocusListener, Focu
         final Pane newPane;
         try {
             Constructor c = paneType.getConstructor(NodeBoxDocument.class);
-            newPane = (Pane) c.newInstance(this.document);
+            newPane = (Pane) c.newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Could not instantiate new " + paneType, e);
         }

@@ -23,6 +23,8 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 
+import static nodebox.base.Preconditions.checkNotNull;
+
 public class NodeView extends PNode implements Selectable, PropertyChangeListener {
 
     public static final int NODE_FULL_SIZE = 70;
@@ -248,7 +250,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         if (s == null || s.length() == 0)
             return;
         try {
-            node.setName(s);
+            getDocument().setNodeName(node, s);
         } catch (InvalidNameException ex) {
             JOptionPane.showMessageDialog(networkView, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
         }
@@ -313,13 +315,13 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     networkView.startConnection(NodeView.this);
                 } else {
                     isDragging = true;
+                    dragPoint = e.getPosition();
                     // Make sure that this node is also selected.
                     if (!isSelected()) {
                         // If other nodes are selected, deselect them so they
                         // don't get dragged along.
                         networkView.singleSelect(NodeView.this);
                     }
-                    dragPoint = e.getPosition();
                 }
             }
         }
@@ -339,6 +341,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         public void mouseDragged(PInputEvent e) {
             if (isPanningEvent(e)) return;
             if (isDragging) {
+                checkNotNull(dragPoint, "dragPoint cannot be null.");
                 Point2D pt = e.getPosition();
                 double dx = pt.getX() - dragPoint.getX();
                 double dy = pt.getY() - dragPoint.getY();

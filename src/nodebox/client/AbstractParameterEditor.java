@@ -1,16 +1,13 @@
 package nodebox.client;
 
-import nodebox.node.NodeEvent;
-import nodebox.node.NodeEventListener;
 import nodebox.node.Parameter;
 import nodebox.node.ParameterValueListener;
-import nodebox.node.event.ValueChangedEvent;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public abstract class AbstractParameterEditor extends JFrame implements ParameterValueListener, ParameterEditor, NodeEventListener {
+public abstract class AbstractParameterEditor extends JFrame implements ParameterValueListener, ParameterEditor {
 
     private Parameter parameter;
 
@@ -48,26 +45,8 @@ public abstract class AbstractParameterEditor extends JFrame implements Paramete
 
     public abstract void valueChanged(Parameter source);
 
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        parameter.getLibrary().addListener(this);
-    }
-
-    @Override
-    public void removeNotify() {
-        super.removeNotify();
-        parameter.getLibrary().removeListener(this);
-    }
-
     public Parameter getParameter() {
         return parameter;
-    }
-
-    public void receive(NodeEvent event) {
-        if (!(event instanceof ValueChangedEvent)) return;
-        if (((ValueChangedEvent) event).getParameter() != this.parameter) return;
-        valueChanged(((ValueChangedEvent) event).getParameter());
     }
 
     private class CancelAction extends AbstractAction {
