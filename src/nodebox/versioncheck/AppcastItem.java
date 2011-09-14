@@ -3,11 +3,12 @@ package nodebox.versioncheck;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Properties;
 
 public class AppcastItem {
 
-    private static final SimpleDateFormat RSSDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z");
+    private static final SimpleDateFormat RSSDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
 
     private final Properties properties;
     private String title;
