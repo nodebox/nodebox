@@ -1,4 +1,4 @@
-package nodebox.client;
+package nodebox.client.movie;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -6,18 +6,16 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 public class Movie {
 
     private static final File FFMPEG_BINARY;
     private static final String TEMPORARY_FILE_PREFIX = "sme";
-    private static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
-    private static final String DEFAULT_CODEC = "libx264";
-    private static final String DEFAULT_FORMAT = "mp4";
 
+    public static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
+    public static final ArrayList<VideoFormat> VIDEO_FORMATS;
+    public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.MP4Format;;
 
     static {
         String osName = System.getProperty("os.name").split("\\s")[0];
@@ -31,20 +29,31 @@ public class Movie {
         } else {
             FFMPEG_BINARY = new File("/usr/bin/ffmpeg");
         }
+        VIDEO_FORMATS = new ArrayList<VideoFormat>();
+        VIDEO_FORMATS.add(AndroidVideoFormat.DefaultFormat);
+        VIDEO_FORMATS.add(AndroidVideoFormat.NexusFormat);
+        VIDEO_FORMATS.add(AndroidVideoFormat.DroidFormat);
+        VIDEO_FORMATS.add(AppleVideoFormat.DefaultFormat);
+        VIDEO_FORMATS.add(AppleVideoFormat.IpadFormat);
+        //VIDEO_FORMATS.add(PSPVideoFormat.PSPFormat);
+        VIDEO_FORMATS.add(MP4VideoFormat.MP4Format);
+        VIDEO_FORMATS.add(WebmVideoFormat.WebmFormat);
     }
 
     private String movieFilename;
+    private VideoFormat videoFormat;
     private int width, height;
     private boolean verbose;
     private int frameCount = 0;
     private String temporaryFileTemplate;
 
-    public Movie(String movieFilename, int width, int height) {
-        this(movieFilename, width, height, false);
+    public Movie(String movieFilename, VideoFormat format, int width, int height) {
+        this(movieFilename, format, width, height, false);
     }
 
-    public Movie(String movieFilename, int width, int height, boolean verbose) {
+    public Movie(String movieFilename, VideoFormat format, int width, int height, boolean verbose) {
         this.movieFilename = movieFilename;
+        this.videoFormat = format;
         this.width = width;
         this.height = height;
         this.verbose = verbose;
@@ -57,6 +66,14 @@ public class Movie {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public boolean isVerbose() {
@@ -114,24 +131,13 @@ public class Movie {
      */
     public void save(StringWriter sw) {
         PrintWriter out = new PrintWriter(sw, true);
-        String type = DEFAULT_CODEC;
-        int bitRate = bitRateForSize(width, height);
 
         ArrayList<String> commandList = new ArrayList<String>();
         commandList.add(FFMPEG_BINARY.getAbsolutePath());
         commandList.add("-y"); // Overwrite target if exists
         commandList.add("-i");
         commandList.add(temporaryFileTemplate); // Input images
-        commandList.add("-vcodec");
-        commandList.add(type); // Target video codec
-
-        commandList.add("-fpre");
-        commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, "main"));
-        commandList.add("-fpre");
-        commandList.add(String.format(FFMPEG_PRESET_TEMPLATE, "slow"));
-
-        commandList.add("-f");
-        commandList.add(DEFAULT_FORMAT);
+        commandList.addAll(videoFormat.getArgumentList(this)); // Video format specific arguments
         commandList.add(movieFilename); // Target file name
 
         ProcessBuilder pb = new ProcessBuilder(commandList);
@@ -162,10 +168,6 @@ public class Movie {
         cleanup();
     }
 
-    private int bitRateForSize(int width, int height) {
-        return 1000;
-    }
-
     /**
      * Cleans up the temporary images.
      * <p/>
@@ -190,7 +192,7 @@ public class Movie {
         int width = 640;
         int height = 480;
         // Create a new movie.
-        Movie movie = new Movie("test.mov", width, height);
+        Movie movie = new Movie("test.mov", MP4VideoFormat.MP4Format, width, height);
         movie.setVerbose(true);
         /// Initialize an image to draw on.
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);

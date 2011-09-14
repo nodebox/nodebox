@@ -1,6 +1,8 @@
 package nodebox.client;
 
+import nodebox.client.movie.Movie;
 import nodebox.base.Preconditions;
+import nodebox.client.movie.VideoFormat;
 import nodebox.node.*;
 import nodebox.node.event.NodeDirtyEvent;
 
@@ -639,13 +641,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         if (chosenFile != null) {
             lastExportPath = chosenFile.getParentFile().getAbsolutePath();
             // TODO: support different codec types as well.
-            exportToMovieFile(chosenFile, d.getFromValue(), d.getToValue());
+            exportToMovieFile(chosenFile, d.getVideoFormat(), d.getFromValue(), d.getToValue());
             return true;
         }
         return false;
     }
 
-    private void exportToMovieFile(File file, final int fromValue, final int toValue) {
+    private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
         final ProgressDialog d = new InterruptableProgressDialog(this, null);
         d.setTaskCount(toValue - fromValue + 1);
         d.setTitle("Exporting " + (toValue - fromValue + 1) + " frames...");
@@ -653,14 +655,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, NodeEvent
         d.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         d.setAlwaysOnTop(true);
 
-        //file = MovieFormat.MP4.ensureFileExtension(file);
+        file = videoFormat.ensureFileExtension(file);
         String xml = nodeLibrary.toXml();
         final NodeLibrary exportLibrary = NodeLibrary.load(nodeLibrary.getName(), xml, getManager());
         exportLibrary.setFile(nodeLibrary.getFile());
         final Node exportNetwork = exportLibrary.getRootNode();
         final int width = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_WIDTH);
         final int height = (int) exportNetwork.asFloat(NodeLibrary.CANVAS_HEIGHT);
-        final Movie movie = new Movie(file.getAbsolutePath(), width, height, false);
+        final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, width, height, false);
         final ExportViewer viewer = new ExportViewer(exportNetwork);
 
         Thread t = new Thread(new Runnable() {

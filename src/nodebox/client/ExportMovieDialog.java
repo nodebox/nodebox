@@ -1,5 +1,7 @@
 package nodebox.client;
 
+import nodebox.client.movie.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -17,6 +19,7 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
     private JTextField fromField;
     private JTextField toField;
     private JTextField fileField;
+    private JComboBox formatBox;
 
     private File exportPath;
     private int fromValue;
@@ -52,6 +55,17 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
 
         mainPanel.add(Box.createVerticalStrut(10));
 
+        // Format
+        JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        formatPanel.add(new JLabel("Format/Device: "));
+        mainPanel.add(formatPanel);
+        formatBox = new JComboBox();
+        for (VideoFormat format : Movie.VIDEO_FORMATS)
+            formatBox.addItem(format);
+        formatBox.setSelectedItem(Movie.DEFAULT_FORMAT);
+        formatPanel.add(formatBox);
+
+        mainPanel.add(Box.createVerticalStrut(10));
         // Range
         JPanel rangePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 0));
         rangePanel.add(new JLabel("From:"));
@@ -126,6 +140,10 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         else
             fileField.setText(this.exportPath.getAbsolutePath());
         exportButton.setEnabled(this.exportPath != null);
+    }
+
+    public VideoFormat getVideoFormat() {
+        return (VideoFormat) formatBox.getSelectedItem();
     }
 
     public int getFromValue() {
