@@ -23,11 +23,12 @@ public class FileUtilTest extends TestCase {
     }
 
     public void testGetRelativePaths() {
-        assertEquals("stuff/xyz.dat", FileUtils.getRelativePath(
+        String sep = System.getProperty("file.separator");
+        assertEquals("stuff" + sep + "xyz.dat", FileUtils.getRelativePath(
                 new File("/var/data/stuff/xyz.dat"), new File("/var/data/")));
-        assertEquals("../../b/c", FileUtils.getRelativePath(
+        assertEquals(".." + sep + ".." + sep + "b" + sep + "c", FileUtils.getRelativePath(
                 new File("/a/b/c"), new File("/a/x/y/")));
-        assertEquals("../../b/c", FileUtils.getRelativePath(
+        assertEquals(".." + sep + ".." + sep + "b" + sep + "c", FileUtils.getRelativePath(
                 new File("/m/n/o/a/b/c"), new File("/m/n/o/a/x/y/")));
     }
 }
