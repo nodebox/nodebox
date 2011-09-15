@@ -57,8 +57,19 @@ public class FileUtils {
             if (f.isDirectory()) {
                 fileDialog.setDirectory(pathName);
             } else {
-                fileDialog.setDirectory(f.getParentFile().getPath());
-                fileDialog.setFile(f.getName());
+                if (f.getParentFile() != null) {
+                    fileDialog.setDirectory(f.getParentFile().getPath());
+                    fileDialog.setFile(f.getName());
+                } else {
+                    NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
+                    if (document != null) {
+                        File documentFile = document.getDocumentFile();
+                        if (documentFile != null) {
+                            fileDialog.setDirectory(documentFile.getParentFile().getPath());
+                        }
+                    }
+                    fileDialog.setFile(pathName);
+                }
             }
         }
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
