@@ -204,8 +204,7 @@ def cook(self):
             <menu key="subtracted">difference</menu>
             <menu key="intersected">intersect</menu>
         </param>
-        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)"
-               name="invert_difference" type="int" widget="toggle">
+        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)" name="invert_difference" type="int" widget="toggle">
             <value>0</value>
         </param>
         <param name="fill" type="color">
@@ -330,8 +329,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr"
-               type="string" widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2239,8 +2237,7 @@ def cook(self):
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
         </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string"
-               widget="stamp_expression">
+        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string" widget="stamp_expression">
             <value/>
         </param>
     </node>
@@ -2283,7 +2280,8 @@ class PolygonHandle(CombinedHandle):
         CombinedHandle.__init__(self, node)
         self.addHandle(PointHandle(node))
         self.addHandle(CircleScaleHandle(node, "radius", CircleScaleHandle.Mode.RADIUS, "x", "y"))
-
+        self.update()
+        
 def cook(self):
     return PolygonHandle(self.node)]]></value>
         </param>
@@ -2467,8 +2465,7 @@ def cook(self):
         <param bounding="hard" enableExpression="method == &quot;amount&quot;" min="1.0" name="points" type="int">
             <value>10</value>
         </param>
-        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int"
-               widget="toggle">
+        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int" widget="toggle">
             <value>0</value>
         </param>
     </node>
@@ -2826,7 +2823,8 @@ class StarHandle(CombinedHandle):
         self.addHandle(PointHandle(node))
         self.addHandle(CircleScaleHandle(node, "inner", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
         self.addHandle(CircleScaleHandle(node, "outer", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
-
+        self.update()
+        
 def cook(self):
     return StarHandle(self.node)]]></value>
         </param>
