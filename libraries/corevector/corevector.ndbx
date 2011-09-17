@@ -1973,8 +1973,15 @@ def cook(self):
         <param name="_handle">
             <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
 
+class GridHandle(FourPointHandle):
+    def draw(self, ctx):
+        FourPointHandle.draw(self, ctx)
+        ctx.fill(0.25)
+        for pt in self.node.outputValue.points:
+            ctx.ellipse(pt.x-2, pt.y-2, 4, 4)
+
 def cook(self):
-    return FourPointHandle(self.node, "x", "y", "width", "height")]]></value>
+    return GridHandle(self.node, "x", "y", "width", "height")]]></value>
         </param>
         <param name="_image">
             <value>grid.png</value>
@@ -2493,6 +2500,19 @@ def cook(self):
             pass # add warning: no points found on the path
 
     return p.asGeometry()]]></value>
+        </param>
+        <param name="_handle">
+            <value type="python"><![CDATA[from nodebox.handle import AbstractHandle
+
+class DisplayPointsHandle(AbstractHandle):
+    def draw(self, ctx):
+        if self.node.outputValue is not None:
+            ctx.fill(0.25)
+            for pt in self.node.outputValue.points:
+                ctx.ellipse(pt.x-2, pt.y-2, 4, 4)
+
+def cook(self):
+    return DisplayPointsHandle(self.node)]]></value>
         </param>
         <param name="_image">
             <value>scatter.png</value>
