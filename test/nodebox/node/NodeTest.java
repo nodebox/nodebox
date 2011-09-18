@@ -652,13 +652,14 @@ public class NodeTest extends NodeTestCase {
      * Test if print messages get output.
      */
     public void testOutput() {
+        final String expectedOutput = "hello" + System.getProperty("line.separator");
         ProcessingContext ctx;
         PythonCode helloCode = new PythonCode("def cook(self): print 'hello'");
         Node test = Node.ROOT_NODE.newInstance(testLibrary, "test");
         test.setValue("_code", helloCode);
         ctx = new ProcessingContext();
         test.update(ctx);
-        assertEquals("hello\n", ctx.getOutput());
+        assertEquals(expectedOutput, ctx.getOutput());
 
         // Try this in a network. All the output of the nodes should be merged.
         Node parent = Node.ROOT_NODE.newInstance(testLibrary, "parent");
@@ -667,7 +668,7 @@ public class NodeTest extends NodeTestCase {
         child.setRendered();
         ctx = new ProcessingContext();
         parent.update(ctx);
-        assertEquals("hello\n", ctx.getOutput());
+        assertEquals(expectedOutput, ctx.getOutput());
     }
 
     /**
