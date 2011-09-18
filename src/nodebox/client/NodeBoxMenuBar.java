@@ -1,7 +1,5 @@
 package nodebox.client;
 
-import com.sun.tools.internal.ws.processor.model.java.JavaMethod;
-
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -54,9 +52,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
-        if (Application.ENABLE_MOVIE_EXPORT) {
-            fileMenu.add(new ExportMovieAction());
-        }
+        fileMenu.add(new ExportMovieAction());
         if (!PlatformUtils.onMac()) {
             fileMenu.addSeparator();
             fileMenu.add(new ExitAction());
@@ -410,7 +406,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-     public static class PreferencesAction extends AbstractAction {
+    public static class PreferencesAction extends AbstractAction {
         public PreferencesAction() {
             putValue(NAME, "Preferences");
         }
@@ -434,7 +430,7 @@ public class NodeBoxMenuBar extends JMenuBar {
                     return;
                 }
             }
-             JOptionPane.showMessageDialog(getDocument(), "Please make sure a network view is present in the document.", "Warning", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(getDocument(), "Please make sure a network view is present in the document.", "Warning", JOptionPane.WARNING_MESSAGE);
         }
     }
 

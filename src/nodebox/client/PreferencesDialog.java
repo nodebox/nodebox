@@ -29,12 +29,6 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
         rootPanel.add(Box.createVerticalStrut(10));
 
-        // TODO: provide tooltip indicating movie export is an experimental feature.
-        enableMovieExportCheck = new JCheckBox("Enable Movie Export");
-        rootPanel.add(enableMovieExportCheck);
-
-        rootPanel.add(Box.createVerticalStrut(100));
-
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 10));
         cancelButton = new JButton("Cancel");
         cancelButton.addActionListener(this);
@@ -55,13 +49,11 @@ public class PreferencesDialog extends JDialog implements ActionListener {
     private void readPreferences() {
         this.preferences = Preferences.userNodeForPackage(Application.class);
         enablePaneCustomizationCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false")));
-        enableMovieExportCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, "true")));
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
         if (actionEvent.getSource() == saveButton) {
             setEnablePaneCustomization(enablePaneCustomizationCheck.isSelected());
-            setEnableMovieExport(enableMovieExportCheck.isSelected());
             JOptionPane.showMessageDialog(this, "Please restart NodeBox for the changes to take effect.");
             try {
                 preferences.flush();
@@ -77,8 +69,4 @@ public class PreferencesDialog extends JDialog implements ActionListener {
         preferences.put(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, Boolean.toString(enabled));
     }
 
-    private void setEnableMovieExport(boolean enabled) {
-        Application.ENABLE_MOVIE_EXPORT = enabled;
-        preferences.put(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, Boolean.toString(enabled));
-    }
 }
