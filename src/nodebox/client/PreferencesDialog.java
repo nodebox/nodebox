@@ -55,7 +55,7 @@ public class PreferencesDialog extends JDialog implements ActionListener {
     private void readPreferences() {
         this.preferences = Preferences.userNodeForPackage(Application.class);
         enablePaneCustomizationCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false")));
-        enableMovieExportCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, "false")));
+        enableMovieExportCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_MOVIE_EXPORT, "true")));
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
