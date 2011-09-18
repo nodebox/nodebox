@@ -18,10 +18,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
-    private static Cursor defaultCursor, hoverCursor;
+    private static Cursor dragCursor;
 
     static {
-        Image cursorHover;
+        Image dragCursorImage;
         try {
             draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
             draggerRight = ImageIO.read(new File("res/dragger-right.png"));
@@ -29,13 +29,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
-            if (PlatformUtils.onWindows())
-                    cursorHover = ImageIO.read(new File("res/dragger-cursor-hover-32.png"));
-                else
-                    cursorHover = ImageIO.read(new File("res/dragger-cursor-hover.png"));
+            dragCursorImage = ImageIO.read(new File("res/dragger-cursor.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
-            hoverCursor = toolkit.createCustomCursor(cursorHover, new Point(0, 0), "HoverCursor");
-            defaultCursor = Cursor.getDefaultCursor();
+            dragCursor = toolkit.createCustomCursor(dragCursorImage, new Point(16, 17), "DragCursor");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,6 +60,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public DraggableNumber() {
         setLayout(null);
+        setCursor(dragCursor);
         addMouseListener(this);
         addMouseMotionListener(this);
         addComponentListener(this);
@@ -196,15 +193,12 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     //// Component paint ////
 
-    private Rectangle getLeftButtonRect(Rectangle r) {
-        if (r == null)
-            r = getBounds();
+    private Rectangle getLeftButtonRect() {
         return new Rectangle(0, 0, draggerLeftWidth, draggerHeight);
     }
 
-    private Rectangle getRightButtonRect(Rectangle r) {
-        if (r == null)
-            r = getBounds();
+    private Rectangle getRightButtonRect() {
+        Rectangle r = getBounds();
         return new Rectangle(r.width - draggerRightWidth, r.y, draggerRightWidth, draggerHeight);
     }
 
@@ -257,6 +251,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             oldValue = getValue();
             previousX = e.getX();
         }
+        SwingUtilities.getRootPane(this).setCursor(dragCursor);
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -267,10 +262,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         } else if ((e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) > 0) {
             dx = 0.01F;
         }
-        if (getLeftButtonRect(null).contains(e.getPoint())) {
+        if (getLeftButtonRect().contains(e.getPoint())) {
             setValue(getValue() - dx);
             fireStateChanged();
-        } else if (getRightButtonRect(null).contains(e.getPoint())) {
+        } else if (getRightButtonRect().contains(e.getPoint())) {
             setValue(getValue() + dx);
             fireStateChanged();
         } else if (e.getClickCount() >= 2) {
@@ -285,7 +280,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseReleased(MouseEvent e) {
         if (!isEnabled()) return;
-        NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
+        SwingUtilities.getRootPane(this).setCursor(Cursor.getDefaultCursor());
         if (oldValue != value)
             fireStateChanged();
     }
@@ -294,24 +289,13 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void mouseExited(MouseEvent e) {
-        setCursor(defaultCursor);
     }
 
     public void mouseMoved(MouseEvent e) {
-        if (!isEnabled()) return;
-        if (isDragAreaHovered(e.getPoint())) {
-            if (! getCursor().equals(hoverCursor))
-                setCursor(hoverCursor);
-        } else {
-            if (! getCursor().equals(defaultCursor))
-                setCursor(defaultCursor);
-        }
     }
 
     public void mouseDragged(MouseEvent e) {
         if (!isEnabled()) return;
-        if (! getCursor().equals(defaultCursor))
-            setCursor(defaultCursor);
         float deltaX = e.getX() - previousX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
@@ -322,12 +306,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         setValue(getValue() + deltaX);
         previousX = e.getX();
         fireStateChanged();
-    }
-
-    private boolean isDragAreaHovered(Point pt) {
-        return (!getLeftButtonRect(null).contains(pt) &&
-                     !getRightButtonRect(null).contains(pt) &&
-                      pt.getY() <= draggerHeight);
     }
 
     /**
