@@ -1,9 +1,7 @@
 package nodebox.client;
 
 import nodebox.client.movie.Movie;
-import nodebox.base.Preconditions;
 import nodebox.client.movie.VideoFormat;
-
 import nodebox.node.*;
 
 import javax.swing.*;

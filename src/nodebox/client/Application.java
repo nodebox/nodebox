@@ -39,9 +39,6 @@ import java.util.prefs.Preferences;
 
 public class Application implements Host {
 
-    public static final String PREFERENCE_ENABLE_PANE_CUSTOMIZATION = "NBEnablePaneCustomization";
-    public static boolean ENABLE_PANE_CUSTOMIZATION = false;
-
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -198,7 +195,7 @@ public class Application implements Host {
      */
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(this.getClass());
-        ENABLE_PANE_CUSTOMIZATION = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false"));
+        // There are no more preferences. Leaving this in for when there are.
     }
 
     /**

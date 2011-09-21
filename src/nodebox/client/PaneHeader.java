@@ -3,12 +3,10 @@ package nodebox.client;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 
-public class PaneHeader extends JPanel implements MouseListener {
+public class PaneHeader extends JPanel {
 
     public static Image paneHeaderBackground, paneHeaderOptions;
 
@@ -21,54 +19,35 @@ public class PaneHeader extends JPanel implements MouseListener {
         }
     }
 
-    private Pane pane;
-    private PaneOptionsMenu paneOptionsMenu;
-
     public PaneHeader(Pane pane) {
         super(new FlowLayout(FlowLayout.LEADING, 5, 2));
         setPreferredSize(new Dimension(100, 25));
         setMinimumSize(new Dimension(100, 25));
         setMaximumSize(new Dimension(100, 25));
-        this.pane = pane;
-        paneOptionsMenu = new PaneOptionsMenu(this.pane);
-        addMouseListener(this);
-        add(new PaneTypeMenu(pane));
+        add(new PaneNameLabel(pane.getPaneName()));
         add(new Divider());
-    }
-
-    public PaneOptionsMenu getPaneMenu() {
-        return paneOptionsMenu;
-    }
-
-    public Pane getPane() {
-        return pane;
-    }
-
-    public void mouseClicked(MouseEvent e) {
-    }
-
-    public void mousePressed(MouseEvent e) {
-        if (Application.ENABLE_PANE_CUSTOMIZATION) {
-            if (e.getX() < this.getWidth() - 20) return;
-            paneOptionsMenu.show(this, e.getX(), e.getY());
-        }
-    }
-
-    public void mouseReleased(MouseEvent e) {
-    }
-
-    public void mouseEntered(MouseEvent e) {
-    }
-
-    public void mouseExited(MouseEvent e) {
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         g.drawImage(paneHeaderBackground, 0, 0, getWidth(), 25, null);
-        if (Application.ENABLE_PANE_CUSTOMIZATION) {
-            g.drawImage(paneHeaderOptions, getWidth() - 20, 0, null);
+    }
+
+    private final class PaneNameLabel extends JLabel {
+
+        private PaneNameLabel(String label) {
+            super(label);
+            Dimension d = new Dimension(103, 21);
+            setMinimumSize(d);
+            setMaximumSize(d);
+            setPreferredSize(d);
         }
 
+        @Override
+        protected void paintComponent(Graphics g) {
+            g.setFont(Theme.SMALL_BOLD_FONT);
+            g.setColor(Theme.TEXT_NORMAL_COLOR);
+            SwingUtils.drawShadowText((Graphics2D) g, getText(), 5, 14);
+        }
     }
 }

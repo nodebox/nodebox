@@ -103,7 +103,7 @@ public class AddressBar extends JPanel implements MouseListener {
 
         g2.drawImage(addressGradient, 0, 0, getWidth(), 25, null);
 
-        int x = 14;
+        int x = 10;
 
         for (int i = 0; i < nodes.size(); i++) {
             Node part = nodes.get(i);
