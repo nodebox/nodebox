@@ -2,6 +2,8 @@ package nodebox.client;
 
 import nodebox.client.movie.Movie;
 import nodebox.client.movie.VideoFormat;
+import nodebox.handle.Handle;
+import nodebox.handle.HandleDelegate;
 import nodebox.node.*;
 
 import javax.swing.*;
@@ -30,7 +32,7 @@ import static nodebox.base.Preconditions.checkNotNull;
 /**
  * A NodeBoxDocument manages a NodeLibrary.
  */
-public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEventListener {
+public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEventListener, HandleDelegate {
 
     private final static String WINDOW_MODIFIED = "windowModified";
 
@@ -77,9 +79,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     public NodeBoxDocument(NodeLibrary library) {
         setNodeLibrary(library);
         JPanel rootPanel = new JPanel(new BorderLayout());
-        ViewerPane viewerPane = new ViewerPane();
+        ViewerPane viewerPane = new ViewerPane(this);
         viewer = viewerPane.getViewer();
-        viewer.setEventListener(this);
         editorPane = new EditorPane();
         editorPane.setDelegate(new EditorPane.Delegate() {
             public void codeEdited(EditorPane editorPane, String source) {
@@ -385,6 +386,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
      * @param value     the new value
      */
     public void setParameterValue(Parameter parameter, Object value) {
+        checkNotNull(parameter, "Parameter cannot be null.");
         addEdit("Change Value", "changeValue", parameter);
         parameter.set(value);
         if (parameter.getNode() == nodeLibrary.getRootNode()) {
@@ -417,6 +419,29 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
         parameterView.updateParameter(parameter);
         render();
+    }
+
+    //// HandleDelegate implementation ////
+
+    // TODO Merge setParameterValue and setValue.
+    public void setValue(Node node, String parameterName, Object value) {
+        checkNotNull(node, "Node cannot be null");
+        Parameter parameter = node.getParameter(parameterName);
+        checkNotNull(parameter, "Parameter '" + parameterName + "' is not a parameter on node " + node);
+        setParameterValue(parameter, value);
+    }
+
+    public void silentSet(Node node, String parameterName, Object value) {
+        try {
+            Parameter parameter = node.getParameter(parameterName);
+            setParameterValue(parameter, value);
+        } catch (Exception ignored) {
+        }
+    }
+
+    // TODO Merge stopEditing and stopCombiningEdits.
+    public void stopEditing(Node node) {
+        stopCombiningEdits();
     }
 
     //// Active network / node ////
@@ -489,15 +514,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         stopCombiningEdits();
         if (activeNode == node) return;
         activeNode = node;
-//        if (activeNode != null) {
-//            handle = activeNode.createHandle();
-//            if (handle != null) {
-//                handle.setViewer(this);
-//            }
-//        } else {
-//            handle = null;
-//        }
-//        checkIfHandleEnabled();
+        if (activeNode != null) {
+            Handle handle = activeNode.createHandle();
+            if (handle != null) {
+                handle.setHandleDelegate(this);
+                // TODO Remove this. Find out why the handle needs access to the viewer (only repaint?) and put that in the HandleDelegate.
+                handle.setViewer(viewer);
+            }
+            viewer.setHandle(handle);
+        } else {
+            viewer.setHandle(null);
+        }
         viewer.repaint();
         parameterView.setActiveNode(activeNode);
         networkView.setActiveNode(activeNode);
@@ -568,10 +595,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         editorPane.updateMessages(activeNode, context);
         viewer.setOutputValue(activeNetwork.getOutputValue());
         networkView.checkErrorAndRepaint();
-        // TODO: Why?
-        if (activeNode != null) {
-            viewer.setHandleEnabled(activeNode.hasEnabledHandle());
-        }
+        // TODO I don't know if this is the best way to do this.
+        if (viewer.getHandle() != null)
+            viewer.getHandle().update();
     }
 
     private void render() {

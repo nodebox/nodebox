@@ -23,7 +23,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
-public class Viewer extends PCanvas implements IViewer, PaneView, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float POINT_SIZE = 4f;
 
@@ -35,6 +35,7 @@ public class Viewer extends PCanvas implements IViewer, PaneView, MouseListener,
 
     private static Cursor defaultCursor, panCursor;
 
+    private final NodeBoxDocument document;
     private Object outputValue;
     private Handle handle;
     private boolean showHandle = true;
@@ -64,7 +65,8 @@ public class Viewer extends PCanvas implements IViewer, PaneView, MouseListener,
         }
     }
 
-    public Viewer() {
+    public Viewer(final NodeBoxDocument document) {
+        this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
@@ -155,6 +157,17 @@ public class Viewer extends PCanvas implements IViewer, PaneView, MouseListener,
 
     public void setShowOrigin(boolean showOrigin) {
         this.showOrigin = showOrigin;
+        repaint();
+    }
+    
+    //// Handle support ////
+
+    public Handle getHandle() {
+        return handle;
+    }
+
+    public void setHandle(Handle handle) {
+        this.handle = handle;
         repaint();
     }
 

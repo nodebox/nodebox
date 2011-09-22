@@ -18,6 +18,7 @@
  */
 package nodebox.node;
 
+import nodebox.client.NodeBoxDocument;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.handle.Handle;
@@ -686,11 +687,16 @@ public class Node implements NodeCode {
         p.setValue(value);
     }
 
+    /**
+     * Sets a parameter value on this node without raising any errors.
+     *
+     * @param parameterName The parameter name.
+     * @param value         The new value.
+     * @deprecated Will be removed in NodeBox 2.3. Handles should migrate to their own silentSet() method.
+     */
     public void silentSet(String parameterName, Object value) {
-        try {
-            setValue(parameterName, value);
-        } catch (Exception ignored) {
-        }
+        // HACK this method now refers to the current document because otherwise the set will not trigger a network update.
+        NodeBoxDocument.getCurrentDocument().silentSet(this, parameterName, value);
     }
 
     //// Ports ////

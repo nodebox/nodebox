@@ -18,6 +18,13 @@ public class CombinedHandle extends AbstractHandle {
         setVisible(false);
     }
 
+    @Override
+    public void setHandleDelegate(HandleDelegate delegate) {
+        super.setHandleDelegate(delegate);
+        for (Handle handle: handles)
+            handle.setHandleDelegate(delegate);
+    }
+
     public void setViewer(Viewer viewer) {
         super.setViewer(viewer);
         for (Handle handle : handles)

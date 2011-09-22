@@ -4,11 +4,14 @@ import java.awt.*;
 
 public class ViewerPane extends Pane {
 
+    // TODO This is only kept here for duplicating panes.
+    private final NodeBoxDocument document;
     private PaneHeader paneHeader;
     private Viewer viewer;
     private NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck;
 
-    public ViewerPane() {
+    public ViewerPane(final NodeBoxDocument document) {
+        this.document = document;
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         handlesCheck = new NButton(NButton.Mode.CHECK, "Handles");
@@ -24,7 +27,7 @@ public class ViewerPane extends Pane {
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
         paneHeader.add(originCheck);
-        viewer = new Viewer();
+        viewer = new Viewer(document);
         add(paneHeader, BorderLayout.NORTH);
         add(viewer, BorderLayout.CENTER);
     }
@@ -50,7 +53,7 @@ public class ViewerPane extends Pane {
     }
 
     public Pane duplicate() {
-        return new ViewerPane();
+        return new ViewerPane(document);
     }
 
     public String getPaneName() {

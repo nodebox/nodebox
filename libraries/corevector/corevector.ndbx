@@ -1043,7 +1043,7 @@ class BezierPathEditor(AbstractHandle):
                     s += str(pt.x) + " " + str(pt.y) + " "
             self.path_string = s
             if self.path_string != self.node.asString("path"):
-                self.node.silentSet("path", s)
+                self.silentSet("path", s)
     
     def mouse(self):
         if self._mouseXY is not None:
@@ -1550,7 +1550,7 @@ class EditHandle(AbstractHandle):
             except IndexError:
                 delta_values[index] = (dx, dy)
         self._edited_as_string = self._dict_to_string(delta_values)
-        self.node.silentSet("pointDeltas", self._edited_as_string)
+        self.silentSet("pointDeltas", self._edited_as_string)
             
     def mouseReleased(self, pt):
         if self._selected_point == -1: return False
@@ -1893,7 +1893,7 @@ class FreeHandEditor(AbstractHandle):
             s += "".join(["%s %s " % (pt.x, pt.y) for pt in contour.points])
         self.path_string = s
         if self.path_string != self.node.asString("path"):
-            self.node.silentSet("path", self.path_string)
+            self.silentSet("path", self.path_string)
     
     def mouse(self):
         if self._mouseXY is not None:
@@ -2130,23 +2130,23 @@ class LineHandle(AbstractHandle):
         if (dx == 0 and dy == 0): return False
 
         if self.dragState == self.MIDDLE:
-            self.node.silentSet("x", self.ocx + dx)
-            self.node.silentSet("y", self.ocy + dy)
+            self.silentSet("x", self.ocx + dx)
+            self.silentSet("y", self.ocy + dy)
         elif self.dragState == self.ORIGIN:
             # First, calculate the ending point of the line using the current parameters,
             # then, use this point to calculate angle and distance from the new starting point.
             x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
             a = angle(x, y, x1, y1)
             d = distance(x, y, x1, y1)
-            self.node.silentSet("x", x)
-            self.node.silentSet("y", y)
-            self.node.silentSet("angle", a)
-            self.node.silentSet("distance", d)
+            self.silentSet("x", x)
+            self.silentSet("y", y)
+            self.silentSet("angle", a)
+            self.silentSet("distance", d)
         elif self.dragState == self.END:
             a = angle(self.ocx, self.ocy, x, y)
             d = distance(self.ocx, self.ocy, x, y)
-            self.node.silentSet("angle", a)
-            self.node.silentSet("distance", d)
+            self.silentSet("angle", a)
+            self.silentSet("distance", d)
         return True
 
     def mouseReleased(self, pt):
@@ -3338,9 +3338,9 @@ class TransformHandle(AbstractHandle):
         # of the handle you're trying to drag isn't draggable in this order
         # of operations. If this is the case, do nothing.
         if sx is not None:    
-            self.node.silentSet("sx", sx * 100)
+            self.silentSet("sx", sx * 100)
         if sy is not None:
-            self.node.silentSet("sy", sy * 100)
+            self.silentSet("sy", sy * 100)
     
     def perform_translation(self, pt):
         p = self.transform_point
@@ -3370,14 +3370,14 @@ class TransformHandle(AbstractHandle):
             else:
                 tx, ty = self.find_translation_str(p.x, p.y, pt.x, pt.y, t2, t1)
             
-        self.node.silentSet("tx", tx)
-        self.node.silentSet("ty", ty)
+        self.silentSet("tx", tx)
+        self.silentSet("ty", ty)
 
     def perform_rotation(self, pt):
         p = self.transform_point
         d = distance(p.x, p.y, pt.x, pt.y)
         a = angle(p.x, p.y, pt.x, pt.y)
-        self.node.silentSet("r", a)
+        self.silentSet("r", a)
         self.rotation_handle_length = d
         
     def mouseDragged(self, pt):
