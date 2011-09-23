@@ -5,6 +5,7 @@ import nodebox.node.Node;
 import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
@@ -18,7 +19,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
-    private EditorSplitter splitter;
+    private EditorSplitPane splitter;
     private JTextArea messages;
     private NButton messagesCheck;
     private NButton reloadButton;
@@ -45,13 +46,12 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
+        messages.setBorder(new TopLineBorder());
         messages.setFont(Theme.EDITOR_FONT);
         messages.setMargin(new Insets(0, 5, 0, 5));
         JScrollPane messagesScroll = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         messagesScroll.setBorder(BorderFactory.createEmptyBorder());
-        splitter = new EditorSplitter(NSplitter.Orientation.VERTICAL, editor, messagesScroll);
-        splitter.setEnabled(false);
-        splitter.setPosition(1.0f);
+        splitter = new EditorSplitPane(JSplitPane.VERTICAL_SPLIT, editor, messagesScroll);
         add(splitter, BorderLayout.CENTER);
     }
 
@@ -90,7 +90,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
             editor.setEnabled(false);
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
-            splitter.setPosition(1.0f);
+            splitter.setShowMessages(false);
         } else {
             editor.setSource(source);
             editor.setEnabled(true);
@@ -104,14 +104,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
     }
 
     private void setMessages(boolean v) {
-        if (splitter.isEnabled() == v) return;
-        if (v) {
-            splitter.setEnabled(true);
-            splitter.setPosition(0.6f);
-        } else {
-            splitter.setEnabled(false);
-            splitter.setPosition(1.0f);
-        }
+        splitter.setShowMessages(v);
         messagesCheck.setChecked(v);
     }
 
@@ -148,9 +141,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
             messages.setText(sb.toString());
             setMessages(true);
             // Ensure messages are visible
-            if (splitter.getPosition() > 0.9f) {
-                splitter.setPosition(0.6f);
-            }
+            splitter.setShowMessages(true);
         } else {
             messages.setText("");
         }
@@ -220,5 +211,19 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         public void codeParameterChanged(EditorPane editorPane, String codeParameter);
     }
 
+    private class TopLineBorder implements Border {
+        public void paintBorder(Component component, Graphics g, int x, int y, int width, int height) {
+            g.setColor(Theme.DEFAULT_SPLIT_COLOR);
+            g.drawLine(x, y, x + width, y);
+        }
+
+        public Insets getBorderInsets(Component component) {
+            return new Insets(1, 0, 0, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
+    }
 
 }

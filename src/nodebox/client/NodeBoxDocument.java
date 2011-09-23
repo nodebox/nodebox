@@ -129,9 +129,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
                 setActiveNode(node);
             }
         });
-        PaneSplitter viewEditorSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, viewerPane, editorPane);
-        PaneSplitter parameterNetworkSplit = new PaneSplitter(NSplitter.Orientation.VERTICAL, parameterPane, networkPane);
-        PaneSplitter topSplit = new PaneSplitter(NSplitter.Orientation.HORIZONTAL, viewEditorSplit, parameterNetworkSplit);
+        JSplitPane viewEditorSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, viewerPane, editorPane);
+        JSplitPane parameterNetworkSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, parameterPane, networkPane);
+        JSplitPane topSplit = new CustomSplitPane(JSplitPane.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
         addressBar = new AddressBar();
         addressBar.setOnPartClickListener(new AddressBar.OnPartClickListener() {
             public void onPartClicked(Node n) {

@@ -27,7 +27,7 @@ public abstract class Pane extends JPanel implements FocusListener {
      * The bottom pane will be a duplicate of this pane.
      */
     public void splitTopBottom() {
-        split(NSplitter.Orientation.VERTICAL);
+        split(JSplitPane.VERTICAL_SPLIT);
     }
 
     /**
@@ -35,29 +35,29 @@ public abstract class Pane extends JPanel implements FocusListener {
      * The right pane will be a duplicate of this pane.
      */
     public void splitLeftRight() {
-        split(NSplitter.Orientation.HORIZONTAL);
+        split(JSplitPane.HORIZONTAL_SPLIT);
     }
 
-    private void split(NSplitter.Orientation orientation) {
+    private void split(int orientation) {
         Container parent = getParent();
-        if (parent instanceof PaneSplitter) {
-            PaneSplitter parentSplit = (PaneSplitter) parent;
-            boolean first = parentSplit.getFirstComponent() == this;
+        if (parent instanceof JSplitPane) {
+            JSplitPane parentSplit = (JSplitPane) parent;
+            boolean first = parentSplit.getTopComponent() == this;
             if (first) {
-                parentSplit.setFirstComponent(null);
+                parentSplit.setTopComponent(null);
             } else {
-                parentSplit.setSecondComponent(null);
+                parentSplit.setBottomComponent(null);
             }
-            PaneSplitter split = new PaneSplitter(orientation, this, this.duplicate());
+            CustomSplitPane split = new CustomSplitPane(orientation, this, this.duplicate());
             if (first) {
-                parentSplit.setFirstComponent(split);
+                parentSplit.setTopComponent(split);
             } else {
-                parentSplit.setSecondComponent(split);
+                parentSplit.setBottomComponent(split);
             }
             parentSplit.validate();
         } else {
             parent.remove(this);
-            PaneSplitter split = new PaneSplitter(orientation, this, this.duplicate());
+            CustomSplitPane split = new CustomSplitPane(orientation, this, this.duplicate());
             parent.add(split);
             parent.validate();
         }
@@ -65,21 +65,21 @@ public abstract class Pane extends JPanel implements FocusListener {
 
     public void close() {
         Container parent = getParent();
-        if (!(parent instanceof PaneSplitter)) return;
-        PaneSplitter split = (PaneSplitter) parent;
-        JComponent firstComponent = split.getFirstComponent();
-        JComponent secondComponent = split.getSecondComponent();
-        JComponent remainingComponent = firstComponent == this ? secondComponent : firstComponent;
-        split.setFirstComponent(null);
-        split.setSecondComponent(null);
+        if (!(parent instanceof JSplitPane)) return;
+        JSplitPane split = (JSplitPane) parent;
+        Component firstComponent = split.getTopComponent();
+        Component secondComponent = split.getBottomComponent();
+        Component remainingComponent = firstComponent == this ? secondComponent : firstComponent;
+        split.setTopComponent(null);
+        split.setBottomComponent(null);
         Container grandParent = parent.getParent();
-        if (grandParent instanceof PaneSplitter) {
-            PaneSplitter grandSplit = (PaneSplitter) grandParent;
+        if (grandParent instanceof JSplitPane) {
+            JSplitPane grandSplit = (JSplitPane) grandParent;
             // Remove the split pane.
-            if (split == grandSplit.getFirstComponent()) {
-                grandSplit.setFirstComponent(remainingComponent);
+            if (split == grandSplit.getTopComponent()) {
+                grandSplit.setTopComponent(remainingComponent);
             } else {
-                grandSplit.setSecondComponent(remainingComponent);
+                grandSplit.setBottomComponent(remainingComponent);
             }
         } else {
             grandParent.remove(parent);
@@ -98,13 +98,13 @@ public abstract class Pane extends JPanel implements FocusListener {
             throw new RuntimeException("Could not instantiate new " + paneType, e);
         }
         Container parent = getParent();
-        if (parent instanceof PaneSplitter) {
-            PaneSplitter parentSplit = (PaneSplitter) parent;
-            boolean first = parentSplit.getFirstComponent() == this;
+        if (parent instanceof JSplitPane) {
+            JSplitPane parentSplit = (JSplitPane) parent;
+            boolean first = parentSplit.getTopComponent() == this;
             if (first) {
-                parentSplit.setFirstComponent(newPane);
+                parentSplit.setTopComponent(newPane);
             } else {
-                parentSplit.setSecondComponent(newPane);
+                parentSplit.setBottomComponent(newPane);
             }
         } else {
             Dimension d = getSize();
