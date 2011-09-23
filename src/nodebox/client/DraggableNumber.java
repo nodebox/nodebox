@@ -151,8 +151,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void setValue(double value) {
         this.value = clampValue(value);
-        String formattedNumber = numberFormat.format(getValue());
-        numberField.setText(formattedNumber);
         repaint();
     }
 
