@@ -81,6 +81,14 @@ public interface Handle {
      */
     public void stopCombiningEdits();
 
+    /**
+     * Indicates that the handle needs to be repainted.
+     * <p/>
+     * The handle is repainted every time a value is changed.
+     * Use this method whenever you want to repaint the handle without changing a value.
+     */
+    public void repaintHandle();
+
     //// Event listener ////
 
     public HandleDelegate getHandleDelegate();

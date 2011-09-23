@@ -46,4 +46,14 @@ public interface HandleDelegate {
      */
     public void stopEditing(Node node);
 
+    /**
+     * Indicates that the handle needs to be repainted.
+     * <p/>
+     * The handle is repainted every time a value is changed.
+     * Use this method whenever you want to repaint the handle without changing a value.
+     *
+     * @param node The node we're editing.
+     */
+    public void repaintHandle(Node node);
+
 }

@@ -444,6 +444,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         stopCombiningEdits();
     }
 
+    public void repaintHandle(Node node) {
+        // TODO Make viewer repaint more fine-grained.
+        viewer.repaint();
+    }
+
     //// Active network / node ////
 
     /**

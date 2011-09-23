@@ -114,6 +114,11 @@ public abstract class AbstractHandle implements Handle {
             delegate.stopEditing(node);
     }
 
+    public void repaintHandle() {
+        if (delegate != null)
+            delegate.repaintHandle(node);
+    }
+
     //// Handle delegate ////
 
     public HandleDelegate getHandleDelegate() {
