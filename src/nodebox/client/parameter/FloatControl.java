@@ -39,8 +39,15 @@ public class FloatControl extends AbstractParameterControl implements ChangeList
     }
 
     public void setValueForControl(Object v) {
-        Float value = (Float) v;
-        draggable.setValue(value);
+        if (v instanceof Float) {
+            draggable.setValue((Float) v);
+        } else if (v instanceof Double) {
+            draggable.setValue(((Double) v).floatValue());
+        } else if (v instanceof Integer) {
+            draggable.setValue(((Integer) v).floatValue());
+        } else {
+            throw new IllegalArgumentException("Value " + v + " is not a number.");
+        }
     }
 
     public void stateChanged(ChangeEvent e) {
