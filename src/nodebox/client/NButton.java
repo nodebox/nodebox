@@ -231,7 +231,7 @@ public class NButton extends JComponent implements MouseListener {
             try {
                 actionMethod.invoke(actionObject);
             } catch (Exception e1) {
-                throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject);
+                throw new RuntimeException("Could not invoke method " + actionMethod + " on object " + actionObject, e1);
             }
             repaint();
         }
