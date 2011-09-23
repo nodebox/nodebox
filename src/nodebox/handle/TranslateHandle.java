@@ -119,12 +119,12 @@ public class TranslateHandle extends AbstractHandle {
         float dy = pt.y - py;
         if (dx == 0 && dy == 0) return false;
         if (dragState == DragState.CENTER) {
-            node.silentSet(txName, ox + dx);
-            node.silentSet(tyName, oy + dy);
+            silentSet(txName, ox + dx);
+            silentSet(tyName, oy + dy);
         } else if (dragState == DragState.HORIZONTAL)
-            node.silentSet(txName, ox + dx);
+            silentSet(txName, ox + dx);
         else if (dragState == DragState.VERTICAL)
-            node.silentSet(tyName, oy + dy);
+            silentSet(tyName, oy + dy);
         return true;
     }
 
