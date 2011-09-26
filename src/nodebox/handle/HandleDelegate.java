@@ -47,13 +47,16 @@ public interface HandleDelegate {
     public void stopEditing(Node node);
 
     /**
-     * Indicates that the handle needs to be repainted.
+     * Indicates that the handle needs to be updated.
      * <p/>
-     * The handle is repainted every time a value is changed.
-     * Use this method whenever you want to repaint the handle without changing a value.
+     * This calls the update method on the handle, then repaints it.
+     * <p/>
+     * The handle is updated every time a value is changed.
+     * Use this method whenever you want to update the handle state without changing a value,
+     * for example to redraw a handle cursor.
      *
      * @param node The node we're editing.
      */
-    public void repaintHandle(Node node);
+    public void updateHandle(Node node);
 
 }

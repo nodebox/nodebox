@@ -1,6 +1,5 @@
 package nodebox.handle;
 
-import nodebox.client.NodeBoxDocument;
 import nodebox.client.Viewer;
 import nodebox.graphics.*;
 import nodebox.node.Node;
@@ -114,9 +113,9 @@ public abstract class AbstractHandle implements Handle {
             delegate.stopEditing(node);
     }
 
-    public void repaintHandle() {
+    public void updateHandle() {
         if (delegate != null)
-            delegate.repaintHandle(node);
+            delegate.updateHandle(node);
     }
 
     //// Handle delegate ////

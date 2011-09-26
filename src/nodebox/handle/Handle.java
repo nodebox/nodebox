@@ -87,7 +87,7 @@ public interface Handle {
      * The handle is repainted every time a value is changed.
      * Use this method whenever you want to repaint the handle without changing a value.
      */
-    public void repaintHandle();
+    public void updateHandle();
 
     //// Event listener ////
 

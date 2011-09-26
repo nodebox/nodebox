@@ -1054,38 +1054,38 @@ class BezierPathEditor(AbstractHandle):
     def mousePressed(self, pt):
         self._mouseXY = pt
         self.mousedown = True
-        self.node.markDirty()
+        self.updateHandle()
         return True
         
     def mouseDragged(self, pt):
         if not self.mousedown: return False
         self._mouseXY = pt
-        self.node.markDirty()
+        self.updateHandle()
         return True
 
     def mouseReleased(self, pt):
         if not self.mousedown: return False
         self._mouseXY = pt
         self.mousedown = False
-        self.node.markDirty()
+        self.updateHandle()
         return True
     
     def mouseMoved(self, pt):
         self._mouseXY = pt
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
     def keyPressed(self, keycode, modifiers):
         self._keycode = keycode
         self.keydown = True
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
     def keyReleased(self, keycode, modifiers):
         if not self.keydown: return False
         self._keycode = keycode
         self.keydown = False
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
 def cook(self):

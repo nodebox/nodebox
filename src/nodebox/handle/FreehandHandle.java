@@ -37,7 +37,7 @@ public class FreehandHandle extends AbstractHandle {
     @Override
     public boolean mouseMoved(Point pt) {
         currentPoint = pt;
-        repaintHandle();
+        updateHandle();
         return true;
     }
 
@@ -57,7 +57,7 @@ public class FreehandHandle extends AbstractHandle {
         }
         pathString += String.format("%.2f %.2f ", pt.getX(), pt.getY());
         silentSet(pathParameterName, pathString);
-        repaintHandle();
+        updateHandle();
         return true;
     }
 
