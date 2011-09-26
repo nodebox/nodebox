@@ -2,7 +2,10 @@ package nodebox.client;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.EventListenerList;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -10,6 +13,7 @@ import java.io.IOException;
 
 
 public class PaneMenu extends JComponent implements MouseListener {
+
     private static Image paneMenuLeft, paneMenuBackground, paneMenuRight;
 
     static {
@@ -22,19 +26,17 @@ public class PaneMenu extends JComponent implements MouseListener {
         }
     }
 
-    private Pane pane;
+    /**
+     * The list of event listeners for this component.
+     */
+    protected EventListenerList listenerList = new EventListenerList();
 
-    public PaneMenu(Pane pane) {
-        this.pane = pane;
+    public PaneMenu() {
         Dimension d = new Dimension(103, 21);
         setMinimumSize(d);
         setMaximumSize(d);
         setPreferredSize(d);
         setEnabled(true);
-    }
-
-    public Pane getPane() {
-        return pane;
     }
 
     @Override
@@ -82,6 +84,47 @@ public class PaneMenu extends JComponent implements MouseListener {
     }
 
     public void mouseExited(MouseEvent e) {
+    }
+
+    /**
+     * Adds a ChangeListener to the slider.
+     *
+     * @param l the ChangeListener to add
+     * @see #fireActionEvent
+     * @see #removeActionListener
+     */
+    public void addActionListener(ActionListener l) {
+        listenerList.add(ActionListener.class, l);
+    }
+
+    /**
+     * Removes a ChangeListener from the slider.
+     *
+     * @param l the ChangeListener to remove
+     * @see #fireActionEvent
+     * @see #addActionListener
+     */
+    public void removeActionListener(ActionListener l) {
+        listenerList.remove(ActionListener.class, l);
+    }
+
+    /**
+     * Send a ChangeEvent, whose source is this Slider, to
+     * each listener.  This method method is called each time
+     * a ChangeEvent is received from the model.
+     *
+     * @param menuKey The menu item key that was selected.
+     * @see #addActionListener
+     * @see javax.swing.event.EventListenerList
+     */
+    protected void fireActionEvent(String menuKey) {
+        ActionEvent actionEvent = new ActionEvent(this, 0, menuKey);
+        Object[] listeners = listenerList.getListenerList();
+        for (int i = listeners.length - 2; i >= 0; i -= 2) {
+            if (listeners[i] == ActionListener.class) {
+                ((ActionListener) listeners[i + 1]).actionPerformed(actionEvent);
+            }
+        }
     }
 
 }

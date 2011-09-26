@@ -159,7 +159,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         this.showOrigin = showOrigin;
         repaint();
     }
-    
+
     //// Handle support ////
 
     public Handle getHandle() {
@@ -316,7 +316,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             panEnabled = true;
-             if (! getCursor().equals(panCursor))
+            if (!getCursor().equals(panCursor))
                 setCursor(panCursor);
         }
         if (hasVisibleHandle())
@@ -325,7 +325,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     public void keyReleased(KeyEvent e) {
         panEnabled = false;
-        if (! getCursor().equals(defaultCursor))
+        if (!getCursor().equals(defaultCursor))
             setCursor(defaultCursor);
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
@@ -393,7 +393,11 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
                 canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
                 CanvasContext ctx = new CanvasContext(canvas);
-                handle.draw(ctx);
+                try {
+                    handle.draw(ctx);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 ctx.getCanvas().draw(g2);
             }
 

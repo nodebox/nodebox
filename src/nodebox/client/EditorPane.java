@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.client.editor.SimpleEditor;
 import nodebox.node.Node;
+import nodebox.node.Parameter;
 import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
@@ -12,10 +13,23 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.Element;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-public class EditorPane extends Pane implements CaretListener, ChangeListener {
+import static nodebox.base.Preconditions.checkNotNull;
+
+public class EditorPane extends Pane implements CaretListener, ChangeListener, ActionListener {
+
+    private final Map<Parameter, String> inProgressCode = new WeakHashMap<Parameter, String>();
+
+    private final NodeBoxDocument document;
+    private Node activeNode;
+    private Parameter activeParameter;
+    private String codeType = "_code";
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
@@ -23,13 +37,14 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
     private JTextArea messages;
     private NButton messagesCheck;
     private NButton reloadButton;
-    private Delegate delegate;
+    private boolean ignoringChanges = true;
 
-    public EditorPane() {
+    public EditorPane(NodeBoxDocument document) {
+        this.document = document;
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         reloadButton = new NButton("Reload", "res/code-reload.png");
-        reloadButton.setEnabled(false); // Only enable the button if the code has changed.
+        setReloadButtonEnabled(false); // Only enable the button if the code has changed.
         reloadButton.setActionMethod(this, "reload");
         messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
         messagesCheck.setActionMethod(this, "toggleMessages");
@@ -37,12 +52,12 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
         paneHeader.add(new Divider());
-        // TODO Use a listener for the PaneCodeMenu.
-        paneHeader.add(new PaneCodeMenu(this));
+        PaneCodeMenu paneCodeMenu = new PaneCodeMenu();
+        paneCodeMenu.addActionListener(this);
+        paneHeader.add(paneCodeMenu);
         editor = new SimpleEditor();
         editor.addCaretListener(this);
         editor.addChangeListener(this);
-        //editor.setUndoManager(getDocument().getUndoManager());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
@@ -56,7 +71,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
     }
 
     public Pane duplicate() {
-        return new EditorPane();
+        return new EditorPane(document);
     }
 
     public String getPaneName() {
@@ -71,20 +86,70 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         return editor;
     }
 
-    public void onCodeParameterChanged(String codeParameter) {
-        delegate.codeParameterChanged(this, codeParameter);
+    public void setActiveNode(Node node) {
+        activeNode = node;
+        if (activeNode != null) {
+            activeParameter = getCodeParameter(activeNode, codeType);
+        } else {
+            activeParameter = null;
+        }
+        updateSource();
+    }
+
+    public void setCodeType(String codeType) {
+        this.codeType = codeType;
+        activeParameter = getCodeParameter(activeNode, codeType);
+        updateSource();
         paneHeader.repaint();
+        clearMessages();
+    }
+
+    private void updateSource() {
+        if (activeParameter != null) {
+            if (hasInProgressCode(activeParameter)) {
+                setSource(getInProgressCode(activeParameter));
+                setReloadButtonEnabled(true);
+            } else {
+                Parameter codeParameter = activeNode.getParameter(codeType);
+                setSource(codeParameter.asCode().getSource());
+                setReloadButtonEnabled(false);
+            }
+        } else {
+            setSource(null);
+            setReloadButtonEnabled(false);
+        }
     }
 
     public void reload() {
-        delegate.codeReloaded(this, editor.getSource());
+        // This method can be called from the menu bar, so we need to check if the code has really changed.
+        if (!hasInProgressCode(activeParameter)) return;
+        document.setActiveNodeCode(activeParameter, getSource());
+        removeInProgressCode(activeParameter);
+        // The code has been set so there is nothing to reload.
+        setReloadButtonEnabled(false);
+    }
+
+    private void setReloadButtonEnabled(boolean v) {
+        reloadButton.setEnabled(v);
+        reloadButton.setWarning(v);
     }
 
     public String getSource() {
         return editor.getSource();
     }
 
+    public boolean isIgnoringChanges() {
+        return ignoringChanges;
+    }
+
+    public void setIgnoringChanges(boolean ignoringChanges) {
+        this.ignoringChanges = ignoringChanges;
+    }
+
     public void setSource(String source) {
+        // Setting the source will trigger change events for every line of source code.
+        // Ignore changes temporarily, and re-enable when the source has been set.
+        setIgnoringChanges(true);
         if (source == null) {
             editor.setSource("");
             editor.setEnabled(false);
@@ -96,21 +161,56 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
             editor.setEnabled(true);
             messages.setEnabled(true);
             messages.setBackground(Color.white);
+            // The source has been set. All subsequent changes are triggered by the user.
+            setIgnoringChanges(false);
         }
     }
 
     public void toggleMessages() {
-        setMessages(messagesCheck.isChecked());
+        setShowMessages(messagesCheck.isChecked());
     }
 
-    private void setMessages(boolean v) {
+    private void setShowMessages(boolean v) {
         splitter.setShowMessages(v);
         messagesCheck.setChecked(v);
     }
 
+    /**
+     * Set the messages to a given string.
+     * This is used for exceptions in the handle code.
+     *
+     * @param s The string to display.
+     */
+    public void setMessages(String s) {
+        if (s != null && !s.isEmpty()) {
+            messages.setText(s);
+            setShowMessages(true);
+            // Ensure messages are visible.
+            splitter.setShowMessages(true);
+        } else {
+            messages.setText("");
+        }
+    }
+
+    /**
+     * Clear out the text in messages.
+     */
+    public void clearMessages() {
+        setMessages("");
+    }
+
+    /**
+     * Update the messages after the node has done processing.
+     * <p/>
+     * This is only used for _code, not for _handles.
+     *
+     * @param node    The node that was processed.
+     * @param context The node's processing context.
+     */
     public void updateMessages(Node node, ProcessingContext context) {
-        // TODO Replace with StringBuilder
-        StringBuffer sb = new StringBuffer();
+        // If we're looking at the handle don't show messages for the node.
+        if (codeType.equals("_handle")) return;
+        StringBuilder sb = new StringBuilder();
 
         if (node != null) {
             // Add the error messages.
@@ -139,7 +239,7 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         }
         if (sb.length() > 0) {
             messages.setText(sb.toString());
-            setMessages(true);
+            setShowMessages(true);
             // Ensure messages are visible
             splitter.setShowMessages(true);
         } else {
@@ -162,53 +262,47 @@ public class EditorPane extends Pane implements CaretListener, ChangeListener {
         splitter.setLocation(line, column);
     }
 
-    public void stateChanged(ChangeEvent changeEvent) {
-        // TODO: This gets fired way too much, for example, once for every line when using setSource(s).
-        // The document has changed.
-        reloadButton.setEnabled(true);
-        reloadButton.setWarning(true);
-        // TODO Re-enable the delegate call when the method is not called so often.
-        //delegate.codeEdited(this, getSource());
-    }
-
-    public Delegate getDelegate() {
-        return delegate;
-    }
-
-    public void setDelegate(Delegate delegate) {
-        this.delegate = delegate;
-    }
-
     /**
-     * A callback interface for listening to code edits.
+     * This method gets called by the editor component if the source has changed.
+     *
+     * @param changeEvent The type of change.
      */
-    public static interface Delegate {
+    public void stateChanged(ChangeEvent changeEvent) {
+        // The editor also triggers state changes when using setSource(). We ignore those changes.
+        if (isIgnoringChanges()) return;
+        setInProgressCode(activeParameter, getSource());
+        setReloadButtonEnabled(true);
+        document.codeEdited(getSource());
+    }
 
-        /**
-         * Callback method invoked when code was edited.
-         *
-         * @param editorPane The editor pane that triggered the event.
-         * @param source     The new source code.
-         */
-        public void codeEdited(EditorPane editorPane, String source);
+    //// In-progress code ////
 
-        /**
-         * Callback method invoked when code was reloaded.
-         *
-         * @param editorPane The editor pane that triggered the event.
-         * @param source     The new source code.
-         */
-        public void codeReloaded(EditorPane editorPane, String source);
+    private Parameter getCodeParameter(Node node, String codeType) {
+        checkNotNull(node, "Trying to get a code parameter for a null node.");
+        Parameter p = node.getParameter(codeType);
+        checkNotNull(p, "Parameter %s on node %s could not be found.", codeType, node);
+        return p;
+    }
 
-        /**
-         * Callback method invoked when the code parameter was changed.
-         * The code parameter is the name of the parameter that contains the code.
-         * This is either "_code" or "_handle".
-         *
-         * @param editorPane    The editor pane that triggered the event.
-         * @param codeParameter The name of the code parameter.
-         */
-        public void codeParameterChanged(EditorPane editorPane, String codeParameter);
+    private void setInProgressCode(Parameter p, String source) {
+        inProgressCode.put(p, source);
+    }
+
+    private String getInProgressCode(Parameter p) {
+        return inProgressCode.get(p);
+    }
+
+    private void removeInProgressCode(Parameter p) {
+        inProgressCode.remove(p);
+    }
+
+    private boolean hasInProgressCode(Parameter p) {
+        return inProgressCode.containsKey(p);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        // We know the event will always come from the pane code type menu.
+        setCodeType(e.getActionCommand());
     }
 
     private class TopLineBorder implements Border {

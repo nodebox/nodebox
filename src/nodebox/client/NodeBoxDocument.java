@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
-import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -47,8 +45,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     private boolean loaded = false;
     private SpotlightPanel spotlightPanel;
 
-    private final Map<Node, String> workingCodeMap = new WeakHashMap<Node, String>();
-
     private UndoManager undoManager = new UndoManager();
     private boolean holdEdits = false;
     private String lastEditType = null;
@@ -57,7 +53,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     private NodeLibrary nodeLibrary;
     private Node activeNetwork;
     private Node activeNode;
-    private String activeCodeParameter = "_code";
 
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -81,28 +76,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         JPanel rootPanel = new JPanel(new BorderLayout());
         ViewerPane viewerPane = new ViewerPane(this);
         viewer = viewerPane.getViewer();
-        editorPane = new EditorPane();
-        editorPane.setDelegate(new EditorPane.Delegate() {
-            public void codeEdited(EditorPane editorPane, String source) {
-                Parameter codeParameter = activeNode.getParameter(activeCodeParameter);
-                String currentSource = codeParameter.asCode().getSource();
-                if (!currentSource.equals(source)) {
-                    workingCodeMap.put(activeNode, source);
-                    networkView.codeChanged(activeNode, true);
-                } else {
-                    workingCodeMap.remove(activeNode);
-                }
-            }
-
-            public void codeReloaded(EditorPane editorPane, String source) {
-                setActiveNodeCode(source);
-            }
-
-            public void codeParameterChanged(EditorPane editorPane, String codeParameter) {
-
-                // TODO Implement
-            }
-        });
+        editorPane = new EditorPane(this);
         ParameterPane parameterPane = new ParameterPane();
         parameterPane.setEditMetadataListener(new ParameterPane.EditMetadataListener() {
             public void onEditMetadata() {
@@ -206,8 +180,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
         networkView.updateNodes();
         networkView.setActiveNode(activeNode);
-        updateEditorPaneSource();
         parameterView.setActiveNode(activeNode);
+        editorPane.setActiveNode(activeNode);
     }
 
     /**
@@ -421,6 +395,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         render();
     }
 
+    //// Editor pane callbacks ////
+
+    public void codeEdited(String source) {
+        networkView.codeChanged(activeNode, true);
+    }
+
     //// HandleDelegate implementation ////
 
     // TODO Merge setParameterValue and setValue.
@@ -521,8 +501,23 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         stopCombiningEdits();
         if (activeNode == node) return;
         activeNode = node;
+        createHandleForActiveNode();
+        viewer.repaint();
+        parameterView.setActiveNode(activeNode);
+        networkView.setActiveNode(activeNode);
+        editorPane.setActiveNode(activeNode);
+    }
+
+    private void createHandleForActiveNode() {
         if (activeNode != null) {
-            Handle handle = activeNode.createHandle();
+            Handle handle = null;
+            try {
+                handle = activeNode.createHandle();
+                // If the handle was created successfully, remove the messages.
+                editorPane.clearMessages();
+            } catch (Exception e) {
+                editorPane.setMessages(e.toString());
+            }
             if (handle != null) {
                 handle.setHandleDelegate(this);
                 // TODO Remove this. Find out why the handle needs access to the viewer (only repaint?) and put that in the HandleDelegate.
@@ -531,23 +526,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
             viewer.setHandle(handle);
         } else {
             viewer.setHandle(null);
-        }
-        viewer.repaint();
-        parameterView.setActiveNode(activeNode);
-        networkView.setActiveNode(activeNode);
-        updateEditorPaneSource();
-    }
-
-    private void updateEditorPaneSource() {
-        if (activeNode != null) {
-            if (workingCodeMap.containsKey(activeNode)) {
-                editorPane.setSource(workingCodeMap.get(activeNode));
-            } else {
-                Parameter codeParameter = activeNode.getParameter(activeCodeParameter);
-                editorPane.setSource(codeParameter.asCode().getSource());
-            }
-        } else {
-            editorPane.setSource(null);
         }
     }
 
@@ -633,19 +611,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         });
     }
 
-    public void setActiveNodeCode(String source) {
+    public void setActiveNodeCode(Parameter codeParameter, String source) {
         if (activeNode == null) return;
-        Parameter pCode = activeNode.getParameter(activeCodeParameter);
-        if (pCode == null) return;
+        if (codeParameter == null) return;
         NodeCode code = new PythonCode(source);
-        pCode.set(code);
-        if (activeCodeParameter.equals("_handle")) {
-            viewer.reloadHandle();
+        codeParameter.set(code);
+        if (codeParameter.getName().equals("_handle")) {
+            createHandleForActiveNode();
         }
-        // Since the code is now up-to-date, remove it from the temporary map.
-        workingCodeMap.remove(activeNode);
         networkView.codeChanged(activeNode, false);
-
         render();
     }
 
@@ -912,7 +886,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     }
 
     public void reload() {
-        setActiveNodeCode(editorPane.getSource());
+        editorPane.reload();
     }
 
     public boolean export() {
