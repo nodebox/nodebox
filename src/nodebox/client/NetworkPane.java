@@ -4,17 +4,19 @@ import java.awt.*;
 
 public class NetworkPane extends Pane {
 
+    private final NodeBoxDocument document;
     private final PaneHeader paneHeader;
     private final NetworkView networkView;
 
-    public NetworkPane() {
+    public NetworkPane(NodeBoxDocument document) {
+        this.document = document;
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         NButton newNodeButton = new NButton("New Node", "res/network-new-node.png");
         newNodeButton.setToolTipText("New Node (TAB)");
         newNodeButton.setActionMethod(this, "createNewNode");
         paneHeader.add(newNodeButton);
-        networkView = new NetworkView();
+        networkView = new NetworkView(document);
         add(paneHeader, BorderLayout.NORTH);
         add(networkView, BorderLayout.CENTER);
     }
@@ -24,7 +26,7 @@ public class NetworkPane extends Pane {
     }
 
     public Pane duplicate() {
-        return new NetworkPane();
+        return new NetworkPane(document);
     }
 
     public PaneHeader getPaneHeader() {

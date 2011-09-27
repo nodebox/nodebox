@@ -37,6 +37,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     public static String lastFilePath;
     public static String lastExportPath;
 
+    private static NodeLibrary clipboardLibrary;
+
     private File documentFile;
     private boolean documentChanged;
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxDocument");
@@ -71,6 +73,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         return Application.getInstance().getManager();
     }
 
+    public static NodeLibrary getNodeClipboard() {
+        return clipboardLibrary;
+    }
+
+    public static void setNodeClipboard(NodeLibrary clipboardLibrary) {
+        NodeBoxDocument.clipboardLibrary = clipboardLibrary;
+    }
+
     public NodeBoxDocument(NodeLibrary library) {
         setNodeLibrary(library);
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -95,9 +105,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         });
         parameterView = parameterPane.getParameterView();
         parameterView.setDocument(this); // TODO Remove this once parameter view is fully decoupled.
-        NetworkPane networkPane = new NetworkPane();
+        NetworkPane networkPane = new NetworkPane(this);
         networkView = networkPane.getNetworkView();
-        networkView.setDocument(this); // TODO Remove this once it is fully decoupled.
         networkView.setDelegate(new NetworkView.Delegate() {
             public void activeNodeChanged(Node node) {
                 setActiveNode(node);
@@ -846,20 +855,41 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     }
 
     public void cut() {
-        networkView.cutSelected();
+        copy();
+        deleteSelection();
     }
 
     public void copy() {
-        networkView.copySelected();
+        // When copying, create copies of all the nodes and store them under a new parent.
+        // The parent is used to preserve the connections, and also to save the state of the
+        // copied nodes.
+        // This parent is the root of a new library.
+        NodeLibrary clipboardLibrary = new NodeLibrary("clipboard");
+        Node clipboardRoot = clipboardLibrary.getRootNode();
+        copyChildren(networkView.getSelectedNodes(), getActiveNetwork(), clipboardRoot);
+        setNodeClipboard(clipboardLibrary);
     }
 
     public void paste() {
         addEdit("Paste node");
-        networkView.pasteSelected();
+        NodeLibrary clipboardLibrary = getNodeClipboard();
+        if (clipboardLibrary == null) return;
+        Node clipboardRoot = clipboardLibrary.getRootNode();
+        if (clipboardRoot.size() == 0) return;
+        Collection<Node> newNodes = copyChildren(clipboardRoot.getChildren(), clipboardRoot, getActiveNetwork());
+        for (Node newNode : newNodes) {
+            nodebox.graphics.Point pt = newNode.getPosition();
+            pt.x += 20;
+            pt.y += 80;
+            newNode.setPosition(pt);
+        }
+
+        networkView.updateAll();
+        networkView.select(newNodes);
     }
 
-    public void deleteSelected() {
-        networkView.deleteSelected();
+    public void deleteSelection() {
+        removeNodes(networkView.getSelectedNodes());
     }
 
     private void updateTitle() {

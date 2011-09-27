@@ -422,7 +422,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().deleteSelected();
+            getDocument().deleteSelection();
         }
     }
 

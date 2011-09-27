@@ -55,7 +55,6 @@ public class Application implements Host {
     private NodeLibraryManager manager;
     private ProgressDialog startupDialog;
     private Version version;
-    private NodeLibrary clipboardLibrary;
     private List<File> filesToLoad = Collections.synchronizedList(new ArrayList<File>());
 
     public static final String NAME = "NodeBox";
@@ -340,14 +339,6 @@ public class Application implements Host {
 
     void setCurrentDocument(NodeBoxDocument document) {
         currentDocument = document;
-    }
-
-    public NodeLibrary getNodeClipboard() {
-        return clipboardLibrary;
-    }
-
-    public void setNodeClipboard(NodeLibrary clipboardLibrary) {
-        this.clipboardLibrary = clipboardLibrary;
     }
 
     public NodeLibraryManager getManager() {
