@@ -117,6 +117,19 @@ public class ParameterView extends JComponent implements PaneView, ParameterCont
         }
     }
 
+    /**
+     * Check the enabled state of all Parameters and sync the parameter rows accordingly.
+     */
+    public void updateEnabledState() {
+        for (Component c : controlPanel.getComponents())
+        if (c instanceof ParameterRow) {
+            ParameterRow row = (ParameterRow) c;
+            if (row.isEnabled() != row.getParameter().isEnabled()) {
+                row.setEnabled(row.getParameter().isEnabled());
+            }
+        }
+    }
+
     // Update the multi-connection panel in the parameter view.
     public void updateConnectionPanel() {
         if (multiConnectionPanel != null) {

@@ -377,6 +377,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         }
 
         parameterView.updateParameterValue(parameter, value);
+        // Setting a parameter might change enable expressions, and thus change the enabled state of a parameter row.
+        parameterView.updateEnabledState();
         render();
     }
 

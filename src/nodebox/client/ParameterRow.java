@@ -85,6 +85,10 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
         setBorder(Theme.PARAMETER_ROW_BORDER);
     }
 
+    public Parameter getParameter() {
+        return parameter;
+    }
+
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(400, control.getPreferredSize().height + TOP_PADDING + BOTTOM_PADDING);
