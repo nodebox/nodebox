@@ -379,6 +379,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         parameterView.updateParameterValue(parameter, value);
         // Setting a parameter might change enable expressions, and thus change the enabled state of a parameter row.
         parameterView.updateEnabledState();
+        // Setting a parameter might change the enabled state of the handle.
+        viewer.setHandleEnabled(activeNode.hasEnabledHandle());
         render();
     }
 
@@ -470,7 +472,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         }
 
         addressBar.setActiveNetwork(activeNetwork);
-        viewer.setHandleEnabled(activeNetwork.hasEnabledHandle());
+        viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
         viewer.repaint();
         networkView.setActiveNetwork(activeNetwork);
         networkView.setActiveNode(activeNode);
@@ -533,6 +535,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
                 handle.setHandleDelegate(this);
                 // TODO Remove this. Find out why the handle needs access to the viewer (only repaint?) and put that in the HandleDelegate.
                 handle.setViewer(viewer);
+                viewer.setHandleEnabled(activeNode.hasEnabledHandle());
             }
             viewer.setHandle(handle);
         } else {

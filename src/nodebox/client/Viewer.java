@@ -218,7 +218,11 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     }
 
     public void setHandleEnabled(boolean handleEnabled) {
-        this.handleEnabled = handleEnabled;
+        if (this.handleEnabled != handleEnabled) {
+            this.handleEnabled = handleEnabled;
+            // We could just repaint the handle.
+            repaint();
+        }
     }
 
     public void reloadHandle() {
