@@ -64,6 +64,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     private final EditorPane editorPane;
     private final ParameterView parameterView;
     private final NetworkView networkView;
+    private JSplitPane viewEditorSplit;
+    private JSplitPane parameterNetworkSplit;
+    private JSplitPane topSplit;
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -112,9 +115,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
                 setActiveNode(node);
             }
         });
-        JSplitPane viewEditorSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, viewerPane, editorPane);
-        JSplitPane parameterNetworkSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, parameterPane, networkPane);
-        JSplitPane topSplit = new CustomSplitPane(JSplitPane.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
+        viewEditorSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, viewerPane, editorPane);
+        parameterNetworkSplit = new CustomSplitPane(JSplitPane.VERTICAL_SPLIT, parameterPane, networkPane);
+        topSplit = new CustomSplitPane(JSplitPane.HORIZONTAL_SPLIT, viewEditorSplit, parameterNetworkSplit);
         addressBar = new AddressBar();
         addressBar.setOnPartClickListener(new AddressBar.OnPartClickListener() {
             public void onPartClicked(Node n) {
@@ -141,6 +144,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         loaded = true;
 
         setActiveNetwork(library.getRootNode());
+        // setActiveNode is not called because it registers that the current node is already null.
+        // The parameter view is a special case since it does need to show something when the active node is null.
+        parameterView.setActiveNode(nodeLibrary.getRootNode());
 
         spotlightPanel = new SpotlightPanel(networkPane);
         setGlassPane(spotlightPanel);
@@ -380,7 +386,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         // Setting a parameter might change enable expressions, and thus change the enabled state of a parameter row.
         parameterView.updateEnabledState();
         // Setting a parameter might change the enabled state of the handle.
-        viewer.setHandleEnabled(activeNode.hasEnabledHandle());
+        viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
         render();
     }
 
@@ -516,7 +522,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         activeNode = node;
         createHandleForActiveNode();
         viewer.repaint();
-        parameterView.setActiveNode(activeNode);
+        parameterView.setActiveNode(activeNode == null ? nodeLibrary.getRootNode() : activeNode);
         networkView.setActiveNode(activeNode);
         editorPane.setActiveNode(activeNode);
     }
@@ -1089,6 +1095,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     //// Window events ////
 
     public void windowOpened(WindowEvent e) {
+        viewEditorSplit.setDividerLocation(0.5);
+        parameterNetworkSplit.setDividerLocation(0.5);
+        topSplit.setDividerLocation(0.5);
     }
 
     public void windowClosing(WindowEvent e) {
