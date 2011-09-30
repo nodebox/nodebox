@@ -5,6 +5,8 @@ import nodebox.graphics.Point;
 import nodebox.node.Node;
 import nodebox.node.Parameter;
 
+import java.util.Locale;
+
 /**
  * Handle for the freehand node.
  */
@@ -55,7 +57,8 @@ public class FreehandHandle extends AbstractHandle {
             pathString += "M ";
             newPath = false;
         }
-        pathString += String.format("%.2f %.2f ", pt.getX(), pt.getY());
+        // Use US locale, otherwise the code might generate a "," instead of a "." as the floating point.
+        pathString += String.format(Locale.US, "%.2f %.2f ", pt.getX(), pt.getY());
         silentSet(pathParameterName, pathString);
         updateHandle();
         return true;
