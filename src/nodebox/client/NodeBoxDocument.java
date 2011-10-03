@@ -95,13 +95,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
             public void onEditMetadata() {
                 if (activeNode == null) return;
                 addEdit("Node Metadata");
-                NodeAttributesEditor editor = new NodeAttributesEditor(activeNode);
-                JDialog editorDialog = new JDialog(NodeBoxDocument.this, activeNode.getName() + " Metadata");
-                editorDialog.getContentPane().add(editor);
+                JDialog editorDialog = new NodeAttributesDialog(NodeBoxDocument.this);
                 editorDialog.setSize(580, 751);
-                editorDialog.setResizable(false);
-                editorDialog.setModal(true);
-                editorDialog.setModalityType(Dialog.ModalityType.DOCUMENT_MODAL);
                 editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
                 editorDialog.setVisible(true);
             }

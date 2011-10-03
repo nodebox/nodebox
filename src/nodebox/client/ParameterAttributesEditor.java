@@ -161,10 +161,10 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         menuItemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JPanel tablePanel = new JPanel(new BorderLayout(5, 5));
         JScrollPane tableScroll = new JScrollPane(menuItemsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        tableScroll.setSize(200, 200);
-        tableScroll.setPreferredSize(new Dimension(200, 200));
-        tableScroll.setMaximumSize(new Dimension(200, 200));
-        tableScroll.setMinimumSize(new Dimension(200, 200));
+        tableScroll.setSize(200, 170);
+        tableScroll.setPreferredSize(new Dimension(200, 170));
+        tableScroll.setMaximumSize(new Dimension(200, 170));
+        tableScroll.setMinimumSize(new Dimension(200, 170));
         tablePanel.add(tableScroll, BorderLayout.CENTER);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
         addButton = new JButton(new Icons.PlusIcon());
