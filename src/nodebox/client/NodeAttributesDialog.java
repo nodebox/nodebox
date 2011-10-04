@@ -46,6 +46,10 @@ public class NodeAttributesDialog  extends JDialog {
         KeyStroke escapeStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
         getRootPane().registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                if (changed) {
+                    NodeAttributesDialog.this.document.stopEdits();
+                    NodeAttributesDialog.this.document.undo();
+                }
                 dispose();
             }
         }, escapeStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
