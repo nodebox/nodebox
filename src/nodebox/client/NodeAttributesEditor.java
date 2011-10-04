@@ -19,6 +19,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private static final String NODE_SETTINGS = "Settings";
 
+    private NodeAttributesDialog dialog;
     private Node node;
 
     private ParameterListModel parameterListModel;
@@ -30,10 +31,11 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     private JButton removeButton;
     private JButton addButton;
 
-    public NodeAttributesEditor(Node node) {
+    public NodeAttributesEditor(NodeAttributesDialog dialog) {
         setLayout(new BorderLayout(0, 0));
         //library = new CoreNodeTypeLibrary("test", new Version(1, 0, 0));
-        this.node = node;
+        this.dialog = dialog;
+        node = dialog.getNode();
         parameterListModel = new ParameterListModel(node);
         ParameterCellRenderer parameterCellRenderer = new ParameterCellRenderer();
         parameterList = new ParameterList();
@@ -107,28 +109,28 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private void settingsSelected() {
         editorPanel.removeAll();
-        NodeSettingsEditor editor = new NodeSettingsEditor(node);
+        NodeSettingsEditor editor = new NodeSettingsEditor(dialog);
         editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
         selectedPort = null;
         selectedParameter = null;
     }
 
-    private void portSelected(Port p) {
+    private void portSelected(Port port) {
         editorPanel.removeAll();
-        PortAttributesEditor editor = new PortAttributesEditor(p);
+        PortAttributesEditor editor = new PortAttributesEditor(dialog, port);
         editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
-        selectedPort = p;
+        selectedPort = port;
         selectedParameter = null;
     }
 
-    private void parameterSelected(Parameter p) {
+    private void parameterSelected(Parameter parameter) {
         editorPanel.removeAll();
-        ParameterAttributesEditor editor = new ParameterAttributesEditor(p);
+        ParameterAttributesEditor editor = new ParameterAttributesEditor(dialog, parameter);
         editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
-        selectedParameter = p;
+        selectedParameter = parameter;
         selectedPort = null;
     }
 
@@ -153,9 +155,9 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     private void addParameter() {
         String parameterName = JOptionPane.showInputDialog("Enter parameter name");
         if (parameterName != null) {
-            Parameter parameter = node.addParameter(parameterName, Parameter.Type.FLOAT);
+            dialog.addParameter(node, parameterName);
             reloadParameterList();
-            parameterList.setSelectedValue(parameter, true);
+            parameterList.setSelectedValue(node.getParameter(parameterName), true);
         }
     }
 
@@ -172,14 +174,12 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     }
 
     private void removeSelectedPort() {
-        node.removePort(selectedPort.getName());
-        reloadParameterList();
+        JOptionPane.showMessageDialog(this, "Sorry, removing ports is not implemented yet.");
     }
 
     private void removeSelectedParameter() {
         if (selectedParameter == null) return;
-        boolean success = node.removeParameter(selectedParameter.getName());
-        System.out.println("success = " + success);
+        dialog.removeParameter(node, selectedParameter.getName());
         reloadParameterList();
         if (node.getParameterCount() > 0) {
             parameterList.setSelectedIndex(0);
@@ -432,7 +432,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         }
     }
 
-    public static void main(String[] args) {
+/*    public static void main(String[] args) {
         JFrame editorFrame = new JFrame();
         Node node = new AllControlsType().createInstance();
         node.addPort("shape");
@@ -442,5 +442,5 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         editorFrame.setLocationByPlatform(true);
         editorFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         editorFrame.setVisible(true);
-    }
+    }  */
 }

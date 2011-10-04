@@ -94,7 +94,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         parameterPane.setEditMetadataListener(new ParameterPane.EditMetadataListener() {
             public void onEditMetadata() {
                 if (activeNode == null) return;
-                addEdit("Node Metadata");
                 JDialog editorDialog = new NodeAttributesDialog(NodeBoxDocument.this);
                 editorDialog.setSize(580, 751);
                 editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
@@ -256,6 +255,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         render();
     }
 
+    public void setNodeExported(Node node, boolean exported) {
+        addEdit("Set Exported");
+        node.setExported(exported);
+    }
+
     /**
      * Remove the given node from the active network.
      *
@@ -364,6 +368,34 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     }
 
     /**
+     *
+     * @param node  the node on which to add the parameter
+     * @param parameterName the name of the new parameter
+     */
+    public void addParameter(Node node, String parameterName) {
+        addEdit("Add Parameter");
+        Parameter parameter = node.addParameter(parameterName, Parameter.Type.FLOAT);
+        if (node == activeNode) {
+            parameterView.updateAll();
+            viewer.repaint();
+        }
+    }
+
+    /**
+     *
+     * @param node  the node on which to remove the parameter
+     * @param parameterName the name of the parameter
+     */
+    public void removeParameter(Node node, String parameterName) {
+        addEdit("Remove Parameter");
+        node.removeParameter(parameterName);
+        if (node == activeNode) {
+            parameterView.updateAll();
+            viewer.repaint();
+        }
+    }
+
+    /**
      * Set the parameter to the given value.
      *
      * @param parameter the parameter to set
@@ -382,6 +414,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         parameterView.updateEnabledState();
         // Setting a parameter might change the enabled state of the handle.
         viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
+        if (parameter.getName().equals("_image"))
+            networkView.updateNodes();
         render();
     }
 
@@ -408,6 +442,106 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         parameterView.updateParameter(parameter);
         render();
     }
+
+    public void setParameterLabel(Parameter parameter, String label) {
+        addEdit("Set Parameter Label");
+        parameter.setLabel(label);
+
+        parameterView.updateParameter(parameter);
+    }
+
+    public void setParameterHelpText(Parameter parameter, String helpText) {
+        addEdit("Set Parameter Help Text");
+        parameter.setHelpText(helpText);
+
+        parameterView.updateParameter(parameter);
+    }
+
+    public void setParameterWidget(Parameter parameter, Parameter.Widget widget) {
+        addEdit("Set Parameter Widget");
+        parameter.setWidget(widget);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void setParameterEnableExpression(Parameter parameter, String enableExpression) {
+        addEdit("Set Parameter Enable Expression");
+        parameter.setEnableExpression(enableExpression);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void setParameterBoundingMethod(Parameter parameter, Parameter.BoundingMethod method) {
+        addEdit("Set Parameter Bounding Method");
+        parameter.setBoundingMethod(method);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void setParameterMinimumValue(Parameter parameter, Float minimumValue) {
+        addEdit("Set Parameter Minimum Value");
+        parameter.setMinimumValue(minimumValue);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void setParameterMaximumValue(Parameter parameter, Float maximumValue) {
+        addEdit("Set Parameter Maximum Value");
+        parameter.setMaximumValue(maximumValue);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void setParameterDisplayLevel(Parameter parameter, Parameter.DisplayLevel displayLevel) {
+        addEdit("Set Parameter Display Level");
+        parameter.setDisplayLevel(displayLevel);
+
+        parameterView.updateParameter(parameter);
+    }
+
+    public void addParameterMenuItem(Parameter parameter, String key, String label) {
+        addEdit("Add Parameter Menu Item");
+        parameter.addMenuItem(key, label);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void removeParameterMenuItem(Parameter parameter, Parameter.MenuItem item) {
+        addEdit("Remove Parameter Menu Item");
+        parameter.removeMenuItem(item);
+
+        parameterView.updateParameter(parameter);
+        render();
+    }
+
+    public void moveParameterItemDown(Parameter parameter, int itemIndex) {
+        addEdit("Move Parameter Item Down");
+        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
+        Parameter.MenuItem item = items.get(itemIndex);
+        items.remove(item);
+        items.add(itemIndex + 1, item);
+        parameter.fireAttributeChanged();
+
+        parameterView.updateParameter(parameter);
+    }
+
+    public void moveParameterItemUp(Parameter parameter, int itemIndex) {
+        addEdit("Move Parameter Item Up");
+        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
+        Parameter.MenuItem item = items.get(itemIndex);
+        items.remove(item);
+        items.add(itemIndex - 1, item);
+        parameter.fireAttributeChanged();
+
+        parameterView.updateParameter(parameter);
+    }
+
 
     //// Editor pane callbacks ////
 
