@@ -13,6 +13,9 @@ import java.util.Locale;
 
 public class ParameterAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
+    // TODO: Decouple from the Parameter.
+    // TODO: Don't update immediately, use save/cancel buttons.
+
     private JTextField nameField;
     private JTextField labelField;
     private JTextField helpTextField;
@@ -62,9 +65,11 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
 
     private boolean focusLostEvents = true;
 
+    private NodeAttributesDialog nodeAttributesDialog;
     private Parameter parameter;
 
-    public ParameterAttributesEditor(Parameter parameter) {
+    public ParameterAttributesEditor(NodeAttributesDialog dialog, Parameter parameter) {
+        this.nodeAttributesDialog = dialog;
         this.parameter = parameter;
         initPanel();
         updateValues();
@@ -158,10 +163,10 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         menuItemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JPanel tablePanel = new JPanel(new BorderLayout(5, 5));
         JScrollPane tableScroll = new JScrollPane(menuItemsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        tableScroll.setSize(200, 200);
-        tableScroll.setPreferredSize(new Dimension(200, 200));
-        tableScroll.setMaximumSize(new Dimension(200, 200));
-        tableScroll.setMinimumSize(new Dimension(200, 200));
+        tableScroll.setSize(200, 170);
+        tableScroll.setPreferredSize(new Dimension(200, 170));
+        tableScroll.setMaximumSize(new Dimension(200, 170));
+        tableScroll.setMinimumSize(new Dimension(200, 170));
         tablePanel.add(tableScroll, BorderLayout.CENTER);
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
         addButton = new JButton(new Icons.PlusIcon());
@@ -208,67 +213,67 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         if (e.getSource() == labelField) {
             String newLabel = labelField.getText();
             if (newLabel.equals(parameter.getLabel())) return;
-            parameter.setLabel(labelField.getText());
+            nodeAttributesDialog.setParameterLabel(parameter, labelField.getText());
         } else if (e.getSource() == helpTextField) {
             String newHelpText = helpTextField.getText();
             if (newHelpText.equals(parameter.getHelpText())) return;
-            parameter.setHelpText(helpTextField.getText());
+            nodeAttributesDialog.setParameterHelpText(parameter, helpTextField.getText());
         } else if (e.getSource() == widgetBox) {
             HumanizedWidget newWidget = (HumanizedWidget) widgetBox.getSelectedItem();
             if (parameter.getWidget() == newWidget.getWidget()) return;
-            parameter.setWidget(newWidget.getWidget());
+            nodeAttributesDialog.setParameterWidget(parameter, newWidget.getWidget());
         } else if (e.getSource() == valueField) {
             String newValue = valueField.getText();
             if (parameter.getValue() != null && parameter.getValue().toString().equals(newValue)) return;
             try {
-                parameter.setValue(parameter.parseValue(valueField.getText()));
+                nodeAttributesDialog.setParameterValue(parameter, parameter.parseValue(valueField.getText()));
             } catch (IllegalArgumentException e1) {
                 showError("Value " + valueField.getText() + " is invalid: " + e1.getMessage());
             }
         } else if (e.getSource() == enableIfField) {
             String newEnableExpression = enableIfField.getText();
             if (newEnableExpression.equals(parameter.getEnableExpression())) return;
-            parameter.setEnableExpression(newEnableExpression);
+            nodeAttributesDialog.setParameterEnableExpression(parameter, newEnableExpression);
         } else if (e.getSource() == boundingMethodBox) {
             Parameter.BoundingMethod newMethod = Parameter.BoundingMethod.valueOf(boundingMethodBox.getSelectedItem().toString().toUpperCase(Locale.US));
             if (parameter.getBoundingMethod().equals(newMethod)) return;
-            parameter.setBoundingMethod(newMethod);
+            nodeAttributesDialog.setParameterBoundingMethod(parameter, newMethod);
         } else if (e.getSource() == minimumValueCheck) {
             if (minimumValueCheck.isSelected() && parameter.getMinimumValue() != null) return;
-            parameter.setMinimumValue(minimumValueCheck.isSelected() ? 0f : null);
+            nodeAttributesDialog.setParameterMinimumValue(parameter, minimumValueCheck.isSelected() ? 0f : null);
         } else if (e.getSource() == minimumValueField) {
             try {
                 float v = Float.parseFloat(minimumValueField.getText());
                 if (v == parameter.getMinimumValue()) return;
-                parameter.setMinimumValue(v);
+                nodeAttributesDialog.setParameterMinimumValue(parameter, v);
             } catch (Exception e1) {
                 showError("Value " + minimumValueField.getText() + " is invalid: " + e1.getMessage());
             }
         } else if (e.getSource() == maximumValueCheck) {
             if (maximumValueCheck.isSelected() && parameter.getMaximumValue() != null) return;
-            parameter.setMaximumValue(maximumValueCheck.isSelected() ? 0f : null);
+            nodeAttributesDialog.setParameterMaximumValue(parameter, maximumValueCheck.isSelected() ? 0f : null);
         } else if (e.getSource() == maximumValueField) {
             try {
                 float v = Float.parseFloat(maximumValueField.getText());
                 if (v == parameter.getMaximumValue()) return;
-                parameter.setMaximumValue(v);
+                nodeAttributesDialog.setParameterMaximumValue(parameter, v);
             } catch (Exception e1) {
                 showError("Value " + maximumValueField.getText() + " is invalid: " + e1.getMessage());
             }
         } else if (e.getSource() == displayLevelBox) {
             Parameter.DisplayLevel newDisplayLevel = Parameter.DisplayLevel.valueOf(displayLevelBox.getSelectedItem().toString().toUpperCase(Locale.US));
             if (parameter.getDisplayLevel() == newDisplayLevel) return;
-            parameter.setDisplayLevel(newDisplayLevel);
+            nodeAttributesDialog.setParameterDisplayLevel(parameter, newDisplayLevel);
         } else if (e.getSource() == addButton) {
             MenuItemDialog dialog = new MenuItemDialog((Dialog) SwingUtilities.getRoot(this));
             dialog.setVisible(true);
             if (dialog.isSuccessful()) {
-                parameter.addMenuItem(dialog.getKey(), dialog.getLabel());
+                nodeAttributesDialog.addParameterMenuItem(parameter, dialog.getKey(), dialog.getLabel());
                 menuItemsTable.tableChanged(new TableModelEvent(menuItemsTable.getModel()));
             }
         } else if (e.getSource() == removeButton) {
             Parameter.MenuItem item = parameter.getMenuItems().get(menuItemsTable.getSelectedRow());
-            parameter.removeMenuItem(item);
+            nodeAttributesDialog.removeParameterMenuItem(parameter, item);
         } else if (e.getSource() == upButton) {
             moveItemUp();
         } else if (e.getSource() == downButton) {
@@ -312,10 +317,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
         // Return if the last item is selected.
         if (index >= items.size() - 1) return;
-        Parameter.MenuItem selectedItem = items.get(index);
-        items.remove(selectedItem);
-        items.add(index + 1, selectedItem);
-        parameter.fireAttributeChanged();
+        nodeAttributesDialog.moveParameterItemDown(parameter, index);
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index + 1, 1, false, false);
     }
@@ -326,11 +328,7 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         if (index == -1) return;
         // Return if the first item is selected.
         if (index == 0) return;
-        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
-        Parameter.MenuItem selectedItem = items.get(index);
-        items.remove(selectedItem);
-        items.add(index - 1, selectedItem);
-        parameter.fireAttributeChanged();
+        nodeAttributesDialog.moveParameterItemUp(parameter, index);
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index - 1, 1, false, false);
     }

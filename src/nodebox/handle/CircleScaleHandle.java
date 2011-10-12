@@ -91,7 +91,7 @@ public class CircleScaleHandle extends AbstractHandle {
         if (mode == Mode.DIAMETER)
             newSize *= 2;
         if (newSize == getRadius()) return false;
-        node.silentSet(radiusName, newSize);
+        silentSet(radiusName, newSize);
         this.pt = pt;
         return true;
     }

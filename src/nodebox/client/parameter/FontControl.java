@@ -1,6 +1,5 @@
 package nodebox.client.parameter;
 
-import nodebox.client.NodeBoxDocument;
 import nodebox.client.Theme;
 import nodebox.node.Parameter;
 
@@ -21,8 +20,8 @@ public class FontControl extends AbstractParameterControl implements ActionListe
     private FontDataModel fontModel;
     private String value;
 
-    public FontControl(NodeBoxDocument document, Parameter parameter) {
-        super(document, parameter);
+    public FontControl(Parameter parameter) {
+        super(parameter);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fontChooser = new JComboBox();
         fontModel = new FontDataModel();

@@ -322,17 +322,27 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().undo();
+            Component c = getDocument().getFocusOwner();
+            if (c instanceof CodeArea) {
+                ((CodeArea) c).undo();
+            } else {
+                getDocument().undo();
+            }
             updateUndoRedoState();
         }
 
         public void update() {
-            if (undoManager != null && undoManager.canUndo()) {
+            Component c = getDocument().getFocusOwner();
+            if (c instanceof CodeArea) {
                 setEnabled(true);
-                putValue(Action.NAME, undoManager.getUndoPresentationName());
             } else {
-                setEnabled(false);
-                putValue(Action.NAME, undoText);
+                if (undoManager != null && undoManager.canUndo()) {
+                    setEnabled(true);
+                    putValue(Action.NAME, undoManager.getUndoPresentationName());
+                } else {
+                    setEnabled(false);
+                    putValue(Action.NAME, undoText);
+                }
             }
         }
     }
@@ -347,17 +357,27 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().redo();
+            Component c = getDocument().getFocusOwner();
+            if (c instanceof CodeArea) {
+                ((CodeArea) c).redo();
+            } else {
+                getDocument().redo();
+            }
             updateUndoRedoState();
         }
 
         public void update() {
-            if (undoManager != null && undoManager.canRedo()) {
+            Component c = getDocument().getFocusOwner();
+            if (c instanceof CodeArea) {
                 setEnabled(true);
-                putValue(Action.NAME, undoManager.getRedoPresentationName());
             } else {
-                setEnabled(false);
-                putValue(Action.NAME, redoText);
+                if (undoManager != null && undoManager.canRedo()) {
+                    setEnabled(true);
+                    putValue(Action.NAME, undoManager.getRedoPresentationName());
+                } else {
+                    setEnabled(false);
+                    putValue(Action.NAME, redoText);
+                }
             }
         }
     }
@@ -402,7 +422,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().deleteSelected();
+            getDocument().deleteSelection();
         }
     }
 
@@ -423,14 +443,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            java.util.List<Pane> documentPanes = getDocument().getDocumentPanes();
-            for (Pane pane : documentPanes) {
-                if (pane instanceof NetworkPane) {
-                    ((NetworkPane) pane).createNewNode();
-                    return;
-                }
-            }
-            JOptionPane.showMessageDialog(getDocument(), "Please make sure a network view is present in the document.", "Warning", JOptionPane.WARNING_MESSAGE);
+            document.createNewNode();
         }
     }
 
@@ -441,7 +454,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().reloadActiveNode();
+            getDocument().reload();
         }
     }
 

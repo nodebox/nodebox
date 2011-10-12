@@ -47,8 +47,9 @@ public class ConnectionLayer extends PLayer {
         // TODO: Draw parameter dependencies using implicitColor.
         super.paint(pPaintContext);
         Graphics2D g = pPaintContext.getGraphics();
-        Node node = networkView.getNode();
-        for (Connection c : node.getConnections()) {
+        Node activeNetwork = networkView.getActiveNetwork();
+        if (activeNetwork == null) return;
+        for (Connection c : activeNetwork.getConnections()) {
             if (selection == c) {
                 g.setColor(Theme.CONNECTION_ACTION_COLOR);
             } else {
@@ -101,7 +102,7 @@ public class ConnectionLayer extends PLayer {
     public Connection clickedConnection(Point2D p) {
         // Make a rectangle out of the point that is slightly larger than the point itself.
         Rectangle2D clickRect = new Rectangle2D.Double(p.getX() - 3, p.getY() - 3, 6, 6);
-        Node node = networkView.getNode();
+        Node node = networkView.getActiveNetwork();
         for (Connection c : node.getConnections()) {
             GeneralPath gp = connectionPath(c.getOutputNode(), c.getInput());
             if (gp.intersects(clickRect))

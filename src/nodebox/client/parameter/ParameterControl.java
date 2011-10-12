@@ -15,4 +15,12 @@ public interface ParameterControl {
 
     public boolean isVisible();
 
+    public void setValueChangeListener(OnValueChangeListener l);
+
+    public OnValueChangeListener getValueChangeListener();
+
+    public static interface OnValueChangeListener {
+        public void onValueChange(ParameterControl control, Object newValue);
+    }
+
 }

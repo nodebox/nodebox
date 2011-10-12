@@ -103,12 +103,14 @@ public class Console extends JPanel implements PaneView, FocusListener {
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         interpreter.setOut(outputStream);
         interpreter.setErr(errorStream);
-        interpreter.set("document", pane.getDocument());
-        interpreter.set("root", pane.getDocument().getActiveNetwork().getRoot());
-        interpreter.set("parent", pane.getDocument().getActiveNetwork());
-        interpreter.set("node", pane.getDocument().getActiveNode());
+        // HACK Indirect way to access the current document.
+        NodeBoxDocument document = Application.getInstance().getCurrentDocument();
+        interpreter.set("document", document);
+        interpreter.set("root", document.getNodeLibrary().getRootNode());
+        interpreter.set("parent", document.getActiveNetwork());
+        interpreter.set("node", document.getActiveNode());
         interpreter.exec("from nodebox.node import *");
-        for (Parameter.Type type: Parameter.Type.values()) {
+        for (Parameter.Type type : Parameter.Type.values()) {
             interpreter.set(type.name(), type);
         }
         for (Parameter.Type t : Parameter.Type.values())

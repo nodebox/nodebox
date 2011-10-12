@@ -9,6 +9,7 @@ import javax.swing.event.UndoableEditListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.Element;
+import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -55,14 +56,14 @@ public class CodeArea extends JEditorPane implements UndoableEditListener {
         this.setMargin(new Insets(0, 5, 0, 5));
         setFont(Theme.EDITOR_FONT);
         setEditorKit(new PythonEditorKit());
+        getDocument().addUndoableEditListener(undoManager);
         rootElement = getDocument().getDefaultRootElement();
-        //getDocument().addUndoableEditListener(this);
         // todo:this code should be in the kit
         for (KeyStroke ks : defaultInputMap.allKeys()) {
             getInputMap().put(ks, defaultInputMap.get(ks));
         }
-        //defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z), new UndoAction());
-        //defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK), new RedoAction());
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z), new UndoAction());
+        defaultInputMap.put(PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK), new RedoAction());
         addMouseListener(new DragDetector());
     }
 
@@ -70,12 +71,22 @@ public class CodeArea extends JEditorPane implements UndoableEditListener {
         init();
     }
 
-    public UndoManager getUndoManager() {
-        return undoManager;
+    public void discardAllEdits() {
+        undoManager.discardAllEdits();
     }
 
-    public void setUndoManager(UndoManager undoManager) {
-        this.undoManager = undoManager;
+    public void undo() {
+        try {
+            undoManager.undo();
+        } catch (CannotUndoException ignored) {
+        }
+    }
+
+    public void redo() {
+        try {
+            undoManager.redo();
+        } catch (CannotRedoException ignored) {
+        }
     }
 
     public void setWrap(boolean wrap) {
@@ -356,10 +367,7 @@ public class CodeArea extends JEditorPane implements UndoableEditListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            try {
-                undoManager.undo();
-            } catch (CannotUndoException ignored) {
-            }
+            undo();
         }
     }
 
@@ -369,10 +377,7 @@ public class CodeArea extends JEditorPane implements UndoableEditListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            try {
-                undoManager.redo();
-            } catch (CannotUndoException ignored) {
-            }
+            redo();
         }
     }
 

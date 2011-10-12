@@ -102,24 +102,24 @@ public class FourPointHandle extends AbstractHandle {
         if (dx == 0 && dy == 0) return false;
         switch (dragState) {
             case TOP_LEFT:
-                node.silentSet(widthName, owidth - dx * 2);
-                node.silentSet(heightName, oheight - dy * 2);
+                silentSet(widthName, owidth - dx * 2);
+                silentSet(heightName, oheight - dy * 2);
                 break;
             case TOP_RIGHT:
-                node.silentSet(heightName, oheight - dy * 2);
-                node.silentSet(widthName, owidth + dx * 2);
+                silentSet(heightName, oheight - dy * 2);
+                silentSet(widthName, owidth + dx * 2);
                 break;
             case BOTTOM_LEFT:
-                node.silentSet(widthName, owidth - dx * 2);
-                node.silentSet(heightName, oheight + dy * 2);
+                silentSet(widthName, owidth - dx * 2);
+                silentSet(heightName, oheight + dy * 2);
                 break;
             case BOTTOM_RIGHT:
-                node.silentSet(widthName, owidth + dx * 2);
-                node.silentSet(heightName, oheight + dy * 2);
+                silentSet(widthName, owidth + dx * 2);
+                silentSet(heightName, oheight + dy * 2);
                 break;
             case CENTER:
-                node.silentSet(xName, ocx + dx);
-                node.silentSet(yName, ocy + dy);
+                silentSet(xName, ocx + dx);
+                silentSet(yName, ocy + dy);
         }
         return true;
     }

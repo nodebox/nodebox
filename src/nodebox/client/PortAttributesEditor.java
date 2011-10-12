@@ -1,6 +1,5 @@
 package nodebox.client;
 
-import nodebox.node.Parameter;
 import nodebox.node.Port;
 
 import javax.swing.*;
@@ -16,10 +15,12 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JTextField nameField;
     private JComboBox cardinalityBox;
 
+    private NodeAttributesDialog dialog;
     private Port port;
 
-    public PortAttributesEditor(Port port) {
+    public PortAttributesEditor(NodeAttributesDialog dialog, Port port) {
         super(null);
+        this.dialog = dialog;
         this.port = port;
         initPanel();
         updateValues();
@@ -52,10 +53,10 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == nameField) {
-            //port.setName(nameField.getText());
+            dialog.setPortName(port, nameField.getText());
         } else if (e.getSource() == cardinalityBox) {
             Port.Cardinality cardinality = Port.Cardinality.valueOf(cardinalityBox.getSelectedItem().toString().toUpperCase(Locale.US));
-            //port.setCardinality(cardinality);
+            dialog.setPortCardinality(port, cardinality);
         } else {
             throw new AssertionError("Unknown source " + e.getSource());
         }
@@ -69,5 +70,5 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     public void focusLost(FocusEvent e) {
         actionPerformed(new ActionEvent(e.getSource(), 0, "focusLost"));
     }
-    
+
 }

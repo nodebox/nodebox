@@ -97,11 +97,11 @@ public class ScaleHandle extends AbstractHandle {
         float pctX = handleWidth / HANDLE_WIDTH;
         float pctY = handleHeight / HANDLE_HEIGHT;
         if (scaleHorizontal)
-            node.silentSet(sxName, ox * pctX);
+            silentSet(sxName, ox * pctX);
         else
             handleWidth = HANDLE_WIDTH;
         if (scaleVertical)
-            node.silentSet(syName, oy * pctY);
+            silentSet(syName, oy * pctY);
         else
             handleHeight = HANDLE_HEIGHT;
         return true;

@@ -6,7 +6,6 @@ import nodebox.client.Theme;
 
 import javax.swing.*;
 import javax.swing.event.*;
-import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -26,14 +25,6 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
         add(codeScroll, BorderLayout.CENTER);
     }
 
-    public UndoManager getUndoManager() {
-        return codeArea.getUndoManager();
-    }
-
-    public void setUndoManager(UndoManager undoManager) {
-        codeArea.setUndoManager(undoManager);
-    }
-
     public String getSource() {
         return codeArea.getText();
     }
@@ -41,6 +32,7 @@ public class SimpleEditor extends JPanel implements PaneView, DocumentListener {
     public void setSource(String source) {
         codeArea.setText(source);
         codeArea.setCaretPosition(0);
+        codeArea.discardAllEdits();
         changed = false;
     }
 

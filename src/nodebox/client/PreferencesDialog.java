@@ -1,21 +1,15 @@
 package nodebox.client;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-public class PreferencesDialog extends JDialog implements ActionListener {
+public class PreferencesDialog extends JDialog {
 
     private Preferences preferences;
-    private JCheckBox enablePaneCustomizationCheck;
-    private JCheckBox enableMovieExportCheck;
-    private JButton saveButton;
-    private JButton cancelButton;
 
     public PreferencesDialog() {
         super((Frame) null, "Preferences");
@@ -24,18 +18,26 @@ public class PreferencesDialog extends JDialog implements ActionListener {
         rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
         rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        enablePaneCustomizationCheck = new JCheckBox("Enable Pane Customization");
-        rootPanel.add(enablePaneCustomizationCheck);
+        JLabel label = new JLabel("<html><i>No preferences yet.</i></html>");
+        rootPanel.add(label);
 
         rootPanel.add(Box.createVerticalStrut(10));
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 10));
-        cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(this);
+        JButton cancelButton = new JButton("Cancel");
+        cancelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                doCancel();
+            }
+        });
         buttonPanel.add(cancelButton);
         rootPanel.add(buttonPanel);
-        saveButton = new JButton("Save");
-        saveButton.addActionListener(this);
+        JButton saveButton = new JButton("Save");
+        saveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                doSave();
+            }
+        });
         buttonPanel.add(saveButton);
         getRootPane().setDefaultButton(saveButton);
 
@@ -48,25 +50,21 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
     private void readPreferences() {
         this.preferences = Preferences.userNodeForPackage(Application.class);
-        enablePaneCustomizationCheck.setSelected(Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, "false")));
     }
 
-    public void actionPerformed(ActionEvent actionEvent) {
-        if (actionEvent.getSource() == saveButton) {
-            setEnablePaneCustomization(enablePaneCustomizationCheck.isSelected());
-            JOptionPane.showMessageDialog(this, "Please restart NodeBox for the changes to take effect.");
-            try {
-                preferences.flush();
-            } catch (BackingStoreException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public void doCancel() {
         dispose();
     }
 
-    private void setEnablePaneCustomization(boolean enabled) {
-        Application.ENABLE_PANE_CUSTOMIZATION = enabled;
-        preferences.put(Application.PREFERENCE_ENABLE_PANE_CUSTOMIZATION, Boolean.toString(enabled));
+    public void doSave() {
+        // TODO Re-enable this when there are actual preferences.
+        // JOptionPane.showMessageDialog(this, "Please restart NodeBox for the changes to take effect.");
+        try {
+            preferences.flush();
+        } catch (BackingStoreException e) {
+            throw new RuntimeException(e);
+        }
+        dispose();
     }
 
 }

@@ -1,6 +1,5 @@
 package nodebox.handle;
 
-import nodebox.client.NodeBoxDocument;
 import nodebox.client.Viewer;
 import nodebox.graphics.*;
 import nodebox.node.Node;
@@ -19,7 +18,8 @@ public abstract class AbstractHandle implements Handle {
     public static final int ALT_DOWN = KeyEvent.ALT_DOWN_MASK;
     public static final int META_DOWN = KeyEvent.META_DOWN_MASK;
 
-    protected Node node;
+    private HandleDelegate delegate;
+    protected final Node node;
     protected Viewer viewer;
     private boolean visible = true;
 
@@ -45,13 +45,6 @@ public abstract class AbstractHandle implements Handle {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
-    }
-
-    public void stopCombiningEdits() {
-        NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
-        if (document != null) {
-            document.stopCombiningEdits();
-        }
     }
 
     //// Stub implementations of event handling ////
@@ -98,8 +91,43 @@ public abstract class AbstractHandle implements Handle {
 
     //// Node events ////
 
+    // TODO Can be removed?
     public void update() {
     }
+
+    //// Node update methods ////
+
+
+    public void setValue(String parameterName, Object value) {
+        if (delegate != null)
+            delegate.setValue(node, parameterName, value);
+    }
+
+    public void silentSet(String parameterName, Object value) {
+        if (delegate != null)
+            delegate.silentSet(node, parameterName, value);
+    }
+
+    public void stopCombiningEdits() {
+        if (delegate != null)
+            delegate.stopEditing(node);
+    }
+
+    public void updateHandle() {
+        if (delegate != null)
+            delegate.updateHandle(node);
+    }
+
+    //// Handle delegate ////
+
+    public HandleDelegate getHandleDelegate() {
+        return delegate;
+    }
+
+    public void setHandleDelegate(HandleDelegate delegate) {
+        this.delegate = delegate;
+    }
+
 
     //// Utility methods ////
 

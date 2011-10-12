@@ -1,41 +1,50 @@
 package nodebox.client;
 
 import nodebox.client.editor.SimpleEditor;
-import nodebox.node.*;
-import nodebox.node.event.NodeUpdatedEvent;
+import nodebox.node.Node;
+import nodebox.node.Parameter;
+import nodebox.node.ProcessingContext;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.Element;
 import java.awt.*;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-public class EditorPane extends Pane implements ComponentListener, CaretListener, NodeEventListener, ChangeListener {
+import static nodebox.base.Preconditions.checkNotNull;
+
+public class EditorPane extends Pane implements CaretListener, ChangeListener, ActionListener {
+
+    private final Map<Parameter, String> inProgressCode = new WeakHashMap<Parameter, String>();
+
+    private final NodeBoxDocument document;
+    private Node activeNode;
+    private Parameter activeParameter;
+    private String codeType = "_code";
 
     private PaneHeader paneHeader;
     private SimpleEditor editor;
-    private Node node;
-    private EditorSplitter splitter;
+    private EditorSplitPane splitter;
     private JTextArea messages;
     private NButton messagesCheck;
-    private String codeName, codeType;
-    private boolean codeChanged = false;
-    private boolean fireCodeChange = true;
     private NButton reloadButton;
+    private boolean ignoringChanges = true;
 
     public EditorPane(NodeBoxDocument document) {
-        super(document);
-        document.getNodeLibrary().addListener(this);
+        this.document = document;
         setLayout(new BorderLayout(0, 0));
         paneHeader = new PaneHeader(this);
         reloadButton = new NButton("Reload", "res/code-reload.png");
-        reloadButton.setEnabled(false); // Only enable the button if the code has changed.
+        setReloadButtonEnabled(false); // Only enable the button if the code has changed.
         reloadButton.setActionMethod(this, "reload");
         messagesCheck = new NButton(NButton.Mode.CHECK, "Messages");
         messagesCheck.setActionMethod(this, "toggleMessages");
@@ -43,28 +52,26 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         paneHeader.add(new Divider());
         paneHeader.add(messagesCheck);
         paneHeader.add(new Divider());
-        paneHeader.add(new PaneCodeMenu(this));
+        PaneCodeMenu paneCodeMenu = new PaneCodeMenu();
+        paneCodeMenu.addActionListener(this);
+        paneHeader.add(paneCodeMenu);
         editor = new SimpleEditor();
         editor.addCaretListener(this);
         editor.addChangeListener(this);
-        editor.setUndoManager(getDocument().getUndoManager());
         add(paneHeader, BorderLayout.NORTH);
         messages = new JTextArea();
         messages.setEditable(false);
+        messages.setBorder(new TopLineBorder());
         messages.setFont(Theme.EDITOR_FONT);
         messages.setMargin(new Insets(0, 5, 0, 5));
         JScrollPane messagesScroll = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         messagesScroll.setBorder(BorderFactory.createEmptyBorder());
-        splitter = new EditorSplitter(NSplitter.Orientation.VERTICAL, editor, messagesScroll);
-        splitter.setEnabled(false);
-        splitter.setPosition(1.0f);
+        splitter = new EditorSplitPane(JSplitPane.VERTICAL_SPLIT, editor, messagesScroll);
         add(splitter, BorderLayout.CENTER);
-        addComponentListener(this);
-        setNode(document.getActiveNode());
     }
 
-    public Pane clone() {
-        return new EditorPane(getDocument());
+    public Pane duplicate() {
+        return new EditorPane(document);
     }
 
     public String getPaneName() {
@@ -79,107 +86,131 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         return editor;
     }
 
-    public void setCodeType(String name, String codeType) {
-        this.codeName = name;
+    public void setActiveNode(Node node) {
+        activeNode = node;
+        if (activeNode != null) {
+            activeParameter = getCodeParameter(activeNode, codeType);
+        } else {
+            activeParameter = null;
+        }
+        updateSource();
+    }
+
+    public void setCodeType(String codeType) {
         this.codeType = codeType;
+        activeParameter = getCodeParameter(activeNode, codeType);
+        updateSource();
         paneHeader.repaint();
-        if (node != null) {
-            setCode();
+        clearMessages();
+    }
+
+    private void updateSource() {
+        if (activeParameter != null) {
+            if (hasInProgressCode(activeParameter)) {
+                setSource(getInProgressCode(activeParameter));
+                setReloadButtonEnabled(true);
+            } else {
+                Parameter codeParameter = activeNode.getParameter(codeType);
+                setSource(codeParameter.asCode().getSource());
+                setReloadButtonEnabled(false);
+            }
+        } else {
+            setSource(null);
+            setReloadButtonEnabled(false);
         }
     }
 
-    public String getCodeName() {
-        return codeName;
+    public void reload() {
+        // This method can be called from the menu bar, so we need to check if the code has really changed.
+        if (!hasInProgressCode(activeParameter)) return;
+        document.setActiveNodeCode(activeParameter, getSource());
+        removeInProgressCode(activeParameter);
+        // The code has been set so there is nothing to reload.
+        setReloadButtonEnabled(false);
     }
 
-    public Node getNode() {
-        return node;
+    private void setReloadButtonEnabled(boolean v) {
+        reloadButton.setEnabled(v);
+        reloadButton.setWarning(v);
     }
 
-    public void setNode(Node node) {
-        if (this.node == node && node != null) return;
-        if (codeChanged && this.node != null) {
-            Parameter param = this.node.getParameter(codeType);
-            getDocument().setChangedCodeForParameter(param, editor.getSource());
-        }
-        this.node = node;
-        setCode();
+    public String getSource() {
+        return editor.getSource();
     }
 
-    private void setCode() {
-        codeChanged = false;
-        Parameter pCode = null;
-        if (node != null) {
-            pCode = node.getParameter(codeType);
-        }
-        if (pCode == null) {
+    public boolean isIgnoringChanges() {
+        return ignoringChanges;
+    }
+
+    public void setIgnoringChanges(boolean ignoringChanges) {
+        this.ignoringChanges = ignoringChanges;
+    }
+
+    public void setSource(String source) {
+        // Setting the source will trigger change events for every line of source code.
+        // Ignore changes temporarily, and re-enable when the source has been set.
+        setIgnoringChanges(true);
+        if (source == null) {
             editor.setSource("");
             editor.setEnabled(false);
             messages.setEnabled(false);
             messages.setBackground(Theme.MESSAGES_BACKGROUND_COLOR);
-            splitter.setPosition(1.0f);
-            setCodeChanged(false);
-            updateMessages(node, null);
+            splitter.setShowMessages(false);
         } else {
-            String code = getDocument().getChangedCodeForParameter(pCode);
-            boolean changed = code != null;
-            if (! changed)
-                code = pCode.asCode().getSource();
-            fireCodeChange = false;
-            editor.setSource(code);
+            editor.setSource(source);
             editor.setEnabled(true);
-            setCodeChanged(changed);
-            fireCodeChange = true;
             messages.setEnabled(true);
             messages.setBackground(Color.white);
-            updateMessages(node, null);
+            // The source has been set. All subsequent changes are triggered by the user.
+            setIgnoringChanges(false);
         }
-    }
-
-    public boolean reload() {
-        if (node == null) return false;
-        Parameter pCode = node.getParameter(codeType);
-        if (pCode == null) return false;
-        NodeCode code = new PythonCode(editor.getSource());
-        pCode.set(code);
-        if (codeType.equals("_handle"))
-            getDocument().setActiveNode(node); // to make Viewer reload handle
-        setCodeChanged(false);
-        getDocument().removeChangedCodeForParameter(pCode);
-        return true;
     }
 
     public void toggleMessages() {
-        setMessages(messagesCheck.isChecked());
+        setShowMessages(messagesCheck.isChecked());
     }
 
-    private void setMessages(boolean v) {
-        if (splitter.isEnabled() == v) return;
-        if (v) {
-            splitter.setEnabled(true);
-            splitter.setPosition(0.6f);
-        } else {
-            splitter.setEnabled(false);
-            splitter.setPosition(1.0f);
-        }
+    private void setShowMessages(boolean v) {
+        splitter.setShowMessages(v);
         messagesCheck.setChecked(v);
     }
 
-    @Override
-    public void focusedNodeChanged(Node activeNode) {
-        setNode(activeNode);
-    }
-
-
-    public void receive(NodeEvent event) {
-        if (event.getSource() != this.node) return;
-        if (event instanceof NodeUpdatedEvent) {
-            updateMessages(event.getSource(), ((NodeUpdatedEvent) event).getContext());
+    /**
+     * Set the messages to a given string.
+     * This is used for exceptions in the handle code.
+     *
+     * @param s The string to display.
+     */
+    public void setMessages(String s) {
+        if (s != null && !s.isEmpty()) {
+            messages.setText(s);
+            setShowMessages(true);
+            // Ensure messages are visible.
+            splitter.setShowMessages(true);
+        } else {
+            messages.setText("");
         }
     }
 
-    private void updateMessages(Node node, ProcessingContext context) {
-        StringBuffer sb = new StringBuffer();
+    /**
+     * Clear out the text in messages.
+     */
+    public void clearMessages() {
+        setMessages("");
+    }
+
+    /**
+     * Update the messages after the node has done processing.
+     * <p/>
+     * This is only used for _code, not for _handles.
+     *
+     * @param node    The node that was processed.
+     * @param context The node's processing context.
+     */
+    public void updateMessages(Node node, ProcessingContext context) {
+        // If we're looking at the handle don't show messages for the node.
+        if (codeType.equals("_handle")) return;
+        StringBuilder sb = new StringBuilder();
 
         if (node != null) {
             // Add the error messages.
@@ -208,58 +239,85 @@ public class EditorPane extends Pane implements ComponentListener, CaretListener
         }
         if (sb.length() > 0) {
             messages.setText(sb.toString());
-            setMessages(true);
+            setShowMessages(true);
             // Ensure messages are visible
-            if (splitter.getPosition() > 0.9f) {
-                splitter.setPosition(0.6f);
-            }
+            splitter.setShowMessages(true);
         } else {
             messages.setText("");
         }
     }
 
-    //// Component events /////
-
-    public void componentResized(ComponentEvent e) {
-        // splitter.setDividerLocation(splitter.getHeight());
-    }
-
-    public void componentMoved(ComponentEvent e) {
-    }
-
-    public void componentShown(ComponentEvent e) {
-    }
-
-    public void componentHidden(ComponentEvent e) {
-    }
-
     public void caretUpdate(CaretEvent e) {
         JEditorPane editArea = (JEditorPane) e.getSource();
-        int caretpos = editArea.getCaretPosition();
+        int caretPosition = editArea.getCaretPosition();
         Element root = editArea.getDocument().getDefaultRootElement();
-        int linenum = root.getElementIndex(caretpos) + 1;
+        int line = root.getElementIndex(caretPosition) + 1;
         // Subtract the offset of the start of the line from the caret position.
         // Add one because line numbers are zero-based.
-        int columnnum = 1 + caretpos - root.getElement(linenum - 1).getStartOffset();
-        updatePosition(linenum, columnnum);
+        int column = 1 + caretPosition - root.getElement(line - 1).getStartOffset();
+        updatePosition(line, column);
     }
 
-    private void updatePosition(int linenum, int columnnum) {
-        splitter.setLocation(linenum, columnnum);
+    private void updatePosition(int line, int column) {
+        splitter.setLocation(line, column);
     }
 
+    /**
+     * This method gets called by the editor component if the source has changed.
+     *
+     * @param changeEvent The type of change.
+     */
     public void stateChanged(ChangeEvent changeEvent) {
-        // The document has changed.
-        setCodeChanged(node != null);
+        // The editor also triggers state changes when using setSource(). We ignore those changes.
+        if (isIgnoringChanges()) return;
+        setInProgressCode(activeParameter, getSource());
+        setReloadButtonEnabled(true);
+        document.codeEdited(getSource());
     }
 
-    private void setCodeChanged(boolean changed) {
-        codeChanged = changed;
-        reloadButton.setEnabled(changed);
-        reloadButton.setWarning(changed);
+    //// In-progress code ////
 
-        if (fireCodeChange) {
-            getDocument().fireCodeChanged(node, true);
+    private Parameter getCodeParameter(Node node, String codeType) {
+        checkNotNull(node, "Trying to get a code parameter for a null node.");
+        Parameter p = node.getParameter(codeType);
+        checkNotNull(p, "Parameter %s on node %s could not be found.", codeType, node);
+        return p;
+    }
+
+    private void setInProgressCode(Parameter p, String source) {
+        inProgressCode.put(p, source);
+    }
+
+    private String getInProgressCode(Parameter p) {
+        return inProgressCode.get(p);
+    }
+
+    private void removeInProgressCode(Parameter p) {
+        inProgressCode.remove(p);
+    }
+
+    private boolean hasInProgressCode(Parameter p) {
+        return inProgressCode.containsKey(p);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        // We know the event will always come from the pane code type menu.
+        setCodeType(e.getActionCommand());
+    }
+
+    private class TopLineBorder implements Border {
+        public void paintBorder(Component component, Graphics g, int x, int y, int width, int height) {
+            g.setColor(Theme.DEFAULT_SPLIT_COLOR);
+            g.drawLine(x, y, x + width, y);
+        }
+
+        public Insets getBorderInsets(Component component) {
+            return new Insets(1, 0, 0, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
         }
     }
+
 }

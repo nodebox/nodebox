@@ -51,8 +51,8 @@ public class PointHandle extends AbstractHandle {
         double dy = y - py;
         if (dx == 0 && dy == 0) return false;
         // TODO: Temporary float fix to get a working compile. Doubles will be removed.
-        node.setValue(xName, (float) (ox + dx));
-        node.setValue(yName, (float) (oy + dy));
+        silentSet(xName, (float) (ox + dx));
+        silentSet(yName, (float) (oy + dy));
         return true;
     }
 

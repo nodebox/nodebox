@@ -8,12 +8,6 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.graphics.Canvas;
 import nodebox.graphics.*;
 import nodebox.handle.Handle;
-import nodebox.node.Node;
-import nodebox.node.NodeEvent;
-import nodebox.node.NodeEventListener;
-import nodebox.node.Parameter;
-import nodebox.node.event.NodeAttributeChangedEvent;
-import nodebox.node.event.NodeUpdatedEvent;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -29,7 +23,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 
-public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener, NodeEventListener {
+public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float POINT_SIZE = 4f;
 
@@ -41,9 +35,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     private static Cursor defaultCursor, panCursor;
 
-    private Pane pane;
-    private Node node;
-    private Node activeNode;
+    private final NodeBoxDocument document;
+    private Object outputValue;
     private Handle handle;
     private boolean showHandle = true;
     private boolean handleEnabled = true;
@@ -54,6 +47,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     private PLayer viewerLayer;
     private JPopupMenu viewerMenu;
     private Class outputClass;
+    private ViewerEventListener listener;
 
     static {
         Image panCursorImage;
@@ -71,10 +65,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         }
     }
 
-    public Viewer(Pane pane, Node node) {
-        this.pane = pane;
-        this.node = node;
-        this.pane.getDocument().getNodeLibrary().addListener(this);
+    public Viewer(final NodeBoxDocument document) {
+        this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
@@ -121,8 +113,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         initMenus();
     }
 
-    public NodeBoxDocument getDocument() {
-        return pane.getDocument();
+    public void setEventListener(ViewerEventListener e) {
+        listener = e;
     }
 
     private void initMenus() {
@@ -168,30 +160,14 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         repaint();
     }
 
-    public Node getNode() {
-        return node;
+    //// Handle support ////
+
+    public Handle getHandle() {
+        return handle;
     }
 
-    public void setNode(Node node) {
-        if (this.node == node) return;
-        this.node = node;
-        if (this.node == null) return;
-        checkIfHandleEnabled();
-        repaint();
-    }
-
-    public void setActiveNode(Node node) {
-        getDocument().stopCombiningEdits();
-        activeNode = node;
-        if (activeNode != null) {
-            handle = activeNode.createHandle();
-            if (handle != null) {
-                handle.setViewer(this);
-            }
-        } else {
-            handle = null;
-        }
-        checkIfHandleEnabled();
+    public void setHandle(Handle handle) {
+        this.handle = handle;
         repaint();
     }
 
@@ -202,66 +178,55 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         return handle.isVisible();
     }
 
-
     //// Network data events ////
 
-    public void receive(NodeEvent event) {
-        if (event instanceof NodeUpdatedEvent) {
-            if (event.getSource() != node) return;
-            nodeUpdated();
-        } else if (event instanceof NodeAttributeChangedEvent) {
-            NodeAttributeChangedEvent e = (NodeAttributeChangedEvent) event;
-            if (e.getSource() != activeNode) return;
-            if (e.getAttribute() != Node.Attribute.PARAMETER) return;
-            if (checkIfHandleEnabled()) {
-                repaint();
-            }
-        }
+
+    public Object getOutputValue() {
+        return outputValue;
     }
 
-    public void nodeUpdated() {
-        checkIfHandleEnabled();
-        // Note that we don't use check handle visibility here, since the update might change handle visibility.
-        if (handle != null && showHandle && handleEnabled) {
-            handle.update();
-        }
-        // Set bounds from output value.
-        if (getNode() != null) {
-            Object outputValue = getNode().getOutputValue();
-            if (outputValue != null && outputClass != outputValue.getClass()) {
-                if (outputValue instanceof Canvas) {
-                    // The canvas is placed in the top-left corner, as in NodeBox 1.
-                    resetView();
-                    Canvas canvas = (Canvas) outputValue;
-                    viewerLayer.setBounds(canvas.getBounds().getRectangle2D());
-                    viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
-                } else if (outputValue instanceof Grob) {
-                    // Other graphic objects are displayed in the center.
-                    resetView();
-                    viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                    viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
-                } else {
-                    // Other output will be converted to a string, and placed just off the top-left corner.
-                    resetView();
-                    viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                    viewerLayer.setOffset(5, 5);
-                }
-                outputClass = outputValue.getClass();
+    public void setOutputValue(Object outputValue) {
+        this.outputValue = outputValue;
+        if (outputValue != null && outputClass != outputValue.getClass()) {
+            if (outputValue instanceof Canvas) {
+                // The canvas is placed in the top-left corner, as in NodeBox 1.
+                resetView();
+                Canvas canvas = (Canvas) outputValue;
+                viewerLayer.setBounds(canvas.getBounds().getRectangle2D());
+                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
+            } else if (outputValue instanceof Grob) {
+                // Other graphic objects are displayed in the center.
+                resetView();
+                viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
+            } else {
+                // Other output will be converted to a string, and placed just off the top-left corner.
+                resetView();
+                viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
+                viewerLayer.setOffset(5, 5);
             }
+            outputClass = outputValue.getClass();
         }
         repaint();
     }
 
     //// Node attribute listener ////
 
-    private boolean checkIfHandleEnabled() {
-        if (activeNode == null) return false;
-        Parameter handleParameter = activeNode.getParameter("_handle");
-        if (handleParameter == null) return false;
-        boolean newEnabled = handleParameter.isEnabled();
-        if (newEnabled == handleEnabled) return false;
-        handleEnabled = newEnabled;
-        return true;
+
+    public boolean isHandleEnabled() {
+        return handleEnabled;
+    }
+
+    public void setHandleEnabled(boolean handleEnabled) {
+        if (this.handleEnabled != handleEnabled) {
+            this.handleEnabled = handleEnabled;
+            // We could just repaint the handle.
+            repaint();
+        }
+    }
+
+    public void reloadHandle() {
+        // TODO Implement
     }
 
     public void resetView() {
@@ -291,7 +256,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         // We register the mouse click as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
         if (hasVisibleHandle()) {
-            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
+            //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseClicked(pointForEvent(e));
         }
     }
@@ -300,7 +265,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         // We register the mouse press as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
         if (hasVisibleHandle()) {
-            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
+            //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mousePressed(pointForEvent(e));
         }
     }
@@ -309,7 +274,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         // We register the mouse release as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
         if (hasVisibleHandle()) {
-            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
+            //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseReleased(pointForEvent(e));
         }
     }
@@ -334,7 +299,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         // We register the mouse drag as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
         if (hasVisibleHandle()) {
-            getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
+            //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseDragged(pointForEvent(e));
         }
     }
@@ -355,7 +320,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             panEnabled = true;
-             if (! getCursor().equals(panCursor))
+            if (!getCursor().equals(panCursor))
                 setCursor(panCursor);
         }
         if (hasVisibleHandle())
@@ -364,7 +329,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     public void keyReleased(KeyEvent e) {
         panEnabled = false;
-        if (! getCursor().equals(defaultCursor))
+        if (!getCursor().equals(defaultCursor))
             setCursor(defaultCursor);
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
@@ -395,8 +360,6 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         protected void paint(PPaintContext paintContext) {
             Graphics2D g2 = paintContext.getGraphics();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            if (getNode() == null) return;
-            Object outputValue = getNode().getOutputValue();
             // If the output value is geometry, store it in a geometry object.
             // This is used to draw the points / point numbers.
             IGeometry geo = null;
@@ -434,7 +397,11 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
                 canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
                 CanvasContext ctx = new CanvasContext(canvas);
-                handle.draw(ctx);
+                try {
+                    handle.draw(ctx);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 ctx.getCanvas().draw(g2);
             }
 

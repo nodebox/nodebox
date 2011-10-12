@@ -107,9 +107,9 @@ public class RotateHandle extends AbstractHandle {
         ca = a; // current angle
         handleLength = (float) Geometry.distance(cx, cy, pt.x, pt.y);
         if (dragState == DragState.HANDLE)
-            node.silentSet(angleName, a);
+            silentSet(angleName, a);
         else if (dragState == DragState.CIRCLE)
-            node.silentSet(angleName, oa + a - pa);
+            silentSet(angleName, oa + a - pa);
         return true;
     }
 

@@ -1,7 +1,5 @@
 package nodebox.client;
 
-import nodebox.node.Node;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,11 +8,11 @@ import java.awt.event.FocusListener;
 
 public class NodeSettingsEditor extends JPanel implements ActionListener, FocusListener {
 
-    private Node node;
+    private NodeAttributesDialog dialog;
     private JCheckBox exportBox;
 
-    public NodeSettingsEditor(Node node) {
-        this.node = node;
+    public NodeSettingsEditor(NodeAttributesDialog dialog) {
+        this.dialog = dialog;
         initPanel();
         updateValues();
     }
@@ -33,13 +31,13 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
     }
 
     public void updateValues() {
-        exportBox.setSelected(node.isExported());
+        exportBox.setSelected(dialog.getNode().isExported());
         revalidate();
     }
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == exportBox) {
-            node.setExported(exportBox.isSelected());
+            dialog.setNodeExported(exportBox.isSelected());
         } else {
             throw new AssertionError("Unknown source " + e.getSource());
         }

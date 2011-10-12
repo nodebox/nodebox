@@ -1043,7 +1043,7 @@ class BezierPathEditor(AbstractHandle):
                     s += str(pt.x) + " " + str(pt.y) + " "
             self.path_string = s
             if self.path_string != self.node.asString("path"):
-                self.node.silentSet("path", s)
+                self.silentSet("path", s)
     
     def mouse(self):
         if self._mouseXY is not None:
@@ -1054,38 +1054,38 @@ class BezierPathEditor(AbstractHandle):
     def mousePressed(self, pt):
         self._mouseXY = pt
         self.mousedown = True
-        self.node.markDirty()
+        self.updateHandle()
         return True
         
     def mouseDragged(self, pt):
         if not self.mousedown: return False
         self._mouseXY = pt
-        self.node.markDirty()
+        self.updateHandle()
         return True
 
     def mouseReleased(self, pt):
         if not self.mousedown: return False
         self._mouseXY = pt
         self.mousedown = False
-        self.node.markDirty()
+        self.updateHandle()
         return True
     
     def mouseMoved(self, pt):
         self._mouseXY = pt
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
     def keyPressed(self, keycode, modifiers):
         self._keycode = keycode
         self.keydown = True
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
     def keyReleased(self, keycode, modifiers):
         if not self.keydown: return False
         self._keycode = keycode
         self.keydown = False
-        self.viewer.repaint()
+        self.updateHandle()
         return True
 
 def cook(self):
@@ -1550,7 +1550,7 @@ class EditHandle(AbstractHandle):
             except IndexError:
                 delta_values[index] = (dx, dy)
         self._edited_as_string = self._dict_to_string(delta_values)
-        self.node.silentSet("pointDeltas", self._edited_as_string)
+        self.silentSet("pointDeltas", self._edited_as_string)
             
     def mouseReleased(self, pt):
         if self._selected_point == -1: return False
@@ -1784,145 +1784,11 @@ def cook(self):
 ]]></value>
         </param>
         <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Color
-from nodebox.handle import AbstractHandle
+            <value type="python"><![CDATA[
+from nodebox.handle import FreehandHandle
 
-MOVETO, LINETO = range(2)
-
-def str_to_path(s):
-    # Utility function to convert a string containing a list of points to a Path
-    # The letter M marks the start of a new curve.
-    p = Path()
-    
-    for curve_str in s.strip().split("M"):
-        curve_str = curve_str.strip()
-        if curve_str:
-            coords = []
-            for coord in curve_str.split(" "):
-                try:
-                    coords.append(float(coord))
-                except:
-                    pass
-            coords = len(coords) % 2 and coords[:-1] or coords
-            for i in range(0, len(coords), 2):
-                x = coords[i]
-                y = coords[i+1]
-                if i == 0:
-                    p.moveto(x, y)
-                else:
-                    p.lineto(x, y)
-    return p
-
-
-class FreeHandEditor(AbstractHandle):
-    def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.path = Path()
-        self.path_string = ""
-        self.strokewidth = 0.75
-        self.handle_color = Color(0.6, 0.6, 0.6)
-        self.reset()
-        self.update()
-
-    def reset(self):
-        self._mouseXY = None
-        self.mousedown = False
-        self._dirty = False
-        
-    def update(self):
-        if self.node.asString("path") != self.path_string:
-            self.path_string = self.node.asString("path")
-            self.path = str_to_path(self.path_string)
-            self.reset()
-
-        # Export the updated drawing.
-        if self._dirty:
-            self.export()
-            
-        if self.mousedown:
-            x, y = self.mouse()
-            
-            if self.freehand_move == True:
-                # The start of a new curve
-                cmd = MOVETO
-                self.freehand_move = False
-            else:
-                cmd = LINETO
-            
-            append = True
-            points = self.path.points
-            if len(points) > 0:
-                # Only append the point if its location isn't equal
-                # to the last drawn point.
-                pt = points[-1]
-                if pt.x == x and pt.y == y:
-                    append = False
-            if append:
-                if cmd == MOVETO:
-                    self.path.moveto(x, y)
-                else:
-                    self.path.lineto(x, y)
-            self._dirty = True
-        else:
-            # remember to do a MOVETO on the next interaction.
-            self.freehand_move = True
-            if self._dirty:
-                self._dirty = False
-        
-    def draw(self, _ctx):
-        
-        """ Draws the cursor when the mouse is pressed down.
-        """
-
-        if self.mousedown:
-            x, y = self.mouse()
-            
-            # Draws the current location of the cursor.
-            r = 4
-            _ctx.ellipsemode(CENTER)
-            _ctx.nofill()
-            _ctx.strokewidth(self.strokewidth)
-            _ctx.stroke(self.handle_color)
-            _ctx.ellipse(x, y, r*2, r*2)
-        
-    def export(self):
-        # Constructs a string out of the paths list of points.
-        s = ""
-        for contour in self.path.contours:
-            s += "M "
-            s += "".join(["%s %s " % (pt.x, pt.y) for pt in contour.points])
-        self.path_string = s
-        if self.path_string != self.node.asString("path"):
-            self.node.silentSet("path", self.path_string)
-    
-    def mouse(self):
-        if self._mouseXY is not None:
-            return (self._mouseXY.x, self._mouseXY.y)
-        else:
-            return (0, 0)
-
-    def mousePressed(self, pt):
-        self._mouseXY = pt
-        self.mousedown = True
-        self.node.markDirty()
-        return True
-        
-    def mouseDragged(self, pt):
-        if not self.mousedown: return False
-        self._mouseXY = pt
-        self.node.markDirty()
-        return True
-
-    def mouseReleased(self, pt):
-        if not self.mousedown: return False
-        self._mouseXY = pt
-        self.mousedown = False
-        self.node.markDirty()
-        self.stopCombiningEdits()
-        return True
-    
 def cook(self):
-    return FreeHandEditor(self.node)]]></value>
+    return FreehandHandle(self.node, "path")]]></value>
         </param>
         <param name="_image">
             <value>freehand.png</value>
@@ -2130,23 +1996,23 @@ class LineHandle(AbstractHandle):
         if (dx == 0 and dy == 0): return False
 
         if self.dragState == self.MIDDLE:
-            self.node.silentSet("x", self.ocx + dx)
-            self.node.silentSet("y", self.ocy + dy)
+            self.silentSet("x", self.ocx + dx)
+            self.silentSet("y", self.ocy + dy)
         elif self.dragState == self.ORIGIN:
             # First, calculate the ending point of the line using the current parameters,
             # then, use this point to calculate angle and distance from the new starting point.
             x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
             a = angle(x, y, x1, y1)
             d = distance(x, y, x1, y1)
-            self.node.silentSet("x", x)
-            self.node.silentSet("y", y)
-            self.node.silentSet("angle", a)
-            self.node.silentSet("distance", d)
+            self.silentSet("x", x)
+            self.silentSet("y", y)
+            self.silentSet("angle", a)
+            self.silentSet("distance", d)
         elif self.dragState == self.END:
             a = angle(self.ocx, self.ocy, x, y)
             d = distance(self.ocx, self.ocy, x, y)
-            self.node.silentSet("angle", a)
-            self.node.silentSet("distance", d)
+            self.silentSet("angle", a)
+            self.silentSet("distance", d)
         return True
 
     def mouseReleased(self, pt):
@@ -3338,9 +3204,9 @@ class TransformHandle(AbstractHandle):
         # of the handle you're trying to drag isn't draggable in this order
         # of operations. If this is the case, do nothing.
         if sx is not None:    
-            self.node.silentSet("sx", sx * 100)
+            self.silentSet("sx", sx * 100)
         if sy is not None:
-            self.node.silentSet("sy", sy * 100)
+            self.silentSet("sy", sy * 100)
     
     def perform_translation(self, pt):
         p = self.transform_point
@@ -3370,14 +3236,14 @@ class TransformHandle(AbstractHandle):
             else:
                 tx, ty = self.find_translation_str(p.x, p.y, pt.x, pt.y, t2, t1)
             
-        self.node.silentSet("tx", tx)
-        self.node.silentSet("ty", ty)
+        self.silentSet("tx", tx)
+        self.silentSet("ty", ty)
 
     def perform_rotation(self, pt):
         p = self.transform_point
         d = distance(p.x, p.y, pt.x, pt.y)
         a = angle(p.x, p.y, pt.x, pt.y)
-        self.node.silentSet("r", a)
+        self.silentSet("r", a)
         self.rotation_handle_length = d
         
     def mouseDragged(self, pt):
