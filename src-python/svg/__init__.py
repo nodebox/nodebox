@@ -43,20 +43,14 @@ _cache = cache()
 
 #### SVG PARSER ######################################################################################
 
-def parse(svg, cached=False, groupsonly=False, _copy=True):
+def parse(svg, cached=False, _copy=True):
     
     """ Returns cached copies unless otherwise specified.
     """
     
     if not cached:
         dom = parser.parseString(svg)
-        if groupsonly:
-            groups = []
-            for group in dom.getElementsByTagName('g'):
-                groups.append(parse_node(group,[]))
-            return groups
-        else:
-            paths = parse_node(dom, [])
+        paths = parse_node(dom, [])
     else:
         id = _cache.id(svg)
         if not _cache.has_key(id):
@@ -65,6 +59,17 @@ def parse(svg, cached=False, groupsonly=False, _copy=True):
         paths = _cache.load(id, _copy)
    
     return paths
+    
+def parse_groups(svg):
+    """ Returns top level groups
+    """
+
+    dom = parser.parseString(svg)
+    groups = []
+    for group in dom.getElementsByTagName('g'):
+        groups.append(parse_node(group,[]))
+
+    return groups
 
 def get_attribute(element, attribute, default=0):
     
