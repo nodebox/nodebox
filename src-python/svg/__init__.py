@@ -59,6 +59,17 @@ def parse(svg, cached=False, _copy=True):
         paths = _cache.load(id, _copy)
    
     return paths
+    
+def parse_groups(svg):
+    """ Returns top level groups
+    """
+
+    dom = parser.parseString(svg)
+    groups = []
+    for group in dom.getElementsByTagName('g'):
+        groups.append(parse_node(group,[]))
+
+    return groups
 
 def get_attribute(element, attribute, default=0):
     
