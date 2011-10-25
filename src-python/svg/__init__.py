@@ -70,6 +70,18 @@ def parse_groups(svg):
         groups.append(parse_node(group,[]))
 
     return groups
+    
+def parse_groups_by_id(svg):
+    """ Returns dictionary of groups with corresponding id as key
+    """
+
+    dom = parser.parseString(svg)
+    groups_dict = {}
+    for group in dom.getElementsByTagName('g'):
+        if group.hasAttribute('id'):
+            groups_dict[group.attributes['id'].value] = parse_node(group,[])
+
+    return groups_dict
 
 def get_attribute(element, attribute, default=0):
     
