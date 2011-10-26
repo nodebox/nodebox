@@ -61,16 +61,22 @@ def parse(svg, cached=False, _copy=True):
     return paths
     
 def parse_groups(svg):
-    """ Returns top level groups
+    """ Returns groups dict
     """
 
+    no_id_count = 0
+    groups = {}
     dom = parser.parseString(svg)
-    groups = []
+
     for group in dom.getElementsByTagName('g'):
-        groups.append(parse_node(group,[]))
+        if group.hasAttribute('id'):
+            groups[group.attributes['id'].value] = parse_node(group,[])
+        else:
+            groups['no_id_'+str(no_id_count)] = parse_node(group,[])
+            no_id_count += 1
 
     return groups
-
+    
 def get_attribute(element, attribute, default=0):
     
     """ Returns XML element's attribute, or default if none.
