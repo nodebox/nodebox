@@ -64,15 +64,16 @@ def parse_groups(svg):
     """ Returns groups dict
     """
 
-    id_count = 0
+    no_id_count = 0
     groups = {}
     dom = parser.parseString(svg)
 
     for group in dom.getElementsByTagName('g'):
         if group.hasAttribute('id'):
             groups[group.attributes['id'].value] = parse_node(group,[])
-        else
-            groups['group_'+str(id_count)] = parse_node(group,[])
+        else:
+            groups['no_id_'+str(no_id_count)] = parse_node(group,[])
+            no_id_count += 1
 
     return groups
     
