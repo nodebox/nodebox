@@ -44,10 +44,13 @@ public class ParameterRow extends JComponent implements MouseListener, ActionLis
 
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
+        Dimension labelSize = new Dimension(ParameterView.LABEL_WIDTH, 16);
+
         label = new ShadowLabel(parameter.getLabel());
         label.setToolTipText(parameter.getName());
         label.setBorder(null);
-        label.setPreferredSize(new Dimension(ParameterView.LABEL_WIDTH, 16));
+        label.setPreferredSize(labelSize);
+        label.setMinimumSize(labelSize);
 
         this.control = control;
         control.setBorder(BorderFactory.createEmptyBorder(TOP_PADDING, 0, BOTTOM_PADDING, 0));
