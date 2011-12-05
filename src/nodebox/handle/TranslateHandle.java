@@ -118,6 +118,7 @@ public class TranslateHandle extends AbstractHandle {
         float dx = pt.x - px;
         float dy = pt.y - py;
         if (dx == 0 && dy == 0) return false;
+        startCombiningEdits("Set Value");
         if (dragState == DragState.CENTER) {
             silentSet(txName, ox + dx);
             silentSet(tyName, oy + dy);
@@ -132,6 +133,7 @@ public class TranslateHandle extends AbstractHandle {
     public boolean mouseReleased(Point pt) {
         if (dragState == DragState.NONE) return false;
         dragState = DragState.NONE;
+        stopCombiningEdits();
         viewer.repaint();
         return true;
     }

@@ -1068,6 +1068,7 @@ class BezierPathEditor(AbstractHandle):
         self._mouseXY = pt
         self.mousedown = False
         self.updateHandle()
+        self.stopCombiningEdits()
         return True
     
     def mouseMoved(self, pt):
@@ -1557,6 +1558,7 @@ class EditHandle(AbstractHandle):
         self._selected_point = -1
         self._delta_prev = None
         self._delta_next = None
+        self.stopCombiningEdits()
         return True
 
     def draw(self, ctx):
@@ -1994,7 +1996,9 @@ class LineHandle(AbstractHandle):
         dy = y - self.py
 
         if (dx == 0 and dy == 0): return False
-
+        
+        self.startCombiningEdits("Set Value")
+        
         if self.dragState == self.MIDDLE:
             self.silentSet("x", self.ocx + dx)
             self.silentSet("y", self.ocy + dy)
@@ -2018,6 +2022,7 @@ class LineHandle(AbstractHandle):
     def mouseReleased(self, pt):
         if self.dragState == self.NONE: return False
         self.dragState = self.NONE
+        self.stopCombiningEdits()
         return True
 
 
@@ -3248,7 +3253,8 @@ class TransformHandle(AbstractHandle):
         
     def mouseDragged(self, pt):
         if self.operation == self.NONE: return False
-        elif self.operation == self.SCALE:
+        self.startCombiningEdits("Set Value")
+        if self.operation == self.SCALE:
             self.perform_scale(pt)
         elif self.operation == self.TRANSLATION:            
             self.perform_translation(pt)
@@ -3259,6 +3265,7 @@ class TransformHandle(AbstractHandle):
     def mouseReleased(self, pt):
         if self.operation == self.NONE: return False
         self.operation = self.NONE
+        self.stopCombiningEdits()
         self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
         self.viewer.repaint()
         return True

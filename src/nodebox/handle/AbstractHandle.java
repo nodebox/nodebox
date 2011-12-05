@@ -22,6 +22,7 @@ public abstract class AbstractHandle implements Handle {
     protected final Node node;
     protected Viewer viewer;
     private boolean visible = true;
+    private boolean combinesEdits = false;
 
     protected AbstractHandle(Node node) {
         this.node = node;
@@ -108,9 +109,18 @@ public abstract class AbstractHandle implements Handle {
             delegate.silentSet(node, parameterName, value);
     }
 
+    public void startCombiningEdits(String command) {
+        if (delegate != null  && ! combinesEdits) {
+            delegate.startEdits(command);
+            combinesEdits = true;
+        }
+    }
+
     public void stopCombiningEdits() {
-        if (delegate != null)
+        if (delegate != null) {
+            combinesEdits = false;
             delegate.stopEditing(node);
+        }
     }
 
     public void updateHandle() {

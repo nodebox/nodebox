@@ -36,6 +36,13 @@ public interface HandleDelegate {
     public void silentSet(Node node, String parameterName, Object value);
 
     /**
+    * Edits are no longer recorded until you call stopEditing. This allows you to batch edits.
+    *
+    * @param command the command name of the edit batch
+    */
+    public void startEdits(String command);
+
+    /**
      * Indicates that the user has stopped an editing operation.
      * <p/>
      * Use this when something significant has happened in your code, e.g. when you've drawn a line in the freehand node.

@@ -100,6 +100,7 @@ public class FourPointHandle extends AbstractHandle {
         // the top left corner down and the bottom left corner up (in the case of
         // the top left handle).
         if (dx == 0 && dy == 0) return false;
+        startCombiningEdits("Set Value");
         switch (dragState) {
             case TOP_LEFT:
                 silentSet(widthName, owidth - dx * 2);
@@ -128,6 +129,7 @@ public class FourPointHandle extends AbstractHandle {
     public boolean mouseReleased(Point pt) {
         if (dragState == DragState.NONE) return false;
         dragState = DragState.NONE;
+        stopCombiningEdits();
         return true;
     }
 

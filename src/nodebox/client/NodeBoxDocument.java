@@ -569,6 +569,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
     // TODO Merge stopEditing and stopCombiningEdits.
     public void stopEditing(Node node) {
+        stopEdits();
         stopCombiningEdits();
     }
 

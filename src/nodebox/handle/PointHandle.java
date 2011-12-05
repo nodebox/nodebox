@@ -50,6 +50,7 @@ public class PointHandle extends AbstractHandle {
         double dx = x - px;
         double dy = y - py;
         if (dx == 0 && dy == 0) return false;
+        startCombiningEdits("Set Value");
         // TODO: Temporary float fix to get a working compile. Doubles will be removed.
         silentSet(xName, (float) (ox + dx));
         silentSet(yName, (float) (oy + dy));
@@ -60,6 +61,7 @@ public class PointHandle extends AbstractHandle {
     public boolean mouseReleased(Point pt) {
         if (!dragging) return false;
         dragging = false;
+        stopCombiningEdits();
         return true;
     }
 }

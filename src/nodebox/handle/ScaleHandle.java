@@ -81,6 +81,7 @@ public class ScaleHandle extends AbstractHandle {
         float dx = x - px;
         float dy = y - py;
         if (dx == 0 && dy == 0) return false;
+        startCombiningEdits("Set Value");
         if (dragState == DragState.TOP_LEFT) {
             handleWidth = HANDLE_WIDTH - dx * 2;
             handleHeight = HANDLE_HEIGHT - dy * 2;
@@ -113,6 +114,7 @@ public class ScaleHandle extends AbstractHandle {
         handleWidth = HANDLE_WIDTH;
         handleHeight = HANDLE_HEIGHT;
         dragState = DragState.NONE;
+        stopCombiningEdits();
         viewer.repaint();
         return true;
     }
