@@ -2949,7 +2949,7 @@ def cook(self):
     return t.map(self.shape)]]></value>
         </param>
         <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import *
+            <value type="python"><![CDATA[from nodebox.graphics import Point, Path, Transform
 from nodebox.handle import AbstractHandle
 from nodebox.util.Geometry import coordinates, angle, distance
 
