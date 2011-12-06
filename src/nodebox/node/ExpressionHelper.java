@@ -223,7 +223,7 @@ public class ExpressionHelper {
     }
 
     public static double hold(double startFrame, double functionValue, double defaultValue, double frame) {
-        return frame < startFrame ? defaultValue : functionValue;
+        return frame < startFrame ? defaultValue : functionValue - startFrame;
     }
 
     public static double schedule(double startFrame, double endFrame, double functionValue, double... values) {
@@ -258,9 +258,13 @@ public class ExpressionHelper {
 
     public static double timeloop(double speed, List<Number> values, double frame) {
         if (values.size() == 0) return 0;
-        int index = (int) (frame / speed);
+        int index = (int) Math.floor(frame / speed);
+        index = index % values.size();
+        if (index < 0) {
+            index = values.size() + index;
+        }
         try {
-            return values.get(index % values.size()).doubleValue();
+            return values.get(index).doubleValue();
         } catch (ClassCastException e) {
             return 0;
         }
