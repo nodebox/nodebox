@@ -172,7 +172,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
         String portName = d.portName;
         if (portName != null) {
-            node.addPort(portName, d.portCardinality);
+            dialog.addPort(node, portName, d.portCardinality);
             reloadParameterList();
             parameterList.setSelectedValue(node.getPort(portName), true);
         }

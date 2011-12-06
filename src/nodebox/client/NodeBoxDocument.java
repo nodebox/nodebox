@@ -395,6 +395,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         }
     }
 
+    public void addPort(Node node, String portName, Port.Cardinality cardinality) {
+        addEdit("Add Port");
+        Port port = node.addPort(portName, cardinality);
+        if (node == activeNode && port.getCardinality() == Port.Cardinality.MULTIPLE) {
+            parameterView.updateAll();
+        }
+        networkView.updateNodes();
+    }
+
     /**
      * Set the parameter to the given value.
      *

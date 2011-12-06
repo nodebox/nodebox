@@ -69,6 +69,11 @@ public class NodeAttributesDialog  extends JDialog {
         document.removeParameter(node, parameterName);
     }
 
+    public void addPort(Node node, String portName, Port.Cardinality cardinality) {
+        onChanged();
+        document.addPort(node, portName, cardinality);
+    }
+
     public void setNodeExported(boolean exported) {
         onChanged();
         document.setNodeExported(node, exported);
