@@ -200,56 +200,56 @@ public class ExpressionHelper {
         return wave.getValueAt((float) frame);
     }
 
-    public static double hold(double minFrame, double functionValue, double... values) {
+    public static double hold(double startFrame, double functionValue, double... values) {
         double frame = currentContext.getFrame();
 
         switch (values.length) {
             case 1:
-                return hold(minFrame, functionValue, values[0], frame);
+                return hold(startFrame, functionValue, values[0], frame);
             case 2:
-                return hold(minFrame, functionValue, values[0], values[1]);
+                return hold(startFrame, functionValue, values[0], values[1]);
             case 0:
             default:
-                return hold(minFrame, functionValue, 0, frame);
+                return hold(startFrame, functionValue, 0, frame);
         }
     }
 
-    public static double hold(double minFrame, double functionValue) {
-        return hold(minFrame, functionValue, 0, currentContext.getFrame());
+    public static double hold(double startFrame, double functionValue) {
+        return hold(startFrame, functionValue, 0, currentContext.getFrame());
     }
 
-    public static double hold(double minFrame, double functionValue, double defaultValue) {
-        return hold(minFrame, functionValue, defaultValue, currentContext.getFrame());
+    public static double hold(double startFrame, double functionValue, double defaultValue) {
+        return hold(startFrame, functionValue, defaultValue, currentContext.getFrame());
     }
 
-    public static double hold(double minFrame, double functionValue, double defaultValue, double frame) {
-        return frame < minFrame ? defaultValue : functionValue;
+    public static double hold(double startFrame, double functionValue, double defaultValue, double frame) {
+        return frame < startFrame ? defaultValue : functionValue;
     }
 
-    public static double schedule(double start, double end, double functionValue, double... values) {
+    public static double schedule(double startFrame, double endFrame, double functionValue, double... values) {
         double frame = currentContext.getFrame();
 
         switch (values.length) {
             case 1:
-                return schedule(start, end, functionValue, values[0], frame);
+                return schedule(startFrame, endFrame, functionValue, values[0], frame);
             case 2:
-                return schedule(start, end, functionValue, values[0], values[1]);
+                return schedule(startFrame, endFrame, functionValue, values[0], values[1]);
             case 0:
             default:
-                return schedule(start, end, functionValue, 0, frame);
+                return schedule(startFrame, endFrame, functionValue, 0, frame);
         }
     }
 
-    public static double schedule(double start, double end, double functionValue) {
-        return schedule(start, end, functionValue, 0, currentContext.getFrame());
+    public static double schedule(double startFrame, double endFrame, double functionValue) {
+        return schedule(startFrame, endFrame, functionValue, 0, currentContext.getFrame());
     }
 
-    public static double schedule(double start, double end, double functionValue, double defaultValue) {
-        return schedule(start, end, functionValue, defaultValue, currentContext.getFrame());
+    public static double schedule(double startFrame, double endFrame, double functionValue, double defaultValue) {
+        return schedule(startFrame, endFrame, functionValue, defaultValue, currentContext.getFrame());
     }
 
-    public static double schedule(double start, double end, double functionValue, double defaultValue, double frame) {
-        return start <= frame && frame < end ? functionValue : defaultValue;
+    public static double schedule(double startFrame, double endFrame, double functionValue, double defaultValue, double frame) {
+        return startFrame <= frame && frame < endFrame ? functionValue : defaultValue;
     }
 
     public static double timeloop(double speed, List<Number> values) {
