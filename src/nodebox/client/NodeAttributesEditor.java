@@ -11,6 +11,7 @@ import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -166,7 +167,15 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     }
 
     private void addPort() {
-        JOptionPane.showMessageDialog(this, "Sorry, adding ports is not implemented yet.");
+        NewPortDialog d = new NewPortDialog();
+        d.setVisible(true);
+
+        String portName = d.portName;
+        if (portName != null) {
+            node.addPort(portName, d.portCardinality);
+            reloadParameterList();
+            parameterList.setSelectedValue(node.getPort(portName), true);
+        }
     }
 
     private void removeEvent() {
@@ -402,6 +411,73 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         }
     }
 
+    private class NewPortDialog extends JDialog {
+        private String portName = null;
+        private Port.Cardinality portCardinality = Port.Cardinality.SINGLE;
+
+        public NewPortDialog() {
+            setTitle("Add new port");
+            setModal(true);
+            setResizable(false);
+
+            // Main
+            setLayout(new BorderLayout(5, 5));
+
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+            add(mainPanel, BorderLayout.CENTER);
+
+            // name
+            JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+            namePanel.add(new JLabel("Port name:  "));
+            final JTextField nameField = new JTextField("", 20);
+            namePanel.add(nameField);
+
+            // cardinality
+            JPanel cardinalityPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+            cardinalityPanel.add(new JLabel("Cardinality:  "));
+            final JComboBox box = new JComboBox(Port.Cardinality.values());
+            cardinalityPanel.add(box);
+
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+            buttonPanel.add(Box.createHorizontalGlue());
+
+            JButton cancelButton = new JButton("Cancel");
+            cancelButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent actionEvent) {
+                    dispose();
+                }
+            });
+            buttonPanel.add(cancelButton);
+            JButton okButton = new JButton("OK");
+            okButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent actionEvent) {
+                    portName = nameField.getText();
+                    portCardinality = (Port.Cardinality) box.getSelectedItem();
+                    dispose();
+                }
+            });
+            buttonPanel.add(okButton);
+
+            mainPanel.add(namePanel);
+            mainPanel.add(Box.createVerticalStrut(10));
+            mainPanel.add(cardinalityPanel);
+            mainPanel.add(Box.createVerticalStrut(10));
+            mainPanel.add(buttonPanel);
+            pack();
+            getRootPane().setDefaultButton(okButton);
+            KeyStroke escapeStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+            getRootPane().registerKeyboardAction(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    dispose();
+                }
+            }, escapeStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+            SwingUtils.centerOnScreen(this);
+        }
+    }
 
     private static class AllControlsType extends Builtin {
         protected Node createInstance() {
