@@ -30,12 +30,16 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private JButton removeButton;
     private JButton addButton;
+    private JPanel leftPanel;
 
     public NodeAttributesEditor(NodeAttributesDialog dialog) {
         setLayout(new BorderLayout(0, 0));
         //library = new CoreNodeTypeLibrary("test", new Version(1, 0, 0));
         this.dialog = dialog;
         node = dialog.getNode();
+
+        leftPanel = new JPanel(new BorderLayout(5, 0));
+
         parameterListModel = new ParameterListModel(node);
         ParameterCellRenderer parameterCellRenderer = new ParameterCellRenderer();
         parameterList = new ParameterList();
@@ -75,7 +79,6 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         //parameterList.getSelectionModel().addListSelectionListener(this);
         //parameterList.setCellRenderer(parameterCellRenderer);
         //parameterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JPanel leftPanel = new JPanel(new BorderLayout(5, 0));
         leftPanel.add(parameterList, BorderLayout.CENTER);
         leftPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -105,6 +108,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             parameterList.addParameter(p);
         }
         revalidate();
+        leftPanel.repaint();
     }
 
     private void settingsSelected() {
@@ -181,11 +185,10 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         if (selectedParameter == null) return;
         dialog.removeParameter(node, selectedParameter.getName());
         reloadParameterList();
-        if (node.getParameterCount() > 0) {
-            parameterList.setSelectedIndex(0);
-        } else {
-            parameterList.setSelectedValue(null, false);
-        }
+        editorPanel.removeAll();
+        editorPanel.revalidate();
+        editorPanel.repaint();
+        selectedParameter = null;
     }
 
     private void moveDown() {
