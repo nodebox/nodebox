@@ -140,7 +140,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         setActiveNetwork(library.getRootNode());
         // setActiveNode is not called because it registers that the current node is already null.
         // The parameter view is a special case since it does need to show something when the active node is null.
-        parameterView.setActiveNode(nodeLibrary.getRootNode());
+        Node rootNode = nodeLibrary.getRootNode();
+        if (rootNode != null && rootNode.getRenderedChild() != null)
+            parameterView.setActiveNode(rootNode.getRenderedChild());
+        else
+            parameterView.setActiveNode(rootNode);
+
 
         spotlightPanel = new SpotlightPanel(networkPane);
         setGlassPane(spotlightPanel);
