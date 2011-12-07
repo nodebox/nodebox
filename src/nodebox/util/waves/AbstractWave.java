@@ -67,14 +67,18 @@ public abstract class AbstractWave {
      * @return   the new value
      */
     public float getValueAt(float t) {
+        float time = adjustedTime(t);
         float phase;
-        if (t % period == 0)
+        if (time % period == 0)
             phase = this.phase;
         else
-            phase = (this.phase + t * frequency) % TWO_PI;
+            phase = (this.phase + time * frequency) % TWO_PI;
         if (phase < 0) phase += TWO_PI;
         return computeValue(phase) + offset;
     }
+
+
+    protected abstract float adjustedTime(float t);
 
     /**
      * Calculates and returns the value at phase for the wave.

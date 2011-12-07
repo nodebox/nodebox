@@ -29,6 +29,10 @@ public class SawtoothWave extends AbstractWave {
     }
 
     protected float computeValue(float phase) {
-        return ((phase / TWO_PI) * 2 - 1) * amplitude;
+        return ((phase / TWO_PI) * 2 - 1) * -amplitude;
+    }
+
+    protected float adjustedTime(float t) {
+        return t + getPeriod() / 2;
     }
 }

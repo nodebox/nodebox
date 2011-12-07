@@ -31,4 +31,8 @@ public class SineWave extends AbstractWave {
     protected float computeValue(float phase) {
         return (float) Math.sin(phase) * amplitude;
     }
+
+    protected float adjustedTime(float t) {
+        return t + getPeriod() / 2;
+    }
 }

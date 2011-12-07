@@ -31,4 +31,8 @@ public class SquareWave extends AbstractWave {
     protected float computeValue(float phase) {
         return (phase / TWO_PI < 0.5 ? 1 : -1) * amplitude;
     }
+
+    protected float adjustedTime(float t) {
+        return t + getPeriod() / 2;
+    }
 }

@@ -31,4 +31,8 @@ public class TriangleWave extends AbstractWave {
     protected float computeValue(float phase) {
         return Math.abs((phase / TWO_PI) * 2 - 1) * amplitude * 2 - amplitude;
     }
+
+    protected float adjustedTime(float t) {
+        return t + getPeriod() / 4;
+    }
 }
