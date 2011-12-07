@@ -373,6 +373,15 @@ public class NetworkView extends PCanvas implements PaneView, CodeChangeListener
         return nodes;
     }
 
+    public boolean hasSelectedConnection() {
+        return connectionLayer.hasSelection();
+    }
+
+    public void deleteSelectedConnection() {
+        if (hasSelectedConnection())
+            connectionLayer.deleteSelected();
+    }
+
     //// Events ////
 
     public void checkErrorAndRepaint() {
