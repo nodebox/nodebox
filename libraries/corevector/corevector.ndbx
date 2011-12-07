@@ -2422,7 +2422,7 @@ def cook(self):
             stamp.evaluate(context)
             self.node.stampExpressions(context)
         if first:
-            t = .1 / 100
+            t = self.start / 100
             first = False
         else:
             t += self.dist / 500.0
@@ -2445,6 +2445,9 @@ def cook(self):
         </param>
         <param label="Distribution" name="dist" type="float">
             <value>20.0</value>
+        </param>
+        <param name="start" type="float">
+            <value>0.0</value>
         </param>
         <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
             <value>0</value>
