@@ -56,6 +56,7 @@ public class Application implements Host {
     private ProgressDialog startupDialog;
     private Version version;
     private List<File> filesToLoad = Collections.synchronizedList(new ArrayList<File>());
+    private Console console = null;
 
     public static final String NAME = "NodeBox";
     private static Logger logger = Logger.getLogger("nodebox.client.Application");
@@ -257,6 +258,41 @@ public class Application implements Host {
         PreferencesDialog dialog = new PreferencesDialog();
         dialog.setModal(true);
         dialog.setVisible(true);
+    }
+
+    public void showConsole() {
+        java.awt.Dimension d = new java.awt.Dimension(400, 400);
+
+        if (console == null) {
+            console = new Console();
+            console.setPreferredSize(d);
+            console.setSize(d);
+            console.setLocationRelativeTo(getCurrentDocument());
+            console.setVisible(true);
+        }
+
+        console.setLocationRelativeTo(getCurrentDocument());
+        console.setVisible(true);
+
+        for (NodeBoxDocument document : documents) {
+            document.onConsoleVisibleEvent(true);
+        }
+    }
+
+    public void hideConsole() {
+        console.setVisible(false);
+        onHideConsole();
+    }
+
+    public void onHideConsole() {
+        for (NodeBoxDocument document : documents) {
+            document.onConsoleVisibleEvent(false);
+        }
+    }
+
+    public boolean isConsoleOpened() {
+        if (console == null) return false;
+        return console.isVisible();
     }
 
     public void readFromFile(String path) {

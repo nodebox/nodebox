@@ -1240,6 +1240,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         viewer.setVisible(true);
     }
 
+    public void onConsoleVisibleEvent(boolean visible) {
+        menuBar.setShowConsoleChecked(visible);
+    }
+
     //// Window events ////
 
     public void windowOpened(WindowEvent e) {

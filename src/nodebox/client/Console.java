@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class Console extends JPanel implements PaneView, FocusListener {
+public class Console extends JFrame implements WindowListener, FocusListener {
 
     private static final Color PROMPT_COLOR = new Color(72, 134, 242);
     private static final Color PROMPT_BORDER_TOP_COLOR = new Color(240, 240, 240);
@@ -28,7 +28,6 @@ public class Console extends JPanel implements PaneView, FocusListener {
         ATTRIBUTES_ERROR.addAttribute(StyleConstants.ColorConstants.Foreground, ERROR_COLOR);
     }
 
-    private Pane pane;
     private static Logger logger = Logger.getLogger("nodebox.client.Console");
     private PythonInterpreter interpreter;
     private ArrayList<String> history = new ArrayList<String>();
@@ -39,8 +38,8 @@ public class Console extends JPanel implements PaneView, FocusListener {
     private Document messagesDocument;
     private JScrollPane messagesScroll;
 
-    public Console(Pane pane) {
-        this.pane = pane;
+    public Console() {
+        super("Console");
         consoleMessages = new JTextPane();
         consoleMessages.setMargin(new Insets(2, 20, 2, 5));
         consoleMessages.setFont(Theme.EDITOR_FONT);
@@ -72,6 +71,7 @@ public class Console extends JPanel implements PaneView, FocusListener {
         interpreter = new PythonInterpreter();
         consolePrompt.requestFocus();
         addFocusListener(this);
+        addWindowListener(this);
     }
 
     private void addMessage(String s, AttributeSet attributes) {
@@ -194,6 +194,31 @@ public class Console extends JPanel implements PaneView, FocusListener {
             moveForwardInHistory();
         }
     }
+
+    //// Window events ////
+
+    public void windowOpened(WindowEvent e) {
+    }
+
+    public void windowClosing(WindowEvent e) {
+        Application.getInstance().onHideConsole();
+    }
+
+    public void windowClosed(WindowEvent e) {
+    }
+
+    public void windowIconified(WindowEvent e) {
+    }
+
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    public void windowActivated(WindowEvent e) {
+    }
+
+    public void windowDeactivated(WindowEvent e) {
+    }
+
 
     private class PromptBorder implements Border {
         public void paintBorder(Component component, Graphics g, int x, int y, int width, int height) {

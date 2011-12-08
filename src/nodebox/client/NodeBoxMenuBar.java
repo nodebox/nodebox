@@ -23,6 +23,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     private static ArrayList<JMenu> recentFileMenus = new ArrayList<JMenu>();
     private static Preferences recentFilesPreferences = Preferences.userRoot().node("/nodebox/recent");
     private static Logger logger = Logger.getLogger("nodebox.client.NodeBoxMenuBar");
+    private JMenuItem showConsoleItem;
 
     private UndoManager undoManager;
     private UndoAction undoAction;
@@ -88,6 +89,8 @@ public class NodeBoxMenuBar extends JMenuBar {
         //layoutMenu.add(new )
         windowMenu.add(new MinimizeAction());
         windowMenu.add(new ZoomAction());
+        showConsoleItem = windowMenu.add(new JCheckBoxMenuItem(new ShowConsoleAction()));
+        setShowConsoleChecked(Application.getInstance().isConsoleOpened());
         windowMenu.addSeparator();
         windowMenu.add(layoutMenu);
         windowMenu.addSeparator();
@@ -175,6 +178,10 @@ public class NodeBoxMenuBar extends JMenuBar {
                 recentFileMenu.add(new OpenRecentAction(f));
             }
         }
+    }
+
+    public void setShowConsoleChecked(boolean checked) {
+        ((AbstractButton) showConsoleItem).getModel().setSelected(checked);
     }
 
     //// Actions ////
@@ -489,6 +496,20 @@ public class NodeBoxMenuBar extends JMenuBar {
         public void actionPerformed(ActionEvent e) {
             // TODO: Implement
             Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    public class ShowConsoleAction extends AbstractDocumentAction {
+        public ShowConsoleAction() {
+            putValue(NAME, "Show Console");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Application instance = Application.getInstance();
+            if (instance.isConsoleOpened())
+                instance.hideConsole();
+            else
+                instance.showConsole();
         }
     }
 
