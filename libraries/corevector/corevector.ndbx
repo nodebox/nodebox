@@ -228,9 +228,10 @@ def cook(self):
     start = self.shape.points[0]
     p = Path()
     p.moveto(start.x, start.y)
-    for point in self.shape.points:
+    for point in self.shape.points[1:]:
         p.lineto(point.x, point.y)
-    p.close()
+    if self.closed:
+        p.close()
     p.fillColor = self.fill
     if self.strokeWidth > 0:
         p.strokeColor = self.stroke
@@ -241,6 +242,9 @@ def cook(self):
         </param>
         <param name="_image">
             <value>connect.png</value>
+        </param>
+        <param name="closed" type="int" widget="toggle">
+            <value>1</value>
         </param>
         <param name="fill" type="color">
             <value>#000000ff</value>
