@@ -273,6 +273,7 @@ def cook(self):
     for i in xrange(self.copies):
         if self.stamp:
             context.put('CNUM', i)
+            context.put('CPOS', i/float(self.copies))
             stamp.evaluate(context)
             self.node.stampExpressions(context)
         t = Transform()
@@ -2101,9 +2102,11 @@ def cook(self):
         stamp = StampExpression(self.node, "expr")
         
     g = Geometry()
+    amount = len(self.template.points)
     for i, point in enumerate(self.template.points):
         if self.stamp:
             context.put('CNUM', i)
+            context.put('CPOS', i / float(amount))
             stamp.evaluate(context)
             self.node.stampExpressions(context)
             
@@ -2423,6 +2426,7 @@ def cook(self):
     for i in range(self.amount):
         if self.stamp:
             context.put('CNUM', i)
+            context.put('CPOS', i / float(self.amount))
             stamp.evaluate(context)
             self.node.stampExpressions(context)
         if first:
