@@ -25,7 +25,7 @@ public class Theme {
     public static final Color CONNECTION_ACTION_COLOR = new Color(0, 116, 168);
 
     // Parameter view
-    public static final Color PARAMETER_EXPRESSION_BACKGROUND_COLOR = new Color(255, 255, 240);
+    public static final Color PARAMETER_EXPRESSION_BACKGROUND_COLOR = new Color(255, 255, 220);
     public static final Color PARAMETER_LABEL_BACKGROUND = new Color(153, 153, 153);
     public static final Color PARAMETER_VALUE_BACKGROUND = new Color(196, 196, 196);
     public static final Color DRAGGABLE_NUMBER_HIGLIGHT_COLOR = new Color(223, 223, 223);
