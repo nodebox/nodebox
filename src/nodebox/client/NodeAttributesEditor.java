@@ -322,7 +322,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         private ParameterList() {
             super(null);
             Dimension d = new Dimension(140, 500);
-            setBackground(Theme.NODE_ATTRIBUTES_PARAMETER_LIST_BACGKGROUND_COLOR);
+            setBackground(Theme.NODE_ATTRIBUTES_PARAMETER_LIST_BACKGROUND_COLOR);
             setBorder(null);
             setOpaque(true);
             setPreferredSize(d);

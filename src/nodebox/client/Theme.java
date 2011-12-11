@@ -28,7 +28,7 @@ public class Theme {
     public static final Color PARAMETER_EXPRESSION_BACKGROUND_COLOR = new Color(255, 255, 220);
     public static final Color PARAMETER_LABEL_BACKGROUND = new Color(153, 153, 153);
     public static final Color PARAMETER_VALUE_BACKGROUND = new Color(196, 196, 196);
-    public static final Color DRAGGABLE_NUMBER_HIGLIGHT_COLOR = new Color(223, 223, 223);
+    public static final Color DRAGGABLE_NUMBER_HIGHLIGHT_COLOR = new Color(223, 223, 223);
 
     // Source editor
     public static final Color MESSAGES_BACKGROUND_COLOR = new Color(240, 240, 240);
@@ -40,7 +40,7 @@ public class Theme {
     public static final Color EXPRESSION_ERROR_FOREGROUND_COLOR = new Color(200, 0, 0);
 
     // Node attributes editor
-    public static final Color NODE_ATTRIBUTES_PARAMETER_LIST_BACGKGROUND_COLOR = new Color(240, 240, 250);
+    public static final Color NODE_ATTRIBUTES_PARAMETER_LIST_BACKGROUND_COLOR = new Color(240, 240, 250);
     public static final Color NODE_ATTRIBUTES_PARAMETER_COLOR = new Color(60, 60, 60);
 
     // Node selection dialog

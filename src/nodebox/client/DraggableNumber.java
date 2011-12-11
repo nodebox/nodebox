@@ -215,7 +215,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         } else {
             g2.setColor(Theme.TEXT_DISABLED_COLOR);
         }
-        SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, Theme.DRAGGABLE_NUMBER_HIGLIGHT_COLOR);
+        SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, Theme.DRAGGABLE_NUMBER_HIGHLIGHT_COLOR);
     }
 
     //// Component size ////
