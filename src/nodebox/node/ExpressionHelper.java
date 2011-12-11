@@ -223,7 +223,7 @@ public class ExpressionHelper {
     }
 
     public static double hold(double startFrame, double functionValue, double defaultValue, double frame) {
-        return frame < startFrame ? defaultValue : functionValue - startFrame;
+        return frame < startFrame ? defaultValue : functionValue;
     }
 
     public static double schedule(double startFrame, double endFrame, double functionValue, double... values) {
