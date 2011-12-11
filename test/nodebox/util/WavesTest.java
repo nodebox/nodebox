@@ -28,10 +28,10 @@ public class WavesTest extends TestCase {
 
     public void testSineWave() {
         SineWave w = new SineWave(120, 20);
-        assertEquals(0f, w.getValueAt(0));
-        assertEquals(20f, w.getValueAt(30));
-        // todo: assertAlmostEquals(0f, w.getValueAt(60));
-        assertEquals(-20f, w.getValueAt(90));
-        assertEquals(0f, w.getValueAt(120));
+        assertEquals(0f, w.getValueAt(0), 0.0001);
+        assertEquals(-20f, w.getValueAt(30), 0.0001);
+        assertEquals(0f, w.getValueAt(60), 0.0001);
+        assertEquals(20f, w.getValueAt(90), 0.0001);
+        assertEquals(0f, w.getValueAt(120), 0.0001);
     }
 }
