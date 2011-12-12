@@ -319,6 +319,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         if (input.getNode() == activeNode) {
             parameterView.updateConnectionPanel();
         }
+        networkView.updateConnections();
         render();
     }
 
