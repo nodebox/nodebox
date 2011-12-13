@@ -1148,7 +1148,7 @@ def cook(self):
     prefix = self.tableName + "_"
     # We read in all the rows as a list.
     # We can't use "for row in reader" since we want to know the total length. 
-    rows = list(csv.reader(open(self.file, "rb")))
+    rows = list(csv.reader(open(self.file, "rU")))
     header_row = rows[0]
     column_count = len(header_row)
     rows = rows[1:]
