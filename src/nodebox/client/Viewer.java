@@ -27,8 +27,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
     public static final float POINT_SIZE = 4f;
 
-    public static final float MIN_ZOOM = 0.1f;
-    public static final float MAX_ZOOM = 16.0f;
+    public static final float MIN_ZOOM = 0.01f;
+    public static final float MAX_ZOOM = 64.0f;
 
     private static final String HANDLE_UNDO_TEXT = "Handle Changes";
     private static final String HANDLE_UNDO_TYPE = "handle";
@@ -94,7 +94,7 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
             public void processEvent(final PInputEvent evt, final int i) {
                 if (evt.isMouseWheelEvent()) {
                     double currentScale = evt.getCamera().getViewScale();
-                    double scaleDelta = 1D - 0.1 * evt.getWheelRotation();
+                    double scaleDelta = 1D - 0.05 * evt.getWheelRotation();
                     double newScale = currentScale * scaleDelta;
                     if (newScale < MIN_ZOOM) {
                         scaleDelta = MIN_ZOOM / currentScale;
