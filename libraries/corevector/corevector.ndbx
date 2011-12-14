@@ -1118,10 +1118,12 @@ def cook(self):
         <port name="template"/>
         <param name="_code">
             <value type="python"><![CDATA[# Data stamp generates new geometry for each row in a CSV file.
-# The first row is skipped by default since we assume it is the header row.
 # It copies the incoming shape geometry and provides a number of stamp keys that you can refer to.
+#
+# The first row is skipped by default since we assume it is the header row.
 # If you provide a template shape it will be used as a point source and for each row, the source shape will
 # be translated to the point.
+#
 # The table name is appended as a prefix, so with a prefix of "data", you get the following keys:
 # - data_row_count: the amount of rows in the file
 # - data_column_count: the amount of columns in the file
@@ -1131,11 +1133,16 @@ def cook(self):
 # - data_value_1: the value for the second column.
 # - ....
 # - data_value_n: the value for the last column (which is data_column_count - 1)
-# - data_relative_value_0 -> data_relative_value_n: a value between 0.0 and 1.0,
-#      the total of the column divided by the current value. This is only available if the column
-#      has numbers in it.
-# - column_total_0 -> column_total_n: the total value for this column. This is only available if 
-#      the column has numbers in it.
+#
+# If a column has numbers in it, the following keys also become available:
+# - data_relative_value_0: a value between 0.0 and 1.0,
+#       the total of the column divided by the current value. 
+# - data_normalized_value_0: a value between 0.0 and 1.0,
+#       the current value within the min-max range of the column.
+# - data_column_total_0: the total value for this column. 
+# - data_running_total_0 -> a sum of all the previous values for the column. 
+# - data_running_normalized_total_0 -> a sum of all the previous values for the column, 
+#       divided by the min-max range of the column.
 
 import csv
 
@@ -1148,23 +1155,43 @@ def cook(self):
     prefix = self.tableName + "_"
     # We read in all the rows as a list.
     # We can't use "for row in reader" since we want to know the total length. 
-    rows = list(csv.reader(open(self.file, "rU")))
+    rows = list(csv.reader(open(self.file, "rb")))
     header_row = rows[0]
     column_count = len(header_row)
     rows = rows[1:]
     row_count = len(rows)
-    
-    # Go through all the rows once to calculate the total.
-    sums = {}
+
+    # Turn the row data into columns.
+    columns = {}
     for row in rows:
         for i, value in enumerate(row):
             try:
                 value = float(value)
-                sums[i] = sums.get(i, 0) + float(value)
             except ValueError:
                 pass
-    for key, value in sums.items():
-        context.put(prefix + 'column_total_' + str(key), value)
+            column_values = columns.get(i, [])
+            column_values.append(value)
+            columns[i] = column_values
+
+    sums = {}
+    ranges = {}
+    minima = {}
+    maxima = {}
+    ranges = {}
+    running_totals = {}
+    for i, column in columns.items():
+        try:
+            sums[i] = sum(column)
+            context.put(prefix + 'column_total_' + str(i), sums[i])
+        except TypeError: pass
+        minima[i] = min(column)
+        context.put(prefix + 'minimum_' + str(i), minima[i])
+        maxima[i] = max(column)
+        context.put(prefix + 'maximum_' + str(i), maxima[i])
+        try:
+            ranges[i] = maxima[i] - minima[i]
+            context.put(prefix + 'range_' + str(i), ranges[i])
+        except TypeError: pass
 
     # Now copy the geometry.
     context.put(prefix + 'row_count', row_count)
@@ -1175,7 +1202,6 @@ def cook(self):
     else:
         points = self.template.points[:len(rows)]
     
-    
     for row_index, pt in enumerate(points):
         row = rows[row_index]
         context.put(prefix + 'row_index', row_index)
@@ -1185,8 +1211,25 @@ def cook(self):
             try:
                 value = float(value)
                 if sums.has_key(col_index):
-                    relative = value / float(sums[col_index])
+                    try:
+                        relative = value / float(sums[col_index])
+                    except ZeroDivisionError:
+                        relative = 0.0
                     context.put(prefix + 'relative_value_' + str(col_index), relative)
+                if ranges.has_key(col_index) and minima.has_key(col_index):
+                    try:
+                        normalized = (value - minima[col_index]) / ranges[col_index]
+                    except ZeroDivisionError:
+                        normalized = 0.0
+                    context.put(prefix + 'normalized_value_' + str(col_index), normalized)
+                running_total = running_totals.get(col_index, 0)
+                running_totals[col_index] = running_total + value
+                context.put(prefix + 'running_total_' + str(col_index), running_total)
+                try:
+                    running_normalized_total = running_total / sums[col_index]
+                except (ZeroDivisionError, KeyError):
+                    running_normalized_total = 0.0
+                context.put(prefix + 'running_normalized_total_' + str(col_index), running_normalized_total)
             except ValueError:
                 value = value.decode("utf-8", "replace")
             context.put(prefix + 'value_' + str(col_index), value)
