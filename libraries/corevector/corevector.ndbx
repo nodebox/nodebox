@@ -20,7 +20,7 @@ def cook(self):
             <value>generator.png</value>
         </param>
     </node>
-    <node exported="true" name="filter" prototype="generator" x="10" y="250">
+    <node exported="true" name="filter" prototype="generator" x="10" y="340">
         <description>Template for creating nodes that manipulate vector data.</description>
         <port name="shape"/>
         <param name="_code">
@@ -42,7 +42,7 @@ def cook(self):
             <value>filter.png</value>
         </param>
     </node>
-    <node exported="true" name="align" prototype="filter" x="90" y="490">
+    <node exported="true" name="align" prototype="filter" x="90" y="580">
         <description>Align a shape in relation to the origin.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry
@@ -93,6 +93,62 @@ def cook(self):
             <menu key="bottom">Bottom</menu>
         </param>
     </node>
+    <node exported="true" name="arc" prototype="generator" x="90" y="260">
+        <description>Create an arc.</description>
+        <param name="_code">
+            <value type="python"><![CDATA[from nodebox.graphics import Path
+from java.awt.geom import *
+
+def cook(self):
+    if self.type == "chord":
+        type = Arc2D.CHORD
+    elif self.type == "pie":
+        type = Arc2D.PIE
+    else:
+        type = Arc2D.OPEN
+    p = Path(Arc2D.Double(self.x-self.width/2, self.y-self.height/2, self.width, self.height, self.start_angle, self.degrees, type))
+    p.fill = self.fill
+    p.stroke = self.stroke
+    p.strokeWidth = self.strokeWidth
+    return p.asGeometry()]]></value>
+        </param>
+        <param name="_image">
+            <value>arc.png</value>
+        </param>
+        <param name="x" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="y" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="width" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="height" type="float">
+            <value>100.0</value>
+        </param>
+        <param name="start_angle" type="float">
+            <value>0.0</value>
+        </param>
+        <param name="degrees" type="float">
+            <value>45.0</value>
+        </param>
+        <param name="type" type="string" widget="menu">
+            <value>pie</value>
+            <menu key="open">Open</menu>
+            <menu key="chord">Chord</menu>
+            <menu key="pie">Pie</menu>
+        </param>
+        <param name="fill" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="stroke" type="color">
+            <value>#000000ff</value>
+        </param>
+        <param name="strokeWidth" type="float">
+            <value>0.0</value>
+        </param>
+    </node>
     <node exported="true" name="code" prototype="generator" x="90" y="10">
         <description>Create geometry using NodeBox 1 code.</description>
         <param name="_code">
@@ -117,7 +173,7 @@ for i in range(10):
             <value>0</value>
         </param>
     </node>
-    <node exported="true" name="color" prototype="filter" x="250" y="250">
+    <node exported="true" name="color" prototype="filter" x="250" y="340">
         <description>Change the color of a shape.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path
@@ -147,7 +203,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="compound" prototype="filter" x="90" y="250">
+    <node exported="true" name="compound" prototype="filter" x="90" y="340">
         <description>Add, subtract or intersect geometry.</description>
         <port name="shapeB"/>
         <param name="_code">
@@ -217,7 +273,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="connect" prototype="filter" x="410" y="490">
+    <node exported="true" name="connect" prototype="filter" x="410" y="580">
         <description>Connects all points in a path.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Transform, Path
@@ -256,7 +312,7 @@ def cook(self):
             <value>1.0</value>
         </param>
     </node>
-    <node exported="true" name="copy" prototype="filter" x="170" y="250">
+    <node exported="true" name="copy" prototype="filter" x="170" y="340">
         <description>Create multiple copies of a shape.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.node import StampExpression
@@ -1113,7 +1169,7 @@ def cook(self):
             <value>1.0</value>
         </param>
     </node>
-    <node exported="true" name="datastamp" prototype="filter" x="250" y="580">
+    <node exported="true" name="datastamp" prototype="filter" x="250" y="670">
         <description>Generate new geometry for each row in a CSV file.</description>
         <port name="template"/>
         <param name="_code">
@@ -1249,7 +1305,7 @@ def cook(self):
             <value>data</value>
         </param>
     </node>
-    <node exported="true" name="delete" prototype="filter" x="170" y="490">
+    <node exported="true" name="delete" prototype="filter" x="170" y="580">
         <description>Delete points or paths that lie within certain bounds.</description>
         <port name="bounding"/>
         <param name="_code">
@@ -1323,7 +1379,7 @@ def cook(self):
             <value>100.0</value>
         </param>
     </node>
-    <node exported="true" name="distribute" prototype="filter" x="250" y="490">
+    <node exported="true" name="distribute" prototype="filter" x="250" y="580">
         <description>Distributes shapes on a horizontal and/or vertical axis.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
@@ -1442,7 +1498,7 @@ def cook(self):
             <menu key="bottom">Bottom</menu>
         </param>
     </node>
-    <node exported="true" name="edit" prototype="filter" x="330" y="250">
+    <node exported="true" name="edit" prototype="filter" x="330" y="340">
         <description>Edit points non-destructively.</description>
         <param name="_code">
             <value type="python"><![CDATA[def _string_to_dict(s):
@@ -1712,7 +1768,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="fit" prototype="filter" x="410" y="250">
+    <node exported="true" name="fit" prototype="filter" x="410" y="340">
         <description>Fit a shape within bounds.</description>
         <port name="template"/>
         <param name="_code">
@@ -2102,7 +2158,7 @@ def cook(self):
             <value>2</value>
         </param>
     </node>
-    <node exported="true" name="merge" prototype="generator" x="90" y="330">
+    <node exported="true" name="merge" prototype="generator" x="90" y="420">
         <description>Combine multiple geometries together.</description>
         <port cardinality="multiple" name="shapes"/>
         <param name="_code">
@@ -2120,7 +2176,7 @@ def cook(self):
             <value>merge.png</value>
         </param>
     </node>
-    <node exported="true" name="null" prototype="filter" x="170" y="330">
+    <node exported="true" name="null" prototype="filter" x="170" y="420">
         <description>Does nothing.</description>
         <param name="_code">
             <value type="python"><![CDATA[def cook(self):
@@ -2130,7 +2186,7 @@ def cook(self):
             <value>null.png</value>
         </param>
     </node>
-    <node exported="true" name="place" prototype="filter" x="250" y="330">
+    <node exported="true" name="place" prototype="filter" x="250" y="420">
         <description>Place shapes on points of a template</description>
         <port name="template"/>
         <param name="_code">
@@ -2297,7 +2353,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="reflect" prototype="filter" x="330" y="410">
+    <node exported="true" name="reflect" prototype="filter" x="330" y="500">
         <description>Mirrors and copies the geometry across an invisible axis.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry
@@ -2367,7 +2423,7 @@ def cook(self):
             <value>1</value>
         </param>
     </node>
-    <node exported="true" name="resample" prototype="filter" x="330" y="330">
+    <node exported="true" name="resample" prototype="filter" x="330" y="420">
         <description>Distribute points along a shape.</description>
         <param name="_code">
             <value type="python"><![CDATA[
@@ -2397,7 +2453,7 @@ def cook(self):
             <value>0</value>
         </param>
     </node>
-    <node exported="true" name="scatter" prototype="filter" x="410" y="330">
+    <node exported="true" name="scatter" prototype="filter" x="410" y="420">
         <description>Generate points within the boundaries of a shape.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path, Point
@@ -2445,7 +2501,7 @@ def cook(self):
             <value>0</value>
         </param>
     </node>
-    <node exported="true" name="shapeonpath" prototype="filter" x="90" y="580">
+    <node exported="true" name="shapeonpath" prototype="filter" x="90" y="670">
         <description>Copies shapes on a path.</description>
         <port name="template"/>
         <param name="_code">
@@ -2510,7 +2566,7 @@ def cook(self):
             <value>1</value>
         </param>
     </node>
-    <node exported="true" name="snap" prototype="filter" x="410" y="410">
+    <node exported="true" name="snap" prototype="filter" x="410" y="500">
         <description>Snap geometry to a grid.</description>
         <param name="_code">
             <value type="python"><![CDATA[def snap(v, offset=0.0, distance=10.0, strength=1.0):
@@ -2572,7 +2628,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="sort" prototype="filter" x="250" y="410">
+    <node exported="true" name="sort" prototype="filter" x="250" y="500">
         <description>Sort points or shapes using different sorting methods</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import IGeometry, Geometry, Path, Contour, Point
@@ -2801,7 +2857,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="switch" prototype="merge" x="330" y="490">
+    <node exported="true" name="switch" prototype="merge" x="330" y="580">
         <description>Switches between multiple inputs.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
@@ -2817,7 +2873,7 @@ def cook(self):
             <value>0</value>
         </param>
     </node>
-    <node exported="true" name="textonpath" prototype="filter" x="170" y="580">
+    <node exported="true" name="textonpath" prototype="filter" x="170" y="670">
         <description>Text following a path</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry, Text
@@ -2983,7 +3039,7 @@ def cook(self):
             <value>0.0</value>
         </param>
     </node>
-    <node exported="true" name="transform" prototype="filter" x="90" y="410">
+    <node exported="true" name="transform" prototype="filter" x="90" y="500">
         <description>Transforms the location, rotation and scale of a shape.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Transform
@@ -3391,7 +3447,7 @@ def cook(self):
             <value>100.0</value>
         </param>
     </node>
-    <node exported="true" name="wiggle" prototype="filter" x="170" y="410">
+    <node exported="true" name="wiggle" prototype="filter" x="170" y="500">
         <description>Shift points by a random amount.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
