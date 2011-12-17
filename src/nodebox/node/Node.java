@@ -171,6 +171,8 @@ public class Node implements NodeCode {
 
     public void setName(String name) throws InvalidNameException {
         if (this.name.equals(name)) return;
+        if (this.parent.children.containsKey(name))
+            throw new InvalidNameException(null, name, "The network already contains a node named " + name);
         validateName(name);
         this.parent.children.remove(this.name);
         this.name = name;
