@@ -960,8 +960,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
             }
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
             setDocumentFile(chosenFile);
-            NodeBoxMenuBar.addRecentFile(documentFile);
-            return saveToFile(documentFile);
+            boolean saved = saveToFile(documentFile);
+            if (saved)
+                NodeBoxMenuBar.addRecentFile(documentFile);
+            return saved;
         }
         return false;
     }
