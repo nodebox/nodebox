@@ -26,6 +26,7 @@ public class ParameterView extends JComponent implements PaneView, ParameterCont
         CONTROL_MAP = new HashMap<Parameter.Widget, Class>();
         CONTROL_MAP.put(Parameter.Widget.ANGLE, FloatControl.class);
         CONTROL_MAP.put(Parameter.Widget.COLOR, ColorControl.class);
+        CONTROL_MAP.put(Parameter.Widget.DATA, DataControl.class);
         CONTROL_MAP.put(Parameter.Widget.FILE, FileControl.class);
         CONTROL_MAP.put(Parameter.Widget.FLOAT, FloatControl.class);
         CONTROL_MAP.put(Parameter.Widget.FONT, FontControl.class);

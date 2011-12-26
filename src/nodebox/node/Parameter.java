@@ -69,7 +69,7 @@ public class Parameter {
      * The UI control for this parameter. This defines how the parameter is represented in the user interface.
      */
     public enum Widget {
-        ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF, STAMP_EXPRESSION, CODE
+        ANGLE, COLOR, DATA, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, NODEREF, STAMP_EXPRESSION, CODE
     }
 
     /**
@@ -151,6 +151,7 @@ public class Parameter {
         REVERSE_WIDGET_MAPPING = new HashMap<Widget, Type>();
         REVERSE_WIDGET_MAPPING.put(Widget.ANGLE, Type.FLOAT);
         REVERSE_WIDGET_MAPPING.put(Widget.COLOR, Type.COLOR);
+        REVERSE_WIDGET_MAPPING.put(Widget.DATA, Type.STRING);
         REVERSE_WIDGET_MAPPING.put(Widget.FILE, Type.STRING);
         REVERSE_WIDGET_MAPPING.put(Widget.FLOAT, Type.FLOAT);
         REVERSE_WIDGET_MAPPING.put(Widget.FONT, Type.STRING);

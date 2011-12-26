@@ -1156,7 +1156,7 @@ def cook(self):
         <param name="_image">
             <value>curve.png</value>
         </param>
-        <param name="path" type="string">
+        <param name="path" type="string" widget="data">
             <value/>
         </param>
         <param name="fill" type="color">
@@ -1717,7 +1717,7 @@ def cook(self):
         <param help="" name="_image">
             <value>edit.png</value>
         </param>
-        <param label="Point Deltas" name="pointDeltas" type="string">
+        <param label="Point Deltas" name="pointDeltas" type="string" widget="data">
             <value/>
         </param>
     </node>
@@ -1899,7 +1899,7 @@ def cook(self):
         <param name="_image">
             <value>freehand.png</value>
         </param>
-        <param name="path" type="string">
+        <param name="path" type="string" widget="data">
             <value/>
         </param>
         <param name="fill" type="color">
