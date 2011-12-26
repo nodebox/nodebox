@@ -48,7 +48,9 @@ public class ExpressionWindow extends AbstractParameterEditor {
 
     public boolean save() {
         expressionArea.requestFocus();
-        getParameter().setExpression(expressionArea.getText());
+        NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
+        if (doc == null) throw new RuntimeException("No current active document.");
+        doc.setParameterExpression(getParameter(), expressionArea.getText());
         if (getParameter().hasExpressionError()) {
             errorArea.setText(getParameter().getExpressionError().toString());
             return false;

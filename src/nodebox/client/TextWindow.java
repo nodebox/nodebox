@@ -25,7 +25,9 @@ public class TextWindow extends AbstractParameterEditor {
     public boolean save() {
         textArea.requestFocus();
         try {
-            getParameter().setValue(textArea.getText());
+            NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
+            if (doc == null) throw new RuntimeException("No current active document.");
+            doc.setParameterValue(getParameter(), textArea.getText());
             return true;
         } catch (IllegalArgumentException ee) {
             JOptionPane.showMessageDialog(this, "Error while saving parameter: " + ee.getMessage(), "Parameter error", JOptionPane.ERROR_MESSAGE);
