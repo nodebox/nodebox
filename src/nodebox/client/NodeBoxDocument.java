@@ -948,7 +948,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         if (documentFile == null) {
             return saveAs();
         } else {
-            return saveToFile(documentFile);
+            boolean saved = saveToFile(documentFile);
+            if (saved)
+                NodeBoxMenuBar.addRecentFile(documentFile);
+            return saved;
         }
     }
 
