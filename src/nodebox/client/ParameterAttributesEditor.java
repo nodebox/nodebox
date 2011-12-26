@@ -161,6 +161,12 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         // Menu Items
         menuItemsTable = new JTable(new MenuItemsModel());
         menuItemsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        menuItemsTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2)
+                    updateMenuItem();
+            }
+        });
         JPanel tablePanel = new JPanel(new BorderLayout(5, 5));
         JScrollPane tableScroll = new JScrollPane(menuItemsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         tableScroll.setSize(200, 170);
@@ -331,6 +337,18 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         nodeAttributesDialog.moveParameterItemUp(parameter, index);
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index - 1, 1, false, false);
+    }
+    
+    private void updateMenuItem() {
+        int index = menuItemsTable.getSelectedRow();
+        if (index == -1) return;
+        Parameter.MenuItem item = parameter.getMenuItems().get(index);
+        MenuItemDialog dialog = new MenuItemDialog((Dialog) SwingUtilities.getRoot(this), item);
+        dialog.setVisible(true);
+        if (dialog.isSuccessful()) {
+            nodeAttributesDialog.updateParameterMenuItem(parameter, index, dialog.getKey(), dialog.getLabel());
+            updateValues();
+        }
     }
 
     private class MenuItemsModel extends AbstractTableModel {

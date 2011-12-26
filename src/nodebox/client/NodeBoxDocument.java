@@ -556,7 +556,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
         parameterView.updateParameter(parameter);
     }
-
+    
+    public void updateParameterMenuItem(Parameter parameter, int index, String key, String label) {
+        addEdit("Update Parameter Menu Item");
+        parameter.updateMenuItem(index, key, label);
+        parameterView.updateParameter(parameter);
+    }
 
     //// Editor pane callbacks ////
 

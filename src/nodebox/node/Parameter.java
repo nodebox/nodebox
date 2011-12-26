@@ -491,6 +491,12 @@ public class Parameter {
         menuItems.remove(item);
         fireAttributeChanged();
     }
+    
+    public void updateMenuItem(int index, String key, String label) {
+        if (index < 0 || index >= menuItems.size()) return; 
+        menuItems.set(index, new Parameter.MenuItem(key, label));
+        fireAttributeChanged();
+    }
 
     //// Values ////
 
