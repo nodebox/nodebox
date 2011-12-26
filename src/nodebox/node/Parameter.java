@@ -497,6 +497,20 @@ public class Parameter {
         menuItems.set(index, new Parameter.MenuItem(key, label));
         fireAttributeChanged();
     }
+    
+    public void moveMenuItemDown(int index) {
+        Parameter.MenuItem item = menuItems.get(index);
+        menuItems.remove(item);
+        menuItems.add(index + 1, item);
+        fireAttributeChanged();
+    }
+    
+    public void moveMenuItemUp(int index) {
+        Parameter.MenuItem item = menuItems.get(index);
+        menuItems.remove(item);
+        menuItems.add(index - 1, item);
+        fireAttributeChanged();
+    }
 
     //// Values ////
 

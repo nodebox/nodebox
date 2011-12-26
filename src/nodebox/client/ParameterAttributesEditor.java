@@ -281,9 +281,9 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
             Parameter.MenuItem item = parameter.getMenuItems().get(menuItemsTable.getSelectedRow());
             nodeAttributesDialog.removeParameterMenuItem(parameter, item);
         } else if (e.getSource() == upButton) {
-            moveItemUp();
+            moveMenuItemUp();
         } else if (e.getSource() == downButton) {
-            moveItemDown();
+            moveMenuItemDown();
         } else {
             throw new AssertionError("Unknown source " + e.getSource());
         }
@@ -316,25 +316,25 @@ public class ParameterAttributesEditor extends JPanel implements ActionListener,
         actionPerformed(new ActionEvent(e.getSource(), 0, "focusLost"));
     }
 
-    private void moveItemDown() {
+    private void moveMenuItemDown() {
         int index = menuItemsTable.getSelectedRow();
         // Return if nothing was selected.
         if (index == -1) return;
         java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
         // Return if the last item is selected.
         if (index >= items.size() - 1) return;
-        nodeAttributesDialog.moveParameterItemDown(parameter, index);
+        nodeAttributesDialog.moveParameterMenuItemDown(parameter, index);
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index + 1, 1, false, false);
     }
 
-    private void moveItemUp() {
+    private void moveMenuItemUp() {
         int index = menuItemsTable.getSelectedRow();
         // Return if nothing was selected.
         if (index == -1) return;
         // Return if the first item is selected.
         if (index == 0) return;
-        nodeAttributesDialog.moveParameterItemUp(parameter, index);
+        nodeAttributesDialog.moveParameterMenuItemUp(parameter, index);
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index - 1, 1, false, false);
     }

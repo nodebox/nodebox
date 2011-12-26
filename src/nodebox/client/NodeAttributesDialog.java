@@ -142,19 +142,19 @@ public class NodeAttributesDialog  extends JDialog {
         document.removeParameterMenuItem(parameter, menuItem);
     }
 
-    public void moveParameterItemDown(Parameter parameter, int index) {
+    public void moveParameterMenuItemDown(Parameter parameter, int itemIndex) {
         onChanged();
-        document.moveParameterItemDown(parameter, index);
+        document.moveParameterMenuItemDown(parameter, itemIndex);
     }
 
-    public void moveParameterItemUp(Parameter parameter, int index) {
+    public void moveParameterMenuItemUp(Parameter parameter, int itemIndex) {
         onChanged();
-        document.moveParameterItemUp(parameter, index);
+        document.moveParameterMenuItemUp(parameter, itemIndex);
     }
     
-    public void updateParameterMenuItem(Parameter parameter, int index, String key, String label) {
+    public void updateParameterMenuItem(Parameter parameter, int itemIndex, String key, String label) {
         onChanged();
-        document.updateParameterMenuItem(parameter, index, key, label);
+        document.updateParameterMenuItem(parameter, itemIndex, key, label);
     }
 
     private void onChanged() {

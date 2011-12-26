@@ -535,31 +535,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         render();
     }
 
-    public void moveParameterItemDown(Parameter parameter, int itemIndex) {
+    public void moveParameterMenuItemDown(Parameter parameter, int itemIndex) {
         addEdit("Move Parameter Item Down");
-        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
-        Parameter.MenuItem item = items.get(itemIndex);
-        items.remove(item);
-        items.add(itemIndex + 1, item);
-        parameter.fireAttributeChanged();
-
+        parameter.moveMenuItemDown(itemIndex);
         parameterView.updateParameter(parameter);
     }
 
-    public void moveParameterItemUp(Parameter parameter, int itemIndex) {
+    public void moveParameterMenuItemUp(Parameter parameter, int itemIndex) {
         addEdit("Move Parameter Item Up");
-        java.util.List<Parameter.MenuItem> items = parameter.getMenuItems();
-        Parameter.MenuItem item = items.get(itemIndex);
-        items.remove(item);
-        items.add(itemIndex - 1, item);
-        parameter.fireAttributeChanged();
-
+        parameter.moveMenuItemUp(itemIndex);
         parameterView.updateParameter(parameter);
     }
     
-    public void updateParameterMenuItem(Parameter parameter, int index, String key, String label) {
+    public void updateParameterMenuItem(Parameter parameter, int itemIndex, String key, String label) {
         addEdit("Update Parameter Menu Item");
-        parameter.updateMenuItem(index, key, label);
+        parameter.updateMenuItem(itemIndex, key, label);
         parameterView.updateParameter(parameter);
     }
 
