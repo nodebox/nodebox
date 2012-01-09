@@ -85,17 +85,13 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         // Window menu
         JMenu windowMenu = new JMenu("Window");
-        JMenu layoutMenu = new JMenu("Layout");
-        //layoutMenu.add(new )
         windowMenu.add(new MinimizeAction());
         windowMenu.add(new ZoomAction());
         showConsoleItem = windowMenu.add(new JCheckBoxMenuItem(new ShowConsoleAction()));
         setShowConsoleChecked(Application.getInstance().isConsoleOpened());
         windowMenu.addSeparator();
-        windowMenu.add(layoutMenu);
-        windowMenu.addSeparator();
         windowMenu.add(new BringAllToFrontAction());
-        windowMenu.addSeparator();
+        // TODO Add all active windows.
         add(windowMenu);
 
         // Help menu
@@ -181,7 +177,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     }
 
     public void setShowConsoleChecked(boolean checked) {
-        ((AbstractButton) showConsoleItem).getModel().setSelected(checked);
+        showConsoleItem.getModel().setSelected(checked);
     }
 
     //// Actions ////
