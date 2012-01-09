@@ -97,7 +97,7 @@ def cook(self):
         <description>Create an arc.</description>
         <param name="_code">
             <value type="python"><![CDATA[from nodebox.graphics import Path
-from java.awt.geom import *
+from java.awt.geom import Arc2D
 
 def cook(self):
     if self.type == "chord":
@@ -106,7 +106,7 @@ def cook(self):
         type = Arc2D.PIE
     else:
         type = Arc2D.OPEN
-    p = Path(Arc2D.Double(self.x-self.width/2, self.y-self.height/2, self.width, self.height, self.start_angle, self.degrees, type))
+    p = Path(Arc2D.Double(self.x-self.width/2, self.y-self.height/2, self.width, self.height, -self.start_angle, -self.degrees, type))
     p.fill = self.fill
     p.stroke = self.stroke
     p.strokeWidth = self.strokeWidth
