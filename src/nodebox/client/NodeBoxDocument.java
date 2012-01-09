@@ -374,8 +374,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     }
 
     /**
-     *
-     * @param node  the node on which to add the parameter
+     * @param node          the node on which to add the parameter
      * @param parameterName the name of the new parameter
      */
     public void addParameter(Node node, String parameterName) {
@@ -388,8 +387,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     }
 
     /**
-     *
-     * @param node  the node on which to remove the parameter
+     * @param node          the node on which to remove the parameter
      * @param parameterName the name of the parameter
      */
     public void removeParameter(Node node, String parameterName) {
@@ -826,6 +824,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
      * @param object  the edited object. This will be compared using ==.
      */
     public void addEdit(String command, String type, Object object) {
+        spotlightPanel.hideSpotlightPanel();
         if (!holdEdits) {
             markChanged();
             if (lastEditType != null && lastEditType.equals(type) && lastEditObject == object) {
@@ -1046,7 +1045,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
     public void deleteSelection() {
         java.util.List<Node> selectedNodes = networkView.getSelectedNodes();
-        if (! selectedNodes.isEmpty())
+        if (!selectedNodes.isEmpty())
             removeNodes(networkView.getSelectedNodes());
         else if (networkView.hasSelectedConnection())
             networkView.deleteSelectedConnection();
@@ -1294,12 +1293,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         }
 
         private void hideSpotlightPanel() {
-            setVisible(false);
-            // We don't need the glass pane anymore.
-            Toolkit.getDefaultToolkit().removeAWTEventListener(this.eventListener);
-            // Remove our reference to the network pane.
-            // Since panes can change, holding on to the network pane would cause a memory leak.
-            networkPane = null;
+            if (isVisible()) {
+                setVisible(false);
+                // We don't need the glass pane anymore.
+                Toolkit.getDefaultToolkit().removeAWTEventListener(this.eventListener);
+                // Remove our reference to the network pane.
+                // Since panes can change, holding on to the network pane would cause a memory leak.
+                networkPane = null;
+            }
         }
 
         @Override
