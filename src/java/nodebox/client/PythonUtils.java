@@ -27,7 +27,7 @@ public class PythonUtils {
 
         // This folder contains unarchived NodeBox libraries.
         // Only used in development.
-        File developmentLibraries = new File("src-python");
+        File developmentLibraries = new File("src/python");
         Py.getSystemState().path.add(new PyString(developmentLibraries.getAbsolutePath()));
 
         // Add the user's Python directory.

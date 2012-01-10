@@ -6,9 +6,9 @@
         <property file="build.properties"/>
         <property file="version.properties"/>
         <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
-        <property name="src" value="src"/>
+        <property name="src" value="src/java"/>
         <property name="res" value="res"/>
-        <property name="test" value="test"/>
+        <property name="test" value="test/java"/>
         <property name="lib" value="lib"/>
         <property name="libraries" value="libraries"/>
         <property name="examples" value="examples"/>
@@ -92,16 +92,18 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod}" source="1.5" target="1.5">
+        <javac destdir="${build.prod}" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
             <src path="${src}"/>
             <!--<src path="${platform.src}"/> -->
             <classpath refid="project.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
         </javac>
     </target>
 
     <target name="compile-tests" depends="compile">
-        <javac srcdir="${test}" destdir="${build.test}" source="1.5" target="1.5">
+        <javac srcdir="${test}" destdir="${build.test}" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
             <classpath refid="project.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
         </javac>
     </target>
 
@@ -132,7 +134,7 @@
     </target>
 
     <target  name="nodeboxlibs" depends="init">
-        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src-python"/>
+        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src/python"/>
     </target>
 
     <target  name="archives" depends="jar,nodeboxlibs"/>

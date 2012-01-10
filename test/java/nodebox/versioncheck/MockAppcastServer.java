@@ -15,7 +15,7 @@ public class MockAppcastServer implements Runnable {
     private ServerSocket server;
 
     static {
-        mediaRoot = new File("test/nodebox/versioncheck");
+        mediaRoot = new File("test/java/nodebox/versioncheck");
     }
 
     public MockAppcastServer(int port) {
