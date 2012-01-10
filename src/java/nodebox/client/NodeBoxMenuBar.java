@@ -116,7 +116,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         return document;
     }
 
-    public boolean isEnabled() {
+    public boolean hasDocument() {
         return document != null;
     }
 
@@ -185,7 +185,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public abstract class AbstractDocumentAction extends AbstractAction {
         @Override
         public boolean isEnabled() {
-            return NodeBoxMenuBar.this.isEnabled() && super.isEnabled();
+            return NodeBoxMenuBar.this.hasDocument() && super.isEnabled();
         }
     }
 
