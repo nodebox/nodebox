@@ -17,19 +17,27 @@ public class DataControl extends AbstractParameterControl implements ActionListe
 
     public DataControl(Parameter parameter) {
         super(parameter);
-        setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+
         clearDataButton = new JButton("Clear");
+        clearDataButton.setMargin(new Insets(1, 0, 0, 0));
+        clearDataButton.putClientProperty("JButton.buttonType", "textured");
         clearDataButton.putClientProperty("JComponent.sizeVariant", "small");
-        clearDataButton.putClientProperty("JButton.buttonType", "gradient");
         clearDataButton.setFont(Theme.SMALL_BOLD_FONT);
+        clearDataButton.setForeground(Theme.TEXT_NORMAL_COLOR);
         clearDataButton.addActionListener(this);
         add(clearDataButton);
+
         showDataButton = new JButton("Show Data...");
+        showDataButton.setMargin(new Insets(1, 0, 0, 0));
+        showDataButton.putClientProperty("JButton.buttonType", "textured");
         showDataButton.putClientProperty("JComponent.sizeVariant", "small");
-        showDataButton.putClientProperty("JButton.buttonType", "gradient");
         showDataButton.setFont(Theme.SMALL_BOLD_FONT);
+        showDataButton.setForeground(Theme.TEXT_NORMAL_COLOR);
         showDataButton.addActionListener(this);
         add(showDataButton);
+
+        add(Box.createHorizontalGlue());
     }
 
     public void setValueForControl(Object v) {
