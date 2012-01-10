@@ -38,6 +38,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     public static String lastExportPath;
 
     private static NodeLibrary clipboardLibrary;
+    private static int pasteCount = 0;
 
     private File documentFile;
     private boolean documentChanged;
@@ -82,6 +83,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
     public static void setNodeClipboard(NodeLibrary clipboardLibrary) {
         NodeBoxDocument.clipboardLibrary = clipboardLibrary;
+        NodeBoxDocument.pasteCount = 0;
     }
 
     public NodeBoxDocument(NodeLibrary library) {
@@ -1018,10 +1020,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         // The parent is used to preserve the connections, and also to save the state of the
         // copied nodes.
         // This parent is the root of a new library.
-        NodeLibrary clipboardLibrary = new NodeLibrary("clipboard");
-        Node clipboardRoot = clipboardLibrary.getRootNode();
-        copyChildren(networkView.getSelectedNodes(), getActiveNetwork(), clipboardRoot);
-        setNodeClipboard(clipboardLibrary);
+        Collection<Node> selectedNodes = networkView.getSelectedNodes();
+        if (! selectedNodes.isEmpty()) {
+            NodeLibrary clipboardLibrary = new NodeLibrary("clipboard");
+            Node clipboardRoot = clipboardLibrary.getRootNode();
+            copyChildren(selectedNodes, getActiveNetwork(), clipboardRoot);
+            setNodeClipboard(clipboardLibrary);
+        }
     }
 
     public void paste() {
@@ -1030,11 +1035,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         if (clipboardLibrary == null) return;
         Node clipboardRoot = clipboardLibrary.getRootNode();
         if (clipboardRoot.size() == 0) return;
+        NodeBoxDocument.pasteCount += 1;
         Collection<Node> newNodes = copyChildren(clipboardRoot.getChildren(), clipboardRoot, getActiveNetwork());
         for (Node newNode : newNodes) {
             nodebox.graphics.Point pt = newNode.getPosition();
-            pt.x += 20;
-            pt.y += 80;
+            pt.x += NodeBoxDocument.pasteCount * 20;
+            pt.y += NodeBoxDocument.pasteCount * 80;
             newNode.setPosition(pt);
         }
 
