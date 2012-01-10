@@ -1035,12 +1035,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         if (clipboardLibrary == null) return;
         Node clipboardRoot = clipboardLibrary.getRootNode();
         if (clipboardRoot.size() == 0) return;
-        NodeBoxDocument.pasteCount += 1;
+        int pasteCount = NodeBoxDocument.pasteCount += 1;
         Collection<Node> newNodes = copyChildren(clipboardRoot.getChildren(), clipboardRoot, getActiveNetwork());
         for (Node newNode : newNodes) {
             nodebox.graphics.Point pt = newNode.getPosition();
-            pt.x += NodeBoxDocument.pasteCount * 20;
-            pt.y += NodeBoxDocument.pasteCount * 80;
+            pt.x += pasteCount * 20;
+            pt.y += pasteCount * 80;
             newNode.setPosition(pt);
         }
 
