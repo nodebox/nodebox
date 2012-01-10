@@ -38,7 +38,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
     public static String lastExportPath;
 
     private static NodeLibrary clipboardLibrary;
-    private static int pasteCount = 0;
+    private int pasteCount = 0;
 
     private File documentFile;
     private boolean documentChanged;
@@ -83,7 +83,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
 
     public static void setNodeClipboard(NodeLibrary clipboardLibrary) {
         NodeBoxDocument.clipboardLibrary = clipboardLibrary;
-        NodeBoxDocument.pasteCount = 0;
+        for (NodeBoxDocument doc : Application.getInstance().getDocuments())
+            doc.pasteCount = 0;
     }
 
     public NodeBoxDocument(NodeLibrary library) {
@@ -1035,7 +1036,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
         if (clipboardLibrary == null) return;
         Node clipboardRoot = clipboardLibrary.getRootNode();
         if (clipboardRoot.size() == 0) return;
-        int pasteCount = NodeBoxDocument.pasteCount += 1;
+        pasteCount += 1;
         Collection<Node> newNodes = copyChildren(clipboardRoot.getChildren(), clipboardRoot, getActiveNetwork());
         for (Node newNode : newNodes) {
             nodebox.graphics.Point pt = newNode.getPosition();
