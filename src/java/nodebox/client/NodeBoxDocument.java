@@ -369,7 +369,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, ViewerEve
      * @return the newly copied node
      */
     public Collection<Node> copyChildren(Collection<Node> children, Node oldParent, Node newParent) {
-        addEdit("Copy");
         return oldParent.copyChildren(children, newParent);
     }
 
