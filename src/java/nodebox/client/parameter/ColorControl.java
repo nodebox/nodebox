@@ -23,6 +23,7 @@ public class ColorControl extends AbstractParameterControl implements ChangeList
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));
+        colorButton.setFocusable(false);
         add(colorButton);
         setValueForControl(parameter.getValue());
         setPreferredSize(new Dimension(80, 30));
