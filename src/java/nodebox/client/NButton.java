@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -101,6 +102,11 @@ public class NButton extends JComponent implements MouseListener {
         setMinimumSize(d);
         setMaximumSize(d);
         addMouseListener(this);
+        setFocusable(true);
+        this.getInputMap().put(KeyStroke.getKeyStroke("SPACE"), "pressed");
+        this.getInputMap().put(KeyStroke.getKeyStroke("released SPACE"), "released");
+        this.getActionMap().put("pressed", new PressedAction());
+        this.getActionMap().put("released", new ReleasedAction());
     }
 
     private int measureWidth() {
@@ -215,13 +221,22 @@ public class NButton extends JComponent implements MouseListener {
     }
 
     public void mousePressed(MouseEvent e) {
+        onPressed();
+    }
+
+    private void onPressed() {
         if (!isEnabled()) return;
+        requestFocus();
         pressed = true;
         armed = true;
         repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
+        onReleased();
+    }
+
+    private void onReleased() {
         if (!isEnabled()) return;
         pressed = false;
         if (armed) {
@@ -249,6 +264,26 @@ public class NButton extends JComponent implements MouseListener {
         if (!isEnabled()) return;
         armed = false;
         repaint();
+    }
+
+    private class PressedAction extends AbstractAction {
+        private PressedAction() {
+            super("Pressed");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            onPressed();
+        }
+    }
+
+    private class ReleasedAction extends AbstractAction {
+        private ReleasedAction() {
+            super("Released");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            onReleased();
+        }
     }
 }
 
