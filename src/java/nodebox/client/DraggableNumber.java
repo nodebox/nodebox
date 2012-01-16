@@ -77,6 +77,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         numberField.addKeyListener(new EscapeListener());
         numberField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                breakFocusCycle();
                 commitNumberField();
             }
         });
@@ -218,6 +219,19 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     public void focusLost(FocusEvent e) {
+    }
+
+    // We want to move focus to a sibling focusable control using TAB only, not by hitting
+    // Enter or Escape. In these cases we need to break out of the current focus cycle.
+    private void breakFocusCycle() {
+        Container o = getParent();
+        while (o != null) {
+            if (o != null && o.isFocusable())
+                break;
+            o = o.getParent();
+        }
+        if (o != null)
+            o.requestFocus();
     }
 
     @Override
@@ -378,8 +392,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private class EscapeListener extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                breakFocusCycle();
                 numberField.setVisible(false);
+            }
         }
     }
 }
