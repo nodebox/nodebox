@@ -14,7 +14,7 @@ import java.text.NumberFormat;
  * DraggableNumber represents a number that can be edited in a variety of interesting ways:
  * by dragging, selecting the arrow buttons, or double-clicking to do direct input.
  */
-public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener {
+public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener, FocusListener {
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
@@ -64,6 +64,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         addMouseListener(this);
         addMouseMotionListener(this);
         addComponentListener(this);
+        setFocusable(true);
+        addFocusListener(this);
         Dimension d = new Dimension(87, 20);
         setPreferredSize(d);
 
@@ -82,6 +84,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             public void focusLost(FocusEvent e) {
                 if (numberField.isVisible())
                     commitNumberField();
+                setFocusable(true);
             }
         });
         add(numberField);
@@ -174,6 +177,15 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         setValue(getValue());
     }
 
+    private void showNumberField() {
+        numberField.setText(valueAsString());
+        numberField.setVisible(true);
+        numberField.requestFocus();
+        numberField.selectAll();
+        componentResized(null);
+        repaint();
+    }
+
     private void commitNumberField() {
         numberField.setVisible(false);
         String s = numberField.getText();
@@ -198,6 +210,14 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private Rectangle getRightButtonRect() {
         Rectangle r = getBounds();
         return new Rectangle(r.width - draggerRightWidth, r.y, draggerRightWidth, draggerHeight);
+    }
+
+    public void focusGained(FocusEvent e) {
+        showNumberField();
+        setFocusable(false);
+    }
+
+    public void focusLost(FocusEvent e) {
     }
 
     @Override
@@ -267,12 +287,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             setValue(getValue() + dx);
             fireStateChanged();
         } else if (e.getClickCount() >= 2) {
-            numberField.setText(valueAsString());
-            numberField.setVisible(true);
-            numberField.requestFocus();
-            numberField.selectAll();
-            componentResized(null);
-            repaint();
+            showNumberField();
         }
     }
 
