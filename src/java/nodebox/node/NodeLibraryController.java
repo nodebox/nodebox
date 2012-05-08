@@ -66,13 +66,10 @@ public class NodeLibraryController {
     
     public void reloadFunctionRepository() {
         FunctionRepository functionRepository = nodeLibrary.getFunctionRepository();
-        List<FunctionLibrary> newLibraries = new ArrayList<FunctionLibrary>();
         for (FunctionLibrary library : functionRepository.getLibraries()) {
             if (library == CoreFunctions.LIBRARY) continue;
-            newLibraries.add(library.reload());
+            library.reload();
         }
-        FunctionLibrary[] fl = newLibraries.toArray(new FunctionLibrary[newLibraries.size()]);
-        setFunctionRepository(FunctionRepository.of(fl));
     }
 
     public Node createNode(String parentPath, Node prototype) {

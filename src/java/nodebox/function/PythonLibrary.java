@@ -105,7 +105,7 @@ public class PythonLibrary extends FunctionLibrary {
 
     private final String namespace;
     private final File file;
-    private final ImmutableMap<String, Function> functionMap;
+    private ImmutableMap<String, Function> functionMap;
 
     private PythonLibrary(String namespace, File file, ImmutableMap<String, Function> functionMap) {
         this.namespace = namespace;
@@ -148,7 +148,7 @@ public class PythonLibrary extends FunctionLibrary {
      * @return the new FunctionLibrary
      */
     @Override
-    public FunctionLibrary reload() {
+    public void reload() {
         PythonInterpreter interpreter = new PythonInterpreter();
         try {
             interpreter.execfile(file.getCanonicalPath());
@@ -169,7 +169,7 @@ public class PythonLibrary extends FunctionLibrary {
                 builder.put(name, f);
             }
         }
-        return new PythonLibrary(namespace, file, builder.build());
+        this.functionMap = builder.build();
     }
 
     private static final class PythonFunction implements Function {
