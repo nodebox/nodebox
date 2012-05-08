@@ -37,11 +37,16 @@ public final class Functions {
 
     public static Method findMethod(Class c, String methodName) {
         Method[] methods = c.getDeclaredMethods();
+        Method foundMethod = null;
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
-                return method;
+                if (foundMethod != null)
+                    throw new IllegalArgumentException("Class " + c + " has multiple methods named '" + methodName + "'.");
+                foundMethod = method;
             }
         }
+        if (foundMethod != null)
+            return foundMethod;
         throw new IllegalArgumentException("Class " + c + " does not have a method " + methodName);
     }
 
