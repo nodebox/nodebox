@@ -2,51 +2,59 @@ NodeBox 3
 =========
 NodeBox is a new software application for creating generative art using procedural graphics and a new way to approach graphic design.
 
-NodeBox is:
+Highlights:
+
 - Node based -- the software uses a non-destructive workflow where every operation is represented by a visual block of code.
-- Open Source -- NodeBox is completely free to use and extend under the GPL license.
-- Python -- Nodes are written in the popular dynamic programming language.
+- Open to extend -- look and change the source of every code block.
+- Python or Clojure -- Nodes can be written in popular dynamic programming languages.
 
 For downloads, documentation and the forum, visit the website:
 
-http://alpha.nodebox.net/
+<http://alpha.nodebox.net/>
 
-To get started on Mac:
+## Building on Mac
 
-- Install Git (http://git-scm.com/)
-- From the Terminal, run:
+If you're on Mac OS X Lion or higher, Git is already installed. For older versions, install Git first (<http://git-scm.com/>). 
 
-  git clone git://github.com/nodebox/nodebox.git
-  cd nodebox
-  ant run
+Then from the Terminal, run:
+
+    git clone git://github.com/nodebox/nodebox.git
+    cd nodebox
+    ant run
   
-  # To create a full app (the build will be in dist/mac):
-  ant dist-mac
+    # To create a full app (the build will be in dist/mac):
+    ant dist-mac
 
-To get started on Windows:
+## Building on Windows
 
-- Install Git (http://git-scm.com/)
-- Install the Java SDK  (http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-- Install Unicode NSIS (http://www.scratchpaper.com/)
-- Install Ant (http://ant.apache.org/)
-- From the command prompt, run:
+- Install [Git](<http://git-scm.com/>).
+- Install the [Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+- Install [Unicode NSIS](http://www.scratchpaper.com/).
+- Install [Ant](http://ant.apache.org/).
 
-  # Setup the correct environment variables
-  set PATH=%PATH%;c:\java\apache-ant-1.8.2\bin
-  set JAVA_HOME=c:\java\jdk6
+From the command prompt, run:
 
-  git clone git://github.com/nodebox/nodebox.git
-  # Modify build.properties to point to the correct installation paths of the JRE and NSIS.
+    # Setup the correct environment variables
+    set PATH=%PATH%;c:\java\apache-ant-1.8.2\bin
+    set JAVA_HOME=c:\java\jdk6
 
-  cd nodebox
-  ant run
+    git clone git://github.com/nodebox/nodebox.git
+    # Modify build.properties to point to the correct installation paths of the JRE and NSIS.
+
+    cd nodebox
+    ant run
   
-  # To create a full app (the EXE will be in dist):
-  ant dist-win
+    # To create a full app (the EXE will be in dist):
+    ant dist-win
 
-To get started on Linux (Ubuntu):
+## Building on Ubuntu Linux
 
-  sudo apt-get install git-core openjdk-6-jdk ant
-  git clone git://github.com/nodebox/nodebox.git
-  cd nodebox
-  ant run
+    sudo apt-get install git-core openjdk-6-jdk ant
+    git clone git://github.com/nodebox/nodebox.git
+    cd nodebox
+    ant run
+
+## Bugs / Features
+
+We use [Pivotal Tracker](https://www.pivotaltracker.com/projects/32126) to track bugs and new features.
+
