@@ -151,12 +151,14 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         g2.setColor(Theme.NETWORK_BACKGROUND_COLOR);
         g2.fill(g.getClipBounds());
 
+        // Paint the grid
+        // (The grid is not really affected by the view transform)
+        paintGrid(g2);
+
         // Set the view transform
         AffineTransform originalTransform = g2.getTransform();
         g2.transform(viewTransform);
 
-        // Paint all components
-        paintGrid(g2);
         paintConnections(g2);
         paintNodes(g2);
 
@@ -166,9 +168,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
 
     private void paintGrid(Graphics2D g) {
         g.setColor(Theme.NETWORK_GRID_COLOR);
-        for (int y = 0; y < getHeight(); y += GRID_CELL_SIZE) {
-            for (int x = 0; x < getWidth(); x += GRID_CELL_SIZE) {
-                paintGridCross(g, x - 5, y - 5);
+        int transformOffsetX = (int) (viewTransform.getTranslateX() % GRID_CELL_SIZE);
+        int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
+
+        for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
+            for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
+                paintGridCross(g, x - 5 + transformOffsetX, y - 5 + transformOffsetY);
             }
         }
     }
