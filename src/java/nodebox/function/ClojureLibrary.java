@@ -83,7 +83,7 @@ final class ClojureLibrary extends FunctionLibrary {
 
     private final String namespace;
     private final File file;
-    private final ImmutableMap<String, Function> functionMap;
+    private ImmutableMap<String, Function> functionMap;
 
     private ClojureLibrary(String namespace, File file, ImmutableMap<String, Function> functionMap) {
         this.namespace = namespace;
@@ -122,10 +122,43 @@ final class ClojureLibrary extends FunctionLibrary {
     }
 
     /**
-     * We expect a list of maps, each containing name and fn.
-     *
-     * @param v The Clojure data structure contained in all-nodes.
+     * Reloads the clojure module.
      */
+    @Override
+    public void reload() {
+        Object returnValue;
+        try {
+            returnValue = Compiler.loadFile(file.getCanonicalPath());
+        } catch (IOException e) {
+            throw new LoadException(file.getName(), e);
+        }
+        // We need a Var as the last statement, because we need to retrieve the current namespace.
+        if (!(returnValue instanceof Var)) {
+            throw new LoadException(file.getName(),
+                    String.format("The last statement does not define a var, but %s.\n" +
+                            "Make sure the last line of your script looks like this:\n" +
+                            "(def nodes [{:name \"foo\" :fn inc}])",
+                            returnValue));
+        }
+        Var nodesVar = (Var) returnValue;
+        Object functionMap = nodesVar.deref();
+        checkStructure(functionMap);
+        ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
+        for (Object item : (Iterable) functionMap) {
+            Map m = (Map) item;
+            String name = (String) m.get(NAME);
+            IFn fn = (IFn) m.get(FN);
+            Function f = new ClojureFunction(name, fn);
+            builder.put(name, f);
+        }
+        this.functionMap = builder.build();
+    }
+
+        /**
+        * We expect a list of maps, each containing name and fn.
+        *
+        * @param v The Clojure data structure contained in all-nodes.
+        */
     private static void checkStructure(Object v) {
         checkArgument(v instanceof Iterable, "The function map is not a list of maps but a %s", v);
         Iterable iterable = (Iterable) v;
