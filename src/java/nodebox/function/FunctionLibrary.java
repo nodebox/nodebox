@@ -75,8 +75,7 @@ public abstract class FunctionLibrary {
 
     public abstract boolean hasFunction(String name);
     
-    public FunctionLibrary reload() {
-        throw new UnsupportedOperationException("The reload() method is unsupported.");
+    public void reload() {
     }
 
 
