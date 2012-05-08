@@ -27,6 +27,8 @@ public final class JavaLibrary extends FunctionLibrary {
             throw new LoadException(identifier, e);
         } catch (ClassCastException e) {
             throw new LoadException(identifier, e);
+        } catch (ExceptionInInitializerError e) {
+            throw new LoadException(identifier, e);
         }
     }
 
@@ -81,7 +83,7 @@ public final class JavaLibrary extends FunctionLibrary {
     private static class StaticMethodFunction implements Function {
 
         public static StaticMethodFunction find(Class c, String methodName) {
-            Method m = Functions.findMethod(c, methodName);
+            Method m = Functions.findMethod(c, methodName, false);
             return new StaticMethodFunction(m);
         }
 
