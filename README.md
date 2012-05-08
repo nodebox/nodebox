@@ -1,17 +1,15 @@
-NodeBox 2
+NodeBox 3
 =========
-NodeBox is a new software application for creating generative art using 
-procedural graphics and a new way to approach graphic design.
+NodeBox is a new software application for creating generative art using procedural graphics and a new way to approach graphic design.
 
 NodeBox is:
-- Node based -- the software uses a non-destructive workflow where every operation 
-  is represented by a visual block of code.
+- Node based -- the software uses a non-destructive workflow where every operation is represented by a visual block of code.
 - Open Source -- NodeBox is completely free to use and extend under the GPL license.
 - Python -- Nodes are written in the popular dynamic programming language.
 
 For downloads, documentation and the forum, visit the website:
 
-http://beta.nodebox.net/
+http://alpha.nodebox.net/
 
 To get started on Mac:
 
