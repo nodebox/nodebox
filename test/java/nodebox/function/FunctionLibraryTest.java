@@ -1,5 +1,6 @@
 package nodebox.function;
 
+import nodebox.util.LoadException;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,4 +39,9 @@ public class FunctionLibraryTest {
         assertEquals(href, javaLibrary.getLink());
     }
 
+    @Test(expected = LoadException.class)
+    public void testMethodsWithSameName() {
+        String href = "java:nodebox.function.NonUniqueFunctions";
+        FunctionLibrary javaLibrary = FunctionLibrary.load(href);
+    }
 }
