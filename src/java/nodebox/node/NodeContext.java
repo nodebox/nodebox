@@ -102,6 +102,12 @@ public class NodeContext {
                     b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
                 }
                 return b.build();
+            } else if (inputType.equals(Port.TYPE_INT) && outputType.equals(Double.class)) {
+                ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+                for (Object o : outputValues) {
+                    b.add(((Double) o).intValue());
+                }
+                return b.build();
             }
             return outputValues;
         } else {
