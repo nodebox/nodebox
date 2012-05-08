@@ -81,9 +81,8 @@ public class NodeContext {
             if (c.getInputNode().equals(child.getName())) {
                 Node outputNode = network.getChild(c.getOutputNode());
                 renderChild(network, outputNode);
-                //Iterable<?> result = convert(outputValuesMap.get(outputNode), child.getInput(c.getInputPort()).getType());
+                Iterable<?> result = convert(outputValuesMap.get(outputNode), child.getInput(c.getInputPort()).getType());
                 // Check if the result is null. This can happen if there is a cycle in the network.
-                Iterable<?> result = outputValuesMap.get(outputNode);
                 if (result != null) {
                     inputValuesMap.put(NodePort.of(child, c.getInputPort()), result);
                 }
@@ -94,16 +93,24 @@ public class NodeContext {
     }
 
     private Iterable<?> convert(Iterable<?> outputValues, String inputType) {
-        Class outputType = ListUtils.listClass(outputValues);
-        // Convert IGeometry type to points
-        if (inputType.equals(Port.TYPE_POINT) && IGeometry.class.isAssignableFrom(outputType)) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : outputValues) {
-                b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
+        if (level(outputValues) == 0) {
+            Class outputType = ListUtils.listClass(outputValues);
+            // Convert IGeometry type to points
+            if (inputType.equals(Port.TYPE_POINT) && IGeometry.class.isAssignableFrom(outputType)) {
+                ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+                for (Object o : outputValues) {
+                    b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
+                }
+                return b.build();
             }
-            return b.build();
+            return outputValues;
+        } else {
+            List list = new ArrayList();
+            for (Object o : outputValues) {
+                list.add(convert((Iterable) o, inputType));
+            }
+            return list;
         }
-        return outputValues;
     }
 
     /**
