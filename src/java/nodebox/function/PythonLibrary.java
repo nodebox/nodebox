@@ -144,8 +144,7 @@ public class PythonLibrary extends FunctionLibrary {
     }
 
     /**
-     * Reloads the python module and wraps its functions in a new FunctionLibrary.
-     * @return the new FunctionLibrary
+     * Reloads the python module.
      */
     @Override
     public void reload() {
