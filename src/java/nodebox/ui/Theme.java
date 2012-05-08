@@ -18,6 +18,7 @@ public class Theme {
 
     // Network view
     public static final Color NETWORK_BACKGROUND_COLOR = new Color(69, 69, 69);
+    public static final Color NETWORK_GRID_COLOR = new Color(85, 85, 85);
     public static final Color NETWORK_SELECTION_COLOR = new Color(200, 200, 200, 100);
     public static final Color NETWORK_SELECTION_BORDER_COLOR = new Color(100, 100, 100, 100);
     public static final Color NETWORK_NODE_NAME_COLOR = new Color(194, 194, 194);

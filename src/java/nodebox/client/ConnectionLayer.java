@@ -61,12 +61,12 @@ public class ConnectionLayer extends PLayer {
             paintConnection(g, outputNode, inputNode, inputPort);
         }
         // Draw temporary connection
-        if (networkView.isConnecting() && networkView.getConnectionPoint() != null) {
-            // Set the color to some kind of yellow
-            g.setColor(Theme.CONNECTION_CONNECTING_COLOR);
-            Point2D pt = networkView.getConnectionPoint();
-            ConnectionLayer.paintConnection(g, networkView.getConnectionSource().getNode(), (float) pt.getX(), (float) pt.getY());
-        }
+//        if (networkView.isConnecting() && networkView.getConnectionPoint() != null) {
+//            // Set the color to some kind of yellow
+//            g.setColor(Theme.CONNECTION_CONNECTING_COLOR);
+//            Point2D pt = networkView.getConnectionPoint();
+//            ConnectionLayer.paintConnection(g, networkView.getConnectionSource().getNode(), (float) pt.getX(), (float) pt.getY());
+//        }
     }
 
     public static void paintConnection(Graphics2D g, Node outputNode, Node inputNode, Port inputPort) {

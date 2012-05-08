@@ -221,10 +221,10 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 
         // Draw the selection/connection border
-        if (selected && networkView.getConnectionTarget() != this)
-            g.drawImage(nodeGlow, 0, 0, null);
-        if (networkView.getConnectionTarget() == this)
-            g.drawImage(nodeConnectionGlow, 0, 0, null);
+//        if (selected && networkView.getConnectionTarget() != this)
+//            g.drawImage(nodeGlow, 0, 0, null);
+//        if (networkView.getConnectionTarget() == this)
+//            g.drawImage(nodeConnectionGlow, 0, 0, null);
         g.drawImage(fullIcon, 0, 0, null);
         if (codeChanged)
             g.drawImage(nodeCodeChanged, 0, 0, null);
@@ -310,7 +310,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         public void mouseClicked(PInputEvent e) {
             if (e.getClickCount() == 1) {
                 e.getInputManager().setKeyboardFocus(this);
-                networkView.singleSelect(NodeView.this);
+//                networkView.singleSelect(NodeView.this);
             } else if (e.getClickCount() == 2 && e.isLeftMouseButton()) {
                 Point2D pt = NodeView.this.getOffset();
                 double y = e.getPosition().getY() - pt.getY();
@@ -336,7 +336,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 // Possible areas are the output connector and the node itself.
                 if (OUTPUT_BOUNDS.contains(x, y)) {
                     isDragging = false;
-                    networkView.startConnection(NodeView.this);
+//                    networkView.startConnection(NodeView.this);
                 } else {
                     isDragging = true;
                     dragPoint = e.getPosition();
@@ -344,22 +344,22 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                     if (!isSelected()) {
                         // If other nodes are selected, deselect them so they
                         // don't get dragged along.
-                        networkView.singleSelect(NodeView.this);
+//                        networkView.singleSelect(NodeView.this);
                     }
                 }
             }
         }
 
         public void mouseEntered(PInputEvent e) {
-            if (networkView.isConnecting() && networkView.getConnectionSource() != NodeView.this) {
-                networkView.setTemporaryConnectionTarget(NodeView.this);
-            }
+//            if (networkView.isConnecting() && networkView.getConnectionSource() != NodeView.this) {
+//                networkView.setTemporaryConnectionTarget(NodeView.this);
+//            }
         }
 
         public void mouseExited(PInputEvent e) {
-            if (networkView.isConnecting()) {
-                networkView.setTemporaryConnectionTarget(null);
-            }
+//            if (networkView.isConnecting()) {
+//                networkView.setTemporaryConnectionTarget(null);
+//            }
         }
 
         public void mouseDragged(PInputEvent e) {
@@ -369,45 +369,45 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
                 Point2D pt = e.getPosition();
                 double dx = pt.getX() - dragPoint.getX();
                 double dy = pt.getY() - dragPoint.getY();
-                getNetworkView().dragSelection(dx, dy);
+//                getNetworkView().dragSelection(dx, dy);
                 dragPoint = pt;
-            } else if (networkView.isConnecting()) {
-                Point2D p = e.getPosition();
-                networkView.dragConnectionPoint(p);
+//            } else if (networkView.isConnecting()) {
+//                Point2D p = e.getPosition();
+//                networkView.dragConnectionPoint(p);
             }
             e.setHandled(true);
         }
 
         public void mouseReleased(PInputEvent event) {
-            if (networkView.isConnecting()) {
-                // Check if both source and target are set.
-                if (networkView.getConnectionSource() != null && networkView.getConnectionTarget() != null) {
-                    Node outputNode = networkView.getConnectionSource().getNode();
-                    Node inputNode = networkView.getConnectionTarget().getNode();
-                    // Look for compatible ports.
-                    java.util.List<Port> compatiblePorts = inputNode.getInputs();
-                    if (compatiblePorts.isEmpty()) {
-                        // There are no compatible parameters.
-                    } else if (compatiblePorts.size() == 1) {
-                        // Only one possible connection, make it now.
-                        Port inputPort = compatiblePorts.get(0);
-                        try {
-                            getDocument().connect(outputNode, inputNode, inputPort);
-                        } catch (ConnectionError e) {
-                            JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
-                        }
-                    } else {
-                        JPopupMenu menu = new JPopupMenu("Select input");
-                        for (Port p : compatiblePorts) {
-                            Action a = new SelectCompatiblePortAction(outputNode, inputNode, p);
-                            menu.add(a);
-                        }
-                        Point pt = getNetworkView().getMousePosition();
-                        menu.show(getNetworkView(), pt.x, pt.y);
-                    }
-                }
-                networkView.endConnection();
-            }
+//            if (networkView.isConnecting()) {
+//                // Check if both source and target are set.
+//                if (networkView.getConnectionSource() != null && networkView.getConnectionTarget() != null) {
+//                    Node outputNode = networkView.getConnectionSource().getNode();
+//                    Node inputNode = networkView.getConnectionTarget().getNode();
+//                    // Look for compatible ports.
+//                    java.util.List<Port> compatiblePorts = inputNode.getInputs();
+//                    if (compatiblePorts.isEmpty()) {
+//                        // There are no compatible parameters.
+//                    } else if (compatiblePorts.size() == 1) {
+//                        // Only one possible connection, make it now.
+//                        Port inputPort = compatiblePorts.get(0);
+//                        try {
+//                            getDocument().connect(outputNode, inputNode, inputPort);
+//                        } catch (ConnectionError e) {
+//                            JOptionPane.showMessageDialog(networkView, e.getMessage(), "Connection error", JOptionPane.ERROR_MESSAGE);
+//                        }
+//                    } else {
+//                        JPopupMenu menu = new JPopupMenu("Select input");
+//                        for (Port p : compatiblePorts) {
+//                            Action a = new SelectCompatiblePortAction(outputNode, inputNode, p);
+//                            menu.add(a);
+//                        }
+//                        Point pt = getNetworkView().getMousePosition();
+//                        menu.show(getNetworkView(), pt.x, pt.y);
+//                    }
+//                }
+//                networkView.endConnection();
+//            }
         }
 
         private boolean isPanningEvent(PInputEvent event) {

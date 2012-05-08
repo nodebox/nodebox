@@ -92,8 +92,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Node root = Node.ROOT.withName("root");
         Node rectPrototype = nodeRepository.getNode("corevector.rect");
         String name = root.uniqueName(rectPrototype.getName());
-        Node rect1 = rectPrototype.extend().withName(name).withPosition(new nodebox.graphics.Point(20, 20));
-        root = root.withChildAdded(rect1).withRenderedChild(rect1);
+        Node rect1 = rectPrototype.extend().withName(name).withPosition(new nodebox.graphics.Point(1, 1));
+        Node translatePrototype = nodeRepository.getNode("corevector.translate");
+        String translateName = root.uniqueName(translatePrototype.getName());
+        Node translate1 = translatePrototype.extend().withName(translateName).withPosition(new nodebox.graphics.Point(1, 2));
+        root = root
+                .withChildAdded(rect1)
+                .withChildAdded(translate1)
+                .connect("rect1", "translate1", "shape")
+                .withRenderedChild(translate1);
         return NodeLibrary.create("untitled", root, nodeRepository, FunctionRepository.of());
     }
 
@@ -1223,15 +1230,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void deleteSelection() {
-        java.util.List<Node> selectedNodes = networkView.getSelectedNodes();
-        if (!selectedNodes.isEmpty()) {
-            Node node = getActiveNode();
-            if (node != null && selectedNodes.contains(node))
-                viewerPane.setHandle(null);
-            removeNodes(networkView.getSelectedNodes());
-        }
-        else if (networkView.hasSelectedConnection())
-            networkView.deleteSelectedConnection();
+        networkView.deleteSelection();
     }
 
     /**
@@ -1247,7 +1246,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             pt.x -= NodeView.NODE_IMAGE_SIZE / 2;
             pt.y -= NodeView.NODE_IMAGE_SIZE / 2;
         }
-        pt = (Point) networkView.getCamera().localToView(pt);
+        pt = new Point(0, 0);
+        //pt = (Point) networkView.getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
             createNode(dialog.getSelectedNode(), new nodebox.graphics.Point(pt));
