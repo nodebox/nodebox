@@ -1,6 +1,5 @@
 package nodebox.client;
 
-import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 
 import javax.swing.undo.AbstractUndoableEdit;
@@ -16,10 +15,22 @@ public class NodeLibraryUndoableEdit extends AbstractUndoableEdit {
     private String command;
     private UndoState undoState, redoState;
 
+    /**
+     * The UndoState captures the current state of the document.
+     * <p/>
+     * Because the NodeLibrary and all objects below it are immutable the UndoState just has to retain a reference
+     * to the given NodeLibrary.
+     */
     private class UndoState {
-        private String xml;
-        private String activeNetworkPath;
-        private String activeNodeName;
+        private final NodeLibrary nodeLibrary;
+        private final String activeNetworkPath;
+        private final String activeNodeName;
+
+        private UndoState(NodeLibrary nodeLibrary, String activeNetworkPath, String activeNodeName) {
+            this.nodeLibrary = nodeLibrary;
+            this.activeNetworkPath = activeNetworkPath;
+            this.activeNodeName = activeNodeName;
+        }
     }
 
     public NodeLibraryUndoableEdit(NodeBoxDocument document, String command) {
@@ -48,29 +59,11 @@ public class NodeLibraryUndoableEdit extends AbstractUndoableEdit {
     }
 
     public UndoState saveState() {
-        UndoState state = new UndoState();
-        state.xml = document.getNodeLibrary().toXml();
-        state.activeNetworkPath = document.getActiveNetworkPath();
-        Node activeNode = document.getActiveNode();
-        if (activeNode == null) {
-            state.activeNodeName = null;
-        } else {
-            state.activeNodeName = activeNode.getName();
-        }
-        return state;
+        return new UndoState(document.getNodeLibrary(), document.getActiveNetworkPath(), document.getActiveNodeName());
     }
 
     public void restoreState(UndoState state) {
-        NodeLibrary nodeLibrary = NodeLibrary.load(document.getNodeLibrary().getName(), state.xml, document.getManager());
-        nodeLibrary.setFile(document.getNodeLibrary().getFile());
-        document.setNodeLibrary(nodeLibrary);
-        document.setActiveNetwork(state.activeNetworkPath);
-        if (state.activeNodeName != null) {
-            Node child = document.getActiveNetwork().getChild(state.activeNodeName);
-            if (child != null) {
-                document.setActiveNode(child);
-            }
-        }
+        document.restoreState(state.nodeLibrary, state.activeNetworkPath, state.activeNodeName);
     }
 
 }

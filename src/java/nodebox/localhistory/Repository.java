@@ -291,6 +291,7 @@ public class Repository {
     }
 
     //// High-level operations ////
+
     /**
      * Store the contents of the working directory in the object database.
      * This commit will be stored using an empty message.

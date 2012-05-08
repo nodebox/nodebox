@@ -9,8 +9,8 @@ public class Geometry extends AbstractGeometry implements Colorizable {
     private ArrayList<Path> paths;
     private Path currentPath;
     private boolean lengthDirty = true;
-    private ArrayList<Float> pathLengths;
-    private float groupLength;
+    private ArrayList<Double> pathLengths;
+    private double groupLength;
 
     public Geometry() {
         paths = new ArrayList<Path>();
@@ -51,6 +51,18 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         paths.add(path);
         currentPath = path;
         invalidate(false);
+    }
+
+    /**
+     * Convenience function that extends the current geometry with the given geometry.
+     * <p/>
+     * Alias for extend().
+     *
+     * @param geometry the geometry to add.
+     * @see #extend(Geometry)
+     */
+    public void add(Geometry geometry) {
+        extend(geometry);
     }
 
     public int size() {
@@ -122,7 +134,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         setStrokeColor(c);
     }
 
-    public void setStrokeWidth(float strokeWidth) {
+    public void setStrokeWidth(double strokeWidth) {
         for (Path path : paths) {
             path.setStrokeWidth(strokeWidth);
         }
@@ -159,7 +171,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         invalidate(false);
     }
 
-    public void addPoint(float x, float y) {
+    public void addPoint(double x, double y) {
         ensureCurrentPath();
         currentPath.addPoint(x, y);
         invalidate(false);
@@ -224,7 +236,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
      *
      * @return the length of the path.
      */
-    public float getLength() {
+    public double getLength() {
         if (lengthDirty) {
             updatePathLengths();
         }
@@ -232,9 +244,9 @@ public class Geometry extends AbstractGeometry implements Colorizable {
     }
 
     private void updatePathLengths() {
-        pathLengths = new ArrayList<Float>(paths.size());
+        pathLengths = new ArrayList<Double>(paths.size());
         groupLength = 0;
-        float length;
+        double length;
         for (Path p : paths) {
             length = p.getLength();
             pathLengths.add(length);
@@ -255,14 +267,14 @@ public class Geometry extends AbstractGeometry implements Colorizable {
      *          Results outside of this range are undefined.
      * @return coordinates for point at t.
      */
-    public Point pointAt(float t) {
-        float length = getLength();
+    public Point pointAt(double t) {
+        double length = getLength();
         // Since t is relative, convert it to the absolute length.
-        float absT = t * length;
+        double absT = t * length;
         // The resT is what remains of t after we traversed all segments.
-        float resT = t;
+        double resT = t;
         // Find the contour that contains t.
-        float cLength;
+        double cLength;
         Path currentPath = null;
         for (Path p : paths) {
             currentPath = p;
@@ -271,7 +283,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
             absT -= cLength;
             resT -= cLength / length;
         }
-        if (currentPath == null) return new Point();
+        if (currentPath == null) return Point.ZERO;
         resT /= (currentPath.getLength() / length);
         return currentPath.pointAt(resT);
     }
@@ -288,7 +300,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         return false;
     }
 
-    public boolean contains(float x, float y) {
+    public boolean contains(double x, double y) {
         for (Path p : paths) {
             if (p.contains(x, y)) {
                 return true;
@@ -308,6 +320,22 @@ public class Geometry extends AbstractGeometry implements Colorizable {
 
     //// Geometric operations ////
 
+    public boolean intersects(Geometry g2) {
+        for (Path p1 : getPaths()) {
+            for (Path p2 : g2.getPaths()) {
+                if (p1.intersects(p2)) return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean intersects(Path p) {
+        for (Path p1 : getPaths()) {
+            if (p1.intersects(p)) return true;
+        }
+        return false;
+    }
+
     public Point[] makePoints(int amount, boolean perContour) {
         if (perContour) {
             ArrayList<Point> points = new ArrayList<Point>();
@@ -320,7 +348,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
             return (Point[]) points.toArray();
         } else {
             // Distribute all points evenly along the combined length of the contours.
-            float delta = pointDelta(amount, isClosed());
+            double delta = pointDelta(amount, isClosed());
             Point[] points = new Point[amount];
             for (int i = 0; i < amount; i++) {
                 points[i] = pointAt(delta * i);
@@ -338,7 +366,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
             return g;
         } else {
             Geometry g = new Geometry();
-            float delta = pointDelta(amount, isClosed());
+            double delta = pointDelta(amount, isClosed());
             for (int i = 0; i < amount; i++) {
                 g.addPoint(pointAt(delta * i));
             }
@@ -346,7 +374,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
         }
     }
 
-    public Geometry resampleByLength(float segmentLength) {
+    public Geometry resampleByLength(double segmentLength) {
         Geometry g = new Geometry();
         for (Path p : paths) {
             g.add(p.resampleByLength(segmentLength));
@@ -387,7 +415,7 @@ public class Geometry extends AbstractGeometry implements Colorizable {
 
     @Override
     public String toString() {
-        return "<" + getClass().getSimpleName() + ">";
+        return "<Geometry>";
     }
 
 }

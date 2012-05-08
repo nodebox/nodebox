@@ -23,6 +23,6 @@ public class InvalidNameException extends RuntimeException {
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "InvalidNameException on %s name %s: %s", source, name,  getMessage());
+        return String.format(Locale.US, "InvalidNameException on %s name %s: %s", source, name, getMessage());
     }
 }

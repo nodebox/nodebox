@@ -160,7 +160,7 @@ public class PlatformUtils {
     public static void openURL(String url) {
         try {
             if (onMac()) {
-                Class fileManagerClass = Class.forName("com.apple.eio.FileManager");
+                Class<?> fileManagerClass = Class.forName("com.apple.eio.FileManager");
                 Method openURLMethod = fileManagerClass.getDeclaredMethod("openURL", String.class);
                 openURLMethod.invoke(null, url);
             } else if (onWindows()) {

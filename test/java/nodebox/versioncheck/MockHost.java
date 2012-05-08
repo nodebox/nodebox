@@ -22,4 +22,5 @@ public class MockHost implements Host {
     public String getAppcastURL() {
         return "http://localhost:" + APPCAST_SERVER_PORT + "/appcast.xml";
     }
+
 }

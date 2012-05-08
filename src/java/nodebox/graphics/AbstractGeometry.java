@@ -17,7 +17,7 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
     public void extend(Iterator<Point> points) {
         while (points.hasNext()) {
             Point point = points.next();
-            addPoint(point.clone());
+            addPoint(point);
         }
     }
 
@@ -28,7 +28,7 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
      */
     public void extend(Point[] points) {
         for (Point point : points) {
-            addPoint(point.clone());
+            addPoint(point);
         }
     }
 
@@ -56,11 +56,11 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
      * @param closed whether the geometry is closed
      * @return the delta value between each point
      */
-    protected float pointDelta(int amount, boolean closed) {
-        float delta = 1;
+    protected double pointDelta(int amount, boolean closed) {
+        double delta = 1;
         if (closed) {
             if (amount > 0) {
-                delta = 1f / amount;
+                delta = 1.0 / amount;
             }
         } else {
             // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
@@ -68,7 +68,7 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
             // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
             // if amount = 2, I want point at t 0.0 and t 1.0
             if (amount > 2) {
-                delta = 1f / (amount - 1f);
+                delta = 1.0 / (amount - 1.0);
             }
         }
         return delta;

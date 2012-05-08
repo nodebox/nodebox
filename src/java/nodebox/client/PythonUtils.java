@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.ui.Platform;
 import org.python.core.Py;
 import org.python.core.PyString;
 import org.python.core.PySystemState;
@@ -12,7 +13,7 @@ public class PythonUtils {
     public static void initializePython() {
         // Set the Jython package cache directory.
         Properties jythonProperties = new Properties();
-        String jythonCacheDir = PlatformUtils.getUserDataDirectory() + PlatformUtils.SEP + "_jythoncache";
+        String jythonCacheDir = Platform.getUserDataDirectory() + Platform.SEP + "_jythoncache";
         jythonProperties.put("python.cachedir", jythonCacheDir);
 
         // Initialize Python.
@@ -20,8 +21,8 @@ public class PythonUtils {
 
         // Add the built-in Python libraries.
         String workingDirectory = System.getProperty("user.dir");
-        File pythonLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "python.zip");
-        File nodeBoxLibraries = new File(workingDirectory, "lib" + PlatformUtils.SEP + "nodeboxlibs.zip");
+        File pythonLibraries = new File(workingDirectory, "lib" + Platform.SEP + "python.zip");
+        File nodeBoxLibraries = new File(workingDirectory, "lib" + Platform.SEP + "nodeboxlibs.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
         Py.getSystemState().path.add(new PyString(nodeBoxLibraries.getAbsolutePath()));
 
@@ -31,7 +32,7 @@ public class PythonUtils {
         Py.getSystemState().path.add(new PyString(developmentLibraries.getAbsolutePath()));
 
         // Add the user's Python directory.
-        Py.getSystemState().path.add(new PyString(PlatformUtils.getUserPythonDirectory().getAbsolutePath()));
+        Py.getSystemState().path.add(new PyString(Platform.getUserPythonDirectory().getAbsolutePath()));
     }
 
 }

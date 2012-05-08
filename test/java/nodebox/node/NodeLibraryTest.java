@@ -1,641 +1,354 @@
 package nodebox.node;
 
-import junit.framework.TestCase;
+import com.google.common.collect.ImmutableList;
 import nodebox.client.PythonUtils;
-import nodebox.node.polygraph.Polygon;
-import nodebox.node.polygraph.Rectangle;
+import nodebox.function.FunctionLibrary;
+import nodebox.function.FunctionRepository;
+import nodebox.function.ListFunctions;
+import nodebox.function.MathFunctions;
+import nodebox.graphics.Color;
+import nodebox.graphics.Point;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Locale;
 
-public class NodeLibraryTest extends TestCase {
+import static junit.framework.Assert.*;
+import static nodebox.util.Assertions.assertResultsEqual;
 
-    @Override
-    protected void setUp() throws Exception {
+public class NodeLibraryTest {
+
+    private final NodeLibrary library;
+    private final Node child1;
+    private final Node child2;
+    private final Node parent;
+    private final Node root;
+    private final FunctionRepository functions;
+    private final File userDir = new File(System.getProperty("user.dir"));
+
+    public NodeLibraryTest() {
         PythonUtils.initializePython();
+        child1 = Node.ROOT.withName("child1");
+        child2 = Node.ROOT.withName("child2");
+        parent = Node.ROOT.withName("parent")
+                .withChildAdded(child1)
+                .withChildAdded(child2);
+        root = Node.ROOT.withChildAdded(parent);
+        library = NodeLibrary.create("test", root, FunctionRepository.of());
+        functions = FunctionRepository.of(MathFunctions.LIBRARY, ListFunctions.LIBRARY);
+    }
+
+    @Test
+    public void testNodeForPath() {
+        assertEquals(root, library.getNodeForPath("/"));
+        assertEquals(parent, library.getNodeForPath("/parent"));
+        assertEquals(child1, library.getNodeForPath("/parent/child1"));
+        assertEquals(child2, library.getNodeForPath("/parent/child2"));
+
+        assertNull("Invalid names return null.", library.getNodeForPath("/foo"));
+        assertNull("Invalid nested names return null.", library.getNodeForPath("/parent/foo"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testRelativePath() {
+        library.getNodeForPath("parent");
+    }
+
+    @Test
+    public void testSimpleReadWrite() {
+        NodeLibrary simple = NodeLibrary.create("test", Node.ROOT.extend(), FunctionRepository.of());
+        assertReadWriteEquals(simple, NodeRepository.of());
+    }
+
+    @Test
+    public void testNestedReadWrite() {
+        assertReadWriteEquals(library, NodeRepository.of());
+    }
+
+    @Test
+    public void testDoNotWriteRootPrototype() {
+        Node myNode = Node.ROOT.withName("myNode");
+        NodeLibrary library = libraryWithChildren("test", myNode);
+        // Because myNode uses the _root prototype, it shouldn't write the prototype attribute.
+        assertFalse(library.toXml().contains("prototype"));
+    }
+
+    @Test
+    public void testPrototypeInSameLibrary() {
+        // You can refer to a prototype in the same library as the current node.
+        Node invert = Node.ROOT
+                .withName("negate")
+                .withFunction("math/negate")
+                .withInputAdded(Port.floatPort("number", 0));
+        Node invert1 = invert.extend().withName("invert1").withInputValue("number", 42.0);
+        Node root = Node.ROOT
+                .withName("root")
+                .withChildAdded(invert)
+                .withChildAdded(invert1)
+                .withRenderedChild(invert1);
+        NodeLibrary originalLibrary = NodeLibrary.create("test", root, FunctionRepository.of(MathFunctions.LIBRARY));
+        // Assert the original library returns the correct result.
+        NodeContext context = new NodeContext(originalLibrary);
+        assertResultsEqual(context.renderNode(root), -42.0);
+
+        // Persist / load the library and assert it still returns the correct result.
+        NodeLibrary restoredLibrary = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertResultsEqual(context.renderNode(restoredLibrary.getRoot()), -42.0);
+    }
+
+    @Test
+    public void testRenderedNode() {
+        Node child1 = Node.ROOT.withName("child1");
+        Node originalRoot = Node.ROOT.withChildAdded(child1).withRenderedChild(child1);
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot, FunctionRepository.of());
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertEquals("child1", library.getRoot().getRenderedChildName());
+        assertNotNull(library.getRoot().getRenderedChild());
+    }
+
+    @Test
+    public void testPortSerialization() {
+        assertPortSerialization(Port.intPort("int", 42));
+        assertPortSerialization(Port.floatPort("float", 33.3));
+        assertPortSerialization(Port.stringPort("string", "hello"));
+        assertPortSerialization(Port.colorPort("color", Color.BLACK));
+        assertPortSerialization(Port.pointPort("point", new Point(11, 22)));
+        assertPortSerialization(Port.customPort("geometry", "nodebox.graphics.Geometry"));
+    }
+
+    @Test
+    public void testLink() {
+        Node originalAdd = Node.ROOT
+                .withName("add")
+                .withFunction("math/add")
+                .withInputAdded(Port.floatPort("v1", 11))
+                .withInputAdded(Port.floatPort("v2", 22));
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalAdd, FunctionRepository.of(MathFunctions.LIBRARY));
+        assertSingleResult(33.0, originalAdd, originalLibrary.getFunctionRepository());
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertTrue(library.getFunctionRepository().hasLibrary("math"));
+        Node add = library.getRoot();
+        assertEquals("add", add.getName());
+        assertEquals("math/add", add.getFunction());
+        assertSingleResult(33.0, add, library.getFunctionRepository());
     }
 
     /**
-     * Test if changing the node name updates the correspondent mapping in the library.
+     * Test if the NodeLibrary stores / loads function libraries relative to the path location of the library correctly.
      */
-    public void testNodeNameChange() {
-        NodeLibrary test = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(test, "alpha");
-        // We export the node since we want to test the NodeLibrary#get method, which only returns exported nodes.
-        alpha.setExported(true);
-        test.add(alpha);
-        assertEquals(alpha, test.get("alpha"));
-        // now change the name
-        alpha.setName("beta");
-        assertEquals(alpha, test.get("beta"));
+    @Test
+    public void testRelativeImport() {
+        File relativeImportFile = new File("test/files/relative-import.ndbx");
+        NodeLibrary originalLibrary = NodeLibrary.load(relativeImportFile, NodeRepository.of());
+        FunctionRepository repository = originalLibrary.getFunctionRepository();
+        assertTrue(repository.hasLibrary("relative"));
+        assertTrue(repository.hasFunction("relative/concat"));
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        FunctionLibrary relativeLibrary = library.getFunctionRepository().getLibrary("relative");
+        assertEquals("python:test/files/relative.py", relativeLibrary.getLink(new File(userDir, "test.ndbx")));
+        assertEquals("python:relative.py", relativeLibrary.getLink(relativeImportFile));
     }
 
     /**
-     * Test if new instance creates it in the correct library.
+     * Test if the NodeLibrary stores / loads the port range correctly.
      */
-    public void testNewInstance() {
-        NodeLibrary test = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(test, "alpha");
-        assertTrue(test.contains("alpha"));
-        assertTrue(test.getRootNode().containsChildNode("alpha"));
-        assertTrue(test.getRootNode().containsChildNode(alpha));
+    @Test
+    public void testPortRangePersistence() {
+        // Default check.
+        Node makeNumbers = Node.ROOT
+                .withName("makeNumbers")
+                .withFunction("math/makeNumbers")
+                .withOutputRange(Port.Range.LIST)
+                .withInputAdded(Port.stringPort("s", "1 2 3 4 5"))
+                .withInputAdded(Port.stringPort("sep", " "));
+        Node reverse = Node.ROOT
+                .withName("reverse")
+                .withFunction("list/reverse")
+                .withInputAdded(Port.customPort("list", "list"))
+                .withInputRange("list", Port.Range.LIST)
+                .withOutputRange(Port.Range.LIST);
+        Node net = Node.ROOT
+                .withChildAdded(makeNumbers)
+                .withChildAdded(reverse)
+                .withRenderedChild(reverse)
+                .connect("makeNumbers", "reverse", "list");
+        NodeLibrary originalLibrary = NodeLibrary.create("test", net, functions);
+        assertResultsEqual(originalLibrary.getRoot(), 5.0, 4.0, 3.0, 2.0, 1.0);
+        // Now save / load the library and check the output.
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertResultsEqual(library.getRoot(), 5.0, 4.0, 3.0, 2.0, 1.0);
     }
 
-    public void testLoading() {
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
-        assertTrue(library.contains("rect"));
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node rect = manager.getNode("polynodes.rect");
-        Parameter pX = rect.getParameter("x");
-        assertEquals(Parameter.Type.FLOAT, pX.getType());
-        Node rect1 = rect.newInstance(testLibrary, "rect1");
-        rect1.setValue("x", 20);
-        rect1.setValue("y", 30);
-        rect1.setValue("width", 40);
-        try {
-            rect1.setValue("height", 50);
-            fail("Height has an expression set.");
-        } catch (IllegalArgumentException e) {
-            rect1.getParameter("height").clearExpression();
-            rect1.setValue("height", 50);
-        }
-        rect1.update();
-        Object value = rect1.getOutputValue();
-        assertEquals(Polygon.class, value.getClass());
-        Polygon polygon = (Polygon) value;
-        assertEquals(new Rectangle(20, 30, 40, 50), polygon.getBounds());
+    @Test
+    public void testPrototypeOverridePersistence() {
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        Node rangePrototype = mathLibrary.getRoot().getChild("range");
+        Node range1 = rangePrototype.extend().withName("range1").withInputValue("end", 5.0);
+        assertResultsEqual(range1, 0.0, 1.0, 2.0, 3.0, 4.0);
+        NodeLibrary originalLibrary = NodeLibrary.create("test", range1, NodeRepository.of(mathLibrary), functions);
+        // Now save / load the library and check the output.
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of(mathLibrary));
+        assertResultsEqual(library.getRoot(), 0.0, 1.0, 2.0, 3.0, 4.0);
     }
-
 
     /**
-     * Test to check if a node where a parameter has a value set but in its prototype
-     * contains an expression (and thus is overridden) loads without errors.
+     * Test if ports can persist their min / max values.
      */
-    public void testLoadingOverriddenExpression() {
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary library = manager.load(new File("test/polynodes.ndbx"));
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node rect = manager.getNode("polynodes.rect");
-        Node rect1 = rect.newInstance(testLibrary, "rect1");
-        rect1.clearExpression("height");
-        rect1.setValue("height", 120);
-        rect1.setExpression("y", "x+20");
-        rect1.setExported(true);
-        manager = new NodeLibraryManager();
-        manager.add(library);
-        NodeLibrary newLibrary = null;
-        try {
-            newLibrary = NodeLibrary.load("test", testLibrary.toXml(), manager);
-            assertNotNull(newLibrary);
-            manager.add(newLibrary);
-        } catch (RuntimeException e) {
-            fail(e.getMessage());
-        }
-
-        // Perform the same check for a parameter without expression but whose parent have an expression set,
-        // but whose original prototype doesn't.
-        rect = manager.getNode("test.rect1");
-        Node rect2 = rect.newInstance(newLibrary, "rect2");
-        assertEquals("x+20", rect2.getParameter("y").getExpression());
-        rect2.clearExpression("y");
-        rect2.setValue("y", 20);
-        manager = new NodeLibraryManager();
-        manager.add(library);
-        manager.add(newLibrary);
-        try {
-            newLibrary = NodeLibrary.load("test", newLibrary.toXml(), manager);
-            assertNotNull(newLibrary);
-        } catch (RuntimeException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    public void testLoadingErrors() {
-        // Use one manager with the polynodes library loaded in,
-        // and restore it using a manager without the polynodes library.
-        NodeLibraryManager manager = new NodeLibraryManager();
-        manager.load(new File("test/polynodes.ndbx"));
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node polyRect = manager.getNode("polynodes.rect");
-        polyRect.newInstance(testLibrary, "myrect");
-        String xml = testLibrary.toXml();
-
-        NodeLibraryManager emptyManager = new NodeLibraryManager();
-        try {
-            emptyManager.load("test", xml);
-        } catch (RuntimeException e) {
-            assertTrue(e.getMessage().toLowerCase().contains("unknown prototype polynodes.rect"));
-        }
-    }
-
-    public void testLoadingChangedType() {
-        NodeLibraryManager manager = new NodeLibraryManager();
-        manager.load(new File("test/polynodes.ndbx"));
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node polyRect = manager.getNode("polynodes.rect");
-        Node myrect = polyRect.newInstance(testLibrary, "myrect");
-        myrect.getParameter("x").setType(Parameter.Type.INT);
-        String xml = testLibrary.toXml();
-        assertOnlyOnce(xml, "name=\"x\"");
-        try {
-            manager.load("test", xml);
-        } catch (RuntimeException e) {
-            fail(e.getMessage());
-        }
-    }
-
-    public void testLoadingChangedWidget() {
-        NodeLibrary library = new NodeLibrary("lib");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
-        alpha.addParameter("x", Parameter.Type.FLOAT);
-        alpha.setValue("x", 20);
-        alpha.addParameter("y", Parameter.Type.INT);
-        alpha.setValue("x", 30);
-        alpha.addParameter("s", Parameter.Type.STRING);
-        alpha.setValue("s", "hello");
-        alpha.setExported(true);
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = manager.load("newlib", library.toXml());
-        Node n = manager.getNode("newlib.alpha");
-        NodeLibrary testLibrary = new NodeLibrary("test");
-        Node alpha1 = n.newInstance(testLibrary, "alpha1");
-        alpha1.getParameter("x").setWidget(Parameter.Widget.INT);
-        alpha1.getParameter("y").setWidget(Parameter.Widget.TOGGLE);
-        alpha1.getParameter("s").setWidget(Parameter.Widget.MENU);
-        String xml = testLibrary.toXml();
-        assertOnlyOnce(xml, "name=\"x\"");
-        assertOnlyOnce(xml, "name=\"y\"");
-        assertOnlyOnce(xml, "name=\"s\"");
-        try {
-            manager.load("test", xml);
-        } catch (RuntimeException e) {
-            fail(e.getMessage());
-        }
+    @Test
+    public void testMinMaxPersistence() {
+        Node originalRoot = Node.ROOT.withName("root").withInputAdded(Port.floatPort("v", 5.0, 0.0, 10.0));
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Port v = library.getRoot().getInput("v");
+        assertEquals(0.0, v.getMinimumValue());
+        assertEquals(10.0, v.getMaximumValue());
     }
 
     /**
-     * There is a difference between loading a library using a static method on NodeLibrary
-     * and using the NodeManager.load(). NodeManager.load() automatically adds the library
-     * to the manager, whereas NodeLibrary only uses the given manager to look up prototypes.
+     * Test if file writing is independent from the locale.
      * <p/>
-     * This method tests the differences.
+     * We use String.format in writing points, which is locale-dependent.
+     * Having the "wrong" locale would mean that the returned point was invalid.
      */
-    public void testStoreInLibrary() {
-        NodeLibraryManager manager;
-        NodeLibrary library;
-        // First try loading from within the manager
-        manager = new NodeLibraryManager();
-        library = manager.load(new File("test/polynodes.ndbx"));
-        assertTrue(manager.contains("polynodes"));
-        assertTrue(library.contains("rect"));
-        // Now try loading using the NodeLibrary.load static method.
-        manager = new NodeLibraryManager();
-        // We pass in the manager to figure out the prototypes.
-        library = NodeLibrary.load(new File("test/polynodes.ndbx"), manager);
-        assertFalse(manager.contains("polynodes"));
-        // You can add the library yourself.
-        manager.add(library);
-        assertTrue(manager.contains("polynodes"));
-    }
-
-    /**
-     * Test if connections are persisted.
-     */
-    public void testStoreConnections() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
-        Node beta = Node.ROOT_NODE.newInstance(library, "beta", Polygon.class);
-        beta.addPort("polygon");
-        beta.getPort("polygon").connect(alpha);
-        assertTrue(alpha.isConnectedTo(beta));
-        assertTrue(beta.isConnectedTo(alpha));
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", library.toXml(), manager);
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        Node newBeta = newLibrary.getRootNode().getChild("beta");
-        assertTrue(newAlpha.isConnectedTo(newBeta));
-        assertTrue(newBeta.isConnectedTo(newAlpha));
-    }
-
-    /**
-     * Test if expressions are persisted correctly.
-     */
-    public void testStoreExpressions() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
-        alpha.addParameter("v", Parameter.Type.INT);
-        alpha.setValue("v", 10);
-        alpha.getParameter("v").setExpression("44 - 2");
-        // Inherit from alpha.
-        Node beta = alpha.newInstance(library, "beta");
-
-        // Check if the expression tag only appears once.
-        String xml = library.toXml();
-        assertOnlyOnce(xml, "<expression>");
-
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        assertEquals("44 - 2", newAlpha.getParameter("v").getExpression());
-        newAlpha.update();
-        assertEquals(42, newAlpha.getValue("v"));
-    }
-
-    /**
-     * Test if all attributes are persisted.
-     */
-    public void testStoreParameterAttributes() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
-        Parameter pAngle = alpha.addParameter("angle", Parameter.Type.FLOAT, 42);
-        pAngle.setWidget(Parameter.Widget.ANGLE);
-        pAngle.setEnableExpression("5 > 10");
-        pAngle.setMinimumValue(-360f);
-        pAngle.setMaximumValue(360f);
-        pAngle.setBoundingMethod(Parameter.BoundingMethod.HARD);
-        Parameter pMenu = alpha.addParameter("menu", Parameter.Type.STRING, "es");
-        pMenu.setWidget(Parameter.Widget.MENU);
-        pMenu.addMenuItem("en", "English");
-        pMenu.addMenuItem("es", "Spanish");
-        Parameter pHidden = alpha.addParameter("hidden", Parameter.Type.STRING, "invisible");
-        pHidden.setDisplayLevel(Parameter.DisplayLevel.HIDDEN);
-        Parameter pLabel = alpha.addParameter("label", Parameter.Type.STRING, "label + help text");
-        pLabel.setLabel("My Label");
-        pLabel.setHelpText("My Help Text");
-        // Inherit from alpha. This is used to test if prototype data is stored only once.
-        alpha.newInstance(library, "beta");
-
-        String xml = library.toXml();
-        assertOnlyOnce(xml, "<param name=\"menu\"");
-
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        Parameter newAngle = newAlpha.getParameter("angle");
-        assertEquals(Parameter.Widget.ANGLE, newAngle.getWidget());
-        assertEquals("5 > 10", newAngle.getEnableExpression());
-        assertFalse(newAngle.isEnabled());
-        assertEquals(Parameter.BoundingMethod.HARD, newAngle.getBoundingMethod());
-        assertEquals(-360f, newAngle.getMinimumValue());
-        assertEquals(360f, newAngle.getMaximumValue());
-        Parameter newMenu = newAlpha.getParameter("menu");
-        assertEquals(Parameter.Widget.MENU, newMenu.getWidget());
-        Parameter.MenuItem item0 = newMenu.getMenuItems().get(0);
-        Parameter.MenuItem item1 = newMenu.getMenuItems().get(1);
-        assertEquals("en", item0.getKey());
-        assertEquals("English", item0.getLabel());
-        assertEquals("es", item1.getKey());
-        assertEquals("Spanish", item1.getLabel());
-        Parameter newHidden = newAlpha.getParameter("hidden");
-        assertEquals(Parameter.DisplayLevel.HIDDEN, newHidden.getDisplayLevel());
-        assertEquals("invisible", newHidden.getValue());
-        Parameter newLabel = newAlpha.getParameter("label");
-        assertEquals("My Label", newLabel.getLabel());
-        assertEquals("My Help Text", newLabel.getHelpText());
-    }
-
-    /**
-     * Test if child nodes are stored correctly.
-     */
-    public void testStoreChildren() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node net = Node.ROOT_NODE.newInstance(library, "net", Polygon.class);
-        Node alpha = net.create(Node.ROOT_NODE, "alpha", Polygon.class);
-        Node beta = net.create(Node.ROOT_NODE, "beta", Polygon.class);
-        Port pPolygon = beta.addPort("polygon");
-        pPolygon.connect(alpha);
-
-        String xml = library.toXml();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newNet = newLibrary.getRootNode().getChild("net");
-        assertTrue(newNet.hasChildren());
-        Node newAlpha = newNet.getChild("alpha");
-        Node newBeta = newNet.getChild("beta");
-        assertTrue(newBeta.isConnectedTo(newAlpha));
-    }
-
-    /**
-     * Test if nodes are stored in a stable order.
-     */
-    public void testStoreOrder() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node.ROOT_NODE.newInstance(library, "a");
-        Node.ROOT_NODE.newInstance(library, "b");
-        Node.ROOT_NODE.newInstance(library, "c");
-        String xml = library.toXml();
-        Pattern p = Pattern.compile("<node name=\"(.*?)\"");
-        Matcher m = p.matcher(xml);
-        m.find();
-        assertEquals("a", m.group(1));
-        m.find();
-        assertEquals("b", m.group(1));
-        m.find();
-        assertEquals("c", m.group(1));
-    }
-
-    /**
-     * Test if nodes are stored in a stable order, even when using prototypes.
-     */
-    public void testStoreOrderPrototypes() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node z = Node.ROOT_NODE.newInstance(library, "z");
-        z.newInstance(library, "a");
-        z.newInstance(library, "b");
-        z.newInstance(library, "c");
-        String xml = library.toXml();
-        Pattern p = Pattern.compile("<node name=\"(.*?)\"");
-        Matcher m = p.matcher(xml);
-        m.find();
-        assertEquals("z", m.group(1));
-        m.find();
-        assertEquals("a", m.group(1));
-        m.find();
-        assertEquals("b", m.group(1));
-        m.find();
-        assertEquals("c", m.group(1));
-    }
-
-    /**
-     * Test a number of sneaky characters to see if they are encoded correctly.
-     */
-    public void testEntityEncoding() {
-        String[] testStrings = {
-                "test", // A regular string, for sanity checking
-                "&", // The ampersand is used to encode entities
-                "\"", // Double quote needs to be escaped in XML attributes
-                "\'", // Single quote could cause some problems also
-                "<", // XML open tag needs to be escaped in XML text
-                ">", // XML close tag needs to be escaped in XML text
-                "<![CDATA[", // Beginning CDATA section
-                "]]>", // End of CDATA section
-                "<![CDATA[test]]>", // Full CDATA section
-        };
-
-        for (String testString : testStrings) {
-            assertCanStoreValue(Parameter.Type.STRING, testString);
-            assertCanStoreHelpText(testString);
+    @Test
+    public void testLocale() {
+        Locale savedLocale = Locale.getDefault();
+        // The german locale uses a comma to separate the decimals, which could make points fail.
+        Locale.setDefault(Locale.GERMAN);
+        try {
+            // We use points for the position and for the input port.
+            Node originalRoot = Node.ROOT
+                    .withName("root")
+                    .withPosition(new Point(12, 34))
+                    .withInputAdded(Port.pointPort("point", new Point(12, 34)));
+            NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
+            NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+            Node root = library.getRoot();
+            assertPointEquals(root.getPosition(), 12.0, 34.0);
+            assertPointEquals(root.getInput("point").pointValue(), 12.0, 34.0);
+        } finally {
+            Locale.setDefault(savedLocale);
         }
     }
 
+    @Test
+    public void testReadMenus() {
+        NodeLibrary menuLibrary = NodeLibrary.load(new File("test/files/menus.ndbx"), NodeRepository.of());
+        Port thePort = menuLibrary.getRoot().getInput("thePort");
+        assertTrue(thePort.hasMenu());
+        assertEquals(2, thePort.getMenuItems().size());
+        assertEquals(new MenuItem("a", "Alpha"), thePort.getMenuItems().get(0));
+        assertEquals(new MenuItem("b", "Beta"), thePort.getMenuItems().get(1));
+    }
+
+    @Test
+    public void testMenuSerialization() {
+        Node originalRoot = makeLetterMenuNode();
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Port letterPort = library.getRoot().getInput("letter");
+        assertTrue(letterPort.hasMenu());
+        assertEquals(2, letterPort.getMenuItems().size());
+        assertEquals(new MenuItem("a", "Alpha"), letterPort.getMenuItems().get(0));
+        assertEquals(new MenuItem("b", "Beta"), letterPort.getMenuItems().get(1));
+    }
+
     /**
-     * Test if you can store/load a file with expression errors.
+     * Test if a port using a menu prototype is correctly serialized.
      */
-    public void testStoreWithExpressionErrors() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
-        Parameter pValue = alpha.addParameter("value", Parameter.Type.INT);
-        assertCanStoreExpression(pValue, "10 + 1"); // Correct expression.
-        assertCanStoreExpression(pValue, "12 + ????"); // Compilation error.
-        assertCanStoreExpression(pValue, "y"); // Evaluation error: y does not exist.
-        alpha.addParameter("bob", Parameter.Type.INT);
-        assertCanStoreExpression(pValue, "bob"); // Correct since bob exists.
-        alpha.removeParameter("bob");
-        assertCanStoreExpression(pValue, "bob"); // Bob is gone, but the script still needs to save.
+    @Test
+    public void testMenuPrototypeSerialization() {
+        Node letterPrototype = makeLetterMenuNode();
+        Node letterNode = letterPrototype.extend().withName("my_letter").withInputValue("letter", "b");
+        Node originalRoot = Node.ROOT
+                .withChildAdded(letterPrototype)
+                .withChildAdded(letterNode);
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Port letterPort = library.getRoot().getChild("my_letter").getInput("letter");
+        assertTrue(letterPort.hasMenu());
+        assertEquals(2, letterPort.getMenuItems().size());
+        assertEquals("b", letterPort.getValue());
+    }
+
+    @Test
+    public void testWidgetSerialization() {
+        Node originalNode = Node.ROOT
+                .withInputAdded(Port.stringPort("file", "").withWidget(Port.Widget.FILE));
+        NodeLibrary originalLibrary = NodeLibrary.create("test", originalNode);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Port filePort = library.getRoot().getInput("file");
+        assertEquals(Port.Widget.FILE, filePort.getWidget());
+    }
+
+    @Test
+    public void testRelativePathsInWidgets() {
+        NodeLibrary library = NodeLibrary.load(new File("test/files/relative-file.ndbx"), NodeRepository.of());
+        NodeContext context = new NodeContext(library);
+        Iterable<?> results = context.renderNode(library.getRoot());
+        Object firstResult = results.iterator().next();
+        assertEquals(true, firstResult);
+    }
+
+
+    public Node makeLetterMenuNode() {
+        MenuItem alpha = new MenuItem("a", "Alpha");
+        MenuItem beta = new MenuItem("b", "Beta");
+        return Node.ROOT.withName("letter")
+                .withInputAdded(Port.stringPort("letter", "a", ImmutableList.of(alpha, beta)));
+    }
+
+    private void assertPointEquals(Point point, double x, double y) {
+        assertEquals(x, point.getX());
+        assertEquals(y, point.getY());
+    }
+
+    private void assertSingleResult(Double expected, Node node, FunctionRepository functionRepository) {
+        NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functionRepository);
+        NodeContext context = new NodeContext(testLibrary);
+        List<Object> values = ImmutableList.copyOf(context.renderNode(node));
+        assertEquals(1, values.size());
+        assertEquals(expected, values.get(0));
     }
 
     /**
-     * Test if only nodes with the export flags show up in the manager.
-     */
-    public void testExportFlag() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node exportMe = Node.ROOT_NODE.newInstance(library, "exportMe");
-        exportMe.setExported(true);
-        Node hideMe = Node.ROOT_NODE.newInstance(library, "hideMe");
-        List<Node> exportedNodes = library.getExportedNodes();
-        assertEquals(1, exportedNodes.size());
-        assertEquals(exportMe, exportedNodes.get(0));
-        assertTrue(exportMe.isExported());
-        assertFalse(hideMe.isExported());
-
-        // Test if the exported flag is persisted.
-        String xml = library.toXml();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        List<Node> newExportedNodes = newLibrary.getExportedNodes();
-        assertEquals(1, newExportedNodes.size());
-        Node newExportMe = newExportedNodes.get(0);
-        assertEquals("exportMe", newExportMe.getName());
-        assertTrue(newExportMe.isExported());
-        // You can still access the non-exported nodes using getRootNode().getChildren()
-        Node newHideMe = newLibrary.getRootNode().getChild("hideMe");
-        assertEquals("hideMe", newHideMe.getName());
-        assertFalse(newHideMe.isExported());
-        // Try accessing through the library
-        assertEquals(newExportMe, newLibrary.get("exportMe"));
-        assertNull(newLibrary.get("hideMe"));
-
-
-        // Test if a new instance based on this prototype loses the flag.
-        NodeLibrary doc = new NodeLibrary("doc");
-        Node myExportInstance = exportMe.newInstance(doc, "myExportInstance");
-        assertFalse(myExportInstance.isExported());
-        // Note that you can create instances of non-exported nodes as well.
-        // They just don't show up in library.getExportedNodes().
-        Node myHideMeInstance = hideMe.newInstance(doc, "myHideMeInstance");
-        assertFalse(myHideMeInstance.isExported());
-    }
-
-    /**
-     * Test if internal instances can still be loaded even if not exported.
-     */
-    public void testExportInternalInstances() {
-        NodeLibrary library = new NodeLibrary("test");
-        // Alpha and beta are both non-exported.
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha");
-        Node beta = alpha.newInstance(library, "beta");
-        // Store and load this library.
-        String xml = library.toXml();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        assertEquals(0, newLibrary.getExportedNodes().size());
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        Node newBeta = newLibrary.getRootNode().getChild("beta");
-        assertEquals(newAlpha, newBeta.getPrototype());
-    }
-
-    /**
-     * Test if we can retrieve absolute paths.
-     */
-    public void testGetNodeForPath() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node root = library.getRootNode();
-        Node alpha = root.create(Node.ROOT_NODE, "alpha");
-        Node beta = alpha.create(Node.ROOT_NODE, "beta");
-        assertSame(root, library.getNodeForPath(root.getAbsolutePath()));
-        assertSame(alpha, library.getNodeForPath(alpha.getAbsolutePath()));
-        assertSame(beta, library.getNodeForPath(beta.getAbsolutePath()));
-        assertSame(root, library.getNodeForPath("xxx"));
-        assertSame(alpha, library.getNodeForPath("/alpha/xxx"));
-        assertSame(beta, library.getNodeForPath("/alpha/beta/////"));
-        // If you forget the first slash, the path cannot be interpreted.
-        assertSame(root, library.getNodeForPath("alpha/beta"));
-    }
-
-    /**
-     * Test the handling of external dependencies.
-     */
-    public void testExternalDependencies() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node root = library.getRootNode();
-        Node n = root.create(Node.ROOT_NODE, "n");
-        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
-        n.update();
-        assertFalse(n.isDirty());
-
-        // After setting the external dependency on the parameter, triggering the dependency makes the node dirty.
-        library.addExternalDependency(p, NodeLibrary.ExternalEvent.FRAME);
-        library.externalDependencyTriggered(NodeLibrary.ExternalEvent.FRAME);
-        assertTrue(n.isDirty());
-
-        // Updating the node makes it clean.
-        n.update();
-        assertFalse(n.isDirty());
-        // After removing all external dependencies on the parameter,
-        // triggering an external dependency does not make the node dirty.
-        library.removeExternalDependencies(p);
-        library.externalDependencyTriggered(NodeLibrary.ExternalEvent.FRAME);
-        assertFalse(n.isDirty());
-    }
-
-    /**
-     * Test handling dependencies on the current frame number by setting expressions.
-     */
-    public void testFrameDependency() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node root = library.getRootNode();
-        Node n = root.create(Node.ROOT_NODE, "n");
-        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
-        // Setting the expression to frame declares an external dependency on the parameter.
-        p.setExpression("FRAME + 5");
-
-        n.update();
-        assertFalse(n.isDirty());
-
-        // Changing the frame should trigger the external dependency.
-        library.setFrame(100);
-        assertTrue(n.isDirty());
-        n.update();
-        assertFalse(n.isDirty());
-        assertEquals(105f, p.asFloat());
-
-        // Clearing the expression removes the external dependency.
-        p.clearExpression();
-        // Update the node again to make it clean.
-        n.update();
-        assertFalse(n.isDirty());
-        assertEquals(105f, p.asFloat());
-
-        // Because we no longer refer to frame, setting the frame does not mark the node dirty.
-        library.setFrame(200);
-        assertFalse(n.isDirty());
-    }
-
-    public void testCanvasDependency() {
-        NodeLibrary library = new NodeLibrary("test");
-        Node root = library.getRootNode();
-        Node n = root.create(Node.ROOT_NODE, "n");
-        n.setRendered();
-        Parameter p = n.addParameter("p", Parameter.Type.FLOAT);
-        // Setting the expression to WIDTH declares an external dependency on the parameter.
-        p.setExpression("WIDTH / 2");
-        root.update();
-        assertFalse(n.isDirty());
-
-        // Changing the canvas values should trigger the external dependency.
-        root.setValue(NodeLibrary.CANVAS_WIDTH, 500f);
-        assertTrue(n.isDirty());
-        n.update();
-        assertFalse(n.isDirty());
-        assertEquals(250f, p.asFloat());
-
-        // Clearing the expression removes the external dependency.
-        p.clearExpression();
-        // Update the node again to make it clean.
-        n.update();
-        assertFalse(n.isDirty());
-        assertEquals(250f, p.asFloat());
-
-        // Because we no longer refer to frame, setting the frame does not mark the node dirty.
-        root.setValue(NodeLibrary.CANVAS_WIDTH, 400f);
-        assertFalse(n.isDirty());
-    }
-
-    /**
-     * Assert that the search string only appears once in the source.
+     * Assert that the value that goes in to the port comes out correctly in XML.
      *
-     * @param source       the source string to search in
-     * @param searchString the string to search for
+     * @param originalPort The port to serialize / deserialize
      */
-    public void assertOnlyOnce(String source, String searchString) {
-        // If the first position where it appears == the last position, it only appears once.
-        assertTrue(source.indexOf(searchString) >= 0 && source.indexOf(searchString) == source.lastIndexOf(searchString));
+    private void assertPortSerialization(Port originalPort) {
+        Node originalNode;
+        originalNode = Node.ROOT.withInputAdded(originalPort);
+        NodeLibrary originalLibrary = libraryWithChildren("test", originalNode);
+
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Node node = library.getRoot().getChild("node");
+        assertNotNull(node);
+        Port port;
+        port = node.getInput(originalPort.getName());
+        assertEquals(originalPort.getName(), port.getName());
+        assertEquals(originalPort.getType(), port.getType());
+        assertEquals(originalPort.getValue(), port.getValue());
+    }
+
+    private NodeLibrary libraryWithChildren(String libraryName, Node... children) {
+        Node root = Node.ROOT.withName("root");
+        for (Node child : children) {
+            root = root.withChildAdded(child);
+        }
+        return NodeLibrary.create(libraryName, root, FunctionRepository.of());
     }
 
     /**
-     * Assert that the given text can be used as the description for a parameter.
-     * This checks if storing/loading will return the same string, and no errors occur.
+     * Assert that a NodeLibrary equals itself after reading and writing.
      *
-     * @param helpText the help text
+     * @param library        The NodeLibrary.
+     * @param nodeRepository The repository of NodeLibraries.
      */
-    public void assertCanStoreHelpText(String helpText) {
-        // Create a library and node to store the value.
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
-        Parameter pValue = alpha.addParameter("value", Parameter.Type.STRING);
-        pValue.setHelpText(helpText);
-        // Store the library to XML.
+    private void assertReadWriteEquals(NodeLibrary library, NodeRepository nodeRepository) {
         String xml = library.toXml();
-        // Load the library from the XML, and retrieve the value.
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        Parameter newValue = newAlpha.getParameter("value");
-        assertEquals(helpText, newValue.getHelpText());
+        assertEquals(library, NodeLibrary.load(library.getName(), xml, nodeRepository));
     }
-
-    /**
-     * Assert that the given value can be stored as a parameter value in a NodeBox script.
-     * The original value and the restored value will be compared using equals() to support strings.
-     *
-     * @param type  the type for the value.
-     * @param value the value.
-     */
-    public void assertCanStoreValue(Parameter.Type type, Object value) {
-        // Create a library and node to store the value.
-        NodeLibrary library = new NodeLibrary("test");
-        Node alpha = Node.ROOT_NODE.newInstance(library, "alpha", Polygon.class);
-        alpha.addParameter("value", type, value);
-        // Store the library to XML.
-        String xml = library.toXml();
-        // Load the library from the XML, and retrieve the value.
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.getRootNode().getChild("alpha");
-        assertEquals(value, newAlpha.getValue("value"));
-    }
-
-    /**
-     * Assert that the given expression can be stored into the parameters without problems.
-     * This checks if storing/loading will return the same expression, and no errors occur.
-     *
-     * @param p          the parameter
-     * @param expression the expression
-     */
-    public void assertCanStoreExpression(Parameter p, String expression) {
-        String nodeName = p.getNode().getName();
-        String parameterName = p.getName();
-        p.setExpression(expression);
-        String xml = p.getLibrary().toXml();
-        NodeLibraryManager manager = new NodeLibraryManager();
-        NodeLibrary newLibrary = NodeLibrary.load("test", xml, manager);
-        Node newAlpha = newLibrary.getRootNode().getChild(nodeName);
-        Parameter newParameter = newAlpha.getParameter(parameterName);
-        assertEquals(expression, newParameter.getExpression());
-    }
-
 
 }

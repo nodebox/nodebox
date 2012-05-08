@@ -1,16 +1,19 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class CanvasTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
 
+public class CanvasTest {
+
+    @Test
     public void testCloning() {
         Color backgroundColor = new Color(0.1, 0.2, 0.3);
         Canvas c = new Canvas(200, 300);
         c.setBackground(backgroundColor);
         Canvas c2 = c.clone();
-        assertEquals(200f, c2.getWidth());
-        assertEquals(300f, c2.getHeight());
+        assertEquals(200.0, c2.getWidth());
+        assertEquals(300.0, c2.getHeight());
         assertEquals(backgroundColor, c.getBackground());
     }
 

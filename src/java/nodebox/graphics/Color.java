@@ -22,7 +22,9 @@ package nodebox.graphics;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Color implements Cloneable {
+import static com.google.common.base.Preconditions.checkArgument;
+
+public final class Color implements Cloneable {
 
     private static final Pattern HEX_STRING_PATTERN = Pattern.compile("^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$");
 
@@ -30,8 +32,11 @@ public class Color implements Cloneable {
         RGB, HSB, CMYK
     }
 
-    private double r, g, b, a;
-    private double h, s, v;
+    public static final Color BLACK = new Color(0);
+    public static final Color WHITE = new Color(1);
+
+    private final double r, g, b, a;
+    private final double h, s, v;
 
     public static double clamp(double v) {
         return Math.max(0.0, Math.min(1.0, v));
@@ -41,9 +46,12 @@ public class Color implements Cloneable {
         return new Color(hue, saturation, brightness, Mode.HSB);
     }
 
-
     public static Color fromHSB(double hue, double saturation, double brightness, double alpha) {
         return new Color(hue, saturation, brightness, alpha, Mode.HSB);
+    }
+
+    public static Color valueOf(String hex) {
+        return new Color(hex);
     }
 
     /**
@@ -118,25 +126,34 @@ public class Color implements Cloneable {
      * @param m the specified color mode.
      */
     public Color(double x, double y, double z, double a, Mode m) {
+        checkArgument(m != Mode.CMYK, "CMYK not supported");
+
         switch (m) {
-            case RGB:
-                this.r = clamp(x);
-                this.g = clamp(y);
-                this.b = clamp(z);
-                this.a = clamp(a);
-                updateHSB();
-                updateCMYK();
-                break;
+            case CMYK:
+                throw new RuntimeException("CMYK color mode is not implemented yet.");
             case HSB:
                 this.h = clamp(x);
                 this.s = clamp(y);
                 this.v = clamp(z);
                 this.a = clamp(a);
-                updateRGB();
-                updateCMYK();
+                double[] rgb = updateRGB();
+                this.r = rgb[0];
+                this.g = rgb[1];
+                this.b = rgb[2];
+                //updateCMYK();
                 break;
-            case CMYK:
-                throw new RuntimeException("CMYK color mode is not implemented yet.");
+            case RGB:
+            default:
+                this.r = clamp(x);
+                this.g = clamp(y);
+                this.b = clamp(z);
+                this.a = clamp(a);
+                double[] hsb = updateHSB();
+                this.h = hsb[0];
+                this.s = hsb[1];
+                this.v = hsb[2];
+                //updateCMYK();
+                break;
         }
     }
 
@@ -153,8 +170,11 @@ public class Color implements Cloneable {
         this.g = g255 / 255.0;
         this.b = b255 / 255.0;
         this.a = a255 / 255.0;
-        updateHSB();
-        updateCMYK();
+        double[] hsb = updateHSB();
+        this.h = hsb[0];
+        this.s = hsb[1];
+        this.v = hsb[2];
+        //updateCMYK();
     }
 
     /**
@@ -166,12 +186,7 @@ public class Color implements Cloneable {
      * @param color the color object.
      */
     public Color(java.awt.Color color) {
-        this.r = color.getRed() / 255.0;
-        this.g = color.getGreen() / 255.0;
-        this.b = color.getBlue() / 255.0;
-        this.a = color.getAlpha() / 255.0;
-        updateHSB();
-        updateCMYK();
+        this(color.getRed() / 255.0, color.getGreen() / 255.0, color.getBlue() / 255.0, color.getAlpha() / 255.0);
     }
 
     /**
@@ -183,12 +198,7 @@ public class Color implements Cloneable {
      * @param other the color object.
      */
     public Color(Color other) {
-        this.r = other.r;
-        this.g = other.g;
-        this.b = other.b;
-        this.a = other.a;
-        updateHSB();
-        updateCMYK();
+        this(other.r, other.g, other.b, other.a);
     }
 
     public double getRed() {
@@ -199,32 +209,12 @@ public class Color implements Cloneable {
         return r;
     }
 
-    public void setRed(double r) {
-        this.r = clamp(r);
-        updateHSB();
-        updateCMYK();
-    }
-
-    public void setR(double r) {
-        setRed(r);
-    }
-
     public double getGreen() {
         return g;
     }
 
     public double getG() {
         return g;
-    }
-
-    public void setGreen(double g) {
-        this.g = clamp(g);
-        updateHSB();
-        updateCMYK();
-    }
-
-    public void setG(double g) {
-        setGreen(g);
     }
 
     public double getBlue() {
@@ -235,32 +225,12 @@ public class Color implements Cloneable {
         return b;
     }
 
-    public void setBlue(double b) {
-        this.b = clamp(b);
-        updateHSB();
-        updateCMYK();
-    }
-
-    public void setB(double b) {
-        setBlue(b);
-    }
-
     public double getAlpha() {
         return a;
     }
 
     public double getA() {
         return a;
-    }
-
-    public void setAlpha(double a) {
-        this.a = clamp(a);
-        updateHSB();
-        updateCMYK();
-    }
-
-    public void setA(double a) {
-        setAlpha(a);
     }
 
     public boolean isVisible() {
@@ -275,32 +245,12 @@ public class Color implements Cloneable {
         return h;
     }
 
-    public void setHue(double h) {
-        this.h = clamp(h);
-        updateRGB();
-        updateCMYK();
-    }
-
-    public void setH(double h) {
-        setHue(h);
-    }
-
     public double getSaturation() {
         return s;
     }
 
     public double getS() {
         return s;
-    }
-
-    public void setSaturation(double s) {
-        this.s = clamp(s);
-        updateRGB();
-        updateCMYK();
-    }
-
-    public void setS(double s) {
-        setSaturation(s);
     }
 
     public double getBrightness() {
@@ -311,19 +261,9 @@ public class Color implements Cloneable {
         return v;
     }
 
-    public void setBrightness(double v) {
-        this.v = clamp(v);
-        updateRGB();
-        updateCMYK();
-    }
-
-    public void setV(double v) {
-        setBrightness(v);
-    }
-
-    private void updateRGB() {
+    private double[] updateRGB() {
         if (s == 0)
-            this.r = this.g = this.b = this.v;
+            return new double[] { this.v, this.v, this.v };
         else {
             double h = this.h;
             if (this.h == 1.0)
@@ -352,13 +292,11 @@ public class Color implements Cloneable {
             else
                 rgb = new double[]{v, p, q};
 
-            this.r = rgb[0];
-            this.g = rgb[1];
-            this.b = rgb[2];
+            return new double[] {rgb[0], rgb[1], rgb[2]};
         }
     }
 
-    private void updateHSB() {
+    private double[] updateHSB() {
         double h = 0;
         double s = 0;
         double v = Math.max(Math.max(r, g), b);
@@ -376,13 +314,11 @@ public class Color implements Cloneable {
                 h = 4 + (r - g) / d;
         }
 
-        h = h * (float) (60.0 / 360);
+        h = h * (60.0 / 360);
         if (h < 0)
             h = h + 1;
 
-        this.h = h;
-        this.s = s;
-        this.v = v;
+        return new double[] {h, s, v};
     }
 
     private void updateCMYK() {

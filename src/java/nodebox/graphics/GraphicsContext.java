@@ -1,6 +1,6 @@
 package nodebox.graphics;
 
-import nodebox.node.Parameter;
+import nodebox.node.Port;
 
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface GraphicsContext {
 
-    public static final float inch = 72;
-    public static final float cm = 28.3465f;
-    public static final float mm = 2.8346f;
+    public static final double inch = 72;
+    public static final double cm = 28.3465;
+    public static final double mm = 2.8346;
 
     public enum RectMode {
         CORNER, CORNERS, CENTER, RADIUS
@@ -21,15 +21,15 @@ public interface GraphicsContext {
     }
 
     public static enum VarType {
-        NUMBER(Parameter.Type.FLOAT, Parameter.Widget.FLOAT),
-        TEXT(Parameter.Type.STRING, Parameter.Widget.TEXT),
-        BOOLEAN(Parameter.Type.INT, Parameter.Widget.TOGGLE),
-        FONT(Parameter.Type.STRING, Parameter.Widget.FONT);
+        NUMBER(Port.TYPE_FLOAT, Port.Widget.FLOAT),
+        TEXT(Port.TYPE_STRING, Port.Widget.TEXT),
+        BOOLEAN(Port.TYPE_INT, Port.Widget.TOGGLE),
+        FONT(Port.TYPE_STRING, Port.Widget.FONT);
 
-        public final Parameter.Type type;
-        public final Parameter.Widget widget;
+        public final String type;
+        public final Port.Widget widget;
 
-        VarType(Parameter.Type type, Parameter.Widget widget) {
+        VarType(String type, Port.Widget widget) {
             this.type = type;
             this.widget = widget;
         }
@@ -68,13 +68,13 @@ public interface GraphicsContext {
 
     public Path rect(Rect r);
 
-    public Path rect(float x, float y, float width, float height);
+    public Path rect(double x, double y, double width, double height);
 
-    public Path rect(Rect r, float roundness);
+    public Path rect(Rect r, double roundness);
 
-    public Path rect(float x, float y, float width, float height, float roundness);
+    public Path rect(double x, double y, double width, double height, double roundness);
 
-    public Path rect(float x, float y, float width, float height, float rx, float ry);
+    public Path rect(double x, double y, double width, double height, double rx, double ry);
 
     public EllipseMode ellipsemode();
 
@@ -84,61 +84,61 @@ public interface GraphicsContext {
 
     public EllipseMode ellipsemode(int m);
 
-    public Path oval(float x, float y, float width, float height);
+    public Path oval(double x, double y, double width, double height);
 
-    public Path oval(float x, float y, float width, float height, boolean draw);
+    public Path oval(double x, double y, double width, double height, boolean draw);
 
-    public Path ellipse(float x, float y, float width, float height);
+    public Path ellipse(double x, double y, double width, double height);
 
-    public Path ellipse(float x, float y, float width, float height, boolean draw);
+    public Path ellipse(double x, double y, double width, double height, boolean draw);
 
-    public Path line(float x1, float y1, float x2, float y2);
+    public Path line(double x1, double y1, double x2, double y2);
 
-    public Path line(float x1, float y1, float x2, float y2, boolean draw);
+    public Path line(double x1, double y1, double x2, double y2, boolean draw);
 
-    public Path star(float cx, float cy);
+    public Path star(double cx, double cy);
 
-    public Path star(float cx, float cy, int points);
+    public Path star(double cx, double cy, int points);
 
-    public Path star(float cx, float cy, int points, float outer);
+    public Path star(double cx, double cy, int points, double outer);
 
-    public Path star(float cx, float cy, int points, float outer, float inner);
+    public Path star(double cx, double cy, int points, double outer, double inner);
 
-    public Path star(float cx, float cy, int points, float outer, float inner, boolean draw);
+    public Path star(double cx, double cy, int points, double outer, double inner, boolean draw);
 
-    public Path arrow(float x, float y);
+    public Path arrow(double x, double y);
 
-    public Path arrow(float x, float y, ArrowType type);
+    public Path arrow(double x, double y, ArrowType type);
 
-    public Path arrow(float x, float y, String type);
+    public Path arrow(double x, double y, String type);
 
-    public Path arrow(float x, float y, int type);
+    public Path arrow(double x, double y, int type);
 
-    public Path arrow(float x, float y, float width);
+    public Path arrow(double x, double y, double width);
 
-    public Path arrow(float x, float y, float width, boolean draw);
+    public Path arrow(double x, double y, double width, boolean draw);
 
-    public Path arrow(float x, float y, float width, ArrowType type);
+    public Path arrow(double x, double y, double width, ArrowType type);
 
-    public Path arrow(float x, float y, float width, String type);
+    public Path arrow(double x, double y, double width, String type);
 
-    public Path arrow(float x, float y, float width, int type);
+    public Path arrow(double x, double y, double width, int type);
 
-    public Path arrow(float x, float y, float width, ArrowType type, boolean draw);
+    public Path arrow(double x, double y, double width, ArrowType type, boolean draw);
 
-    public Path arrow(float x, float y, float width, String type, boolean draw);
+    public Path arrow(double x, double y, double width, String type, boolean draw);
 
-    public Path arrow(float x, float y, float width, int type, boolean draw);
+    public Path arrow(double x, double y, double width, int type, boolean draw);
 
     public void beginpath();
 
-    public void beginpath(float x, float y);
+    public void beginpath(double x, double y);
 
-    public void moveto(float x, float y);
+    public void moveto(double x, double y);
 
-    public void lineto(float x, float y);
+    public void lineto(double x, double y);
 
-    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3);
+    public void curveto(double x1, double y1, double x2, double y2, double x3, double y3);
 
     public void closepath();
 
@@ -156,7 +156,7 @@ public interface GraphicsContext {
 
     public Path findpath(List<Point> points);
 
-    public Path findpath(List<Point> points, float curvature);
+    public Path findpath(List<Point> points, double curvature);
 
     public void beginclip(Path p);
 
@@ -176,17 +176,17 @@ public interface GraphicsContext {
 
     public void reset();
 
-    public void translate(float tx, float ty);
+    public void translate(double tx, double ty);
 
-    public void rotate(float r);
+    public void rotate(double r);
 
-    public void scale(float scale);
+    public void scale(double scale);
 
-    public void scale(float sx, float sy);
+    public void scale(double sx, double sy);
 
-    public void skew(float skew);
+    public void skew(double skew);
 
-    public void skew(float kx, float ky);
+    public void skew(double kx, double ky);
 
     public String outputmode();
 
@@ -196,19 +196,19 @@ public interface GraphicsContext {
 
     public Color.Mode colormode(Color.Mode mode);
 
-    public Color.Mode colormode(Color.Mode mode, Float range);
+    public Color.Mode colormode(Color.Mode mode, double range);
 
     public Color.Mode colormode(String mode);
 
-    public Color.Mode colormode(String mode, Float range);
+    public Color.Mode colormode(String mode, double range);
 
     public Color.Mode colormode(int mode);
 
-    public Color.Mode colormode(int mode, Float range);
+    public Color.Mode colormode(int mode, double range);
 
-    public float colorrange();
+    public double colorrange();
 
-    public float colorrange(float range);
+    public double colorrange(double range);
 
     /**
      * Create an empty (black) color object.
@@ -223,7 +223,7 @@ public interface GraphicsContext {
      * @param x the gray component.
      * @return the new color.
      */
-    public Color color(float x);
+    public Color color(double x);
 
     /**
      * Create a new color with the given grayscale and alpha value.
@@ -232,7 +232,7 @@ public interface GraphicsContext {
      * @param y the alpha value.
      * @return the new color.
      */
-    public Color color(float x, float y);
+    public Color color(double x, double y);
 
     /**
      * Create a new color with the the given R/G/B value.
@@ -242,7 +242,7 @@ public interface GraphicsContext {
      * @param z the blue component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z);
+    public Color color(double x, double y, double z);
 
     /**
      * Create a new color with the the given R/G/B/A value.
@@ -253,7 +253,7 @@ public interface GraphicsContext {
      * @param a the alpha component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z, float a);
+    public Color color(double x, double y, double z, double a);
 
     /**
      * Create a new color with the the given color.
@@ -279,7 +279,7 @@ public interface GraphicsContext {
      * @param x the gray component.
      * @return the current fill color.
      */
-    public Color fill(float x);
+    public Color fill(double x);
 
     /**
      * Set the current fill color to given grayscale and alpha value.
@@ -288,7 +288,7 @@ public interface GraphicsContext {
      * @param y the alpha value.
      * @return the current fill color.
      */
-    public Color fill(float x, float y);
+    public Color fill(double x, double y);
 
     /**
      * Set the current fill color to the given R/G/B value.
@@ -298,7 +298,7 @@ public interface GraphicsContext {
      * @param z the blue component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z);
+    public Color fill(double x, double y, double z);
 
     /**
      * Set the current fill color to the given R/G/B/A value.
@@ -309,7 +309,7 @@ public interface GraphicsContext {
      * @param a the alpha component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z, float a);
+    public Color fill(double x, double y, double z, double a);
 
     /**
      * Set the current fill color to the given color.
@@ -340,7 +340,7 @@ public interface GraphicsContext {
      * @param x the gray component.
      * @return the current stroke color.
      */
-    public Color stroke(float x);
+    public Color stroke(double x);
 
     /**
      * Set the current stroke color to given grayscale and alpha value.
@@ -349,7 +349,7 @@ public interface GraphicsContext {
      * @param y the alpha value.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y);
+    public Color stroke(double x, double y);
 
     /**
      * Set the current stroke color to the given R/G/B value.
@@ -359,7 +359,7 @@ public interface GraphicsContext {
      * @param z the blue component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z);
+    public Color stroke(double x, double y, double z);
 
     /**
      * Set the current stroke color to the given R/G/B/A value.
@@ -370,7 +370,7 @@ public interface GraphicsContext {
      * @param a the alpha component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z, float a);
+    public Color stroke(double x, double y, double z, double a);
 
     /**
      * Set the current stroke color to the given color.
@@ -388,23 +388,23 @@ public interface GraphicsContext {
      */
     public void nostroke();
 
-    public float strokewidth();
+    public double strokewidth();
 
-    public float strokewidth(float w);
+    public double strokewidth(double w);
 
     public String font();
 
     public String font(String fontName);
 
-    public String font(String fontName, float fontSize);
+    public String font(String fontName, double fontSize);
 
-    public float fontsize();
+    public double fontsize();
 
-    public float fontsize(float s);
+    public double fontsize(double s);
 
-    public float lineheight();
+    public double lineheight();
 
-    public float lineheight(float lineHeight);
+    public double lineheight(double lineHeight);
 
     public Text.Align align();
 
@@ -414,21 +414,21 @@ public interface GraphicsContext {
 
     public Text.Align align(int align);
 
-    public Image image(String path, float x, float y);
+    public Image image(String path, double x, double y);
 
-    public Image image(String path, float x, float y, Float width);
+    public Image image(String path, double x, double y, double width);
 
-    public Image image(String path, float x, float y, Float width, Float height);
+    public Image image(String path, double x, double y, double width, double height);
 
-    public Image image(String path, float x, float y, Float width, Float height, float alpha);
+    public Image image(String path, double x, double y, double width, double height, double alpha);
 
-    public Image image(String path, float x, float y, Float width, Float height, boolean draw);
+    public Image image(String path, double x, double y, double width, double height, boolean draw);
 
-    public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw);
+    public Image image(String path, double x, double y, double width, double height, double alpha, boolean draw);
 
-    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw);
+    public Image image(Image img, double x, double y, double width, double height, double alpha, boolean draw);
 
-    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw);
+    public Image image(BufferedImage img, double x, double y, double width, double height, double alpha, boolean draw);
 
     public Size imagesize(String path);
 
@@ -436,33 +436,33 @@ public interface GraphicsContext {
 
     public Size imagesize(BufferedImage img);
 
-    public Text text(String text, float x, float y);
+    public Text text(String text, double x, double y);
 
-    public Text text(String text, float x, float y, float width);
+    public Text text(String text, double x, double y, double width);
 
-    public Text text(String text, float x, float y, float width, float height);
+    public Text text(String text, double x, double y, double width, double height);
 
-    public Text text(String text, float x, float y, float width, float height, boolean draw);
+    public Text text(String text, double x, double y, double width, double height, boolean draw);
 
-    public Path textpath(String text, float x, float y);
+    public Path textpath(String text, double x, double y);
 
-    public Path textpath(String text, float x, float y, float width);
+    public Path textpath(String text, double x, double y, double width);
 
-    public Path textpath(String text, float x, float y, float width, float height);
+    public Path textpath(String text, double x, double y, double width, double height);
 
     public Rect textmetrics(String text);
 
-    public Rect textmetrics(String text, float width);
+    public Rect textmetrics(String text, double width);
 
-    public Rect textmetrics(String text, float width, float height);
+    public Rect textmetrics(String text, double width, double height);
 
-    public float textwidth(String text);
+    public double textwidth(String text);
 
-    public float textwidth(String text, float width);
+    public double textwidth(String text, double width);
 
-    public float textheight(String text);
+    public double textheight(String text);
 
-    public float textheight(String text, float width);
+    public double textheight(String text, double width);
 
     public void var(String name, VarType type);
 
@@ -476,13 +476,13 @@ public interface GraphicsContext {
 
     public void var(String name, int type, Object value);
 
-    public void var(String name, VarType type, Object value, Float min, Float max);
+    public void var(String name, VarType type, Object value, double min, double max);
 
-    public void var(String name, String type, Object value, Float min, Float max);
+    public void var(String name, String type, Object value, double min, double max);
 
-    public void var(String name, int type, Object value, Float min, Float max);
+    public void var(String name, int type, Object value, double min, double max);
 
-    public Parameter findVar(String name);
+    public Port findVar(String name);
 
     public double random();
 

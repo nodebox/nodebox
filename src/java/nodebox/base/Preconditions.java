@@ -25,20 +25,20 @@ import java.util.NoSuchElementException;
  *     if (count <= 0) {
  *       throw new IllegalArgumentException("must be positive: " + count);
  *     }</pre>
- * <p/>
+ *
  * to be replaced with the more compact
  * <pre>
  *     checkArgument(count > 0, "must be positive: %s", count);</pre>
- * <p/>
+ *
  * Note that the sense of the expression is inverted; with {@code Preconditions}
  * you declare what you expect to be <i>true</i>, just as you do with an
  * <a href="http://java.sun.com/j2se/1.5.0/docs/guide/language/assert.html">
  * {@code assert}</a> or a JUnit {@code assertTrue} call.
- * <p/>
+ *
  * <p><b>Warning:</b> only the {@code "%s"} specifier is recognized as a
  * placeholder in these messages, not the full range of {@link
  * String#format(String, Object[])} specifiers.
- * <p/>
+ *
  * <p>Take care not to confuse precondition checking with other similar types
  * of checks! Precondition exceptions -- including those provided here, but also
  * {@link IndexOutOfBoundsException}, {@link NoSuchElementException}, {@link

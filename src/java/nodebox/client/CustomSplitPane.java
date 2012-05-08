@@ -46,5 +46,5 @@ public class CustomSplitPane extends JSplitPane {
             };
         }
     }
-    
+
 }

@@ -3,16 +3,17 @@ package nodebox.graphics;
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Contour extends AbstractGeometry {
 
-    private static final BasicStroke DEFAULT_STROKE = new BasicStroke(1f);
+    private static final BasicStroke DEFAULT_STROKE = new BasicStroke(1);
     private static final int SEGMENT_ACCURACY = 20;
 
-    private ArrayList<Point> points;
+    private List<Point> points;
     private boolean closed;
-    private transient ArrayList<Float> segmentLengths;
-    private transient float length = -1;
+    private transient ArrayList<Double> segmentLengths;
+    private transient double length = -1;
 
     public Contour() {
         points = new ArrayList<Point>();
@@ -22,9 +23,17 @@ public class Contour extends AbstractGeometry {
     public Contour(Contour other) {
         points = new ArrayList<Point>(other.points.size());
         for (Point p : other.points) {
-            points.add(p.clone());
+            points.add(p);
         }
         closed = other.closed;
+    }
+
+    public Contour(Iterable<Point> points, boolean closed) {
+        this.points = new ArrayList<Point>();
+        for (Point p : points) {
+            this.points.add(p);
+        }
+        this.closed = closed;
     }
 
     //// Point operations ////
@@ -37,12 +46,16 @@ public class Contour extends AbstractGeometry {
         return points;
     }
 
+    void setPoints(List<Point> points) {
+        this.points = points;
+    }
+
     public void addPoint(Point pt) {
-        points.add(pt.clone());
+        points.add(pt);
         invalidate();
     }
 
-    public void addPoint(float x, float y) {
+    public void addPoint(double x, double y) {
         points.add(new Point(x, y));
         invalidate();
     }
@@ -73,11 +86,11 @@ public class Contour extends AbstractGeometry {
         if (points.isEmpty()) {
             return new Rect();
         }
-        float minX = Float.MAX_VALUE;
-        float minY = Float.MAX_VALUE;
-        float maxX = Float.MIN_VALUE;
-        float maxY = Float.MIN_VALUE;
-        float px, py;
+        double minX = Double.MAX_VALUE;
+        double minY = Double.MAX_VALUE;
+        double maxX = Double.MIN_VALUE;
+        double maxY = Double.MIN_VALUE;
+        double px, py;
         for (Point p : points) {
             px = p.getX();
             py = p.getY();
@@ -103,10 +116,10 @@ public class Contour extends AbstractGeometry {
         segmentLengths = null;
     }
 
-    public float updateSegmentLengths() {
+    public double updateSegmentLengths() {
         java.util.List<Point> points = getPoints();
-        segmentLengths = new ArrayList<Float>();
-        float totalLength = 0;
+        segmentLengths = new ArrayList<Double>();
+        double totalLength = 0;
 
         // We cannot form a line or curve with the first point.
         // Since the algorithm looks back at previous points, we
@@ -116,14 +129,14 @@ public class Contour extends AbstractGeometry {
             Point pt = points.get(pi);
             if (pt.isLineTo()) {
                 Point pt0 = points.get(pi - 1);
-                float length = Path.lineLength(pt0.x, pt0.y, pt.x, pt.y);
+                double length = Path.lineLength(pt0.x, pt0.y, pt.x, pt.y);
                 segmentLengths.add(length);
                 totalLength += length;
             } else if (pt.isCurveTo()) {
                 Point pt0 = points.get(pi - 3);
                 Point c1 = points.get(pi - 2);
                 Point c2 = points.get(pi - 1);
-                float length = Path.curveLength(pt0.x, pt0.y,
+                double length = Path.curveLength(pt0.x, pt0.y,
                         c1.x, c1.y,
                         c2.x, c2.y,
                         pt.x, pt.y, SEGMENT_ACCURACY);
@@ -135,7 +148,7 @@ public class Contour extends AbstractGeometry {
         if (closed && !points.isEmpty()) {
             Point pt0 = points.get(points.size() - 1);
             Point pt1 = points.get(0);
-            float length = Path.lineLength(pt0.x, pt0.y, pt1.x, pt1.y);
+            double length = Path.lineLength(pt0.x, pt0.y, pt1.x, pt1.y);
             segmentLengths.add(length);
             totalLength += length;
         }
@@ -149,7 +162,7 @@ public class Contour extends AbstractGeometry {
      *
      * @return the length of the contour
      */
-    public float getLength() {
+    public double getLength() {
         if (segmentLengths == null)
             updateSegmentLengths();
         assert (length != -1);
@@ -168,7 +181,7 @@ public class Contour extends AbstractGeometry {
      *          Results outside of this range are undefined.
      * @return coordinates for point at t.
      */
-    public Point pointAt(float t) {
+    public Point pointAt(double t) {
         if (segmentLengths == null)
             updateSegmentLengths();
 
@@ -178,16 +191,16 @@ public class Contour extends AbstractGeometry {
 
         // If the path has no length, return the position of the first point.
         if (length == 0)
-            return points.get(0).clone();
+            return points.get(0);
 
         // Since t is relative, convert it to the absolute length.
-        float absT = t * length;
+        double absT = t * length;
         // The resT is what remains of t after we traversed all segments.
-        float resT = t;
+        double resT = t;
 
         // Find the segment that contains t.
         int segnum = -1;
-        for (Float seglength : segmentLengths) {
+        for (Double seglength : segmentLengths) {
             segnum++;
             if (absT <= seglength || segnum == segmentLengths.size() - 1)
                 break;
@@ -229,9 +242,9 @@ public class Contour extends AbstractGeometry {
      *
      * @param t relative coordinate of the point.
      * @return coordinates for point at t.
-     * @see #pointAt(float)
+     * @see #pointAt(double)
      */
-    public Point point(float t) {
+    public Point point(double t) {
         return pointAt(t);
     }
 
@@ -273,10 +286,10 @@ public class Contour extends AbstractGeometry {
         // If the contour is empty, pointAt will fail. Return an empty array.
         if (points.isEmpty()) return new Point[0];
         Point[] points = new Point[amount];
-        float delta = 1;
+        double delta = 1;
         if (closed) {
             if (amount > 0) {
-                delta = 1f / amount;
+                delta = 1.0 / amount;
             }
         } else {
             // The delta value is divided by amount - 1, because we also want the last point (t=1.0)
@@ -284,7 +297,7 @@ public class Contour extends AbstractGeometry {
             // E.g. if amount = 4, I want point at t 0.0, 0.33, 0.66 and 1.0,
             // if amount = 2, I want point at t 0.0 and t 1.0
             if (amount > 2) {
-                delta = 1f / (amount - 1f);
+                delta = 1.0 / (amount - 1.0);
             }
         }
         for (int i = 0; i < amount; i++) {
@@ -297,7 +310,7 @@ public class Contour extends AbstractGeometry {
      * Make new points along the contours of the existing path.
      *
      * @param amount     the amount of points to distribute.
-     * @param perContour this parameter was added to comply with the IGeometry interface, but is ignored since
+     * @param perContour this port was added to comply with the IGeometry interface, but is ignored since
      *                   we're at the contour level.
      * @return a list with "amount" points or zero points if the contour is empty.
      */
@@ -311,7 +324,7 @@ public class Contour extends AbstractGeometry {
      * The length of each segment is not given and will be determined based on the required number of points.
      *
      * @param amount     the number of points to generate.
-     * @param perContour this parameter is ignored since we're at the contour level.
+     * @param perContour this port is ignored since we're at the contour level.
      * @return a new Contour with the given number of points.
      */
     public Contour resampleByAmount(int amount, boolean perContour) {
@@ -343,11 +356,11 @@ public class Contour extends AbstractGeometry {
      * @param segmentLength the maximum length of each resampled segment.
      * @return a new Contour with segments of the given length.
      */
-    public Contour resampleByLength(float segmentLength) {
-        if (segmentLength <= 0.0000001f) {
+    public Contour resampleByLength(double segmentLength) {
+        if (segmentLength <= 0.0000001) {
             throw new IllegalArgumentException("Segment length must be greater than zero.");
         }
-        float contourLength = getLength();
+        double contourLength = getLength();
         int amount = (int) Math.ceil(contourLength / segmentLength);
         if (closed) {
             return resampleByAmount(amount);
@@ -404,7 +417,7 @@ public class Contour extends AbstractGeometry {
     }
 
     public void transform(Transform t) {
-        t.map(getPoints());
+        this.points = t.map(getPoints());
         invalidate();
     }
 
@@ -419,4 +432,5 @@ public class Contour extends AbstractGeometry {
     public Contour clone() {
         return new Contour(this);
     }
+
 }

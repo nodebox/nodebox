@@ -1,10 +1,8 @@
 package nodebox.handle;
 
-import nodebox.graphics.CanvasContext;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
 import nodebox.graphics.Rect;
-import nodebox.node.Node;
 
 public class ScaleHandle extends AbstractHandle {
     public static final int HANDLE_WIDTH = 100;
@@ -14,30 +12,34 @@ public class ScaleHandle extends AbstractHandle {
         NONE, TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT
     }
 
-    private String sxName, syName;
-    private float px, py;
-    private float ox, oy;
-    private float handleWidth = HANDLE_WIDTH;
-    private float handleHeight = HANDLE_HEIGHT;
+    private String scaleName;
+    private double px, py;
+    private double ox, oy;
+    private double handleWidth = HANDLE_WIDTH;
+    private double handleHeight = HANDLE_HEIGHT;
     private boolean scaleHorizontal = true;
     private boolean scaleVertical = true;
     private DragState dragState = DragState.NONE;
 
-    public ScaleHandle(Node node) {
-        this(node, "sx", "sy");
+    public ScaleHandle() {
+        this("scale");
     }
 
-    public ScaleHandle(Node node, String sxName, String syName) {
-        super(node);
-        this.sxName = sxName;
-        this.syName = syName;
+    public ScaleHandle(String scaleName) {
+        this.scaleName = scaleName;
+        update();
+    }
+
+    @Override
+    public void update() {
+        setVisible(isConnected("shape"));
     }
 
     public void draw(GraphicsContext ctx) {
         ctx.nofill();
         ctx.stroke(HANDLE_COLOR);
-        float halfWidth = handleWidth / 2;
-        float halfHeight = handleHeight / 2;
+        double halfWidth = handleWidth / 2;
+        double halfHeight = handleHeight / 2;
         ctx.rectmode(GraphicsContext.RectMode.CENTER);
         ctx.rect(0, 0, handleWidth, handleHeight);
         drawDot(ctx, -halfWidth, -halfHeight);
@@ -48,18 +50,19 @@ public class ScaleHandle extends AbstractHandle {
 
     @Override
     public boolean mousePressed(Point pt) {
-        float left = -handleWidth / 2;
-        float right = handleWidth / 2;
-        float top = -handleHeight / 2;
-        float bottom = handleHeight / 2;
+        double left = -handleWidth / 2;
+        double right = handleWidth / 2;
+        double top = -handleHeight / 2;
+        double bottom = handleHeight / 2;
         Rect topLeft = createHitRectangle(left, top);
         Rect topRight = createHitRectangle(right, top);
         Rect bottomLeft = createHitRectangle(left, bottom);
         Rect bottomRight = createHitRectangle(right, bottom);
         px = pt.getX();
         py = pt.getY();
-        ox = node.asFloat(sxName);
-        oy = node.asFloat(syName);
+        Point op = (Point) getValue(scaleName);
+        ox = op.x;
+        oy = op.y;
         if (topLeft.contains(pt))
             dragState = DragState.TOP_LEFT;
         else if (topRight.contains(pt))
@@ -76,10 +79,10 @@ public class ScaleHandle extends AbstractHandle {
     @Override
     public boolean mouseDragged(Point pt) {
         if (dragState == DragState.NONE) return false;
-        float x = pt.getX();
-        float y = pt.getY();
-        float dx = x - px;
-        float dy = y - py;
+        double x = pt.getX();
+        double y = pt.getY();
+        double dx = x - px;
+        double dy = y - py;
         if (dx == 0 && dy == 0) return false;
         startCombiningEdits("Set Value");
         if (dragState == DragState.TOP_LEFT) {
@@ -95,16 +98,18 @@ public class ScaleHandle extends AbstractHandle {
             handleWidth = HANDLE_WIDTH + dx * 2;
             handleHeight = HANDLE_HEIGHT + dy * 2;
         }
-        float pctX = handleWidth / HANDLE_WIDTH;
-        float pctY = handleHeight / HANDLE_HEIGHT;
+        double pctX = handleWidth / HANDLE_WIDTH;
+        double pctY = handleHeight / HANDLE_HEIGHT;
+        Point op = (Point) getValue(scaleName);
         if (scaleHorizontal)
-            silentSet(sxName, ox * pctX);
+            op = new Point(ox * pctX, op.y);
         else
             handleWidth = HANDLE_WIDTH;
         if (scaleVertical)
-            silentSet(syName, oy * pctY);
+            op = new Point(op.x, oy * pctY);
         else
             handleHeight = HANDLE_HEIGHT;
+        silentSet(scaleName, op);
         return true;
     }
 
@@ -115,7 +120,7 @@ public class ScaleHandle extends AbstractHandle {
         handleHeight = HANDLE_HEIGHT;
         dragState = DragState.NONE;
         stopCombiningEdits();
-        viewer.repaint();
+        updateHandle();
         return true;
     }
 

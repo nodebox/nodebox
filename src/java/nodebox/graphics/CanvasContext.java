@@ -22,8 +22,8 @@ import java.awt.image.BufferedImage;
 
 public class CanvasContext extends AbstractGraphicsContext {
 
-    public static final float DEFAULT_WIDTH = 1000;
-    public static final float DEFAULT_HEIGHT = 1000;
+    public static final double DEFAULT_WIDTH = 1000;
+    public static final double DEFAULT_HEIGHT = 1000;
 
     public enum ImageMode {
         CORNERS, CORNER, RADIUS, CENTER
@@ -66,24 +66,24 @@ public class CanvasContext extends AbstractGraphicsContext {
 
     //// Setup methods ////
 
-    public void size(float width, float height) {
+    public void size(double width, double height) {
         canvas.setWidth(width);
         canvas.setHeight(height);
     }
 
-    public float getWidth() {
+    public double getWidth() {
         return canvas.getWidth();
     }
 
-    public float getHeight() {
+    public double getHeight() {
         return canvas.getHeight();
     }
 
-    public float getWIDTH() {
+    public double getWIDTH() {
         return canvas.getWidth();
     }
 
-    public float getHEIGHT() {
+    public double getHEIGHT() {
         return canvas.getHeight();
     }
 
@@ -102,8 +102,8 @@ public class CanvasContext extends AbstractGraphicsContext {
      * @param x the gray component.
      * @return the current background color.
      */
-    public Color background(float x) {
-        float nx = normalize(x);
+    public Color background(double x) {
+        double nx = normalize(x);
         return canvas.setBackground(new Color(nx, nx, nx));
     }
 
@@ -114,8 +114,8 @@ public class CanvasContext extends AbstractGraphicsContext {
      * @param y the alpha value.
      * @return the current background color.
      */
-    public Color background(float x, float y) {
-        float nx = normalize(x);
+    public Color background(double x, double y) {
+        double nx = normalize(x);
         return canvas.setBackground(new Color(nx, nx, nx, normalize(y)));
     }
 
@@ -127,7 +127,7 @@ public class CanvasContext extends AbstractGraphicsContext {
      * @param z the blue component.
      * @return the current background color.
      */
-    public Color background(float x, float y, float z) {
+    public Color background(double x, double y, double z) {
         return canvas.setBackground(new Color(normalize(x), normalize(y), normalize(z), colormode()));
     }
 
@@ -140,7 +140,7 @@ public class CanvasContext extends AbstractGraphicsContext {
      * @param a the alpha component.
      * @return the current background color.
      */
-    public Color background(float x, float y, float z, float a) {
+    public Color background(double x, double y, double z, double a) {
         return canvas.setBackground(new Color(normalize(x), normalize(y), normalize(z), normalize(a), colormode()));
     }
 
@@ -170,52 +170,52 @@ public class CanvasContext extends AbstractGraphicsContext {
     //// Image methods ////
 
     @Override
-    public Image image(String path, float x, float y) {
-        return image(path, x, y, null, null, 1.0f, true);
+    public Image image(String path, double x, double y) {
+        return image(path, x, y, 0, 0, 1, true);
     }
 
     @Override
-    public Image image(String path, float x, float y, Float width) {
-        return image(path, x, y, width, null, 1.0f, true);
+    public Image image(String path, double x, double y, double width) {
+        return image(path, x, y, width, 0, 1, true);
     }
 
     @Override
-    public Image image(String path, float x, float y, Float width, Float height) {
-        return image(path, x, y, width, height, 1.0f, true);
+    public Image image(String path, double x, double y, double width, double height) {
+        return image(path, x, y, width, height, 1, true);
     }
 
     @Override
-    public Image image(String path, float x, float y, Float width, Float height, float alpha) {
+    public Image image(String path, double x, double y, double width, double height, double alpha) {
         return image(path, x, y, width, height, alpha, true);
     }
 
     @Override
-    public Image image(String path, float x, float y, Float width, Float height, boolean draw) {
-        return image(path, x, y, width, height, 1.0f, draw);
+    public Image image(String path, double x, double y, double width, double height, boolean draw) {
+        return image(path, x, y, width, height, 1.0, draw);
     }
 
     @Override
-    public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(String path, double x, double y, double width, double height, double alpha, boolean draw) {
         return loadImage(new Image(path), x, y, width, height, alpha, draw);
     }
 
     @Override
-    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(Image img, double x, double y, double width, double height, double alpha, boolean draw) {
         return loadImage(img.clone(), x, y, width, height, alpha, draw);
     }
 
     @Override
-    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(BufferedImage img, double x, double y, double width, double height, double alpha, boolean draw) {
         return loadImage(new Image(img), x, y, width, height, alpha, draw);
     }
 
-    private Image loadImage(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
-        if (width != null) img.setWidth(width);
-        if (height != null) img.setHeight(height);
+    private Image loadImage(Image img, double x, double y, double width, double height, double alpha, boolean draw) {
+        if (width != 0) img.setWidth(width);
+        if (height != 0) img.setHeight(height);
         switch (imageMode) {
             case CORNER:
-                float w = img.getWidth();
-                float h = img.getHeight();
+                double w = img.getWidth();
+                double h = img.getHeight();
                 img.setX(x + w / 2);
                 img.setY(y + h / 2);
                 break;
@@ -279,5 +279,6 @@ public class CanvasContext extends AbstractGraphicsContext {
 
     protected void inheritFromContext(Image i) {
         TransformDelegate d = i.getTransformDelegate();
-        d.transform(i, transform, true);    }
+        d.transform(i, transform, true);
+    }
 }

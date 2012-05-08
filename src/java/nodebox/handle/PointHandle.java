@@ -1,7 +1,9 @@
 package nodebox.handle;
 
-import nodebox.graphics.*;
-import nodebox.node.Node;
+import nodebox.graphics.Color;
+import nodebox.graphics.GraphicsContext;
+import nodebox.graphics.Point;
+import nodebox.graphics.Rect;
 
 public class PointHandle extends AbstractHandle {
 
@@ -9,33 +11,39 @@ public class PointHandle extends AbstractHandle {
     public static final int HALF_HANDLE_SIZE = HANDLE_SIZE / 2;
     public static final Color HANDLE_COLOR = new Color(0.41, 0.39, 0.68);
 
-    private String xName, yName;
+    private String positionName;
     private boolean dragging;
     private double px, py;
     private double ox, oy;
 
-    public PointHandle(Node node) {
-        this(node, "x", "y");
+    public PointHandle() {
+        this("position");
     }
 
-    public PointHandle(Node node, String xName, String yName) {
-        super(node);
-        this.xName = xName;
-        this.yName = yName;
+    public PointHandle(String positionName) {
+        this.positionName = positionName;
+        update();
     }
+
+    @Override
+    public void update() {
+        if (hasInput("shape"))
+            setVisible(isConnected("shape"));
+    }
+
 
     public void draw(GraphicsContext ctx) {
-        float x = node.asFloat(xName);
-        float y = node.asFloat(yName);
-        drawDot(ctx, x, y);
+        Point pt = (Point) getValue(positionName);
+        drawDot(ctx, (float) pt.x, (float) pt.y);
     }
 
     @Override
     public boolean mousePressed(Point pt) {
         px = pt.getX();
         py = pt.getY();
-        ox = node.asFloat(xName);
-        oy = node.asFloat(yName);
+        Point op = (Point) getValue(positionName);
+        ox = op.x;
+        oy = op.y;
 
         Rect hitRect = createHitRectangle(ox, oy);
         dragging = hitRect.contains(pt);
@@ -52,8 +60,7 @@ public class PointHandle extends AbstractHandle {
         if (dx == 0 && dy == 0) return false;
         startCombiningEdits("Set Value");
         // TODO: Temporary float fix to get a working compile. Doubles will be removed.
-        silentSet(xName, (float) (ox + dx));
-        silentSet(yName, (float) (oy + dy));
+        silentSet(positionName, new Point((float) (ox + dx), (float) (oy + dy)));
         return true;
     }
 

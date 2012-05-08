@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <link href="java:nodebox.function.ColorFunctions" rel="functions"/>
+    <node name="root" renderedChild="rgb_color">
+        <node description="Create a color." function="color/color" name="color" position="20,100" outputType="color">
+            <port name="color" type="color" />
+        </node>
+        <node description="Create a gray color." function="color/gray" name="gray_color" position="20,100" outputType="color">
+            <port name="gray" type="float" />
+            <port name="alpha" type="float" value="255.0" />
+            <port name="range" type="float" value="255.0" />
+        </node>
+        <node description="Create a RGB color." function="color/rgb" name="rgb_color" position="20,100" outputType="color">
+            <port name="red" type="float" />
+            <port name="green" type="float" />
+            <port name="blue" type="float" />
+            <port name="alpha" type="float" value="255.0" />
+            <port name="range" type="float" value="255.0" />
+        </node>
+        <node description="Create an HSB color." function="color/hsb" name="hsb_color" position="20,100" outputType="color">
+            <port name="hue" type="float" />
+            <port name="saturation" type="float" />
+            <port name="brightness" type="float" />
+            <port name="alpha" type="float" value="255.0" />
+            <port name="range" type="float" value="255.0" />
+        </node>
+    </node>
+</ndbx>

@@ -1,42 +1,46 @@
 package nodebox.client;
 
+import com.google.common.collect.ImmutableList;
 import edu.umd.cs.piccolo.PCanvas;
 import edu.umd.cs.piccolo.PLayer;
 import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PAffineTransform;
 import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.graphics.Canvas;
-import nodebox.graphics.*;
+import nodebox.client.visualizer.*;
+import nodebox.graphics.CanvasContext;
+import nodebox.graphics.IGeometry;
 import nodebox.handle.Handle;
+import nodebox.ui.Platform;
+import nodebox.ui.Theme;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedList;
 
-public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMotionListener, KeyListener {
+import static com.google.common.base.Preconditions.checkNotNull;
+import static nodebox.util.ListUtils.listClass;
 
-    public static final float POINT_SIZE = 4f;
+public class Viewer extends PCanvas implements OutputView, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float MIN_ZOOM = 0.01f;
     public static final float MAX_ZOOM = 64.0f;
 
-    private static final String HANDLE_UNDO_TEXT = "Handle Changes";
-    private static final String HANDLE_UNDO_TYPE = "handle";
+    private static final ImmutableList<Visualizer> visualizers;
+    private static final Visualizer DEFAULT_VISUALIZER = LastResortVisualizer.INSTANCE;
 
-    private static Cursor defaultCursor, panCursor;
+    private static final Cursor defaultCursor, panCursor;
 
     private final NodeBoxDocument document;
-    private Object outputValue;
+    private final PLayer viewerLayer;
+    private final JPopupMenu viewerMenu;
+
     private Handle handle;
     private boolean showHandle = true;
     private boolean handleEnabled = true;
@@ -44,16 +48,15 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
     private boolean panEnabled = false;
-    private PLayer viewerLayer;
-    private JPopupMenu viewerMenu;
-    private Class outputClass;
-    private ViewerEventListener listener;
+
+    private java.util.List<Object> outputValues;
+    private Class valuesClass;
+    private Visualizer currentVisualizer;
 
     static {
         Image panCursorImage;
-
         try {
-            if (PlatformUtils.onWindows())
+            if (Platform.onWindows())
                 panCursorImage = ImageIO.read(new File("res/view-cursor-pan-32.png"));
             else
                 panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
@@ -63,6 +66,8 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        visualizers = ImmutableList.of(CanvasVisualizer.INSTANCE, GrobVisualizer.INSTANCE, PointVisualizer.INSTANCE, ColorVisualizer.INSTANCE);
     }
 
     public Viewer(final NodeBoxDocument document) {
@@ -110,14 +115,6 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         viewerLayer = new ViewerLayer();
         getCamera().addLayer(0, viewerLayer);
 
-        initMenus();
-    }
-
-    public void setEventListener(ViewerEventListener e) {
-        listener = e;
-    }
-
-    private void initMenus() {
         viewerMenu = new JPopupMenu();
         viewerMenu.add(new ResetViewAction());
         PopupHandler popupHandler = new PopupHandler();
@@ -171,43 +168,62 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
         repaint();
     }
 
+    public void updateHandle() {
+        if (handle == null) return;
+        handle.update();
+    }
+
     public boolean hasVisibleHandle() {
         if (handle == null) return false;
         if (!showHandle) return false;
         if (!handleEnabled) return false;
+
+        // Don't show handles when the window offset of LastResortVisualizer and ColorVisualizer
+        // doesn't match the visualizer for Grob, Canvas or Point, resulting in the handle showing up at
+        // a weird location.
+        // Todo: Find a better solution, because this feels a bit hacky.
+        if (currentVisualizer instanceof LastResortVisualizer) return false;
+        if (currentVisualizer instanceof ColorVisualizer) return false;
+
         return handle.isVisible();
     }
 
     //// Network data events ////
 
 
-    public Object getOutputValue() {
-        return outputValue;
+    public java.util.List getOutputValues() {
+        return outputValues;
     }
 
-    public void setOutputValue(Object outputValue) {
-        this.outputValue = outputValue;
-        if (outputValue != null && outputClass != outputValue.getClass()) {
-            if (outputValue instanceof Canvas) {
-                // The canvas is placed in the top-left corner, as in NodeBox 1.
-                resetView();
-                Canvas canvas = (Canvas) outputValue;
-                viewerLayer.setBounds(canvas.getBounds().getRectangle2D());
-                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
-            } else if (outputValue instanceof Grob) {
-                // Other graphic objects are displayed in the center.
-                resetView();
-                viewerLayer.setBounds(-Integer.MAX_VALUE / 2, -Integer.MAX_VALUE / 2, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                viewerLayer.setOffset(getWidth() / 2, getHeight() / 2);
-            } else {
-                // Other output will be converted to a string, and placed just off the top-left corner.
-                resetView();
-                viewerLayer.setBounds(0, 0, Integer.MAX_VALUE, Integer.MAX_VALUE);
-                viewerLayer.setOffset(5, 5);
-            }
-            outputClass = outputValue.getClass();
+    public void setOutputValues(java.util.List<Object> outputValues) {
+        this.outputValues = outputValues;
+        valuesClass = listClass(outputValues);
+        Visualizer visualizer = getVisualizer(outputValues, valuesClass);
+        if (visualizer instanceof LastResortVisualizer && outputValues.size() == 0) {
+            // This scenario means likely that we're in a node that normally outputs
+            // some visual type but currently outputs null (or None)
+            // If we'd reset the visualizer the screen offset would change, and this would
+            // lead to strange (and wrong) interactions with handles (big leaps in
+            // current mouse locations).
+            repaint();
+            return;  
+        } 
+        if (currentVisualizer != visualizer) {
+            resetView();
+            currentVisualizer = visualizer;
         }
+        checkNotNull(currentVisualizer);
+        viewerLayer.setBounds(visualizer.getBounds(outputValues));
+        viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
         repaint();
+    }
+
+    public static Visualizer getVisualizer(Iterable<?> objects, Class listClass) {
+        for (Visualizer visualizer : visualizers) {
+            if (visualizer.accepts(objects, listClass))
+                return visualizer;
+        }
+        return DEFAULT_VISUALIZER;
     }
 
     //// Node attribute listener ////
@@ -358,42 +374,22 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
 
         @Override
         protected void paint(PPaintContext paintContext) {
-            Graphics2D g2 = paintContext.getGraphics();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            // If the output value is geometry, store it in a geometry object.
-            // This is used to draw the points / point numbers.
-            IGeometry geo = null;
-            // Draw the canvas bounds
-            if (outputValue instanceof Canvas) {
-                Canvas c = (Canvas) outputValue;
-                geo = c.asGeometry(false);
-                Rectangle2D canvasBounds = c.getBounds().getRectangle2D();
-                g2.setColor(Color.DARK_GRAY);
-                g2.setStroke(new BasicStroke(1f));
-                g2.draw(canvasBounds);
-            }
-            if (outputValue instanceof Grob) {
-                Grob g = (Grob) outputValue;
-                if (g instanceof IGeometry) {
-                    geo = (IGeometry) outputValue;
-                }
-                Shape oldClip = g2.getClip();
-                g.draw(g2);
-                g2.setClip(oldClip);
-            } else if (outputValue != null) {
-                g2.setColor(Theme.TEXT_NORMAL_COLOR);
-                g2.setFont(Theme.EDITOR_FONT);
-                String s = outputValue.toString();
-                int y = 20;
-                for (String line : s.split("\n")) {
-                    g2.drawString(line, 5, y);
-                    y += 14;
-                }
-            }
+            Graphics2D g = paintContext.getGraphics();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            drawObjects(g);
+            drawHandle(g);
+            drawPoints(g);
+            drawPointNumbers(g);
+        }
 
-            // Draw the handle.
+        public void drawObjects(Graphics2D g) {
+            if (currentVisualizer != null)
+                currentVisualizer.draw(g, outputValues);
+        }
+
+        public void drawHandle(Graphics2D g) {
             if (hasVisibleHandle()) {
-                // Create a canvas with a transparent background
+                // Create a canvas with a transparent background.
                 nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
                 canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
                 CanvasContext ctx = new CanvasContext(canvas);
@@ -402,44 +398,43 @@ public class Viewer extends PCanvas implements PaneView, MouseListener, MouseMot
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                ctx.getCanvas().draw(g2);
+                ctx.getCanvas().draw(g);
             }
+        }
 
-            // Draw the points.
-            if (showPoints && geo != null) {
-                // Create a canvas with a transparent background
-                Path onCurves = new Path();
-                Path offCurves = new Path();
-                onCurves.setFill(new nodebox.graphics.Color(0f, 0f, 1f));
-                offCurves.setFill(new nodebox.graphics.Color(1f, 0f, 0f));
-                for (nodebox.graphics.Point pt : geo.getPoints()) {
-                    if (pt.isOnCurve()) {
-                        onCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
-                    } else {
-                        offCurves.ellipse(pt.x, pt.y, POINT_SIZE, POINT_SIZE);
-                    }
+        private void drawPoints(Graphics2D g) {
+            if (showPoints && IGeometry.class.isAssignableFrom(valuesClass)) {
+                // TODO Create a dynamic iterator that combines all output values into one flat sequence.
+                LinkedList<nodebox.graphics.Point> points = new LinkedList<nodebox.graphics.Point>();
+                for (Object o : outputValues) {
+                    IGeometry geo = (IGeometry) o;
+                    points.addAll(geo.getPoints());
                 }
-                onCurves.draw(g2);
-                offCurves.draw(g2);
+                PointVisualizer.drawPoints(g, points);
             }
+        }
 
-            // Draw the point numbers.
-            if (showPointNumbers && geo != null) {
-                g2.setFont(Theme.SMALL_MONO_FONT);
-                g2.setColor(Color.BLUE);
-                // Create a canvas with a transparent background
+        private void drawPointNumbers(Graphics2D g) {
+            if (showPointNumbers && IGeometry.class.isAssignableFrom(valuesClass)) {
+                g.setFont(Theme.SMALL_MONO_FONT);
+                g.setColor(Color.BLUE);
+                // Create a canvas with a transparent background.
                 int index = 0;
-                for (nodebox.graphics.Point pt : geo.getPoints()) {
-                    if (pt.isOnCurve()) {
-                        g2.setColor(Color.BLUE);
-                    } else {
-                        g2.setColor(Color.RED);
+                for (Object o : outputValues) {
+                    IGeometry geo = (IGeometry) o;
+                    for (nodebox.graphics.Point pt : geo.getPoints()) {
+                        if (pt.isOnCurve()) {
+                            g.setColor(Color.BLUE);
+                        } else {
+                            g.setColor(Color.RED);
+                        }
+                        g.drawString(index + "", (int) (pt.x + 3), (int) (pt.y - 2));
+                        index++;
                     }
-                    g2.drawString(index + "", pt.x + 3, pt.y - 2);
-                    index++;
                 }
             }
         }
+
     }
 
     private class PopupHandler extends PBasicInputEventHandler {

@@ -1,11 +1,14 @@
 package nodebox.util;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.io.File;
 
-public class FileUtilTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
 
+public class FileUtilTest {
+
+    @Test
     public void testStripExtension() {
         assertEquals("test", FileUtils.stripExtension("test.ndbx"));
         assertEquals("MixedCase", FileUtils.stripExtension("MixedCase.GIF")); // Retain case
@@ -15,6 +18,7 @@ public class FileUtilTest extends TestCase {
         assertEquals("", FileUtils.stripExtension("")); // Retain case
     }
 
+    @Test
     public void testGetExtension() {
         assertEquals("png", FileUtils.getExtension("helloworld.png"));
         assertEquals("gif", FileUtils.getExtension("MixedCase.GIF")); // Always lower case
@@ -22,8 +26,9 @@ public class FileUtilTest extends TestCase {
         assertEquals("", FileUtils.getExtension("noextension"));
     }
 
+    @Test
     public void testGetRelativePaths() {
-        String sep = System.getProperty("file.separator");
+        String sep = "/";
         assertEquals("stuff" + sep + "xyz.dat", FileUtils.getRelativePath(
                 new File("/var/data/stuff/xyz.dat"), new File("/var/data/")));
         assertEquals(".." + sep + ".." + sep + "b" + sep + "c", FileUtils.getRelativePath(
@@ -31,4 +36,5 @@ public class FileUtilTest extends TestCase {
         assertEquals(".." + sep + ".." + sep + "b" + sep + "c", FileUtils.getRelativePath(
                 new File("/m/n/o/a/b/c"), new File("/m/n/o/a/x/y/")));
     }
+
 }

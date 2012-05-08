@@ -1,10 +1,7 @@
 package nodebox.handle;
 
-import nodebox.client.Viewer;
-import nodebox.graphics.CanvasContext;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
-import nodebox.node.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +9,7 @@ import java.util.List;
 public class CombinedHandle extends AbstractHandle {
     private List<Handle> handles;
 
-    public CombinedHandle(Node node) {
-        super(node);
+    public CombinedHandle() {
         handles = new ArrayList<Handle>();
         setVisible(false);
     }
@@ -21,14 +17,8 @@ public class CombinedHandle extends AbstractHandle {
     @Override
     public void setHandleDelegate(HandleDelegate delegate) {
         super.setHandleDelegate(delegate);
-        for (Handle handle: handles)
-            handle.setHandleDelegate(delegate);
-    }
-
-    public void setViewer(Viewer viewer) {
-        super.setViewer(viewer);
         for (Handle handle : handles)
-            handle.setViewer(viewer);
+            handle.setHandleDelegate(delegate);
     }
 
     public void addHandle(Handle handle) {

@@ -19,15 +19,13 @@
         <property name="build.doc" location="${build}/doc"/>
         <property name="dist" value="dist"/>
         <property name="dist.mac" value="${dist}/mac"/>
-        <property name="dist.mac.nodebox" value="${dist.mac}/NodeBox"/>
-        <property name="dist.mac.nodebox.examples" value="${dist.mac.nodebox}/Examples"/>
         <property name="dist.windows" value="${dist}/windows"/>
         <property name="dist.windows.nodebox" value="${dist.windows}/NodeBox"/>
         <property name="dist.windows.nodebox.jre" value="${dist.windows.nodebox}/jre"/>
         <property name="dist.windows.nodebox.examples" value="${dist.windows.nodebox}/examples"/>
         <property name="apple.appstub"
                   location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
-        <property name="mac.application" location="${dist.mac.nodebox}/${ant.project.name}.app/"/>
+        <property name="mac.application" location="${dist.mac}/${ant.project.name}.app/"/>
         <property name="mac.application.contents" location="${mac.application}/Contents"/>
         <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
         <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
@@ -195,7 +193,7 @@
     </target>
 
     <target name="dist-mac" depends="archives" description="Make a double-clickable Mac OS X application">
-        <mkdir dir="${dist.mac.nodebox}"/>
+        <mkdir dir="${dist.mac}"/>
         <mkdir dir="${mac.application.resources.java}"/>
         <mkdir dir="${mac.application.macos}"/>
         <mkdir dir="${mac.application.lib}"/>
@@ -226,9 +224,6 @@
             <fileset dir="${libraries}"/>
         </copy>
 
-        <copy todir="${dist.mac.nodebox.examples}">
-            <fileset dir="${examples}"/>
-        </copy>
         <!-- Copy application stub -->
         <copy file="${apple.appstub}" toFile="${mac.application.macos}/${ant.project.name}"/>
         <!-- fix stub permissions -->
@@ -241,10 +236,6 @@
         <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
         <!-- Copy version number -->
         <copy file="version.properties" todir="${mac.application.resources.java}" />
-        <!-- Make directory into a bundle -->
-        <exec executable="/Developer/Tools/SetFile">
-            <arg line="-a B ${mac.application}"/>
-        </exec>
     </target>
 
     <!-- Install target, for building the actual product -->
@@ -271,7 +262,7 @@
 
     <target name="run-mac" depends="install" description="Run the double-clickable application">
         <!-- Use the exec task to open the application -->
-        <exec dir="${dist.mac.nodebox}" executable="/usr/bin/open" os="Mac OS X">
+        <exec dir="${dist.mac}" executable="/usr/bin/open" os="Mac OS X">
             <arg line="${ant.project.name}.app"/>
         </exec>
     </target>

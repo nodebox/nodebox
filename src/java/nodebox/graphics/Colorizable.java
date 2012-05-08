@@ -10,5 +10,5 @@ public interface Colorizable {
 
     void setStroke(Color c);
 
-    void setStrokeWidth(float strokeWidth);
+    void setStrokeWidth(double strokeWidth);
 }

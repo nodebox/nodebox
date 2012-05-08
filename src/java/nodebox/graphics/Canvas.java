@@ -29,19 +29,19 @@ import java.util.ArrayList;
 
 public class Canvas extends AbstractTransformable {
 
-    public static final float DEFAULT_WIDTH = 1000;
-    public static final float DEFAULT_HEIGHT = 1000;
+    public static final double DEFAULT_WIDTH = 1000;
+    public static final double DEFAULT_HEIGHT = 1000;
 
     private Color background = new Color(1, 1, 1);
-    private float offsetX, offsetY;
-    private float width, height;
+    private double offsetX, offsetY;
+    private double width, height;
     private ArrayList<Grob> items = new ArrayList<Grob>();
 
     public Canvas() {
         this(DEFAULT_WIDTH, DEFAULT_HEIGHT);
     }
 
-    public Canvas(float width, float height) {
+    public Canvas(double width, double height) {
         setSize(width, height);
     }
 
@@ -94,39 +94,39 @@ public class Canvas extends AbstractTransformable {
         return this.background = background;
     }
 
-    public float getOffsetX() {
+    public double getOffsetX() {
         return offsetX;
     }
 
-    public void setOffsetX(float offsetX) {
+    public void setOffsetX(double offsetX) {
         this.offsetX = offsetX;
     }
 
-    public float getOffsetY() {
+    public double getOffsetY() {
         return offsetY;
     }
 
-    public void setOffsetY(float offsetY) {
+    public void setOffsetY(double offsetY) {
         this.offsetY = offsetY;
     }
 
-    public float getWidth() {
+    public double getWidth() {
         return width;
     }
 
-    public void setWidth(float width) {
+    public void setWidth(double width) {
         this.width = width;
     }
 
-    public float getHeight() {
+    public double getHeight() {
         return height;
     }
 
-    public void setHeight(float height) {
+    public void setHeight(double height) {
         this.height = height;
     }
 
-    public void setSize(float width, float height) {
+    public void setSize(double width, double height) {
         this.width = width;
         this.height = height;
     }
@@ -226,7 +226,7 @@ public class Canvas extends AbstractTransformable {
 
     public BufferedImage asImage() {
         Rect bounds = getBounds();
-        BufferedImage img = new BufferedImage(Math.round(bounds.getWidth()), Math.round(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage((int) Math.round(bounds.getWidth()), (int) Math.round(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.translate(-bounds.getX(), -bounds.getY());

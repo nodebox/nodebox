@@ -11,9 +11,9 @@ import java.io.*;
 
 public class Image extends AbstractGrob {
 
-    private float x, y;
-    private float desiredWidth, desiredHeight;
-    private float alpha = 1.0F;
+    private double x, y;
+    private double desiredWidth, desiredHeight;
+    private double alpha = 1;
 
     private BufferedImage image;
     private static BufferedImage blankImage = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
@@ -39,7 +39,7 @@ public class Image extends AbstractGrob {
         this(new File(fname));
     }
 
-    public Image(String fname, float cx, float cy) {
+    public Image(String fname, double cx, double cy) {
         this(new File(fname));
         this.x = cx;
         this.y = cy;
@@ -70,53 +70,53 @@ public class Image extends AbstractGrob {
 
     //// Attribute access ////
 
-    public float getOriginalWidth() {
+    public double getOriginalWidth() {
         if (image == null) return 0;
         return image.getWidth();
     }
 
-    public float getOriginalHeight() {
+    public double getOriginalHeight() {
         if (image == null) return 0;
         return image.getHeight();
     }
 
-    public float getWidth() {
+    public double getWidth() {
         return getOriginalWidth() * getScaleFactor();
     }
 
-    public void setWidth(float width) {
+    public void setWidth(double width) {
         this.desiredWidth = width;
     }
 
-    public float getHeight() {
+    public double getHeight() {
         return getOriginalHeight() * getScaleFactor();
     }
 
-    public void setHeight(float height) {
+    public void setHeight(double height) {
         this.desiredHeight = height;
     }
 
-    public float getX() {
+    public double getX() {
         return x;
     }
 
-    public void setX(float x) {
+    public void setX(double x) {
         this.x = x;
     }
 
-    public float getY() {
+    public double getY() {
         return y;
     }
 
-    public void setY(float y) {
+    public void setY(double y) {
         this.y = y;
     }
 
-    public float getAlpha() {
+    public double getAlpha() {
         return alpha;
     }
 
-    public void setAlpha(float alpha) {
+    public void setAlpha(double alpha) {
         this.alpha = alpha;
     }
 
@@ -146,16 +146,16 @@ public class Image extends AbstractGrob {
 
     public Rect getBounds() {
         if (image == null) return new Rect();
-        float factor = getScaleFactor();
-        float finalWidth = image.getWidth() * factor;
-        float finalHeight = image.getHeight() * factor;
+        double factor = getScaleFactor();
+        double finalWidth = image.getWidth() * factor;
+        double finalHeight = image.getHeight() * factor;
         return new Rect(x - finalWidth / 2, y - finalHeight / 2, finalWidth, finalHeight);
     }
 
-    public float getScaleFactor() {
+    public double getScaleFactor() {
         if (desiredWidth != 0 || desiredHeight != 0) {
-            float srcW = image.getWidth();
-            float srcH = image.getHeight();
+            double srcW = image.getWidth();
+            double srcH = image.getHeight();
             if (desiredWidth != 0 && desiredHeight != 0) {
                 // Both width and height were given, constrain to smallest
                 return Math.min(desiredWidth / srcW, desiredHeight / srcH);
@@ -177,15 +177,15 @@ public class Image extends AbstractGrob {
         Transform imageTrans = new Transform();
         // Move to the image position. Convert x, y, which are centered coordinates,
         // to "real" coordinates. 
-        float factor = getScaleFactor();
-        float finalWidth = image.getWidth() * factor;
-        float finalHeight = image.getHeight() * factor;
+        double factor = getScaleFactor();
+        double finalWidth = image.getWidth() * factor;
+        double finalHeight = image.getHeight() * factor;
         imageTrans.translate(x - finalWidth / 2, y - finalHeight / 2);
         // Scaling only applies to image that have their desired width and/or height set.
         // However, getScaleFactor return 1 if height/width are not set, in effect negating
         // the effect of the scale.
         imageTrans.scale(getScaleFactor());
-        float a = MathUtils.clamp(alpha);
+        double a = MathUtils.clamp(alpha);
         Composite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) a);
         Composite oldComposite = g.getComposite();
         g.setComposite(composite);

@@ -1,354 +1,645 @@
 package nodebox.node;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import nodebox.graphics.Color;
+import nodebox.graphics.Point;
+import nodebox.util.StringUtils;
+
 import java.util.List;
-import java.util.Map;
 
-import static nodebox.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.*;
 
-/**
- * A connectable object on a node. Ports provide input and output capabilities between nodes.
- * <p/>
- * Ports have a certain data class. Only ports with the same class of data can be connected together.
- */
-public class Port {
+public final class Port {
+
+    public static final String TYPE_INT = "int";
+    public static final String TYPE_FLOAT = "float";
+    public static final String TYPE_STRING = "string";
+    public static final String TYPE_BOOLEAN = "boolean";
+    public static final String TYPE_POINT = "point";
+    public static final String TYPE_COLOR = "color";
+
+    public enum Attribute {NAME, TYPE, WIDGET, RANGE, VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
+
+    /**
+     * The UI control for this port. This defines how the port is represented in the user interface.
+     */
+    public enum Widget {
+        NONE, ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, POINT
+    }
 
     public enum Direction {
-        IN, OUT
+        INPUT, OUTPUT
+    }
+
+    public enum Range {
+        VALUE, LIST
+    }
+
+    public static final Range DEFAULT_RANGE = Range.VALUE;
+
+    public static final ImmutableMap<String, Object> DEFAULT_VALUES;
+    public static final ImmutableSet<String> STANDARD_TYPES;
+
+    static {
+        ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
+        b.put(TYPE_INT, 0L);
+        b.put(TYPE_FLOAT, 0.0);
+        b.put(TYPE_BOOLEAN, false);
+        b.put(TYPE_STRING, "");
+        b.put(TYPE_POINT, Point.ZERO);
+        b.put(TYPE_COLOR, Color.BLACK);
+        DEFAULT_VALUES = b.build();
+        STANDARD_TYPES = ImmutableSet.of(TYPE_INT, TYPE_FLOAT, TYPE_BOOLEAN, TYPE_STRING, TYPE_POINT, TYPE_COLOR);
+    }
+
+    private final String name;
+    private final String type;
+    private final Widget widget;
+    private final Range range;
+    private final Object value;
+    private final Double minimumValue;
+    private final Double maximumValue;
+    private final ImmutableList<MenuItem> menuItems;
+
+    public static Port intPort(String name, long value) {
+        return intPort(name, value, null, null);
+    }
+
+    public static Port intPort(String name, long value, Integer minimumValue, Integer maximumValue) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_INT, value, minimumValue != null ? minimumValue.doubleValue() : null, maximumValue != null ? maximumValue.doubleValue() : null);
+    }
+
+    public static Port floatPort(String name, double value) {
+        return floatPort(name, value, null, null);
+    }
+
+    public static Port floatPort(String name, double value, Double minimumValue, Double maximumValue) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_FLOAT, value, minimumValue, maximumValue);
+    }
+
+    public static Port booleanPort(String name, boolean value) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_BOOLEAN, value);
+    }
+
+    public static Port stringPort(String name, String value) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_STRING, value);
+    }
+
+    public static Port stringPort(String name, String value, Iterable<MenuItem> menuItems) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_STRING, value, menuItems);
+    }
+
+    public static Port pointPort(String name, Point value) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_POINT, value);
+    }
+
+    public static Port colorPort(String name, Color value) {
+        checkNotNull(value, "Value cannot be null.");
+        return new Port(name, TYPE_COLOR, value);
+    }
+
+    public static Port customPort(String name, String type) {
+        checkNotNull(type, "Type cannot be null.");
+        return new Port(name, type, null);
     }
 
     /**
-     * The cardinality of a port defines if it can store a single value or multiple values.
-     * <p/>
-     * When the cardinality is single, use getValue() and setValue() to access the data.
-     * For ports with multiple cardinality, use getValues(), addValue() and clearValues().
+     * Parse the type and create the appropriate Port. Use the default value appropriate for the port type.
+     *
+     * @param name The port name.
+     * @param type The port type.
+     * @return A new Port.
      */
-    public enum Cardinality {
-        SINGLE, MULTIPLE
+    public static Port portForType(String name, String type) {
+        checkNotNull(type, "Type cannot be null.");
+        // If the type is not found in the default values, get() returns null, which is what we need for custom types.
+        return new Port(name, type, defaultWidgetForType(type), DEFAULT_RANGE, DEFAULT_VALUES.get(type), null, null, ImmutableList.<MenuItem>of());
     }
 
-    private Node node;
-    private String name;
-    private Cardinality cardinality;
-    private Direction direction;
-    // Depending on the cardinality, either value or values is used.
-    private Object value;
-    private List<Object> values;
+    /**
+     * Create a new Port with the given value as a string parsed to the correct format.
+     *
+     * @param name        The port name.
+     * @param type        The port type.
+     * @param stringValue The port value as a string, e.g. "32.5".
+     * @return A new Port.
+     */
 
-    public Port(Node node, String name) {
-        this(node, name, Cardinality.SINGLE, Direction.IN);
+    public static Port parsedPort(String name, String type, String stringValue) {
+        return parsedPort(name, type, "", DEFAULT_RANGE.toString().toLowerCase(), stringValue, null, null, ImmutableList.<MenuItem>of());
     }
 
-    public Port(Node node, String name, Cardinality cardinality) {
-        this(node, name, cardinality, Direction.IN);
+    /**
+     * Create a new Port with the given value as a string parsed to the correct format.
+     *
+     * @param name        The port name.
+     * @param type        The port type.
+     * @param valueString The port value as a string, e.g. "32.5".
+     * @param minString   The minimum value as a string.
+     * @param maxString   The maximum value as a string.
+     * @param menuItems   The list of menu items.
+     * @return A new Port.
+     */
+    public static Port parsedPort(String name, String type, String widgetString, String rangeString, String valueString, String minString, String maxString, ImmutableList<MenuItem> menuItems) {
+        checkNotNull(name, "Name cannot be null.");
+        checkNotNull(type, "Type cannot be null.");
+        if (STANDARD_TYPES.contains(type)) {
+            Object value;
+            if (valueString == null) {
+                value = DEFAULT_VALUES.get(type);
+                checkNotNull(value);
+            } else {
+                if (type.equals("int")) {
+                    value = Long.valueOf(valueString);
+                } else if (type.equals("float")) {
+                    value = Double.valueOf(valueString);
+                } else if (type.equals("string")) {
+                    value = valueString;
+                } else if (type.equals("boolean")) {
+                    value = Boolean.valueOf(valueString);
+                } else if (type.equals("point")) {
+                    value = Point.valueOf(valueString);
+                } else if (type.equals("color")) {
+                    value = Color.valueOf(valueString);
+                } else {
+                    throw new AssertionError("Unknown type " + type);
+                }
+            }
+            Widget widget;
+            if (widgetString != null && !widgetString.isEmpty()) {
+                widget = parseWidget(widgetString);
+            } else {
+                widget = Widget.NONE;
+            }
+            Range range = rangeString != null ? parseRange(rangeString) : DEFAULT_RANGE;
+
+            Double minimumValue = null;
+            Double maximumValue = null;
+            if (minString != null)
+                minimumValue = Double.valueOf(minString);
+            if (maxString != null)
+                maximumValue = Double.valueOf(maxString);
+            return new Port(name, type, widget, range, value, minimumValue, maximumValue, menuItems);
+        } else {
+            return Port.customPort(name, type);
+        }
     }
 
-    public Port(Node node, String name, Direction direction) {
-        this(node, name, Cardinality.SINGLE, direction);
+    public static Widget defaultWidgetForType(String type) {
+        checkNotNull(type, "Type cannot be null.");
+        if (type.equals(TYPE_INT)) {
+            return Widget.INT;
+        } else if (type.equals(TYPE_FLOAT)) {
+            return Widget.FLOAT;
+        } else if (type.equals(TYPE_STRING)) {
+            return Widget.STRING;
+        } else if (type.equals(TYPE_BOOLEAN)) {
+            return Widget.TOGGLE;
+        } else if (type.equals(TYPE_POINT)) {
+            return Widget.POINT;
+        } else if (type.equals(TYPE_COLOR)) {
+            return Widget.COLOR;
+        } else {
+            return Widget.NONE;
+        }
     }
 
-    public Port(Node node, String name, Cardinality cardinality, Direction direction) {
-        if (direction == Direction.OUT && cardinality != Cardinality.SINGLE)
-            throw new IllegalArgumentException("Output ports can't have multiple cardinality.");
-        this.node = node;
-        validateName(name);
+    private Port(String name, String type, Object value) {
+        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, ImmutableList.<MenuItem>of());
+    }
+
+    private Port(String name, String type, Object value, Double minimumValue, Double maximumValue) {
+        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, minimumValue, maximumValue, ImmutableList.<MenuItem>of());
+    }
+
+    private Port(String name, String type, Object value, Iterable<MenuItem> menuItems) {
+        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, menuItems);
+    }
+
+    private Port(String name, String type, Widget widget, Range range, Object value, Double minimumValue, Double maximumValue, Iterable<MenuItem> menuItems) {
+        checkNotNull(name, "Name cannot be null.");
+        checkNotNull(type, "Type cannot be null.");
+        checkNotNull(menuItems, "Menu items cannot be null.");
         this.name = name;
-        this.cardinality = cardinality;
-        this.direction = direction;
-    }
-
-    public Node getNode() {
-        return node;
-    }
-
-    public Node getParentNode() {
-        return node.getParent();
-    }
-
-    public boolean hasParentNode() {
-        return getParentNode() != null;
+        this.type = type;
+        this.widget = widget;
+        this.range = range;
+        this.minimumValue = minimumValue;
+        this.maximumValue = maximumValue;
+        this.value = clampValue(value);
+        this.menuItems = ImmutableList.copyOf(menuItems);
     }
 
     public String getName() {
         return name;
     }
 
-    public void validateName(String name) {
-        if (name == null || name.trim().length() == 0)
-            throw new InvalidNameException(this, name, "Name cannot be null or empty.");
-        if (node.hasPort(name))
-            throw new InvalidNameException(this, name, "There is already a port named " + name + ".");
-        if (node.hasParameter(name))
-            throw new InvalidNameException(this, name, "There is already a parameter named " + name + ".");
-        // Use the same validation as for nodes.
-        Node.validateName(name);
+    public String getLabel() {
+        return StringUtils.humanizeName(name);
     }
 
-    public Cardinality getCardinality() {
-        return cardinality;
+    public String getType() {
+        return type;
     }
 
-    public Direction getDirection() {
-        return direction;
+    public Range getRange() {
+        return range;
     }
 
-    public void validate(Object value) throws IllegalArgumentException {
-        node.validate(value);
+    public boolean hasValueRange() {
+        return range.equals(Range.VALUE);
+    }
+
+    public boolean hasListRange() {
+        return range.equals(Range.LIST);
+    }
+
+    public Double getMinimumValue() {
+        return minimumValue;
+    }
+
+    public Double getMaximumValue() {
+        return maximumValue;
+    }
+
+    public boolean hasMenu() {
+        return !menuItems.isEmpty();
+    }
+
+    public List<MenuItem> getMenuItems() {
+        return menuItems;
     }
 
     /**
-     * Gets the value of this port.
-     * <p/>
-     * This value will be null if the port is disconnected
-     * or an error occured during processing.
+     * Check if the Port type is a standard type, meaning it can be persisted, and its value can be accessed.
      *
-     * @return the value for this port.
+     * @return true if this is a standard type.
+     */
+    public boolean isStandardType() {
+        return STANDARD_TYPES.contains(type);
+    }
+
+    /**
+     * Check if the Port type is a custom type.
+     *
+     * @return true if this is a custom type.
+     */
+    public boolean isCustomType() {
+        return !isStandardType();
+    }
+
+    /**
+     * Return the value stored in the port as a long.
+     * <ul>
+     * <li>Integers are returned as-is.</li>
+     * <li>Floats are rounded using Math.round().</li>
+     * <li>Other types return 0.</li>
+     * </ul>
+     *
+     * @return The value as a long or 0 if the value cannot be converted.
+     */
+    public long intValue() {
+        checkValueType();
+        if (type.equals(TYPE_INT)) {
+            return (Long) value;
+        } else if (type.equals(TYPE_FLOAT)) {
+            return Math.round((Double) value);
+        } else {
+            return 0L;
+        }
+    }
+
+    /**
+     * Return the value stored in the port as a Float.
+     * <ul>
+     * <li>Integers are converted to Floats.</li>
+     * <li>Floats are returned as-is.</li>
+     * <li>Other types return 0f.</li>
+     * </ul>
+     *
+     * @return The value as a Float or 0f if the value cannot be converted.
+     */
+    public double floatValue() {
+        checkValueType();
+        if (type.equals(TYPE_INT)) {
+            return ((Long) value).doubleValue();
+        } else if (type.equals(TYPE_FLOAT)) {
+            return (Double) value;
+        } else {
+            return 0.0;
+        }
+    }
+
+    /**
+     * Return the value stored in the port as a String.
+     * <p/>
+     * This conversion simply uses String.valueOf(), which does the right thing.
+     *
+     * @return The value as a String or "null" if the value is null. (for custom types)
+     * @see String#valueOf(Object)
+     */
+    public String stringValue() {
+        checkValueType();
+        return String.valueOf(value);
+    }
+
+    /**
+     * Return the value stored in the port as a boolean.
+     * <p/>
+     * If the port has a different type, false is returned.
+     *
+     * @return The value as a Float or 0f if the value cannot be converted.
+     */
+    public boolean booleanValue() {
+        checkValueType();
+        if (type.equals(TYPE_BOOLEAN)) {
+            return (Boolean) value;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Return the value stored in the port as a Port.
+     * <p/>
+     * If the port has a different type, Point.ZERO is returned.
+     *
+     * @return The value as a Point or Point.ZERO if the value is of an incorrect type.
+     */
+    public Point pointValue() {
+        checkValueType();
+        if (type.equals(TYPE_POINT)) {
+            return (Point) value;
+        } else {
+            return Point.ZERO;
+        }
+    }
+
+    public Color colorValue() {
+        checkValueType();
+        if (type.equals(TYPE_COLOR)) {
+            return (Color) value;
+        } else {
+            return Color.BLACK;
+        }
+    }
+
+    /**
+     * Return the value stored in the port as an Object.
+     * <p/>
+     * If this is a port with a custom type, this method returns null.
+     *
+     * @return The value as an Object or null.
      */
     public Object getValue() {
-        if (cardinality != Cardinality.SINGLE)
-            throw new AssertionError("You can only call getValue when cardinality is SINGLE.");
+        checkValueType();
         return value;
     }
 
+    //// Shim implementations of methods ////
+
+    public boolean hasExpression() {
+        return false;
+    }
+
+    public String getExpression() {
+        return "";
+    }
+
+    public boolean isEnabled() {
+        return true;
+    }
+
+    public Widget getWidget() {
+        return widget;
+    }
+
+    public boolean isFileWidget() {
+        return widget == Widget.FILE || widget == Widget.IMAGE;
+    }
+
+    //// Mutation methods ////
+
     /**
-     * Gets a list of values for this port.
-     * <p/>
-     * This method is guaranteed to return a list, although it can be empty.
+     * Return a new Port with the value set to the given value.
      *
-     * @return the values for this port.
+     * @param value The new value. This must be of the correct type.
+     * @return The new Port.
+     * @throws IllegalStateException If you're trying to change the value of a standard type, or you give the wrong value.
      */
-    public List<Object> getValues() {
-        if (cardinality != Cardinality.MULTIPLE)
-            throw new AssertionError("You can only call getValues when cardinality is MULTIPLE.");
-        if (values == null) return new ArrayList<Object>();
-        return values;
+    public Port withValue(Object value) {
+        checkState(isStandardType(), "You can only change the value of a standard type.");
+        checkArgument(correctValueForType(value), "Value '%s' is not correct for %s port.", value, getType());
+        return new Port(getName(), getType(), getWidget(), getRange(), clampValue(convertValue(getType(), value)), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
-     * Set the value for this port.
-     * <p/>
-     * This method should not be called directly. Instead, values are set automatically when nodes are updated.
-     * <p/>
-     * This method can only be used when cardinality is set to single.
-     * <p/>
-     * Setting this value will not trigger any notifications or dirty flags.
+     * Return a new Port with the widget set to the given widget value.
      *
-     * @param value the value for this port.
-     * @throws IllegalArgumentException if the value is not of the required data class.
+     * @param widget The new widget.
+     * @return The new Port.
      */
-    public void setValue(Object value) throws IllegalArgumentException {
-        if (cardinality != Cardinality.SINGLE)
-            throw new AssertionError("You can only call setValue when cardinality is SINGLE.");
-        validate(value);
-        this.value = value;
+    public Port withWidget(Widget widget) {
+        return new Port(getName(), getType(), widget, getRange(), getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
-     * Add a value to this port.
-     * <p/>
-     * This method should not be called directly. Instead, values are added automatically when nodes are updated.
-     * <p/>
-     * This method can only be used when cardinality is set to multiple.
-     * <p/>
-     * Adding a value will not trigger any notifications or dirty flags.
+     * Return a new Port with the range set to the given range value.
      *
-     * @param value the value to add for this port.
-     * @throws IllegalArgumentException if the value is not of the required data class.
+     * @param range The new range.
+     * @return The new Port.
      */
-    public void addValue(Object value) throws IllegalArgumentException {
-        if (cardinality != Cardinality.MULTIPLE)
-            throw new AssertionError("You can only call addValue when cardinality is MULTIPLE.");
-        validate(value);
-        if (values == null)
-            values = new ArrayList<Object>();
-        values.add(value);
+    public Port withRange(Range range) {
+        return new Port(getName(), getType(), getWidget(), range, getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
-     * Reset the value(s) of the port.
-     * This method is called automatically when nodes are updated or disconnected.
-     */
-    public void reset() {
-        value = null;
-        values = null;
-    }
-
-    //// Connections ////
-
-    public boolean isInputPort() {
-        return direction == Direction.IN;
-    }
-
-    public boolean isOutputPort() {
-        return direction == Direction.OUT;
-    }
-
-    /**
-     * Checks if this port is connected to another port.
+     * Convert integers to longs and floats to doubles. All other values are passed through as-is.
      *
-     * @return true if this port is connected.
+     * @param type  The expected type.
+     * @param value The original value.
+     * @return The converted value.
      */
-    public boolean isConnected() {
-        checkState(hasParentNode(), "Port %s has no parent node.", this);
-        return getParentNode().isChildConnected(this);
-    }
-
-    /**
-     * Checks if this port is connected to the given port.
-     *
-     * @param port the other port to check.
-     * @return true if a connection exists between this port and the given port.
-     */
-    public boolean isConnectedTo(Port port) {
-        if (!isConnected()) return false;
-        if (!hasParentNode()) return false;
-        return getParentNode().isChildConnectedTo(this, port);
-    }
-
-    /**
-     * Checks if this port is connected to the output port of the given node.
-     *
-     * @param outputNode the node whose output port will be checked.
-     * @return true if a connection exists between this port and the given node.
-     */
-    public boolean isConnectedTo(Node outputNode) {
-        return isConnectedTo(outputNode.getOutputPort());
-    }
-
-    /**
-     * Get the connections on this port.
-     *
-     * @return a list of connections, possibly empty.
-     */
-    public List<Connection> getConnections() {
-        Node parent = getParentNode();
-        if (parent == null) return Collections.emptyList();
-        List<Connection> connections = new ArrayList<Connection>();
-        for (Connection c : parent.getConnections()) {
-            if (this == c.getInput() || this == c.getOutput()) {
-                connections.add(c);
-            }
+    private Object convertValue(String type, Object value) {
+        if (value instanceof Integer) {
+            checkArgument(type.equals(TYPE_INT));
+            return (long) ((Integer) value);
+        } else if (value instanceof Float) {
+            checkArgument(type.equals(TYPE_FLOAT));
+            return (double) ((Float) value);
+        } else {
+            return value;
         }
-        return connections;
     }
 
     /**
-     * Checks if this port can connect to the output port of the given node.
-     * <p/>
-     * This method does not check for cyclic dependencies.
+     * Convert integers to longs and floats to doubles. All other values are passed through as-is.
      *
-     * @param outputNode the output (upstream) node.
-     * @return true if the node can be connected.
+     * @param value The original value.
+     * @return The converted value.
      */
-    public boolean canConnectTo(Node outputNode) {
-        if (outputNode == null) return false;
-        if (getNode() == outputNode) return false;
-        return canConnectTo(outputNode.getOutputPort());
-    }
-
-    /**
-     * Check if this port can connect to the given output port.
-     * <p/>
-     * This method does not check for cyclic dependencies.
-     *
-     * @param outputPort the upstream output port.
-     * @return true if this port can connect to the given port.
-     */
-    public boolean canConnectTo(Port outputPort) {
-        if (outputPort == null) return false;
-        if (outputPort == this) return false;
-        if (outputPort.getDirection() != Direction.OUT) return false;
-        // An input port can only be connected to an output port.
-        // Since we just checked the direction of the output port,
-        // we need to make sure if this port is an input.
-        if (direction != Direction.IN) return false;
-        // Check if the data classes match.
-        // They can either be equal, or the output type can be downcasted to the input type.
-        Class inputClass = node.getDataClass();
-        Class outputClass = outputPort.node.getDataClass();
-        return inputClass.isAssignableFrom(outputClass);
-    }
-
-    /**
-     * Connect this (input) port to the given output node.
-     *
-     * @param outputNode the output node
-     * @return the Connection objects
-     * @throws IllegalArgumentException if the connection could not be made (because of cyclic dependency)
-     * @see Node#connectChildren(Port, Port)
-     */
-    public Connection connect(Node outputNode) throws IllegalArgumentException {
-        if (outputNode == null)
-            throw new IllegalArgumentException("Output node cannot be null.");
-        if (getParentNode() == null)
-            throw new IllegalArgumentException("This port has no parent node.");
-        return getParentNode().connectChildren(this, outputNode.getOutputPort());
-    }
-
-    /**
-     * Disconnects this port.
-     */
-    public void disconnect() {
-        getParentNode().disconnectChildPort(this);
-    }
-
-    /**
-     * Create a clone of this port that can be set on the given node.
-     * This new port is not added to the given node.
-     * <p/>
-     * The value of this port is not cloned, since values cannot be cloned.
-     *
-     * @param n the node to clone the port onto.
-     * @return a new Port object
-     */
-    public Port clone(Node n) {
-        return new Port(n, getName(), getCardinality(), getDirection());
-    }
-
-    /**
-     * Copy this port onto the new node.
-     * <p/>
-     * Also clones any upstream connections.
-     *
-     * @param newNode the new node
-     * @return a new, cloned port.
-     */
-    public Port copy(Node newNode) {
-        return new Port(newNode, getName(), getCardinality(), getDirection());
-    }
-
-    /**
-     * Clone the connections of this port onto the new port.
-     * <p/>
-     * If the old connection points to nodes within the copy map they will be replaced with connections to the new node.
-     *
-     * @param newPort the new port to clone the connections onto.
-     * @param copyMap a mapping between the old nodes and the new nodes.
-     */
-    public void cloneConnection(Port newPort, Map<Node, Node> copyMap) {
-        assert newPort.name.equals(getName());
-        assert newPort.cardinality == cardinality;
-        assert newPort.node != node;
-        checkState(newPort.getConnections().isEmpty(), "The new port should not be connected to anything.");
-        for (Connection c : getConnections()) {
-            Node n = c.getOutputNode();
-            Node outputNode;
-            if (copyMap.containsKey(n)) {
-                outputNode = copyMap.get(n);
-            } else {
-                outputNode = n;
-            }
-            // If the new node is under a different parent connections cannot be retained, and no
-            // connections are created.
-            if (outputNode.getParent() == newPort.getNode().getParent()) {
-                newPort.connect(outputNode);
-            }
+    private Object clampValue(Object value) {
+        if (getType().equals(TYPE_FLOAT)) {
+            return clamp((Double) value);
+        } else if (getType().equals(TYPE_INT)) {
+            return (long) clamp(((Long) value).doubleValue());
+        } else {
+            return value;
         }
+    }
+
+    private double clamp(double v) {
+        if (minimumValue != null && v < minimumValue) {
+            return minimumValue;
+        } else if (maximumValue != null && v > maximumValue) {
+            return maximumValue;
+        } else {
+            return v;
+        }
+    }
+
+    private void checkValueType() {
+        checkState(correctValueForType(this.value), "The internal value %s is not a %s.", value, type);
+    }
+
+    private boolean correctValueForType(Object value) {
+        if (type.equals(TYPE_INT)) {
+            return value instanceof Long || value instanceof Integer;
+        } else if (type.equals(TYPE_FLOAT)) {
+            return value instanceof Double || value instanceof Float;
+        } else if (type.equals(TYPE_STRING)) {
+            return value instanceof String;
+        } else if (type.equals(TYPE_BOOLEAN)) {
+            return value instanceof Boolean;
+        } else if (type.equals(TYPE_POINT)) {
+            return value instanceof Point;
+        } else if (type.equals(TYPE_COLOR)) {
+            return value instanceof Color;
+        } else {
+            // The value of a custom type should always be null.
+            return value == null;
+        }
+    }
+
+    public Object getAttributeValue(Attribute attribute) {
+        if (attribute == Attribute.NAME) {
+            return getName();
+        } else if (attribute == Attribute.TYPE) {
+            return getType();
+        } else if (attribute == Attribute.WIDGET) {
+            return getWidget();
+        } else if (attribute == Attribute.RANGE) {
+            return getRange();
+        } else if (attribute == Attribute.MINIMUM_VALUE) {
+            return getMinimumValue();
+        } else if (attribute == Attribute.MAXIMUM_VALUE) {
+            return getMaximumValue();
+        } else if (attribute == Attribute.MENU_ITEMS) {
+            return getMenuItems();
+        } else {
+            throw new AssertionError("Unknown port attribute " + attribute);
+        }
+    }
+
+    private static Object parseValue(String type, String valueString) {
+        if (type.equals("int")) {
+            return Long.valueOf(valueString);
+        } else if (type.equals("float")) {
+            return Double.valueOf(valueString);
+        } else if (type.equals("string")) {
+            return valueString;
+        } else if (type.equals("boolean")) {
+            return Boolean.valueOf(valueString);
+        } else if (type.equals("point")) {
+            return Point.valueOf(valueString);
+        } else if (type.equals("color")) {
+            return Color.valueOf(valueString);
+        } else {
+            throw new AssertionError("Unknown type " + type);
+        }
+    }
+
+    private static Widget parseWidget(String valueString) {
+        return Widget.valueOf(valueString.toUpperCase());
+    }
+
+    private static Range parseRange(String valueString) {
+        if (valueString.equals("value"))
+            return Range.VALUE;
+        else if (valueString.equals("list"))
+            return Range.LIST;
+        else
+            throw new AssertionError("Unknown range " + valueString);
+    }
+
+    public Port withMenuItems(Iterable<MenuItem> items) {
+        checkNotNull(items);
+        checkArgument(type.equals(Port.TYPE_STRING), "You can only use menu items on string ports, not %s", this);
+        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), getMaximumValue(), items);
+    }
+
+    public Port withParsedAttribute(Attribute attribute, String valueString) {
+        checkNotNull(valueString);
+
+        String name = this.name;
+        String type = this.type;
+        Widget widget = this.widget;
+        Range range = this.range;
+        Object value = this.value;
+        Double minimumValue = this.minimumValue;
+        Double maximumValue = this.maximumValue;
+
+        switch (attribute) {
+            case VALUE:
+                checkArgument(STANDARD_TYPES.contains(type), "Port %s: you can only set the value for one of the standard types, not %s (value=%s)", name, type, valueString);
+                value = parseValue(type, valueString);
+                break;
+            case WIDGET:
+                widget = parseWidget(valueString);
+                break;
+            case RANGE:
+                range = parseRange(valueString);
+                break;
+            case MINIMUM_VALUE:
+                minimumValue = Double.valueOf(valueString);
+                break;
+            case MAXIMUM_VALUE:
+                maximumValue = Double.valueOf(valueString);
+                break;
+            default:
+                throw new AssertionError("You cannot use withParsedAttribute with attribute " + attribute);
+        }
+        return new Port(name, type, widget, range, value, minimumValue, maximumValue, getMenuItems());
+    }
+
+    //// Object overrides ////
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, type, value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Port)) return false;
+        final Port other = (Port) o;
+        return Objects.equal(name, other.name)
+                && Objects.equal(type, other.type)
+                && Objects.equal(value, other.value);
     }
 
     @Override
     public String toString() {
-        return node.getName() + "." + getName();
+        return String.format("<Port %s (%s): %s>", name, type, value);
     }
+
 }

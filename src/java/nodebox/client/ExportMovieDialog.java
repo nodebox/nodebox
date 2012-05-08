@@ -1,14 +1,15 @@
 package nodebox.client;
 
-import nodebox.client.movie.*;
+import nodebox.movie.Movie;
+import nodebox.movie.VideoFormat;
+import nodebox.ui.Theme;
+import nodebox.util.FileUtils;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Dialog presented when exporting a movie.

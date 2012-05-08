@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Transform implements Cloneable {
 
@@ -13,43 +15,51 @@ public class Transform implements Cloneable {
 
     private AffineTransform affineTransform;
 
-    public static Transform translated(float tx, float ty) {
+    public static Transform translated(double tx, double ty) {
         Transform t = new Transform();
         t.translate(tx, ty);
         return t;
     }
 
-    public static Transform rotated(float degrees) {
+    public static Transform translated(Point t) {
+        return translated(t.x, t.y);
+    }
+
+    public static Transform rotated(double degrees) {
         Transform t = new Transform();
         t.rotate(degrees);
         return t;
     }
 
-    public static Transform rotatedRadians(float radians) {
+    public static Transform rotatedRadians(double radians) {
         Transform t = new Transform();
         t.rotateRadians(radians);
         return t;
     }
 
-    public static Transform scaled(float scale) {
+    public static Transform scaled(double scale) {
         Transform t = new Transform();
         t.scale(scale);
         return t;
     }
 
-    public static Transform scaled(float sx, float sy) {
+    public static Transform scaled(double sx, double sy) {
         Transform t = new Transform();
         t.scale(sx, sy);
         return t;
     }
 
-    public static Transform skewed(float skew) {
+    public static Transform scaled(Point s) {
+        return scaled(s.x, s.y);
+    }
+
+    public static Transform skewed(double skew) {
         Transform t = new Transform();
         t.skew(skew);
         return t;
     }
 
-    public static Transform skewed(float kx, float ky) {
+    public static Transform skewed(double kx, double ky) {
         Transform t = new Transform();
         t.skew(kx, ky);
         return t;
@@ -72,6 +82,10 @@ public class Transform implements Cloneable {
     }
 
     //// Transform changes ////
+
+    public void translate(Point point) {
+        affineTransform.translate(point.x, point.y);
+    }
 
     public void translate(double tx, double ty) {
         affineTransform.translate(tx, ty);
@@ -125,7 +139,7 @@ public class Transform implements Cloneable {
 
     public Point map(Point p) {
         Point2D.Double p2 = new Point2D.Double();
-        affineTransform.transform(p.getPoint2D(), p2);
+        affineTransform.transform(p.toPoint2D(), p2);
         return new Point(p2);
     }
 
@@ -137,39 +151,52 @@ public class Transform implements Cloneable {
         Point2D transformedSize = new Point2D.Double();
         affineTransform.transform(origin, transformedOrigin);
         affineTransform.deltaTransform(size, transformedSize);
-        return new Rect((float) transformedOrigin.getX(), (float) transformedOrigin.getY(), (float) transformedSize.getX(), (float) transformedSize.getY());
+        return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
     }
 
     public Path map(Path p) {
-        Path newPath = new Path(p);
-        map(newPath.getPoints());
+        Path newPath = new Path(p, false);
+        for (Contour c : p.getContours()) {
+            Contour newContour = new Contour(map(c.getPoints()), c.isClosed());
+            newPath.add(newContour);
+        }
         return newPath;
     }
 
     public Geometry map(Geometry g) {
-        Geometry newGeometry = new Geometry(g);
-        map(newGeometry.getPoints());
+        Geometry newGeometry = new Geometry();
+        for (Path p : g.getPaths()) {
+            Path newPath = map(p);
+            newGeometry.add(newPath);
+        }
         return newGeometry;
     }
 
     /**
-     * Transforms all the given points in place.
+     * Transform all the given points and return a list of transformed points.
+     * Points are immutable, so they can not be transformed in-place.
      *
-     * @param points the point list to transform.
+     * @param points The points to transform.
+     * @return The list of transformed points.
      */
-    public void map(java.util.List<Point> points) {
-        float[] coords = new float[points.size() * 2];
+    public List<Point> map(List<Point> points) {
+        // Prepare the points for the AffineTransform transformation.
+        double[] coords = new double[points.size() * 2];
         int i = 0;
         for (Point pt : points) {
             coords[i++] = pt.x;
             coords[i++] = pt.y;
         }
         affineTransform.transform(coords, 0, coords, 0, points.size());
-        i = 0;
-        for (Point pt : points) {
-            pt.x = coords[i++];
-            pt.y = coords[i++];
+
+        // Convert the transformed points into a new List.
+        List<Point> transformed = new ArrayList<Point>(points.size());
+        int pointIndex = 0;
+        for (i = 0; i < coords.length; i += 2) {
+            transformed.add(new Point(coords[i], coords[i + 1], points.get(pointIndex).type));
+            pointIndex++;
         }
+        return transformed;
     }
 
     public Rect convertBoundsToFrame(Rect bounds) {
@@ -178,7 +205,7 @@ public class Transform implements Cloneable {
         Point2D transformedSize = new Point2D.Double();
         t.transform(new Point2D.Double(bounds.getX(), bounds.getY()), transformedOrigin);
         t.deltaTransform(new Point2D.Double(bounds.getWidth(), bounds.getHeight()), transformedSize);
-        return new Rect((float) transformedOrigin.getX(), (float) transformedOrigin.getY(), (float) transformedSize.getX(), (float) transformedSize.getY());
+        return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
     }
 
     private AffineTransform fullTransform(Rect bounds) {

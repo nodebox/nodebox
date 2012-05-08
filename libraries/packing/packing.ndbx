@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <link href="python:packing.py" rel="functions"/>
+    <node name="root" renderedChild="pack">
+
+        <node function="packing/pack" name="pack"
+              description="Pack objects.">
+            <port type="shape" name="shapes" range="list"/>
+            <port type="int" name="iterations" value="5"/>
+            <port type="float" name="padding" value="2.0"/>
+            <port type="int" name="seed"/>
+        </node>
+
+    <node function="packing/angle_pack" name="angle_pack"
+          description="Pack objects by angling on the object.">
+        <port type="shape" name="shapes" range="list"/>
+        <port type="int" name="seed"/>
+        <port type="float" name="limit" value="10.0"/>
+        <port type="float" name="maximum_radius" value="5000.0"/>
+        <port type="int" name="angle_tries" value="1" min="1"/>
+        <port type="boolean" name="use_bounding_box" value="true"/>
+    </node>
+
+    </node>
+</ndbx>

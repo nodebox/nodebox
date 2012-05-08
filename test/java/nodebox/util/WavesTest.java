@@ -1,9 +1,13 @@
 package nodebox.util;
 
 import nodebox.util.waves.*;
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class WavesTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
+
+public class WavesTest {
+
+    @Test
     public void testConvertFromMinMax() {
         AbstractWave w = SineWave.from(-20, 20, 100);
         assertEquals(20f, w.getAmplitude());
@@ -26,6 +30,7 @@ public class WavesTest extends TestCase {
         assertEquals(-5f, w.getOffset());
     }
 
+    @Test
     public void testSineWave() {
         SineWave w = new SineWave(120, 20);
         assertEquals(0f, w.getValueAt(0), 0.0001);
@@ -34,4 +39,5 @@ public class WavesTest extends TestCase {
         assertEquals(20f, w.getValueAt(90), 0.0001);
         assertEquals(0f, w.getValueAt(120), 0.0001);
     }
+
 }

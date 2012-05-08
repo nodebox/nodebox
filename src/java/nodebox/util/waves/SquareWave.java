@@ -17,10 +17,10 @@ public class SquareWave extends AbstractWave {
      * Creates a suitable SquareWave object from other than the constructor arguments.
      * The wave oscillates between min and max values
      *
-     * @param min     the minimum value
-     * @param max     the maximum value
-     * @param period  the length (expressed in time) over which the wave makes a full block movement
-     * @return        a new SquareWave
+     * @param min    the minimum value
+     * @param max    the maximum value
+     * @param period the length (expressed in time) over which the wave makes a full block movement
+     * @return a new SquareWave
      */
     public static SquareWave from(float min, float max, float period) {
         float amplitude = (max - min) / 2;

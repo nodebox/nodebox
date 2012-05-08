@@ -1,5 +1,9 @@
 package nodebox.client;
 
+import nodebox.ui.DraggableNumber;
+import nodebox.ui.NButton;
+import nodebox.ui.Theme;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -22,9 +26,9 @@ public class AnimationBar extends JPanel implements ChangeListener {
     }
 
     private final NodeBoxDocument document;
-    private DraggableNumber frameNumber;
-    private float frame;
-    private NButton playButton;
+    private final DraggableNumber frameNumber;
+    private final NButton playButton;
+    private double frame;
 
     public AnimationBar(final NodeBoxDocument document) {
         super(new FlowLayout(FlowLayout.LEADING, 5, 0));
@@ -46,7 +50,7 @@ public class AnimationBar extends JPanel implements ChangeListener {
         frameNumber.addChangeListener(this);
         frameNumberPanel.add(frameNumber);
         add(frameNumberPanel);
-        playButton = new NButton("Play", "res/animation-play.png",  "res/animation-stop.png");
+        playButton = new NButton("Play", "res/animation-play.png", "res/animation-stop.png");
         playButton.setToolTipText("Play Animation");
         playButton.setActionMethod(this, "playAnimation");
         forcePlayButtonWidth(45);
@@ -55,23 +59,21 @@ public class AnimationBar extends JPanel implements ChangeListener {
         rewindButton.setActionMethod(this, "rewindAnimation");
         add(playButton);
         add(rewindButton);
-        updateFrame();
+        setFrame(1);
     }
 
-    public void updateFrame() {
-        if (document.getFrame() != frame) {
-            frame = document.getFrame();
-            frameNumber.setValue(frame);
-        }
+    public void setFrame(double frame) {
+        this.frame = frame;
+        frameNumber.setValue(frame);
     }
 
     public void stateChanged(ChangeEvent changeEvent) {
-        frame = (float) frameNumber.getValue();
+        frame = frameNumber.getValue();
         document.setFrame(frame);
     }
 
     public void playAnimation() {
-        if (! playButton.isChecked()) playButton.setChecked(true);
+        if (!playButton.isChecked()) playButton.setChecked(true);
         document.playAnimation();
         playButton.setText("Stop");
         playButton.setToolTipText("Stop Animation");

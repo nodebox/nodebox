@@ -19,7 +19,6 @@
 package nodebox.node;
 
 /**
- *
  * @author Frederik
  */
 public class ProcessingError extends RuntimeException {

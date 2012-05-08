@@ -1,31 +1,41 @@
 package nodebox.graphics;
 
+import org.junit.Test;
+
 import java.util.List;
+
+import static junit.framework.Assert.assertEquals;
+import static nodebox.graphics.GraphicsTestUtils.addRect;
+import static nodebox.graphics.GraphicsTestUtils.assertPointEquals;
 
 /**
  * Use cases for geometric operations.
  */
-public class PathTest extends GraphicsTestCase {
+public class PathTest {
 
+    public static final double SIDE = GraphicsTestUtils.SIDE;
+
+    @Test
     public void testEmptyPath() {
         Path p = new Path();
         assertEquals(0, p.getPoints().size());
     }
 
+    @Test
     public void testMakeEllipse() {
         Path p = new Path();
         p.ellipse(10, 20, 30, 40);
         assertEquals(Rect.centeredRect(10, 20, 30, 40), p.getBounds());
     }
 
-    public void testTranslatePoints() {
-        Path p = new Path();
-        p.rect(10, 20, 30, 40);
-        for (Point pt : p.getPoints()) {
-            pt.move(5, 0);
-        }
-        assertEquals(Rect.centeredRect(15, 20, 30, 40), p.getBounds());
-    }
+//    public void testTranslatePoints() {
+//        Path p = new Path();
+//        p.rect(10, 20, 30, 40);
+//        for (Point pt : p.getPoints()) {
+//            pt.move(5, 0);
+//        }
+//        assertEquals(Rect.centeredRect(15, 20, 30, 40), p.getBounds());
+//    }
 
 //    public void testMakeText() {
 //        Text t = new Text("A", 0, 20);
@@ -44,6 +54,7 @@ public class PathTest extends GraphicsTestCase {
 //        assertEquals(new Rect(10, 0, 10, 40), result.getBounds());
 //    }
 
+    @Test
     public void testCustomAttributes() {
         // Add a velocity to each point of the path.
         Path p = new Path();
@@ -51,6 +62,7 @@ public class PathTest extends GraphicsTestCase {
         assertEquals(4, p.getPointCount());
     }
 
+    @Test
     public void testTransform() {
         Path p = new Path();
         p.rect(10, 20, 30, 40);
@@ -61,6 +73,7 @@ public class PathTest extends GraphicsTestCase {
     /**
      * How easy is it to convert the contours of a path to paths themselves?
      */
+    @Test
     public void testContoursToPaths() {
         // Create a path with two contours.
         Path p = new Path();
@@ -74,13 +87,14 @@ public class PathTest extends GraphicsTestCase {
         }
     }
 
+    @Test
     public void testLength() {
         testLength(0, 0);
         testLength(200, 300);
         Path p = new Path();
         p.line(0, 0, 50, 0);
         p.line(50, 0, 100, 0);
-        assertEquals(100f, p.getLength());
+        assertEquals(100.0, p.getLength());
     }
 
     private void testLength(float x, float y) {
@@ -94,25 +108,25 @@ public class PathTest extends GraphicsTestCase {
     public void testLengthMultipleContours() {
         Path p = new Path();
         p.line(0, 0, 100, 0);
-        assertEquals(100f, p.getLength());
+        assertEquals(100.0, p.getLength());
         p.line(0, 100, 100, 100);
-        assertEquals(200f, p.getLength());
+        assertEquals(200.0, p.getLength());
         p.close();
-        assertEquals(300f, p.getLength());
+        assertEquals(300.0, p.getLength());
     }
 
     public void testPointAt() {
         Path p = new Path();
         p.line(0, 0, 50, 0);
         p.line(50, 0, 100, 0);
-        assertEquals(new Point(0, 0), p.pointAt(0f));
-        assertEquals(new Point(10, 0), p.pointAt(0.1f));
-        assertEquals(new Point(25, 0), p.pointAt(0.25f));
-        assertEquals(new Point(40, 0), p.pointAt(0.4f));
-        assertEquals(new Point(50, 0), p.pointAt(0.5f));
-        assertEquals(new Point(75, 0), p.pointAt(0.75f));
-        assertEquals(new Point(80, 0), p.pointAt(0.8f));
-        assertEquals(new Point(100, 0), p.pointAt(1f));
+        assertPointEquals(0, 0, p.pointAt(0));
+        assertPointEquals(10, 0, p.pointAt(0.1));
+        assertPointEquals(25, 0, p.pointAt(0.25));
+        assertPointEquals(40, 0, p.pointAt(0.4));
+        assertPointEquals(50, 0, p.pointAt(0.5));
+        assertPointEquals(75, 0, p.pointAt(0.75));
+        assertPointEquals(80, 0, p.pointAt(0.8));
+        assertPointEquals(100, 0, p.pointAt(1));
     }
 
     public void testPointAtMultipleContours() {
@@ -125,15 +139,15 @@ public class PathTest extends GraphicsTestCase {
         p.addPoint(100, 0);
         assertEquals(2, p.getContours().size());
         assertEquals(4, p.getPointCount());
-        assertEquals(100f, p.getLength());
-        assertPointEquals(0, 0, p.pointAt(0f));
-        assertPointEquals(25, 0, p.pointAt(0.25f));
-        assertPointEquals(50, 0, p.pointAt(0.5f));
-        assertPointEquals(100, 0, p.pointAt(1.0f));
+        assertEquals(100.0, p.getLength());
+        assertPointEquals(0, 0, p.pointAt(0));
+        assertPointEquals(25, 0, p.pointAt(0.25));
+        assertPointEquals(50, 0, p.pointAt(0.5));
+        assertPointEquals(100, 0, p.pointAt(1.0));
     }
 
     public void testContour() {
-        final float SIDE = 50;
+        final double SIDE = 50;
         Point[] points;
         Path p = new Path();
         addRect(p, 0, 0, SIDE, SIDE);
@@ -144,7 +158,7 @@ public class PathTest extends GraphicsTestCase {
         assertPointEquals(SIDE, 0, points[2]);
         assertPointEquals(0, SIDE, points[6]);
 
-        // Closing the contour will encrease the length of the path and thus will also
+        // Closing the contour will increase the length of the path and thus will also
         // have an effect on point positions.
         p.close();
         assertEquals(SIDE * 4, p.getLength());
@@ -209,23 +223,22 @@ public class PathTest extends GraphicsTestCase {
      */
     public void testCacheInvalidation() {
         Path p = new Path();
-        assertEquals(0f, p.getLength());
+        assertEquals(0.0, p.getLength());
         p.line(0, 0, 50, 0);
-        assertEquals(50f, p.getLength());
+        assertEquals(50.0, p.getLength());
         Contour c = new Contour();
         c.addPoint(50, 0);
         c.addPoint(75, 0);
         p.add(c);
-        assertEquals(75f, p.getLength());
-        // Manually change the position of the last point.
-        Point pt = c.getPoints().get(1);
-        pt.x = 100;
+        assertEquals(75.0, p.getLength());
+        // Add a point to the contour.
+        c.addPoint(100, 0);
         // This change is not detected by the Path, and thus the length is not updated.
-        assertEquals(75f, p.getLength());
+        assertEquals(75.0, p.getLength());
         // Manually invalidate the path.
         p.invalidate();
         // This time, the length is correct.
-        assertEquals(100f, p.getLength());
+        assertEquals(100.0, p.getLength());
     }
 
     public void testNegativeBounds() {

@@ -18,10 +18,13 @@
  */
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class RectTest extends TestCase {
+import static junit.framework.Assert.*;
 
+public class RectTest {
+
+    @Test
     public void testEmpty() {
         assertFalse(new Rect(100, 100, 100, 100).isEmpty());
         assertFalse(new Rect(1, 1, 1, 1).isEmpty());
@@ -34,11 +37,13 @@ public class RectTest extends TestCase {
         assertTrue(new Rect(20, 30, 10, 0).isEmpty());
     }
 
+    @Test
     public void testIntersects() {
         assertFalse(new Rect(0, 0, 20, 20).intersects(new Rect(100, 100, 20, 20)));
         assertTrue(new Rect(0, 0, 20, 20).intersects(new Rect(0, 0, 20, 20)));
     }
 
+    @Test
     public void testUnited() {
         Rect r1 = new Rect(10, 20, 30, 40);
         Rect r2 = new Rect(40, 30, 50, 30);
@@ -48,6 +53,7 @@ public class RectTest extends TestCase {
         assertEquals(new Rect(10, 20, 30, 120 + 40 - 20), r3.united(r4));
     }
 
+    @Test
     public void testContains() {
         Rect r = new Rect(10, 20, 30, 40);
         assertTrue(r.contains(new Point(10, 20)));

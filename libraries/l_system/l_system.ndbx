@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <link href="python:l_system.py" rel="functions"/>
+    <node name="root" renderedChild="l_system">
+
+        <node function="l_system/l_system" name="l_system"
+              description="Create a growing tree simulation." image="l_system.png">
+            <port type="shape" name="shape"/>
+            <port type="point" name="position"/>
+            <port type="float" name="generations" min="0" max="5" value="3.0"/>
+            <port type="float" name="length" value="5.0"/>
+            <port type="float" name="length_scale" value="130.0"/>
+            <port type="float" name="angle" value="20.0"/>
+            <port type="float" name="angle_scale" value="110.0"/>
+            <port type="float" name="thickness_scale" value="170.0"/>
+            <port type="string" name="premise" value="FFFA"/>
+            <port type="string" name="rule_1" value="F=F[_?-;FFF]+F[_?;+FF]-[__?@F]"/>
+            <port type="string" name="rule_2" value=""/>
+            <port type="string" name="rule_3" value=""/>
+        </node>
+
+    </node>
+</ndbx>

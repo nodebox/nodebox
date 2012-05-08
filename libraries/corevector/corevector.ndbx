@@ -1,3531 +1,415 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="0.9" type="file">
-    <node exported="true" name="generator" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="90">
-        <description>Template for creating nodes that generator vector data.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[# This node serves as a template for writing your own vector generators.
-# Read the code in cook and replace it with your own.
-from nodebox.graphics import Path
+<ndbx formatVersion="1.0" type="file">
+    <link href="python:corevector.py" rel="functions"/>
+    <node name="root" renderedChild="align">
+        <node function="corevector/generator" name="generator" image="generator.png" outputType="geometry"
+              position="10,90"
+              description="Template for creating nodes that generator vector data.">
+        </node>
 
-def cook(self):
-    # Replace the code below.
-    # Create a new path object.
-    p = Path()
-    # Call the rect method to draw something within the path.
-    p.rect(0, 0, 100, 100)
-    # Return the path object.
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_image">
-            <value>generator.png</value>
-        </param>
-    </node>
-    <node exported="true" name="filter" prototype="generator" x="10" y="340">
-        <description>Template for creating nodes that manipulate vector data.</description>
-        <port name="shape"/>
-        <param name="_code">
-            <value type="python"><![CDATA[# This node serves as a template for writing your own vector filters.
-# Read the code in cook() and replace it with your own.
+        <node function="corevector/filter" name="filter" image="filter.png" outputType="geometry" position="10,340"
+              prototype="generator" description="Template for creating nodes that manipulate vector data.">
+            <port type="geometry" name="shape"/>
+        </node>
 
-def cook(self):
-    # Replace the code below
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    # If you're changing the shape, make sure to clone it.
-    new_shape = self.shape.clone()
-    # Do something with the cloned copy.
-    new_shape.rotate(45)
-    # Return the transformed shape.
-    return new_shape]]></value>
-        </param>
-        <param name="_image">
-            <value>filter.png</value>
-        </param>
-    </node>
-    <node exported="true" name="align" prototype="filter" x="90" y="580">
-        <description>Align a shape in relation to the origin.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry
+        <node function="corevector/align" name="align" image="align.png" outputType="geometry" position="90,580"
+              prototype="filter" description="Align a shape in relation to the origin."
+              handle="corevector/handle_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="string" name="halign" value="center" label="Horizontal Align" widget="menu">
+                <menu key="none" label="No Change"/>
+                <menu key="left" label="Left"/>
+                <menu key="center" label="Center"/>
+                <menu key="right" label="Right"/>
+            </port>
+            <port type="string" name="valign" value="middle" label="Vertical Align" widget="menu">
+                <menu key="none" label="No Change"/>
+                <menu key="top" label="Top"/>
+                <menu key="middle" label="Middle"/>
+                <menu key="bottom" label="Bottom"/>
+            </port>
+        </node>
 
-def cook(self):
-    if self.shape is None: return None
-    new_shape = self.shape.clone()
-    if self.halign == "left":
-        dx = self.x - new_shape.bounds.x
-    elif self.halign == "right":
-        dx = self.x - new_shape.bounds.x - new_shape.bounds.width
-    elif self.halign == "center":
-        dx = self.x - new_shape.bounds.x - new_shape.bounds.width / 2
-    else:
-        dx = 0
-    if self.valign == "top":
-        dy = self.y - new_shape.bounds.y
-    elif self.valign == "bottom":
-        dy = self.y - new_shape.bounds.y - new_shape.bounds.height
-    elif self.valign == "middle":
-        dy = self.y - new_shape.bounds.y - new_shape.bounds.height / 2
-    else:
-        dy = 0
-    new_shape.translate(dx, dy)
-    return new_shape]]></value>
-        </param>
-        <param name="_image">
-            <value>align.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Horizontal Align" name="halign" type="string" widget="menu">
-            <value>left</value>
-            <menu key="none">No Change</menu>
-            <menu key="left">Left</menu>
-            <menu key="center">Center</menu>
-            <menu key="right">Right</menu>
-        </param>
-        <param label="Vertical Align" name="valign" type="string" widget="menu">
-            <value>bottom</value>
-            <menu key="none">No Change</menu>
-            <menu key="top">Top</menu>
-            <menu key="middle">Middle</menu>
-            <menu key="bottom">Bottom</menu>
-        </param>
-    </node>
-    <node exported="true" name="arc" prototype="generator" x="90" y="260">
-        <description>Create an arc.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-from java.awt.geom import Arc2D
-
-def cook(self):
-    if self.type == "chord":
-        type = Arc2D.CHORD
-    elif self.type == "pie":
-        type = Arc2D.PIE
-    else:
-        type = Arc2D.OPEN
-    p = Path(Arc2D.Double(self.x-self.width/2, self.y-self.height/2, self.width, self.height, -self.start_angle, -self.degrees, type))
-    p.fill = self.fill
-    p.stroke = self.stroke
-    p.strokeWidth = self.strokeWidth
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_image">
-            <value>arc.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="start_angle" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="degrees" type="float">
-            <value>45.0</value>
-        </param>
-        <param name="type" type="string" widget="menu">
-            <value>pie</value>
-            <menu key="open">Open</menu>
-            <menu key="chord">Chord</menu>
-            <menu key="pie">Pie</menu>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="code" prototype="generator" x="90" y="10">
-        <description>Create geometry using NodeBox 1 code.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[# use a seed to come up with a fixed variation of the code's output.
-# change the seed value to generate another variation.
-from random import seed
-seed(node.seed)
-
-# create a bunch of circles using NB 1 code
-for i in range(10):
-    fill(.5, random(.5, 1.0), random())
-    x = random(-100, 100)
-    y = random(-100, 100)
-    s = random(20, 50)
-    ellipse(x, y, s, s)
-]]></value>
-        </param>
-        <param name="_image">
-            <value>code.png</value>
-        </param>
-        <param name="seed" type="int" widget="seed">
-            <value>0</value>
-        </param>
-    </node>
-    <node exported="true" name="color" prototype="filter" x="250" y="340">
-        <description>Change the color of a shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    if self.shape is None: return None
-    new_shape = self.shape.clone()
-    for path in new_shape.paths:
-        path.fillColor = self.fill
-        if self.strokeWidth > 0:
-            path.strokeColor = self.stroke
-            path.strokeWidth = self.strokeWidth
-        else:
-            path.strokeColor = None
-    return new_shape]]></value>
-        </param>
-        <param name="_image">
-            <value>color.png</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="compound" prototype="filter" x="90" y="340">
-        <description>Add, subtract or intersect geometry.</description>
-        <port name="shapeB"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Color
-
-def cook(self):
-     if self.shape is None: return None
-     if self.shapeB is None: return self.shape.clone()
-     # The invert turns the operation around.
-     if self.invert_difference:
-         shape_a, shape_b = self.shapeB, self.shape
-     else:
-         shape_a, shape_b = self.shape, self.shapeB
-     # We're not changing the original geometry so there is no need to clone.
-     # Unite all the paths from geometry A.
-     compound_a = None
-     for path_a in shape_a.paths:
-         if compound_a is None:
-             compound_a = path_a
-         else:
-             compound_a = compound_a.united(path_a)
-     # Unite all the paths from geometry B.
-     compound_b = None
-     for path_b in shape_b.paths:
-         if compound_b is None:
-             compound_b = path_b
-         else:
-             compound_b = compound_b.united(path_b)
-     # Final check to see if the two compound paths contain data.
-     if compound_a is None or compound_b is None: return None
-     # Combine the two compound paths using the given function.
-     f = self.function
-     if f == "united":
-         compound = compound_a.united(compound_b)
-     elif f == "subtracted":
-         compound = compound_a.subtracted(compound_b)
-     elif f == "intersected":
-         compound = compound_a.intersected(compound_b)
-     else:
-         return None
-     # Set the color of the path.
-     compound.fillColor = self.fill
-     if self.strokeWidth > 0:
-         compound.strokeColor = self.stroke
-         compound.strokeWidth = self.strokeWidth
-     return compound.asGeometry()]]></value>
-        </param>
-        <param name="_image">
-            <value>compound.png</value>
-        </param>
-        <param name="function" type="string" widget="menu">
-            <value>united</value>
-            <menu key="united">union</menu>
-            <menu key="subtracted">difference</menu>
-            <menu key="intersected">intersect</menu>
-        </param>
-        <param enableExpression="node.asString(&quot;function&quot;).equals(&quot;subtracted&quot;)" name="invert_difference" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="connect" prototype="filter" x="410" y="580">
-        <description>Connects all points in a path.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Transform, Path
-
-def cook(self):
-    if self.shape is None: return None
-    if self.shape.pointCount < 2: return None
-    start = self.shape.points[0]
-    p = Path()
-    p.moveto(start.x, start.y)
-    for point in self.shape.points[1:]:
-        p.lineto(point.x, point.y)
-    if self.closed:
-        p.close()
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_image">
-            <value>connect.png</value>
-        </param>
-        <param name="closed" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>1.0</value>
-        </param>
-    </node>
-    <node exported="true" name="copy" prototype="filter" x="170" y="340">
-        <description>Create multiple copies of a shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.node import StampExpression
-from nodebox.graphics import Geometry, Transform
-
-def cook(self):
-    if self.shape is None:
-        return None
-    g = Geometry()
-    tx = ty = r = 0.0
-    sx = sy = 1.0
-    if self.stamp:
-        stamp = StampExpression(self.node, "expr")
-    for i in xrange(self.copies):
-        if self.stamp:
-            context.put('CNUM', i)
-            context.put('CPOS', i/float(self.copies))
-            stamp.evaluate(context)
-            self.node.stampExpressions(context)
-        t = Transform()
-        # Each letter of the order describes an operation.
-        for op in self.order:
-            if op == 't':
-                t.translate(tx, ty)
-            elif op == 'r':
-                t.rotate(r)
-            elif op == 's':
-                t.scale(sx, sy)
-        new_shape = t.map(self.shape)
-        g.extend(new_shape)
-        tx += self.tx
-        ty += self.ty
-        r += self.r
-        sx += self.sx / 100.0
-        sy += self.sy / 100.0
-    return g]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import PointHandle
-
-def cook(self):
-    return PointHandle(self.node, "tx", "ty")
-]]></value>
-        </param>
-        <param name="_image">
-            <value>copy.png</value>
-        </param>
-        <param bounding="hard" min="1.0" name="copies" type="int">
-            <value>1</value>
-        </param>
-        <param name="order" type="string" widget="menu">
-            <value>tsr</value>
-            <menu key="srt">Scale Rot Trans</menu>
-            <menu key="str">Scale Trans Rot</menu>
-            <menu key="rst">Rot Scale Trans</menu>
-            <menu key="rts">Rot Trans Scale</menu>
-            <menu key="tsr">Trans Scale Rot</menu>
-            <menu key="trs">Trans Rot Scale</menu>
-        </param>
-        <param label="Translate X" name="tx" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Translate Y" name="ty" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Rotate" name="r" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Scale X" name="sx" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Scale Y" name="sy" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" help="" label="Expression" name="expr" type="string" widget="stamp_expression">
-            <value/>
-        </param>
-    </node>
-    <node exported="true" name="curve" prototype="generator" x="330" y="170">
-        <description>Create an arbitrary curve or path</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-import svg
-
-def cook(self):
-    if not self.path: return None
-    p = svg.path_from_string(self.path)
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()
-]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Point, Color
-from nodebox.handle import AbstractHandle
-
-from math import sin, cos, atan, pi, degrees, radians, sqrt, pow
-
-import svg
-
-MOVETO, LINETO, CURVETO, CLOSE = range(4)
-
-class PathElement(object):
-    def __init__(self, cmd=None, pts=None):
-        self.cmd = cmd
-        if cmd == MOVETO:
-            assert len(pts) == 1
-            self.x, self.y = pts[0]
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[0])
-        elif cmd == LINETO:
-            assert len(pts) == 1
-            self.x, self.y = pts[0]
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[0])
-        elif cmd == CURVETO:
-            assert len(pts) == 3
-            self.ctrl1 = Point(pts[0])
-            self.ctrl2 = Point(pts[1])
-            self.x, self.y = pts[2]
-        elif cmd == CLOSE:
-            assert pts is None or len(pts) == 0
-            self.x = self.y = 0.0
-            self.ctrl1 = Point(0.0, 0.0)
-            self.ctrl2 = Point(0.0, 0.0)
-        else:
-            self.x = self.y = 0.0
-            self.ctrl1 = Point()
-            self.ctrl2 = Point()
-
-    def __repr__(self):
-        if self.cmd == MOVETO:
-            return "PathElement(MOVETO, ((%.3f, %.3f),))" % (self.x, self.y)
-        elif self.cmd == LINETO:
-            return "PathElement(LINETO, ((%.3f, %.3f),))" % (self.x, self.y)
-        elif self.cmd == CURVETO:
-            return "PathElement(CURVETO, ((%.3f, %.3f), (%.3f, %s), (%.3f, %.3f))" % \
-                (self.ctrl1.x, self.ctrl1.y, self.ctrl2.x, self.ctrl2.y, self.x, self.y)
-        elif self.cmd == CLOSE:
-            return "PathElement(CLOSE)"
-           
-    def __eq__(self, other):
-        if other is None: return False
-        if self.cmd != other.cmd: return False
-        return self.x == other.x and self.y == other.y \
-            and self.ctrl1 == other.ctrl1 and self.ctrl2 == other.ctrl2
-       
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-                                
-class BezierPathEditor(AbstractHandle):
-    def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.path = None
-        self.path_string = ""
-        self._points = []
-        if self.node.asString("path"):
-            self.import_svg()
-        self.reset()
-
-    def reset(self):
-        # These variables discern between different
-        # modes of interaction.
-        # In add-mode, new contains the last point added.
-        # In edit-mode, edit contains the index of the point
-        # in the path being edited.
-
-        self.new = None
-        self.edit = None
-        self.editing = False
-        self.insert = False
-        self.inserting = False
+        <node function="corevector/arc" name="arc" image="arc.png" outputType="geometry" position="90,260"
+              prototype="generator" description="Create an arc." handle="corevector/handle_four_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="100.0"/>
+            <port type="float" name="height" value="100.0"/>
+            <port type="float" name="start_angle" value="0.0"/>
+            <port type="float" name="degrees" value="45.0"/>
+            <port type="string" name="type" value="pie" widget="menu">
+                <menu key="pie" label="Pie"/>
+                <menu key="chord" label="Chord"/>
+                <menu key="open" label="Open"/>
+            </port>
+        </node>
         
-        self.drag_point = False
-        self.drag_handle1 = False
-        self.drag_handle2 = False
+        <node function="corevector/center_point" name="center_point" outputType="point" prototype="filter"
+            description="Calculate the center point of a shape.">
+        </node>
+
+        <node function="corevector/colorize" name="colorize" image="colorize.png" outputType="geometry"
+              position="250,340"
+              prototype="filter" description="Change the color of a shape.">
+            <port type="color" name="fill" value="#000000ff"/>
+            <port type="color" name="stroke" value="#000000ff"/>
+            <port name="strokeWidth" min="0.0" value="0.0" label="Stroke Width" bounding="hard" type="float"/>
+        </node>
+
+        <node function="corevector/compound" name="compound" image="compound.png" outputType="geometry"
+              position="90,340" prototype="generator" description="Add, subtract or intersect geometry.">
+            <port type="geometry" name="shape1"/>
+            <port type="geometry" name="shape2"/>
+            <port type="string" name="function" value="united" widget="menu">
+                <menu key="united" label="Union"/>
+                <menu key="subtracted" label="Difference"/>
+                <menu key="intersected" label="Intersection"/>
+            </port>
+            <port type="boolean" name="invert_difference" value="false"/>
+        </node>
+
+        <node function="corevector/connect" name="connect" image="connect.png" outputType="geometry" position="410,580"
+              prototype="generator" description="Connects all points in a path.">
+            <port type="list" name="points" range="list"/>
+            <port type="boolean" name="closed" value="true"/>
+        </node>
+
+        <node function="corevector/copy" name="copy" image="copy.png" outputType="geometry" position="170,340"
+              prototype="filter" description="Create multiple copies of a shape." handle="corevector/handle_translate">
+            <port bounding="hard" type="int" name="copies" value="1" min="1.0"/>
+            <port type="string" name="order" value="tsr"/>
+            <port type="string" name="order" value="tsr" label="Trans Scale Rot" widget="menu">
+                <menu key="srt" label="Scale Rot Trans"/>
+                <menu key="str" label="Scale Trans Rot"/>
+                <menu key="rst" label="Rot Scale Trans"/>
+                <menu key="rtr" label="Rot Trans Scale"/>
+                <menu key="tsr" label="Trans Scale Rot"/>
+                <menu key="trs" label="Trans Rot Scale"/>
+            </port>
+            <port type="point" name="translate" value="0,0" label="Translate"/>
+            <port type="float" name="rotate" value="0.0" label="Rotate"/>
+            <port type="point" name="scale" value="0,0" label="Scale"/>
+        </node>
+
+        <node function="corevector/delete_bounding" name="delete_bounding" image="delete_bounding.png"
+              outputType="geometry" position="180,590"
+              prototype="filter" description="Delete points or paths that lie within the bounding path.">
+            <port type="geometry" name="bounding"/>
+            <port type="string" name="scope" value="points" widget="menu">
+                <menu key="points" label="Points"/>
+                <menu key="paths" label="Paths"/>
+            </port>
+            <port type="boolean" name="delete_selected" value="true"/>
+        </node>
+
+        <node function="corevector/delete" name="delete" image="delete.png" outputType="geometry" position="170,580"
+              prototype="filter" description="Delete points or paths that lie within the given bounds."
+              handle="corevector/handle_four_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="100.0"/>
+            <port type="float" name="height" value="100.0"/>
+            <port type="string" name="scope" value="points" widget="menu">
+                <menu key="points" label="Points"/>
+                <menu key="paths" label="Paths"/>
+            </port>
+            <port type="boolean" name="delete_selected" value="true"/>
+        </node>
+
+        <node function="corevector/distribute" name="distribute" image="distribute.png" outputType="geometry"
+              position="250,580" prototype="filter"
+              description="Distributes shapes on a horizontal and/or vertical axis.">
+            <port type="string" name="horizontal" value="none"/>
+            <port type="string" name="vertical" value="none"/>
+        </node>
         
-        # Colors used to draw interface elements.
-        
-        self.strokewidth = 0.75
-        self.path_color = Color(0.2, 0.2, 0.2)
-        self.path_fill = Color(0, 0, 0, 0)
-        self.handle_color = Color(0.6, 0.6, 0.6)
-        self.new_color = Color(0.8, 0.8, 0.8)
+        <node function="corevector/draw_path" name="draw_path" image="draw_path.png" outputType="geometry"
+            position="250,580" prototype="generator"
+            description="Draw Bezier Paths." handle="corevector/handle_draw_path">
+            <port type="string" name="path"/>
+        </node>
+
+        <node function="corevector/ellipse" name="ellipse" image="ellipse.png" outputType="geometry" position="90,90"
+              prototype="generator" description="Create ellipses and circles." handle="corevector/handle_four_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="100.0"/>
+            <port type="float" name="height" value="100.0"/>
+        </node>
+
+        <node function="corevector/fit" name="fit" image="fit.png" outputType="geometry" position="410,340"
+              prototype="filter" description="Fit a shape within bounds." handle="corevector/handle_four_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="300.0"/>
+            <port type="float" name="height" value="300.0"/>
+            <port type="boolean" name="keep_proportions" value="true"/>
+        </node>
+
+        <node function="corevector/fit_to" name="fit_to" image="fit_to.png" outputType="geometry" position="410,340"
+              prototype="filter" description="Fit a shape to another shape.">
+            <port type="geometry" name="bounding"/>
+            <port type="boolean" name="keep_proportions" value="true"/>
+        </node>
+
+        <node function="corevector/freehand" name="freehand" image="freehand.png" outputType="geometry"
+              position="10,10" prototype="generator" description="Freehand drawing."
+              handle="corevector/handle_freehand">
+            <port type="string" name="path"/>
+        </node>
+
+        <node name="geonet" image="geonet.png" outputType="geometry" position="10,10"
+              description="A network of geometry nodes.">
+        </node>
+
+        <node function="corevector/grid" name="grid" image="grid.png" outputType="list" outputRange="list" position="170,90"
+              prototype="generator" description="Create a grid of points."
+              handle="corevector/handle_four_point">
+            <port type="int" name="rows" value="10" min="1.0"/>
+            <port type="int" name="columns" value="10" min="1.0"/>
+            <port type="float" name="width" value="300.0"/>
+            <port type="float" name="height" value="300.0"/>
+            <port type="point" name="position" value="0,0"/>
+        </node>
+
+        <node function="corevector/group" name="group" image="group.png" outputType="geometry" position="90,420"
+              prototype="generator" description="Combine multiple geometries together.">
+            <port type="geometry" name="shapes" range="list"/>
+        </node>
+
+        <node function="corevector/import_svg" name="import_svg" image="import.png" outputType="geometry"
+              position="250,90"
+              prototype="generator" description="Import geometry from a SVG file." handle="corevector/handle_point">
+            <port type="string" name="file" widget="file" value=""/>
+            <port type="boolean" name="centered" value="true" label="Center on Canvas"/>
+            <port type="point" name="position" value="0,0"/>
+        </node>
+
+        <node function="corevector/line" name="line" image="line.png" outputType="geometry" position="170,170"
+              prototype="generator" description="Draw a line between two points." handle="corevector/handle_line">
+            <port type="point" name="point1" value="0,0"/>
+            <port type="point" name="point2" value="100,100"/>
+        </node>
+
+        <node function="corevector/line_angle" name="line_angle" image="line_angle.png" outputType="geometry"
+              position="180,180"
+              prototype="generator" description="Draw a line between a point and angle and distance."
+              handle="corevector/handle_rotate">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="angle" value="0.0"/>
+            <port type="float" name="distance" value="100.0"/>
+        </node>
+
+        <node function="corevector/make_point" name="make_point" image="filter.png" outputType="point"
+              position="170,510"
+              prototype="generator" description="Creates a point based on two numbers.">
+            <port type="float" name="x" value="0.0" label="x"/>
+            <port type="float" name="y" value="0.0" label="y"/>
+        </node>
+
+        <node function="corevector/null" name="null" image="null.png" outputType="geometry" position="170,420"
+              prototype="filter" description="Does nothing.">
+        </node>
+
+        <node function="corevector/polygon" name="polygon" image="polygon.png" outputType="geometry" position="250,170"
+              prototype="generator" description="Draw a polygon." handle="corevector/handle_polygon">
+            <port type="point" name="position" value="0,0"/>
+            <port bounding="hard" type="float" name="radius" value="100.0" min="0.0"/>
+            <port bounding="hard" type="int" name="sides" value="3" min="3.0"/>
+            <port type="boolean" name="align" value="false"/>
+        </node>
+
+        <node function="corevector/rect" name="rect" image="rect.png" outputType="geometry" position="330,90"
+              prototype="generator" description="Create a rectangle or rounded rectangle."
+              handle="corevector/handle_four_point">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="100.0"/>
+            <port type="float" name="height" value="100.0"/>
+            <port type="point" name="roundness" value="0,0"/>
+        </node>
+
+        <node function="corevector/reflect" name="reflect" image="reflect.png" outputType="geometry" position="330,500"
+              prototype="filter" description="Mirrors and copies the geometry across an invisible axis."
+              handle="corevector/handle_reflect">
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="angle" value="120.0"/>
+            <port type="boolean" name="keep_original" value="true"/>
+        </node>
+
+        <node function="corevector/resample" name="resample" image="resample.png" outputType="geometry"
+              position="330,420" prototype="filter" description="Distribute points along a shape.">
+            <port type="string" name="method" value="length" label="By length" widget="menu">
+                <menu key="length" label="By length"/>
+                <menu key="amount" label="By amount"/>
+            </port>
+            <port bounding="hard" type="float" name="length" value="10.0" min="1.0"/>
+            <port bounding="hard" type="int" name="points" value="10" min="1.0"/>
+            <port type="boolean" name="per_contour" value="false"/>
+        </node>
+
+        <node function="corevector/resample_by_length" name="resample_by_length" image="resample.png"
+              outputType="geometry"
+              position="330,420" prototype="filter" description="Distribute points evenly along a shape.">
+            <port bounding="hard" type="float" name="length" value="10.0" min="1.0"/>
+        </node>
+
+        <node function="corevector/resample_by_amount" name="resample_by_amount" image="resample.png"
+              outputType="geometry"
+              position="330,420" prototype="filter" description="Distribute a number of points along a shape.">
+            <port bounding="hard" type="int" name="points" value="10" min="1.0"/>
+            <port type="boolean" name="per_contour" value="false"/>
+        </node>
+
+        <node function="corevector/scatter" outputRange="list" name="scatter" image="scatter.png" outputType="list" position="410,420"
+              prototype="filter" description="Generate points within the boundaries of a shape.">
+            <port bounding="hard" type="int" name="amount" value="20" min="0.0"/>
+            <port type="int" name="seed" value="0"/>
+        </node>
+
+        <node function="corevector/shape_on_path" name="shape_on_path" image="shape_on_path.png" outputType="geometry"
+              position="90,670" prototype="filter" description="Copies shapes on a path.">
+            <port type="geometry" name="template"/>
+            <port type="int" name="amount" value="20"/>
+            <port type="float" name="dist" value="20.0" label="Distribution"/>
+            <port bounding="hard" type="float" name="start" value="0.0" min="0.0" max="100.0"/>
+            <port type="boolean" name="keep_geometry" value="true"/>
+        </node>
+
+        <node function="corevector/snap" name="snap" image="snap.png" outputType="geometry" position="410,500"
+              prototype="filter" description="Snap geometry to a grid." handle="corevector/handle_snap">
+            <port bounding="hard" type="float" name="distance" value="10.0" min="1.0"/>
+            <port name="strength" min="0.0" max="100.0" value="100.0" bounding="hard" type="float"/>
+            <port type="point" name="position" value="0,0"/>
+        </node>
+
+        <node function="corevector/sort" name="sort" image="sort.png" outputType="geometry" position="250,500"
+              prototype="filter" description="Sort points or shapes using different sorting methods">
+            <port type="string" name="scope" value="p_g"/>
+            <port type="string" name="order" value="unchanged"/>
+            <port type="int" name="seed" value="0"/>
+            <port type="int" name="offset" value="0"/>
+            <port type="point" name="position" value="0,0"/>
+        </node>
+
+        <node function="corevector/star" name="star" image="star.png" outputType="geometry" position="410,90"
+              prototype="generator" description="Create a star shape." handle="corevector/handle_star">
+            <port type="point" name="position" value="0,0"/>
+            <port bounding="hard" type="int" name="points" value="20" min="1.0"/>
+            <port type="float" name="outer" value="200.0" label="Outer Diameter"/>
+            <port type="float" name="inner" value="100.0" label="Inner Diameter"/>
+        </node>
+
+        <node function="corevector/switch" name="switch" image="switch.png" outputType="geometry" position="330,580"
+              prototype="group" description="Switches between multiple inputs.">
+            <port type="int" name="index" value="0"/>
+        </node>
+
+        <node function="corevector/text_on_path" name="text_on_path" image="text_on_path.png" outputType="geometry"
+              position="170,670" prototype="filter" description="Text following a path">
+            <port type="string" name="text" value="text following a path"/>
+            <port type="string" name="font_name" value="Verdana" widget="font"/>
+            <port type="float" name="font_size" value="24.0"/>
+            <port type="float" name="position" value="0.0"/>
+            <port type="float" name="offset" value="0.0" label="Vertical Distance"/>
+            <port type="boolean" name="keep_geometry" value="true"/>
+        </node>
+
+        <node function="corevector/textpath" name="textpath" image="textpath.png" outputType="geometry"
+              position="90,170" prototype="generator" description="Create a path out of text.">
+            <port type="string" name="text" value="hello"/>
+            <port type="string" name="font_name" value="Verdana" widget="font"/>
+            <port type="float" name="font_size" value="24.0"/>
+            <port type="string" name="align" value="CENTER" widget="menu">
+                <menu key="LEFT" label="Left"/>
+                <menu key="CENTER" label="Center"/>
+                <menu key="RIGHT" label="Right"/>
+                <menu key="JUSTIFY" label="Justify"/>
+            </port>
+            <port type="point" name="position" value="0,0"/>
+            <port type="float" name="width" value="0.0" min="0.0"/>
+            <port type="float" name="height" value="0.0" min="0.0"/>
+        </node>
+
+        <node function="corevector/translate" name="translate" image="translate.png" outputType="geometry"
+              position="100,500" prototype="filter"
+              description="Move the shape, changing its position." handle="corevector/handle_translate">
+            <port type="point" name="translate" value="0,0" label="Translate"/>
+        </node>
+
+        <node function="corevector/rotate" name="rotate" image="rotate.png" outputType="geometry"
+              position="100,510" prototype="filter"
+              description="Rotate the shape according to the given angle." handle="corevector/handle_rotate">
+            <port type="float" name="angle" value="0.0" label="Rotation"/>
+        </node>
+
+        <node function="corevector/scale" name="scale" image="scale.png" outputType="geometry"
+              position="100,520" prototype="filter"
+              description="Resize the shape by scaling it." handle="corevector/handle_scale">
+            <port type="point" name="scale" value="100,100" label="Scale"/>
+        </node>
+
+        <node function="corevector/to_points" outputRange="list" name="to_points" image="to_points.png" outputType="list"
+              position="100,540" prototype="filter"
+              description="Return the points of a given shape.">
+        </node>
+
+        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
+              prototype="filter" description="Decompose shape into multiple geometries.">
+        </node>
+
+        <node function="corevector/wiggle" name="wiggle" image="wiggle.png" outputType="geometry" position="170,500"
+              prototype="filter" description="Shift points by a random amount." handle="corevector/handle_wiggle">
+            <port type="string" name="scope" value="points"/>
+            <port type="string" name="scope" value="points" widget="menu">
+                <menu key="points" label="Points"/>
+                <menu key="contours" label="Contours"/>
+                <menu key="paths" label="Paths"/>
+            </port>
+            <port type="point" name="offset" value="10,10" label="Offset"/>
+            <port type="int" name="seed" value="0"/>
+        </node>
+
+        <node function="corevector/wiggle_points" name="wiggle_points" image="wiggle.png" outputType="geometry"
+              position="170,510"
+              prototype="filter" description="Shift points by a random amount." handle="corevector/handle_wiggle">
+            <port type="point" name="offset" value="10,10" label="Offset"/>
+            <port type="int" name="seed" value="0"/>
+        </node>
+
+        <node function="corevector/wiggle_paths" name="wiggle_paths" position="170,510"
+              prototype="wiggle_points" description="Shift paths by a random amount."/>
+
+        <node function="corevector/wiggle_contours" name="wiggle_contours" position="170,510"
+              prototype="wiggle_points" description="Shift paths by a random amount."/>
+
+        <node function="corevector/link" name="link" prototype="generator"
+              description="Generates a visual link between two shapes.">
+            <port type="shape" name="shape1"/>
+            <port type="shape" name="shape2"/>
+            <port type="string" name="orientation" value="horizontal"  widget="menu">
+                <menu key="horizontal" label="Horizontal"/>
+                <menu key="vertical" label="Vertical"/>
+            </port>
+        </node>
+
+        <node function="corevector/point_on_path" name="point_on_path" prototype="generator"
+              description="Calculate a point on a path.">
+            <port type="shape" name="shape"/>
+            <port type="float" name="t"/>
+            <port type="float" name="range" value="100.0"/>
+        </node>
+
+        <node function="corevector/quad_curve" name="quad_curve" prototype="generator"
+              description="Create a quadratic curve with one off-curve point.">
+            <port type="point" name="point1"/>
+            <port type="point" name="point2" value="100,0"/>
+            <port type="float" name="t" value="50.0"/>
+            <port type="float" name="distance" value="50.0"/>
+        </node>
+
+        <node function="corevector/write_points" name="write_points" prototype="generator"
+              description="Create a points file with the given shape.">
+            <port type="context" name="context"/>
+            <port type="shape" name="shape"/>
+            <port type="string" name="prefix"/>
+        </node>
 
-        # Different states for button actions.
-        # When delete contains a number,
-        # delete that index from the path.
-        # When moveto contains True,
-        # do a MOVETO before adding the next new point.
-
-        self.delete = None
-        self.moveto = None
-        self.last_moveto = None
-        self.btn_r = 5
-        self.btn_x = -5-1
-        self.btn_y = -5*2
-
-        # Keyboard keys pressed.
-        
-        self.keydown = False
-        self._keycode = None
-        self.last_key = None
-        self.last_keycode = None
-                
-        self._mouseXY = None
-        self.mousedown = False
-        
-    def overlap(self, x1, y1, x2, y2, r=5):
-        
-        """ Returns True when point 1 and point 2 overlap.
-        
-        There is an r treshold in which point 1 and point 2
-        are considered to overlap.
-        
-        """
-        
-        if abs(x2-x1) < r and abs(y2-y1) < r:
-            return True
-        else:
-            return False
-    
-    def reflect(self, x0, y0, x, y):
-        
-        """ Reflects the point x, y through origin x0, y0.
-        """
-                
-        rx = x0 - (x-x0)
-        ry = y0 - (y-y0)
-        return rx, ry
-
-    def angle(self, x0, y0, x1, y1):
-        
-        """ Calculates the angle between two points.
-        """
-    
-        a = degrees( atan((y1-y0) / (x1-x0+0.00001)) ) + 360
-        if x1-x0 < 0: a += 180
-        return a
-
-    def distance(self, x0, y0, x1, y1):
-    
-        """ Calculates the distance between two points.
-        """
-    
-        return sqrt(pow(x1-x0, 2) + pow(y1-y0, 2))
-        
-    def coordinates(self, x0, y0, distance, angle):
-        
-        """ Calculates the coordinates of a point from the origin.
-        """
-        
-        x = x0 + cos(radians(angle)) * distance
-        y = y0 + sin(radians(angle)) * distance
-        return Point(x, y)
-
-    def contains_point(self, x, y, d=2):
-        
-        """ Returns true when x, y is on the path stroke outline.
-        """
-        if self.path != None and len(self._points) > 1 \
-        and self.path.contains(x, y):
-            # If all points around the mouse are also part of the path,
-            # this means we are somewhere INSIDE the path.
-            # Only points near the edge (i.e. on the outline stroke)
-            # should propagate.
-            if not self.path.contains(x+d, y) \
-            or not self.path.contains(x, y+d) \
-            or not self.path.contains(x-d, y) \
-            or not self.path.contains(x, y-d) \
-            or not self.path.contains(x+d, y+d) \
-            or not self.path.contains(x-d, y-d) \
-            or not self.path.contains(x+d, y-d) \
-            or not self.path.contains(x-d, y+d):
-                return True
-
-        return False
-
-    def insert_point(self, x, y):
-        
-        """ Inserts a point on the path at the mouse location.
-
-        We first need to check if the mouse location is on the path.
-        Inserting point is time intensive and experimental.
-        
-        """
-        
-        # TODO: implement
-        pass 
-        
-    def _update_interaction(self):
-        
-        """ Update runs each frame to check for mouse interaction.
-        
-        Alters the path by allowing the user to add new points,
-        drag point handles and move their location.
-        Updates are automatically stored as SVG
-        in the given filename.
-        
-        """
-        
-        x, y = self.mouse()
-        
-        if self.mousedown:
-            # Handle buttons first.
-            # When pressing down on a button, all other action halts.
-            # Buttons appear near a point being edited.
-            # Once clicked, actions are resolved.
-            if self.edit != None \
-            and not self.drag_point \
-            and not self.drag_handle1 \
-            and not self.drag_handle2:
-                pt = self._points[self.edit]
-                dx = pt.x+self.btn_x
-                dy = pt.y+self.btn_y
-                # The delete button
-                if self.overlap(dx, dy, x, y, r=self.btn_r):
-                    self.delete = self.edit
-                    return
-                # The moveto button,
-                # active on the last point in the path.
-                dx += self.btn_r*2 + 2
-                if self.edit == len(self._points) -1 and \
-                   self.overlap(dx, dy, x, y, r=self.btn_r):
-                    self.moveto = self.edit
-                    return
-                    
-            if self.insert:
-                self.inserting = True
-                return
-            
-            # When not dragging a point or the handle of a point,
-            # i.e. the mousebutton was released and then pressed again,
-            # check to see if a point on the path is pressed.
-            # When this point is not the last new point,
-            # enter edit mode.
-            if not self.drag_point and \
-               not self.drag_handle1 and \
-               not self.drag_handle2:
-                self.editing = False
-                indices = range(len(self._points))
-                indices.reverse()
-                for i in indices:
-                    pt = self._points[i]
-                    if pt != self.new \
-                    and self.overlap(x, y, pt.x, pt.y) \
-                    and self.new == None:
-                        # Don't select a point if in fact
-                        # it is at the same location of the first handle 
-                        # of the point we are currently editing.
-                        if self.edit == i+1 \
-                        and self.overlap(self._points[i+1].ctrl1.x,
-                                         self._points[i+1].ctrl1.y, x, y):
-                            continue
-                        else:
-                            self.edit = i
-                            self.editing = True
-                            break
-            
-            # When the mouse button is down,
-            # edit mode continues as long as
-            # a point or handle is dragged.
-            # Else, stop editing and switch to add-mode
-            # (the user is clicking somewhere on the canvas).
-            if not self.editing:
-                if self.edit != None:
-                    pt = self._points[self.edit]
-                    if self.overlap(pt.ctrl1.x, pt.ctrl1.y, x, y) or \
-                       self.overlap(pt.ctrl2.x, pt.ctrl2.y, x, y):
-                        self.editing = True
-                    else:
-                        self.edit = None
-                    
-            # When not in edit mode, there are two options.
-            # Either no new point is defined and the user is
-            # clicking somewhere on the canvas (add a new point)
-            # or the user is dragging the handle of the new point.
-            # Adding a new point is a fluid click-to-locate and
-            # drag-to-curve action.
-            if self.edit == None:
-                if self.new == None:
-                    # A special case is when the used clicked
-                    # the moveto button on the last point in the path.
-                    # This indicates a gap (i.e. MOVETO) in the path.
-                    self.new = PathElement()
-                    if self.moveto == True \
-                    or len(self._points) == 0:
-                        cmd = MOVETO
-                        self.moveto = None
-                        self.last_moveto = self.new
-                    else:
-                        cmd = CURVETO
-                    self.new.cmd = cmd
-                    self.new.x = x
-                    self.new.y = y
-                    self.new.ctrl1 = Point(x, y)
-                    self.new.ctrl2 = Point(x, y)
-                    # Don't forget to map the point's ctrl1 handle
-                    # to the ctrl2 handle of the previous point.
-                    # This makes for smooth, continuous paths.
-                    if len(self._points) > 0:
-                        prev = self._points[-1]
-                        rx, ry = self.reflect(prev.x, prev.y, prev.ctrl2.x, prev.ctrl2.y)
-                        self.new.ctrl1 = Point(rx, ry)
-                    self._points.append(self.new)
-                else:
-                    # Illustrator-like behavior:
-                    # when the handle is dragged downwards,
-                    # the path bulges upwards.
-                    rx, ry = self.reflect(self.new.x, self.new.y, x, y)
-                    self.new.ctrl2 = Point(rx, ry)
-            
-            # Edit mode
-            elif self.new == None:
-            
-                pt = self._points[self.edit]
-            
-                # The user is pressing the mouse on a point,
-                # enter drag-point mode.
-                if self.overlap(pt.x, pt.y, x, y) \
-                and not self.drag_handle1 \
-                and not self.drag_handle2 \
-                and not self.new != None:
-                    self.drag_point = True
-                    self.drag_handle1 = False
-                    self.drag_handle2 = False
-
-                # The user is pressing the mouse on a point's handle,
-                # enter drag-handle mode.
-                if self.overlap(pt.ctrl1.x, pt.ctrl1.y, x, y) \
-                and pt.cmd == CURVETO \
-                and not self.drag_point \
-                and not self.drag_handle2:
-                    self.drag_point = False
-                    self.drag_handle1 = True
-                    self.drag_handle2 = False
-                if self.overlap(pt.ctrl2.x, pt.ctrl2.y, x, y) \
-                and pt.cmd == CURVETO \
-                and not self.drag_point \
-                and not self.drag_handle1:
-                    self.drag_point = False
-                    self.drag_handle1 = False
-                    self.drag_handle2 = True
-                
-                # In drag-point mode,
-                # the point is located at the mouse coordinates.
-                # The handles move relatively to the new location
-                # (e.g. they are retained, the path does not distort).
-                # Modify the ctrl1 handle of the next point as well.
-                if self.drag_point == True:
-                    dx = x - pt.x
-                    dy = y - pt.y
-                    pt.x = x
-                    pt.y = y
-                    pt.ctrl2.x += dx
-                    pt.ctrl2.y += dy
-                    if self.edit < len(self._points)-1:
-                        rx, ry = self.reflect(pt.x, pt.y, x, y)
-                        next = self._points[self.edit+1]
-                        next.ctrl1.x += dx
-                        next.ctrl1.y += dy
-
-                # In drag-handle mode,
-                # set the path's handle to the mouse location.
-                # Rotate the handle of the next or previous point
-                # to keep paths smooth - unless the user is pressing "x".
-                if self.drag_handle1 == True:
-                    pt.ctrl1 = Point(x, y)
-                    if self.edit > 0 \
-                    and self.last_keycode != 88:
-                        prev = self._points[self.edit-1]
-                        d = self.distance(prev.x, prev.y, prev.ctrl2.x, prev.ctrl2.y)
-                        a = self.angle(prev.x, prev.y, pt.ctrl1.x, pt.ctrl1.y)
-                        prev.ctrl2 = self.coordinates(prev.x, prev.y, d, a+180)                        
-                if self.drag_handle2 == True:   
-                    pt.ctrl2 = Point(x, y)
-                    if self.edit < len(self._points)-1 \
-                    and self.last_keycode != 88:
-                        next = self._points[self.edit+1]
-                        d = self.distance(pt.x, pt.y, next.ctrl1.x, next.ctrl1.y)
-                        a = self.angle(pt.x, pt.y, pt.ctrl2.x, pt.ctrl2.y)
-                        next.ctrl1 = self.coordinates(pt.x, pt.y, d, a+180)
-        
-        else:
-            # The mouse button is released
-            # so we are not dragging anything around.
-            self.new = None
-            self.drag_point = False
-            self.drag_handle1 = False
-            self.drag_handle2 = False
-            
-            # The delete button for a point was clicked.
-            if self.delete != None and len(self._points) > 0:
-                i = self.delete
-                cmd = self._points[i].cmd
-                del self._points[i]
-                if 0 < i < len(self._points):
-                    prev = self._points[i-1]
-                    rx, ry = self.reflect(prev.x, prev.y, prev.ctrl2.x, prev.ctrl2.y)
-                    self._points[i].ctrl1 = Point(rx, ry)
-                start_i = i
-                while i > 1:
-                    i -= 1
-                    pt = self._points[i]
-                    if i < start_i-1:
-                        if pt.cmd == MOVETO:
-                            del self._points[i]
-                        break
-                # When you delete a MOVETO point,
-                # the last moveto (the one where the dashed line points to)
-                # needs to be updated.
-                if len(self._points) > 0 \
-                and (cmd == MOVETO or i == 0):
-                    self.last_moveto = self._points[0]
-                    for pt in self._points:
-                        if pt.cmd == MOVETO:
-                            self.last_moveto = pt
-                self.delete = None
-                self.edit = None
-
-            # The moveto button for the last point
-            # in the path was clicked.
-            elif isinstance(self.moveto, int):
-                self.moveto = True
-                self.edit = None
-            
-            # We are not editing a node and
-            # the mouse is hovering over the path outline stroke:
-            # it is possible to insert a point here.
-            elif self.edit == None \
-            and self.contains_point(x, y, d=2):
-                self.insert = True
-            else:
-                self.insert = False
-            
-            # Commit insert of new point.
-            if self.inserting \
-            and self.contains_point(x, y, d=2): 
-                self.insert_point(x, y)
-                self.insert = False
-            self.inserting = False
-        if self.keydown:    
-            self.last_keycode = self._keycode
-        if not self.keydown and self.last_keycode != None:
-            self.last_key = None
-            self.last_keycode = None
-
-    def _update_path(self):
-        x, y = self.mouse()
-        path = Path()
-        if len(self._points) > 0:
-            first = True
-            for i in range(len(self._points)):
-                
-                # Construct the path.
-                pt = self._points[i]
-                if first:
-                    path.moveto(pt.x, pt.y)
-                    first = False
-                else:
-                    if pt.cmd == CLOSE:
-                        path.close()
-                    elif pt.cmd == MOVETO:
-                        path.moveto(pt.x, pt.y)
-                    elif pt.cmd == LINETO:
-                        path.lineto(pt.x, pt.y)
-                    elif pt.cmd == CURVETO:
-                        path.curveto(pt.ctrl1.x, pt.ctrl1.y, 
-                                     pt.ctrl2.x, pt.ctrl2.y, 
-                                     pt.x, pt.y)
-        # Set the current path,
-        self.path = path
-        
-    def update(self):
-        if self.node.asString("path") != self.path_string:
-            self.import_svg()
-            self.reset()
-            
-        # Enable interaction.
-        self._update_interaction()
-        self.export_svg()
-        self._update_path()
-        
-    def draw(self, _ctx):
-        
-        """ Draws the editable path and interface elements.
-        """
-
-        x, y = self.mouse()
-        
-        _ctx.ellipsemode(CENTER)
-        _ctx.rectmode(CENTER)
-        _ctx.autoclosepath(False)
-        _ctx.strokewidth(self.strokewidth)
-        
-        r = 4
-        _ctx.nofill()
-        if len(self._points) > 0:
-            first = True
-            for i in range(len(self._points)):
-                
-                # Construct the path.
-                pt = self._points[i]
-                
-                # In add- or edit-mode,
-                # display the current point's handles.
-                if ((i == self.edit and self.new == None) \
-                or pt == self.new) \
-                and pt.cmd == CURVETO:
-                    _ctx.stroke(self.handle_color)
-                    _ctx.nofill()
-                    _ctx.ellipse(pt.x, pt.y, r*2, r*2)
-                    _ctx.stroke(self.handle_color)
-                    _ctx.line(pt.ctrl2.x, pt.ctrl2.y, pt.x, pt.y)
-                    _ctx.fill(self.handle_color)
-                # Display the new point's handle being dragged.
-                if pt == self.new:
-                    rx, ry = self.reflect(pt.x, pt.y, pt.ctrl2.x, pt.ctrl2.y)
-                    _ctx.stroke(self.handle_color)
-                    _ctx.line(rx, ry, pt.x, pt.y)
-                    _ctx.nostroke()
-                    _ctx.fill(self.handle_color)
-                    _ctx.ellipse(rx, ry, r, r)
-                # Display handles for point being edited.
-                if i == self.edit \
-                and self.new == None \
-                and pt.cmd == CURVETO:
-                    _ctx.ellipse(pt.ctrl2.x, pt.ctrl2.y, r, r)
-                    if i > 0:
-                        prev = self._points[i-1]
-                        _ctx.line(pt.ctrl1.x, pt.ctrl1.y, prev.x, prev.y)
-                        _ctx.ellipse(pt.ctrl1.x, pt.ctrl1.y, r, r)
-                    if i > 0 and self._points[i-1].cmd != MOVETO:
-                        _ctx.line(prev.ctrl2.x, prev.ctrl2.y, prev.x, prev.y)
-                    if i < len(self._points)-1:
-                        next = self._points[i+1]
-                        if next.cmd == CURVETO:
-                            _ctx.line(next.ctrl1.x, next.ctrl1.y, pt.x, pt.y)
-                
-                # When hovering over a point,
-                # highlight it.
-                elif self.overlap(x, y, pt.x, pt.y):
-                    self.insert = False # quit insert mode
-                    _ctx.nofill()
-                    _ctx.stroke(self.handle_color)
-                    _ctx.ellipse(pt.x, pt.y, r*2, r*2)
-                
-                if pt.cmd != MOVETO:
-                    _ctx.fill(self.path_color)
-                    _ctx.nostroke()
-                else:
-                    _ctx.stroke(self.path_color)
-                    _ctx.nofill()
-                _ctx.ellipse(pt.x, pt.y, r, r)
-                
-
-            # Possible to insert a point here.
-            if self.insert:
-                _ctx.stroke(self.handle_color)
-                _ctx.nofill()
-                _ctx.ellipse(x, y, r*1.6, r*1.6)
-                
-            # When not editing a node,
-            # prospect how the curve will continue
-            # when adding a new point.
-            if self.edit == None \
-            and self.new == None \
-            and self.moveto != True:
-                _ctx.nofill()
-                _ctx.stroke(self.new_color)
-                rx, ry = self.reflect(pt.x, pt.y, pt.ctrl2.x, pt.ctrl2.y)
-                _ctx.beginpath(pt.x, pt.y)
-                _ctx.curveto(rx, ry, x, y, x, y)
-                _ctx.endpath()
-
-                # A dashed line indicates what
-                # a CLOSETO would look like.
-                if self.last_moveto != None:
-                    start = self.last_moveto
-                else:
-                    start = self._points[0]
-        
-            # When doing a MOVETO,
-            # show the new point hovering at the mouse location.
-            elif self.edit == None \
-            and self.new == None \
-            and self.moveto != None:
-                _ctx.stroke(self.new_color)
-                _ctx.nofill()
-                _ctx.ellipse(x, y, r*1.6, r*1.6)
-            
-            # Draws button for a point being edited.
-            # The first button deletes the point.
-            # The second button, which appears only on the last point
-            # in the path, tells the editor to perform a MOVETO
-            # before adding a new point.
-            if self.edit != None:
-                pt = self._points[self.edit]
-                x = pt.x + self.btn_x
-                y = pt.y + self.btn_y
-                r = self.btn_r
-                _ctx.nostroke()
-                _ctx.fill(self.handle_color)
-                _ctx.ellipse(x, y, r*2, r*2)
-                _ctx.fill(1)
-                _ctx.rotate(45)
-                _ctx.rect(x, y, r+1, 1.25)
-                _ctx.rotate(-90)
-                _ctx.rect(x, y, r+1, 1.25)
-                _ctx.reset()
-                if self.edit == len(self._points)-1:
-                    _ctx.fill(self.handle_color)
-                    _ctx.ellipse(x+r*2+2, y, r*2, r*2)
-                    _ctx.fill(1)
-                    _ctx.rect(x+r*2+3-2.25, y, 1.5, r-1)
-                    _ctx.rect(x+r*2+3+0.75, y, 1.5, r-1)
-        
-    def import_svg(self):
-        # Parses the string from the node's path parameter and constructs a path
-        self.path_string = self.node.asString("path")
-        self.path = svg.path_from_string(self.path_string)
-        self._points = []
-        
-        # Converts the path data into a list of PathElements
-        for contour in self.path.contours:
-            if not (len(contour.points) == 1 and contour.points[0].x == 0 and contour.points[0].y == 0):
-                first = None
-                curvePoint = PathElement()
-                curvePoint.cmd = CURVETO
-                first_curvepoint = True
-                for point in contour.points:
-                    if first is None or point.isLineTo():
-                        # Checks for MOVETO or LINETO PathElements.
-                        # The first point of a Curve is always a MOVETO,
-                        # The other ones are LINETO's.
-                        pe = PathElement()
-                        if first is None:
-                            first = point
-                            pe.cmd = MOVETO
-                        else:
-                            pe.cmd = LINETO
-                        pe.x = point.x
-                        pe.y = point.y
-                        self._points.append(pe)
-                    else:
-                        # Checks for CURVETO PathElements.
-                        # A new element will only be appended to the points list
-                        # when all necessary data has been found by going through the loop
-                        if first_curvepoint:
-                            curvePoint.ctrl1.x = point.x
-                            curvePoint.ctrl1.y = point.y
-                            first_curvepoint = False
-                        elif point.isOffCurve():
-                            curvePoint.ctrl2.x = point.x
-                            curvePoint.ctrl2.y = point.y
-                        else:
-                            curvePoint.x = point.x
-                            curvePoint.y = point.y
-                            self._points.append(curvePoint)
-                            curvePoint = PathElement()
-                            curvePoint.cmd = CURVETO
-                            first_curvepoint = True
-                if contour.closed:
-                    pe = PathElement()
-                    pe.cmd = CLOSE  
-                    self._points.append(pe)    
-
-    def export_svg(self):
-        # Converts all the point data into SVG format.
-        s = ""
-        if len(self._points) > 0:
-            for pt in self._points:
-                if pt.cmd == MOVETO:
-                    s += "M " + str(pt.x) + " " + str(pt.y) + " "
-                elif pt.cmd == LINETO:
-                    s += "L " + str(pt.x) + " " + str(pt.y) + " "
-                elif pt.cmd == CURVETO:
-                    s += "C "
-                    s += str(pt.ctrl1.x) + " " + str(pt.ctrl1.y) + " "
-                    s += str(pt.ctrl2.x) + " " + str(pt.ctrl2.y) + " "
-                    s += str(pt.x) + " " + str(pt.y) + " "
-            self.path_string = s
-            if self.path_string != self.node.asString("path"):
-                self.silentSet("path", s)
-    
-    def mouse(self):
-        if self._mouseXY is not None:
-            return (self._mouseXY.x, self._mouseXY.y)
-        else:
-            return (0, 0)
-
-    def mousePressed(self, pt):
-        self._mouseXY = pt
-        self.mousedown = True
-        self.updateHandle()
-        return True
-        
-    def mouseDragged(self, pt):
-        if not self.mousedown: return False
-        self._mouseXY = pt
-        self.updateHandle()
-        return True
-
-    def mouseReleased(self, pt):
-        if not self.mousedown: return False
-        self._mouseXY = pt
-        self.mousedown = False
-        self.updateHandle()
-        self.stopCombiningEdits()
-        return True
-    
-    def mouseMoved(self, pt):
-        self._mouseXY = pt
-        self.updateHandle()
-        return True
-
-    def keyPressed(self, keycode, modifiers):
-        self._keycode = keycode
-        self.keydown = True
-        self.updateHandle()
-        return True
-
-    def keyReleased(self, keycode, modifiers):
-        if not self.keydown: return False
-        self._keycode = keycode
-        self.keydown = False
-        self.updateHandle()
-        return True
-
-def cook(self):
-    return BezierPathEditor(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>curve.png</value>
-        </param>
-        <param name="path" type="string" widget="data">
-            <value/>
-        </param>
-        <param name="fill" type="color">
-            <value>#00000000</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>1.0</value>
-        </param>
-    </node>
-    <node exported="true" name="datastamp" prototype="filter" x="250" y="670">
-        <description>Generate new geometry for each row in a CSV file.</description>
-        <port name="template"/>
-        <param name="_code">
-            <value type="python"><![CDATA[# Data stamp generates new geometry for each row in a CSV file.
-# It copies the incoming shape geometry and provides a number of stamp keys that you can refer to.
-#
-# The first row is skipped by default since we assume it is the header row.
-# If you provide a template shape it will be used as a point source and for each row, the source shape will
-# be translated to the point.
-#
-# The table name is appended as a prefix, so with a prefix of "data", you get the following keys:
-# - data_row_count: the amount of rows in the file
-# - data_column_count: the amount of columns in the file
-# - data_row_index: the current index of the row, starting from zero.
-# - data_row_position: the relative position in the file, from 0.0-1.0
-# - data_value_0: the value of the first column. If the value can be parsed as a number, it will.
-# - data_value_1: the value for the second column.
-# - ....
-# - data_value_n: the value for the last column (which is data_column_count - 1)
-#
-# If a column has numbers in it, the following keys also become available:
-# - data_relative_value_0: a value between 0.0 and 1.0,
-#       the total of the column divided by the current value. 
-# - data_normalized_value_0: a value between 0.0 and 1.0,
-#       the current value within the min-max range of the column.
-# - data_column_total_0: the total value for this column. 
-# - data_running_total_0 -> a sum of all the previous values for the column. 
-# - data_running_normalized_total_0 -> a sum of all the previous values for the column, 
-#       divided by the min-max range of the column.
-
-import csv
-
-from nodebox.graphics import Geometry, Transform, Point
-from nodebox.node import StampExpression
-
-def cook(self):
-    if self.shape is None: return None
-    geo = Geometry()
-    prefix = self.tableName + "_"
-    # We read in all the rows as a list.
-    # We can't use "for row in reader" since we want to know the total length. 
-    rows = list(csv.reader(open(self.file, "rb")))
-    header_row = rows[0]
-    column_count = len(header_row)
-    rows = rows[1:]
-    row_count = len(rows)
-
-    # Turn the row data into columns.
-    columns = {}
-    for row in rows:
-        for i, value in enumerate(row):
-            try:
-                value = float(value)
-            except ValueError:
-                pass
-            column_values = columns.get(i, [])
-            column_values.append(value)
-            columns[i] = column_values
-
-    sums = {}
-    ranges = {}
-    minima = {}
-    maxima = {}
-    ranges = {}
-    running_totals = {}
-    for i, column in columns.items():
-        try:
-            sums[i] = sum(column)
-            context.put(prefix + 'column_total_' + str(i), sums[i])
-        except TypeError: pass
-        minima[i] = min(column)
-        context.put(prefix + 'minimum_' + str(i), minima[i])
-        maxima[i] = max(column)
-        context.put(prefix + 'maximum_' + str(i), maxima[i])
-        try:
-            ranges[i] = maxima[i] - minima[i]
-            context.put(prefix + 'range_' + str(i), ranges[i])
-        except TypeError: pass
-
-    # Now copy the geometry.
-    context.put(prefix + 'row_count', row_count)
-    context.put(prefix + 'column_count', column_count)
-    
-    if self.template is None:
-        points = [Point()] * len(rows)
-    else:
-        points = self.template.points[:len(rows)]
-    
-    for row_index, pt in enumerate(points):
-        row = rows[row_index]
-        context.put(prefix + 'row_index', row_index)
-        context.put(prefix + 'row_position', row_index/float(row_count))
-        for col_index, value in enumerate(row):
-            # Try to convert the value to a number. Otherwise, just output it.
-            try:
-                value = float(value)
-                if sums.has_key(col_index):
-                    try:
-                        relative = value / float(sums[col_index])
-                    except ZeroDivisionError:
-                        relative = 0.0
-                    context.put(prefix + 'relative_value_' + str(col_index), relative)
-                if ranges.has_key(col_index) and minima.has_key(col_index):
-                    try:
-                        normalized = (value - minima[col_index]) / ranges[col_index]
-                    except ZeroDivisionError:
-                        normalized = 0.0
-                    context.put(prefix + 'normalized_value_' + str(col_index), normalized)
-                running_total = running_totals.get(col_index, 0)
-                running_totals[col_index] = running_total + value
-                context.put(prefix + 'running_total_' + str(col_index), running_total)
-                try:
-                    running_normalized_total = running_total / sums[col_index]
-                except (ZeroDivisionError, KeyError):
-                    running_normalized_total = 0.0
-                context.put(prefix + 'running_normalized_total_' + str(col_index), running_normalized_total)
-            except ValueError:
-                value = value.decode("utf-8", "replace")
-            context.put(prefix + 'value_' + str(col_index), value)
-        self.node.stampExpressions(context)
-        t = Transform()
-        t.translate(pt.x, pt.y)
-        geo.extend(t.map(self.shape))
-    return geo]]></value>
-        </param>
-        <param name="_image">
-            <value>csv.png</value>
-        </param>
-        <param name="file" type="string" widget="file">
-            <value/>
-        </param>
-        <param label="Table Name" name="tableName" type="string">
-            <value>data</value>
-        </param>
-    </node>
-    <node exported="true" name="delete" prototype="filter" x="170" y="580">
-        <description>Delete points or paths that lie within certain bounds.</description>
-        <port name="bounding"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Rect, Point, Geometry, Contour, Path, Color
-
-def cook(self):
-    if self.shape is None: return None
-    op = self.operation == "0"
-    if self.bounding is None:
-        bounding = Rect.centeredRect(self.x, self.y, self.width, self.height)
-    else:
-        bounding = self.bounding
-    # We're going to reconstruct the entire geometry, 
-    # leaving out the points we don't need.
-    if self.scope == "points":
-        new_geo = Geometry()
-        for old_path in self.shape.paths:
-            new_path = Path(old_path, False) # cloneContours = False
-            for old_contour in old_path.contours:
-                new_contour = Contour()
-                for point in old_contour.points:
-                    if bounding.contains(point) == op:
-                        new_contour.addPoint(point.x, point.y)
-                new_path.add(new_contour)
-            new_geo.add(new_path)    
-        return new_geo
-    elif self.scope == "paths":
-        new_geo = Geometry()
-        for old_path in self.shape.paths:
-            selected = False
-            # Paths are eagerly selected: 
-            # Even if only one point is inside of the bounding volume 
-            # the path is selected.
-            for point in old_path.points:
-                if bounding.contains(point):
-                    selected = True
-            if selected is op:
-                new_geo.add(old_path.clone())
-        return new_geo
-]]></value>
-        </param>
-        <param enableExpression="!bounding.connected" name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-def cook(self):
-    return FourPointHandle(self.node)]]></value>
-        </param>
-        <param help="" name="_image">
-            <value>delete.png</value>
-        </param>
-        <param name="scope" type="string" widget="menu">
-            <value>points</value>
-            <menu key="paths">Paths</menu>
-            <menu key="points">Points</menu>
-        </param>
-        <param name="operation" type="string" widget="menu">
-            <value>1</value>
-            <menu key="1">Delete Selected</menu>
-            <menu key="0">Delete Non-selected</menu>
-        </param>
-        <param enableExpression="!bounding.connected" name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param enableExpression="!bounding.connected" name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param enableExpression="!bounding.connected" name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param enableExpression="!bounding.connected" name="height" type="float">
-            <value>100.0</value>
-        </param>
-    </node>
-    <node exported="true" name="distribute" prototype="filter" x="250" y="580">
-        <description>Distributes shapes on a horizontal and/or vertical axis.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
-
-def left(path):
-    return path.bounds.x
-
-def center(path):
-    x, y, width, height = path.bounds
-    return x + width / 2
-
-def right(path):
-    x, y, width, height = path.bounds
-    return x + width
-
-def top(path):
-    return path.bounds.y
-
-def middle(path):
-    x, y, width, height = path.bounds
-    return y + height / 2
-
-def bottom(path):
-    x, y, width, height = path.bounds
-    return y + height
-
-def cmpfactory(fn):
-    def _cmp(path1, path2):
-        return cmp(fn(path1), fn(path2))
-    return _cmp
-
-def find_extrema(paths, fn):
-    l = list(paths)
-    l.sort(cmpfactory(fn))
-    return l[0], l[-1]
-
-def translateX(path, x):
-    t = Transform()
-    t.translate(x, 0)
-    return t.map(path)
-
-def translateY(path, y):
-    t = Transform()
-    t.translate(0, y)
-    return t.map(path)
-
-def distribute(paths, main_fn):
-    if main_fn in [left, right, center]:
-        ext1_fn, ext2_fn, translate = left, right, translateX
-    elif main_fn in [top, bottom, middle]:
-        ext1_fn, ext2_fn, translate = top, bottom, translateY
-        
-    sorted_paths = list(paths)
-    sorted_paths.sort(cmpfactory(main_fn))
-    extremum1 = find_extrema(paths, ext1_fn)[0]
-    extremum2 = find_extrema(paths, ext2_fn)[1]
-    extrema = [extremum1, extremum2]
-    outer1 = main_fn(extremum1)
-    outer2 = main_fn(extremum2)
-    skip = (outer2 - outer1) / (len(paths) - 1)
-    d = dict([(path, i) for (i, path) in enumerate(sorted_paths)])
-    i_e1 = d[extremum1]
-    i_e2 = d[extremum2]
-    
-    new_paths = []
-    for path in paths:
-        if path in extrema:
-            new_paths.append(path.clone())
-        else:
-            i = d[path]
-            if i < i_e1: i += 1
-            if i > i_e2: i -= 1
-            new_path = translate(path, outer1 + (i * skip) - main_fn(path))
-            new_paths.append(new_path)
-    return new_paths
-
-def cook(self):
-    if self.shape is None: return None
-    paths = self.shape.paths
-    
-    if len(paths) < 3 or \
-        (self.horizontal == "none" and self.vertical == "none"):
-            return self.shape.clone()
-    
-    d = { "left": left, "right": right, "center": center,
-          "top": top, "bottom": bottom, "middle": middle }
-    
-    if self.horizontal == "none":
-        new_paths = self.shape.clone().paths
-    else:
-        new_paths = distribute(paths, d[self.horizontal])
-    
-    if self.vertical != "none":
-        new_paths = distribute(new_paths, d[self.vertical])
-        
-    g = Geometry()
-    for path in new_paths:
-        g.add(path)
-    return g]]></value>
-        </param>
-        <param name="_image">
-            <value>distribute.png</value>
-        </param>
-        <param name="horizontal" type="string" widget="menu">
-            <value>none</value>
-            <menu key="none">No Change</menu>
-            <menu key="left">Left</menu>
-            <menu key="center">Center</menu>
-            <menu key="right">Right</menu>
-        </param>
-        <param name="vertical" type="string" widget="menu">
-            <value>none</value>
-            <menu key="none">No Change</menu>
-            <menu key="top">Top</menu>
-            <menu key="middle">Middle</menu>
-            <menu key="bottom">Bottom</menu>
-        </param>
-    </node>
-    <node exported="true" name="edit" prototype="filter" x="330" y="340">
-        <description>Edit points non-destructively.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[def _string_to_dict(s):
-    # Convenience function that converts an input string into
-    # a dictionary where the key is the index of the changed point
-    # and the value a tuple with the amount the point moves (delta-x, delta-y) 
-    d = {}
-    for el in s.split("P"):
-        if el:
-            item = el.strip().split(" ")
-            try:
-                index = int(item[0])
-                dx = float(item[1])
-                dy = float(item[2])
-                d[index] = (dx, dy)
-            except:
-                pass
-    return d
-
-def cook(self):
-    if self.shape is None: return None
-    new_shape = self.shape.clone()
-    points = new_shape.points
-    if self.pointDeltas:
-        deltas = _string_to_dict(self.pointDeltas)
-        for index in deltas.keys():
-            try:
-                dx, dy = deltas[index]
-                points[index].x += dx
-                points[index].y += dy
-            except IndexError:
-                pass
-    return new_shape]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Color, IGeometry
-from nodebox.handle import AbstractHandle
-
-class EditHandle(AbstractHandle):
-    def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.shape = None
-        self.points = []
-        self._selected_point = -1
-        self._edited_as_string = ""
-        # When we move a curve point that has control points,
-        # we want those handles to move the same amount.
-        # _delta_prev and _delta_next are the horizontal and vertical 
-        # distance from those control points to the point.
-        self._delta_prev = None         
-        self._delta_next = None
-        self.update()
-
-    def update(self):
-        shape = self.node.getPort("shape").value
-        same_shape = self.shape == shape
-        if not same_shape:
-            self.shape = shape
-            self.points = []
-            if isinstance(self.shape, IGeometry):
-                self.points = self.shape.clone().points
-
-        deltas = self.node.asString("pointDeltas")
-        
-        if not same_shape or self._edited_as_string != deltas:
-            self._edited_points = {}
-            delta_values = deltas and self._string_to_dict(deltas) or {}
-            for (key, (x, y)) in delta_values.items():
-                try:
-                    point = self.points[key]
-                    self._edited_points[key] = (x + point.x, y + point.y)
-                except IndexError:
-                    self._edited_points[key] = (x, y)
-        
-        self.visible = isinstance(self.shape, IGeometry)
-                
-    def mousePressed(self, pt):
-        keys = self._edited_points.keys()
-        num_points = len(self.points)
-        
-        for index, point in enumerate(self.points):
-            if index in keys:
-                x, y = self._edited_points[index]
-            else:
-                x, y = point.x, point.y
-
-            if self.createHitRectangle(x, y).contains(pt):
-                self._selected_point = index
-
-                if self.points[index].isCurveTo():
-                    i_p = index - 1
-                    if i_p > 0 and self.points[i_p].isOffCurve():
-                        if i_p in keys:
-                            x1, y1 = self._edited_points[i_p]
-                        else:
-                            point = self.points[i_p]
-                            x1, y1 = point.x, point.y
-                        self._delta_prev = (x - x1, y - y1)
-                    i_n = index + 1
-                    if i_n < num_points and self.points[i_n].isOffCurve():
-                        if i_n in keys:
-                            x1, y1 = self._edited_points[i_n]
-                        else:
-                            point = self.points[i_n]
-                            x1, y1 = point.x, point.y
-                        self._delta_next = (x - x1, y - y1)
-                break
-        return self._selected_point != -1
-
-    def mouseDragged(self, pt):
-        if self._selected_point == -1: return False
-        self._edited_points[self._selected_point] = (pt.x, pt.y)
-        if self._delta_prev is not None:
-            dx, dy = self._delta_prev
-            self._edited_points[self._selected_point - 1] = (pt.x - dx, pt.y - dy)
-        if self._delta_next is not None:
-            dx, dy = self._delta_next
-            self._edited_points[self._selected_point + 1] = (pt.x - dx, pt.y - dy)
-        self.updateValues()
-        return True            
-
-    def _dict_to_string(self, d):
-        items = d.items()
-        items.sort()
-        s = ""
-        for item in items:
-            index, (dx, dy) = item
-            s += "P %d %.3f %.3f " % (index, dx, dy)
-        return s[:-1]
-
-    def _string_to_dict(self, s):
-        # Convenience function that converts an input string into
-        # a dictionary where the key is the index of the changed point
-        # and the value a tuple with the amount the point moves (delta-x, delta-y) 
-        d = {}
-        for el in s.split("P"):
-            if el:
-                item = el.strip().split(" ")
-                try:
-                    index = int(item[0])
-                    dx = float(item[1])
-                    dy = float(item[2])
-                    d[index] = (dx, dy)
-                except:
-                    pass
-        return d
-        
-    def updateValues(self):
-        delta_values = {}
-        for (index, (dx, dy)) in self._edited_points.items():
-            try:
-                point = self.points[index]
-                delta_values[index] = (dx - point.x, dy - point.y)
-            except IndexError:
-                delta_values[index] = (dx, dy)
-        self._edited_as_string = self._dict_to_string(delta_values)
-        self.silentSet("pointDeltas", self._edited_as_string)
-            
-    def mouseReleased(self, pt):
-        if self._selected_point == -1: return False
-        self._selected_point = -1
-        self._delta_prev = None
-        self._delta_next = None
-        self.stopCombiningEdits()
-        return True
-
-    def draw(self, ctx):
-        self._draw_points(ctx, True, AbstractHandle.HANDLE_COLOR)
-        self._draw_points(ctx, False, Color(1, 1, 1))
-
-    def _draw_points(self, ctx, on_curve, color):
-        keys = self._edited_points.keys()
-        for index, point in enumerate(self.points):
-            if on_curve and point.isOnCurve() or point.isOffCurve():
-                if index in keys:
-                    x, y = self._edited_points[index]
-                else:
-                    x, y = point.x, point.y
-                path = Path()
-                path.fillColor = color
-                path.strokeWidth = 0
-
-                if not on_curve:
-                    path.strokeColor = Color(.3, .3, .3)
-                    path.strokeWidth = 1
-
-                self.drawDot(path, x, y)
-                ctx.draw(path)
-                
-                if not on_curve:
-                    if index - 1 in keys:
-                        prev_point = self._edited_points[index - 1]
-                    else: 
-                        point = self.points[index-1]
-                        prev_point = (point.x, point.y)
-                    
-                    if index + 1 in keys:
-                        next_point = self._edited_points[index + 1]
-                    else:
-                        point = self.points[index+1]
-                        next_point = (point.x, point.y)
-                    path = Path()
-                    path.moveto(x, y)
-                    if self.points[index - 1].isOnCurve():
-                        path.lineto(prev_point[0], prev_point[1])
-                    else:
-                        path.lineto(next_point[0], next_point[1])
-                    path.strokeColor = Color(0, 0, 1)
-                    path.strokeWidth = 1
-                    ctx.draw(path)
-
-  
-def cook(self):
-    return EditHandle(self.node)]]></value>
-        </param>
-        <param help="" name="_image">
-            <value>edit.png</value>
-        </param>
-        <param label="Point Deltas" name="pointDeltas" type="string" widget="data">
-            <value/>
-        </param>
-    </node>
-    <node exported="true" name="ellipse" prototype="generator" x="90" y="90">
-        <description>Create ellipses and circles.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.ellipse(self.x, self.y, self.width, self.height)
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-def cook(self):
-    return FourPointHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>ellipse.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="fit" prototype="filter" x="410" y="340">
-        <description>Fit a shape within bounds.</description>
-        <port name="template"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Transform
-
-def cook(self):
-    if self.shape is None: return None
-
-    px, py, pw, ph = list(self.shape.bounds)
-    
-    # Make sure pw and ph aren't infinitely small numbers.
-    # This will lead to incorrect transformations with for examples lines.
-    if 0 < pw <= 0.000000000001: pw = 0
-    if 0 < ph <= 0.000000000001: ph = 0
-    
-    # if a template shape is given, use its bounding rectangle,
-    # otherwise use the input values.
-    if self.template is not None:
-        x, y, width, height = list(self.template.bounds)
-        x += width / 2
-        y += height / 2
-    else:
-        x = self.x
-        y = self.y
-        width = self.width
-        height = self.height
-
-    t = Transform()
-    t.translate(x, y)
-    if self.keepProportions:
-        # Don't scale widths or heights that are equal to zero.
-        w = pw and width / pw or float("inf")
-        h = ph and height / ph or float("inf")
-        s = min(w, h)
-        t.scale(s, s)
-    else:
-        # Don't scale widths or heights that are equal to zero.
-        w = pw and width / pw or 1
-        h = ph and height / ph or 1
-        t.scale(w, h)
-    t.translate(-pw / 2 - px, -ph / 2 - py)
-
-    return t.map(self.shape)]]></value>
-        </param>
-        <param enableExpression="!template.connected" name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-class FitHandle(FourPointHandle):
-    def __init__(self, *args):
-        FourPointHandle.__init__(self, *args)
-        self.update()
-    
-    def update(self):
-        shape = self.node.getPort("shape").value
-        template = self.node.getPort("template").value
-        self.visible = not (shape is None or template is not None)
-
-def cook(self):
-    return FitHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>fit.png</value>
-        </param>
-        <param enableExpression="!template.connected" name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param enableExpression="!template.connected" name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param enableExpression="!template.connected" name="width" type="float">
-            <value>300.0</value>
-        </param>
-        <param enableExpression="!template.connected" name="height" type="float">
-            <value>300.0</value>
-        </param>
-        <param label="Keep Proportions" name="keepProportions" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-    </node>
-    <node exported="true" name="freehand" prototype="generator" x="410" y="170">
-        <description>Freehand drawing.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def str_to_path(s):
-    # Utility function to convert a string containing a list of points to a Path
-    # The letter M marks the start of a new curve.
-    p = Path()
-    
-    for curve_str in s.strip().split("M"):
-        curve_str = curve_str.strip()
-        if curve_str:
-            coords = []
-            for coord in curve_str.split(" "):
-                try:
-                    coords.append(float(coord))
-                except:
-                    pass
-            coords = len(coords) % 2 and coords[:-1] or coords
-            for i in range(0, len(coords), 2):
-                x = coords[i]
-                y = coords[i+1]
-                if i == 0:
-                    p.moveto(x, y)
-                else:
-                    p.lineto(x, y)
-    return p
-
-def cook(self):
-    if not self.path: return None
-    p = str_to_path(self.path)
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()
-]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[
-from nodebox.handle import FreehandHandle
-
-def cook(self):
-    return FreehandHandle(self.node, "path")]]></value>
-        </param>
-        <param name="_image">
-            <value>freehand.png</value>
-        </param>
-        <param name="path" type="string" widget="data">
-            <value/>
-        </param>
-        <param name="fill" type="color">
-            <value>#00000000</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>1.0</value>
-        </param>
-    </node>
-    <node exported="true" name="geonet" prototype="builtins.root" type="nodebox.graphics.Geometry" x="10" y="10">
-        <description>A network of geometry nodes.</description>
-        <param name="_image">
-            <value>geonet.png</value>
-        </param>
-    </node>
-    <node exported="true" name="grid" prototype="generator" x="170" y="90">
-        <description>Create a grid of points.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[
-from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.fill = None
-    column_size = 0
-    left = 0
-    if self.columns > 1:
-        column_size = self.width / (self.columns - 1)
-        left = self.x - self.width / 2
-    row_size = 0
-    top = 0
-    if self.rows > 1:
-        row_size = self.height / (self.rows - 1)
-        top = self.y - self.height / 2
-    for ri in xrange(self.rows):
-        for ci in xrange(self.columns):
-            p.addPoint(left + ci * column_size, top + ri * row_size)
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-class GridHandle(FourPointHandle):
-    def draw(self, ctx):
-        FourPointHandle.draw(self, ctx)
-        ctx.fill(0.25)
-        for pt in self.node.outputValue.points:
-            ctx.ellipse(pt.x-2, pt.y-2, 4, 4)
-
-def cook(self):
-    return GridHandle(self.node, "x", "y", "width", "height")]]></value>
-        </param>
-        <param name="_image">
-            <value>grid.png</value>
-        </param>
-        <param help="" name="width" type="float">
-            <value>300.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>300.0</value>
-        </param>
-        <param name="rows" type="int">
-            <value>10</value>
-        </param>
-        <param name="columns" type="int">
-            <value>10</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="import" prototype="generator" x="250" y="90">
-        <description>Import geometry from a SVG file.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
-
-def cook(self):
-    if not self.file: return None
-    f = file(self.file, 'r')
-    s = f.read()
-    f.close()
-    g = Geometry()
-    # We defer loading the SVG library until we need it.
-    # This makes creating a node faster.
-    import svg
-    paths = svg.parse(s, True)
-    for path in paths:
-        g.add(path)
-    t = Transform()
-    if self.centered:
-        x, y, w, h = list(g.bounds)
-        t.translate(-x-w/2, -y-h/2)
-    t.translate(self.x, self.y)
-    g = t.map(g)
-    return g
-]]></value>
-        </param>
-        <param name="_image">
-            <value>import.png</value>
-        </param>
-        <param name="file" type="string" widget="file">
-            <value/>
-        </param>
-        <param label="Center on Canvas" name="centered" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="line" prototype="generator" x="170" y="170">
-        <description>Draw a line between two points.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-from nodebox.util.Geometry import coordinates
-
-def cook(self):
-    p = Path()
-    x1, y1 = coordinates(self.x, self.y, self.distance, self.angle)
-    p.line(self.x, self.y, x1, y1)
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    # Resample the path so it contains the desired amount of points.
-    p = p.resampleByAmount(self.points, True)
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-from nodebox.handle import AbstractHandle
-from nodebox.util.Geometry import coordinates, angle, distance
-
-class LineHandle(AbstractHandle):
-    NONE, ORIGIN, MIDDLE, END = range(4)
-
-    def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.dragState = LineHandle.NONE
-
-    def draw(self, ctx):
-        cx = self.node.asFloat("x")
-        cy = self.node.asFloat("y")
-        d = self.node.asFloat("distance")
-        a = self.node.asFloat("angle")
-        cornerPath = Path()
-        cornerPath.fillColor = AbstractHandle.HANDLE_COLOR
-        self.drawDot(cornerPath, cx, cy) # Draw the starting point handle
-        x1, y1 = coordinates(cx, cy, d, a)
-        self.drawDot(cornerPath, x1, y1) # Draw the ending point handle
-        x1, y1 = coordinates(cx, cy, d / 2, a)
-        self.drawDot(cornerPath, x1, y1) # Draw the middle point handle
-        ctx.canvas.add(cornerPath)
-
-    def mousePressed(self, pt):
-        self.px = pt.x
-        self.py = pt.y
-
-        d = self.node.asFloat("distance")
-        a = self.node.asFloat("angle")
-
-        cx = self.ocx = self.node.asFloat("x")
-        cy = self.ocy = self.node.asFloat("y")
-        origin = self.createHitRectangle(cx, cy)
-
-        x1, y1 = coordinates(cx, cy, d, a)
-        end = self.createHitRectangle(x1, y1)
-
-        x1, y1 = coordinates(cx, cy, d / 2, a)
-        middle = self.createHitRectangle(x1, y1)
-
-        if origin.contains(pt):
-            self.dragState = self.ORIGIN
-        elif end.contains(pt):
-            self.dragState = self.END
-        elif middle.contains(pt):
-            self.dragState = self.MIDDLE
-        else:
-            self.dragState = self.NONE
-        return self.dragState != self.NONE
-
-    def mouseDragged(self, pt):
-        if self.dragState == self.NONE: return False
-
-        x = pt.x
-        y = pt.y
-        dx = x - self.px
-        dy = y - self.py
-
-        if (dx == 0 and dy == 0): return False
-        
-        self.startCombiningEdits("Set Value")
-        
-        if self.dragState == self.MIDDLE:
-            self.silentSet("x", self.ocx + dx)
-            self.silentSet("y", self.ocy + dy)
-        elif self.dragState == self.ORIGIN:
-            # First, calculate the ending point of the line using the current parameters,
-            # then, use this point to calculate angle and distance from the new starting point.
-            x1, y1 = coordinates(self.node.asFloat("x"), self.node.asFloat("y"), self.node.asFloat("distance"), self.node.asFloat("angle"))
-            a = angle(x, y, x1, y1)
-            d = distance(x, y, x1, y1)
-            self.silentSet("x", x)
-            self.silentSet("y", y)
-            self.silentSet("angle", a)
-            self.silentSet("distance", d)
-        elif self.dragState == self.END:
-            a = angle(self.ocx, self.ocy, x, y)
-            d = distance(self.ocx, self.ocy, x, y)
-            self.silentSet("angle", a)
-            self.silentSet("distance", d)
-        return True
-
-    def mouseReleased(self, pt):
-        if self.dragState == self.NONE: return False
-        self.dragState = self.NONE
-        self.stopCombiningEdits()
-        return True
-
-
-def cook(self):
-    return LineHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>line.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="angle" type="float" widget="angle">
-            <value>0.0</value>
-        </param>
-        <param name="distance" type="float">
-            <value>120.0</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>1.0</value>
-        </param>
-        <param bounding="hard" min="2.0" name="points" type="int">
-            <value>2</value>
-        </param>
-    </node>
-    <node exported="true" name="merge" prototype="generator" x="90" y="420">
-        <description>Combine multiple geometries together.</description>
-        <port cardinality="multiple" name="shapes"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
-
-def cook(self):
-  g = Geometry()
-  if self.shapes is None: return g
-  for shape in self.shapes:
-      if shape is None: continue
-      g.extend(shape)
-  return g]]></value>
-        </param>
-        <param name="_image">
-            <value>merge.png</value>
-        </param>
-    </node>
-    <node exported="true" name="null" prototype="filter" x="170" y="420">
-        <description>Does nothing.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[def cook(self):
-    return self.shape]]></value>
-        </param>
-        <param help="" name="_image">
-            <value>null.png</value>
-        </param>
-    </node>
-    <node exported="true" name="place" prototype="filter" x="250" y="420">
-        <description>Place shapes on points of a template</description>
-        <port name="template"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.node import StampExpression
-from nodebox.graphics import Path, Geometry, Transform
-
-def cook(self):
-    if self.shape is None: return None
-    if self.template is None: return self.shape.clone()
-
-    if self.stamp:
-        stamp = StampExpression(self.node, "expr")
-        
-    g = Geometry()
-    amount = len(self.template.points)
-    for i, point in enumerate(self.template.points):
-        if self.stamp:
-            context.put('CNUM', i)
-            context.put('CPOS', i / float(amount))
-            stamp.evaluate(context)
-            self.node.stampExpressions(context)
-            
-        t = Transform()
-        t.translate(point.x, point.y)
-        newShape = t.map(self.shape)
-        g.extend(newShape)
-    return g]]></value>
-        </param>
-        <param name="_image">
-            <value>place.png</value>
-        </param>
-        <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param enableExpression="node.asInt(&quot;stamp&quot;) == 1" label="Expression" name="expr" type="string" widget="stamp_expression">
-            <value/>
-        </param>
-    </node>
-    <node exported="true" name="polygon" prototype="generator" x="250" y="170">
-        <description>Draw a polygon</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-from nodebox.util.Geometry import coordinates, angle
-
-def cook(self):
-    p = Path()
-    x, y, r = self.x, self.y, self.radius
-    sides = max(self.sides, 3)
-    a = 360.0 / sides
-    da = 0
-    if self.align:
-        x0, y0 = coordinates(x, y, r, 0)
-        x1, y1 = coordinates(x, y, r, a)
-        da = -angle(x1, y1, x0, y0)
-    for i in xrange(sides):
-        x1, y1 = coordinates(x, y, r, (a*i) + da)
-        if i == 0:
-            p.moveto(x1, y1)
-        else:
-            p.lineto(x1, y1)
-    p.close()
-    p.fill = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle, PointHandle
-
-class PolygonHandle(CombinedHandle):
-    def __init__(self, node):
-        CombinedHandle.__init__(self, node)
-        self.addHandle(PointHandle(node))
-        self.addHandle(CircleScaleHandle(node, "radius", CircleScaleHandle.Mode.RADIUS, "x", "y"))
-        self.update()
-        
-def cook(self):
-    return PolygonHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>polygon.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param bounding="hard" min="0.0" name="radius" type="float">
-            <value>100.0</value>
-        </param>
-        <param bounding="hard" min="3.0" name="sides" type="int">
-            <value>3</value>
-        </param>
-        <param name="align" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="rect" prototype="generator" x="330" y="90">
-        <description>Create rectangles and rounded rectangles.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    if self.rx == 0 and self.ry == 0:
-        p.rect(self.x, self.y, self.width, self.height)
-    else:
-        p.roundedRect(self.x, self.y, self.width, self.height, self.rx, self.ry)
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import FourPointHandle
-
-def cook(self):
-    return FourPointHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>rect.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>100.0</value>
-        </param>
-        <param label="Roundness X" name="rx" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Roundness Y" name="ry" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="reflect" prototype="filter" x="330" y="500">
-        <description>Mirrors and copies the geometry across an invisible axis.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry
-from nodebox.util.Geometry import coordinates, angle, distance
-from math import cos, radians
-
-def cook(self):
-    if self.shape is None: return None
-    g = Geometry()
-    shape = self.shape.clone()
-    if self.keepOriginal:
-        g.extend(shape)
-        
-    for point in shape.points:
-        d = distance(point.x, point.y, self.x, self.y)
-        a = angle(point.x, point.y, self.x, self.y)
-        x, y = coordinates(self.x, self.y, d * cos(radians(a - self.angle)), 180 + self.angle)
-        d = distance(point.x, point.y, x, y)
-        a = angle(point.x, point.y, x, y)
-        point.x, point.y = coordinates(point.x, point.y, d * 2, a)
-        
-    g.extend(shape)
-    return g]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, TranslateHandle, RotateHandle
-from nodebox.util.Geometry import coordinates
-
-class ReflectHandle(CombinedHandle):
-    def __init__(self, node):
-        CombinedHandle.__init__(self, node)
-        self.addHandle(TranslateHandle(node, "x", "y"))
-        self.addHandle(RotateHandle(node, "angle", "x", "y"))
-        self.update()
-        
-    def update(self):
-        CombinedHandle.update(self)
-        self.visible = self.node.getPort("shape").value is not None
-    
-    def draw(self, ctx):
-        x = self.node.asFloat("x")
-        y = self.node.asFloat("y")
-        a = self.node.asFloat("angle")
-        x1, y1 = coordinates(x, y, -1000, a)
-        x2, y2 = coordinates(x, y, 1000, a)
-        ctx.stroke(self.HANDLE_COLOR)
-        ctx.line(x1, y1, x2, y2)
-        CombinedHandle.draw(self, ctx)
-
-def cook(self):
-    return ReflectHandle(self.node)
-]]></value>
-        </param>
-        <param name="_image">
-            <value>reflect.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>50.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="angle" type="float" widget="angle">
-            <value>120.0</value>
-        </param>
-        <param label="Keep Original" name="keepOriginal" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-    </node>
-    <node exported="true" name="resample" prototype="filter" x="330" y="420">
-        <description>Distribute points along a shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[
-def cook(self):
-    # Check if a shape is connected.
-    if self.shape is None: return None
-    if self.method == 'length':
-        return self.shape.resampleByLength(self.length)
-    else:
-        return self.shape.resampleByAmount(self.points, self.perContour)]]></value>
-        </param>
-        <param name="_image">
-            <value>resample.png</value>
-        </param>
-        <param name="method" type="string" widget="menu">
-            <value>length</value>
-            <menu key="length">By Length</menu>
-            <menu key="amount">By Amount</menu>
-        </param>
-        <param bounding="hard" enableExpression="method == &quot;length&quot;" min="1.0" name="length" type="float">
-            <value>10.0</value>
-        </param>
-        <param bounding="hard" enableExpression="method == &quot;amount&quot;" min="1.0" name="points" type="int">
-            <value>10</value>
-        </param>
-        <param enableExpression="method == &quot;amount&quot;" label="Per Contour" name="perContour" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-    </node>
-    <node exported="true" name="scatter" prototype="filter" x="410" y="420">
-        <description>Generate points within the boundaries of a shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Point
-from random import seed, uniform
-
-def cook(self):
-    seed(self.seed)
-    if self.shape is None: return None
-    bx, by, bw, bh = list(self.shape.bounds)
-    p = Path()
-    for i in xrange(self.amount):
-        tries = 100
-        while tries > 0:
-            pt = Point(bx + uniform(0, 1) * bw, by + uniform(0, 1) * bh)
-            if self.shape.contains(pt):
-                break
-            tries -= 1
-        if tries:
-            p.moveto(pt.x, pt.y)
-        else:
-            pass # add warning: no points found on the path
-
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import AbstractHandle
-
-class DisplayPointsHandle(AbstractHandle):
-    def draw(self, ctx):
-        if self.node.outputValue is not None:
-            ctx.fill(0.25)
-            for pt in self.node.outputValue.points:
-                ctx.ellipse(pt.x-2, pt.y-2, 4, 4)
-
-def cook(self):
-    return DisplayPointsHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>scatter.png</value>
-        </param>
-        <param bounding="hard" min="0.0" name="amount" type="int">
-            <value>20</value>
-        </param>
-        <param bounding="hard" min="0.0" name="seed" type="int">
-            <value>0</value>
-        </param>
-    </node>
-    <node exported="true" name="shapeonpath" prototype="filter" x="90" y="670">
-        <description>Copies shapes on a path.</description>
-        <port name="template"/>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Path, Color, Transform
-from nodebox.util.Geometry import angle
-from nodebox.node import StampExpression
-
-def cook(self):
-    if self.shape is None: return None
-    if self.template is None: return None
-    
-    if self.stamp:
-        stamp = StampExpression(self.node, "expr")
-    
-    g = Geometry()
-
-    if self.keepGeometry:
-        g.extend(self.template.clone())
-           
-    first = True  
-    for i in range(self.amount):
-        if self.stamp:
-            context.put('CNUM', i)
-            context.put('CPOS', i / float(self.amount))
-            stamp.evaluate(context)
-            self.node.stampExpressions(context)
-        if first:
-            t = self.start / 100
-            first = False
-        else:
-            t += self.dist / 500.0
-        pt1 = self.template.pointAt(t)
-        pt2 = self.template.pointAt(t + 0.00001)
-        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
-        tp = Transform()
-        tp.translate(pt1.x, pt1.y)
-        tp.rotate(a - 180)
-        newShape = tp.map(self.shape)
-        g.extend(newShape)
-        
-    return g]]></value>
-        </param>
-        <param name="_image">
-            <value>shapeonpath.png</value>
-        </param>
-        <param name="amount" type="int">
-            <value>20</value>
-        </param>
-        <param label="Distribution" name="dist" type="float">
-            <value>20.0</value>
-        </param>
-        <param name="start" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Copy Stamping" name="stamp" type="int" widget="toggle">
-            <value>0</value>
-        </param>
-        <param label="Expression" name="expr" type="string" widget="stamp_expression">
-            <value>=</value>
-        </param>
-        <param label="Keep Geometry" name="keepGeometry" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-    </node>
-    <node exported="true" name="snap" prototype="filter" x="410" y="500">
-        <description>Snap geometry to a grid.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[def snap(v, offset=0.0, distance=10.0, strength=1.0):
-    return (v * (1.0-strength)) + (strength * round(v / distance) * distance)
-
-
-def cook(self):
-    if self.shape is None: return None
-    new_shape = self.shape.clone()
-    distance = self.distance
-    strength = self.strength / 100.0
-    for pt in new_shape.points:
-       pt.x = snap(pt.x+self.x, self.x, distance, strength) - self.x
-       pt.y = snap(pt.y + self.y, self.y, distance, strength)  - self.y
-    
-    
-    return new_shape]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import PointHandle
-from nodebox.graphics import Color, Rect
-
-class SnapHandle(PointHandle):
-    
-    def createHitRectangle(self, x, y):
-        return Rect(-1000, -1000, 2000, 2000)
-    
-    def draw(self, ctx):
-        snap_x = self.node.asFloat("x")
-        snap_y = self.node.asFloat("y")
-        distance = self.node.asFloat("distance")
-        ctx.stroke(0.4, 0.4, 0.4, 0.5)
-        ctx.strokewidth(1.0)
-        for i in xrange(-100, 100):
-            x = -snap_x + (i * distance)
-            y = -snap_y + (i * distance)
-            ctx.line(x, -1000, x, 1000)
-            ctx.line(-1000, y, 1000, y)
-        
-
-
-
-def cook(self):
-    return SnapHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>snap.png</value>
-        </param>
-        <param bounding="hard" min="1.0" name="distance" type="float">
-            <value>10.0</value>
-        </param>
-        <param bounding="hard" max="100.0" min="0.0" name="strength" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="sort" prototype="filter" x="250" y="500">
-        <description>Sort points or shapes using different sorting methods</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import IGeometry, Geometry, Path, Contour, Point
-from nodebox.util.Geometry import distance, angle
-from random import shuffle, seed
-
-def shift(items, offset=0):
-    if items:
-        for i in xrange(offset):
-            first = items.pop(0)
-            items.append(first)
-
-def reverse(items):
-    if items:
-        items.reverse()
-
-def points_within_geometry(new_shape, shape, sort, kwargs):
-    # The reason we wrap shape.points in a separate list is because 
-    # getPoints (or getPaths or getContours) returns a Java ArrayList
-    # which we can't perform a Python sort operation on.
-    points = list(shape.points)
-    sort(points, **kwargs)
-    for point in points:
-        new_shape.addPoint(point.x, point.y)
-    # Color information is discarded.
-    new_shape.fillColor = None
-
-def points_within_path(new_shape, shape, sort, kwargs):
-    for path in shape.paths:
-        points = list(path.points)
-        sort(points, **kwargs)
-        p = path.clone()
-        # TODO: This implementation makes sure that the new path
-        # has exactly the same amount of contours as the original path,
-        # but since the points are all moved around (across contours)
-        # maybe it makes more sense to keep only one contour?
-        for i, point in enumerate(points):
-            pp = p.points[i]
-            pp.x = point.x
-            pp.y = point.y
-            pp.type = Point.LINE_TO
-        new_shape.add(p)
-
-def points_within_contour(new_shape, shape, sort, kwargs):
-    for path in shape.paths:
-        p = path.cloneAndClear()
-        for contour in path.contours:
-            points = list(contour.points)
-            sort(points, **kwargs)
-            c = Contour()
-            for point in points:
-                c.addPoint(point.x, point.y)
-            p.add(c)
-        new_shape.add(p)
-
-def contours_within_path(new_shape, shape, sort, kwargs):
-    for path in shape.paths:
-        # Create an empty path with the current path's color information
-        # Add the sorted contours to the path.
-        p = path.cloneAndClear()
-        contours = list(path.contours)
-        sort(contours, **kwargs)
-        for c in contours:
-            p.add(c.clone())
-        new_shape.add(p)
-
-def paths_within_geometry(new_shape, shape, sort, kwargs):
-    paths = list(shape.paths)
-    sort(paths, **kwargs)
-    for path in paths:
-        new_shape.add(path.clone())
-
-sort_scope = {
-    "pt_g": points_within_geometry,
-    "pt_p": points_within_path,
-    "pt_c": points_within_contour,
-    "c_p": contours_within_path,
-    "p_g": paths_within_geometry
-}
-
-sort_methods = {
-    (Point, "by_x"): {'key': Point.getX },
-    (Point, "by_y"): {'key': Point.getY },
-    (IGeometry, "by_x"): {'key': lambda g: g.bounds.x },
-    (IGeometry, "by_y"): {'key': lambda g: g.bounds.y },
-    "random": {'method': shuffle },
-    "reversed": {'method': reverse},
-}
-
-def cook(self):
-    if self.shape is None: return None
-    if self.order == "unchanged": return self.shape.clone()
-    
-    # These functions are re-created on the fly since they depend
-    # on the user's given input.
-    sort_methods.update({
-        (Point, "angle"): {'key': lambda pt: angle(pt.x, pt.y, self.x, self.y) },
-        (Point, "proximity"): {'key': lambda pt: distance(pt.x, pt.y, self.x, self.y) },
-        (IGeometry, "angle"): {'key': lambda g: angle(g.bounds.x, g.bounds.y, self.x, self.y) },
-        (IGeometry, "proximity"): {'key': lambda g: distance(g.bounds.x, g.bounds.y, self.x, self.y) },
-        "shift": {'method': shift, 'kwargs': {'offset': self.offset}},
-    })
-    
-    klass = self.scope.startswith('pt') and Point or IGeometry
-    sort_method = sort_methods.get(self.order, sort_methods.get((klass, self.order)))
-    method = sort_method.get('method', list.sort)
-    kwargs = sort_method.get('kwargs', {})
-    key = sort_method.get('key')
-    if key is not None:
-        kwargs['key'] = key
-    
-    seed(self.seed)
-    new_shape = Geometry()
-    sort_scope[self.scope](new_shape, self.shape, method, kwargs)
-    return new_shape]]></value>
-        </param>
-        <param enableExpression="order == &quot;proximity&quot; || order == &quot;angle&quot;" name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import PointHandle
-
-def cook(self):
-    return PointHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>sort.png</value>
-        </param>
-        <param name="scope" type="string" widget="menu">
-            <value>p_g</value>
-            <menu key="p_g">Paths within geometry</menu>
-            <menu key="pt_g">Points within geometry</menu>
-            <menu key="pt_c">Points within a contour</menu>
-            <menu key="pt_p">Points within a path</menu>
-            <menu key="c_p">Contours within a path</menu>
-        </param>
-        <param name="order" type="string" widget="menu">
-            <value>unchanged</value>
-            <menu key="unchanged">Unchanged</menu>
-            <menu key="by_x">By X</menu>
-            <menu key="by_y">By Y</menu>
-            <menu key="random">Random</menu>
-            <menu key="reversed">Reversed</menu>
-            <menu key="shift">Shift</menu>
-            <menu key="proximity">Proximity To Point</menu>
-            <menu key="angle">Angle To Point</menu>
-        </param>
-        <param enableExpression="order == &quot;random&quot;" name="seed" type="int">
-            <value>0</value>
-        </param>
-        <param enableExpression="order == &quot;shift&quot;" name="offset" type="int">
-            <value>0</value>
-        </param>
-        <param enableExpression="order == &quot;proximity&quot; || order == &quot;angle&quot;" name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param enableExpression="order == &quot;proximity&quot; || order == &quot;angle&quot;" name="y" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="star" prototype="generator" x="410" y="90">
-        <description>Create a star shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from math import pi, sin, cos
-from nodebox.graphics import Path
-
-def cook(self):
-    p = Path()
-    p.moveto(self.x, self.y + self.outer / 2)
-
-    # Calculate the points of the star.
-    for i in xrange(1, self.points * 2):
-        angle = i * pi / self.points
-        x = sin(angle)
-        y = cos(angle)
-        radius = i % 2 and self.inner / 2 or self.outer / 2
-        x = self.x + radius * x
-        y = self.y + radius * y
-        p.lineto(x, y)
-    p.close()
-    p.fill = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    # Convert the path to a geometry object and return.
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import CombinedHandle, CircleScaleHandle, PointHandle
-
-class StarHandle(CombinedHandle):
-    def __init__(self, node):
-        CombinedHandle.__init__(self, node)
-        self.addHandle(PointHandle(node))
-        self.addHandle(CircleScaleHandle(node, "inner", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
-        self.addHandle(CircleScaleHandle(node, "outer", CircleScaleHandle.Mode.DIAMETER, "x", "y"))
-        self.update()
-        
-def cook(self):
-    return StarHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>star.png</value>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param bounding="hard" min="1.0" name="points" type="int">
-            <value>20</value>
-        </param>
-        <param label="Outer Diameter" name="outer" type="float">
-            <value>200.0</value>
-        </param>
-        <param label="Inner Diameter" name="inner" type="float">
-            <value>100.0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="switch" prototype="merge" x="330" y="580">
-        <description>Switches between multiple inputs.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Geometry
-
-def cook(self):
-    if not self.shapes: return None
-    return self.shapes[self.select % len(self.shapes)]]]></value>
-        </param>
-        <param name="_image">
-            <value>switch.png</value>
-        </param>
-        <param name="select" type="int">
-            <value>0</value>
-        </param>
-    </node>
-    <node exported="true" name="textonpath" prototype="filter" x="170" y="670">
-        <description>Text following a path</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Text
-from nodebox.util.Geometry import angle
-
-def textwidth(text, font_metrics):
-    if not text:
-        return 0.0
-    elif len(text) == 1:
-        return float(font_metrics.charWidth(text))
-    else:
-        return float(font_metrics.stringWidth(text))
-
-def get_font_metrics(font_name, font_size):
-    from java.awt.image import BufferedImage
-    from java.awt import Font
-    tmp_img = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
-    g = tmp_img.createGraphics()
-    return g.getFontMetrics((Font(font_name, Font.PLAIN, int(font_size))))
-
-def cook(self):
-    if self.shape is None: return None
-    if not self.text: return None
-    
-    g = Geometry()
-
-    if self.keepGeometry:
-        g.extend(self.shape.clone())
-    
-    fm = get_font_metrics(self.font, self.size)
-    string_width = textwidth(self.text, fm)
-    dw = string_width / self.shape.length
-    
-    first = True
-    for i, char in enumerate(self.text):
-        char_width = textwidth(char, fm)
-        
-        if first:
-            t = self.start / 100.0
-            first = False
-        else:
-            t += char_width / string_width * dw
-        
-        if self.loop:    
-            t = t % 1.0
-            
-        pt1 = self.shape.pointAt(t)
-        pt2 = self.shape.pointAt(t + 0.001)
-        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
-        
-        tp = Text(char, -char_width, -self.dy)
-        tp.align = Text.Align.LEFT
-        tp.fontName = self.font
-        tp.fontSize = self.size
-        tp.translate(pt1.x, pt1.y)
-        tp.rotate(a - 180)
-        
-        p = tp.path
-        p.fillColor = self.fill
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-        g.add(p)
-    
-    return g]]></value>
-        </param>
-        <param name="_image">
-            <value>txtonpath.png</value>
-        </param>
-        <param name="text" type="string">
-            <value>text following a path</value>
-        </param>
-        <param name="font" type="string" widget="font">
-            <value>Verdana</value>
-        </param>
-        <param name="size" type="float">
-            <value>20.0</value>
-        </param>
-        <param name="start" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="loop" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-        <param label="Vertical Distance" name="dy" type="float">
-            <value>2.0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Keep Geometry" name="keepGeometry" type="int" widget="toggle">
-            <value>1</value>
-        </param>
-    </node>
-    <node exported="true" name="textpath" prototype="generator" x="90" y="170">
-        <description>Create a path out of text.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Path, Text
-
-def cook(self):
-    t = Text(self.text, self.x, self.y, self.width, self.height)
-    t.fontName = self.font
-    t.fontSize = self.size
-    # valueOf requires a correct value: LEFT, CENTER, RIGHT or JUSTIFY. Anything else will
-    # make it crash. If users start doing crazy things and change the alignment, at least
-    # make sure you catch the error.
-    try:
-        t.align = Text.Align.valueOf(self.align)
-    except:
-        pass
-    p = t.path
-    p.fillColor = self.fill
-    if self.strokeWidth > 0:
-        p.strokeColor = self.stroke
-        p.strokeWidth = self.strokeWidth
-    else:
-        p.strokeColor = None
-    return p.asGeometry()]]></value>
-        </param>
-        <param name="_image">
-            <value>textpath.png</value>
-        </param>
-        <param name="text" type="string">
-            <value>hello</value>
-        </param>
-        <param name="font" type="string" widget="font">
-            <value>Verdana</value>
-        </param>
-        <param name="size" type="float">
-            <value>24.0</value>
-        </param>
-        <param name="align" type="string" widget="menu">
-            <value>CENTER</value>
-            <menu key="LEFT">Left</menu>
-            <menu key="CENTER">Center</menu>
-            <menu key="RIGHT">Right</menu>
-            <menu key="JUSTIFY">Justify</menu>
-        </param>
-        <param name="x" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="y" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="width" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="height" type="float">
-            <value>0.0</value>
-        </param>
-        <param name="fill" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param name="stroke" type="color">
-            <value>#000000ff</value>
-        </param>
-        <param bounding="hard" label="Stroke Width" min="0.0" name="strokeWidth" type="float">
-            <value>0.0</value>
-        </param>
-    </node>
-    <node exported="true" name="transform" prototype="filter" x="90" y="500">
-        <description>Transforms the location, rotation and scale of a shape.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Transform
-
-def cook(self):
-    if self.shape is None: return None
-    t = Transform()
-    # Each letter of the order describes an operation.
-    for op in self.order:
-        if op == 't':
-            t.translate(self.tx, self.ty)
-        elif op == 'r':
-            t.rotate(self.r)
-        elif op == 's':
-            t.scale(self.sx / 100, self.sy / 100)
-    # Transform.map clones and transforms the geometry.
-    return t.map(self.shape)]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.graphics import Point, Path, Transform
-from nodebox.handle import AbstractHandle
-from nodebox.util.Geometry import coordinates, angle, distance
-
-def values(transform):
-    # Utility function that returns the matrix values of a Transform object.
-    t = transform.affineTransform
-    return [t.scaleX, t.shearY, t.shearX, t.scaleY, t.translateX, t.translateY]
-
-DEFAULT_ROTATION_HANDLE_LENGTH = 100
-
-class TransformHandle(AbstractHandle):
-    NONE, SCALE, TRANSLATION, ROTATION = range(4)
-
-    def __init__(self, node):
-        AbstractHandle.__init__(self, node)
-        self.shape = None
-        self.original_rect = None
-        self.transform = None
-        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
-        self.operation = self.NONE
-        self.update()
-    
-    def node_parameters(self):
-        order = self.node.asString("order")
-        tx = self.node.asFloat("tx")
-        ty = self.node.asFloat("ty")
-        r = self.node.asFloat("r")
-        sx = self.node.asFloat("sx")
-        sy = self.node.asFloat("sy")
-        return order, tx, ty, r, sx, sy
-        
-    def find_translation_before(self, x0, y0, x1, y1, t):
-        # Translation happens before all other operations. Returns tx/ty.
-        m11, m21, m12, m22 = values(t)[:4]
-        tx = x1 - m11*x0 - m12*y0
-        ty = y1 - m21*x0 - m22*y0
-        return tx, ty
-
-    def find_translation_after(self, x0, y0, x1, y1, t):
-        # Translation happens after all other operations. Returns tx/ty.
-        m11, m21, m12, m22 = values(t)[:4]
-        ty = (m11*(y1 - m22*y0) + m21*(m12*y0 - x1)) / (m11*m22 - m21*m12)
-        tx = (x1 - m11*x0 - m12*(y0 + ty)) / m11
-        return tx, ty
-
-    def find_translation_rts(self, x0, y0, x1, y1, t1, t2):
-        # Order is rotate-translate-scale. Returns tx/ty.
-        m11, m21, m12, m22 = values(t1)[:4]
-        sx, _a, _b, sy = values(t2)[:4]
-        k = m11*sx
-        l = m12*sy
-        m = m21*sx
-        n = m22*sy
-        ty = (m11*(y1 - m*x0 - n*y0) + m21*(l*y0 - x1 + k*x0)) / (m11*m22 - m21*m12)
-        tx = (x1 - k*x0 - l*y0 - m12*ty)/m11
-        return tx, ty
-
-    def find_translation_str(self, x0, y0, x1, y1, t1, t2):
-        # Order is scale-translate-rotate. Returns tx/ty.
-        m11, m21, m12, m22 = values(t2)[:4]
-        sx, _a, _b, sy = values(t1)[:4]
-        tx = (x1 - sx*(m11*x0 + m12*y0)) / sx
-        ty = (y1 - sy*(m21*x0 + m22*y0)) / sy
-        return tx, ty
-
-    def find_scale_before(self, x0, y0, x1, y1, t):
-        # Scaling happens before all other operations. Returns sx/sy.
-        m11, m21, m12, m22, m13, m23 = values(t)
-        try: 
-            sx = x1 / (m11*x0 + m12*y0 + m13)
-        except ZeroDivisionError: 
-            sx = None
-        try: 
-            sy = y1 / (m21*x0 + m22*y0 + m23)
-        except ZeroDivisionError: 
-            sy = None
-        return sx, sy
-
-    def find_scale_after(self, x0, y0, x1, y1, t):
-        # Scaling happens after all other operations. Returns sx/sy.
-        m11, m21, m12, m22, m13, m23 = values(t)
-        try:
-            sx = (m12*(y1 - m23) + m22*(m13 - x1)) / (x0*(m12*m21 - m22*m11))
-        except ZeroDivisionError:
-            sx = None
-        if sx is not None:
-            try:
-                sy = (y1 - m21*sx*x0 - m23) / (m22*y0)
-            except ZeroDivisionError:
-                sy = None
-        else:
-            sy = None
-        return sx, sy
-
-    def find_scale_rst(self, x0, y0, x1, y1, t1, t2):
-        # Order is rotate-scale-translate. Returns sx/sy.
-        m11, m21, m12, m22 = values(t1)[:4]
-        tx, ty = values(t2)[4:]
-
-        j = m11*(tx + x0)
-        k = m21*(tx + x0)
-        l = m12*(ty + y0)
-        m = m22*(ty + y0)
-
-        try:
-            sx = (y1*l - x1*m) / (l*k - j*m)
-        except ZeroDivisionError:
-            sx = None
-        try:
-            sy = (y1*j - x1*k) / (m*j - l*k)
-        except ZeroDivisionError:
-            sy = None
-        return sx, sy
-
-    def find_scale_tsr(self, x0, y0, x1, y1, t1, t2):
-        # Order is translate-scale-rotate. Returns sx/sy.
-        m11, m21, m12, m22 = values(t2)[:4]
-        tx, ty = values(t1)[4:]
-        try:
-            sx = (x1 - tx) / (m11*x0 + m12*y0)
-        except ZeroDivisionError:
-            sx = None
-        try:
-            sy = (y1 - ty) / (m21*x0 + m22*y0)
-        except ZeroDivisionError:
-            sy = None
-        return sx, sy
-            
-    def update(self):
-        shape = self.node.getPort("shape").value
-        if shape is not None:
-            if shape is not self.shape:
-                self.shape = shape
-                x, y, w, h = list(shape.bounds)
-                # Make sure w and h aren't infinitely small numbers.
-                # This will lead to incorrect transformations with for examples lines.
-                if 0 < w <= 0.000000000001: w = 0
-                if 0 < h <= 0.000000000001: h = 0
-                p = Path()
-                p.rect(x + w/2, y + h/2, w, h)
-                self.original_rect = p
-            order, tx, ty, r, sx, sy = self.node_parameters()
-            
-            t = Transform()
-            for op in order:
-                if op == 't':
-                    t.translate(tx, ty)
-                elif op == 'r':
-                    t.rotate(r)
-                elif op == 's':
-                    t.scale(sx / 100, sy / 100)
-            self.transform = t
-            self.visible = True
-        else:
-            self.shape = None
-            self.original_rect = None
-            self.transform = None
-            self.visible = False
-            
-    def init_scale_or_translation_operation(self, pt):
-        # Check if the user's interaction indicates the beginning
-        # of a scaling or translation operation
-        
-        path = self.transform.map(self.original_rect)
-        o1, o2, o3, o4 = self.original_rect.points
-        om = Point((o1.x + o2.x)/2, (o1.y + o3.y)/2)
-        pm = self.transform.map(om)
-        p1, p2, p3, p4 = path.points
-        topLeft = self.createHitRectangle(p1.x, p1.y)
-        topRight = self.createHitRectangle(p2.x, p2.y)
-        bottomLeft = self.createHitRectangle(p3.x, p3.y)
-        bottomRight = self.createHitRectangle(p4.x, p4.y)
-        center = self.createHitRectangle(pm.x, pm.y)
-        can_scale_or_translate = True
-        self.operation = self.SCALE
-        if topLeft.contains(pt):
-            self.transform_point = o1
-        elif topRight.contains(pt):
-            self.transform_point = o2
-        elif bottomLeft.contains(pt):
-            self.transform_point = o3
-        elif bottomRight.contains(pt):
-            self.transform_point = o4
-        elif path.contains(pt) or center.contains(pt):
-            t = Transform(self.transform)
-            t.invert()
-            self.transform_point = t.map(pt)
-            self.operation = self.TRANSLATION
-        else:
-            self.operation = self.NONE
-            can_scale_or_translate = False
-        return can_scale_or_translate
-
-    def rotation_coordinates(self):
-        # Returns the coordinates of the origin point (0,0) and the
-        # rotation handle where they are when rotation should happen
-        # in the order of events.
-        
-        order, tx, ty, r, sx, sy = self.node_parameters()
-        t = Transform()
-        for op in order:
-            if op == 't':
-                t.translate(tx, ty)
-            elif op == 'r':
-                break
-            elif op == 's':
-                t.scale(sx / 100, sy / 100)
-
-        origin = t.map(Point(0, 0))
-        rx, ry = coordinates(origin.x, origin.y, self.rotation_handle_length, r)
-        return origin, Point(rx, ry)
-    
-    def init_rotation_operation(self, pt):
-        # Check if the user's interaction indicates the beginning
-        # of a rotation operation.
-        
-        origin, handle = self.rotation_coordinates()
-        p = self.createHitRectangle(handle.x, handle.y)
-        if p.contains(pt):
-            self.transform_point = origin
-            self.operation = self.ROTATION
-            return True
-        return False
-            
-    def mousePressed(self, pt):
-        if self.init_rotation_operation(pt):
-            return True
-        else:
-            return self.init_scale_or_translation_operation(pt)
-
-    def perform_scale(self, pt):
-        p = self.transform_point
-        order, tx, ty, r, sx, sy = self.node_parameters()
-        t = Transform()
-        if order in ["srt", "rts"]:
-            t.rotate(r)
-            t.translate(tx, ty)
-        elif order in ["str", "trs"]:
-            t.translate(tx, ty)
-            t.rotate(r)
-        
-        if order in ["srt", "str"]:
-            sx, sy = self.find_scale_before(p.x, p.y, pt.x, pt.y, t)
-        elif order in ["rts", "trs"]:
-            sx, sy = self.find_scale_after(p.x, p.y, pt.x, pt.y, t)
-        elif order in ["rst", "tsr"]:
-            t1 = Transform()
-            t1.rotate(r)
-            t2 = Transform()
-            t2.translate(tx, ty)
-            if order == "rst":
-                sx, sy = self.find_scale_rst(p.x, p.y, pt.x, pt.y, t1, t2)
-            else:
-                sx, sy = self.find_scale_tsr(p.x, p.y, pt.x, pt.y, t2, t1)
-                
-        # If sx or sy turn out to be None, it's an indication the point
-        # of the handle you're trying to drag isn't draggable in this order
-        # of operations. If this is the case, do nothing.
-        if sx is not None:    
-            self.silentSet("sx", sx * 100)
-        if sy is not None:
-            self.silentSet("sy", sy * 100)
-    
-    def perform_translation(self, pt):
-        p = self.transform_point
-        order, tx, ty, r, sx, sy = self.node_parameters()
-        sx /= 100
-        sy /= 100
-        t = Transform()
-    
-        if order in ["trs", "rst"]:
-            t.rotate(r)
-            t.scale(sx, sy)
-        elif order in ["tsr", "srt"]:
-            t.scale(sx, sy)
-            t.rotate(r)
-    
-        if order in ["trs", "tsr"]:
-            tx, ty = self.find_translation_before(p.x, p.y, pt.x, pt.y, t)
-        elif order in ["rst", "srt"]:
-            tx, ty = self.find_translation_after(p.x, p.y, pt.x, pt.y, t)
-        elif order in ["rts", "str"]:
-            t1 = Transform()
-            t1.rotate(r)
-            t2 = Transform()
-            t2.scale(sx, sy)
-            if order == "rts":
-                tx, ty = self.find_translation_rts(p.x, p.y, pt.x, pt.y, t1, t2)
-            else:
-                tx, ty = self.find_translation_str(p.x, p.y, pt.x, pt.y, t2, t1)
-            
-        self.silentSet("tx", tx)
-        self.silentSet("ty", ty)
-
-    def perform_rotation(self, pt):
-        p = self.transform_point
-        d = distance(p.x, p.y, pt.x, pt.y)
-        a = angle(p.x, p.y, pt.x, pt.y)
-        self.silentSet("r", a)
-        self.rotation_handle_length = d
-        
-    def mouseDragged(self, pt):
-        if self.operation == self.NONE: return False
-        self.startCombiningEdits("Set Value")
-        if self.operation == self.SCALE:
-            self.perform_scale(pt)
-        elif self.operation == self.TRANSLATION:            
-            self.perform_translation(pt)
-        elif self.operation == self.ROTATION:
-            self.perform_rotation(pt)
-        return True
-            
-    def mouseReleased(self, pt):
-        if self.operation == self.NONE: return False
-        self.operation = self.NONE
-        self.stopCombiningEdits()
-        self.rotation_handle_length = DEFAULT_ROTATION_HANDLE_LENGTH
-        self.viewer.repaint()
-        return True
-
-    def draw(self, ctx):
-        self.draw_rotation_handle(ctx)
-        self.draw_scale_handles(ctx)
-    
-    def draw_scale_handles(self, ctx):
-        x, y, w, h = list(self.original_rect.bounds)
-        p = self.original_rect.points[0]
-        center = self.transform.map(Point(p.x + w/2, p.y + h/2))
-        bounds_path = self.transform.map(self.original_rect)
-        bounds_path.fillColor = None
-        bounds_path.strokeColor = AbstractHandle.HANDLE_COLOR
-        corner_path = Path()
-        corner_path.fillColor = AbstractHandle.HANDLE_COLOR
-        corner_path.strokeWidth = 0
-        for point in bounds_path.points:
-            self.drawDot(corner_path, point.x, point.y)
-        self.drawDot(corner_path, center.x, center.y)
-        if w and h:
-            ctx.draw(bounds_path)
-        ctx.draw(corner_path)
-                
-    def draw_rotation_handle(self, ctx):
-        origin, handle = self.rotation_coordinates()
-        rotation_path = Path()
-        rotation_path.fillColor = Color(1, 1, 1)
-        rotation_path.strokeWidth = 1.5
-        rotation_path.strokeColor = AbstractHandle.HANDLE_COLOR
-        rotation_path.ellipse(handle.x, handle.y, 6, 6)
-        rotation_line_path = Path()
-        rotation_line_path.fillColor = None
-        rotation_line_path.strokeColor = AbstractHandle.HANDLE_COLOR
-        rotation_line_path.strokeWidth = 1
-        rotation_line_path.line(origin.x, origin.y, handle.x, handle.y)
-        ctx.draw(rotation_line_path)
-        ctx.draw(rotation_path)
-    
-def cook(self):
-    return TransformHandle(self.node)]]></value>
-        </param>
-        <param name="_image">
-            <value>transform.png</value>
-        </param>
-        <param name="order" type="string" widget="menu">
-            <value>trs</value>
-            <menu key="srt">Scale Rot Trans</menu>
-            <menu key="str">Scale Trans Rot</menu>
-            <menu key="rst">Rot Scale Trans</menu>
-            <menu key="rts">Rot Trans Scale</menu>
-            <menu key="tsr">Trans Scale Rot</menu>
-            <menu key="trs">Trans Rot Scale</menu>
-        </param>
-        <param label="Translate X" name="tx" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Translate Y" name="ty" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Rotate" name="r" type="float">
-            <value>0.0</value>
-        </param>
-        <param label="Scale X" name="sx" type="float">
-            <value>100.0</value>
-        </param>
-        <param label="Scale Y" name="sy" type="float">
-            <value>100.0</value>
-        </param>
-    </node>
-    <node exported="true" name="wiggle" prototype="filter" x="170" y="500">
-        <description>Shift points by a random amount.</description>
-        <param name="_code">
-            <value type="python"><![CDATA[from nodebox.graphics import Geometry, Transform
-from random import seed, uniform
-
-def wiggle_points(shape, wx, wy):
-    new_shape = shape.clone()
-    for point in new_shape.points:
-        dx = (uniform(0, 1) - 0.5) * wx * 2
-        dy = (uniform(0, 1) - 0.5) * wy * 2
-        point.x += dx
-        point.y += dy
-    return new_shape
-    
-def wiggle_paths(shape, wx, wy):
-    new_shape = Geometry()
-    for path in shape.paths:
-        dx = (uniform(0, 1) - 0.5) * wx * 2
-        dy = (uniform(0, 1) - 0.5) * wy * 2
-        t = Transform()
-        t.translate(dx, dy)
-        new_shape.add(t.map(path))
-    return new_shape
-
-def wiggle_contours(shape, wx, wy):
-    new_shape = shape.clone()
-    for path in new_shape.paths:
-        for contour in path.contours:
-            dx = (uniform(0, 1) - 0.5) * wx * 2
-            dy = (uniform(0, 1) - 0.5) * wy * 2
-            for point in contour.points:
-                point.x += dx
-                point.y += dy
-    return new_shape
-    
-def cook(self):
-    seed(self.seed)
-    if self.shape is None: return None
-    functions = { "points": wiggle_points, 
-                  "contours": wiggle_contours, 
-                  "paths": wiggle_paths}
-    fn = functions.get(self.scope)
-    if fn is None: return None
-    return fn(self.shape, self.wx, self.wy)
-]]></value>
-        </param>
-        <param name="_handle">
-            <value type="python"><![CDATA[from nodebox.handle import PointHandle
-
-class WiggleHandle(PointHandle):
-    def __init__(self, *args):
-        PointHandle.__init__(self, *args)
-        self.update()
-    
-    def update(self):
-        shape = self.node.getPort("shape").value
-        self.visible = shape is not None
-
-def cook(self):
-    return WiggleHandle(self.node, "wx", "wy")]]></value>
-        </param>
-        <param name="_image">
-            <value>wiggle.png</value>
-        </param>
-        <param name="scope" type="string" widget="menu">
-            <value>points</value>
-            <menu key="points">Points</menu>
-            <menu key="contours">Contours</menu>
-            <menu key="paths">Paths</menu>
-        </param>
-        <param label="Wiggle X" name="wx" type="float">
-            <value>30.0</value>
-        </param>
-        <param label="Wiggle Y" name="wy" type="float">
-            <value>30.0</value>
-        </param>
-        <param bounding="hard" min="0.0" name="seed" type="int" widget="seed">
-            <value>0</value>
-        </param>
     </node>
 </ndbx>

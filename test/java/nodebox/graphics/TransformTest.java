@@ -1,11 +1,14 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.List;
 
-public class TransformTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
 
+public class TransformTest {
+
+    @Test
     public void testTranslate() {
         Transform t = new Transform();
         t.translate(0, 0);
@@ -17,6 +20,7 @@ public class TransformTest extends TestCase {
         assertEquals(new Point(1, 202), t.map(p));
     }
 
+    @Test
     public void testMapPath() {
         Path p = new Path();
         p.addPoint(0, 0);
@@ -33,4 +37,5 @@ public class TransformTest extends TestCase {
         assertEquals(new Point(10, 5), newPoints.get(0));
         assertEquals(new Point(20, 25), newPoints.get(1));
     }
+
 }

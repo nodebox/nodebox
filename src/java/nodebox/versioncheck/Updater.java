@@ -1,7 +1,5 @@
 package nodebox.versioncheck;
 
-import nodebox.client.SwingUtils;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -92,8 +90,7 @@ public class Updater {
         if (updateChecker != null && updateChecker.isAlive()) return;
         if (showProgressWindow) {
             updateCheckDialog = new UpdateCheckDialog(null, this);
-            Window win = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
-            SwingUtils.centerOnScreen(updateCheckDialog, win);
+            updateCheckDialog.setLocationRelativeTo(null);
             updateCheckDialog.setVisible(true);
         }
         updateChecker = new UpdateChecker(this, false);
@@ -156,8 +153,7 @@ public class Updater {
                 return;
 
         UpdateAlert alert = new UpdateAlert(this, appcast);
-        Window win = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusedWindow();
-        SwingUtils.centerOnScreen(alert, win);
+        alert.setLocationRelativeTo(null);
         alert.setVisible(true);
     }
 

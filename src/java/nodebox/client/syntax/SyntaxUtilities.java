@@ -133,7 +133,7 @@ public class SyntaxUtilities {
         Color defaultColor = gfx.getColor();
 
         int offset = 0;
-        for (; ;) {
+        for (; ; ) {
             byte id = tokens.id;
             if (id == Token.END)
                 break;

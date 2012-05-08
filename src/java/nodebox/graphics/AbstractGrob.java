@@ -41,37 +41,37 @@ public abstract class AbstractGrob implements Grob {
         this.transform.prepend(transform);
     }
 
-    public void translate(float tx, float ty) {
+    public void translate(double tx, double ty) {
         Transform t = Transform.translated(tx, ty);
         transformDelegate.transform(this, t);
     }
 
-    public void rotate(float degrees) {
+    public void rotate(double degrees) {
         Transform t = Transform.rotated(degrees);
         transformDelegate.transform(this, t);
     }
 
-    public void rotateRadians(float radians) {
+    public void rotateRadians(double radians) {
         Transform t = Transform.rotatedRadians(radians);
         transformDelegate.transform(this, t);
     }
 
-    public void scale(float scale) {
+    public void scale(double scale) {
         Transform t = Transform.scaled(scale);
         transformDelegate.transform(this, t);
     }
 
-    public void scale(float sx, float sy) {
+    public void scale(double sx, double sy) {
         Transform t = Transform.scaled(sx, sy);
         transformDelegate.transform(this, t);
     }
 
-    public void skew(float skew) {
+    public void skew(double skew) {
         Transform t = Transform.skewed(skew);
         transformDelegate.transform(this, t);
     }
 
-    public void skew(float kx, float ky) {
+    public void skew(double kx, double ky) {
         Transform t = Transform.skewed(kx, ky);
         transformDelegate.transform(this, t);
     }

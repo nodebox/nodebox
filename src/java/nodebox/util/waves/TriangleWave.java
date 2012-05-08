@@ -17,10 +17,10 @@ public class TriangleWave extends AbstractWave {
      * Creates a suitable TriangleWave object from other than the constructor arguments.
      * The wave oscillates between min and max values
      *
-     * @param min     the minimum value
-     * @param max     the maximum value
-     * @param period  the length (expressed in time) over which the wave makes a full triangular movement
-     * @return        a new TriangleWave
+     * @param min    the minimum value
+     * @param max    the maximum value
+     * @param period the length (expressed in time) over which the wave makes a full triangular movement
+     * @return a new TriangleWave
      */
     public static TriangleWave from(float min, float max, float period) {
         float amplitude = (max - min) / 2;

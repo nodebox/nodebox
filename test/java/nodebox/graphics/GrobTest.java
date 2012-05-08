@@ -1,10 +1,12 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.awt.*;
 
-public class GrobTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
+
+public class GrobTest {
 
     public class TestGrob extends AbstractGrob {
 
@@ -33,6 +35,7 @@ public class GrobTest extends TestCase {
         }
     }
 
+    @Test
     public void testTransform() {
         TestGrob tg = new TestGrob(1, 2, 3, 4);
         assertEquals(new Rect(1, 2, 3, 4), tg.getBounds());

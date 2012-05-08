@@ -4,20 +4,18 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Demo application using freshbeans.
+ * Demo host application.
  * <p/>
  * Hosts its own server.
  */
 public class MockBox extends MockHost {
 
-    private MockAppcastServer server;
-    private Thread serverThread;
     private Updater updater;
 
     public MockBox() throws HeadlessException {
         updater = new Updater(this);
-        server = new MockAppcastServer(MockHost.APPCAST_SERVER_PORT);
-        serverThread = new Thread(server);
+        MockAppcastServer server = new MockAppcastServer(MockHost.APPCAST_SERVER_PORT);
+        Thread serverThread = new Thread(server);
         serverThread.start();
     }
 

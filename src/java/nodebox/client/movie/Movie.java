@@ -15,7 +15,8 @@ public class Movie {
 
     public static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
     public static final ArrayList<VideoFormat> VIDEO_FORMATS;
-    public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.MP4Format;;
+    public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.MP4Format;
+    ;
 
     static {
         String osName = System.getProperty("os.name").split("\\s")[0];

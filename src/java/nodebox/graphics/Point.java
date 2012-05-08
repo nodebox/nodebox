@@ -1,96 +1,58 @@
-/*
- * This file is part of NodeBox.
- *
- * Copyright (C) 2008 Frederik De Bleser (frederik@pandora.be)
- *
- * NodeBox is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * NodeBox is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with NodeBox. If not, see <http://www.gnu.org/licenses/>.
- */
-
 package nodebox.graphics;
 
-import java.awt.geom.Point2D;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+import com.google.common.base.Objects;
 
-/**
- * @author Frederik
- */
-public class Point implements Iterable<Float> {
+import java.awt.geom.Point2D;
+import java.util.Locale;
+
+import static com.google.common.base.Preconditions.checkArgument;
+
+public final class Point extends AbstractRecord {
+
+    public final static Point ZERO = new Point(0, 0);
 
     public static final int LINE_TO = 1;
     public static final int CURVE_TO = 2;
     public static final int CURVE_DATA = 3;
 
-    public float x, y;
-    public int type;
+    public static Point valueOf(String s) {
+        String[] args = s.split(",");
+        checkArgument(args.length == 2, "String '" + s + "' needs two components, i.e. 12.3,45.6");
+        return new Point(Float.valueOf(args[0]), Float.valueOf(args[1]));
+    }
+
+    public final double x, y;
+    public final int type;
 
     public Point() {
-        this(0, 0);
+        this(0, 0, LINE_TO);
     }
 
-    public Point(float x, float y) {
-        this.x = x;
-        this.y = y;
-        this.type = LINE_TO;
+    public Point(double x, double y) {
+        this(x, y, LINE_TO);
     }
 
-    public Point(float x, float y, int type) {
+    public Point(double x, double y, int type) {
+        super("x", "y", "type");
         this.x = x;
         this.y = y;
-        if (type < LINE_TO || type > CURVE_DATA) {
-            throw new IllegalArgumentException("Invalid point type.");
-        }
         this.type = type;
     }
 
-    public Point(Point pt) {
-        this.x = pt.x;
-        this.y = pt.y;
-        this.type = pt.type;
-    }
-
     public Point(Point2D pt) {
-        this.x = (float) pt.getX();
-        this.y = (float) pt.getY();
-        this.type = LINE_TO;
+        this(pt.getX(), pt.getY(), LINE_TO);
     }
 
-    public float getX() {
+    public double getX() {
         return x;
     }
 
-    public float getY() {
+    public double getY() {
         return y;
-    }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public void setY(float y) {
-        this.y = y;
     }
 
     public int getType() {
         return type;
-    }
-
-    public void setType(int type) {
-        if (type < LINE_TO || type > CURVE_DATA) {
-            throw new IllegalArgumentException("Invalid point type.");
-        }
-        this.type = type;
     }
 
     public boolean isLineTo() {
@@ -101,6 +63,10 @@ public class Point implements Iterable<Float> {
         return type == CURVE_TO;
     }
 
+    public boolean isCurveData() {
+        return type == CURVE_DATA;
+    }
+
     public boolean isOnCurve() {
         return type != CURVE_DATA;
     }
@@ -109,48 +75,31 @@ public class Point implements Iterable<Float> {
         return type == CURVE_DATA;
     }
 
-    public void move(float x, float y) {
-        this.x += x;
-        this.y += y;
-    }
+    //// "Mutation" methods ////
 
-    public Point2D getPoint2D() {
-        return new Point2D.Float(x, y);
+    public Point moved(double dx, double dy) {
+        return new Point(x + dx, y + dy);
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof Point)) return false;
-        Point p = (Point) o;
-        return x == p.x && y == p.y && type == p.type;
+        final Point other = (Point) o;
+        return Objects.equal(x, other.x) && Objects.equal(y, other.y) && Objects.equal(type, other.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(x, y, type);
     }
 
     @Override
     public String toString() {
-        return "Point(" + x + ", " + y + ")";
+        return String.format(Locale.US, "%.2f,%.2f", x, y);
     }
 
-    @Override
-    public Point clone() {
-        return new Point(this);
+    public Point2D toPoint2D() {
+        return new Point2D.Double(x, y);
     }
 
-    public Iterator<Float> iterator() {
-        return new Iterator<Float>() {
-            int pos = 0;
-
-            public boolean hasNext() {
-                return pos < 2;
-            }
-
-            public Float next() {
-                if (pos >= 2) throw new NoSuchElementException("A point has only two elements.");
-                return (pos++) == 0 ? x : y;
-            }
-
-            public void remove() {
-            }
-        };
-    }
 }

@@ -1,6 +1,6 @@
 package nodebox.versioncheck;
 
-import nodebox.client.PlatformUtils;
+import nodebox.ui.Platform;
 
 import javax.swing.*;
 import java.awt.*;
@@ -111,7 +111,7 @@ public class UpdateAlert extends JFrame {
         setVisible(false);
         dispose();
         // Open download link URL.
-        PlatformUtils.openURL(appcast.getDownloadLink());
+        Platform.openURL(appcast.getDownloadLink());
     }
 
     private void forceSize(Component c, int width, int height) {

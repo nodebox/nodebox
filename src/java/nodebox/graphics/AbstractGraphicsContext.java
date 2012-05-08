@@ -1,8 +1,6 @@
 package nodebox.graphics;
 
-import nodebox.node.Node;
-import nodebox.node.Parameter;
-import nodebox.node.ProcessingContext;
+import nodebox.node.Port;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -12,13 +10,12 @@ import java.util.Locale;
 
 public abstract class AbstractGraphicsContext implements GraphicsContext {
 
-
     // TODO: Support output mode
     protected Color.Mode colorMode;
-    protected float colorRange;
+    protected double colorRange;
     protected Color fillColor;
     protected Color strokeColor;
-    protected float strokeWidth;
+    protected double strokeWidth;
     protected Path path;
     protected boolean autoClosePath;
     protected boolean pathClosed;
@@ -26,18 +23,18 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     protected Transform transform = new Transform();
     protected ArrayList<Transform> transformStack;
     protected String fontName;
-    protected float fontSize;
-    protected float lineHeight;
+    protected double fontSize;
+    protected double lineHeight;
     protected Text.Align align;
     protected GraphicsContext.RectMode rectMode = GraphicsContext.RectMode.CORNER;
     protected GraphicsContext.EllipseMode ellipseMode = GraphicsContext.EllipseMode.CORNER;
 
     public void resetContext() {
         colorMode = Color.Mode.RGB;
-        colorRange = 1f;
+        colorRange = 1;
         fillColor = new Color();
         strokeColor = null;
-        strokeWidth = 1f;
+        strokeWidth = 1;
         path = null;
         autoClosePath = true;
         transformMode = Transform.Mode.CENTER;
@@ -45,7 +42,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         transformStack = new ArrayList<Transform>();
         fontName = "Helvetica";
         fontSize = 24;
-        lineHeight = 1.2f;
+        lineHeight = 1.2;
         align = Text.Align.LEFT;
     }
 
@@ -102,11 +99,11 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return rect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), draw);
     }
 
-    public Path rect(float x, float y, float width, float height) {
+    public Path rect(double x, double y, double width, double height) {
         return rect(x, y, width, height, true);
     }
 
-    public Path rect(float x, float y, float width, float height, boolean draw) {
+    public Path rect(double x, double y, double width, double height, boolean draw) {
         Path p = createPath();
         switch (rectMode) {
             case CENTER:
@@ -122,27 +119,27 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return p;
     }
 
-    public Path rect(Rect r, float roundness) {
+    public Path rect(Rect r, double roundness) {
         return rect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), roundness, roundness, true);
     }
 
-    public Path rect(Rect r, float roundness, boolean draw) {
+    public Path rect(Rect r, double roundness, boolean draw) {
         return rect(r.getX(), r.getY(), r.getWidth(), r.getHeight(), roundness, roundness, draw);
     }
 
-    public Path rect(float x, float y, float width, float height, float roundness) {
+    public Path rect(double x, double y, double width, double height, double roundness) {
         return rect(x, y, width, height, roundness, roundness, true);
     }
 
-    public Path rect(float x, float y, float width, float height, float roundness, boolean draw) {
+    public Path rect(double x, double y, double width, double height, double roundness, boolean draw) {
         return rect(x, y, width, height, roundness, roundness, draw);
     }
 
-    public Path rect(float x, float y, float width, float height, float rx, float ry) {
+    public Path rect(double x, double y, double width, double height, double rx, double ry) {
         return rect(x, y, width, height, rx, ry, true);
     }
 
-    public Path rect(float x, float y, float width, float height, float rx, float ry, boolean draw) {
+    public Path rect(double x, double y, double width, double height, double rx, double ry, boolean draw) {
         Path p = createPath();
         switch (rectMode) {
             case CENTER:
@@ -184,21 +181,21 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public Path oval(float x, float y, float width, float height) {
+    public Path oval(double x, double y, double width, double height) {
         // TODO: Deprecation warning
         return ellipse(x, y, width, height, true);
     }
 
-    public Path oval(float x, float y, float width, float height, boolean draw) {
+    public Path oval(double x, double y, double width, double height, boolean draw) {
         // TODO: Deprecation warning
         return ellipse(x, y, width, height, draw);
     }
 
-    public Path ellipse(float x, float y, float width, float height) {
+    public Path ellipse(double x, double y, double width, double height) {
         return ellipse(x, y, width, height, true);
     }
 
-    public Path ellipse(float x, float y, float width, float height, boolean draw) {
+    public Path ellipse(double x, double y, double width, double height, boolean draw) {
         Path p = createPath();
         switch (ellipseMode) {
             case CENTER:
@@ -214,11 +211,11 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return p;
     }
 
-    public Path line(float x1, float y1, float x2, float y2) {
+    public Path line(double x1, double y1, double x2, double y2) {
         return line(x1, y1, x2, y2, true);
     }
 
-    public Path line(float x1, float y1, float x2, float y2, boolean draw) {
+    public Path line(double x1, double y1, double x2, double y2, boolean draw) {
         Path p = createPath();
         p.line(x1, y1, x2, y2);
         inheritFromContext(p);
@@ -227,31 +224,31 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return p;
     }
 
-    public Path star(float cx, float cy) {
+    public Path star(double cx, double cy) {
         return star(cx, cy, 20, 100, 50, true);
     }
 
-    public Path star(float cx, float cy, int points) {
+    public Path star(double cx, double cy, int points) {
         return star(cx, cy, points, 100, 50, true);
     }
 
-    public Path star(float cx, float cy, int points, float outer) {
+    public Path star(double cx, double cy, int points, double outer) {
         return star(cx, cy, points, outer, 50, true);
     }
 
-    public Path star(float cx, float cy, int points, float outer, float inner) {
+    public Path star(double cx, double cy, int points, double outer, double inner) {
         return star(cx, cy, points, outer, inner, true);
     }
 
-    public Path star(float cx, float cy, int points, float outer, float inner, boolean draw) {
-        float PI = (float) Math.PI;
+    public Path star(double cx, double cy, int points, double outer, double inner, boolean draw) {
+        double PI = (double) Math.PI;
         Path p = createPath();
         p.moveto(cx, cy + outer);
         for (int i = 1; i < points * 2; i++) {
-            float angle = i * PI / points;
-            float x = (float) Math.sin(angle);
-            float y = (float) Math.cos(angle);
-            float radius = i % 2 == 0 ? outer : inner;
+            double angle = i * PI / points;
+            double x = (double) Math.sin(angle);
+            double y = (double) Math.cos(angle);
+            double radius = i % 2 == 0 ? outer : inner;
             x += cx + radius * x;
             y += cy + radius * y;
             p.lineto(x, y);
@@ -263,43 +260,43 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return p;
     }
 
-    public Path arrow(float x, float y) {
+    public Path arrow(double x, double y) {
         return arrow(x, y, 100, ArrowType.NORMAL, true);
     }
 
-    public Path arrow(float x, float y, ArrowType type) {
+    public Path arrow(double x, double y, ArrowType type) {
         return arrow(x, y, 100, type, true);
     }
 
-    public Path arrow(float x, float y, String type) {
+    public Path arrow(double x, double y, String type) {
         return arrow(x, y, 100, type, true);
     }
 
-    public Path arrow(float x, float y, int type) {
+    public Path arrow(double x, double y, int type) {
         return arrow(x, y, 100, type, true);
     }
 
-    public Path arrow(float x, float y, float width) {
+    public Path arrow(double x, double y, double width) {
         return arrow(x, y, width, NORMAL, true);
     }
 
-    public Path arrow(float x, float y, float width, boolean draw) {
+    public Path arrow(double x, double y, double width, boolean draw) {
         return arrow(x, y, width, NORMAL, draw);
     }
 
-    public Path arrow(float x, float y, float width, ArrowType type) {
+    public Path arrow(double x, double y, double width, ArrowType type) {
         return arrow(x, y, width, type, true);
     }
 
-    public Path arrow(float x, float y, float width, String type) {
+    public Path arrow(double x, double y, double width, String type) {
         return arrow(x, y, width, type, true);
     }
 
-    public Path arrow(float x, float y, float width, int type) {
+    public Path arrow(double x, double y, double width, int type) {
         return arrow(x, y, width, type, true);
     }
 
-    public Path arrow(float x, float y, float width, String type, boolean draw) {
+    public Path arrow(double x, double y, double width, String type, boolean draw) {
         try {
             ArrowType arrowType = ArrowType.valueOf(type.toUpperCase(Locale.US));
             return arrow(x, y, width, arrowType, draw);
@@ -308,7 +305,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public Path arrow(float x, float y, float width, int type, boolean draw) {
+    public Path arrow(double x, double y, double width, int type, boolean draw) {
         try {
             ArrowType arrowType = ArrowType.values()[type];
             return arrow(x, y, width, arrowType, draw);
@@ -317,16 +314,16 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public Path arrow(float x, float y, float width, ArrowType type, boolean draw) {
+    public Path arrow(double x, double y, double width, ArrowType type, boolean draw) {
         if (type == ArrowType.NORMAL)
             return arrowNormal(x, y, width, draw);
         else
             return arrowFortyFive(x, y, width, draw);
     }
 
-    private Path arrowNormal(float x, float y, float width, boolean draw) {
-        float head = width * .4f;
-        float tail = width * .2f;
+    private Path arrowNormal(double x, double y, double width, boolean draw) {
+        double head = width * .4;
+        double tail = width * .2;
 
         Path p = createPath();
         p.moveto(x, y);
@@ -344,18 +341,18 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return p;
     }
 
-    private Path arrowFortyFive(float x, float y, float width, boolean draw) {
-        float head = .3f;
-        float tail = 1 + head;
+    private Path arrowFortyFive(double x, double y, double width, boolean draw) {
+        double head = .3;
+        double tail = 1 + head;
 
         Path p = createPath();
         p.moveto(x, y);
         p.lineto(x, y + width * (1 - head));
         p.lineto(x - width * head, y + width);
-        p.lineto(x - width * head, y + width * tail * .4f);
-        p.lineto(x - width * tail * .6f, y + width);
-        p.lineto(x - width, y + width * tail * .6f);
-        p.lineto(x - width * tail * .4f, y + width * head);
+        p.lineto(x - width * head, y + width * tail * .4);
+        p.lineto(x - width * tail * .6, y + width);
+        p.lineto(x - width, y + width * tail * .6);
+        p.lineto(x - width * tail * .4, y + width * head);
         p.lineto(x - width, y + width * head);
         p.lineto(x - width * (1 - head), y);
         p.lineto(x, y);
@@ -373,24 +370,24 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         pathClosed = false;
     }
 
-    public void beginpath(float x, float y) {
+    public void beginpath(double x, double y) {
         beginpath();
         moveto(x, y);
     }
 
-    public void moveto(float x, float y) {
+    public void moveto(double x, double y) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginpath() first.");
         path.moveto(x, y);
     }
 
-    public void lineto(float x, float y) {
+    public void lineto(double x, double y) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginpath() first.");
         path.lineto(x, y);
     }
 
-    public void curveto(float x1, float y1, float x2, float y2, float x3, float y3) {
+    public void curveto(double x1, double y1, double x2, double y2, double x3, double y3) {
         if (path == null)
             throw new NodeBoxError("No current path. Use beginPath() first.");
         path.curveto(x1, y1, x2, y2, x3, y3);
@@ -450,7 +447,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return findpath(points, 1);
     }
 
-    public Path findpath(List<Point> points, float curvature) {
+    public Path findpath(List<Point> points, double curvature) {
         Path path = Path.findPath(points, curvature);
         inheritFromContext(path);
         addPath(path);
@@ -515,27 +512,27 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         transform = new Transform();
     }
 
-    public void translate(float tx, float ty) {
+    public void translate(double tx, double ty) {
         transform.translate(tx, ty);
     }
 
-    public void rotate(float r) {
+    public void rotate(double r) {
         transform.rotate(r);
     }
 
-    public void scale(float scale) {
+    public void scale(double scale) {
         transform.scale(scale);
     }
 
-    public void scale(float sx, float sy) {
+    public void scale(double sx, double sy) {
         transform.scale(sx, sy);
     }
 
-    public void skew(float skew) {
+    public void skew(double skew) {
         transform.skew(skew);
     }
 
-    public void skew(float kx, float ky) {
+    public void skew(double kx, double ky) {
         transform.skew(kx, ky);
     }
 
@@ -554,19 +551,19 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Color.Mode colormode(Color.Mode mode) {
-        return colormode(mode, null);
+        return colorMode = mode;
     }
 
-    public Color.Mode colormode(Color.Mode mode, Float range) {
-        if (range != null) colorRange = range;
+    public Color.Mode colormode(Color.Mode mode, double range) {
+        colorRange = range;
         return colorMode = mode;
     }
 
     public Color.Mode colormode(String mode) {
-        return colormode(mode, null);
+        return colormode(mode, colorRange);
     }
 
-    public Color.Mode colormode(String mode, Float range) {
+    public Color.Mode colormode(String mode, double range) {
         try {
             Color.Mode newMode = Color.Mode.valueOf(mode.toUpperCase(Locale.US));
             return colormode(newMode, range);
@@ -576,10 +573,10 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
     }
 
     public Color.Mode colormode(int mode) {
-        return colormode(mode, null);
+        return colormode(mode, colorRange);
     }
 
-    public Color.Mode colormode(int mode, Float range) {
+    public Color.Mode colormode(int mode, double range) {
         try {
             Color.Mode newMode = Color.Mode.values()[mode];
             return colormode(newMode, range);
@@ -588,11 +585,11 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public float colorrange() {
+    public double colorrange() {
         return colorRange;
     }
 
-    public float colorrange(float range) {
+    public double colorrange(double range) {
         return colorRange = range;
     }
 
@@ -611,8 +608,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param x the gray component.
      * @return the new color.
      */
-    public Color color(float x) {
-        float nx = normalize(x);
+    public Color color(double x) {
+        double nx = normalize(x);
         return new Color(nx, nx, nx);
     }
 
@@ -623,8 +620,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param y the alpha value.
      * @return the new color.
      */
-    public Color color(float x, float y) {
-        float nx = normalize(x);
+    public Color color(double x, double y) {
+        double nx = normalize(x);
         return new Color(nx, nx, nx, normalize(y));
     }
 
@@ -636,7 +633,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param z the blue or brightness component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z) {
+    public Color color(double x, double y, double z) {
         return new Color(normalize(x), normalize(y), normalize(z), colormode());
     }
 
@@ -649,7 +646,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param a the alpha component.
      * @return the new color.
      */
-    public Color color(float x, float y, float z, float a) {
+    public Color color(double x, double y, double z, double a) {
         return new Color(normalize(x), normalize(y), normalize(z), normalize(a), colormode());
     }
 
@@ -681,8 +678,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param x the gray component.
      * @return the current fill color.
      */
-    public Color fill(float x) {
-        float nx = normalize(x);
+    public Color fill(double x) {
+        double nx = normalize(x);
         return fillColor = new Color(nx, nx, nx);
     }
 
@@ -693,8 +690,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param y the alpha value.
      * @return the current fill color.
      */
-    public Color fill(float x, float y) {
-        float nx = normalize(x);
+    public Color fill(double x, double y) {
+        double nx = normalize(x);
         return fillColor = new Color(nx, nx, nx, normalize(y));
     }
 
@@ -706,7 +703,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param z the blue or brightness component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z) {
+    public Color fill(double x, double y, double z) {
         return fillColor = new Color(normalize(x), normalize(y), normalize(z), colormode());
     }
 
@@ -719,7 +716,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param a the alpha component.
      * @return the current fill color.
      */
-    public Color fill(float x, float y, float z, float a) {
+    public Color fill(double x, double y, double z, double a) {
         return fillColor = new Color(normalize(x), normalize(y), normalize(z), normalize(a), colormode());
     }
 
@@ -755,8 +752,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param x the gray component.
      * @return the current stroke color.
      */
-    public Color stroke(float x) {
-        float nx = normalize(x);
+    public Color stroke(double x) {
+        double nx = normalize(x);
         return strokeColor = new Color(nx, nx, nx);
     }
 
@@ -767,8 +764,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param y the alpha value.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y) {
-        float nx = normalize(x);
+    public Color stroke(double x, double y) {
+        double nx = normalize(x);
         return strokeColor = new Color(nx, nx, nx, normalize(y));
     }
 
@@ -780,7 +777,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param z the blue or brightness component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z) {
+    public Color stroke(double x, double y, double z) {
         return strokeColor = new Color(normalize(x), normalize(y), normalize(z), colormode());
     }
 
@@ -793,7 +790,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
      * @param a the alpha component.
      * @return the current stroke color.
      */
-    public Color stroke(float x, float y, float z, float a) {
+    public Color stroke(double x, double y, double z, double a) {
         return strokeColor = new Color(normalize(x), normalize(y), normalize(z), normalize(a), colormode());
     }
 
@@ -814,58 +811,58 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         strokeColor = null;
     }
 
-    public float strokewidth() {
+    public double strokewidth() {
         return strokeWidth;
     }
 
-    public float strokewidth(float w) {
+    public double strokewidth(double w) {
         return strokeWidth = w;
     }
 
     //// Image commands ////
 
-    public Image image(String path, float x, float y) {
+    public Image image(String path, double x, double y) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(String path, float x, float y, Float width) {
+    public Image image(String path, double x, double y, double width) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(String path, float x, float y, Float width, Float height) {
+    public Image image(String path, double x, double y, double width, double height) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(String path, float x, float y, Float width, Float height, float alpha) {
+    public Image image(String path, double x, double y, double width, double height, double alpha) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(String path, float x, float y, Float width, Float height, boolean draw) {
+    public Image image(String path, double x, double y, double width, double height, boolean draw) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(String path, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(String path, double x, double y, double width, double height, double alpha, boolean draw) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(Image img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(Image img, double x, double y, double width, double height, double alpha, boolean draw) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
-    public Image image(BufferedImage img, float x, float y, Float width, Float height, float alpha, boolean draw) {
+    public Image image(BufferedImage img, double x, double y, double width, double height, double alpha, boolean draw) {
         throw new RuntimeException("'image' is not applicable to this type of GraphicsContext.");
     }
 
     public Size imagesize(String path) {
-        throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
+        throw new RuntimeException("'imagesize' is not applicable to this type of GraphicsContext.");
     }
 
     public Size imagesize(Image img) {
-        throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
+        throw new RuntimeException("'imagesize' is not applicable to this type of GraphicsContext.");
     }
 
     public Size imagesize(BufferedImage img) {
-        throw new RuntimeException("'imagesize' is not applicable to this type of GrqphicsContext.");
+        throw new RuntimeException("'imagesize' is not applicable to this type of GraphicsContext.");
     }
 
     //// Font commands ////
@@ -880,25 +877,25 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return this.fontName = fontName;
     }
 
-    public String font(String fontName, float fontSize) {
+    public String font(String fontName, double fontSize) {
         font(fontName);
         fontsize(fontSize);
         return fontName;
     }
 
-    public float fontsize() {
+    public double fontsize() {
         return fontSize;
     }
 
-    public float fontsize(float s) {
+    public double fontsize(double s) {
         return fontSize = s;
     }
 
-    public float lineheight() {
+    public double lineheight() {
         return lineHeight;
     }
 
-    public float lineheight(float lineHeight) {
+    public double lineheight(double lineHeight) {
         return this.lineHeight = lineHeight;
     }
 
@@ -928,19 +925,19 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public Text text(String text, float x, float y) {
+    public Text text(String text, double x, double y) {
         return text(text, x, y, 0, 0, true);
     }
 
-    public Text text(String text, float x, float y, float width) {
+    public Text text(String text, double x, double y, double width) {
         return text(text, x, y, width, 0, true);
     }
 
-    public Text text(String text, float x, float y, float width, float height) {
+    public Text text(String text, double x, double y, double width, double height) {
         return text(text, x, y, width, height, true);
     }
 
-    public Text text(String text, float x, float y, float width, float height, boolean draw) {
+    public Text text(String text, double x, double y, double width, double height, boolean draw) {
         Text t = new Text(text, x, y, width, height);
         t.setTransformDelegate(new ContextTransformDelegate(this));
         inheritFromContext(t);
@@ -949,15 +946,15 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return t;
     }
 
-    public Path textpath(String text, float x, float y) {
+    public Path textpath(String text, double x, double y) {
         return textpath(text, x, y, 0, 0);
     }
 
-    public Path textpath(String text, float x, float y, float width) {
+    public Path textpath(String text, double x, double y, double width) {
         return textpath(text, x, y, width, 0);
     }
 
-    public Path textpath(String text, float x, float y, float width, float height) {
+    public Path textpath(String text, double x, double y, double width, double height) {
         Text t = new Text(text, x, y, width, height);
         inheritFontAttributesFromContext(t);
         Path path = t.getPath();
@@ -970,59 +967,59 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return textmetrics(text, 0, 0);
     }
 
-    public Rect textmetrics(String text, float width) {
+    public Rect textmetrics(String text, double width) {
         return textmetrics(text, width, 0);
     }
 
-    public Rect textmetrics(String text, float width, float height) {
+    public Rect textmetrics(String text, double width, double height) {
         Text t = new Text(text, 0, 0, width, height);
         inheritFromContext(t);
         return t.getMetrics();
     }
 
-    public float textwidth(String text) {
+    public double textwidth(String text) {
         return textmetrics(text, 0, 0).getWidth();
     }
 
-    public float textwidth(String text, float width) {
+    public double textwidth(String text, double width) {
         return textmetrics(text, width).getWidth();
     }
 
-    public float textheight(String text) {
+    public double textheight(String text) {
         return textmetrics(text, 0, 0).getHeight();
     }
 
-    public float textheight(String text, float width) {
+    public double textheight(String text, double width) {
         return textmetrics(text, width).getHeight();
     }
 
     //// Utility methods ////
 
     public void var(String name, VarType type) {
-        var(name, type, null, null, null);
+        var(name, type, null, 0, 1000);
     }
 
     public void var(String name, String type) {
-        var(name, type, null, null, null);
+        var(name, type, null, 0, 1000);
     }
 
     public void var(String name, int type) {
-        var(name, type, null, null, null);
+        var(name, type, 0, 0, 1000);
     }
 
     public void var(String name, VarType type, Object value) {
-        var(name, type, value, null, null);
+        var(name, type, value, 0, 1000);
     }
 
     public void var(String name, String type, Object value) {
-        var(name, type, value, null, null);
+        var(name, type, value, 0, 1000);
     }
 
     public void var(String name, int type, Object value) {
-        var(name, type, value, null, null);
+        var(name, type, value, 0, 1000);
     }
 
-    public void var(String name, String type, Object value, Float min, Float max) {
+    public void var(String name, String type, Object value, double min, double max) {
         try {
             var(name, VarType.valueOf(type.toUpperCase(Locale.US)), value, min, max);
         } catch (IllegalArgumentException e) {
@@ -1030,7 +1027,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public void var(String name, int type, Object value, Float min, Float max) {
+    public void var(String name, int type, Object value, double min, double max) {
         try {
             var(name, VarType.values()[type], value, min, max);
         } catch (ArrayIndexOutOfBoundsException e) {
@@ -1038,47 +1035,48 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         }
     }
 
-    public void var(String name, VarType type, Object value, Float min, Float max) {
-        Node node = ProcessingContext.getCurrentContext().getNode();
-        if (node == null) return;
-        Parameter p = node.getParameter(name);
-        if (p != null) {
-            if (p.getType() != type.type) {
-                p.setType(type.type);
-            }
-            if (p.getWidget() != type.widget) {
-                p.setWidget(type.widget);
-            }
-            if (p.getMinimumValue() != null && !p.getMinimumValue().equals(min)) {
-                p.setMinimumValue(min);
-            }
-            if (p.getMaximumValue() != null && !p.getMaximumValue().equals(max)) {
-                p.setMaximumValue(max);
-            }
-        } else {
-            p = node.addParameter(name, type.type);
-            p.setWidget(type.widget);
-            if (value != null) {
-                p.setValue(value);
-            }
-            if (min != null || max != null) {
-                p.setBoundingMethod(Parameter.BoundingMethod.HARD);
-                p.setMinimumValue(min);
-                p.setMaximumValue(max);
-            }
-            node.updateDependencies(ProcessingContext.getCurrentContext());
-        }
+    public void var(String name, VarType type, Object value, double min, double max) {
+//        Node node = ProcessingContext.getCurrentContext().getNode();
+//        if (node == null) return;
+//        Parameter p = node.getInput(name);
+//        if (p != null) {
+//            if (p.getType() != type.type) {
+//                p.setType(type.type);
+//            }
+//            if (p.getWidget() != type.widget) {
+//                p.setWidget(type.widget);
+//            }
+//            if (p.getMinimumValue() != null && !p.getMinimumValue().equals(min)) {
+//                p.setMinimumValue(min);
+//            }
+//            if (p.getMaximumValue() != null && !p.getMaximumValue().equals(max)) {
+//                p.setMaximumValue(max);
+//            }
+//        } else {
+//            p = node.addPort(name, type.type);
+//            p.setWidget(type.widget);
+//            if (value != null) {
+//                p.setValue(value);
+//            }
+//            if (min != null || max != null) {
+//                p.setBoundingMethod(Parameter.BoundingMethod.HARD);
+//                p.setMinimumValue(min);
+//                p.setMaximumValue(max);
+//            }
+//            node.updateDependencies(ProcessingContext.getCurrentContext());
+//        }
     }
 
-    public Parameter findVar(String name) {
-        Node node = ProcessingContext.getCurrentContext().getNode();
-        if (node == null) return null;
-        return node.getParameter(name);
+    public Port findVar(String name) {
+//        Node node = ProcessingContext.getCurrentContext().getNode();
+//        if (node == null) return null;
+//        return node.getInput(name);
+        return null;
     }
 
-    protected float normalize(float v) {
+    protected double normalize(double v) {
         // Bring the color into the 0-1 scale for the current colorrange
-        if (colorRange == 1f) return v;
+        if (colorRange == 1) return v;
         return v / colorRange;
 
     }
@@ -1112,11 +1110,11 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         return grid(columns, rows, 1, 1);
     }
 
-    public Iterator<Point> grid(float columns, float rows) {
+    public Iterator<Point> grid(double columns, double rows) {
         return grid(Math.round(columns), Math.round(rows), 1, 1);
     }
 
-    public Iterator<Point> grid(float columns, float rows, double columnSize, double rowSize) {
+    public Iterator<Point> grid(double columns, double rows, double columnSize, double rowSize) {
         return grid(Math.round(columns), Math.round(rows), columnSize, rowSize);
     }
 
@@ -1130,7 +1128,7 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
             }
 
             public Point next() {
-                Point pt = new Point((float) (x * columnSize), (float) (y * rowSize));
+                Point pt = new Point((double) (x * columnSize), (double) (y * rowSize));
                 x++;
                 if (x >= columns) {
                     x = 0;
@@ -1182,8 +1180,8 @@ public abstract class AbstractGraphicsContext implements GraphicsContext {
         TransformDelegate d = t.getTransformDelegate();
         d.transform(t, transform, true);
 /*        Rect r = t.getBounds();
-        float dx = r.getX() + r.getWidth() / 2;
-        float dy = r.getY() + r.getHeight() / 2;
+        double dx = r.getX() + r.getWidth() / 2;
+        double dy = r.getY() + r.getHeight() / 2;
         if (transformMode == Transform.Mode.CENTER) {
             Transform trans = new Transform();
             trans.translate(dx, dy);

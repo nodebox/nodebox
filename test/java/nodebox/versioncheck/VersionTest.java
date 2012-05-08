@@ -1,13 +1,16 @@
 package nodebox.versioncheck;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class VersionTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
+
+public class VersionTest {
 
     private static final int LARGER_THAN = 1;
     private static final int EQUAL = 0;
     private static final int SMALLER_THAN = -1;
 
+    @Test
     public void testBasic() {
         Version v1 = new Version("2.0");
         assertEquals(LARGER_THAN, v1.compareTo(new Version("1.0")));
@@ -31,6 +34,5 @@ public class VersionTest extends TestCase {
         assertEquals(SMALLER_THAN, v3.compareTo(new Version("1.2.3.snapshot.9")));
         assertEquals(SMALLER_THAN, v3.compareTo(new Version("hello")));
     }
-
 
 }

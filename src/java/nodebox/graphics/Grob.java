@@ -40,19 +40,19 @@ public interface Grob extends Cloneable {
 
     public Grob clone();
 
-    void translate(float tx, float ty);
+    void translate(double tx, double ty);
 
-    void rotate(float degrees);
+    void rotate(double degrees);
 
-    void rotateRadians(float radians);
+    void rotateRadians(double radians);
 
-    void scale(float scale);
+    void scale(double scale);
 
-    void scale(float sx, float sy);
+    void scale(double sx, double sy);
 
-    void skew(float skew);
+    void skew(double skew);
 
-    void skew(float kx, float ky);
+    void skew(double kx, double ky);
 
     //// Transform Delegate ////
 

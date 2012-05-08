@@ -2,7 +2,9 @@ package nodebox.client;
 
 import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
-import nodebox.node.NodeLibraryManager;
+import nodebox.node.NodeRepository;
+import nodebox.ui.SwingUtils;
+import nodebox.ui.Theme;
 import nodebox.util.StringUtils;
 
 import javax.swing.*;
@@ -23,16 +25,17 @@ public class NodeSelectionDialog extends JDialog {
     private class FilteredNodeListModel implements ListModel {
 
         private NodeLibrary library;
-        private NodeLibraryManager manager;
+        private NodeRepository repository;
         private java.util.List<Node> filteredNodes;
         private String searchString;
 
-        private FilteredNodeListModel(NodeLibrary library, NodeLibraryManager manager) {
+        private FilteredNodeListModel(NodeLibrary library, NodeRepository repository) {
             this.library = library;
-            this.manager = manager;
+            this.repository = repository;
             searchString = "";
-            filteredNodes = manager.getNodes();
-            filteredNodes.addAll(library.getExportedNodes());
+            filteredNodes = new ArrayList<Node>();
+            filteredNodes.addAll(repository.getNodes());
+            //filteredNodes.addAll(library.getExportedNodes());
             Collections.sort(filteredNodes, new NodeNameComparator());
         }
 
@@ -43,27 +46,28 @@ public class NodeSelectionDialog extends JDialog {
         public void setSearchString(String searchString) {
             this.searchString = searchString = searchString.trim().toLowerCase();
             if (searchString.length() == 0) {
-                // Add all the nodes from the manager.
-                filteredNodes = manager.getNodes();
+                // Add all the nodes from the repository.
+                filteredNodes.clear();
+                filteredNodes.addAll(repository.getNodes());
                 // Add all the exported nodes from the current library.
-                filteredNodes.addAll(library.getExportedNodes());
+                //filteredNodes.addAll(library.getExportedNodes());
                 Collections.sort(filteredNodes, new NodeNameComparator());
             } else {
                 java.util.List<Node> nodes = new ArrayList<Node>();
 
-                filteredNodes = new ArrayList<Node>();
-                // Add all the nodes from the manager.
-                for (Node node : manager.getNodes()) {
+                filteredNodes.clear();
+                // Add all the nodes from the repository.
+                for (Node node : repository.getNodes()) {
                     if (contains(node, searchString))
                         nodes.add(node);
                 }
                 // Add all the exported nodes from the current library.
-                for (Node node : library.getExportedNodes()) {
-                    if (contains(node, searchString))
-                        nodes.add(node);
-                }
+//                for (Node node : library.getExportedNodes()) {
+//                    if (contains(node, searchString))
+//                        nodes.add(node);
+//                }
 
-                filteredNodes = sortNodes(nodes, this.searchString);
+                filteredNodes.addAll(sortNodes(nodes, this.searchString));
             }
         }
 
@@ -120,7 +124,7 @@ public class NodeSelectionDialog extends JDialog {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             assert (value instanceof Node);
             Node node = (Node) value;
-            String html = "<html><b>" + StringUtils.humanizeName(node.getName()) + "</b> - " + node.getDescription() + "<br><font color=#333333>" + node.getDataClass().getSimpleName() + " - </font> <font color=#666666>" + node.getLibrary().getName() + "</font></html>";
+            String html = "<html><b>" + StringUtils.humanizeName(node.getName()) + "</b> - " + node.getDescription() + "</html>";
             setText(html);
             if (isSelected) {
                 setBackground(Theme.NODE_SELECTION_ACTIVE_BACKGROUND_COLOR);
@@ -129,31 +133,29 @@ public class NodeSelectionDialog extends JDialog {
             }
             setEnabled(list.isEnabled());
             setFont(list.getFont());
-            setIcon(new ImageIcon(NodeView.getImageForNode(node)));
+            setIcon(new ImageIcon(NodeView.getImageForNode(node, repository)));
             setBorder(Theme.BOTTOM_BORDER);
             setOpaque(true);
             return this;
         }
     }
 
-    private NodeLibrary library;
-    private NodeLibraryManager manager;
+    private NodeRepository repository;
     private JTextField searchField;
     private JList nodeList;
     private Node selectedNode;
     private FilteredNodeListModel filteredNodeListModel;
 
-    public NodeSelectionDialog(NodeLibrary library, NodeLibraryManager manager) {
-        this(null, library, manager);
+    public NodeSelectionDialog(NodeLibrary library, NodeRepository repository) {
+        this(null, library, repository);
     }
 
-    public NodeSelectionDialog(Frame owner, NodeLibrary library, NodeLibraryManager manager) {
+    public NodeSelectionDialog(Frame owner, NodeLibrary library, NodeRepository repository) {
         super(owner, "New Node", true);
         getRootPane().putClientProperty("Window.style", "small");
         JPanel panel = new JPanel(new BorderLayout());
-        this.library = library;
-        this.manager = manager;
-        filteredNodeListModel = new FilteredNodeListModel(library, manager);
+        this.repository = repository;
+        filteredNodeListModel = new FilteredNodeListModel(library, repository);
         searchField = new JTextField();
         searchField.putClientProperty("JTextField.variant", "search");
         EscapeListener escapeListener = new EscapeListener();
@@ -175,15 +177,15 @@ public class NodeSelectionDialog extends JDialog {
         panel.add(nodeScroll, BorderLayout.CENTER);
         setContentPane(panel);
         setSize(500, 400);
-        SwingUtils.centerOnScreen(this);
+        setLocationRelativeTo(owner);
     }
 
     public Node getSelectedNode() {
         return selectedNode;
     }
 
-    public NodeLibraryManager getManager() {
-        return manager;
+    public NodeRepository getRepository() {
+        return repository;
     }
 
     private void closeDialog() {
@@ -270,10 +272,8 @@ public class NodeSelectionDialog extends JDialog {
         }
     }
 
-    private class NodeNameComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            Node node1 = (Node) o1;
-            Node node2 = (Node) o2;
+    private class NodeNameComparator implements Comparator<Node> {
+        public int compare(Node node1, Node node2) {
             return node1.getName().compareTo(node2.getName());
         }
     }

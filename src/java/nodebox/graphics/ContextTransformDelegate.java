@@ -1,6 +1,7 @@
 package nodebox.graphics;
 
 public class ContextTransformDelegate implements TransformDelegate {
+
     private GraphicsContext context;
     private Transform transform;
     private Transform currentTransform;
@@ -29,8 +30,8 @@ public class ContextTransformDelegate implements TransformDelegate {
         currentTransform.append(t);
 
         Rect bounds = g.getBounds();
-        float dx = bounds.getX() + bounds.getWidth() / 2;
-        float dy = bounds.getY() + bounds.getHeight() / 2;
+        double dx = bounds.getX() + bounds.getWidth() / 2;
+        double dy = bounds.getY() + bounds.getHeight() / 2;
 
         transform = currentTransform.clone();
         if (context.transform() == Transform.Mode.CENTER) {

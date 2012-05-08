@@ -5,7 +5,9 @@ public abstract class AbstractWave {
     public static final float PI = 3.14159265358979323846f;
     public static final float TWO_PI = 2 * PI;
 
-    public static enum Type { SINE, TRIANGLE, SQUARE, SAWTOOTH };
+    public static enum Type {SINE, TRIANGLE, SQUARE, SAWTOOTH}
+
+    ;
 
     private float period;
     private float phase;
@@ -63,8 +65,8 @@ public abstract class AbstractWave {
     /**
      * Calculates and returns the value at time unit t for the wave.
      *
-     * @param t  time coordinate on the wave continuum
-     * @return   the new value
+     * @param t time coordinate on the wave continuum
+     * @return the new value
      */
     public float getValueAt(float t) {
         float time = adjustedTime(t);
@@ -83,7 +85,7 @@ public abstract class AbstractWave {
     /**
      * Calculates and returns the value at phase for the wave.
      *
-     * @param  phase
+     * @param phase
      * @return the new value
      */
     protected abstract float computeValue(float phase);

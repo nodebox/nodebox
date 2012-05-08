@@ -1,6 +1,8 @@
 package nodebox.versioncheck;
 
-import junit.framework.TestCase;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.xml.sax.SAXParseException;
 
 import javax.swing.*;
@@ -8,19 +10,22 @@ import java.io.FileNotFoundException;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-public class UpdaterTest extends TestCase {
+import static junit.framework.Assert.*;
+
+public class UpdaterTest {
+
     private MockAppcastServer server;
     private Thread serverThread;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         server = new MockAppcastServer(MockHost.APPCAST_SERVER_PORT);
         serverThread = new Thread(server);
         serverThread.start();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() throws Exception {
         server.stop();
         serverThread.join();
     }
@@ -28,6 +33,7 @@ public class UpdaterTest extends TestCase {
     /**
      * Test the regular update process.
      */
+    @Test
     public void testCheckForUpdates() {
         Updater updater = new Updater(new MockHost());
         TestUpdateDelegate delegate = checkForUpdates(updater);
@@ -49,6 +55,7 @@ public class UpdaterTest extends TestCase {
     /**
      * Test what happens if the appcast file can not be found.
      */
+    @Test
     public void testNotFound() {
         Updater updater = new Updater(new NotFoundHost());
         TestUpdateDelegate delegate = checkForUpdates(updater);
@@ -59,6 +66,7 @@ public class UpdaterTest extends TestCase {
     /**
      * Test what happens if the appcast file can not be parsed.
      */
+    @Test
     public void testUnreadableAppcast() {
         Updater updater = new Updater(new UnreadableHost());
         TestUpdateDelegate delegate = checkForUpdates(updater);
@@ -66,6 +74,7 @@ public class UpdaterTest extends TestCase {
         assertEquals(SAXParseException.class, delegate.throwable.getClass());
     }
 
+    @Test
     public void testLatestVersion() {
         Updater updater = new Updater(new LatestVersionHost());
         TestUpdateDelegate delegate = checkForUpdates(updater);

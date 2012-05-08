@@ -1,7 +1,7 @@
 package nodebox.client;
 
 import nodebox.base.Preconditions;
-import nodebox.node.Parameter;
+import nodebox.ui.Theme;
 import org.python.util.PythonInterpreter;
 
 import javax.swing.*;
@@ -33,14 +33,12 @@ public class Console extends JFrame implements WindowListener, FocusListener {
     private ArrayList<String> history = new ArrayList<String>();
     private int historyOffset = 0;
     private String temporarySavedCommand = null;
-    private JTextPane consoleMessages;
     private JTextField consolePrompt;
     private Document messagesDocument;
-    private JScrollPane messagesScroll;
 
     public Console() {
         super("Console");
-        consoleMessages = new JTextPane();
+        JTextPane consoleMessages = new JTextPane();
         consoleMessages.setMargin(new Insets(2, 20, 2, 5));
         consoleMessages.setFont(Theme.EDITOR_FONT);
         consoleMessages.setEditable(false);
@@ -51,7 +49,7 @@ public class Console extends JFrame implements WindowListener, FocusListener {
             }
         });
         messagesDocument = consoleMessages.getDocument();
-        messagesScroll = new JScrollPane(consoleMessages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        JScrollPane messagesScroll = new JScrollPane(consoleMessages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         messagesScroll.setBorder(BorderFactory.createEmptyBorder());
 
         consolePrompt = new JTextField();
@@ -106,15 +104,10 @@ public class Console extends JFrame implements WindowListener, FocusListener {
         // HACK Indirect way to access the current document.
         NodeBoxDocument document = Application.getInstance().getCurrentDocument();
         interpreter.set("document", document);
-        interpreter.set("root", document.getNodeLibrary().getRootNode());
+        interpreter.set("root", document.getNodeLibrary().getRoot());
         interpreter.set("parent", document.getActiveNetwork());
         interpreter.set("node", document.getActiveNode());
         interpreter.exec("from nodebox.node import *");
-        for (Parameter.Type type : Parameter.Type.values()) {
-            interpreter.set(type.name(), type);
-        }
-        for (Parameter.Type t : Parameter.Type.values())
-            interpreter.set(t.name(), t);
         Exception pythonException = null;
         try {
             Object result = interpreter.eval(command);

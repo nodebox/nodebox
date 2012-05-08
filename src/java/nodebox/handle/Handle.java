@@ -1,20 +1,14 @@
 package nodebox.handle;
 
 
-import nodebox.client.Viewer;
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
-import nodebox.node.Node;
 
 public interface Handle {
 
-    public void setViewer(Viewer viewer);
+/*    public void setViewer(Viewer viewer);
 
-    public Viewer getViewer();
-
-    //public List<Parameter> getParameters();
-
-    public Node getNode();
+    public Viewer getViewer(); */
 
     public void update();
 
@@ -48,16 +42,22 @@ public interface Handle {
 
     //// Node update methods ////
 
+    public boolean hasInput(String portName);
+    
+    public boolean isConnected(String portName);
+
+    public Object getValue(String portName);
+    
     /**
      * Set a value on the node.
      * <p/>
      * This callback is fired whenever we want to set a value and have an error reported back.
      * This method can be called for every drag or move of the mouse, if needed.
      *
-     * @param parameterName The parameter this value is linked to.
-     * @param value         The ne value.
+     * @param portName The port this value is linked to.
+     * @param value    The new value.
      */
-    public void setValue(String parameterName, Object value);
+    public void setValue(String portName, Object value);
 
     /**
      * Set a value on the node without causing an error.
@@ -69,10 +69,10 @@ public interface Handle {
      * For example, on a constrained handle where width / height need to be equal, calling this method
      * will keep them in sync without raising errors that one can't be bigger than the other.
      *
-     * @param parameterName The parameter this value is linked to.
-     * @param value         The ne value.
+     * @param portName The port this value is linked to.
+     * @param value    The new value.
      */
-    public void silentSet(String parameterName, Object value);
+    public void silentSet(String portName, Object value);
 
     /**
      * Indicates that the undo mechanism should create a new undo "step".

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <!-- We do not link to CoreFunctions since it is always included. -->
+    <node name="root" renderedChild="frame">
+        <node description="Output the current frame." function="core/frame" name="frame" position="20,100"
+              image="frame.png">
+            <port name="context" type="context"/>
+        </node>
+    </node>
+</ndbx>

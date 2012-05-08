@@ -2,8 +2,6 @@ package nodebox.handle;
 
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
-import nodebox.node.Node;
-import nodebox.node.Parameter;
 
 import java.util.Locale;
 
@@ -12,15 +10,17 @@ import java.util.Locale;
  */
 public class FreehandHandle extends AbstractHandle {
 
-    private final String pathParameterName;
-    private final Parameter parameter;
+    private final String pathPortName;
     private boolean newPath = true;
     private Point currentPoint;
 
-    public FreehandHandle(Node node, String pathParameterName) {
-        super(node);
-        this.pathParameterName = pathParameterName;
-        this.parameter = node.getParameter(pathParameterName);
+    public FreehandHandle() {
+        this("path");
+    }
+
+    public FreehandHandle(String pathPortName) {
+        this.pathPortName = pathPortName;
+        update();
     }
 
     public void draw(GraphicsContext ctx) {
@@ -49,7 +49,7 @@ public class FreehandHandle extends AbstractHandle {
         // All it does is append new points to the string.
         // The actual path parsing is done by the freehand node code.
         currentPoint = pt;
-        String pathString = parameter.asString();
+        String pathString = (String) getValue(pathPortName);
         if (newPath) {
             if (pathString.isEmpty()) {
                 pathString = " ";
@@ -59,7 +59,7 @@ public class FreehandHandle extends AbstractHandle {
         }
         // Use US locale, otherwise the code might generate a "," instead of a "." as the floating point.
         pathString += String.format(Locale.US, "%.2f %.2f ", pt.getX(), pt.getY());
-        silentSet(pathParameterName, pathString);
+        silentSet(pathPortName, pathString);
         updateHandle();
         return true;
     }

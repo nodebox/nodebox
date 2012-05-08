@@ -1,20 +1,24 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.Iterator;
 
-public class GraphicsContextTest extends TestCase {
+import static junit.framework.Assert.*;
 
+public class GraphicsContextTest {
+
+    @Test
     public void testSize() {
         CanvasContext ctx = new CanvasContext();
         ctx.size(200, 300);
-        assertEquals(200f, ctx.getWIDTH());
-        assertEquals(300f, ctx.getHeight());
-        assertEquals(200f, ctx.getCanvas().getWidth());
-        assertEquals(300f, ctx.getCanvas().getHeight());
+        assertEquals(200.0, ctx.getWIDTH());
+        assertEquals(300.0, ctx.getHeight());
+        assertEquals(200.0, ctx.getCanvas().getWidth());
+        assertEquals(300.0, ctx.getCanvas().getHeight());
     }
 
+    @Test
     public void testInheritFromContext() {
         CanvasContext ctx = new CanvasContext();
         Color c = new Color();
@@ -31,6 +35,7 @@ public class GraphicsContextTest extends TestCase {
         assertEquals(Text.Align.RIGHT, t.getAlign());
     }
 
+    @Test
     public void testGrid() {
         CanvasContext ctx = new CanvasContext();
         Iterator<Point> points = ctx.grid(2, 3, 3, 5);
@@ -43,7 +48,7 @@ public class GraphicsContextTest extends TestCase {
         assertFalse(points.hasNext());
     }
 
-    private void assertNextPoint(Iterator<Point> points, float x, float y) {
+    private void assertNextPoint(Iterator<Point> points, double x, double y) {
         assertTrue(points.hasNext());
         assertEquals(new Point(x, y), points.next());
     }

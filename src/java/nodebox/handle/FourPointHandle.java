@@ -1,7 +1,9 @@
 package nodebox.handle;
 
-import nodebox.graphics.*;
-import nodebox.node.Node;
+import nodebox.graphics.GraphicsContext;
+import nodebox.graphics.Path;
+import nodebox.graphics.Point;
+import nodebox.graphics.Rect;
 
 public class FourPointHandle extends AbstractHandle {
 
@@ -9,32 +11,38 @@ public class FourPointHandle extends AbstractHandle {
         NONE, TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT, BOTTOM_LEFT, CENTER
     }
 
-    private String xName, yName, widthName, heightName;
+    private String positionName, widthName, heightName;
     private DragState dragState = DragState.NONE;
-    private float px, py;
-    private float ocx, ocy, owidth, oheight;
+    private double px, py;
+    private double ocx, ocy, owidth, oheight;
 
-    public FourPointHandle(Node node) {
-        this(node, "x", "y", "width", "height");
+    public FourPointHandle() {
+        this("position", "width", "height");
     }
 
-    public FourPointHandle(Node node, String xName, String yName, String widthName, String heightName) {
-        super(node);
-        this.xName = xName;
-        this.yName = yName;
+    public FourPointHandle(String positionName, String widthName, String heightName) {
+        this.positionName = positionName;
         this.widthName = widthName;
         this.heightName = heightName;
+        update();
+    }
+
+    @Override
+    public void update() {
+        if (hasInput("shape"))
+            setVisible(isConnected("shape"));
     }
 
     public void draw(GraphicsContext ctx) {
-        float cx = node.asFloat(xName);
-        float cy = node.asFloat(yName);
-        float width = node.asFloat(widthName);
-        float height = node.asFloat(heightName);
-        float left = cx - width / 2;
-        float right = cx + width / 2;
-        float top = cy - height / 2;
-        float bottom = cy + height / 2;
+        Point cp = (Point) getValue(positionName);
+        double cx = cp.x;
+        double cy = cp.y;
+        double width = (Double) getValue(widthName);
+        double height = (Double) getValue(heightName);
+        double left = cx - width / 2;
+        double right = cx + width / 2;
+        double top = cy - height / 2;
+        double bottom = cy + height / 2;
         Path cornerPath = new Path();
         cornerPath.setFillColor(HANDLE_COLOR);
         cornerPath.setStrokeWidth(0);
@@ -56,15 +64,16 @@ public class FourPointHandle extends AbstractHandle {
         px = pt.getX();
         py = pt.getY();
 
-        ocx = node.asFloat(xName);
-        ocy = node.asFloat(yName);
-        owidth = node.asFloat(widthName);
-        oheight = node.asFloat(heightName);
+        Point op = (Point) getValue(positionName);
+        ocx = op.x;
+        ocy = op.y;
+        owidth = (Double) getValue(widthName);
+        oheight = (Double) getValue(heightName);
 
-        float left = ocx - owidth / 2;
-        float right = ocx + owidth / 2;
-        float top = ocy - oheight / 2;
-        float bottom = ocy + oheight / 2;
+        double left = ocx - owidth / 2;
+        double right = ocx + owidth / 2;
+        double top = ocy - oheight / 2;
+        double bottom = ocy + oheight / 2;
 
         Rect topLeft = createHitRectangle(left, top);
         Rect topRight = createHitRectangle(right, top);
@@ -92,10 +101,10 @@ public class FourPointHandle extends AbstractHandle {
     @Override
     public boolean mouseDragged(Point pt) {
         if (dragState == DragState.NONE) return false;
-        float x = pt.getX();
-        float y = pt.getY();
-        float dx = x - px;
-        float dy = y - py;
+        double x = pt.getX();
+        double y = pt.getY();
+        double dx = x - px;
+        double dy = y - py;
         // The delta value is multiplied by 2 to create the float effect of moving
         // the top left corner down and the bottom left corner up (in the case of
         // the top left handle).
@@ -119,8 +128,7 @@ public class FourPointHandle extends AbstractHandle {
                 silentSet(heightName, oheight + dy * 2);
                 break;
             case CENTER:
-                silentSet(xName, ocx + dx);
-                silentSet(yName, ocy + dy);
+                silentSet(positionName, new Point(ocx + dx, ocy + dy));
         }
         return true;
     }

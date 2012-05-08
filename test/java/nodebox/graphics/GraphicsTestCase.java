@@ -13,9 +13,9 @@ public class GraphicsTestCase extends TestCase {
 
     protected void addRect(IGeometry g, float x, float y, float width, float height) {
         g.addPoint(x, y);
-        g.addPoint(x+width, y);
-        g.addPoint(x+width, y+height);
-        g.addPoint(x, y+height);
+        g.addPoint(x + width, y);
+        g.addPoint(x + width, y + height);
+        g.addPoint(x, y + height);
     }
 
     public void testDummy() {

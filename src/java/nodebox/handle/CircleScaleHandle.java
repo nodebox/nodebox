@@ -2,7 +2,6 @@ package nodebox.handle;
 
 import nodebox.graphics.GraphicsContext;
 import nodebox.graphics.Point;
-import nodebox.node.Node;
 import nodebox.util.Geometry;
 
 public class CircleScaleHandle extends AbstractHandle {
@@ -13,60 +12,51 @@ public class CircleScaleHandle extends AbstractHandle {
 
     private boolean dragging = false;
     private String radiusName;
-    private String xName = null;
-    private String yName = null;
+    private String positionName = null;
     private Mode mode;
     private Point pt = null;
 
-    public CircleScaleHandle(Node node) {
-        this(node, "radius", Mode.RADIUS);
+    public CircleScaleHandle() {
+        this("radius", Mode.RADIUS);
     }
 
-    public CircleScaleHandle(Node node, String radiusName) {
-        this(node, radiusName, Mode.RADIUS);
+    public CircleScaleHandle(String radiusName) {
+        this(radiusName, Mode.RADIUS);
     }
 
-    public CircleScaleHandle(Node node, Mode mode) {
-        this(node, "radius", mode);
+    public CircleScaleHandle(Mode mode) {
+        this("radius", mode);
     }
 
-    public CircleScaleHandle(Node node, String radiusName, Mode mode) {
-        this(node, radiusName, mode, null, null);
+    public CircleScaleHandle(String radiusName, Mode mode) {
+        this(radiusName, mode, null);
     }
 
-    public CircleScaleHandle(Node node, String radiusName, Mode mode, String xName, String yName) {
-        super(node);
+    public CircleScaleHandle(String radiusName, Mode mode, String positionName) {
         this.radiusName = radiusName;
         this.mode = mode;
-        this.xName = xName;
-        this.yName = yName;
+        this.positionName = positionName;
     }
 
-    private float getCenterX() {
-        if (xName != null)
-            return node.asFloat(xName);
+    private Point getCenter() {
+        if (positionName != null)
+            return (Point) getValue(positionName);
         else
-            return 0;
+            return Point.ZERO;
     }
 
-    private float getCenterY() {
-        if (yName != null)
-            return node.asFloat(yName);
-        else
-            return 0;
-    }
-
-    private float getRadius() {
-        float val = node.asFloat(radiusName);
+    private double getRadius() {
+        double val = (Double) getValue(radiusName);
         if (mode == Mode.DIAMETER)
             return Math.abs(val / 2);
         return Math.abs(val);
     }
 
     public void draw(GraphicsContext ctx) {
-        float x = getCenterX();
-        float y = getCenterY();
-        float radius = getRadius();
+        Point center = getCenter();
+        double x = center.x;
+        double y = center.y;
+        double radius = getRadius();
         ctx.nofill();
         ctx.ellipsemode(GraphicsContext.EllipseMode.CENTER);
         ctx.stroke(HANDLE_COLOR);
@@ -78,8 +68,9 @@ public class CircleScaleHandle extends AbstractHandle {
     @Override
     public boolean mousePressed(Point pt) {
         this.pt = null;
-        float radius = getRadius();
-        float d = (float) Geometry.distance(getCenterX(), getCenterY(), pt.x, pt.y);
+        double radius = getRadius();
+        Point center = getCenter();
+        float d = (float) Geometry.distance(center.x, center.y, pt.x, pt.y);
         dragging = (radius - 4 <= d && d <= radius + 4);
         return dragging;
     }
@@ -87,7 +78,8 @@ public class CircleScaleHandle extends AbstractHandle {
     @Override
     public boolean mouseDragged(Point pt) {
         if (!dragging) return false;
-        float newSize = (float) Geometry.distance(getCenterX(), getCenterY(), pt.x, pt.y);
+        Point center = getCenter();
+        float newSize = (float) Geometry.distance(center.x, center.y, pt.x, pt.y);
         if (mode == Mode.DIAMETER)
             newSize *= 2;
         if (newSize == getRadius()) return false;
@@ -101,15 +93,16 @@ public class CircleScaleHandle extends AbstractHandle {
         if (!dragging) return false;
         dragging = false;
         this.pt = null;
-        viewer.repaint();
+        updateHandle();
         return true;
     }
 
     @Override
     public boolean mouseMoved(Point pt) {
-        float x = getCenterX();
-        float y = getCenterY();
-        float radius = getRadius();
+        Point center = getCenter();
+        double x = center.x;
+        double y = center.y;
+        double radius = getRadius();
         float d = (float) Geometry.distance(x, y, pt.x, pt.y);
         if (radius - 4 <= d && d <= radius + 4) {
             float a = (float) Geometry.angle(x, y, pt.x, pt.y);
@@ -119,7 +112,7 @@ public class CircleScaleHandle extends AbstractHandle {
         } else {
             this.pt = null;
         }
-        viewer.repaint();
+        updateHandle();
         return true;
     }
 }

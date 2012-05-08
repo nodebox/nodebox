@@ -1,8 +1,6 @@
 package nodebox.handle;
 
-import nodebox.client.Viewer;
 import nodebox.graphics.*;
-import nodebox.node.Node;
 
 import java.awt.event.KeyEvent;
 
@@ -19,26 +17,8 @@ public abstract class AbstractHandle implements Handle {
     public static final int META_DOWN = KeyEvent.META_DOWN_MASK;
 
     private HandleDelegate delegate;
-    protected final Node node;
-    protected Viewer viewer;
     private boolean visible = true;
     private boolean combinesEdits = false;
-
-    protected AbstractHandle(Node node) {
-        this.node = node;
-    }
-
-    public Node getNode() {
-        return node;
-    }
-
-    public Viewer getViewer() {
-        return viewer;
-    }
-
-    public void setViewer(Viewer viewer) {
-        this.viewer = viewer;
-    }
 
     public boolean isVisible() {
         return visible;
@@ -98,19 +78,37 @@ public abstract class AbstractHandle implements Handle {
 
     //// Node update methods ////
 
-
-    public void setValue(String parameterName, Object value) {
+    public boolean hasInput(String portName) {
         if (delegate != null)
-            delegate.setValue(node, parameterName, value);
+            return delegate.hasInput(portName);
+        return false;
     }
 
-    public void silentSet(String parameterName, Object value) {
+
+    public boolean isConnected(String portName) {
         if (delegate != null)
-            delegate.silentSet(node, parameterName, value);
+            return delegate.isConnected(portName);
+        return false;
+    }
+
+    public Object getValue(String portName) {
+        if (delegate != null)
+            return delegate.getValue(portName);
+        return null;
+    }
+
+    public void setValue(String portName, Object value) {
+        if (delegate != null && !isConnected(portName))
+            delegate.setValue(portName, value);
+    }
+
+    public void silentSet(String portName, Object value) {
+        if (delegate != null && !isConnected(portName))
+            delegate.silentSet(portName, value);
     }
 
     public void startCombiningEdits(String command) {
-        if (delegate != null  && ! combinesEdits) {
+        if (delegate != null && !combinesEdits) {
             delegate.startEdits(command);
             combinesEdits = true;
         }
@@ -119,13 +117,13 @@ public abstract class AbstractHandle implements Handle {
     public void stopCombiningEdits() {
         if (delegate != null) {
             combinesEdits = false;
-            delegate.stopEditing(node);
+            delegate.stopEditing();
         }
     }
 
     public void updateHandle() {
         if (delegate != null)
-            delegate.updateHandle(node);
+            delegate.updateHandle();
     }
 
     //// Handle delegate ////
@@ -141,13 +139,13 @@ public abstract class AbstractHandle implements Handle {
 
     //// Utility methods ////
 
-    protected void drawDot(GraphicsContext ctx, float x, float y) {
+    protected void drawDot(GraphicsContext ctx, double x, double y) {
         ctx.rectmode(GraphicsContext.RectMode.CENTER);
         ctx.fill(HANDLE_COLOR);
         ctx.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
     }
 
-    protected void drawDot(Path p, float x, float y) {
+    protected void drawDot(Path p, double x, double y) {
         p.rect(x, y, HANDLE_SIZE, HANDLE_SIZE);
     }
 

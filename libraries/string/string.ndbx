@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <link href="java:nodebox.function.StringFunctions" rel="functions"/>
+    <node name="root" renderedChild="length">
+        <node description="Create a list of strings." outputRange="list" function="string/makeStrings" name="make_strings" position="20,100" outputType="string">
+            <port name="string" type="string" value="Alpha;Beta;Gamma" />
+            <port name="separator" type="string" value=";" />
+        </node>
+        <node description="Count the number of characters in a string." function="string/length" name="length" position="20,100">
+            <port name="string" type="string" />
+        </node>
+        <node description="Count the number of words in a string." function="string/wordCount" name="word_count" position="20,100">
+            <port name="string" type="string" />
+        </node>
+        <node description="Add strings together." function="string/concatenate" name="concatenate" position="20,100">
+            <port name="string1" type="string" />
+            <port name="string2" type="string" />
+            <port name="string3" type="string" />
+            <port name="string4" type="string" />
+        </node>
+    </node>
+</ndbx>

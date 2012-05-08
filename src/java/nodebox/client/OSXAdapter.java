@@ -78,6 +78,7 @@ public class OSXAdapter implements InvocationHandler {
     }
 
     // setHandler creates a Proxy object from the passed OSXAdapter and adds it as an ApplicationListener
+    @SuppressWarnings("unchecked")
     public static void setHandler(OSXAdapter adapter) {
         try {
             Class applicationClass = Class.forName("com.apple.eawt.Application");

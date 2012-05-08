@@ -19,14 +19,14 @@ public class Geometry {
      * The angle between two points.
      */
     public static double angle(double x0, double y0, double x1, double y1) {
-        return degrees(Math.atan2(y1-y0, x1-x0));
+        return degrees(Math.atan2(y1 - y0, x1 - x0));
     }
 
     /**
      * The distance between two points.
      */
     public static double distance(double x0, double y0, double x1, double y1) {
-        return Math.sqrt(Math.pow(x1-x0, 2) + Math.pow(y1-y0, 2));
+        return Math.sqrt(Math.pow(x1 - x0, 2) + Math.pow(y1 - y0, 2));
     }
 
     /**

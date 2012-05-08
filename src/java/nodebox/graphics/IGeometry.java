@@ -34,7 +34,7 @@ public interface IGeometry extends Grob {
      * @param x the X coordinate.
      * @param y the Y coordinate.
      */
-    public void addPoint(float x, float y);
+    public void addPoint(double x, double y);
 
     /**
      * Extend the current geometry with the given list of points.
@@ -104,7 +104,7 @@ public interface IGeometry extends Grob {
      * @return a new geometry object. This object will be of the same type as the callee, so calling resample on a Contour
      *         will return a new Contour object.
      */
-    public IGeometry resampleByLength(float segmentLength);
+    public IGeometry resampleByLength(double segmentLength);
 
     /**
      * Flatten the geometry.

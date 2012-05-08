@@ -1,5 +1,9 @@
 package nodebox.client;
 
+import nodebox.ui.ImageFormat;
+import nodebox.ui.Platform;
+import nodebox.ui.Theme;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -171,7 +175,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
      * @param e the action event
      */
     public void actionPerformed(ActionEvent e) {
-        if (PlatformUtils.onMac()) {
+        if (Platform.onMac()) {
             // On Mac, we can use the native FileDialog to choose a directory using a special property.
             FileDialog fileDialog = new FileDialog((Frame) null);
             System.setProperty("apple.awt.fileDialogForDirectories", "true");

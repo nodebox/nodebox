@@ -1,9 +1,13 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-public class ColorTest extends TestCase {
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
+public class ColorTest {
+
+    @Test
     public void testConstructors() {
         Color c = new Color(1, 0, 0);
         assertTrue(c.isVisible());

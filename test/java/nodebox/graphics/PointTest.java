@@ -1,21 +1,17 @@
 package nodebox.graphics;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
-import java.util.Iterator;
+import static junit.framework.Assert.assertEquals;
 
-public class PointTest extends TestCase {
+public class PointTest {
 
-    public void testIterator() {
+    @Test
+    public void testMap() {
         Point pt = new Point(22, 33);
-        Iterator<Float> iter = pt.iterator();
-        assertEquals(22f, iter.next());
-        assertEquals(33f, iter.next());
-        assertFalse(iter.hasNext());
-        try {
-            iter.next();
-            fail("Should have thrown an exception");
-        } catch (Exception ignored) {
-        }
+        assertEquals(22.0, pt.get("x"));
+        assertEquals(33.0, pt.get("y"));
+        assertEquals(1, pt.get("type"));
     }
+
 }

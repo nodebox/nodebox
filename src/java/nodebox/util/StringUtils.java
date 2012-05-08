@@ -25,7 +25,7 @@ import java.util.Locale;
 public class StringUtils {
 
     public static String humanizeName(String name) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         String[] tokens = name.split("_");
         for (String t : tokens) {
             if (t.length() == 0) continue;
@@ -35,7 +35,6 @@ public class StringUtils {
         }
         return sb.toString().trim();
     }
-
 
     public static String humanizeConstant(String constant) {
         return humanizeName(constant.toLowerCase(Locale.US));
@@ -51,54 +50,6 @@ public class StringUtils {
             }
         }
         return sb.toString();
-    }
-
-    /**
-     * Given a position of a numeric character a text stream, finds and returns the left and right edges of the
-     * entire number.
-     *
-     * @param text
-     * @param index
-     * @return int[]{left, right} or null
-     */
-    public static int[] numberRange(String text, int index) {
-        if (index < 0 || index >= text.length()) return null;
-        if (!isNumeric(text.charAt(index))) return null;
-        int left = index;
-        int right = index;
-        // Left edge
-        while (left > 0 && isNumeric(text.charAt(left - 1))) {
-            left--;
-        }
-        // Right edge
-        while (right < text.length() - 1 && isNumeric(text.charAt(right + 1))) {
-            right++;
-        }
-        return new int[]{left, right};
-    }
-
-    /**
-     * Given the numberRange obtained by numberRange, returns the number as a string.
-     *
-     * @param text        full text
-     * @param numberRange range obtained by numberRange method
-     * @return a String containing the number
-     * @see #numberRange(String, int)
-     */
-    public static String numberForRange(String text, int[] numberRange) {
-        // substring returns a string that doesn't contain the end character,
-        // so add one to the range.
-        return text.substring(numberRange[0], numberRange[1] + 1);
-    }
-
-    /**
-     * Returns the true if the given char is a number (between 0 and 9)
-     *
-     * @param c the character to test
-     * @return true if the given char is a number, false otherwise.
-     */
-    public static boolean isNumeric(char c) {
-        return c >= '0' && c <= '9';
     }
 
 }

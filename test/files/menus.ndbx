@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example NDBX file that contains menu items for a port. -->
+<ndbx formatVersion="1.0">
+    <node name="theNode">
+        <port name="thePort" type="string" value="a">
+            <menu key="a" label="Alpha"/>
+            <menu key="b" label="Beta"/>
+        </port>
+    </node>
+</ndbx>

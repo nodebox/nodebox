@@ -1,178 +1,85 @@
 package nodebox.node;
 
-import nodebox.node.event.*;
+import com.google.common.base.Objects;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import nodebox.function.FunctionLibrary;
+import nodebox.function.FunctionRepository;
+import nodebox.graphics.Point;
 import nodebox.util.FileUtils;
-import org.xml.sax.SAXException;
+import nodebox.util.LoadException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
-/**
- * A Node library stores a set of (possibly hierarchical) nodes.
- * <p/>
- * Node libraries are both documents and libraries. By mentioning a node on the library search path, you can get
- * all the nodes.
- * <p/>
- * Node libraries can be backed by files, and saved in that same file, or they can be stored in memory only.
- * <p/>
- * This implementation of the node library only stores a root node.
- * Calling get(String) on the library actually forwards the call to getChild() on the root node.
- */
+import static com.google.common.base.Preconditions.*;
+
 public class NodeLibrary {
 
-    public static enum ExternalEvent {FRAME, CANVAS}
+    public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
-    public static final NodeLibrary BUILTINS = new NodeLibrary();
+    public static NodeLibrary create(String libraryName, Node root) {
+        return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
+    }
 
-    public static final String CANVAS_X = "canvasX";
-    public static final String CANVAS_Y = "canvasY";
-    public static final String CANVAS_WIDTH = "canvasWidth";
-    public static final String CANVAS_HEIGHT = "canvasHeight";
-    public static final String CANVAS_BACKGROUND = "canvasBackground";
-    public static final float DEFAULT_CANVAS_WIDTH = 1000f;
-    public static final float DEFAULT_CANVAS_HEIGHT = 1000f;
-    // TODO: If the background color can be changed somewhere, all libraries are changed.
-    public static final nodebox.graphics.Color DEFAULT_CANVAS_BACKGROUND = new nodebox.graphics.Color(1);
+    public static NodeLibrary create(String libraryName, Node root, FunctionRepository functionRepository) {
+        return create(libraryName, root, NodeRepository.of(), functionRepository);
+    }
 
-    private String name;
-    private File file;
-    private Node rootNode;
-    private float frame = 1F;
-    private HashMap<String, String> variables;
-    private NodeCode code;
-    private NodeEventBus eventBus = new NodeEventBus();
-    private CanvasListener canvasListener = new CanvasListener();
+    public static NodeLibrary create(String libraryName, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository) {
+        return create(libraryName, root, nodeRepository, functionRepository, UUID.randomUUID());
+    }
 
-    private DependencyGraph<Parameter, Object> parameterGraph = new DependencyGraph<Parameter, Object>();
-    private Map<ExternalEvent, HashSet<Parameter>> externalDependencies = new HashMap<ExternalEvent, HashSet<Parameter>>();
+    private static NodeLibrary create(String libraryName, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
+        return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, uuid);
+    }
 
-    /**
-     * Load a library from the given XML.
-     * <p/>
-     * This library is not added to the manager. The manager is used only to look up prototypes.
-     * You can add the library to the manager yourself using manager.add(), or by calling
-     * manager.load().
-     *
-     * @param libraryName the name of the new library
-     * @param xml         the xml data of the library
-     * @param manager     the manager used to look up node prototypes.
-     * @return a new node library
-     * @throws RuntimeException When the string could not be parsed.
-     * @see nodebox.node.NodeLibraryManager#add(NodeLibrary)
-     * @see nodebox.node.NodeLibraryManager#load(String, String)
-     */
-    public static NodeLibrary load(String libraryName, String xml, NodeLibraryManager manager) throws RuntimeException {
+    public static NodeLibrary load(String libraryName, String xml, NodeRepository nodeRepository) throws LoadException {
+        checkNotNull(libraryName, "Library name cannot be null.");
+        checkNotNull(xml, "XML string cannot be null.");
         try {
-            NodeLibrary library = new NodeLibrary(libraryName);
-            load(library, new ByteArrayInputStream(xml.getBytes("UTF8")), manager);
-            return library;
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Error in the XML parser configuration", e);
-        } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing " + libraryName + ": " + e.getMessage(), e);
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while parsing.", e);
+            return load(libraryName, null, new StringReader(xml), nodeRepository);
+        } catch (XMLStreamException e) {
+            throw new LoadException("<none>", "Could not read NDBX string", e);
         }
     }
 
-    /**
-     * Load a library from the given file.
-     * <p/>
-     * This library is not added to the manager. The manager is used only to look up prototypes.
-     * You can add the library to the manager yourself using manager.add(), or by calling
-     * manager.load().
-     *
-     * @param f       the file to load
-     * @param manager the manager used to look up node prototypes.
-     * @return a new node library
-     * @throws RuntimeException When the file could not be found, or parsing failed.
-     * @see nodebox.node.NodeLibraryManager#add(NodeLibrary)
-     * @see nodebox.node.NodeLibraryManager#load(File)
-     */
-    public static NodeLibrary load(File f, NodeLibraryManager manager) throws RuntimeException {
+    public static NodeLibrary load(File f, NodeRepository nodeRepository) throws LoadException {
+        checkNotNull(f, "File cannot be null.");
+        String libraryName = FileUtils.stripExtension(f);
         try {
-            // The library name is the file name without the ".ndbx" extension.
-            // Chop off the .ndbx
-            String libraryName = FileUtils.stripExtension(f);
-            NodeLibrary library = new NodeLibrary(libraryName, f);
-            load(library, new FileInputStream(f), manager);
-            return library;
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException("Error in the XML parser configuration", e);
-        } catch (SAXException e) {
-            throw new RuntimeException("Error while parsing " + f + ": " + e.getMessage(), e);
+            return load(libraryName, f, new FileReader(f), nodeRepository);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("File not found " + f, e);
-        } catch (IOException e) {
-            throw new RuntimeException("I/O error while parsing " + f, e);
+            throw new LoadException(f.getAbsolutePath(), "File not found.");
+        } catch (XMLStreamException e) {
+            throw new LoadException(f.getAbsolutePath(), "Could not read NDBX file", e);
         }
     }
 
-    /**
-     * This method gets called from the public load method and does the actual parsing.
-     * <p/>
-     * The method requires a newly created (empty) library. Nodes are added to this library.
-     *
-     * @param library the newly created library
-     * @param is      the input stream data
-     * @param manager the manager used for looking up prototypes.
-     * @throws IOException                  when the data could not be loaded
-     * @throws ParserConfigurationException when the parser is incorrectly configured
-     * @throws SAXException                 when the data could not be parsed
-     */
-    private static void load(NodeLibrary library, InputStream is, NodeLibraryManager manager) throws IOException, ParserConfigurationException, SAXException {
-        SAXParserFactory spf = SAXParserFactory.newInstance();
-        SAXParser parser = spf.newSAXParser();
-        NDBXHandler handler = new NDBXHandler(library, manager);
-        parser.parse(is, handler);
-        setCanvasParameter(library, CANVAS_X);
-        setCanvasParameter(library, CANVAS_Y);
-        setCanvasParameter(library, CANVAS_WIDTH);
-        setCanvasParameter(library, CANVAS_HEIGHT);
-        setCanvasParameter(library, CANVAS_BACKGROUND);
-    }
+    private final String name;
+    private final File file;
+    private final Node root;
+    private final NodeRepository nodeRepository;
+    private final FunctionRepository functionRepository;
+    private final UUID uuid;
 
-    private static void setCanvasParameter(NodeLibrary library, String name) {
-        String valueAsString = library.getVariable(name);
-        Parameter param = library.getRootNode().getParameter(name);
-        if (param != null && valueAsString != null)
-            param.set(param.parseValue(valueAsString));
-    }
-
-    private NodeLibrary() {
-        this.name = "builtins";
-        this.file = null;
-        this.rootNode = null;
-        this.variables = null;
-    }
-
-    public NodeLibrary(String name) {
-        this(name, null);
-    }
-
-    public NodeLibrary(String name, File file) {
+    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
+        checkNotNull(name, "Name cannot be null.");
+        checkNotNull(root, "Root node cannot be null.");
+        checkNotNull(functionRepository, "Function repository cannot be null.");
         this.name = name;
+        this.root = root;
+        this.nodeRepository = nodeRepository;
+        this.functionRepository = functionRepository;
         this.file = file;
-        this.rootNode = Node.ROOT_NODE.newInstance(this, "root");
-        this.variables = new LinkedHashMap<String, String>();
-        Parameter pCanvasBackground = rootNode.addParameter(CANVAS_BACKGROUND, Parameter.Type.COLOR, DEFAULT_CANVAS_BACKGROUND);
-        Parameter pCanvasWidth = rootNode.addParameter(CANVAS_WIDTH, Parameter.Type.FLOAT, DEFAULT_CANVAS_WIDTH);
-        Parameter pCanvasHeight = rootNode.addParameter(CANVAS_HEIGHT, Parameter.Type.FLOAT, DEFAULT_CANVAS_HEIGHT);
-        Parameter pCanvasX = rootNode.addParameter(CANVAS_X, Parameter.Type.FLOAT, 0f);
-        Parameter pCanvasY = rootNode.addParameter(CANVAS_Y, Parameter.Type.FLOAT, 0f);
-        pCanvasBackground.setLabel("Background Color");
-        pCanvasWidth.setLabel("Document Width");
-        pCanvasHeight.setLabel("Document Height");
-        pCanvasX.setLabel("Offset X");
-        pCanvasY.setLabel("Offset Y");
-        this.rootNode.setValue("_code", new WrapInCanvasCode());
-        // We listen to our own library for changes to canvas settings.
-        // The listener object needs to be stored in a field, otherwise it will get garbage-collected.
-        // The event bus only stores weak references.
-        addListener(canvasListener);
+        this.uuid = uuid;
     }
 
     public String getName() {
@@ -182,350 +89,297 @@ public class NodeLibrary {
     public File getFile() {
         return file;
     }
-
-    public void setFile(File file) {
-        if (this.file != null) {
-            throw new AssertionError("File can only be set if no file was set before.");
-        }
-        this.file = file;
+    
+    public UUID getUuid() {
+        return uuid;
     }
 
-    //// Node management ////
-
-    public Node getRootNode() {
-        return rootNode;
+    public Node getRoot() {
+        return root;
     }
 
-    public List<Node> getExportedNodes() {
-        List<Node> allChildren = rootNode.getChildren();
-        List<Node> exportedChildren = new ArrayList<Node>(allChildren.size());
-        for (Node child : allChildren) {
-            if (child.isExported()) {
-                exportedChildren.add(child);
-            }
-        }
-        return exportedChildren;
-    }
-
-    public void add(Node node) {
-        if (node.getLibrary() != this) throw new AssertionError("This node is already added to another library.");
-        // The root node can be null in only one case: when we're creating the builtins library.
-        // In that case, the rootNode becomes the given node.
-        if (rootNode == null) {
-            rootNode = node;
-        } else {
-            rootNode.add(node);
-        }
-    }
-
-    /**
-     * Get a node from this library.
-     * <p/>
-     * Only exported nodes are returned. If you want all nodes, use getRootNode().getChild()
-     *
-     * @param name the name of the node
-     * @return the node, or null if a node with this name could not be found.
-     */
-    public Node get(String name) {
-        if ("root".equals(name)) return rootNode;
-        return rootNode.getExportedChild(name);
-    }
-
-    /**
-     * Get the node at the given absolute path.
-     * This method does a best effort to get the most specific node. If it fails to find a given segment,
-     * it stops and returns the parent.
-     *
-     * @param path the path to parse
-     * @return a node somewhere within the path, hopefully at the end.
-     * @see nodebox.node.Node#getAbsolutePath()
-     */
     public Node getNodeForPath(String path) {
-        Node parent = getRootNode();
-        if (!path.startsWith("/")) return parent;
-        for (String part : path.substring(1).split("/")) {
-            Node child = parent.getChild(part);
-            if (child == null) {
-                break;
-            } else {
-                parent = child;
-            }
+        checkArgument(path.startsWith("/"), "Only absolute paths are supported.");
+        if (path.length() == 1) return root;
+
+        Node node = root;
+        path = path.substring(1);
+        for (String name : Splitter.on("/").split(path)) {
+            node = node.getChild(name);
+            if (node == null) return null;
         }
-        return parent;
+        return node;
+    }
+    
+    public NodeRepository getNodeRepository() {
+        return nodeRepository;
     }
 
-    public Node remove(String name) {
-        Node node = rootNode.getChild(name);
-        if (node == null) return null;
-        rootNode.remove(node);
+    public FunctionRepository getFunctionRepository() {
+        return functionRepository;
+    }
+
+    //// Loading ////
+
+    private static NodeLibrary load(String libraryName, File file, Reader r, NodeRepository nodeRepository) throws XMLStreamException {
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(r);
+        NodeLibrary nodeLibrary = null;
+        while (reader.hasNext()) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("ndbx")) {
+                    String uuidString = reader.getAttributeValue(null, "uuid");
+                    UUID uuid = (uuidString == null) ? UUID.randomUUID() : UUID.fromString(uuidString);
+                    nodeLibrary = parseNDBX(libraryName, file, reader, nodeRepository, uuid);
+                } else {
+                    throw new XMLStreamException("Only tag ndbx allowed, not " + tagName, reader.getLocation());
+                }
+            }
+        }
+        return nodeLibrary;
+    }
+
+    private static NodeLibrary parseNDBX(String libraryName, File file, XMLStreamReader reader, NodeRepository nodeRepository, UUID uuid) throws XMLStreamException {
+        List<FunctionLibrary> functionLibraries = new LinkedList<FunctionLibrary>();
+        Node rootNode = Node.ROOT;
+
+        while (true) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("link")) {
+                    FunctionLibrary functionLibrary = parseLink(file, reader);
+                    functionLibraries.add(functionLibrary);
+                } else if (tagName.equals("node")) {
+                    rootNode = parseNode(reader, rootNode, nodeRepository);
+                } else {
+                    throw new XMLStreamException("Unknown tag " + tagName, reader.getLocation());
+                }
+            } else if (eventType == XMLStreamConstants.END_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("ndbx"))
+                    break;
+            }
+        }
+        FunctionLibrary[] fl = functionLibraries.toArray(new FunctionLibrary[functionLibraries.size()]);
+        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), uuid);
+    }
+
+    private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
+        String linkRelation = reader.getAttributeValue(null, "rel");
+        checkState(linkRelation.equals("functions"));
+        String ref = reader.getAttributeValue(null, "href");
+        // loading should happen lazily?
+        return FunctionLibrary.load(file, ref);
+    }
+
+    /**
+     * Parse the <node> tag.
+     *
+     * @param reader         The XML stream.
+     * @param parent         The parent node.
+     * @param nodeRepository The node library dependencies.
+     * @return The new node.
+     * @throws XMLStreamException if a parse error occurs.
+     */
+    private static Node parseNode(XMLStreamReader reader, Node parent, NodeRepository nodeRepository) throws XMLStreamException {
+        String prototypeId = reader.getAttributeValue(null, "prototype");
+        String name = reader.getAttributeValue(null, "name");
+        String description = reader.getAttributeValue(null, "description");
+        String image = reader.getAttributeValue(null, "image");
+        String function = reader.getAttributeValue(null, "function");
+        String outputRange = reader.getAttributeValue(null, "outputRange");
+        String position = reader.getAttributeValue(null, "position");
+        String renderedChildName = reader.getAttributeValue(null, "renderedChild");
+        String handle = reader.getAttributeValue(null, "handle");
+        Node prototype = prototypeId == null ? Node.ROOT : lookupNode(prototypeId, parent, nodeRepository);
+        if (prototype == null) {
+            throw new XMLStreamException("Prototype " + prototypeId + " could not be found.", reader.getLocation());
+        }
+        Node node = prototype.extend();
+
+        if (name != null)
+            node = node.withName(name);
+        if (description != null)
+            node = node.withDescription(description);
+        if (image != null)
+            node = node.withImage(image);
+        if (function != null)
+            node = node.withFunction(function);
+        if (outputRange != null)
+            node = node.withOutputRange(Port.Range.valueOf(outputRange.toUpperCase()));
+        if (position != null)
+            node = node.withPosition(Point.valueOf(position));
+        if (handle != null)
+            node = node.withHandle(handle);
+
+        while (true) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("port")) {
+                    String portName = reader.getAttributeValue(null, "name");
+                    // Remove the port if it is already on the prototype.
+                    if (node.hasInput(portName)) {
+                        node = node.withInputChanged(portName, parsePort(reader, node.getInput(portName)));
+                    } else {
+                        node = node.withInputAdded(parsePort(reader, null));
+                    }
+                } else if (tagName.equals("node")) {
+                    node = node.withChildAdded(parseNode(reader, node, nodeRepository));
+                } else if (tagName.equals("conn")) {
+                    node = node.withConnectionAdded(parseConnection(reader));
+                } else {
+                    throw new XMLStreamException("Unknown tag " + tagName, reader.getLocation());
+                }
+            } else if (eventType == XMLStreamConstants.END_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("node"))
+                    break;
+            }
+        }
+
+        // This has to come at the end, since the child first needs to exist.
+        if (renderedChildName != null)
+            node = node.withRenderedChildName(renderedChildName);
+
         return node;
     }
 
-    public boolean remove(Node node) {
-        return rootNode.remove(node);
-    }
-
-    public int size() {
-        return rootNode.size();
-    }
-
-    public boolean contains(String nodeName) {
-        return rootNode.containsChildNode(nodeName);
-    }
-
-    //// Variables ////
-
-    public String[] getVariableNames() {
-        return variables.keySet().toArray(new String[variables.keySet().size()]);
-    }
-
-    public String getVariable(String name) {
-        return variables.get(name);
-    }
-
-    public void setVariable(String name, String value) {
-        variables.put(name, value);
-    }
-
-    //// Code ////
-
-    public void setCode(NodeCode code) {
-        this.code = code;
-    }
-
-    public NodeCode getCode() {
-        return code;
-    }
-
-    //// Animation ////
-
-    public float getFrame() {
-        return frame;
-    }
-
-    public void setFrame(float frame) {
-        this.frame = frame;
-        externalDependencyTriggered(ExternalEvent.FRAME);
-    }
-
-    //// Persistence /////
-
-    public void store() throws IOException, IllegalArgumentException {
-        if (file == null)
-            throw new IllegalArgumentException("Library was not loaded from a file and no file given to store.");
-        store(file);
-    }
-
-    public void store(File f) throws IOException {
-        file = f;
-        NDBXWriter.write(this, f);
-    }
-
     /**
-     * Get the full XML data for this library and all of its nodes.
+     * Lookup the node in the node repository.
+     * <p/>
+     * If the node id consists of just a node name, without spaces, it is looked up in the parent node.
      *
-     * @return an XML string
+     * @param nodeId         The node id.
+     * @param parent         The parent node.
+     * @param nodeRepository The node repository.
+     * @return The existing node.
      */
+    private static Node lookupNode(String nodeId, Node parent, NodeRepository nodeRepository) {
+        if (nodeId.contains(".")) {
+            return nodeRepository.getNode(nodeId);
+        } else {
+            return parent.getChild(nodeId);
+        }
+    }
+
+    private static Port parsePort(XMLStreamReader reader, Port prototype) throws XMLStreamException {
+        // Name and type are always required.
+        String name = reader.getAttributeValue(null, "name");
+        String type = reader.getAttributeValue(null, "type");
+        String widget = reader.getAttributeValue(null, "widget");
+        String range = reader.getAttributeValue(null, "range");
+        String value = reader.getAttributeValue(null, "value");
+        String min = reader.getAttributeValue(null, "min");
+        String max = reader.getAttributeValue(null, "max");
+
+        Port port;
+        if (prototype == null) {
+            port = Port.portForType(name, type);
+        } else {
+            port = prototype;
+        }
+
+        // Widget, value, min, max are optional and could come from the prototype.
+        if (widget != null)
+            port = port.withParsedAttribute(Port.Attribute.WIDGET, widget);
+        if (range != null)
+            port = port.withParsedAttribute(Port.Attribute.RANGE, range);
+        if (value != null)
+            port = port.withParsedAttribute(Port.Attribute.VALUE, value);
+        if (min != null)
+            port = port.withParsedAttribute(Port.Attribute.MINIMUM_VALUE, min);
+        if (max != null)
+            port = port.withParsedAttribute(Port.Attribute.MAXIMUM_VALUE, max);
+
+        ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
+
+        while (true) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("menu")) {
+                    b.add(parseMenuItem(reader));
+                } else {
+                    throw new XMLStreamException("Unknown tag " + tagName, reader.getLocation());
+                }
+            } else if (eventType == XMLStreamConstants.END_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("port"))
+                    break;
+            }
+        }
+        ImmutableList<MenuItem> items = b.build();
+        if (!items.isEmpty())
+            port = port.withMenuItems(items);
+        return port;
+    }
+
+    private static MenuItem parseMenuItem(XMLStreamReader reader) throws XMLStreamException {
+        String key = reader.getAttributeValue(null, "key");
+        String label = reader.getAttributeValue(null, "label");
+        if (key == null)
+            throw new XMLStreamException("Menu item key cannot be null.", reader.getLocation());
+        return new MenuItem(key, label != null ? label : key);
+    }
+
+    private static Connection parseConnection(XMLStreamReader reader) throws XMLStreamException {
+        String outputNode = reader.getAttributeValue(null, "output");
+        String input = reader.getAttributeValue(null, "input");
+        Iterator<String> inputIterator = PORT_NAME_SPLITTER.split(input).iterator();
+        String inputNode = inputIterator.next();
+        String inputPort = inputIterator.next();
+        return new Connection(outputNode, inputNode, inputPort);
+    }
+    
+    ///// Mutation methods ////
+    
+    public NodeLibrary withRoot(Node newRoot) {
+        return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.uuid);
+    }
+    
+    public NodeLibrary withFunctionRepository(FunctionRepository newRepository) {
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.uuid);
+    }
+
+    //// Saving ////
+
     public String toXml() {
         return NDBXWriter.asString(this);
     }
 
-    //// Parameter dependencies ////
-
     /**
-     * Add a dependency between two parameters.
-     * <p/>
-     * Whenever the dependent node wants to update, it needs to check if the dependency
-     * is clean. Also, whenever the dependency changes, the dependent gets notified.
-     * <p/>
-     * Do not call this method directly. Instead, let Parameter create the dependencies by using setExpression().
+     * Write the NodeLibrary to a file.
      *
-     * @param dependency the parameter that provides the value
-     * @param dependent  the parameter that needs the value
-     * @see nodebox.node.Parameter#setExpression(String)
+     * @param file The file to save.
+     * @throws java.io.IOException When file saving fails.
      */
-    public void addParameterDependency(Parameter dependency, Parameter dependent) {
-        parameterGraph.addDependency(dependency, dependent);
+    public void store(File file) throws IOException {
+        NDBXWriter.write(this, file);
     }
 
-    /**
-     * Remove all dependencies this parameter has.
-     * <p/>
-     * This method gets called when a parameter clears out its expression.
-     * <p/>
-     * Do not call this method directly. Instead, let Parameter remove dependencies by using clearExpression().
-     *
-     * @param p the parameter
-     * @see nodebox.node.Parameter#clearExpression()
-     */
-    public void removeParameterDependencies(Parameter p) {
-        parameterGraph.removeDependencies(p);
+    //// Object overrides ////
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, root, functionRepository);
     }
 
-    /**
-     * Remove all dependents this parameter has.
-     * <p/>
-     * This method gets called when the parameter is about to be removed. It signal all of its dependent nodes
-     * that the parameter will no longer be available.
-     * <p/>
-     * Do not call this method directly. Instead, let Parameter remove dependents by using removeParameter().
-     *
-     * @param p the parameter
-     * @see Node#removeParameter(String)
-     */
-    public void removeParameterDependents(Parameter p) {
-        parameterGraph.removeDependents(p);
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof NodeLibrary)) return false;
+        final NodeLibrary other = (NodeLibrary) o;
+        return Objects.equal(name, other.name)
+                && Objects.equal(root, other.root)
+                && Objects.equal(functionRepository, other.functionRepository);
     }
-
-    /**
-     * Get all parameters that rely on this parameter.
-     * <p/>
-     * These parameters all have expressions that point to this parameter. Whenever this parameter changes,
-     * they get notified.
-     * <p/>
-     * This list contains all "live" parameters when you call it. Please don't hold on to this list for too long,
-     * since parameters can be added and removed at will.
-     *
-     * @param p the parameter
-     * @return a list of parameters that depend on this parameter. This list can safely be modified.
-     */
-    public Set<Parameter> getParameterDependents(Parameter p) {
-        return parameterGraph.getDependents(p);
-    }
-
-    /**
-     * Get all parameters this parameter depends on.
-     * <p/>
-     * This list contains all "live" parameters when you call it. Please don't hold on to this list for too long,
-     * since parameters can be added and removed at will.
-     *
-     * @param p the parameter
-     * @return a list of parameters this parameter depends on. This list can safely be modified.
-     */
-    public Set<Parameter> getParameterDependencies(Parameter p) {
-        return parameterGraph.getDependencies(p);
-    }
-
-    //// External event dependencies ////
-
-    /**
-     * Indicates that Parameter p depends on an external event, such as a change to the frame or canvas size.
-     * This method is called whenever an expression is set that refers to e.g. FRAME.
-     * <p/>
-     * Whenever this external event happens, the parameter will be marked dirty.
-     *
-     * @param p     the parameter
-     * @param event the event
-     */
-    public void addExternalDependency(Parameter p, ExternalEvent event) {
-        HashSet<Parameter> parameters = externalDependencies.get(event);
-        if (parameters == null) {
-            parameters = new HashSet<Parameter>();
-            externalDependencies.put(event, parameters);
-        }
-        parameters.add(p);
-    }
-
-    /**
-     * Removes all external dependencies for Parameter p.
-     * This happens when an expression is cleared.
-     *
-     * @param p the parameter.
-     */
-    public void removeExternalDependencies(Parameter p) {
-        for (HashSet<Parameter> parameters : externalDependencies.values()) {
-            for (Iterator<Parameter> iterator = parameters.iterator(); iterator.hasNext(); ) {
-                Parameter parameter = iterator.next();
-                if (parameter == p) {
-                    iterator.remove();
-                }
-            }
-        }
-    }
-
-    /**
-     * This method is called when an external event, such as a frame change, happened.
-     * <p/>
-     * All the parameters that depend on this event will be marked dirty.
-     *
-     * @param event the event that was triggered
-     */
-    public void externalDependencyTriggered(ExternalEvent event) {
-        HashSet<Parameter> parameters = externalDependencies.get(event);
-        if (parameters != null) {
-            for (Parameter p : parameters) {
-                p.markDirty();
-            }
-        }
-    }
-
-    //// Events ////
-
-    public void addListener(NodeEventListener l) {
-        eventBus.addListener(l);
-    }
-
-    public boolean removeListener(NodeEventListener l) {
-        return eventBus.removeListener(l);
-    }
-
-    public List<NodeEventListener> getListeners() {
-        return eventBus.getListeners();
-    }
-
-    public void fireNodeDirty(Node source) {
-        eventBus.send(new NodeDirtyEvent(source));
-    }
-
-    public void fireNodeUpdated(Node source, ProcessingContext context) {
-        eventBus.send(new NodeUpdatedEvent(source, context));
-    }
-
-    public void fireNodeAttributeChanged(Node source, Node.Attribute attribute) {
-        eventBus.send(new NodeAttributeChangedEvent(source, attribute));
-    }
-
-    public void fireChildAdded(Node source, Node child) {
-        eventBus.send(new ChildAddedEvent(source, child));
-    }
-
-    public void fireChildRemoved(Node source, Node child) {
-        eventBus.send(new ChildRemovedEvent(source, child));
-    }
-
-    public void fireConnectionAdded(Node source, Connection c) {
-        eventBus.send(new ConnectionAddedEvent(source, c));
-    }
-
-    public void fireConnectionRemoved(Node source, Connection c) {
-        eventBus.send(new ConnectionRemovedEvent(source, c));
-    }
-
-    public void fireRenderedChildChanged(Node source, Node child) {
-        eventBus.send(new RenderedChildChangedEvent(source, child));
-    }
-
-    public void fireValueChanged(Node source, Parameter parameter) {
-        eventBus.send(new ValueChangedEvent(source, parameter));
-    }
-
-    //// Standard overrides ////
 
     @Override
     public String toString() {
-        return getName();
+        return String.format("<NodeLibrary %s>", name);
     }
 
-    /**
-     * Custom listener that listens to changes in canvas properties and triggers an external event change.
-     */
-    private class CanvasListener implements NodeEventListener {
-        public void receive(NodeEvent event) {
-            if (event.getSource() != getRootNode()) return;
-            if (!(event instanceof ValueChangedEvent)) return;
-            ValueChangedEvent vce = (ValueChangedEvent) event;
-            if (!vce.getParameter().getName().startsWith("canvas")) return;
-            externalDependencyTriggered(ExternalEvent.CANVAS);
-        }
-    }
 }

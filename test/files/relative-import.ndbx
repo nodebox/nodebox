@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example NDBX file that tests relative imports. -->
+<ndbx formatVersion="1.0">
+    <link rel="functions" href="python:relative.py"/>
+    <node name="concat" function="relative/concat" outputType="string">
+        <port name="string1" type="string" value="Hello "/>
+        <port name="string2" type="string" value="World!"/>
+    </node>
+</ndbx>

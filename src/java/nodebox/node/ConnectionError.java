@@ -21,35 +21,19 @@ package nodebox.node;
 // TODO: No longer used. Can be removed.
 public class ConnectionError extends RuntimeException {
 
-    private Port output;
-    private Port input;
+    public final Connection connection;
 
-    public ConnectionError(Port output, Port input, String message) {
+    public ConnectionError(Connection connection, String message) {
         super(message);
-        this.output = output;
-        this.input = input;
+        this.connection = connection;
     }
 
-    public Port getOutput() {
-        return output;
-    }
-
-    public Node getOutputNode() {
-        if (output == null) return null;
-        return output.getNode();
-    }
-
-    public Port getInput() {
-        return input;
-    }
-
-    public Node getInputNode() {
-        if (input == null) return null;
-        return input.getNode();
+    public Connection getConnection() {
+        return connection;
     }
 
     @Override
     public String toString() {
-        return output + " <= " + input + ": " + getMessage();
+        return connection + ": " + getMessage();
     }
 }

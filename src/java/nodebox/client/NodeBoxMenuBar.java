@@ -1,5 +1,9 @@
 package nodebox.client;
 
+import nodebox.ui.CodeArea;
+import nodebox.ui.Platform;
+import nodebox.util.FileUtils;
+
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
@@ -51,10 +55,12 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new SaveAsAction());
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
+        fileMenu.add(new DocumentPropertiesAction());
+        fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
         fileMenu.add(new ExportMovieAction());
-        if (!PlatformUtils.onMac()) {
+        if (!Platform.onMac()) {
             fileMenu.addSeparator();
             fileMenu.add(new ExitAction());
         }
@@ -70,7 +76,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         editMenu.add(new PasteAction());
         editMenu.addSeparator();
         editMenu.add(new DeleteAction());
-        if (!PlatformUtils.onMac()) {
+        if (!Platform.onMac()) {
             editMenu.addSeparator();
             editMenu.add(new PreferencesAction());
         }
@@ -99,7 +105,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         helpMenu.add(new GettingStartedAction());
         helpMenu.add(new HelpAndSupportAction());
         helpMenu.addSeparator();
-        if (!PlatformUtils.onMac()) {
+        if (!Platform.onMac()) {
             helpMenu.add(new AboutAction());
         }
         helpMenu.add(new CheckForUpdatesAction());
@@ -193,7 +199,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public static class NewAction extends AbstractAction {
         public NewAction() {
             putValue(NAME, "New");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_N));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -204,7 +210,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class OpenAction extends AbstractAction {
         public OpenAction() {
             putValue(NAME, "Open...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_O));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_O));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -233,7 +239,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class CloseAction extends AbstractDocumentAction {
         public CloseAction() {
             putValue(NAME, "Close");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_W));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_W));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -244,7 +250,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class SaveAction extends AbstractDocumentAction {
         public SaveAction() {
             putValue(NAME, "Save");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_S));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_S));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -255,7 +261,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class SaveAsAction extends AbstractDocumentAction {
         public SaveAsAction() {
             putValue(NAME, "Save As...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_S, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_S, Event.SHIFT_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -273,21 +279,31 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-    public class ExportAction extends AbstractDocumentAction {
-        public ExportAction() {
-            putValue(NAME, "Export...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_E));
+    public class DocumentPropertiesAction extends AbstractDocumentAction {
+        public DocumentPropertiesAction() {
+            putValue(NAME, "Document Properties...");
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().export();
+            getDocument().showDocumentProperties();
+        }
+    }
+
+    public class ExportAction extends AbstractDocumentAction {
+        public ExportAction() {
+            putValue(NAME, "Export...");
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_E));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().doExport();
         }
     }
 
     public class ExportRangeAction extends AbstractDocumentAction {
         public ExportRangeAction() {
             putValue(NAME, "Export Range...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_E, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_E, Event.SHIFT_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -320,7 +336,7 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public UndoAction() {
             putValue(NAME, undoText);
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_Z));
             setEnabled(false);
         }
 
@@ -355,7 +371,7 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public RedoAction() {
             putValue(NAME, redoText);
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
             setEnabled(false);
         }
 
@@ -388,7 +404,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class CutAction extends AbstractDocumentAction {
         public CutAction() {
             putValue(NAME, "Cut");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_X));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_X));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -399,7 +415,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class CopyAction extends AbstractDocumentAction {
         public CopyAction() {
             putValue(NAME, "Copy");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_C));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_C));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -410,7 +426,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class PasteAction extends AbstractDocumentAction {
         public PasteAction() {
             putValue(NAME, "Paste");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_V));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_V));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -442,18 +458,18 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class NewNodeAction extends AbstractDocumentAction {
         public NewNodeAction() {
             putValue(NAME, "Create New Node...");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
-            document.createNewNode();
+            document.showNodeSelectionDialog();
         }
     }
 
     public class ReloadAction extends AbstractDocumentAction {
         public ReloadAction() {
             putValue(NAME, "Reload");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_R));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_R));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -537,7 +553,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            PlatformUtils.openURL("http://beta.nodebox.net/");
+            Platform.openURL("http://beta.nodebox.net/");
         }
     }
 
@@ -548,7 +564,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            PlatformUtils.openURL("http://beta.nodebox.net/documentation/getting-started/");
+            Platform.openURL("http://beta.nodebox.net/documentation/getting-started/");
         }
     }
 
@@ -558,7 +574,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            PlatformUtils.openURL("http://beta.nodebox.net/documentation/");
+            Platform.openURL("http://beta.nodebox.net/documentation/");
         }
     }
 

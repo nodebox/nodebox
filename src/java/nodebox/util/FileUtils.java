@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 public class FileUtils {
 
+    public static final String SEPARATOR = "/";
+
     /**
      * Returns the file name without its path and extension.
      * <p/>
@@ -177,6 +179,15 @@ public class FileUtils {
         return (directory.delete());
     }
 
+
+    public static String getFullPath(File f) {
+        try {
+            return f.getCanonicalPath().replace('\\', '/');
+        } catch (IOException e) {
+            throw new RuntimeException("Could not get canonical path of file " + f, e);
+        }
+    }
+
     /**
      * Returns the path of one File relative to another.
      * <p/>
@@ -189,12 +200,8 @@ public class FileUtils {
     public static String getRelativePath(File target, File base) {
         String[] baseComponents;
         String[] targetComponents;
-        try {
-            baseComponents = base.getCanonicalPath().split(Pattern.quote(File.separator));
-            targetComponents = target.getCanonicalPath().split(Pattern.quote(File.separator));
-        } catch (IOException e) {
-            return target.getAbsolutePath();
-        }
+        baseComponents = getFullPath(base).split(Pattern.quote(SEPARATOR));
+        targetComponents = getFullPath(target).split(Pattern.quote(SEPARATOR));
 
         // skip common components
         int index = 0;
@@ -207,16 +214,31 @@ public class FileUtils {
         if (index != baseComponents.length) {
             // backtrack to base directory
             for (int i = index; i < baseComponents.length; ++i)
-                result.append("..").append(File.separator);
+                result.append("..").append(SEPARATOR);
         }
         for (; index < targetComponents.length; ++index)
-            result.append(targetComponents[index]).append(File.separator);
+            result.append(targetComponents[index]).append(SEPARATOR);
         if (!target.getPath().endsWith("/") && !target.getPath().endsWith("\\")) {
             // remove final path separator
-            result.delete(result.length() - "/".length(), result.length());
+            result.delete(result.length() - SEPARATOR.length(), result.length());
         }
         return result.toString();
     }
 
-
+    /**
+     * Returns the path of one File relative to another.
+     * Returns the absolute path of the target file when there is no base file.
+     * <p/>
+     *
+     * @param target the target directory
+     * @param base   the base directory
+     * @return target's path relative to the base directory
+     */
+    public static String getRelativeLink(File target, File base) {
+        if (base == null) {
+            return getFullPath(target);
+        } else {
+            return getRelativePath(target, base);
+        }
+    }
 }

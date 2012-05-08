@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="1.0" type="file">
+    <link href="java:nodebox.function.DataFunctions" rel="functions"/>
+    <node name="root" renderedChild="lookup">
+        <node description="Look up a value." function="data/lookup" name="lookup" position="20,100" image="lookup.png">
+            <port name="list" type="list"/>
+            <port name="key" type="string" value="x" />
+        </node>
+        <node description="Import a CSV file." function="data/importCSV" name="import_csv" position="20,100" outputType="string" outputRange="list" image="import_csv.png">
+            <port name="file" type="string" widget="file" />
+        </node>
+    </node>
+</ndbx>

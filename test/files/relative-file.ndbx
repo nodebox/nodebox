@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Example NDBX file that tests relative paths. -->
+<ndbx formatVersion="1.0">
+    <link rel="functions" href="java:nodebox.function.TestFunctions"/>
+    <node name="file_exists" function="test/fileExists" outputType="boolean">
+        <port name="file" type="string" widget="file" value="relative-file.ndbx"/>
+    </node>
+</ndbx>

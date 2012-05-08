@@ -18,39 +18,15 @@
  */
 package nodebox.graphics;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
+
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.Iterator;
 
 public class Rect implements Iterable {
 
-    private float x, y, width, height;
-
-    public Rect() {
-        this(0, 0, 0, 0);
-    }
-
-    public Rect(float x, float y, float width, float height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-
-    public Rect(Rect r) {
-        this.x = r.x;
-        this.y = r.y;
-        this.width = r.width;
-        this.height = r.height;
-    }
-
-    public Rect(java.awt.geom.Rectangle2D r) {
-        this.x = (float) r.getX();
-        this.y = (float) r.getY();
-        this.width = (float) r.getWidth();
-        this.height = (float) r.getHeight();
-    }
-
-    public static Rect centeredRect(float cx, float cy, float width, float height) {
+    public static Rect centeredRect(double cx, double cy, double width, double height) {
         return new Rect(cx - width / 2, cy - height / 2, width, height);
     }
 
@@ -58,7 +34,7 @@ public class Rect implements Iterable {
         return centeredRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
-    public static Rect corneredRect(float cx, float cy, float width, float height) {
+    public static Rect corneredRect(double cx, double cy, double width, double height) {
         return new Rect(cx + width / 2, cy + height / 2, width, height);
     }
 
@@ -66,19 +42,40 @@ public class Rect implements Iterable {
         return corneredRect(r.getX(), r.getY(), r.getWidth(), r.getHeight());
     }
 
-    public float getHeight() {
+    public final double x, y, width, height;
+
+    public Rect() {
+        this(0, 0, 0, 0);
+    }
+
+    public Rect(double x, double y, double width, double height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+    }
+
+    public Rect(Rect r) {
+        this(r.x, r.y, r.width, r.height);
+    }
+
+    public Rect(java.awt.geom.Rectangle2D r) {
+        this(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+    }
+
+    public double getHeight() {
         return height;
     }
 
-    public float getWidth() {
+    public double getWidth() {
         return width;
     }
 
-    public float getX() {
+    public double getX() {
         return x;
     }
 
-    public float getY() {
+    public double getY() {
         return y;
     }
 
@@ -88,27 +85,33 @@ public class Rect implements Iterable {
     }
 
     public Rect normalized() {
-        Rect r = new Rect(this);
-        if (r.width < 0) {
-            r.x += r.width;
-            r.width = -r.width;
+        double x = this.x;
+        double y = this.y;
+        double width = this.width;
+        double height = this.height;
+
+
+        if (width < 0) {
+            x += width;
+            width = -width;
         }
-        if (r.height < 0) {
-            r.y += r.height;
-            r.height = -r.height;
+        if (height < 0) {
+            y += height;
+            height = -height;
         }
-        return r;
+        return new Rect(x, y, width, height);
     }
 
     public Rect united(Rect r) {
         Rect r1 = normalized();
         Rect r2 = r.normalized();
-        Rect u = new Rect();
-        u.x = Math.min(r1.x, r2.x);
-        u.y = Math.min(r1.y, r2.y);
-        u.width = Math.max(r1.x + r1.width, r2.x + r2.width) - u.x;
-        u.height = Math.max(r1.y + r1.height, r2.y + r2.height) - u.y;
-        return u;
+
+        double x, y, width, height;
+        x = Math.min(r1.x, r2.x);
+        y = Math.min(r1.y, r2.y);
+        width = Math.max(r1.x + r1.width, r2.x + r2.width) - x;
+        height = Math.max(r1.y + r1.height, r2.y + r2.height) - y;
+        return new Rect(x, y, width, height);
     }
 
     public boolean intersects(Rect r) {
@@ -133,10 +136,17 @@ public class Rect implements Iterable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (!(o instanceof Rect)) return false;
-        Rect r = (Rect) o;
-        return x == r.x && y == r.y && width == r.width && height == r.height;
+        final Rect other = (Rect) o;
+        return Objects.equal(x, other.x)
+                && Objects.equal(y, other.y)
+                && Objects.equal(width, other.width)
+                && Objects.equal(height, other.height);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(x, y, width, height);
     }
 
     @Override
@@ -145,20 +155,11 @@ public class Rect implements Iterable {
     }
 
     public Rectangle2D getRectangle2D() {
-        return new Rectangle2D.Float(x, y, width, height);
+        return new Rectangle2D.Double(x, y, width, height);
     }
 
-    public Iterator<Float> iterator() {
-        List<Float> list = new ArrayList<Float>();
-        list.add(x);
-        list.add(y);
-        list.add(width);
-        list.add(height);
-        return list.iterator();
+    public Iterator<Double> iterator() {
+        return ImmutableList.<Double>of(x, y, width, height).iterator();
     }
 
-    @Override
-    public Rect clone() {
-        return new Rect(this);
-    }
 }

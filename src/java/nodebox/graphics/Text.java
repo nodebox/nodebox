@@ -216,7 +216,7 @@ public class Text extends AbstractGrob {
         TextLayoutIterator iterator = new TextLayoutIterator();
         while (iterator.hasNext()) {
             TextLayout layout = iterator.next();
-            layout.draw(g, (float) baseLineX + iterator.getX(), (float) baseLineY + iterator.getY());
+            layout.draw(g, (float) (baseLineX + iterator.getX()), (float) (baseLineY + iterator.getY()));
         }
         restoreTransform(g);
     }
@@ -251,8 +251,8 @@ public class Text extends AbstractGrob {
 
     private class TextLayoutIterator implements Iterator<TextLayout> {
 
-        private float x, y;
-        private float ascent;
+        private double x, y;
+        private double ascent;
         private int currentIndex = 0;
         private String[] textParts;
         private LineBreakMeasurer[] measurers;
@@ -296,20 +296,20 @@ public class Text extends AbstractGrob {
             } else {
                 y += ascent * lineHeight;
             }
-            float layoutWidth = width == 0 ? Float.MAX_VALUE : (float) width;
+            double layoutWidth = width == 0 ? Float.MAX_VALUE : width;
 
-            TextLayout layout = currentMeasurer.nextLayout(layoutWidth);
+            TextLayout layout = currentMeasurer.nextLayout((float) layoutWidth);
             if (width == 0) {
                 layoutWidth = layout.getAdvance();
                 if (align == Align.RIGHT) {
                     x = -layoutWidth;
                 } else if (align == Align.CENTER) {
-                    x = -layoutWidth / 2.0F;
+                    x = -layoutWidth / 2.0;
                 }
             } else if (align == Align.RIGHT) {
-                x = (float) (width - layout.getAdvance());
+                x = width - layout.getAdvance();
             } else if (align == Align.CENTER) {
-                x = (float) ((width - layout.getAdvance()) / 2.0F);
+                x = (width - layout.getAdvance()) / 2.0;
             } else if (align == Align.JUSTIFY) {
                 // Don't justify the last line.
                 if (currentMeasurer.getPosition() < currentText.length()) {
@@ -322,11 +322,11 @@ public class Text extends AbstractGrob {
             return layout;
         }
 
-        public float getX() {
+        public double getX() {
             return x;
         }
 
-        public float getY() {
+        public double getY() {
             return y;
         }
 

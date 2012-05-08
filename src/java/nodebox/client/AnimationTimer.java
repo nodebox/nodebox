@@ -11,7 +11,7 @@ public class AnimationTimer implements ActionListener {
 
     public AnimationTimer(NodeBoxDocument document) {
         this.document = document;
-        timer = new Timer(1000/60, this);
+        timer = new Timer(1000 / 60, this);
     }
 
     public void start() {

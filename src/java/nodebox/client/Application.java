@@ -19,12 +19,17 @@
 package nodebox.client;
 
 import nodebox.node.NodeLibrary;
-import nodebox.node.NodeLibraryManager;
+import nodebox.node.NodeRepository;
+import nodebox.ui.ExceptionDialog;
+import nodebox.ui.LastResortHandler;
+import nodebox.ui.Platform;
+import nodebox.ui.ProgressDialog;
 import nodebox.versioncheck.Host;
 import nodebox.versioncheck.Updater;
 import nodebox.versioncheck.Version;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -52,7 +57,7 @@ public class Application implements Host {
     private Updater updater;
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
     private NodeBoxDocument currentDocument;
-    private NodeLibraryManager manager;
+    private NodeRepository systemRepository;
     private ProgressDialog startupDialog;
     private Version version;
     private List<File> filesToLoad = Collections.synchronizedList(new ArrayList<File>());
@@ -152,6 +157,7 @@ public class Application implements Host {
         } catch (Exception ignored) {
         }
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+        UIManager.put("Table.alternateRowColor", new Color(243, 246, 250));
     }
 
     /**
@@ -185,17 +191,16 @@ public class Application implements Host {
      * @throws RuntimeException if we can't create the user directories. This is fatal.
      */
     private void createNodeBoxDataDirectories() throws RuntimeException {
-        PlatformUtils.getUserDataDirectory().mkdir();
-        PlatformUtils.getUserScriptsDirectory().mkdir();
-        PlatformUtils.getUserPythonDirectory().mkdir();
+        Platform.getUserDataDirectory().mkdir();
+        Platform.getUserScriptsDirectory().mkdir();
+        Platform.getUserPythonDirectory().mkdir();
     }
 
     /**
      * Load the preferences and make them available to the Application object.
      */
     private void applyPreferences() {
-        Preferences preferences = Preferences.userNodeForPackage(this.getClass());
-        // There are no more preferences. Leaving this in for when there are.
+        Preferences preferences = Preferences.userNodeForPackage(Application.class);
     }
 
     /**
@@ -205,7 +210,7 @@ public class Application implements Host {
      * @throws RuntimeException if the adapter methods could not be loaded.
      */
     private void registerForMacOSXEvents() throws RuntimeException {
-        if (!PlatformUtils.onMac()) return;
+        if (!Platform.onMac()) return;
         try {
             // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
             // use as delegates for various com.apple.eawt.ApplicationListener methods
@@ -228,11 +233,24 @@ public class Application implements Host {
     }
 
     private void initPython() {
-        manager = new NodeLibraryManager();
-        manager.addSearchPath(PlatformUtils.getApplicationScriptsDirectory());
-        manager.addSearchPath(PlatformUtils.getUserScriptsDirectory());
-        manager.lookForLibraries();
         PythonUtils.initializePython();
+        lookForLibraries();
+    }
+
+    private void lookForLibraries() {
+        NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
+        NodeLibrary colorLibrary = NodeLibrary.load(new File("libraries/color/color.ndbx"), NodeRepository.of());
+        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
+        NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary lSystemLibrary = NodeLibrary.load(new File("libraries/l_system/l_system.ndbx"), NodeRepository.of());
+        NodeLibrary packingLibrary = NodeLibrary.load(new File("libraries/packing/packing.ndbx"), NodeRepository.of());
+
+        systemRepository = NodeRepository.of(coreLibrary, mathLibrary, stringLibrary,
+                listLibrary, dataLibrary, colorLibrary,
+                corevectorLibrary, lSystemLibrary, packingLibrary);
     }
 
     //// Application events ////
@@ -255,9 +273,9 @@ public class Application implements Host {
     }
 
     public void showPreferences() {
-        PreferencesDialog dialog = new PreferencesDialog();
-        dialog.setModal(true);
-        dialog.setVisible(true);
+        PreferencePanel preferencePanel = new PreferencePanel(this, getCurrentDocument());
+        preferencePanel.setLocationRelativeTo(getCurrentDocument());
+        preferencePanel.setVisible(true);
     }
 
     public void showConsole() {
@@ -275,7 +293,7 @@ public class Application implements Host {
         console.setVisible(true);
 
         for (NodeBoxDocument document : documents) {
-            document.onConsoleVisibleEvent(true);
+            //document.onConsoleVisibleEvent(true);
         }
     }
 
@@ -286,7 +304,7 @@ public class Application implements Host {
 
     public void onHideConsole() {
         for (NodeBoxDocument document : documents) {
-            document.onConsoleVisibleEvent(false);
+            //document.onConsoleVisibleEvent(false);
         }
     }
 
@@ -320,8 +338,7 @@ public class Application implements Host {
     }
 
     public NodeBoxDocument createNewDocument() {
-        NodeLibrary newLibrary = new NodeLibrary("untitled");
-        NodeBoxDocument doc = new NodeBoxDocument(newLibrary);
+        NodeBoxDocument doc = new NodeBoxDocument();
         addDocument(doc);
         return doc;
     }
@@ -365,6 +382,8 @@ public class Application implements Host {
     private void addDocument(NodeBoxDocument doc) {
         doc.setVisible(true);
         doc.requestFocus();
+        doc.focusNetworkView();
+        doc.setActiveNetwork("/");
         documents.add(doc);
         currentDocument = doc;
     }
@@ -377,8 +396,8 @@ public class Application implements Host {
         currentDocument = document;
     }
 
-    public NodeLibraryManager getManager() {
-        return manager;
+    public NodeRepository getSystemRepository() {
+        return systemRepository;
     }
 
     //// Host implementation ////

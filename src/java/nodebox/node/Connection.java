@@ -18,7 +18,9 @@
  */
 package nodebox.node;
 
-import static nodebox.base.Preconditions.checkNotNull;
+import com.google.common.base.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Represents a connection between two ports.
@@ -31,38 +33,32 @@ import static nodebox.base.Preconditions.checkNotNull;
  */
 public class Connection {
 
-    private final Port output;
-    private final Port input;
+    private final String outputNode;
+    private final String inputNode;
+    private final String inputPort;
 
     /**
      * Creates a connection between the output (upstream) node and input (downstream) node.
      *
-     * @param output the output (upstream) parameter
-     * @param input  the input (downstream) parameter
+     * @param outputNode The name of the output (upstream) Node.
+     * @param inputNode  The name of the input (downstream) Node.
+     * @param inputPort  The name of the input (downstream) Port.
      */
-    public Connection(Port output, Port input) {
-        checkNotNull(output);
-        checkNotNull(input);
-        this.output = output;
-        this.input = input;
+    public Connection(String outputNode, String inputNode, String inputPort) {
+        checkNotNull(outputNode);
+        checkNotNull(inputNode);
+        checkNotNull(inputPort);
+        this.outputNode = outputNode;
+        this.inputNode = inputNode;
+        this.inputPort = inputPort;
     }
 
-    /**
-     * Gets the output (upstream) port.
-     *
-     * @return the output port.
-     */
-    public Port getOutput() {
-        return output;
+    public String getOutputNode() {
+        return outputNode;
     }
 
-    /**
-     * Return the node for the first output port in this connection.
-     *
-     * @return the output node
-     */
-    public Node getOutputNode() {
-        return output.getNode();
+    public String getInputNode() {
+        return inputNode;
     }
 
     /**
@@ -70,23 +66,29 @@ public class Connection {
      *
      * @return the input port.
      */
-    public Port getInput() {
-        return input;
+    public String getInputPort() {
+        return inputPort;
     }
 
-    /**
-     * Return the node for the input port in this connection.
-     *
-     * @return the Node for the input port.
-     */
-    public Node getInputNode() {
-        if (input == null) return null;
-        return input.getNode();
+    //// Object overrides ////
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(outputNode, inputNode, inputPort);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Connection)) return false;
+        final Connection other = (Connection) o;
+        return Objects.equal(outputNode, other.outputNode)
+                && Objects.equal(inputNode, other.inputNode)
+                && Objects.equal(inputPort, other.inputPort);
     }
 
     @Override
     public String toString() {
-        return String.format("%s <= %s", getOutput(), getInput());
+        return String.format("%s <= %s.%s", getOutputNode(), getInputNode(), getInputPort());
     }
 
 }
