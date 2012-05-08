@@ -50,16 +50,19 @@ final class ClojureLibrary extends FunctionLibrary {
         } catch (IOException e) {
             throw new LoadException(fileName, e);
         }
+        return loadScript(file);
+    }
 
+    private static ClojureLibrary loadScript(File file) {
         Object returnValue;
         try {
             returnValue = Compiler.loadFile(file.getCanonicalPath());
         } catch (IOException e) {
-            throw new LoadException(fileName, e);
+            throw new LoadException(file.getName(), e);
         }
         // We need a Var as the last statement, because we need to retrieve the current namespace.
         if (!(returnValue instanceof Var)) {
-            throw new LoadException(fileName,
+            throw new LoadException(file.getName(),
                     String.format("The last statement does not define a var, but %s.\n" +
                             "Make sure the last line of your script looks like this:\n" +
                             "(def nodes [{:name \"foo\" :fn inc}])",
@@ -126,32 +129,10 @@ final class ClojureLibrary extends FunctionLibrary {
      */
     @Override
     public void reload() {
-        Object returnValue;
-        try {
-            returnValue = Compiler.loadFile(file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new LoadException(file.getName(), e);
-        }
-        // We need a Var as the last statement, because we need to retrieve the current namespace.
-        if (!(returnValue instanceof Var)) {
-            throw new LoadException(file.getName(),
-                    String.format("The last statement does not define a var, but %s.\n" +
-                            "Make sure the last line of your script looks like this:\n" +
-                            "(def nodes [{:name \"foo\" :fn inc}])",
-                            returnValue));
-        }
-        Var nodesVar = (Var) returnValue;
-        Object functionMap = nodesVar.deref();
-        checkStructure(functionMap);
-        ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
-        for (Object item : (Iterable) functionMap) {
-            Map m = (Map) item;
-            String name = (String) m.get(NAME);
-            IFn fn = (IFn) m.get(FN);
-            Function f = new ClojureFunction(name, fn);
-            builder.put(name, f);
-        }
-        this.functionMap = builder.build();
+        ClojureLibrary reloadedLibrary = loadScript(file);
+        if (! reloadedLibrary.namespace.equals(namespace))
+            throw new RuntimeException("The namespace of a function library should not be changed.");
+        this.functionMap = reloadedLibrary.functionMap;
     }
 
         /**

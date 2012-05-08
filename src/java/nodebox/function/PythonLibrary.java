@@ -69,24 +69,31 @@ public class PythonLibrary extends FunctionLibrary {
      * @throws LoadException If the script could not be loaded.
      */
     public static PythonLibrary loadScript(String namespace, File baseFile, String fileName) throws LoadException {
-        PythonInterpreter interpreter = new PythonInterpreter();
-        File file;
         try {
+            File file;
+            String path;
             if (baseFile != null) {
-                String path = baseFile.getCanonicalPath();
-                Py.getSystemState().path.append(new PyString(path));
-                interpreter.execfile(path + File.separator + fileName);
+                path = baseFile.getCanonicalPath();
                 file = new File(path + File.separator + fileName);
             } else {
-                String path = new File(fileName).getParentFile().getCanonicalPath();
-                Py.getSystemState().path.append(new PyString(path));
-                interpreter.execfile(fileName);
+                path = new File(fileName).getParentFile().getCanonicalPath();
                 file = new File(fileName);
             }
+            Py.getSystemState().path.append(new PyString(path));
+            return new PythonLibrary(namespace, file, loadScript(file));
         } catch (IOException e) {
-            throw new LoadException(fileName, e);    
-        } catch (PyException e) {
             throw new LoadException(fileName, e);
+        }
+    }
+
+    private static ImmutableMap<String, Function> loadScript(File file) {
+        PythonInterpreter interpreter = new PythonInterpreter();
+        try {
+            interpreter.execfile(file.getCanonicalPath());
+        } catch (IOException e) {
+            throw new LoadException(file.getName(), e);
+        } catch (PyException e) {
+            throw new LoadException(file.getName(), e);
         }
         PyStringMap map = (PyStringMap) interpreter.getLocals();
 
@@ -100,7 +107,7 @@ public class PythonLibrary extends FunctionLibrary {
                 builder.put(name, f);
             }
         }
-        return new PythonLibrary(namespace, file, builder.build());
+        return builder.build();
     }
 
     private final String namespace;
@@ -148,27 +155,7 @@ public class PythonLibrary extends FunctionLibrary {
      */
     @Override
     public void reload() {
-        PythonInterpreter interpreter = new PythonInterpreter();
-        try {
-            interpreter.execfile(file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new LoadException(file.getName(), e);
-        } catch (PyException e) {
-            throw new LoadException(file.getName(), e);
-        }
-        PyStringMap map = (PyStringMap) interpreter.getLocals();
-
-        ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
-
-        for (Object key : map.keys()) {
-            Object o = map.get(Py.java2py(key));
-            if (o instanceof PyFunction) {
-                String name = (String) key;
-                Function f = new PythonFunction(name, (PyFunction) o);
-                builder.put(name, f);
-            }
-        }
-        this.functionMap = builder.build();
+        this.functionMap = loadScript(this.file);
     }
 
     private static final class PythonFunction implements Function {
