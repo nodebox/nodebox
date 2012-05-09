@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NetworkView extends JComponent implements PaneView, KeyListener {
 
-    public static final int GRID_CELL_SIZE = 50;
+    public static final int GRID_CELL_SIZE = 40;
     public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 10;
     public static final int NODE_HEIGHT = GRID_CELL_SIZE - 10;
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
@@ -235,8 +235,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
 
         g.setColor(Color.WHITE);
         g.fillRect(r.x + 5, r.y + 5, NODE_HEIGHT - 10, NODE_HEIGHT - 10);
-        g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
-        g.drawString(node.getName(), r.x + 40, r.y + 25);
+        g.setColor(Color.WHITE);
+        g.drawString(node.getName(), r.x + 30, r.y + 20);
     }
 
     private Rectangle nodeRect(Node node) {
