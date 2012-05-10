@@ -193,15 +193,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
 
         for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
-            for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
-                paintGridCross(g, x - 5 + transformOffsetX, y - 5 + transformOffsetY);
-            }
+            g.drawLine(0, y-5 + transformOffsetY, getWidth(), y-5+transformOffsetY);
         }
-    }
-
-    private void paintGridCross(Graphics2D g, int x, int y) {
-        g.drawLine(x - 2, y, x + 2, y);
-        g.drawLine(x, y - 2, x, y + 2);
+        for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
+            g.drawLine(x-5+transformOffsetX, 0, x-5+transformOffsetX, getHeight());
+        }
     }
 
     private void paintConnections(Graphics2D g) {
