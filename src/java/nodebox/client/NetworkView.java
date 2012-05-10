@@ -418,7 +418,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
             }
 
         }
-//        System.out.println("key e = " + e);
     }
 
     //// View queries ////
@@ -459,15 +458,16 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
      * @param node The node to select. If node is null, everything is deselected.
      */
     public void singleSelect(Node node) {
+        if (selectedNodes.size() == 1 && selectedNodes.contains(node.getName())) return;
         selectedNodes.clear();
-        if (node != null) {
+        if (node != null && getActiveNetwork().hasChild(node)) {
             selectedNodes.add(node.getName());
             System.out.println("selectedNodes = " + selectedNodes);
 
             firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
             document.setActiveNode(node);
-            repaint();
         }
+        repaint();
     }
 
     public void select(Iterable<Node> nodes) {
