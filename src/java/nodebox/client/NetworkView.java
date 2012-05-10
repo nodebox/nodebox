@@ -1,8 +1,10 @@
 package nodebox.client;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import nodebox.node.Connection;
 import nodebox.node.Node;
+import nodebox.node.Port;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
@@ -19,6 +21,8 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -28,6 +32,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
     public static final int GRID_CELL_SIZE = 40;
     public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 10;
     public static final int NODE_HEIGHT = GRID_CELL_SIZE - 10;
+    public static final int PORT_WIDTH = 10;
+    public static final int PORT_HEIGHT = 3;
+    public static final int PORT_SPACING = 10;
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
@@ -64,6 +71,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
     private boolean startDragging;
     private Point2D dragStartPoint;
 
+
+    public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
+    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
+
+
     static {
         Image panCursorImage;
 
@@ -78,6 +90,15 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        PORT_COLORS.put(Port.TYPE_INT, Color.GRAY);
+        PORT_COLORS.put(Port.TYPE_FLOAT, Color.GRAY);
+        PORT_COLORS.put(Port.TYPE_STRING, Color.LIGHT_GRAY);
+        PORT_COLORS.put(Port.TYPE_BOOLEAN, Color.DARK_GRAY);
+        PORT_COLORS.put(Port.TYPE_POINT, Color.RED);
+        PORT_COLORS.put(Port.TYPE_COLOR, Color.CYAN);
+        PORT_COLORS.put("geometry", Color.BLUE);
+
     }
 
     public NetworkView(NodeBoxDocument document) {
@@ -215,13 +236,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         if (selected) {
             g.setColor(Color.WHITE);
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
-            g.fillRect(r.x, r.y + NODE_HEIGHT, 10, 3);
             g.setColor(NODE_BACKGROUND_COLOR);
             g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
         } else {
             g.setColor(NODE_BACKGROUND_COLOR);
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
-            g.fillRect(r.x, r.y + NODE_HEIGHT, 10, 3);
         }
 
         if (rendered) {
@@ -233,11 +252,34 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
             g.fill(gp);
         }
 
+        // Draw input ports
+        g.setColor(Color.WHITE);
+        List<Port> inputs = node.getInputs();
+        int portX = 0;
+        for (Port input : node.getInputs()) {
+            Color portColor = PORT_COLORS.get(input.getType());
+            if (portColor == null) {
+                portColor = DEFAULT_PORT_COLOR;
+            }
+            g.setColor(portColor);
+            g.fillRect(r.x + portX, r.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+            portX += PORT_WIDTH + PORT_SPACING;
+        }
+
+        // Draw output port
+        if (selected) {
+            g.setColor(Color.WHITE);
+        } else {
+            g.setColor(NODE_BACKGROUND_COLOR);
+        }
+        g.fillRect(r.x, r.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+
         g.setColor(Color.WHITE);
         g.fillRect(r.x + 5, r.y + 5, NODE_HEIGHT - 10, NODE_HEIGHT - 10);
         g.setColor(Color.WHITE);
         g.drawString(node.getName(), r.x + 30, r.y + 20);
     }
+
 
     private Rectangle nodeRect(Node node) {
         return new Rectangle(nodePoint(node), NODE_DIMENSION);
