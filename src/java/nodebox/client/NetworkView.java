@@ -96,7 +96,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         PORT_COLORS.put(Port.TYPE_BOOLEAN, Color.DARK_GRAY);
         PORT_COLORS.put(Port.TYPE_POINT, Color.RED);
         PORT_COLORS.put(Port.TYPE_COLOR, Color.CYAN);
-        PORT_COLORS.put("geometry", Color.BLUE);
+        PORT_COLORS.put("geometry", new Color(135, 136, 162));
         PORT_COLORS.put("list", Color.PINK);
 
     }
