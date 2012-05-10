@@ -180,6 +180,7 @@ public class NodeContext {
      * @return  The level of nesting
      */
     private int level(Iterable it) {
+        if (it == null) return 0;
         Iterator<Object> iterator = it.iterator();
         if (! iterator.hasNext()) return 0;
         Object first = iterator.next();
