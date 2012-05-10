@@ -550,7 +550,7 @@ public final class Port {
         }
     }
 
-    private static Object parseValue(String type, String valueString) {
+    public static Object parseValue(String type, String valueString) {
         if (type.equals("int")) {
             return Long.valueOf(valueString);
         } else if (type.equals("float")) {
@@ -579,6 +579,18 @@ public final class Port {
             return Range.LIST;
         else
             throw new AssertionError("Unknown range " + valueString);
+    }
+
+    public Port withMinimumValue(Double minimumValue) {
+        checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
+                "You can only set a minimum value on int or float ports, not %s", this);
+        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), minimumValue, getMaximumValue(), getMenuItems());
+    }
+
+    public Port withMaximumValue(Double maximumValue) {
+        checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
+                "You can only set a maximum value on int or float ports, not %s", this);
+        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), maximumValue, getMenuItems());
     }
 
     public Port withMenuItems(Iterable<MenuItem> items) {
