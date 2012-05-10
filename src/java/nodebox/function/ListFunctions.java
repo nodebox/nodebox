@@ -106,19 +106,17 @@ public class ListFunctions {
         }
     }
 
-    public static Iterable<?> combine(Iterable list1, Iterable list2, Iterable list3) {
-        Iterable<Iterable<?>> nonNullLists = Iterables.filter(Lists.<Iterable<?>>newArrayList(list1, list2, list3), Predicates.notNull());
-        return Iterables.concat(nonNullLists);
-    }
-
     /**
      * Combine multiple lists into one.
      *
-     * @param iterables The lists to combine.
+     * @param list1 The first list to combine.
+     * @param list2 The second list to combine.
+     * @param list3 The third list to combine.
      * @return A new list with all input lists combined.
      */
-    public static Iterable<?> combine(Iterable<?>... iterables) {
-        return Iterables.concat(iterables);
+    public static Iterable<?> combine(Iterable list1, Iterable list2, Iterable list3) {
+        Iterable<Iterable<?>> nonNullLists = Iterables.filter(Lists.<Iterable<?>>newArrayList(list1, list2, list3), Predicates.notNull());
+        return Iterables.concat(nonNullLists);
     }
 
     /**

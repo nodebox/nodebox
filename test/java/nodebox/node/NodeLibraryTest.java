@@ -192,6 +192,14 @@ public class NodeLibraryTest {
         assertResultsEqual(library.getRoot(), 0.0, 1.0, 2.0, 3.0, 4.0);
     }
 
+    @Test
+    public void testOutputTypeSerialization() {
+        Node myRect = Node.ROOT.withName("rect").withOutputType("geometry");
+        NodeLibrary originalLibrary = NodeLibrary.create("test", myRect);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertEquals("geometry", library.getRoot().getOutputType());
+    }
+
     /**
      * Test if ports can persist their min / max values.
      */

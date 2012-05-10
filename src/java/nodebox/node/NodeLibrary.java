@@ -190,6 +190,7 @@ public class NodeLibrary {
         String description = reader.getAttributeValue(null, "description");
         String image = reader.getAttributeValue(null, "image");
         String function = reader.getAttributeValue(null, "function");
+        String outputType = reader.getAttributeValue(null, "outputType");
         String outputRange = reader.getAttributeValue(null, "outputRange");
         String position = reader.getAttributeValue(null, "position");
         String renderedChildName = reader.getAttributeValue(null, "renderedChild");
@@ -208,6 +209,8 @@ public class NodeLibrary {
             node = node.withImage(image);
         if (function != null)
             node = node.withFunction(function);
+        if (outputType != null)
+            node = node.withOutputType(outputType);
         if (outputRange != null)
             node = node.withOutputRange(Port.Range.valueOf(outputRange.toUpperCase()));
         if (position != null)
