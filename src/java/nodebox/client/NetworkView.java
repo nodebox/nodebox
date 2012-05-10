@@ -21,7 +21,6 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,6 +97,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         PORT_COLORS.put(Port.TYPE_POINT, Color.RED);
         PORT_COLORS.put(Port.TYPE_COLOR, Color.CYAN);
         PORT_COLORS.put("geometry", Color.BLUE);
+        PORT_COLORS.put("list", Color.PINK);
 
     }
 
@@ -231,15 +231,21 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         }
     }
 
+    private Color portTypeColor(String type) {
+        Color portColor = PORT_COLORS.get(type);
+        return portColor == null ? DEFAULT_PORT_COLOR : portColor;
+    }
+
     private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered) {
         Rectangle r = nodeRect(node);
+        String outputType = node.getOutputType();
         if (selected) {
             g.setColor(Color.WHITE);
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
-            g.setColor(NODE_BACKGROUND_COLOR);
+            g.setColor(portTypeColor(outputType));
             g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
         } else {
-            g.setColor(NODE_BACKGROUND_COLOR);
+            g.setColor(portTypeColor(outputType));
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
         }
 
@@ -254,14 +260,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
 
         // Draw input ports
         g.setColor(Color.WHITE);
-        List<Port> inputs = node.getInputs();
         int portX = 0;
         for (Port input : node.getInputs()) {
-            Color portColor = PORT_COLORS.get(input.getType());
-            if (portColor == null) {
-                portColor = DEFAULT_PORT_COLOR;
-            }
-            g.setColor(portColor);
+            g.setColor(portTypeColor(input.getType()));
             g.fillRect(r.x + portX, r.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
             portX += PORT_WIDTH + PORT_SPACING;
         }
@@ -270,7 +271,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         if (selected) {
             g.setColor(Color.WHITE);
         } else {
-            g.setColor(NODE_BACKGROUND_COLOR);
+            g.setColor(portTypeColor(outputType));
         }
         g.fillRect(r.x, r.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
 
