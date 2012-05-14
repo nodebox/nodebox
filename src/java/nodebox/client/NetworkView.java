@@ -173,6 +173,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     @Override
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         // Draw background
         g2.setColor(Theme.NETWORK_BACKGROUND_COLOR);
         g2.fill(g.getClipBounds());
@@ -185,8 +187,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         AffineTransform originalTransform = g2.getTransform();
         g2.transform(viewTransform);
 
-        paintConnections(g2);
         paintNodes(g2);
+        paintConnections(g2);
         paintCurrentConnection(g2);
 
         // Restore original transform
@@ -208,7 +210,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void paintConnections(Graphics2D g) {
         g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
-        g.setStroke(new BasicStroke(3));
+        g.setStroke(new BasicStroke(2));
         for (Connection connection : getConnections()) {
             paintConnection(g, connection);
         }
@@ -220,19 +222,28 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         Port inputPort = inputNode.getInput(connection.getInputPort());
         Rectangle outputRect = nodeRect(outputNode);
         Rectangle inputRect = nodeRect(inputNode);
-        g.drawLine(outputRect.x + 4, outputRect.y + outputRect.height, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y);
-    }
+        paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 4, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 5);
 
-
-    private void paintConnection(Graphics2D g, Node outputNode, Point2D inputPoint) {
-        Rectangle outputRect = nodeRect(outputNode);
-        g.drawLine(outputRect.x + 4, outputRect.y + outputRect.height, (int) inputPoint.getX(), (int) inputPoint.getY());
     }
 
     private void paintCurrentConnection(Graphics2D g) {
         g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
         if (connectionOutput != null) {
-            paintConnection(g, connectionOutput, connectionPoint);
+            Rectangle outputRect = nodeRect(connectionOutput);
+            paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 4, (int) connectionPoint.getX(), (int) connectionPoint.getY());
+        }
+    }
+
+    private void paintConnectionLine(Graphics2D g, int x0, int y0, int x1, int y1) {
+        double dy = Math.abs(y1 - y0);
+        if (dy < GRID_CELL_SIZE) {
+            g.drawLine(x0, y0, x1, y1);
+        } else {
+            double halfDx = Math.abs(x1 - x0) / 2;
+            GeneralPath p = new GeneralPath();
+            p.moveTo(x0, y0);
+            p.curveTo(x0, y0 + halfDx, x1, y1 - halfDx, x1, y1);
+            g.draw(p);
         }
     }
 
