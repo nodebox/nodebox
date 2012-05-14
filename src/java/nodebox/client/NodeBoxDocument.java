@@ -254,6 +254,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Change the description for the node.
+     *
+     * @param node        The node to change.
+     * @param description The new description.
+     */
     public void setNodeDescription(Node node, String description) {
         checkNotNull(node);
         checkNotNull(description);
@@ -262,6 +268,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         controller.setNodeDescription(nodePath, description);
     }
 
+    /**
+     * Change the node image icon.
+     *
+     * @param node  The node to change.
+     * @param image The new image icon.
+     */
     public void setNodeImage(Node node, String image) {
         checkNotNull(node);
         checkNotNull(image);
@@ -271,6 +283,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.updateNodes();
     }
 
+    /**
+     * Change the output type for the node.
+     *
+     * @param node       The node to change.
+     * @param outputType The new output type.
+     */
     public void setNodeOutputType(Node node, String outputType) {
         checkNotNull(node);
         checkNotNull(outputType);
@@ -280,6 +298,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.updateNodes();
     }
 
+    /**
+     * Change the output range for the node.
+     *
+     * @param node        The node to change.
+     * @param outputRange The new output range.
+     */
     public void setNodeOutputRange(Node node, Port.Range outputRange) {
         checkNotNull(node);
         addEdit("Change Node Output Range");
@@ -434,6 +458,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    /**
+     * Change the widget for the given port
+     *
+     * @param portName The name of the port to change.
+     * @param widget   The new widget.
+     */
     public void setPortWidget(String portName, Port.Widget widget) {
         checkValidPort(portName);
         addEdit("Change Widget");
@@ -442,6 +472,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Change the port range of the given port
+     *
+     * @param portName The name of the port to change.
+     * @param range    The new port range.
+     */
     public void setPortRange(String portName, Port.Range range) {
         checkValidPort(portName);
         addEdit("Change Port Range");
@@ -449,6 +485,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Change the minimum value for the given port
+     *
+     * @param portName     The name of the port to change.
+     * @param minimumValue The new minimum value.
+     */
     public void setPortMinimumValue(String portName, Double minimumValue) {
         checkValidPort(portName);
         addEdit("Change Minimum Value");
@@ -457,6 +499,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Change the maximum value for the given port
+     *
+     * @param portName     The name of the port to change.
+     * @param maximumValue The new maximum value.
+     */
     public void setPortMaximumValue(String portName, Double maximumValue) {
         checkValidPort(portName);
         addEdit("Change Maximum Value");
@@ -465,6 +513,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Add a new menu item for the given port's menu.
+     *
+     * @param portName The name of the port to add a new menu item for.
+     * @param key      The key of the new menu item.
+     * @param label    The label of the new menu item.
+     */
     public void addPortMenuItem(String portName, String key, String label) {
         checkValidPort(portName);
         addEdit("Add Port Menu Item");
@@ -475,6 +530,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Remove a menu item from the given port's menu.
+     *
+     * @param portName The name of the port to remove the menu item from.
+     * @param item      The menu item to remove
+     */
     public void removePortMenuItem(String portName, MenuItem item) {
         checkValidPort(portName);
         addEdit("Remove Parameter Menu Item");
@@ -486,6 +547,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    /**
+     * Move a menu item down from the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to move down.
+     */
     public void movePortMenuItemDown(String portName, int itemIndex) {
         checkValidPort(portName);
         addEdit("Move Port Item Down");
@@ -493,6 +560,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         portView.updateAll();
     }
 
+    /**
+     * Move a menu item up from the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to move up.
+     */
     public void movePortMenuItemUp(String portName, int itemIndex) {
         checkValidPort(portName);
         addEdit("Move Port Item Up");
@@ -500,6 +573,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         portView.updateAll();
     }
 
+    /**
+     * Change a menu item's key and label in the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to change.
+     * @param key       The new key of the menu item.
+     * @param label     The new label of the menu item.
+     */
     public void updatePortMenuItem(String portName, int itemIndex, String key, String label) {
         checkValidPort(portName);
         addEdit("Update Port Menu Item");
