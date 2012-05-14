@@ -26,7 +26,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class NetworkView extends JComponent implements PaneView, KeyListener {
+public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseMotionListener {
 
     public static final int GRID_CELL_SIZE = 40;
     public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 10;
@@ -65,7 +65,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
     private int dragStartY = 0;
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
 
-    private boolean panEnabled = false;
     public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
     private boolean startDragging;
     private Point2D dragStartPoint;
@@ -104,17 +103,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
     public NetworkView(NodeBoxDocument document) {
         this.document = document;
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
-        DialogHandler dialogHandler = new DialogHandler();
-        addKeyListener(dialogHandler);
-        addKeyListener(new DeleteHandler());
-        addKeyListener(new UpDownHandler());
+//        DialogHandler dialogHandler = new DialogHandler();
+//        addKeyListener(dialogHandler);
+//        addKeyListener(new DeleteHandler());
+//        addKeyListener(new UpDownHandler());
         addKeyListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
         initMenus();
         // This is disabled so we can detect the tab key.
         setFocusTraversalKeysEnabled(false);
-        enableEvents(AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
     }
-
 
     private void initMenus() {
         networkMenu = new JPopupMenu();
@@ -193,10 +192,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
         int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
 
         for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
-            g.drawLine(0, y-5 + transformOffsetY, getWidth(), y-5+transformOffsetY);
+            g.drawLine(0, y - 5 + transformOffsetY, getWidth(), y - 5 + transformOffsetY);
         }
         for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
-            g.drawLine(x-5+transformOffsetX, 0, x-5+transformOffsetX, getHeight());
+            g.drawLine(x - 5 + transformOffsetX, 0, x - 5 + transformOffsetX, getHeight());
         }
     }
 
@@ -293,131 +292,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
     private void resetViewTransform() {
         viewTransform = new AffineTransform();
         repaint();
-    }
-
-    //// Interaction ////
-
-    private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
-        ImmutableMap.Builder<String, nodebox.graphics.Point> b = ImmutableMap.builder();
-        for (String nodeName : selectedNodes) {
-            b.put(nodeName, findNodeWithName(nodeName).getPosition());
-        }
-        return b.build();
-    }
-
-    private Point2D inverseViewTransformPoint(Point p) {
-        Point2D pt = new Point2D.Double(p.getX(), p.getY());
-        try {
-            return viewTransform.inverseTransform(pt, null);
-        } catch (NoninvertibleTransformException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    protected void processMouseEvent(MouseEvent e) {
-        Point2D pt = inverseViewTransformPoint(e.getPoint());
-        if (e.getID() == MouseEvent.MOUSE_PRESSED) {
-            Node pressedNode = getNodeAt(pt);
-            if (pressedNode != null) {
-                // Don't immediately set "isDragging."
-                // We wait until we actually drag the first time to do the work.
-                startDragging = true;
-            }
-            if (isPanningView) {
-                // When panning the view use the original mouse point, not the one affected by the view transform.
-                dragStartPoint = e.getPoint();
-            }
-        } else if (e.getID() == MouseEvent.MOUSE_RELEASED) {
-            isDraggingNodes = false;
-        } else if (e.getID() == MouseEvent.MOUSE_CLICKED) {
-            if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
-                Node clickedNode = getNodeAt(pt);
-                if (clickedNode == null) {
-                    deselectAll();
-                } else {
-                    if (isShiftPressed) {
-                        toggleSelection(clickedNode);
-                    } else {
-                        singleSelect(clickedNode);
-                    }
-                }
-            } else if (e.getClickCount() == 2 && e.getButton() == MouseEvent.BUTTON1) {
-                Node clickedNode = getNodeAt(pt);
-                if (clickedNode == null) {
-                    // showNodeSelectionDialog();
-                } else {
-                    document.setRenderedNode(clickedNode);
-                }
-            }
-        }
-    }
-
-    private Point2D minPoint(Point2D a, Point2D b) {
-        return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
-    }
-
-    @Override
-    protected void processMouseMotionEvent(MouseEvent e) {
-        Point2D pt = inverseViewTransformPoint(e.getPoint());
-        if (e.getID() == MouseEvent.MOUSE_DRAGGED) {
-            // Panning the view has the first priority.
-            if (isPanningView) {
-                // When panning the view use the original mouse point, not the one affected by the view transform.
-                Point2D offset = minPoint(e.getPoint(), dragStartPoint);
-                viewTransform.translate(offset.getX(), offset.getY());
-                dragStartPoint = e.getPoint();
-                repaint();
-                return;
-            }
-
-
-            if (startDragging) {
-                startDragging = false;
-                Node pressedNode = getNodeAt(pt);
-                if (pressedNode != null) {
-                    if (selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
-                        singleSelect(pressedNode);
-                    }
-                    isDraggingNodes = true;
-                    dragPositions = selectedNodePositions();
-                    dragStartPoint = pt;
-                } else {
-                    isDraggingNodes = false;
-                }
-            }
-
-            if (isDraggingNodes) {
-                Point2D offset = minPoint(pt, dragStartPoint);
-                int gridX = (int) Math.round(offset.getX() / GRID_CELL_SIZE);
-                int gridY = (int) Math.round(offset.getY() / (float) GRID_CELL_SIZE);
-                for (String name : selectedNodes) {
-                    nodebox.graphics.Point originalPosition = dragPositions.get(name);
-                    nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
-                    getDocument().setNodePosition(findNodeWithName(name), newPosition);
-                }
-            } else if (isMakingConnection) {
-            }
-
-        }
-    }
-
-    @Override
-    protected void processKeyEvent(KeyEvent e) {
-        if (e.getID() == KeyEvent.KEY_PRESSED) {
-            if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-                isShiftPressed = true;
-            } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                isPanningView = true;
-            }
-        } else if (e.getID() == KeyEvent.KEY_RELEASED) {
-            if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-                isShiftPressed = false;
-            } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-                isPanningView = false;
-            }
-
-        }
     }
 
     //// View queries ////
@@ -743,25 +617,146 @@ public class NetworkView extends JComponent implements PaneView, KeyListener {
 //        getDocument().setActiveNetwork(childPath);
     }
 
-    //// Other node operations ////
+    //// Input Events ////
 
     public void keyTyped(KeyEvent e) {
     }
 
     public void keyPressed(KeyEvent e) {
-        panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
-        if (panEnabled && !getCursor().equals(panCursor))
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            isShiftPressed = true;
+        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            isPanningView = true;
             setCursor(panCursor);
+        }
     }
 
     public void keyReleased(KeyEvent e) {
-        panEnabled = false;
-        if (!getCursor().equals(defaultCursor))
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            isShiftPressed = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            isPanningView = false;
             setCursor(defaultCursor);
+        }
     }
 
-    public boolean isPanning() {
-        return panEnabled;
+
+    public boolean isPanningView() {
+        return isPanningView;
+    }
+
+    public void mouseClicked(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            if (e.getClickCount() == 1) {
+                Node clickedNode = getNodeAt(pt);
+                if (clickedNode == null) {
+                    deselectAll();
+                } else {
+                    if (isShiftPressed) {
+                        toggleSelection(clickedNode);
+                    } else {
+                        singleSelect(clickedNode);
+                    }
+                }
+            } else if (e.getClickCount() == 2) {
+                Node clickedNode = getNodeAt(pt);
+                if (clickedNode == null) {
+                    // showNodeSelectionDialog();
+                } else {
+                    document.setRenderedNode(clickedNode);
+                }
+            }
+        }
+    }
+
+    public void mousePressed(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        Node pressedNode = getNodeAt(pt);
+        if (pressedNode != null) {
+            // Don't immediately set "isDragging."
+            // We wait until we actually drag the first time to do the work.
+            startDragging = true;
+        }
+        if (isPanningView) {
+            // When panning the view use the original mouse point, not the one affected by the view transform.
+            dragStartPoint = e.getPoint();
+        }
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        isDraggingNodes = false;
+    }
+
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        // Panning the view has the first priority.
+        if (isPanningView) {
+            // When panning the view use the original mouse point, not the one affected by the view transform.
+            Point2D offset = minPoint(e.getPoint(), dragStartPoint);
+            viewTransform.translate(offset.getX(), offset.getY());
+            dragStartPoint = e.getPoint();
+            repaint();
+            return;
+        }
+
+
+        if (startDragging) {
+            startDragging = false;
+            Node pressedNode = getNodeAt(pt);
+            if (pressedNode != null) {
+                if (selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
+                    singleSelect(pressedNode);
+                }
+                isDraggingNodes = true;
+                dragPositions = selectedNodePositions();
+                dragStartPoint = pt;
+            } else {
+                isDraggingNodes = false;
+            }
+        }
+
+        if (isDraggingNodes) {
+            Point2D offset = minPoint(pt, dragStartPoint);
+            int gridX = (int) Math.round(offset.getX() / GRID_CELL_SIZE);
+            int gridY = (int) Math.round(offset.getY() / (float) GRID_CELL_SIZE);
+            for (String name : selectedNodes) {
+                nodebox.graphics.Point originalPosition = dragPositions.get(name);
+                nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
+                getDocument().setNodePosition(findNodeWithName(name), newPosition);
+            }
+        } else if (isMakingConnection) {
+        }
+    }
+
+    public void mouseMoved(MouseEvent e) {
+    }
+
+    private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
+        ImmutableMap.Builder<String, nodebox.graphics.Point> b = ImmutableMap.builder();
+        for (String nodeName : selectedNodes) {
+            b.put(nodeName, findNodeWithName(nodeName).getPosition());
+        }
+        return b.build();
+    }
+
+    private Point2D inverseViewTransformPoint(Point p) {
+        Point2D pt = new Point2D.Double(p.getX(), p.getY());
+        try {
+            return viewTransform.inverseTransform(pt, null);
+        } catch (NoninvertibleTransformException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Point2D minPoint(Point2D a, Point2D b) {
+        return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
     }
 
     //// Inner classes ////
