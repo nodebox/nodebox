@@ -9,6 +9,7 @@ import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;
 import nodebox.movie.VideoFormat;
 import nodebox.node.*;
+import nodebox.node.MenuItem;
 import nodebox.ui.*;
 import nodebox.util.FileUtils;
 
@@ -220,7 +221,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Node activeNode = getActiveNode();
         networkView.updateNodes();
         networkView.singleSelect(activeNode);
-        portView.setActiveNode(activeNode);
+        portView.updateAll();
 
         requestRender();
     }
@@ -258,6 +259,97 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         controller.renameNode(activeNetworkPath, Node.path(activeNetworkPath, node), name);
         networkView.updateNodes();
         // Renaming the node can have an effect on expressions, so recalculate the network.
+        requestRender();
+    }
+
+    /**
+     * Change the description for the node.
+     *
+     * @param node        The node to change.
+     * @param description The new description.
+     */
+    public void setNodeDescription(Node node, String description) {
+        checkNotNull(node);
+        checkNotNull(description);
+        addEdit("Set Node Description");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeDescription(nodePath, description);
+    }
+
+    /**
+     * Change the node image icon.
+     *
+     * @param node  The node to change.
+     * @param image The new image icon.
+     */
+    public void setNodeImage(Node node, String image) {
+        checkNotNull(node);
+        checkNotNull(image);
+        addEdit("Set Node Image");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeImage(nodePath, image);
+        networkView.updateNodes();
+    }
+
+    /**
+     * Change the output type for the node.
+     *
+     * @param node       The node to change.
+     * @param outputType The new output type.
+     */
+    public void setNodeOutputType(Node node, String outputType) {
+        checkNotNull(node);
+        checkNotNull(outputType);
+        addEdit("Set Output Type");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeOutputType(nodePath, outputType);
+        networkView.updateNodes();
+    }
+
+    /**
+     * Change the output range for the node.
+     *
+     * @param node        The node to change.
+     * @param outputRange The new output range.
+     */
+    public void setNodeOutputRange(Node node, Port.Range outputRange) {
+        checkNotNull(node);
+        addEdit("Change Node Output Range");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeOutputRange(nodePath, outputRange);
+        requestRender();
+    }
+
+    /**
+     * Change the node function.
+     *
+     * @param node  The node to change.
+     * @param function The new function.
+     */
+    public void setNodeFunction(Node node, String function) {
+        checkNotNull(node);
+        checkNotNull(function);
+        addEdit("Set Node Function");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeFunction(nodePath, function);
+        networkView.updateNodes();
+        requestRender();
+    }
+
+    /**
+     * Change the node handle function.
+     *
+     * @param node  The node to change.
+     * @param handle The new handle function.
+     */
+    public void setNodeHandle(Node node, String handle) {
+        checkNotNull(node);
+        checkNotNull(handle);
+        addEdit("Set Node Handle");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeHandle(nodePath, handle);
+        createHandleForActiveNode();
+        networkView.updateNodes();
         requestRender();
     }
 
@@ -326,7 +418,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             removeNodeImpl(node);
         }
         networkView.updateAll();
-        portView.setActiveNode(getActiveNode());
+        portView.updateAll();
         requestRender();
     }
 
@@ -378,16 +470,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     /**
      * @param node          the node on which to add the port
-     * @param parameterName the name of the new port
+     * @param portName the name of the new port
+     * @param portType the type of the new port
      */
-    public void addPort(Node node, String parameterName) {
+    public void addPort(Node node, String portName, String portType) {
+        checkArgument(getActiveNetwork().hasChild(node));
         addEdit("Add Port");
-        throw new UnsupportedOperationException("Not implemented yet.");
-        // TODO Port port = Port.portForType();
-//        if (node == getActiveNode()) {
-//            portView.updateAll();
-//            viewer.repaint();
-//        }
+        controller.addPort(Node.path(activeNetworkPath, node), portName, portType);
+        portView.updateAll();
+        networkView.updateAll();
     }
 
     /**
@@ -408,10 +499,138 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    /**
+     * Change the widget for the given port
+     *
+     * @param portName The name of the port to change.
+     * @param widget   The new widget.
+     */
+    public void setPortWidget(String portName, Port.Widget widget) {
+        checkValidPort(portName);
+        addEdit("Change Widget");
+        controller.setPortWidget(getActiveNodePath(), portName, widget);
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
+     * Change the port range of the given port
+     *
+     * @param portName The name of the port to change.
+     * @param range    The new port range.
+     */
+    public void setPortRange(String portName, Port.Range range) {
+        checkValidPort(portName);
+        addEdit("Change Port Range");
+        controller.setPortRange(getActiveNodePath(), portName, range);
+        requestRender();
+    }
+
+    /**
+     * Change the minimum value for the given port
+     *
+     * @param portName     The name of the port to change.
+     * @param minimumValue The new minimum value.
+     */
+    public void setPortMinimumValue(String portName, Double minimumValue) {
+        checkValidPort(portName);
+        addEdit("Change Minimum Value");
+        controller.setPortMinimumValue(getActiveNodePath(), portName, minimumValue);
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
+     * Change the maximum value for the given port
+     *
+     * @param portName     The name of the port to change.
+     * @param maximumValue The new maximum value.
+     */
+    public void setPortMaximumValue(String portName, Double maximumValue) {
+        checkValidPort(portName);
+        addEdit("Change Maximum Value");
+        controller.setPortMaximumValue(getActiveNodePath(), portName, maximumValue);
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
+     * Add a new menu item for the given port's menu.
+     *
+     * @param portName The name of the port to add a new menu item for.
+     * @param key      The key of the new menu item.
+     * @param label    The label of the new menu item.
+     */
+    public void addPortMenuItem(String portName, String key, String label) {
+        checkValidPort(portName);
+        addEdit("Add Port Menu Item");
+
+        controller.addPortMenuItem(getActiveNodePath(), portName, key, label);
+
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
+     * Remove a menu item from the given port's menu.
+     *
+     * @param portName The name of the port to remove the menu item from.
+     * @param item      The menu item to remove
+     */
+    public void removePortMenuItem(String portName, MenuItem item) {
+        checkValidPort(portName);
+        addEdit("Remove Parameter Menu Item");
+
+        controller.removePortMenuItem(getActiveNodePath(), portName, item);
+
+        Node n = getActiveNode();
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
+     * Move a menu item down from the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to move down.
+     */
+    public void movePortMenuItemDown(String portName, int itemIndex) {
+        checkValidPort(portName);
+        addEdit("Move Port Item Down");
+        controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, false);
+        portView.updateAll();
+    }
+
+    /**
+     * Move a menu item up from the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to move up.
+     */
+    public void movePortMenuItemUp(String portName, int itemIndex) {
+        checkValidPort(portName);
+        addEdit("Move Port Item Up");
+        controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, true);
+        portView.updateAll();
+    }
+
+    /**
+     * Change a menu item's key and label in the given port's menu.
+     *
+     * @param portName  The name of the port of which to update the menu.
+     * @param itemIndex The index of the menu item to change.
+     * @param key       The new key of the menu item.
+     * @param label     The new label of the menu item.
+     */
+    public void updatePortMenuItem(String portName, int itemIndex, String key, String label) {
+        checkValidPort(portName);
+        addEdit("Update Port Menu Item");
+        controller.updatePortMenuItem(getActiveNodePath(), portName, itemIndex, key, label);
+        portView.updateAll();
+    }
+
     public Object getValue(String portName) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        Port port = checkValidPort(portName);
         return port.getValue();
     }
 
@@ -422,9 +641,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * @param value    The new value.
      */
     public void setValue(String portName, Object value) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        Port port = checkValidPort(portName);
         addEdit("Change Value", "changeValue", getActiveNodePath() + "#" + portName);
 
         controller.setPortValue(getActiveNodePath(), portName, value);
@@ -455,14 +672,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         throw new UnsupportedOperationException("Not implemented yet.");
     }
 
+    private Port checkValidPort(String portName) {
+        checkNotNull(portName, "Port cannot be null.");
+        Port port = getActiveNode().getInput(portName);
+        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        return port;
+    }
+
     //// Port pane callbacks ////
 
     public void editMetadata() {
         if (getActiveNode() == null) return;
-//                JDialog editorDialog = new NodeAttributesDialog(NodeBoxDocument.this);
-//                editorDialog.setSize(580, 751);
-//                editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
-//                editorDialog.setVisible(true);
+        JDialog editorDialog = new NodeAttributesDialog(NodeBoxDocument.this);
+        editorDialog.setSize(580, 751);
+        editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
+        editorDialog.setVisible(true);
     }
 
     //// HandleDelegate implementation ////
@@ -590,7 +814,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         //editorPane.setActiveNode(activeNode);
         // TODO If we draw handles again, we should repaint the viewer pane.
         //viewerPane.repaint(); // For the handle
-        portView.setActiveNode(n == null ? getActiveNetwork() : n);
+        portView.updateAll();
         restoring = false;
         networkView.singleSelect(n);
     }

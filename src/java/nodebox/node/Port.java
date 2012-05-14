@@ -42,6 +42,7 @@ public final class Port {
 
     public static final ImmutableMap<String, Object> DEFAULT_VALUES;
     public static final ImmutableSet<String> STANDARD_TYPES;
+    public static final ImmutableMap<String, ImmutableList<Port.Widget>> WIDGET_MAPPING;
 
     static {
         ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
@@ -53,6 +54,15 @@ public final class Port {
         b.put(TYPE_COLOR, Color.BLACK);
         DEFAULT_VALUES = b.build();
         STANDARD_TYPES = ImmutableSet.of(TYPE_INT, TYPE_FLOAT, TYPE_BOOLEAN, TYPE_STRING, TYPE_POINT, TYPE_COLOR);
+
+        ImmutableMap.Builder<String, ImmutableList<Port.Widget>> w = ImmutableMap.builder();
+        w.put(TYPE_INT, ImmutableList.of(Widget.INT, Widget.SEED));
+        w.put(TYPE_FLOAT, ImmutableList.of(Widget.ANGLE, Widget.FLOAT));
+        w.put(TYPE_BOOLEAN, ImmutableList.of(Widget.TOGGLE));
+        w.put(TYPE_STRING, ImmutableList.of(Widget.FILE, Widget.FONT, Widget.IMAGE, Widget.MENU, Widget.STRING, Widget.TEXT));
+        w.put(TYPE_POINT, ImmutableList.of(Widget.POINT));
+        w.put(TYPE_COLOR, ImmutableList.of(Widget.COLOR));
+        WIDGET_MAPPING = w.build();
     }
 
     private final String name;
@@ -550,7 +560,7 @@ public final class Port {
         }
     }
 
-    private static Object parseValue(String type, String valueString) {
+    public static Object parseValue(String type, String valueString) {
         if (type.equals("int")) {
             return Long.valueOf(valueString);
         } else if (type.equals("float")) {
@@ -579,6 +589,18 @@ public final class Port {
             return Range.LIST;
         else
             throw new AssertionError("Unknown range " + valueString);
+    }
+
+    public Port withMinimumValue(Double minimumValue) {
+        checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
+                "You can only set a minimum value on int or float ports, not %s", this);
+        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), minimumValue, getMaximumValue(), getMenuItems());
+    }
+
+    public Port withMaximumValue(Double maximumValue) {
+        checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
+                "You can only set a maximum value on int or float ports, not %s", this);
+        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), maximumValue, getMenuItems());
     }
 
     public Port withMenuItems(Iterable<MenuItem> items) {

@@ -44,7 +44,6 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
 
     private final NodeBoxDocument document;
     private final Pane pane;
-    private Node activeNode;
     private JPanel controlPanel;
     private Map<String, PortControl> controlMap = new HashMap<String, PortControl>();
 
@@ -66,14 +65,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     }
 
     public Node getActiveNode() {
-        return activeNode;
-    }
-
-    public void setActiveNode(Node node) {
-        this.activeNode = node;
-        rebuildInterface();
-        validate();
-        repaint();
+        Node activeNode = document.getActiveNode();
+        return activeNode != null ? activeNode : document.getActiveNetwork();
     }
 
     /**
@@ -81,6 +74,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
      */
     public void updateAll() {
         rebuildInterface();
+        validate();
+        repaint();
     }
 
     /**
@@ -129,9 +124,9 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     private void rebuildInterface() {
         controlPanel.removeAll();
         controlMap.clear();
-        if (activeNode == null) return;
+        if (getActiveNode() == null) return;
         int rowIndex = 0;
-        for (Port p : activeNode.getInputs()) {
+        for (Port p : getActiveNode().getInputs()) {
             // Ports starting with underscores are hidden.
             if (p.getName().startsWith("_")) continue;
             // Ports of which the values aren't persisted are hidden as well.
@@ -205,7 +200,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
 
         @Override
         protected void paintComponent(Graphics g) {
-            if (activeNode == null) {
+            if (getActiveNode() == null) {
                 Rectangle clip = g.getClipBounds();
                 g.setColor(new Color(196, 196, 196));
                 g.fillRect(clip.x, clip.y, clip.width, clip.height);

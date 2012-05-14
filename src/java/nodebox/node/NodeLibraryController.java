@@ -85,6 +85,36 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setNodeDescription(String nodePath, String description) {
+        Node newNode = getNode(nodePath).withDescription(description);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeImage(String nodePath, String image) {
+        Node newNode = getNode(nodePath).withImage(image);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeOutputType(String nodePath, String outputType) {
+        Node newNode = getNode(nodePath).withOutputType(outputType);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeOutputRange(String nodePath, Port.Range outputRange) {
+        Node newNode = getNode(nodePath).withOutputRange(outputRange);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeFunction(String nodePath, String function) {
+        Node newNode = getNode(nodePath).withFunction(function);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeHandle(String nodePath, String handle) {
+        Node newNode = getNode(nodePath).withHandle(handle);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setRenderedChild(String parentPath, String nodeName) {
         Node newParent = getNode(parentPath).withRenderedChildName(nodeName);
         replaceNodeInPath(parentPath, newParent);
@@ -168,6 +198,94 @@ public class NodeLibraryController {
                 replaceNodeInPath(parentPath, newParent);
             }
         }
+    }
+
+    public void addPort(String nodePath, String portName, String portType) {
+        Node newNode = getNode(nodePath).withInputAdded(Port.portForType(portName, portType));
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setPortWidget(String nodePath, String portName, Port.Widget widget) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withWidget(widget);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setPortRange(String nodePath, String portName, Port.Range range) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withRange(range);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setPortMinimumValue(String nodePath, String portName, Double minimumValue) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withMinimumValue(minimumValue);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setPortMaximumValue(String nodePath, String portName, Double maximumValue) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withMaximumValue(maximumValue);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void addPortMenuItem(String nodePath, String portName, String key, String label) {
+        Node node = getNode(nodePath);
+        Port port = node.getInput(portName);
+        ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
+        b.addAll(port.getMenuItems());
+        b.add(new MenuItem(key, label));
+        Port newPort = port.withMenuItems(b.build());
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void removePortMenuItem(String nodePath, String portName, MenuItem menuItem) {
+        Node node = getNode(nodePath);
+        Port port = node.getInput(portName);
+        ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
+        for (MenuItem item : port.getMenuItems()) {
+            if (item.equals(menuItem)) {
+                // Do nothing
+            } else {
+                b.add(item);
+            }
+        }
+        Port newPort = port.withMenuItems(b.build());
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void movePortMenuItem(String nodePath, String portName, int index, boolean up) {
+        Node node = getNode(nodePath);
+        Port port = node.getInput(portName);
+        List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
+        menuItems.addAll(port.getMenuItems());
+        MenuItem item = menuItems.get(index);
+        menuItems.remove(item);
+        if (up)
+            menuItems.add(index - 1, item);
+        else
+            menuItems.add(index + 1, item);
+        Port newPort = port.withMenuItems(ImmutableList.copyOf(menuItems));
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void updatePortMenuItem(String nodePath, String portName, int index, String key, String label) {
+        Node node = getNode(nodePath);
+        Port port = node.getInput(portName);
+        List<MenuItem> menuItems = new ArrayList<MenuItem>(0);
+        menuItems.addAll(port.getMenuItems());
+        if (index < 0 || index >= menuItems.size()) return;
+        menuItems.set(index, new MenuItem(key, label));
+        Port newPort = port.withMenuItems(ImmutableList.copyOf(menuItems));
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
     }
 
     public void setPortValue(String nodePath, String portName, Object value) {
