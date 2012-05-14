@@ -1,6 +1,8 @@
 package nodebox.client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import nodebox.node.Connection;
 import nodebox.node.Node;
@@ -9,7 +11,6 @@ import nodebox.node.Port;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
-import org.python.google.common.collect.ImmutableList;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,9 +22,8 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -167,8 +167,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return document.getActiveNode();
     }
 
-    private Iterable<Node> getNodes() {
+    private ImmutableList<Node> getNodes() {
         return getDocument().getActiveNetwork().getChildren();
+    }
+
+    private ImmutableList<Node> getNodesReversed() {
+        return getNodes().reverse();
     }
 
     private Iterable<Connection> getConnections() {
@@ -381,7 +385,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public Node getNodeAt(Point2D point) {
-        for (Node node : getNodes()) {
+        for (Node node : getNodesReversed()) {
             Rectangle r = nodeRect(node);
             if (r.contains(point)) {
                 return node;
@@ -395,7 +399,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public Node getNodeWithOutputPortAt(Point2D point) {
-        for (Node node : getNodes()) {
+        for (Node node : getNodesReversed()) {
             Rectangle r = outputPortRect(node);
             if (r.contains(point)) {
                 return node;
@@ -405,7 +409,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public NodePort getInputPortAt(Point2D point) {
-        for (Node node : getNodes()) {
+        for (Node node : getNodesReversed()) {
             for (Port port : node.getInputs()) {
                 Rectangle r = inputPortRect(node, port);
                 if (r.contains(point)) {

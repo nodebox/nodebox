@@ -132,7 +132,7 @@ public final class Node {
         return !children.isEmpty();
     }
 
-    public Collection<Node> getChildren() {
+    public ImmutableList<Node> getChildren() {
         return children;
     }
 
