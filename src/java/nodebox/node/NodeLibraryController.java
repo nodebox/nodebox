@@ -109,7 +109,7 @@ public class NodeLibraryController {
 
         ImmutableList.Builder<Node> b = new ImmutableList.Builder<Node>();
         for (Node node : nodes) {
-            Node newNode = node.withPosition(node.getPosition().moved(20, 80));
+            Node newNode = node.withPosition(node.getPosition().moved(4, 2));
             newNode = addNode(parentPath, newNode);
             b.add(newNode);
             newNames.put(node.getName(), newNode.getName());

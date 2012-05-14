@@ -1226,8 +1226,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.nodes);
 
         networkView.updateAll();
-        networkView.select(newNodes);
         setActiveNode(newNodes.get(0));
+        networkView.select(newNodes);
     }
 
     public void deleteSelection() {
