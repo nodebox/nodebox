@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import com.google.common.collect.ImmutableList;
 import nodebox.Icons;
 import nodebox.node.Port;
 import nodebox.node.MenuItem;
@@ -11,6 +12,8 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PortAttributesEditor extends JPanel implements ActionListener, FocusListener {
 
@@ -18,6 +21,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     private JTextField nameField;
     private JTextField labelField;
+    private JTextField typeField;
     private JComboBox widgetBox;
     private JTextField valueField;
     private JTextField minimumValueField;
@@ -30,7 +34,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JButton upButton;
     private JButton downButton;
 
-    private static HumanizedWidget[] humanizedWidgets;
+    private static Map<String, HumanizedWidget[]> humanizedWidgetsMap;
 
     private static class HumanizedWidget {
         private Port.Widget widget;
@@ -50,10 +54,14 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     }
 
     static {
-        Port.Widget[] widgets = Port.Widget.values();
-        humanizedWidgets = new HumanizedWidget[widgets.length];
-        for (int i = 0; i < widgets.length; i++) {
-            humanizedWidgets[i] = new HumanizedWidget(widgets[i]);
+        humanizedWidgetsMap = new HashMap<String, HumanizedWidget[]>();
+        for (String key : Port.WIDGET_MAPPING.keySet()) {
+            ImmutableList<Port.Widget> widgets = Port.WIDGET_MAPPING.get(key);
+            HumanizedWidget[] humanizedWidgets = new HumanizedWidget[widgets.size()];
+            for (int i = 0; i < widgets.size(); i++) {
+                humanizedWidgets[i] = new HumanizedWidget(widgets.get(i));
+            }
+            humanizedWidgetsMap.put(key, humanizedWidgets);
         }
     }
 
@@ -95,15 +103,20 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
         // Label
         labelField = new JTextField(20);
-        labelField.addActionListener(this);
-        labelField.addFocusListener(this);
         labelField.setEditable(false);
         addRow("Label", labelField);
 
+        // Type
+        typeField = new JTextField(20);
+        typeField.setEditable(false);
+        addRow("Type", typeField);
+
         // Widget
-        widgetBox = new JComboBox(humanizedWidgets);
-        widgetBox.addActionListener(this);
-        addRow("Widget", widgetBox);
+        if (getPort().isStandardType()) {
+            widgetBox = new JComboBox(humanizedWidgetsMap.get(getPort().getType()));
+            widgetBox.addActionListener(this);
+            addRow("Widget", widgetBox);
+        }
 
         // Value
         valueField = new JTextField(20);
@@ -174,10 +187,11 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         Port port = getPort();
         nameField.setText(port.getName());
         labelField.setText(port.getLabel());
-        widgetBox.setSelectedItem(getHumanizedWidget(port.getWidget()));
-        if (port.isStandardType())
+        typeField.setText(StringUtils.humanizeConstant(port.getType()));
+        if (port.isStandardType()) {
+            widgetBox.setSelectedItem(getHumanizedWidget(port.getWidget()));
             valueField.setText(port.getValue().toString());
-        else
+        } else
             valueField.setEnabled(false);
         Object minimumValue = port.getMinimumValue();
         String minimumValueString = minimumValue == null ? "" : minimumValue.toString();
@@ -250,7 +264,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     }
 
     private HumanizedWidget getHumanizedWidget(Port.Widget widget) {
-        for (HumanizedWidget humanizedWidget : humanizedWidgets) {
+        for (HumanizedWidget humanizedWidget : humanizedWidgetsMap.get(getPort().getType())) {
             if (humanizedWidget.getWidget() == widget) return humanizedWidget;
         }
         throw new AssertionError("Widget is not in humanized widget list.");
