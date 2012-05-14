@@ -2,7 +2,6 @@ package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import nodebox.node.Connection;
 import nodebox.node.Node;
@@ -22,16 +21,18 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseMotionListener {
 
-    public static final int GRID_CELL_SIZE = 40;
-    public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 10;
-    public static final int NODE_HEIGHT = GRID_CELL_SIZE - 10;
+    public static final int GRID_CELL_SIZE = 44;
+    public static final int GRID_OFFSET = 6;
+    public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 12;
+    public static final int NODE_HEIGHT = GRID_CELL_SIZE - 12;
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
     public static final int PORT_SPACING = 10;
@@ -45,10 +46,13 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
 
-    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
     public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
     public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
+    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
+    public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
+    public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
+    public static final Color TOOLTIP_TEXT_COLOR = Color.DARK_GRAY;
 
     private static Cursor defaultCursor, panCursor;
 
@@ -201,6 +205,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         paintNodes(g2);
         paintConnections(g2);
         paintCurrentConnection(g2);
+        paintPortTooltip(g2);
 
         // Restore original transform
         g2.setTransform(originalTransform);
@@ -212,10 +217,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
 
         for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
-            g.drawLine(0, y - 5 + transformOffsetY, getWidth(), y - 5 + transformOffsetY);
+            g.drawLine(0, y - GRID_OFFSET + transformOffsetY, getWidth(), y - GRID_OFFSET  + transformOffsetY);
         }
         for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
-            g.drawLine(x - 5 + transformOffsetX, 0, x - 5 + transformOffsetX, getHeight());
+            g.drawLine(x - GRID_OFFSET  + transformOffsetX, 0, x - GRID_OFFSET  + transformOffsetX, getHeight());
         }
     }
 
@@ -324,6 +329,35 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.fillRect(r.x + 5, r.y + 5, NODE_HEIGHT - 10, NODE_HEIGHT - 10);
         g.setColor(Color.WHITE);
         g.drawString(node.getName(), r.x + 30, r.y + 20);
+    }
+
+    private void paintPortTooltip(Graphics2D g) {
+        if (overInput != null) {
+            Rectangle r = inputPortRect(overInput.node, overInput.port);
+            Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
+            String text = String.format("%s (%s)", overInput.port.getName(), overInput.port.getType());
+            paintTooltip(g, pt, text);
+        } else if (overOutput != null) {
+            Rectangle r = outputPortRect(overOutput);
+            Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
+            String text = String.format("output (%s)", overOutput.getOutputType());
+            paintTooltip(g, pt, text);
+        }
+    }
+
+    private static void paintTooltip(Graphics2D g, Point2D point, String text) {
+        FontMetrics fontMetrics = g.getFontMetrics();
+        int textWidth = fontMetrics.stringWidth(text);
+
+        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY(), textWidth, fontMetrics.getHeight());
+        r.grow(4, 3);
+        g.setColor(TOOLTIP_STROKE_COLOR);
+        g.drawRoundRect(r.x, r.y, r.width, r.height, 8, 8);
+        g.setColor(TOOLTIP_BACKGROUND_COLOR);
+        g.fillRoundRect(r.x, r.y, r.width, r.height, 8, 8);
+
+        g.setColor(TOOLTIP_TEXT_COLOR);
+        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent());
     }
 
     private static Rectangle nodeRect(Node node) {
@@ -721,6 +755,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             repaint();
             connectionInput = getInputPortAt(pt);
             connectionPoint = pt;
+            overOutput = getNodeWithOutputPortAt(pt);
             overInput = getInputPortAt(pt);
         }
 
