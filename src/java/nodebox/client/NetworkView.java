@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import nodebox.node.Connection;
 import nodebox.node.Node;
+import nodebox.node.NodePort;
 import nodebox.node.Port;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
@@ -43,6 +44,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
+    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
 
     private final NodeBoxDocument document;
 
@@ -64,11 +66,13 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private int dragStartX = 0;
     private int dragStartY = 0;
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
+    private NodePort overInput;
+    private Node overOutput;
 
     public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
     private boolean startDragging;
     private Point2D dragStartPoint;
-
+    private String hoverNodeName, hoverNodePort;
 
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
     public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
@@ -118,7 +122,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void initMenus() {
         networkMenu = new JPopupMenu();
-        networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
     }
@@ -223,7 +226,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private void paintNodes(Graphics2D g) {
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         for (Node node : getNodes()) {
-            paintNode(g, node, isSelected(node), isRendered(node));
+            Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
+            paintNode(g, node, isSelected(node), isRendered(node), hoverInputPort, isHovering(node));
         }
     }
 
@@ -232,19 +236,29 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered) {
+    private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutputPort) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
+
+        // Draw selection ring
         if (selected) {
             g.setColor(Color.WHITE);
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
-            g.setColor(portTypeColor(outputType));
-            g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
+        }
+
+        // Draw node
+        if (hoverOutputPort) {
+            g.setColor(Color.RED);
         } else {
             g.setColor(portTypeColor(outputType));
+        }
+        if (selected) {
+            g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
+        } else {
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
         }
 
+        // Draw render flag
         if (rendered) {
             g.setColor(Color.WHITE);
             GeneralPath gp = new GeneralPath();
@@ -258,14 +272,18 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.setColor(Color.WHITE);
         int portX = 0;
         for (Port input : node.getInputs()) {
-            g.setColor(portTypeColor(input.getType()));
+            if (hoverInputPort == input) {
+                g.setColor(PORT_HOVER_COLOR);
+            } else {
+                g.setColor(portTypeColor(input.getType()));
+            }
             g.fillRect(r.x + portX, r.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
             portX += PORT_WIDTH + PORT_SPACING;
         }
 
         // Draw output port
-        if (selected) {
-            g.setColor(Color.WHITE);
+        if (overOutput == node) {
+            g.setColor(PORT_HOVER_COLOR);
         } else {
             g.setColor(portTypeColor(outputType));
         }
@@ -277,9 +295,28 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.drawString(node.getName(), r.x + 30, r.y + 20);
     }
 
-
     private Rectangle nodeRect(Node node) {
         return new Rectangle(nodePoint(node), NODE_DIMENSION);
+    }
+
+    private Rectangle inputPortRect(Node node, Port port) {
+        int portIndex = node.getInputs().indexOf(port);
+        Point pt = nodePoint(node);
+        int portOffset = (PORT_WIDTH + PORT_SPACING) * portIndex;
+        Rectangle portRect = new Rectangle(pt.x + portOffset, pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        growHitRectangle(portRect);
+        return portRect;
+    }
+
+    private Rectangle outputPortRect(Node node) {
+        Point pt = nodePoint(node);
+        Rectangle portRect = new Rectangle(pt.x, pt.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        growHitRectangle(portRect);
+        return portRect;
+    }
+
+    private void growHitRectangle(Rectangle r) {
+        r.grow(2, 2);
     }
 
     private Point nodePoint(Node node) {
@@ -323,6 +360,28 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return getNodeAt(e.getPoint());
     }
 
+    public Node getNodeWithOutputPortAt(Point2D point) {
+        for (Node node : getNodes()) {
+            Rectangle r = outputPortRect(node);
+            if (r.contains(point)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    public NodePort getInputPortAt(Point2D point) {
+        for (Node node : getNodes()) {
+            for (Port port : node.getInputs()) {
+                Rectangle r = inputPortRect(node, port);
+                if (r.contains(point)) {
+                    return NodePort.of(node, port);
+                }
+            }
+        }
+        return null;
+    }
+
     //// Selections ////
 
     public boolean isRendered(Node node) {
@@ -331,6 +390,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public boolean isSelected(Node node) {
         return (selectedNodes.contains(node.getName()));
+    }
+
+    private boolean isHovering(Node node) {
+        return node.getName().equals(hoverNodeName);
     }
 
     public void select(Node node) {
@@ -691,21 +754,28 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void mousePressed(MouseEvent e) {
-        Point2D pt = inverseViewTransformPoint(e.getPoint());
-        Node pressedNode = getNodeAt(pt);
-        if (pressedNode != null) {
-            // Don't immediately set "isDragging."
-            // We wait until we actually drag the first time to do the work.
-            startDragging = true;
-        }
-        if (isPanningView) {
-            // When panning the view use the original mouse point, not the one affected by the view transform.
-            dragStartPoint = e.getPoint();
+        if (e.isPopupTrigger()) {
+            networkMenu.show(this, e.getX(), e.getY());
+        } else {
+            Point2D pt = inverseViewTransformPoint(e.getPoint());
+            Node pressedNode = getNodeAt(pt);
+            if (pressedNode != null) {
+                // Don't immediately set "isDragging."
+                // We wait until we actually drag the first time to do the work.
+                startDragging = true;
+            }
+            if (isPanningView) {
+                // When panning the view use the original mouse point, not the one affected by the view transform.
+                dragStartPoint = e.getPoint();
+            }
         }
     }
 
     public void mouseReleased(MouseEvent e) {
         isDraggingNodes = false;
+        if (e.isPopupTrigger()) {
+            networkMenu.show(this, e.getX(), e.getY());
+        }
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -755,6 +825,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void mouseMoved(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        overOutput = getNodeWithOutputPortAt(pt);
+        overInput = getInputPortAt(pt);
+        // It is probably very inefficient to repaint the view every time the mouse moves.
+        repaint();
     }
 
     private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
@@ -880,16 +955,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 //            document.showNodeSelectionDialog();
 //        }
 //    }
-
-    private class NewNodeAction extends AbstractAction {
-        public NewNodeAction() {
-            super("New Node...");
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            document.showNodeSelectionDialog();
-        }
-    }
 
     private class ResetViewAction extends AbstractAction {
         private ResetViewAction() {
