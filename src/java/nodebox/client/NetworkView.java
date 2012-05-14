@@ -129,6 +129,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return document.getActiveNetwork();
     }
 
+    //// Events ////
+
     /**
      * Refresh the nodes and connections cache.
      */
@@ -148,6 +150,18 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void updatePosition(Node node) {
         updateConnections();
     }
+
+    public void checkErrorAndRepaint() {
+        //if (!networkError && !activeNetwork.hasError()) return;
+        //networkError = activeNetwork.hasError();
+        repaint();
+    }
+
+    public void codeChanged(Node node, boolean changed) {
+        repaint();
+    }
+
+    //// Model queries ////
 
     public Node getActiveNode() {
         return document.getActiveNode();
@@ -227,7 +241,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    private void paintConnectionLine(Graphics2D g, int x0, int y0, int x1, int y1) {
+    private static void paintConnectionLine(Graphics2D g, int x0, int y0, int x1, int y1) {
         double dy = Math.abs(y1 - y0);
         if (dy < GRID_CELL_SIZE) {
             g.drawLine(x0, y0, x1, y1);
@@ -240,10 +254,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    private Node findNodeWithName(String name) {
-        return getActiveNetwork().getChild(name);
-    }
-
     private void paintNodes(Graphics2D g) {
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         for (Node node : getNodes()) {
@@ -252,12 +262,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    private Color portTypeColor(String type) {
+    private static Color portTypeColor(String type) {
         Color portColor = PORT_COLORS.get(type);
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
+    private static void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -312,29 +322,29 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.drawString(node.getName(), r.x + 30, r.y + 20);
     }
 
-    private Rectangle nodeRect(Node node) {
+    private static Rectangle nodeRect(Node node) {
         return new Rectangle(nodePoint(node), NODE_DIMENSION);
     }
 
-    private Rectangle inputPortRect(Node node, Port port) {
+    private static Rectangle inputPortRect(Node node, Port port) {
         Point pt = nodePoint(node);
         Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
         growHitRectangle(portRect);
         return portRect;
     }
 
-    private Rectangle outputPortRect(Node node) {
+    private static Rectangle outputPortRect(Node node) {
         Point pt = nodePoint(node);
         Rectangle portRect = new Rectangle(pt.x, pt.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
         growHitRectangle(portRect);
         return portRect;
     }
 
-    private void growHitRectangle(Rectangle r) {
+    private static void growHitRectangle(Rectangle r) {
         r.grow(2, 2);
     }
 
-    private Point nodePoint(Node node) {
+    private static Point nodePoint(Node node) {
         int nodeX = ((int) node.getPosition().getX()) * GRID_CELL_SIZE;
         int nodeY = ((int) node.getPosition().getY()) * GRID_CELL_SIZE;
         return new Point(nodeX, nodeY);
@@ -352,6 +362,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
     }
 
+    private static int portOffset(Node node, Port port) {
+        int portIndex = node.getInputs().indexOf(port);
+        return (PORT_WIDTH + PORT_SPACING) * portIndex;
+    }
+
     //// View Transform ////
 
     private void resetViewTransform() {
@@ -360,6 +375,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     //// View queries ////
+
+    private Node findNodeWithName(String name) {
+        return getActiveNetwork().getChild(name);
+    }
 
     public Node getNodeAt(Point2D point) {
         for (Node node : getNodes()) {
@@ -397,11 +416,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return null;
     }
 
-    private int portOffset(Node node, Port port) {
-        int portIndex = node.getInputs().indexOf(port);
-        return (PORT_WIDTH + PORT_SPACING) * portIndex;
-    }
-
     //// Selections ////
 
     public boolean isRendered(Node node) {
@@ -435,6 +449,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void select(Iterable<Node> nodes) {
+        selectedNodes.clear();
+        for (Node node : nodes) {
+            selectedNodes.add(node.getName());
+        }
     }
 
     //    public void select(Set<NodeView> newSelection) {
@@ -527,23 +545,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         repaint();
     }
 
-    //
-//    private Set<NodeView> nodesToNodeViews(Iterable<Node> nodes) {
-//        Set<NodeView> nodeViews = new HashSet<NodeView>();
-//        for (Node node : nodes) {
-//            nodeViews.add(getNodeView(node));
-//        }
-//        return nodeViews;
-//    }
-//
-//    private Set<Node> nodeViewsToNodes(Iterable<NodeView> nodeViews) {
-//        Set<Node> nodes = new HashSet<Node>();
-//        for (NodeView nodeView : nodeViews) {
-//            nodes.add(nodeView.getNode());
-//        }
-//        return nodes;
-//    }
-//
     public Iterable<String> getSelectedNodeNames() {
         return selectedNodes;
     }
@@ -558,130 +559,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public void deleteSelection() {
         document.removeNodes(getSelectedNodes());
-//        else if (networkView.hasSelectedConnection())
-//            networkView.deleteSelectedConnection();
     }
-//
-//    public boolean hasSelectedConnection() {
-//        return connectionLayer.hasSelection();
-//    }
-//
-//    public void deleteSelectedConnection() {
-//        if (hasSelectedConnection())
-//            connectionLayer.deleteSelected();
-//    }
-
-    //// Events ////
-
-    public void checkErrorAndRepaint() {
-        //if (!networkError && !activeNetwork.hasError()) return;
-        //networkError = activeNetwork.hasError();
-        repaint();
-    }
-
-    public void codeChanged(Node node, boolean changed) {
-        repaint();
-    }
-
-    //// Dragging ////
-
-//    /**
-//     * Change the position of all the selected nodes by adding the delta values to their positions.
-//     *
-//     * @param deltaX the change from the original X position.
-//     * @param deltaY the change from the original Y position.
-//     */
-//    public void dragSelection(double deltaX, double deltaY) {
-//        for (NodeView nv : selectedNodes) {
-//            Point2D pt = nv.getOffset();
-//            nv.setOffset(pt.getX() + deltaX, pt.getY() + deltaY);
-//        }
-//    }
-
-    //// Connections ////
-
-//    /**
-//     * This method gets called when we start dragging a connection line from a node view.
-//     *
-//     * @param connectionSource the node view where we start from.
-//     */
-//    public void startConnection(NodeView connectionSource) {
-//        this.connectionSource = connectionSource;
-//    }
-//
-//    /**
-//     * This method gets called from the NodeView to connect the output port to the input port.
-//     *
-//     * @param outputNode The output node.
-//     * @param inputNode  The input node.
-//     * @param inputPort  The input port.
-//     */
-//    public void connect(Node outputNode, Node inputNode, Port inputPort) {
-//        getDocument().connect(outputNode, inputNode, inputPort);
-//    }
-//
-//    /**
-//     * This method gets called when a dragging operation ends.
-//     * <p/>
-//     * We don't care if a connection was established or not.
-//     */
-//    public void endConnection() {
-//        NodeView oldTarget = this.connectionTarget;
-//        this.connectionSource = null;
-//        connectionTarget = null;
-//        connectionPoint = null;
-//        if (oldTarget != null)
-//            oldTarget.repaint();
-//        connectionLayer.repaint();
-//    }
-//
-//    /**
-//     * Return true if we are in the middle of a connection drag operation.
-//     *
-//     * @return true if we are connecting nodes together.
-//     */
-//    public boolean isConnecting() {
-//        return connectionSource != null;
-//    }
-
-//    /**
-//     * NodeView calls this method to indicate that the mouse was dragged while connecting.
-//     * <p/>
-//     * This method updates the point and redraws the connection layer.
-//     *
-//     * @param pt the new mouse location.
-//     */
-//    public void dragConnectionPoint(Point2D pt) {
-//        assert isConnecting();
-//        this.connectionPoint = pt;
-//        connectionLayer.repaint();
-//    }
-//
-//    /**
-//     * NodeView calls this method to indicate that the new target is now the given node view.
-//     *
-//     * @param target the new NodeView target.
-//     */
-//    public void setTemporaryConnectionTarget(NodeView target) {
-//        NodeView oldTarget = this.connectionTarget;
-//        this.connectionTarget = target;
-//        if (oldTarget != null)
-//            oldTarget.repaint();
-//        if (connectionTarget != null)
-//            connectionTarget.repaint();
-//    }
-
-//    public NodeView getConnectionSource() {
-//        return connectionSource;
-//    }
-//
-//    public NodeView getConnectionTarget() {
-//        return connectionTarget;
-//    }
-//
-//    public Point2D getConnectionPoint() {
-//        return connectionPoint;
-//    }
 
     //// Network navigation ////
 
@@ -978,26 +856,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 //            selectionMarker = null;
 //            select(temporarySelection);
 //            temporarySelection.clear();
-//        }
-//    }
-
-//    private class PopupHandler extends PBasicInputEventHandler {
-//        public void processEvent(PInputEvent e, int i) {
-//            if (!e.isPopupTrigger()) return;
-//            if (e.isHandled()) return;
-//            Point2D p = e.getCanvasPosition();
-//            networkMenu.show(NetworkView.this, (int) p.getX(), (int) p.getY());
-//        }
-//    }
-
-//    private class DoubleClickHandler extends PBasicInputEventHandler {
-//        @Override
-//        public void processEvent(PInputEvent e, int i) {
-//            if (e.getClickCount() != 2) return;
-//            NodeView view = getNodeViewAt(e.getPosition());
-//            if (view != null || e.isHandled()) return;
-//            e.setHandled(true);
-//            document.showNodeSelectionDialog();
 //        }
 //    }
 
