@@ -401,9 +401,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void setPortWidget(String portName, Port.Widget widget) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        checkValidPort(portName);
         addEdit("Change Widget");
         controller.setPortWidget(getActiveNodePath(), portName, widget);
         portView.updateAll();
@@ -411,18 +409,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void setPortRange(String portName, Port.Range range) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        checkValidPort(portName);
         addEdit("Change Port Range");
         controller.setPortRange(getActiveNodePath(), portName, range);
         requestRender();
     }
 
     public void setPortMinimumValue(String portName, Double minimumValue) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        checkValidPort(portName);
         addEdit("Change Minimum Value");
         controller.setPortMinimumValue(getActiveNodePath(), portName, minimumValue);
         portView.updateAll();
@@ -430,9 +424,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void setPortMaximumValue(String portName, Double maximumValue) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        checkValidPort(portName);
         addEdit("Change Maximum Value");
         controller.setPortMaximumValue(getActiveNodePath(), portName, maximumValue);
         portView.updateAll();
@@ -440,6 +432,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void addPortMenuItem(String portName, String key, String label) {
+        checkValidPort(portName);
         addEdit("Add Port Menu Item");
 
         controller.addPortMenuItem(getActiveNodePath(), portName, key, label);
@@ -449,6 +442,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void removePortMenuItem(String portName, MenuItem item) {
+        checkValidPort(portName);
         addEdit("Remove Parameter Menu Item");
 
         controller.removePortMenuItem(getActiveNodePath(), portName, item);
@@ -459,27 +453,28 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void movePortMenuItemDown(String portName, int itemIndex) {
+        checkValidPort(portName);
         addEdit("Move Port Item Down");
         controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, false);
         portView.updateAll();
     }
 
     public void movePortMenuItemUp(String portName, int itemIndex) {
+        checkValidPort(portName);
         addEdit("Move Port Item Up");
         controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, true);
         portView.updateAll();
     }
 
     public void updatePortMenuItem(String portName, int itemIndex, String key, String label) {
+        checkValidPort(portName);
         addEdit("Update Port Menu Item");
         controller.updatePortMenuItem(getActiveNodePath(), portName, itemIndex, key, label);
         portView.updateAll();
     }
 
     public Object getValue(String portName) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        Port port = checkValidPort(portName);
         return port.getValue();
     }
 
@@ -490,9 +485,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * @param value    The new value.
      */
     public void setValue(String portName, Object value) {
-        checkNotNull(portName, "Port cannot be null.");
-        Port port = getActiveNode().getInput(portName);
-        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        Port port = checkValidPort(portName);
         addEdit("Change Value", "changeValue", getActiveNodePath() + "#" + portName);
 
         controller.setPortValue(getActiveNodePath(), portName, value);
@@ -521,6 +514,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void setPortMetadata(Port port, String key, String value) {
         addEdit("Change Port Metadata");
         throw new UnsupportedOperationException("Not implemented yet.");
+    }
+
+    private Port checkValidPort(String portName) {
+        checkNotNull(portName, "Port cannot be null.");
+        Port port = getActiveNode().getInput(portName);
+        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        return port;
     }
 
     //// Port pane callbacks ////
