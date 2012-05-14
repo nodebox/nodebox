@@ -44,41 +44,34 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
-    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
 
-    private final NodeBoxDocument document;
+    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
+    public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
+    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
+    public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
 
     private static Cursor defaultCursor, panCursor;
 
-    private Set<String> selectedNodes = new HashSet<String>();
+    private final NodeBoxDocument document;
 
-    //private SelectionMarker selectionMarker;
     private JPopupMenu networkMenu;
-    private NodeView connectionSource, connectionTarget;
+
+    // View state
     private AffineTransform viewTransform = new AffineTransform();
+    private Set<String> selectedNodes = new HashSet<String>();
 
     // Interaction state
     private boolean isDraggingNodes = false;
-    private boolean isMakingConnection = false;
     private boolean isPanningView = false;
     private boolean isShiftPressed = false;
-    private int dragStartX = 0;
-    private int dragStartY = 0;
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
     private Node overOutput;
     private Node connectionOutput;
     private NodePort connectionInput;
     private Point2D connectionPoint;
-
-    public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
     private boolean startDragging;
     private Point2D dragStartPoint;
-    private String hoverNodeName, hoverNodePort;
-
-    public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
-    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
-
 
     static {
         Image panCursorImage;
@@ -255,7 +248,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
-            paintNode(g, node, isSelected(node), isRendered(node), hoverInputPort, isHovering(node));
+            paintNode(g, node, isSelected(node), isRendered(node), hoverInputPort, overOutput == node);
         }
     }
 
@@ -264,7 +257,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutputPort) {
+    private void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -275,11 +268,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         // Draw node
-        if (hoverOutputPort) {
-            g.setColor(Color.RED);
-        } else {
-            g.setColor(portTypeColor(outputType));
-        }
+        g.setColor(portTypeColor(outputType));
         if (selected) {
             g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
         } else {
@@ -310,7 +299,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         // Draw output port
-        if (overOutput == node) {
+        if (hoverOutput) {
             g.setColor(PORT_HOVER_COLOR);
         } else {
             g.setColor(portTypeColor(outputType));
@@ -421,10 +410,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public boolean isSelected(Node node) {
         return (selectedNodes.contains(node.getName()));
-    }
-
-    private boolean isHovering(Node node) {
-        return node.getName().equals(hoverNodeName);
     }
 
     public void select(Node node) {
@@ -881,7 +866,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
                 getDocument().setNodePosition(findNodeWithName(name), newPosition);
             }
-        } else if (isMakingConnection) {
         }
     }
 
