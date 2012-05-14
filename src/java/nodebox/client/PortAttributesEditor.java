@@ -35,56 +35,39 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JButton upButton;
     private JButton downButton;
 
-    private static Map<String, HumanizedWidget[]> humanizedWidgetsMap;
-    private static HumanizedRange[] humanizedRanges;
+    private static Map<String, HumanizedObject[]> humanizedWidgetsMap;
+    private static HumanizedObject[] humanizedRanges;
 
-    private static class HumanizedWidget {
-        private Port.Widget widget;
+    private static class HumanizedObject {
+        private Object object;
 
-        private HumanizedWidget(Port.Widget widget) {
-            this.widget = widget;
+        private HumanizedObject(Object o) {
+            this.object = o;
         }
 
-        public Port.Widget getWidget() {
-            return widget;
-        }
-
-        @Override
-        public String toString() {
-            return StringUtils.humanizeConstant(widget.toString());
-        }
-    }
-
-    private static class HumanizedRange {
-        private Port.Range range;
-
-        private HumanizedRange(Port.Range range) {
-            this.range = range;
-        }
-
-        public Port.Range getRange() {
-            return range;
+        public Object getObject() {
+            return object;
         }
 
         @Override
         public String toString() {
-            return StringUtils.humanizeConstant(range.toString());
+            return StringUtils.humanizeConstant(object.toString());
         }
     }
 
     static {
-        humanizedWidgetsMap = new HashMap<String, HumanizedWidget[]>();
+        humanizedWidgetsMap = new HashMap<String, HumanizedObject[]>();
         for (String key : Port.WIDGET_MAPPING.keySet()) {
             ImmutableList<Port.Widget> widgets = Port.WIDGET_MAPPING.get(key);
-            HumanizedWidget[] humanizedWidgets = new HumanizedWidget[widgets.size()];
+            HumanizedObject[] humanizedWidgets = new HumanizedObject[widgets.size()];
             for (int i = 0; i < widgets.size(); i++) {
-                humanizedWidgets[i] = new HumanizedWidget(widgets.get(i));
+                humanizedWidgets[i] = new HumanizedObject(widgets.get(i));
             }
             humanizedWidgetsMap.put(key, humanizedWidgets);
         }
-        humanizedRanges = new HumanizedRange[Port.Range.values().length];
+        humanizedRanges = new HumanizedObject[Port.Range.values().length];
         for (int i = 0; i < Port.Range.values().length; i++) {
-            humanizedRanges[i] = new HumanizedRange(Port.Range.values()[i]);
+            humanizedRanges[i] = new HumanizedObject(Port.Range.values()[i]);
         }
     }
 
@@ -238,13 +221,13 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     public void actionPerformed(ActionEvent e) {
         Port port = getPort();
         if (e.getSource() == widgetBox) {
-            HumanizedWidget newWidget = (HumanizedWidget) widgetBox.getSelectedItem();
-            if (port.getWidget() == newWidget.getWidget()) return;
-            nodeAttributesDialog.setPortWidget(portName, newWidget.getWidget());
+            HumanizedObject newWidget = (HumanizedObject) widgetBox.getSelectedItem();
+            if (port.getWidget() == newWidget.getObject()) return;
+            nodeAttributesDialog.setPortWidget(portName, (Port.Widget) newWidget.getObject());
         } else if (e.getSource() == rangeBox) {
-            HumanizedRange newRange = (HumanizedRange) rangeBox.getSelectedItem();
-            if (port.getRange() == newRange.getRange()) return;
-            nodeAttributesDialog.setPortRange(portName, newRange.getRange());
+            HumanizedObject newRange = (HumanizedObject) rangeBox.getSelectedItem();
+            if (port.getRange() == newRange.getObject()) return;
+            nodeAttributesDialog.setPortRange(portName, (Port.Range) newRange.getObject());
         } else if (e.getSource() == valueField) {
             String newValue = valueField.getText();
             if (port.getValue() != null && port.getValue().toString().equals(newValue)) return;
@@ -295,16 +278,16 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         updateValues();
     }
 
-    private HumanizedWidget getHumanizedWidget(Port.Widget widget) {
-        for (HumanizedWidget humanizedWidget : humanizedWidgetsMap.get(getPort().getType())) {
-            if (humanizedWidget.getWidget() == widget) return humanizedWidget;
+    private HumanizedObject getHumanizedWidget(Port.Widget widget) {
+        for (HumanizedObject humanizedWidget : humanizedWidgetsMap.get(getPort().getType())) {
+            if (humanizedWidget.getObject() == widget) return humanizedWidget;
         }
         throw new AssertionError("Widget is not in humanized widget list.");
     }
 
-    private HumanizedRange getHumanizedRange(Port.Range range) {
-        for (HumanizedRange humanizedRange : humanizedRanges) {
-            if (humanizedRange.getRange() == range) return humanizedRange;
+    private HumanizedObject getHumanizedRange(Port.Range range) {
+        for (HumanizedObject humanizedRange : humanizedRanges) {
+            if (humanizedRange.getObject() == range) return humanizedRange;
         }
         throw new AssertionError("Range is not in humanized range list.");
     }
