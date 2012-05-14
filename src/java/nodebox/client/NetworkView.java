@@ -103,16 +103,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public NetworkView(NodeBoxDocument document) {
         this.document = document;
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
-//        DialogHandler dialogHandler = new DialogHandler();
-//        addKeyListener(dialogHandler);
-//        addKeyListener(new DeleteHandler());
-//        addKeyListener(new UpDownHandler());
+        initEventHandlers();
+        initMenus();
+    }
+
+    private void initEventHandlers() {
+        setFocusable(true);
+        // This is disabled so we can detect the tab key.
+        setFocusTraversalKeysEnabled(false);
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
-        initMenus();
-        // This is disabled so we can detect the tab key.
-        setFocusTraversalKeysEnabled(false);
     }
 
     private void initMenus() {
@@ -287,6 +288,18 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return new Point(nodeX, nodeY);
     }
 
+    private Point pointToGridPoint(Point e) {
+        Point2D pt;
+        try {
+            pt = viewTransform.inverseTransform(e, null);
+        } catch (NoninvertibleTransformException e1) {
+            pt = e;
+        }
+        return new Point(
+                (int) Math.floor(pt.getX() / GRID_CELL_SIZE),
+                (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
+    }
+
     //// View Transform ////
 
     private void resetViewTransform() {
@@ -434,6 +447,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         selectedNodes.clear();
         firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
         document.setActiveNode((Node) null);
+        repaint();
     }
 
     //
@@ -466,13 +480,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void deleteSelection() {
-//        java.util.List<Node> selectedNodes = networkView.getSelectedNodes();
-//        if (!selectedNodes.isEmpty()) {
-//            Node node = getActiveNode();
-//            if (node != null && selectedNodes.contains(node))
-//                viewerPane.setHandle(null);
-//            removeNodes(networkView.getSelectedNodes());
-//        }
+        document.removeNodes(getSelectedNodes());
 //        else if (networkView.hasSelectedConnection())
 //            networkView.deleteSelectedConnection();
     }
@@ -620,6 +628,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     //// Input Events ////
 
     public void keyTyped(KeyEvent e) {
+        switch (e.getKeyChar()) {
+            case KeyEvent.VK_BACK_SPACE:
+                getDocument().deleteSelection();
+                break;
+            case KeyEvent.VK_U:
+                goUp();
+                break;
+            case KeyEvent.VK_ENTER:
+                goDown();
+                break;
+        }
     }
 
     public void keyPressed(KeyEvent e) {
@@ -662,7 +681,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             } else if (e.getClickCount() == 2) {
                 Node clickedNode = getNodeAt(pt);
                 if (clickedNode == null) {
-                    // showNodeSelectionDialog();
+                    Point gridPoint = pointToGridPoint(e.getPoint());
+                    getDocument().showNodeSelectionDialog(gridPoint);
                 } else {
                     document.setRenderedNode(clickedNode);
                 }
@@ -705,7 +725,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             repaint();
             return;
         }
-
 
         if (startDragging) {
             startDragging = false;
@@ -841,37 +860,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 //            temporarySelection.clear();
 //        }
 //    }
-
-    private class UpDownHandler extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_U:
-                    goUp();
-                    break;
-                case KeyEvent.VK_ENTER:
-                    goDown();
-                    break;
-            }
-        }
-    }
-
-    private class DialogHandler extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                document.showNodeSelectionDialog();
-            }
-        }
-    }
-
-    private class DeleteHandler extends KeyAdapter {
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                getDocument().deleteSelection();
-            }
-        }
-    }
 
 //    private class PopupHandler extends PBasicInputEventHandler {
 //        public void processEvent(PInputEvent e, int i) {
