@@ -254,6 +254,40 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    public void setNodeDescription(Node node, String description) {
+        checkNotNull(node);
+        checkNotNull(description);
+        addEdit("Set Node Description");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeDescription(nodePath, description);
+    }
+
+    public void setNodeImage(Node node, String image) {
+        checkNotNull(node);
+        checkNotNull(image);
+        addEdit("Set Node Image");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeImage(nodePath, image);
+        networkView.updateNodes();
+    }
+
+    public void setNodeOutputType(Node node, String outputType) {
+        checkNotNull(node);
+        checkNotNull(outputType);
+        addEdit("Set Output Type");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeOutputType(nodePath, outputType);
+        networkView.updateNodes();
+    }
+
+    public void setNodeOutputRange(Node node, Port.Range outputRange) {
+        checkNotNull(node);
+        addEdit("Change Node Output Range");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeOutputRange(nodePath, outputRange);
+        requestRender();
+    }
+
     /**
      * Set the node metadata to the given metadata.
      * Note that this method is not called when the node position or name changes.

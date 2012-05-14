@@ -85,6 +85,26 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setNodeDescription(String nodePath, String description) {
+        Node newNode = getNode(nodePath).withDescription(description);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeImage(String nodePath, String image) {
+        Node newNode = getNode(nodePath).withImage(image);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeOutputType(String nodePath, String outputType) {
+        Node newNode = getNode(nodePath).withOutputType(outputType);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeOutputRange(String nodePath, Port.Range outputRange) {
+        Node newNode = getNode(nodePath).withOutputRange(outputRange);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setRenderedChild(String parentPath, String nodeName) {
         Node newParent = getNode(parentPath).withRenderedChildName(nodeName);
         replaceNodeInPath(parentPath, newParent);

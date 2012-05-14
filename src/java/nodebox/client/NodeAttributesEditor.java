@@ -106,8 +106,8 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
 
     private void settingsSelected() {
         editorPanel.removeAll();
-        //NodeSettingsEditor editor = new NodeSettingsEditor(dialog);
-        //editorPanel.add(editor, BorderLayout.CENTER);
+        NodeSettingsEditor editor = new NodeSettingsEditor(dialog);
+        editorPanel.add(editor, BorderLayout.CENTER);
         editorPanel.revalidate();
         selectedPort = null;
     }

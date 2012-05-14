@@ -80,6 +80,26 @@ public class NodeAttributesDialog  extends JDialog {
         //document.setPortCardinality(port, cardinality);
     }*/
 
+    public void setNodeDescription(String description) {
+        onChanged();
+        document.setNodeDescription(getNode(), description);
+    }
+
+    public void setNodeImage(String image) {
+        onChanged();
+        document.setNodeImage(getNode(), image);
+    }
+
+    public void setNodeOutputType(String outputType) {
+        onChanged();
+        document.setNodeOutputType(getNode(), outputType);
+    }
+
+    public void setNodeOutputRange(Port.Range range) {
+        onChanged();
+        document.setNodeOutputRange(getNode(), range);
+    }
+
     public void setPortWidget(String port, Port.Widget widget) {
         onChanged();
         document.setPortWidget(port, widget);
