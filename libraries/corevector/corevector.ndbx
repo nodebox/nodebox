@@ -159,7 +159,7 @@
               description="A network of geometry nodes.">
         </node>
 
-        <node function="corevector/grid" name="grid" image="grid.png" outputType="list" outputRange="list" position="170,90"
+        <node function="corevector/grid" name="grid" image="grid.png" outputType="point" outputRange="list" position="170,90"
               prototype="generator" description="Create a grid of points."
               handle="corevector/handle_four_point">
             <port type="int" name="rows" value="10" min="1.0"/>
