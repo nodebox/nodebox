@@ -18,6 +18,8 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
     private JTextField imageField;
     private JTextField outputTypeField;
     private JComboBox outputRangeBox;
+    private JTextField functionField;
+    private JTextField handleField;
 
     private static HumanizedObject[] humanizedRanges;
 
@@ -77,6 +79,18 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
         outputRangeBox = new JComboBox(humanizedRanges);
         outputRangeBox.addActionListener(this);
         addRow("Output Range", outputRangeBox);
+
+        // Function
+        functionField = new JTextField(20);
+        functionField.addActionListener(this);
+        functionField.addFocusListener(this);
+        addRow("Function", functionField);
+
+        // Handle Function
+        handleField = new JTextField(20);
+        handleField.addActionListener(this);
+        handleField.addFocusListener(this);
+        addRow("Handle Function", handleField);
     }
 
     private Node getNode() {
@@ -89,6 +103,8 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
         imageField.setText(node.getImage());
         outputTypeField.setText(node.getOutputType());
         outputRangeBox.setSelectedItem(getHumanizedRange(node.getOutputRange()));
+        functionField.setText(node.getFunction());
+        handleField.setText(node.getHandle());
     }
 
     private HumanizedObject getHumanizedRange(Port.Range range) {
@@ -116,6 +132,14 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
             HumanizedObject newRange = (HumanizedObject) outputRangeBox.getSelectedItem();
             if (node.getOutputRange() == newRange.getObject()) return;
             nodeAttributesDialog.setNodeOutputRange((Port.Range) newRange.getObject());
+        } else if (e.getSource() == functionField) {
+            String newValue = functionField.getText();
+            if (node.getFunction() != null && node.getFunction().equals(newValue)) return;
+            nodeAttributesDialog.setNodeFunction(newValue);
+        } else if (e.getSource() == handleField) {
+            String newValue = handleField.getText();
+            if (node.getHandle() != null && node.getHandle().equals(newValue)) return;
+            nodeAttributesDialog.setNodeHandle(newValue);
         }
     }
 

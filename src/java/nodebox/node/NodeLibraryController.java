@@ -105,6 +105,16 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setNodeFunction(String nodePath, String function) {
+        Node newNode = getNode(nodePath).withFunction(function);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void setNodeHandle(String nodePath, String handle) {
+        Node newNode = getNode(nodePath).withHandle(handle);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setRenderedChild(String parentPath, String nodeName) {
         Node newParent = getNode(parentPath).withRenderedChildName(nodeName);
         replaceNodeInPath(parentPath, newParent);

@@ -313,6 +313,39 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
+     * Change the node function.
+     *
+     * @param node  The node to change.
+     * @param function The new function.
+     */
+    public void setNodeFunction(Node node, String function) {
+        checkNotNull(node);
+        checkNotNull(function);
+        addEdit("Set Node Function");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeFunction(nodePath, function);
+        networkView.updateNodes();
+        requestRender();
+    }
+
+    /**
+     * Change the node handle function.
+     *
+     * @param node  The node to change.
+     * @param handle The new handle function.
+     */
+    public void setNodeHandle(Node node, String handle) {
+        checkNotNull(node);
+        checkNotNull(handle);
+        addEdit("Set Node Handle");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeHandle(nodePath, handle);
+        createHandleForActiveNode();
+        networkView.updateNodes();
+        requestRender();
+    }
+
+    /**
      * Set the node metadata to the given metadata.
      * Note that this method is not called when the node position or name changes.
      *
