@@ -6,6 +6,7 @@ import nodebox.node.Port;
 import nodebox.node.MenuItem;
 import nodebox.ui.Theme;
 import nodebox.util.StringUtils;
+import nodebox.util.HumanizedObject;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
@@ -37,23 +38,6 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     private static Map<String, HumanizedObject[]> humanizedWidgetsMap;
     private static HumanizedObject[] humanizedRanges;
-
-    private static class HumanizedObject {
-        private Object object;
-
-        private HumanizedObject(Object o) {
-            this.object = o;
-        }
-
-        public Object getObject() {
-            return object;
-        }
-
-        @Override
-        public String toString() {
-            return StringUtils.humanizeConstant(object.toString());
-        }
-    }
 
     static {
         humanizedWidgetsMap = new HashMap<String, HumanizedObject[]>();
