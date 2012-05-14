@@ -678,6 +678,22 @@ public final class Node {
     }
 
     /**
+     * Find the connection with the given inputNode and port.
+     *
+     * @param inputNode The child input node
+     * @param inputPort The child input port
+     * @return the Connection object, or null if the connection could not be found.
+     */
+    public Connection getConnection(String inputNode, String inputPort) {
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
+                return c;
+
+        }
+        return null;
+    }
+
+    /**
      * Create a new node with the given handle added.
      *
      * @param handle The handle to add.

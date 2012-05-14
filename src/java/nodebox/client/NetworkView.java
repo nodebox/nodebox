@@ -55,7 +55,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     //private SelectionMarker selectionMarker;
     private JPopupMenu networkMenu;
     private NodeView connectionSource, connectionTarget;
-    private Point2D connectionPoint;
     private AffineTransform viewTransform = new AffineTransform();
 
     // Interaction state
@@ -68,6 +67,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
     private Node overOutput;
+    private Node connectionOutput;
+    private NodePort connectionInput;
+    private Point2D connectionPoint;
 
     public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
     private boolean startDragging;
@@ -185,6 +187,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
         paintConnections(g2);
         paintNodes(g2);
+        paintCurrentConnection(g2);
 
         // Restore original transform
         g2.setTransform(originalTransform);
@@ -214,9 +217,23 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private void paintConnection(Graphics2D g, Connection connection) {
         Node outputNode = findNodeWithName(connection.getOutputNode());
         Node inputNode = findNodeWithName(connection.getInputNode());
+        Port inputPort = inputNode.getInput(connection.getInputPort());
         Rectangle outputRect = nodeRect(outputNode);
         Rectangle inputRect = nodeRect(inputNode);
-        g.drawLine(outputRect.x + 4, outputRect.y + outputRect.height, inputRect.x + 4, inputRect.y);
+        g.drawLine(outputRect.x + 4, outputRect.y + outputRect.height, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y);
+    }
+
+
+    private void paintConnection(Graphics2D g, Node outputNode, Point2D inputPoint) {
+        Rectangle outputRect = nodeRect(outputNode);
+        g.drawLine(outputRect.x + 4, outputRect.y + outputRect.height, (int) inputPoint.getX(), (int) inputPoint.getY());
+    }
+
+    private void paintCurrentConnection(Graphics2D g) {
+        g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
+        if (connectionOutput != null) {
+            paintConnection(g, connectionOutput, connectionPoint);
+        }
     }
 
     private Node findNodeWithName(String name) {
@@ -300,10 +317,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private Rectangle inputPortRect(Node node, Port port) {
-        int portIndex = node.getInputs().indexOf(port);
         Point pt = nodePoint(node);
-        int portOffset = (PORT_WIDTH + PORT_SPACING) * portIndex;
-        Rectangle portRect = new Rectangle(pt.x + portOffset, pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
         growHitRectangle(portRect);
         return portRect;
     }
@@ -382,6 +397,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return null;
     }
 
+    private int portOffset(Node node, Port port) {
+        int portIndex = node.getInputs().indexOf(port);
+        return (PORT_WIDTH + PORT_SPACING) * portIndex;
+    }
+
     //// Selections ////
 
     public boolean isRendered(Node node) {
@@ -412,8 +432,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         selectedNodes.clear();
         if (node != null && getActiveNetwork().hasChild(node)) {
             selectedNodes.add(node.getName());
-            System.out.println("selectedNodes = " + selectedNodes);
-
             firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
             document.setActiveNode(node);
         }
@@ -758,6 +776,26 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             networkMenu.show(this, e.getX(), e.getY());
         } else {
             Point2D pt = inverseViewTransformPoint(e.getPoint());
+
+            // Check if we're over an output port.
+            connectionOutput = getNodeWithOutputPortAt(pt);
+            if (connectionOutput != null) return;
+
+            // Check if we're over a connected input port.
+            connectionInput = getInputPortAt(pt);
+            if (connectionInput != null) {
+                // We're over a port, but is it connected?
+                Connection c = getActiveNetwork().getConnection(connectionInput.node.getName(), connectionInput.port.getName());
+                // Disconnect it, but start a new connection on the same node immediately.
+                if (c != null) {
+                    getDocument().disconnect(c);
+                    connectionOutput = getActiveNetwork().getChild(c.getOutputNode());
+                    connectionPoint = pt;
+                }
+                return;
+            }
+
+            // Check if we're pressing a node.
             Node pressedNode = getNodeAt(pt);
             if (pressedNode != null) {
                 // Don't immediately set "isDragging."
@@ -773,9 +811,14 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public void mouseReleased(MouseEvent e) {
         isDraggingNodes = false;
+        if (connectionOutput != null && connectionInput != null) {
+            getDocument().connect(connectionOutput, connectionInput.node, connectionInput.port);
+        }
+        connectionOutput = null;
         if (e.isPopupTrigger()) {
             networkMenu.show(this, e.getX(), e.getY());
         }
+        repaint();
     }
 
     public void mouseEntered(MouseEvent e) {
@@ -794,6 +837,13 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             dragStartPoint = e.getPoint();
             repaint();
             return;
+        }
+
+        if (connectionOutput != null) {
+            repaint();
+            connectionInput = getInputPortAt(pt);
+            connectionPoint = pt;
+            overInput = getInputPortAt(pt);
         }
 
         if (startDragging) {
