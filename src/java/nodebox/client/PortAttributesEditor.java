@@ -23,6 +23,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JTextField labelField;
     private JTextField typeField;
     private JComboBox widgetBox;
+    private JComboBox rangeBox;
     private JTextField valueField;
     private JTextField minimumValueField;
     private JCheckBox minimumValueCheck;
@@ -35,6 +36,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JButton downButton;
 
     private static Map<String, HumanizedWidget[]> humanizedWidgetsMap;
+    private static HumanizedRange[] humanizedRanges;
 
     private static class HumanizedWidget {
         private Port.Widget widget;
@@ -53,6 +55,23 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         }
     }
 
+    private static class HumanizedRange {
+        private Port.Range range;
+
+        private HumanizedRange(Port.Range range) {
+            this.range = range;
+        }
+
+        public Port.Range getRange() {
+            return range;
+        }
+
+        @Override
+        public String toString() {
+            return StringUtils.humanizeConstant(range.toString());
+        }
+    }
+
     static {
         humanizedWidgetsMap = new HashMap<String, HumanizedWidget[]>();
         for (String key : Port.WIDGET_MAPPING.keySet()) {
@@ -62,6 +81,10 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
                 humanizedWidgets[i] = new HumanizedWidget(widgets.get(i));
             }
             humanizedWidgetsMap.put(key, humanizedWidgets);
+        }
+        humanizedRanges = new HumanizedRange[Port.Range.values().length];
+        for (int i = 0; i < Port.Range.values().length; i++) {
+            humanizedRanges[i] = new HumanizedRange(Port.Range.values()[i]);
         }
     }
 
@@ -117,6 +140,10 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
             widgetBox.addActionListener(this);
             addRow("Widget", widgetBox);
         }
+
+        rangeBox = new JComboBox(humanizedRanges);
+        rangeBox.addActionListener(this);
+        addRow("Range", rangeBox);
 
         // Value
         valueField = new JTextField(20);
@@ -188,6 +215,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         nameField.setText(port.getName());
         labelField.setText(port.getLabel());
         typeField.setText(StringUtils.humanizeConstant(port.getType()));
+        rangeBox.setSelectedItem(getHumanizedRange(port.getRange()));
         if (port.isStandardType()) {
             widgetBox.setSelectedItem(getHumanizedWidget(port.getWidget()));
             valueField.setText(port.getValue().toString());
@@ -213,6 +241,10 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
             HumanizedWidget newWidget = (HumanizedWidget) widgetBox.getSelectedItem();
             if (port.getWidget() == newWidget.getWidget()) return;
             nodeAttributesDialog.setPortWidget(portName, newWidget.getWidget());
+        } else if (e.getSource() == rangeBox) {
+            HumanizedRange newRange = (HumanizedRange) rangeBox.getSelectedItem();
+            if (port.getRange() == newRange.getRange()) return;
+            nodeAttributesDialog.setPortRange(portName, newRange.getRange());
         } else if (e.getSource() == valueField) {
             String newValue = valueField.getText();
             if (port.getValue() != null && port.getValue().toString().equals(newValue)) return;
@@ -268,6 +300,13 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
             if (humanizedWidget.getWidget() == widget) return humanizedWidget;
         }
         throw new AssertionError("Widget is not in humanized widget list.");
+    }
+
+    private HumanizedRange getHumanizedRange(Port.Range range) {
+        for (HumanizedRange humanizedRange : humanizedRanges) {
+            if (humanizedRange.getRange() == range) return humanizedRange;
+        }
+        throw new AssertionError("Range is not in humanized range list.");
     }
 
     private void showError(String msg) {

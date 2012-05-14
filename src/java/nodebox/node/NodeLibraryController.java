@@ -182,6 +182,13 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setPortRange(String nodePath, String portName, Port.Range range) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withRange(range);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setPortMinimumValue(String nodePath, String portName, Double minimumValue) {
         Node node = getNode(nodePath);
         Port newPort = node.getInput(portName).withMinimumValue(minimumValue);

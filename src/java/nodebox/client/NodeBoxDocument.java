@@ -410,6 +410,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    public void setPortRange(String portName, Port.Range range) {
+        checkNotNull(portName, "Port cannot be null.");
+        Port port = getActiveNode().getInput(portName);
+        checkArgument(port != null, "Port %s does not exist on node %s", portName, getActiveNode());
+        addEdit("Change Port Range");
+        controller.setPortRange(getActiveNodePath(), portName, range);
+        requestRender();
+    }
+
     public void setPortMinimumValue(String portName, Double minimumValue) {
         checkNotNull(portName, "Port cannot be null.");
         Port port = getActiveNode().getInput(portName);
