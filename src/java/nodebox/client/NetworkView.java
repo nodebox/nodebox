@@ -635,11 +635,26 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-            isShiftPressed = true;
-        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            isPanningView = true;
-            setCursor(panCursor);
+        int keyCode = e.getKeyCode();
+        if (keyCode == KeyEvent.VK_SHIFT) {
+                isShiftPressed = true;
+        } else if (keyCode == KeyEvent.VK_SPACE) {
+                isPanningView = true;
+                setCursor(panCursor);
+        } else if (keyCode == KeyEvent.VK_UP) {
+                moveSelectedNodes(0, -1);
+        } else if (keyCode == KeyEvent.VK_RIGHT) {
+                moveSelectedNodes(1, 0);
+        } else if (keyCode == KeyEvent.VK_DOWN) {
+            moveSelectedNodes(0, 1);
+        } else if (keyCode == KeyEvent.VK_LEFT) {
+            moveSelectedNodes(-1, 0);
+        }
+    }
+
+    private void moveSelectedNodes(int dx, int dy) {
+        for (Node node: getSelectedNodes()) {
+            getDocument().setNodePosition(node, node.getPosition().moved(dx, dy));
         }
     }
 
