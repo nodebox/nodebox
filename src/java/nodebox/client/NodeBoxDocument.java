@@ -213,7 +213,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Node activeNode = getActiveNode();
         networkView.updateNodes();
         networkView.singleSelect(activeNode);
-        portView.setActiveNode(activeNode);
+        portView.updateAll();
 
         requestRender();
     }
@@ -410,7 +410,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             removeNodeImpl(node);
         }
         networkView.updateAll();
-        portView.setActiveNode(getActiveNode());
+        portView.updateAll();
         requestRender();
     }
 
@@ -576,7 +576,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         controller.removePortMenuItem(getActiveNodePath(), portName, item);
 
         Node n = getActiveNode();
-        portView.setActiveNode(n == null ? getActiveNetwork() : n);
+        portView.updateAll();
         requestRender();
     }
 
@@ -806,7 +806,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         //editorPane.setActiveNode(activeNode);
         // TODO If we draw handles again, we should repaint the viewer pane.
         //viewerPane.repaint(); // For the handle
-        portView.setActiveNode(n == null ? getActiveNetwork() : n);
+        portView.updateAll();
         restoring = false;
         networkView.singleSelect(n);
     }
