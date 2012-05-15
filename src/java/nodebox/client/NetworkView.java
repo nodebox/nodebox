@@ -3,10 +3,7 @@ package nodebox.client;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import nodebox.node.Connection;
-import nodebox.node.Node;
-import nodebox.node.NodePort;
-import nodebox.node.Port;
+import nodebox.node.*;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
@@ -19,6 +16,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -42,6 +40,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final String HIGHLIGHT_PROPERTY = "highlight";
     public static final String RENDER_PROPERTY = "render";
     public static final String NETWORK_PROPERTY = "network";
+
+    private static BufferedImage nodeGeneric;
 
     public static final float MIN_ZOOM = 0.2f;
     public static final float MAX_ZOOM = 1.0f;
@@ -93,6 +93,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
             defaultCursor = Cursor.getDefaultCursor();
+            nodeGeneric = ImageIO.read(new File("res/node-generic.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -106,6 +107,51 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         PORT_COLORS.put("geometry", new Color(135, 136, 162));
         PORT_COLORS.put("list", Color.PINK);
 
+    }
+
+    /**
+     * Tries to find an image representation for the node.
+     * The image should be located near the library, and have the same name as the library.
+     * <p/>
+     * If this node has no image, the prototype is searched to find its image. If no image could be found,
+     * a generic image is returned.
+     *
+     * @param node           the node
+     * @param nodeRepository the list of nodes to look for the icon
+     * @return an Image object.
+     */
+    public static BufferedImage getImageForNode(Node node, NodeRepository nodeRepository) {
+        for (NodeLibrary library : nodeRepository.getLibraries()) {
+            BufferedImage img = findNodeImage(library, node);
+            if (img != null) {
+                return img;
+            }
+        }
+        if (node.getPrototype() != null) {
+            return getImageForNode(node.getPrototype(), nodeRepository);
+        } else {
+            return nodeGeneric;
+        }
+    }
+
+    public static BufferedImage findNodeImage(NodeLibrary library, Node node) {
+        if (node == null || node.getImage() == null || node.getImage().isEmpty()) return null;
+        if (!library.getRoot().hasChild(node)) return null;
+        File libraryFile = library.getFile();
+        if (libraryFile != null) {
+            File libraryDirectory = libraryFile.getParentFile();
+            if (libraryDirectory != null) {
+                File nodeImageFile = new File(libraryDirectory, node.getImage());
+                if (nodeImageFile.exists()) {
+                    try {
+                        return ImageIO.read(nodeImageFile);
+                    } catch (IOException ignored) {
+                        // Pass through
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public NetworkView(NodeBoxDocument document) {
@@ -356,7 +402,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         int textWidth = fontMetrics.stringWidth(text);
 
         int verticalOffset = 10;
-        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY()+ verticalOffset, textWidth, fontMetrics.getHeight());
+        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY() + verticalOffset, textWidth, fontMetrics.getHeight());
         r.grow(4, 3);
         g.setColor(TOOLTIP_STROKE_COLOR);
         g.drawRoundRect(r.x, r.y, r.width, r.height, 8, 8);
@@ -364,7 +410,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.fillRoundRect(r.x, r.y, r.width, r.height, 8, 8);
 
         g.setColor(TOOLTIP_TEXT_COLOR);
-        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent()+ verticalOffset);
+        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent() + verticalOffset);
     }
 
     private void paintDragSelection(Graphics2D g) {
@@ -373,8 +419,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             g.setColor(DRAG_SELECTION_COLOR);
             g.setStroke(DRAG_SELECTION_STROKE);
             g.fill(r);
-            g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth()-1, (int) r.getHeight()-1);
-
+            // To get a smooth line we need to subtract one from the width and height.
+            g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth() - 1, (int) r.getHeight() - 1);
         }
     }
 
@@ -519,30 +565,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    //    public void select(Set<NodeView> newSelection) {
-//        boolean selectionChanged = false;
-//        ArrayList<NodeView> nodeViewsToRemove = new ArrayList<NodeView>();
-//        for (NodeView nodeView : selectedNodes) {
-//            if (!newSelection.contains(nodeView)) {
-//                selectionChanged = true;
-//                nodeView.setSelected(false);
-//                nodeViewsToRemove.add(nodeView);
-//            }
-//        }
-//        for (NodeView nodeView : nodeViewsToRemove) {
-//            selectedNodes.remove(nodeView);
-//        }
-//        for (NodeView nodeView : newSelection) {
-//            if (!selectedNodes.contains(nodeView)) {
-//                selectionChanged = true;
-//                nodeView.setSelected(true);
-//                selectedNodes.add(nodeView);
-//            }
-//        }
-//        if (selectionChanged)
-//            firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
-//    }
-//
     public void toggleSelection(Node node) {
         checkNotNull(node);
         if (selectedNodes.isEmpty()) {
@@ -559,48 +581,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    //
-//    public void addToSelection(Set<NodeView> newSelection) {
-//        boolean selectionChanged = false;
-//        for (NodeView nodeView : newSelection) {
-//            if (!selectedNodes.contains(nodeView)) {
-//                selectionChanged = true;
-//                nodeView.setSelected(true);
-//                selectedNodes.add(nodeView);
-//            }
-//        }
-//        if (selectionChanged)
-//            firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
-//    }
-//
-//    public void deselect(NodeView nodeView) {
-//        if (nodeView == null) return;
-//        // If the selectedNodes didn't contain the object in the first place, bail out.
-//        // This is to prevent the select event from firing.
-//        if (!selectedNodes.contains(nodeView)) return;
-//        selectedNodes.remove(nodeView);
-//        nodeView.setSelected(false);
-//        firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
-//    }
-//
-//    public void selectAll() {
-//        boolean selectionChanged = false;
-//        for (Object child : getLayer().getChildrenReference()) {
-//            if (!(child instanceof NodeView)) continue;
-//            NodeView nodeView = (NodeView) child;
-//            // Check if the selectedNodes already contained the node view.
-//            // If it didn't, that means that the old selectedNodes is different
-//            // from the new selectedNodes.
-//            if (!selectedNodes.contains(nodeView)) {
-//                selectionChanged = true;
-//                nodeView.setSelected(true);
-//                selectedNodes.add(nodeView);
-//            }
-//        }
-//        if (selectionChanged)
-//            firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
-//    }
-//
     public void deselectAll() {
         if (selectedNodes.isEmpty()) return;
         selectedNodes.clear();
@@ -629,19 +609,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void goUp() {
         JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-//        getDocument().goUp();
     }
 
     private void goDown() {
         JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-//        if (selectedNodes.size() != 1) {
-//            Toolkit.getDefaultToolkit().beep();
-//            return;
-//        }
-//        NodeView selectedNode = selectedNodes.iterator().next();
-//
-//        String childPath = Node.path(getDocument().getActiveNetworkPath(), selectedNode.getNodeName());
-//        getDocument().setActiveNetwork(childPath);
     }
 
     //// Input Events ////
