@@ -53,6 +53,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
     public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
     public static final Color TOOLTIP_TEXT_COLOR = Color.DARK_GRAY;
+    public static final Color DRAG_SELECTION_COLOR = new Color(255, 255, 255, 100);
+    public static final BasicStroke DRAG_SELECTION_STROKE = new BasicStroke(1f);
+    public static final BasicStroke CONNECTION_STROKE = new BasicStroke(2);
 
     private static Cursor defaultCursor, panCursor;
 
@@ -66,8 +69,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     // Interaction state
     private boolean isDraggingNodes = false;
-    private boolean isPanningView = false;
+    private boolean isSpacePressed = false;
     private boolean isShiftPressed = false;
+    private boolean isDragSelecting = false;
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
     private Node overOutput;
@@ -76,6 +80,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private Point2D connectionPoint;
     private boolean startDragging;
     private Point2D dragStartPoint;
+    private Point2D dragCurrentPoint;
 
     static {
         Image panCursorImage;
@@ -206,6 +211,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         paintConnections(g2);
         paintCurrentConnection(g2);
         paintPortTooltip(g2);
+        paintDragSelection(g2);
 
         // Restore original transform
         g2.setTransform(originalTransform);
@@ -217,16 +223,16 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
 
         for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
-            g.drawLine(0, y - GRID_OFFSET + transformOffsetY, getWidth(), y - GRID_OFFSET  + transformOffsetY);
+            g.drawLine(0, y - GRID_OFFSET + transformOffsetY, getWidth(), y - GRID_OFFSET + transformOffsetY);
         }
         for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
-            g.drawLine(x - GRID_OFFSET  + transformOffsetX, 0, x - GRID_OFFSET  + transformOffsetX, getHeight());
+            g.drawLine(x - GRID_OFFSET + transformOffsetX, 0, x - GRID_OFFSET + transformOffsetX, getHeight());
         }
     }
 
     private void paintConnections(Graphics2D g) {
         g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
-        g.setStroke(new BasicStroke(2));
+        g.setStroke(CONNECTION_STROKE);
         for (Connection connection : getConnections()) {
             paintConnection(g, connection);
         }
@@ -358,6 +364,25 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
         g.setColor(TOOLTIP_TEXT_COLOR);
         g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent());
+    }
+
+    private void paintDragSelection(Graphics2D g) {
+        if (isDragSelecting) {
+            Rectangle r = dragSelectRect();
+            g.setColor(DRAG_SELECTION_COLOR);
+            g.setStroke(DRAG_SELECTION_STROKE);
+            g.fill(r);
+            g.draw(r);
+
+        }
+    }
+
+    private Rectangle dragSelectRect() {
+        int x = (int) dragStartPoint.getX();
+        int y = (int) dragStartPoint.getY();
+        int w = (int) (dragCurrentPoint.getX() - dragStartPoint.getX());
+        int h = (int) (dragCurrentPoint.getY() - dragStartPoint.getY());
+        return new Rectangle(x, y, w, h);
     }
 
     private static Rectangle nodeRect(Node node) {
@@ -637,14 +662,14 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
         if (keyCode == KeyEvent.VK_SHIFT) {
-                isShiftPressed = true;
+            isShiftPressed = true;
         } else if (keyCode == KeyEvent.VK_SPACE) {
-                isPanningView = true;
-                setCursor(panCursor);
+            isSpacePressed = true;
+            setCursor(panCursor);
         } else if (keyCode == KeyEvent.VK_UP) {
-                moveSelectedNodes(0, -1);
+            moveSelectedNodes(0, -1);
         } else if (keyCode == KeyEvent.VK_RIGHT) {
-                moveSelectedNodes(1, 0);
+            moveSelectedNodes(1, 0);
         } else if (keyCode == KeyEvent.VK_DOWN) {
             moveSelectedNodes(0, 1);
         } else if (keyCode == KeyEvent.VK_LEFT) {
@@ -653,7 +678,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private void moveSelectedNodes(int dx, int dy) {
-        for (Node node: getSelectedNodes()) {
+        for (Node node : getSelectedNodes()) {
             getDocument().setNodePosition(node, node.getPosition().moved(dx, dy));
         }
     }
@@ -662,14 +687,14 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             isShiftPressed = false;
         } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            isPanningView = false;
+            isSpacePressed = false;
             setCursor(defaultCursor);
         }
     }
 
 
-    public boolean isPanningView() {
-        return isPanningView;
+    public boolean isSpacePressed() {
+        return isSpacePressed;
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -702,6 +727,13 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         if (e.isPopupTrigger()) {
             networkMenu.show(this, e.getX(), e.getY());
         } else {
+            // If the space bar and mouse is pressed, we're getting ready to pan the view.
+            if (isSpacePressed) {
+                // When panning the view use the original mouse point, not the one affected by the view transform.
+                dragStartPoint = e.getPoint();
+                return;
+            }
+
             Point2D pt = inverseViewTransformPoint(e.getPoint());
 
             // Check if we're over an output port.
@@ -728,16 +760,18 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 // Don't immediately set "isDragging."
                 // We wait until we actually drag the first time to do the work.
                 startDragging = true;
+                return;
             }
-            if (isPanningView) {
-                // When panning the view use the original mouse point, not the one affected by the view transform.
-                dragStartPoint = e.getPoint();
-            }
+
+            // We're creating a drag selection.
+            isDragSelecting = true;
+            dragStartPoint = pt;
         }
     }
 
     public void mouseReleased(MouseEvent e) {
         isDraggingNodes = false;
+        isDragSelecting = false;
         if (connectionOutput != null && connectionInput != null) {
             getDocument().connect(connectionOutput, connectionInput.node, connectionInput.port);
         }
@@ -757,7 +791,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void mouseDragged(MouseEvent e) {
         Point2D pt = inverseViewTransformPoint(e.getPoint());
         // Panning the view has the first priority.
-        if (isPanningView) {
+        if (isSpacePressed) {
             // When panning the view use the original mouse point, not the one affected by the view transform.
             Point2D offset = minPoint(e.getPoint(), dragStartPoint);
             viewTransform.translate(offset.getX(), offset.getY());
@@ -798,6 +832,18 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
                 getDocument().setNodePosition(findNodeWithName(name), newPosition);
             }
+        }
+
+        if (isDragSelecting) {
+            dragCurrentPoint = pt;
+            Rectangle r = dragSelectRect();
+            selectedNodes.clear();
+            for (Node node : getNodes()) {
+                if (r.intersects(nodeRect(node))) {
+                    selectedNodes.add(node.getName());
+                }
+            }
+            repaint();
         }
     }
 

@@ -411,7 +411,7 @@ public class NodeView extends PNode implements Selectable, PropertyChangeListene
         }
 
         private boolean isPanningEvent(PInputEvent event) {
-            return networkView.isPanningView();
+            return networkView.isSpacePressed();
         }
 
     }
