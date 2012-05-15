@@ -355,7 +355,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         FontMetrics fontMetrics = g.getFontMetrics();
         int textWidth = fontMetrics.stringWidth(text);
 
-        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY(), textWidth, fontMetrics.getHeight());
+        int verticalOffset = 10;
+        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY()+ verticalOffset, textWidth, fontMetrics.getHeight());
         r.grow(4, 3);
         g.setColor(TOOLTIP_STROKE_COLOR);
         g.drawRoundRect(r.x, r.y, r.width, r.height, 8, 8);
@@ -363,7 +364,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.fillRoundRect(r.x, r.y, r.width, r.height, 8, 8);
 
         g.setColor(TOOLTIP_TEXT_COLOR);
-        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent());
+        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent()+ verticalOffset);
     }
 
     private void paintDragSelection(Graphics2D g) {
@@ -372,7 +373,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             g.setColor(DRAG_SELECTION_COLOR);
             g.setStroke(DRAG_SELECTION_STROKE);
             g.fill(r);
-            g.draw(r);
+            g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth()-1, (int) r.getHeight()-1);
 
         }
     }
@@ -875,89 +876,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private Point2D minPoint(Point2D a, Point2D b) {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
     }
-
-    //// Inner classes ////
-
-//    private class SelectionMarker extends PNode {
-//        public SelectionMarker(Point2D p) {
-//            setOffset(p);
-//        }
-//
-//        protected void paint(PPaintContext c) {
-//            Graphics2D g = c.getGraphics();
-//            g.setColor(Theme.NETWORK_SELECTION_COLOR);
-//            PBounds b = getBounds();
-//            // Inset the bounds so we don't draw outside the refresh region.
-//            b.inset(1, 1);
-//            g.fill(b);
-//            g.setColor(Theme.NETWORK_SELECTION_BORDER_COLOR);
-//            g.draw(b);
-//        }
-//    }
-
-//    class SelectionHandler extends PBasicInputEventHandler {
-//        private Set<NodeView> temporarySelection = new HashSet<NodeView>();
-//
-//        public void mouseClicked(PInputEvent e) {
-//            if (e.getButton() != MouseEvent.BUTTON1) return;
-//            deselectAll();
-//            getDocument().setActiveNode((Node) null);
-//            connectionLayer.mouseClickedEvent(e);
-//        }
-//
-//        public void mousePressed(PInputEvent e) {
-//            if (e.getButton() != MouseEvent.BUTTON1) return;
-//            temporarySelection.clear();
-//            // Make sure no Node View is under the mouse cursor.
-//            // In that case, we're not selecting, but moving a node.
-//            Point2D p = e.getPosition();
-//            NodeView nv = getNodeViewAt(p);
-//            if (nv == null) {
-//                selectionMarker = new SelectionMarker(p);
-//                getLayer().addChild(selectionMarker);
-//            } else {
-//                selectionMarker = null;
-//            }
-//        }
-//
-//        public void mouseDragged(PInputEvent e) {
-//            if (selectionMarker == null) return;
-//            Point2D prev = selectionMarker.getOffset();
-//            Point2D p = e.getPosition();
-//            double width = p.getX() - prev.getX();
-//            double absWidth = Math.abs(width);
-//            double height = p.getY() - prev.getY();
-//            double absHeight = Math.abs(height);
-//            selectionMarker.setWidth(absWidth);
-//            selectionMarker.setHeight(absHeight);
-//            selectionMarker.setX(absWidth != width ? width : 0);
-//            selectionMarker.setY(absHeight != height ? height : 0);
-//            ListIterator childIter = getLayer().getChildrenIterator();
-//            connectionLayer.deselect();
-//            temporarySelection.clear();
-//            while (childIter.hasNext()) {
-//                Object o = childIter.next();
-//                if (o instanceof NodeView) {
-//                    NodeView nodeView = (NodeView) o;
-//                    PNode n = (PNode) o;
-//                    if (selectionMarker.getFullBounds().intersects(n.getFullBounds())) {
-//                        nodeView.setSelected(true);
-//                        temporarySelection.add(nodeView);
-//                    } else {
-//                        nodeView.setSelected(false);
-//                    }
-//                }
-//            }
-//        }
-//
-//        public void mouseReleased(PInputEvent e) {
-//            if (selectionMarker == null) return;
-//            getLayer().removeChild(selectionMarker);
-//            selectionMarker = null;
-//            select(temporarySelection);
-//            temporarySelection.clear();
-//        }
-//    }
 
     private class ResetViewAction extends AbstractAction {
         private ResetViewAction() {
