@@ -29,8 +29,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public static final int GRID_CELL_SIZE = 44;
     public static final int GRID_OFFSET = 6;
-    public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - 12;
-    public static final int NODE_HEIGHT = GRID_CELL_SIZE - 12;
+    public static final int GRID_NODE_MARGIN = 12;
+    public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - GRID_NODE_MARGIN;
+    public static final int NODE_HEIGHT = GRID_CELL_SIZE - GRID_NODE_MARGIN;
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
     public static final int PORT_SPACING = 10;
