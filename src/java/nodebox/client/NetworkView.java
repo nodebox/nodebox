@@ -756,6 +756,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void mouseEntered(MouseEvent e) {
+        grabFocus();
     }
 
     public void mouseExited(MouseEvent e) {
