@@ -131,7 +131,7 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
         }
 
         public void actionPerformed(ActionEvent e) {
-            document.revertPortToDefault(port);
+            document.revertPortToDefault(port.getName());
             // Reverting to default could cause an expression to be set/cleared.
             // This triggers an valueChanged event, where we check if our expression field is
             // still up-to-date.
