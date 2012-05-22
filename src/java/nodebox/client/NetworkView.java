@@ -27,11 +27,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseMotionListener {
 
-    public static final int GRID_CELL_SIZE = 44;
+    public static final int NODE_ICON_SIZE = 32;
+    public static final int NODE_PADDING = 3;
+    public static final int NODE_WIDTH = NODE_ICON_SIZE * 4 + NODE_PADDING * 2;
+    public static final int NODE_HEIGHT = NODE_ICON_SIZE + NODE_PADDING * 2;
+    public static final int GRID_MARGIN = 10;
+    public static final int GRID_CELL_SIZE = NODE_HEIGHT + GRID_MARGIN;
     public static final int GRID_OFFSET = 6;
     public static final int GRID_NODE_MARGIN = 12;
-    public static final int NODE_WIDTH = GRID_CELL_SIZE * 4 - GRID_NODE_MARGIN;
-    public static final int NODE_HEIGHT = GRID_CELL_SIZE - GRID_NODE_MARGIN;
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
     public static final int PORT_SPACING = 10;
@@ -241,6 +244,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         // Draw background
         g2.setColor(Theme.NETWORK_BACKGROUND_COLOR);
@@ -320,7 +324,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
-            paintNode(g, node, isSelected(node), isRendered(node), hoverInputPort, overOutput == node);
+            BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
+            paintNode(g, node, icon, isSelected(node), isRendered(node), hoverInputPort, overOutput == node);
         }
     }
 
@@ -329,7 +334,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private static void paintNode(Graphics2D g, Node node, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
+    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -378,10 +383,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
         g.fillRect(r.x, r.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
 
+        // Draw icon
+        g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING, NODE_ICON_SIZE, NODE_ICON_SIZE, null);
         g.setColor(Color.WHITE);
-        g.fillRect(r.x + 5, r.y + 5, NODE_HEIGHT - 10, NODE_HEIGHT - 10);
-        g.setColor(Color.WHITE);
-        g.drawString(node.getName(), r.x + 30, r.y + 20);
+        g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2, r.y + 20);
     }
 
     private void paintPortTooltip(Graphics2D g) {
