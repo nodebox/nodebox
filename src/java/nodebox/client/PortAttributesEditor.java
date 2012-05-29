@@ -88,17 +88,17 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
         // Name
         nameField = new JFormattedTextField(20);
-        nameField.setEditable(false);
+        nameField.setEnabled(false);
         addRow("Name", nameField);
 
         // Label
         labelField = new JTextField(20);
-        labelField.setEditable(false);
+        labelField.setEnabled(false);
         addRow("Label", labelField);
 
         // Type
         typeField = new JTextField(20);
-        typeField.setEditable(false);
+        typeField.setEnabled(false);
         addRow("Type", typeField);
 
         // Widget
@@ -181,7 +181,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         Port port = getPort();
         nameField.setText(port.getName());
         labelField.setText(port.getLabel());
-        typeField.setText(StringUtils.humanizeConstant(port.getType()));
+        typeField.setText(port.getType());
         rangeBox.setSelectedItem(getHumanizedRange(port.getRange()));
         if (port.isStandardType()) {
             widgetBox.setSelectedItem(getHumanizedWidget(port.getWidget()));
