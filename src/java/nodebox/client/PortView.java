@@ -151,7 +151,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             rowConstraints.gridy = rowIndex;
             rowConstraints.fill = GridBagConstraints.HORIZONTAL;
             rowConstraints.weightx = 1.0;
-            PortRow portRow = new PortRow(getDocument(), p, control);
+            PortRow portRow = new PortRow(getDocument(), p.getName(), control);
             portRow.setEnabled(p.isEnabled());
             controlPanel.add(portRow, rowConstraints);
             rowIndex++;
