@@ -86,9 +86,9 @@ public class ListFunctions {
      * @param iterable The list items.
      * @return A new list with the first item skipped.
      */
-    public static Iterable<?> rest(Iterable<?> iterable) {
+    public static List<?> rest(Iterable<?> iterable) {
         if (iterable == null) return ImmutableList.of();
-        return Iterables.skip(iterable, 1);
+        return ImmutableList.copyOf(Iterables.skip(iterable, 1));
     }
 
 
@@ -115,9 +115,9 @@ public class ListFunctions {
      * @param list3 The third list to combine.
      * @return A new list with all input lists combined.
      */
-    public static Iterable<?> combine(Iterable list1, Iterable list2, Iterable list3) {
+    public static List<?> combine(Iterable list1, Iterable list2, Iterable list3) {
         Iterable<Iterable<?>> nonNullLists = Iterables.filter(Lists.<Iterable<?>>newArrayList(list1, list2, list3), Predicates.notNull());
-        return Iterables.concat(nonNullLists);
+        return ImmutableList.copyOf(Iterables.concat(nonNullLists));
     }
 
     /**
@@ -128,10 +128,10 @@ public class ListFunctions {
      * @param size       The amount of items.
      * @return A new list containing a slice of the original.
      */
-    public static Iterable<?> slice(Iterable<?> iterable, long startIndex, long size) {
+    public static List<?> slice(Iterable<?> iterable, long startIndex, long size) {
         if (iterable == null) return ImmutableList.of();
         Iterable<?> skipped = Iterables.skip(iterable, (int) startIndex);
-        return Iterables.limit(skipped, (int) size);
+        return ImmutableList.copyOf(Iterables.limit(skipped, (int) size));
     }
 
     /**
@@ -141,15 +141,15 @@ public class ListFunctions {
      * @param amount   The amount of items to shift.
      * @return A new list with the items shifted.
      */
-    public static Iterable<?> shift(Iterable<?> iterable, long amount) {
+    public static List<?> shift(Iterable<?> iterable, long amount) {
         if (iterable == null) return ImmutableList.of();
         int listSize = Iterables.size(iterable);
         if (listSize == 0) return ImmutableList.of();
         int a = (int) amount % listSize;
-        if (a == 0) return iterable;
+        if (a == 0) return ImmutableList.copyOf(iterable);
         Iterable<?> tail = Iterables.skip(iterable, a);
         Iterable<?> head = Iterables.limit(iterable, a);
-        return Iterables.concat(tail, head);
+        return ImmutableList.copyOf(Iterables.concat(tail, head));
     }
 
     /**
@@ -159,14 +159,14 @@ public class ListFunctions {
      * @param amount   The amount of repetitions.
      * @return A new list with the items repeated.
      */
-    public static Iterable<?> repeat(Iterable<?> iterable, long amount) {
+    public static List<?> repeat(Iterable<?> iterable, long amount) {
         if (iterable == null) return ImmutableList.of();
         if (amount < 1) return ImmutableList.of();
         Iterable<?>[] iterables = new Iterable<?>[(int) amount];
         for (int i = 0; i < amount; i++) {
             iterables[i] = iterable;
         }
-        return Iterables.concat(iterables);
+        return ImmutableList.copyOf(Iterables.concat(iterables));
     }
 
     /**
@@ -341,7 +341,7 @@ public class ListFunctions {
         return ImmutableList.copyOf(newList);
     }
 
-    public static Iterable<?> takeEvery(Iterable<?> iterable, long n) {
+    public static List<?> takeEvery(Iterable<?> iterable, long n) {
         if (iterable == null) return ImmutableList.of();
         ImmutableList.Builder<Object> b = ImmutableList.builder();
         Iterator<?> iterator = iterable.iterator();

@@ -153,7 +153,7 @@ public class MathFunctions {
         }
     }
 
-    public static Iterable<Double> makeNumbers(String s, String separator) {
+    public static List<Double> makeNumbers(String s, String separator) {
         if (s == null || s.length() == 0) {
             return ImmutableList.of();
         }
@@ -199,15 +199,15 @@ public class MathFunctions {
         return b.build();
     }
 
-    public static Iterable<Double> range(final double start, final double end, final double step) {
+    public static List<Double> range(final double start, final double end, final double step) {
         if (step == 0 || start == end || (start < end && step < 0) || (start > end && step > 0))
             return ImmutableList.of();
         else {
-            return new Iterable<Double>() {
+            return ImmutableList.copyOf(new Iterable<Double>() {
                 public Iterator<Double> iterator() {
                     return new RangeIterator(start, end, step);
                 }
-            };
+            } );
         }
     }
 
