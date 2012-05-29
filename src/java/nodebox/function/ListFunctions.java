@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import nodebox.util.ListUtils;
 
 import java.util.*;
 
@@ -193,8 +194,15 @@ public class ListFunctions {
     public static List<?> sort(Iterable<?> iterable, final String key) {
         if (iterable == null) return ImmutableList.of();
         try {
-            if (key == null || key.length() == 0)
+            if (key == null || key.length() == 0) {
+                Object first = Iterables.getFirst(iterable, null);
+                if (first instanceof Map) {
+                    Object firstKey = Iterables.getFirst(((Map) first).keySet(), null);
+                    if (firstKey != null && firstKey instanceof String)
+                        return sort(iterable, (String) firstKey);
+                }
                 return ImmutableList.copyOf(Ordering.natural().sortedCopy((Iterable<? extends Comparable>) iterable));
+            }
             Ordering<Object> keyOrdering = new Ordering<Object>() {
                 public int compare(Object o1, Object o2) {
                     Comparable c1 = (Comparable) DataFunctions.lookup(o1, key);
