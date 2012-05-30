@@ -7,7 +7,7 @@
             <port name="list2" type="list" range="list"/>
             <port name="list3" type="list" range="list"/>
         </node>
-        <node description="Count the number of items in the list." function="list/count" name="count" position="20.00,0.00" image="generic.png" outputType="float">
+        <node description="Count the number of items in the list." function="list/count" name="count" position="20.00,0.00" image="count.png" outputType="float">
             <port name="list" type="list" range="list"/>
         </node>
         <node description="Cull the list." outputRange="list" function="list/cull" name="cull" position="20.00,65.00" outputType="list">
