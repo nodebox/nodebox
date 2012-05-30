@@ -293,6 +293,15 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void revertToDefaultPortValue(String nodePath, String portName) {
+        Node node = getNode(nodePath);
+        Port port = node.getPrototype().getInput(portName);
+        if (port != null) {
+            Node newNode = node.withInputValue(portName, port.getValue());
+            replaceNodeInPath(nodePath, newNode);
+        }
+    }
+
     public void connect(String parentPath, Node outputNode, Node inputNode, Port inputPort) {
         Node newParent = getNode(parentPath).connect(outputNode.getName(), inputNode.getName(), inputPort.getName());
         replaceNodeInPath(parentPath, newParent);

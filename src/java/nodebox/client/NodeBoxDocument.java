@@ -659,12 +659,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
-    public void revertPortToDefault(Port port) {
+    public void revertPortToDefault(String portName) {
+        Port port = checkValidPort(portName);
         addEdit("Revert Port to Default");
-        throw new UnsupportedOperationException("Not implemented yet.");
-
-        //portView.updatePort(parameter);
-        //renderNetwork();
+        controller.revertToDefaultPortValue(getActiveNodePath(), portName);
+        portView.updateAll();
+        portView.updateEnabledState();
+        requestRender();
     }
 
     public void setPortMetadata(Port port, String key, String value) {

@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.node.Node;
 import nodebox.node.Port;
 import nodebox.ui.ShadowLabel;
 import nodebox.ui.Theme;
@@ -27,7 +28,7 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
     }
 
     private NodeBoxDocument document;
-    private Port port;
+    private String portName;
     private JLabel label;
     private JComponent control;
     private JPopupMenu popupMenu;
@@ -35,15 +36,16 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
     private static final int TOP_PADDING = 2;
     private static final int BOTTOM_PADDING = 2;
 
-    public PortRow(NodeBoxDocument document, Port port, JComponent control) {
+    public PortRow(NodeBoxDocument document, String portName, JComponent control) {
         this.document = document;
-        this.port = port;
+        this.portName = portName;
         addMouseListener(this);
 
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
 
         Dimension labelSize = new Dimension(PortView.LABEL_WIDTH, 16);
 
+        Port port = getPort();
         label = new ShadowLabel(port.getLabel());
         label.setToolTipText(port.getName());
         label.setBorder(null);
@@ -66,7 +68,10 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
     }
 
     public Port getPort() {
-        return port;
+        Node activeNode = document.getActiveNode();
+        if (activeNode == null)
+            activeNode = document.getActiveNetwork();
+        return activeNode.getInput(portName);
     }
 
     @Override
@@ -131,7 +136,7 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
         }
 
         public void actionPerformed(ActionEvent e) {
-            document.revertPortToDefault(port);
+            document.revertPortToDefault(portName);
             // Reverting to default could cause an expression to be set/cleared.
             // This triggers an valueChanged event, where we check if our expression field is
             // still up-to-date.
