@@ -27,14 +27,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseMotionListener {
 
-    public static final int NODE_ICON_SIZE = 32;
-    public static final int NODE_PADDING = 3;
-    public static final int NODE_WIDTH = NODE_ICON_SIZE * 4 + NODE_PADDING * 2;
-    public static final int NODE_HEIGHT = NODE_ICON_SIZE + NODE_PADDING * 2;
-    public static final int GRID_MARGIN = 10;
-    public static final int GRID_CELL_SIZE = NODE_HEIGHT + GRID_MARGIN;
+    public static final int GRID_CELL_SIZE = 48;
+    public static final int NODE_MARGIN = 6;
+    public static final int NODE_PADDING = 5;
+    public static final int NODE_WIDTH = GRID_CELL_SIZE * 3 - NODE_MARGIN * 2;
+    public static final int NODE_HEIGHT = GRID_CELL_SIZE - NODE_MARGIN * 2;
+    public static final int NODE_ICON_SIZE = 26;
     public static final int GRID_OFFSET = 6;
-    public static final int GRID_NODE_MARGIN = 12;
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
     public static final int PORT_SPACING = 10;
@@ -295,7 +294,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         Port inputPort = inputNode.getInput(connection.getInputPort());
         Rectangle outputRect = nodeRect(outputNode);
         Rectangle inputRect = nodeRect(inputNode);
-        paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 4, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 5);
+        paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 4);
 
     }
 
@@ -303,7 +302,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
         if (connectionOutput != null) {
             Rectangle outputRect = nodeRect(connectionOutput);
-            paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 4, (int) connectionPoint.getX(), (int) connectionPoint.getY());
+            paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, (int) connectionPoint.getX(), (int) connectionPoint.getY());
         }
     }
 
@@ -386,7 +385,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         // Draw icon
         g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING, NODE_ICON_SIZE, NODE_ICON_SIZE, null);
         g.setColor(Color.WHITE);
-        g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2, r.y + 20);
+        g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
     }
 
     private void paintPortTooltip(Graphics2D g) {
