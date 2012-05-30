@@ -431,10 +431,14 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private Rectangle dragSelectRect() {
-        int x = (int) dragStartPoint.getX();
-        int y = (int) dragStartPoint.getY();
-        int w = (int) (dragCurrentPoint.getX() - dragStartPoint.getX());
-        int h = (int) (dragCurrentPoint.getY() - dragStartPoint.getY());
+        int x0 = (int) dragStartPoint.getX();
+        int y0 = (int) dragStartPoint.getY();
+        int x1 = (int) dragCurrentPoint.getX();
+        int y1 = (int) dragCurrentPoint.getY();
+        int x = Math.min(x0, x1);
+        int y = Math.min(y0, y1);
+        int w = (int) Math.abs(dragCurrentPoint.getX() - dragStartPoint.getX());
+        int h = (int) Math.abs(dragCurrentPoint.getY() - dragStartPoint.getY());
         return new Rectangle(x, y, w, h);
     }
 
