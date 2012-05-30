@@ -21,11 +21,12 @@ def png_file(svg_file, target_directory):
     png_file = '%s.png' % base
     return os.path.join(target_directory, png_file)
 
-def convert_svg_file(svg_file, target_directory):
+def convert_svg_file(svg_file, target_directory, overwrite=False):
     target_file = png_file(svg_file, target_directory)
-    print target_file
-    os.system('svg2png %s %s' % (svg_file, target_file))
-    os.system('mogrify -negate %s' % target_file)
+    if not os.path.exists(target_file) or overwrite:
+        print target_file
+        os.system('svg2png %s %s' % (svg_file, target_file))
+        os.system('mogrify -negate %s' % target_file)
     
 def convert_directory(source_directory, target_directory):
     svg_files = glob(os.path.join(source_directory, '*.svg'))
