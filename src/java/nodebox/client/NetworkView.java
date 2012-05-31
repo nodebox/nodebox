@@ -386,7 +386,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         // Draw output port
-        if (hoverOutput) {
+        if (hoverOutput &&  connectionOutput == null) {
             g.setColor(PORT_HOVER_COLOR);
         } else {
             g.setColor(portTypeColor(outputType));
@@ -405,7 +405,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
             String text = String.format("%s (%s)", overInput.port.getName(), overInput.port.getType());
             paintTooltip(g, pt, text);
-        } else if (overOutput != null) {
+        } else if (overOutput != null && connectionOutput == null) {
             Rectangle r = outputPortRect(overOutput);
             Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
             String text = String.format("output (%s)", overOutput.getOutputType());
