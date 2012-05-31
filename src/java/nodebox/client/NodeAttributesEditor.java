@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class NodeAttributesEditor extends JPanel implements ListSelectionListener {
@@ -352,6 +353,19 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             final JComboBox box = new JComboBox(types);
             typePanel.add(box);
 
+            // custom type
+            JPanel customTypePanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+            customTypePanel.add(new JLabel("Custom Type:  "));
+            final JTextField customTypeField = new JTextField("", 20);
+            customTypeField.setEnabled(false);
+            customTypePanel.add(customTypeField);
+
+            box.addActionListener (new ActionListener () {
+                public void actionPerformed(ActionEvent e) {
+                    customTypeField.setEnabled(box.getSelectedItem().equals("custom"));
+                }
+            });
+
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
             buttonPanel.add(Box.createHorizontalGlue());
@@ -367,7 +381,8 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             okButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent actionEvent) {
                     portName = nameField.getText();
-                    portType = (String) box.getSelectedItem();
+                    String selectedType = (String) box.getSelectedItem();
+                    portType = selectedType.equals("custom") ? customTypeField.getText().toLowerCase(Locale.US) : selectedType;
                     dispose();
                 }
             });
@@ -376,6 +391,8 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             mainPanel.add(namePanel);
             mainPanel.add(Box.createVerticalStrut(10));
             mainPanel.add(typePanel);
+            mainPanel.add(Box.createVerticalStrut(10));
+            mainPanel.add(customTypePanel);
             mainPanel.add(Box.createVerticalStrut(10));
             mainPanel.add(buttonPanel);
             pack();
