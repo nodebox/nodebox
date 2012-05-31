@@ -292,6 +292,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         Node outputNode = findNodeWithName(connection.getOutputNode());
         Node inputNode = findNodeWithName(connection.getInputNode());
         Port inputPort = inputNode.getInput(connection.getInputPort());
+        g.setColor(portTypeColor(outputNode.getOutputType()));
         Rectangle outputRect = nodeRect(outputNode);
         Rectangle inputRect = nodeRect(inputNode);
         paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 4);
@@ -302,6 +303,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
         if (connectionOutput != null) {
             Rectangle outputRect = nodeRect(connectionOutput);
+            g.setColor(portTypeColor(connectionOutput.getOutputType()));
             paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, (int) connectionPoint.getX(), (int) connectionPoint.getY());
         }
     }
