@@ -326,7 +326,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
             BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
-            paintNode(g, node, icon, isSelected(node), isRendered(node), hoverInputPort, overOutput == node);
+            paintNode(g, node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
@@ -335,7 +335,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Port hoverInputPort, boolean hoverOutput) {
+    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -372,7 +372,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             } else {
                 g.setColor(portTypeColor(input.getType()));
             }
-            g.fillRect(r.x + portX, r.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+            // Highlight ports that match the dragged connection type
+            int portHeight = PORT_HEIGHT;
+            if (connectionOutput != null && connectionOutput.getOutputType().equals(input.getType())) {
+                portHeight = PORT_HEIGHT * 2;
+            }
+            g.fillRect(r.x + portX, r.y - portHeight, PORT_WIDTH, portHeight);
             portX += PORT_WIDTH + PORT_SPACING;
         }
 
