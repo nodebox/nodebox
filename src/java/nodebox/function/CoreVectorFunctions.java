@@ -196,7 +196,7 @@ public class CoreVectorFunctions {
 
     public static Path rect(Point position, double width, double height, Point roundness) {
         Path p = new Path();
-        if (roundness == Point.ZERO) {
+        if (roundness.equals(Point.ZERO)) {
             p.rect(position.x, position.y, width, height);
         } else {
             p.roundedRect(position.x, position.y, width, height, roundness.x, roundness.y);
