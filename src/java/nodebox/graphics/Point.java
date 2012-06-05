@@ -1,6 +1,7 @@
 package nodebox.graphics;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
@@ -14,6 +15,8 @@ public final class Point extends AbstractRecord {
     public static final int LINE_TO = 1;
     public static final int CURVE_TO = 2;
     public static final int CURVE_DATA = 3;
+
+    private static final ImmutableList<String> POINT_FIELDS = ImmutableList.of("x", "y", "type");
 
     public static Point valueOf(String s) {
         String[] args = s.split(",");
@@ -33,7 +36,7 @@ public final class Point extends AbstractRecord {
     }
 
     public Point(double x, double y, int type) {
-        super("x", "y", "type");
+        super(POINT_FIELDS);
         this.x = x;
         this.y = y;
         this.type = type;

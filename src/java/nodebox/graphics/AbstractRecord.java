@@ -26,6 +26,10 @@ public class AbstractRecord implements Map<String, Object>, IOrderedFields {
         this.fields = ImmutableList.copyOf(fields);
     }
 
+    protected AbstractRecord(ImmutableList<String> fields) {
+        this.fields = fields;
+    }
+
     public Iterable<String> getOrderedFields() {
         return fields;
     }
