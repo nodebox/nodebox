@@ -20,7 +20,7 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
+                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
@@ -126,6 +126,26 @@ public class CoreVectorFunctions {
             newShape.setStrokeColor(null);
         }
         return newShape;
+    }
+
+    /**
+     * Connects all given points, in order, as a new path.
+     *
+     * @param points A list of points.
+     * @param closed If true, close the path contour.
+     * @return A new path with all points connected.
+     */
+    public static Path connect(List<Point> points, boolean closed) {
+        if (points == null) return null;
+        Path p = new Path();
+        for (Point pt : points) {
+            p.addPoint(pt);
+        }
+        if (closed)
+            p.close();
+        p.setFill(null);
+        p.setStroke(Color.BLACK);
+        return p;
     }
 
     public static Path ellipse(Point position, double width, double height) {

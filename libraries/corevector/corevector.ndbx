@@ -69,7 +69,7 @@
             <port type="boolean" name="invert_difference" value="false"/>
         </node>
 
-        <node function="pyvector/connect" name="connect" image="connect.png" outputType="geometry" position="410,580"
+        <node function="corevector/connect" name="connect" image="connect.png" outputType="geometry" position="410,580"
               prototype="generator" description="Connects all points in a path.">
             <port type="list" name="points" range="list"/>
             <port type="boolean" name="closed" value="true"/>
