@@ -3,12 +3,12 @@
     <link href="python:pyvector.py" rel="functions"/>
     <link href="java:nodebox.function.CoreVectorFunctions" rel="functions"/>
     <node name="root" renderedChild="align">
-        <node function="pyvector/generator" name="generator" image="generator.png" outputType="geometry"
+        <node function="corevector/generator" name="generator" image="generator.png" outputType="geometry"
               position="10,90"
               description="Template for creating nodes that generator vector data.">
         </node>
 
-        <node function="pyvector/filter" name="filter" image="filter.png" outputType="geometry" position="10,340"
+        <node function="corevector/filter" name="filter" image="filter.png" outputType="geometry" position="10,340"
               prototype="generator" description="Template for creating nodes that manipulate vector data.">
             <port type="geometry" name="shape"/>
         </node>
@@ -31,8 +31,8 @@
             </port>
         </node>
 
-        <node function="pyvector/arc" name="arc" image="arc.png" outputType="geometry" position="90,260"
-              prototype="generator" description="Create an arc." handle="pyvector/handle_four_point">
+        <node function="corevector/arc" name="arc" image="arc.png" outputType="geometry" position="90,260"
+              prototype="generator" description="Create an arc." handle="corevector/fourPointHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="float" name="width" value="100.0"/>
             <port type="float" name="height" value="100.0"/>
@@ -129,8 +129,8 @@
             <port type="string" name="path"/>
         </node>
 
-        <node function="pyvector/ellipse" name="ellipse" image="ellipse.png" outputType="geometry" position="90,90"
-              prototype="generator" description="Create ellipses and circles." handle="pyvector/handle_four_point">
+        <node function="corevector/ellipse" name="ellipse" image="ellipse.png" outputType="geometry" position="90,90"
+              prototype="generator" description="Create ellipses and circles." handle="corevector/fourPointHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="float" name="width" value="100.0"/>
             <port type="float" name="height" value="100.0"/>
@@ -150,9 +150,9 @@
             <port type="boolean" name="keep_proportions" value="true"/>
         </node>
 
-        <node function="pyvector/freehand" name="freehand" image="freehand.png" outputType="geometry"
+        <node function="corevector/freehand" name="freehand" image="freehand.png" outputType="geometry"
               position="10,10" prototype="generator" description="Freehand drawing."
-              handle="pyvector/handle_freehand">
+              handle="corevector/freehandHandle">
             <port type="string" name="path"/>
         </node>
 
@@ -160,9 +160,9 @@
               description="A network of geometry nodes.">
         </node>
 
-        <node function="pyvector/grid" name="grid" image="grid.png" outputType="point" outputRange="list" position="170,90"
+        <node function="corevector/grid" name="grid" image="grid.png" outputType="point" outputRange="list" position="170,90"
               prototype="generator" description="Create a grid of points."
-              handle="pyvector/handle_four_point">
+              handle="corevector/fourPointHandle">
             <port type="int" name="rows" value="10" min="1.0"/>
             <port type="int" name="columns" value="10" min="1.0"/>
             <port type="float" name="width" value="300.0"/>
@@ -183,8 +183,8 @@
             <port type="point" name="position" value="0,0"/>
         </node>
 
-        <node function="pyvector/line" name="line" image="line.png" outputType="geometry" position="170,170"
-              prototype="generator" description="Draw a line between two points." handle="pyvector/handle_line">
+        <node function="corevector/line" name="line" image="line.png" outputType="geometry" position="170,170"
+              prototype="generator" description="Draw a line between two points." handle="corevector/lineHandle">
             <port type="point" name="point1" value="0,0"/>
             <port type="point" name="point2" value="100,100"/>
         </node>
@@ -217,9 +217,9 @@
             <port type="boolean" name="align" value="false"/>
         </node>
 
-        <node function="pyvector/rect" name="rect" image="rect.png" outputType="geometry" position="330,90"
+        <node function="corevector/rect" name="rect" image="rect.png" outputType="geometry" position="330,90"
               prototype="generator" description="Create a rectangle or rounded rectangle."
-              handle="pyvector/handle_four_point">
+              handle="corevector/fourPointHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="float" name="width" value="100.0"/>
             <port type="float" name="height" value="100.0"/>
