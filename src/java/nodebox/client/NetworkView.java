@@ -25,7 +25,7 @@ import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseMotionListener {
+public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener {
 
     public static final int GRID_CELL_SIZE = 48;
     public static final int NODE_MARGIN = 6;
@@ -46,7 +46,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private static BufferedImage nodeGeneric;
 
-    public static final float MIN_ZOOM = 0.2f;
+    public static final float MIN_ZOOM = 0.05f;
     public static final float MAX_ZOOM = 1.0f;
 
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
@@ -67,7 +67,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private JPopupMenu networkMenu;
 
     // View state
-    private AffineTransform viewTransform = new AffineTransform();
+    private double viewX, viewY, viewScale = 1;
+    private transient AffineTransform viewTransform = null;
+    private transient AffineTransform inverseViewTransform = null;
+
     private Set<String> selectedNodes = new HashSet<String>();
 
     // Interaction state
@@ -171,6 +174,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
     }
 
     private void initMenus() {
@@ -255,7 +259,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
         // Set the view transform
         AffineTransform originalTransform = g2.getTransform();
-        g2.transform(viewTransform);
+        g2.transform(getViewTransform());
 
         paintNodes(g2);
         paintConnections(g2);
@@ -269,14 +273,19 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void paintGrid(Graphics2D g) {
         g.setColor(Theme.NETWORK_GRID_COLOR);
-        int transformOffsetX = (int) (viewTransform.getTranslateX() % GRID_CELL_SIZE);
-        int transformOffsetY = (int) (viewTransform.getTranslateY() % GRID_CELL_SIZE);
 
-        for (int y = -GRID_CELL_SIZE; y < getHeight() + GRID_CELL_SIZE; y += GRID_CELL_SIZE) {
-            g.drawLine(0, y - GRID_OFFSET + transformOffsetY, getWidth(), y - GRID_OFFSET + transformOffsetY);
+        int gridCellSize = (int) Math.round(GRID_CELL_SIZE * viewScale);
+        int gridOffset = (int) Math.round(GRID_OFFSET * viewScale);
+        if (gridCellSize < 10) return;
+
+        int transformOffsetX = (int) (viewX % gridCellSize);
+        int transformOffsetY = (int) (viewY % gridCellSize);
+
+        for (int y = -gridCellSize; y < getHeight() + gridCellSize; y += gridCellSize) {
+            g.drawLine(0, y - gridOffset + transformOffsetY, getWidth(), y - gridOffset + transformOffsetY);
         }
-        for (int x = -GRID_CELL_SIZE; x < getWidth() + GRID_CELL_SIZE; x += GRID_CELL_SIZE) {
-            g.drawLine(x - GRID_OFFSET + transformOffsetX, 0, x - GRID_OFFSET + transformOffsetX, getHeight());
+        for (int x = -gridCellSize; x < getWidth() + gridCellSize; x += gridCellSize) {
+            g.drawLine(x - gridOffset + transformOffsetX, 0, x - gridOffset + transformOffsetX, getHeight());
         }
     }
 
@@ -386,7 +395,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         // Draw output port
-        if (hoverOutput &&  connectionOutput == null) {
+        if (hoverOutput && connectionOutput == null) {
             g.setColor(PORT_HOVER_COLOR);
         } else {
             g.setColor(portTypeColor(outputType));
@@ -481,12 +490,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private Point pointToGridPoint(Point e) {
-        Point2D pt;
-        try {
-            pt = viewTransform.inverseTransform(e, null);
-        } catch (NoninvertibleTransformException e1) {
-            pt = e;
-        }
+        Point2D pt = getInverseViewTransform().transform(e, null);
         return new Point(
                 (int) Math.floor(pt.getX() / GRID_CELL_SIZE),
                 (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
@@ -499,8 +503,36 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     //// View Transform ////
 
+    private void setViewTransform(double viewX, double viewY, double viewScale) {
+        this.viewX = viewX;
+        this.viewY = viewY;
+        this.viewScale = viewScale;
+        this.viewTransform = null;
+        this.inverseViewTransform = null;
+    }
+
+    private AffineTransform getViewTransform() {
+        if (viewTransform == null) {
+            viewTransform = new AffineTransform();
+            viewTransform.translate(viewX, viewY);
+            viewTransform.scale(viewScale, viewScale);
+        }
+        return viewTransform;
+    }
+
+    private AffineTransform getInverseViewTransform() {
+        if (inverseViewTransform == null) {
+            try {
+                inverseViewTransform = getViewTransform().createInverse();
+            } catch (NoninvertibleTransformException e) {
+                inverseViewTransform = new AffineTransform();
+            }
+        }
+        return inverseViewTransform;
+    }
+
     private void resetViewTransform() {
-        viewTransform = new AffineTransform();
+        setViewTransform(0, 0, 1);
         repaint();
     }
 
@@ -787,7 +819,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         if (isSpacePressed) {
             // When panning the view use the original mouse point, not the one affected by the view transform.
             Point2D offset = minPoint(e.getPoint(), dragStartPoint);
-            viewTransform.translate(offset.getX(), offset.getY());
+            setViewTransform(viewX + offset.getX(), viewY + offset.getY(), viewScale);
+            viewX += offset.getX();
+            viewY += offset.getY();
             dragStartPoint = e.getPoint();
             repaint();
             return;
@@ -848,6 +882,22 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         repaint();
     }
 
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        double scaleDelta = 1F - e.getWheelRotation() / 10F;
+        double newViewScale = viewScale * scaleDelta;
+
+        if (newViewScale < MIN_ZOOM) {
+            scaleDelta = MIN_ZOOM / viewScale;
+        } else if (newViewScale > MAX_ZOOM) {
+            scaleDelta = MAX_ZOOM / viewScale;
+        }
+
+        double vx = viewX - (e.getX() - viewX) * (scaleDelta - 1);
+        double vy = viewY - (e.getY() - viewY) * (scaleDelta - 1);
+        setViewTransform(vx, vy, viewScale * scaleDelta);
+        repaint();
+    }
+
     private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
         ImmutableMap.Builder<String, nodebox.graphics.Point> b = ImmutableMap.builder();
         for (String nodeName : selectedNodes) {
@@ -858,11 +908,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private Point2D inverseViewTransformPoint(Point p) {
         Point2D pt = new Point2D.Double(p.getX(), p.getY());
-        try {
-            return viewTransform.inverseTransform(pt, null);
-        } catch (NoninvertibleTransformException e) {
-            throw new RuntimeException(e);
-        }
+        return getInverseViewTransform().transform(pt, null);
     }
 
     private Point2D minPoint(Point2D a, Point2D b) {
