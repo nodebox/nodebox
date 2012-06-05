@@ -1,5 +1,7 @@
 package nodebox.node;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import nodebox.function.CoreFunctions;
 import nodebox.function.FunctionLibrary;
@@ -326,11 +328,29 @@ public class NodeLibraryController {
         if (nodePath.isEmpty()) {
             newRoot = node;
         } else {
-            // TODO Recursively replace nodes at higher levels.
-            checkArgument(!nodePath.contains("/"), "Subpaths are not supported yet.");
-            newRoot = nodeLibrary.getRoot().withChildReplaced(nodePath, node);
+            newRoot = replacedInPath(nodePath, node);
         }
         nodeLibrary = nodeLibrary.withRoot(newRoot);
+    }
+
+    /**
+     * Replace the node at the given path with the new node.
+     * Helper function that replaces nodes recursively (i.e. deepest sublevels first,
+     * then going up, until the root node has been reached).
+     *
+     * @param nodePath The node path. This path needs to exist.
+     * @param node     The new node to put in place of the old node.
+     */
+    private Node replacedInPath(String nodePath, Node node) {
+        if (!nodePath.contains("/"))
+            return nodeLibrary.getRoot().withChildReplaced(nodePath, node);
+        List<String> parts = ImmutableList.copyOf(Splitter.on("/").split(nodePath));
+        List<String> parentParts = parts.subList(0, parts.size() - 1);
+        String childName = parts.get(parts.size() - 1);
+        String parentPath = Joiner.on("/").join(parentParts);
+        Node parent = nodeLibrary.getNodeForPath("/" + parentPath);
+        Node newParent = parent.withChildReplaced(childName, node);
+        return replacedInPath(parentPath, newParent);
     }
 
 }
