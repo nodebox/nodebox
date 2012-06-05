@@ -136,7 +136,10 @@ public class NodeContext {
 
         // If the node has children, forgo the operation of the current node and evaluate the child.
         if (node.hasRenderedChild()) {
-            Iterable<?> results = renderChild(node, node.getRenderedChild());
+            NodeContext context = new NodeContext(nodeLibrary, functionRepository, frame);
+            context.renderNetwork(node);
+            Node renderedChild = node.getRenderedChild();
+            Iterable<?> results = context.getResults(renderedChild);
             outputValuesMap.put(node, results);
             return results;
         }
