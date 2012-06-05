@@ -20,7 +20,8 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
+                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "rect",
+                "toPoints", "valuesToPoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
@@ -152,6 +153,17 @@ public class CoreVectorFunctions {
         Path p = new Path();
         p.ellipse(position.x, position.y, width, height);
         return p;
+    }
+
+    /**
+     * Get the points of a given shape.
+     *
+     * @param shape The input shape.
+     * @return A list of all points of the shape.
+     */
+    public static List<Point> toPoints(IGeometry shape) {
+        if (shape == null) return null;
+        return shape.getPoints();
     }
 
     private final static Splitter POINT_SPLITTER = Splitter.on(" ");

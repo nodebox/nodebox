@@ -346,9 +346,9 @@
             <port type="point" name="scale" value="100,100" label="Scale"/>
         </node>
 
-        <node function="pyvector/to_points" outputRange="list" name="to_points" image="to_points.png" outputType="list"
+        <node function="corevector/toPoints" outputRange="list" name="to_points" image="to_points.png" outputType="point"
               position="100,540" prototype="filter"
-              description="Return the points of a given shape.">
+              description="Get the points of a given shape.">
         </node>
 
         <node function="pyvector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
