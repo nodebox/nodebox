@@ -820,8 +820,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             // When panning the view use the original mouse point, not the one affected by the view transform.
             Point2D offset = minPoint(e.getPoint(), dragStartPoint);
             setViewTransform(viewX + offset.getX(), viewY + offset.getY(), viewScale);
-            viewX += offset.getX();
-            viewY += offset.getY();
             dragStartPoint = e.getPoint();
             repaint();
             return;
