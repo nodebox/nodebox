@@ -3,10 +3,7 @@ package nodebox.function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import nodebox.graphics.*;
-import nodebox.handle.FourPointHandle;
-import nodebox.handle.FreehandHandle;
-import nodebox.handle.Handle;
-import nodebox.handle.LineHandle;
+import nodebox.handle.*;
 
 import java.awt.geom.Arc2D;
 import java.util.List;
@@ -23,8 +20,8 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "arc", "color", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
-                "fourPointHandle", "freehandHandle", "lineHandle");
+                "align", "arc", "color", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
+                "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
     public static Path generator() {
@@ -38,6 +35,50 @@ public class CoreVectorFunctions {
         Transform t = new Transform();
         t.rotate(45);
         return t.map(geometry);
+    }
+
+    /**
+     * Align a shape in relation to the origin.
+     *
+     * @param geometry The input geometry.
+     * @param position The point to align to.
+     * @param hAlign   The horizontal align mode. Either "left", "right" or "center".
+     * @param vAlign   The vertical align mode. Either "top", "bottom" or "middle".
+     * @return The aligned Geometry. The original geometry is left intact.
+     */
+    public static AbstractGeometry align(AbstractGeometry geometry, Point position, String hAlign, String vAlign) {
+        if (geometry == null) return null;
+        double x = position.x;
+        double y = position.y;
+        Rect bounds = geometry.getBounds();
+        double dx, dy;
+        if (hAlign.equals("left")) {
+            dx = x - bounds.x;
+        } else if (hAlign.equals("right")) {
+            dx = x - bounds.x - bounds.width;
+        } else if (hAlign.equals("center")) {
+            dx = x - bounds.x - bounds.width / 2;
+        } else {
+            dx = 0;
+        }
+        if (vAlign.equals("top")) {
+            dy = y - bounds.y;
+        } else if (vAlign.equals("bottom")) {
+            dy = y - bounds.y - bounds.height;
+        } else if (vAlign.equals("middle")) {
+            dy = y - bounds.y - bounds.height / 2;
+        } else {
+            dy = 0;
+        }
+
+        Transform t = Transform.translated(dx, dy);
+        if (geometry instanceof Path) {
+            return t.map((Path) geometry);
+        } else if (geometry instanceof Geometry) {
+            return t.map((Geometry) geometry);
+        } else {
+            throw new IllegalArgumentException("Unknown geometry type " + geometry.getClass().getName());
+        }
     }
 
     public static Path arc(Point position, double width, double height, double startAngle, double degrees, String arcType) {
@@ -169,6 +210,10 @@ public class CoreVectorFunctions {
 
     public static Handle lineHandle() {
         return new LineHandle();
+    }
+
+    public static Handle pointHandle() {
+        return new PointHandle();
     }
 
 }

@@ -13,9 +13,9 @@
             <port type="geometry" name="shape"/>
         </node>
 
-        <node function="pyvector/align" name="align" image="align.png" outputType="geometry" position="90,580"
+        <node function="corevector/align" name="align" image="align.png" outputType="geometry" position="90,580"
               prototype="filter" description="Align a shape in relation to the origin."
-              handle="pyvector/handle_point">
+              handle="corevector/pointHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="string" name="halign" value="center" label="Horizontal Align" widget="menu">
                 <menu key="none" label="No Change"/>
