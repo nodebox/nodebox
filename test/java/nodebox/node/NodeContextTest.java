@@ -336,26 +336,28 @@ public class NodeContextTest {
 
     @Test
     public void testRenderSubnetwork() {
-        Node number1 = numberNode.extend()
-                .withName("number1")
-                .withInputValue("number", 1.0);
-        Node number2 = numberNode.extend()
-                .withName("number2")
-                .withInputValue("number", 2.0);
-        Node add1 = addNode.extend().withName("add1");
-        Node subnet = Node.ROOT
-                .withName("subnet1")
-                .withChildAdded(number1)
-                .withChildAdded(number2)
-                .withChildAdded(add1)
-                .withRenderedChildName("add1")
-                .connect("number1", "add1", "v1")
-                .connect("number2", "add1", "v2");
+        Node subnet = createSubnetwork("subnet1", 1.0, 2.0);
         Node net = Node.ROOT
                 .withChildAdded(subnet)
                 .withRenderedChildName("subnet1");
         context.renderNetwork(net);
         assertResultsEqual(context.getResults(subnet), 3.0);
+    }
+
+    @Test
+    public void testValidSubnetworkResults() {
+        Node subnet1 = createSubnetwork("subnet1", 1.0, 2.0);
+        Node subnet2 = createSubnetwork("subnet2", 3.0, 4.0);
+        Node add1 = addNode.extend().withName("add1");
+        Node net = Node.ROOT
+                .withChildAdded(subnet1)
+                .withChildAdded(subnet2)
+                .withChildAdded(add1)
+                .withRenderedChildName("add1")
+                .connect("subnet1", "add1", "v1")
+                .connect("subnet2", "add1", "v2");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(add1), 10.0);
     }
 
     @Test
@@ -375,6 +377,25 @@ public class NodeContextTest {
     // TODO Check list-unaware node with single output.
     // TODO Check list-unaware node with multiple outputs.
     // TODO Check list-unaware node with multiple inputs, single output.
+
+    private Node createSubnetwork(String name, double v1, double v2) {
+        Node number1 = numberNode.extend()
+                .withName("number1")
+                .withInputValue("number", v1);
+        Node number2 = numberNode.extend()
+                .withName("number2")
+                .withInputValue("number", v2);
+        Node add1 = addNode.extend().withName("add1");
+        Node subnet = Node.ROOT
+                .withName(name)
+                .withChildAdded(number1)
+                .withChildAdded(number2)
+                .withChildAdded(add1)
+                .withRenderedChildName("add1")
+                .connect("number1", "add1", "v1")
+                .connect("number2", "add1", "v2");
+        return subnet;
+    }
 
     private Node createSampleNode(String name, int amount, double start, double end) {
         return sampleNode.extend()
