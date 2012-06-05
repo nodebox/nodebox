@@ -1,12 +1,9 @@
 package nodebox.client;
 
-import edu.umd.cs.piccolo.PCanvas;
-import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolo.util.PPaintContext;
-import nodebox.node.Node;
-import nodebox.node.Port;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import nodebox.node.*;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
@@ -16,35 +13,82 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
-import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-public class NetworkView extends PCanvas implements PaneView, KeyListener {
+import static com.google.common.base.Preconditions.checkNotNull;
+
+public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener {
+
+    public static final int GRID_CELL_SIZE = 48;
+    public static final int NODE_MARGIN = 6;
+    public static final int NODE_PADDING = 5;
+    public static final int NODE_WIDTH = GRID_CELL_SIZE * 3 - NODE_MARGIN * 2;
+    public static final int NODE_HEIGHT = GRID_CELL_SIZE - NODE_MARGIN * 2;
+    public static final int NODE_ICON_SIZE = 26;
+    public static final int GRID_OFFSET = 6;
+    public static final int PORT_WIDTH = 10;
+    public static final int PORT_HEIGHT = 3;
+    public static final int PORT_SPACING = 10;
+    public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
     public static final String RENDER_PROPERTY = "render";
     public static final String NETWORK_PROPERTY = "network";
 
-    public static final float MIN_ZOOM = 0.2f;
+    private static Map<String, BufferedImage> nodeImageCache = new HashMap<String, BufferedImage>();
+    private static BufferedImage nodeGeneric;
+
+    public static final float MIN_ZOOM = 0.05f;
     public static final float MAX_ZOOM = 1.0f;
 
-    private final NodeBoxDocument document;
+    public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
+    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
+    public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
+    public static final Color PORT_HOVER_COLOR = Color.YELLOW;
+    public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
+    public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
+    public static final Color TOOLTIP_TEXT_COLOR = Color.DARK_GRAY;
+    public static final Color DRAG_SELECTION_COLOR = new Color(255, 255, 255, 100);
+    public static final BasicStroke DRAG_SELECTION_STROKE = new BasicStroke(1f);
+    public static final BasicStroke CONNECTION_STROKE = new BasicStroke(2);
 
     private static Cursor defaultCursor, panCursor;
 
-    private Set<NodeView> selection = new HashSet<NodeView>();
-    private ConnectionLayer connectionLayer;
-    private SelectionMarker selectionMarker;
-    private JPopupMenu networkMenu;
-    private NodeView connectionSource, connectionTarget;
-    private Point2D connectionPoint;
+    private final NodeBoxDocument document;
 
-    private boolean panEnabled = false;
+    private JPopupMenu networkMenu;
+
+    // View state
+    private double viewX, viewY, viewScale = 1;
+    private transient AffineTransform viewTransform = null;
+    private transient AffineTransform inverseViewTransform = null;
+
+    private Set<String> selectedNodes = new HashSet<String>();
+
+    // Interaction state
+    private boolean isDraggingNodes = false;
+    private boolean isSpacePressed = false;
+    private boolean isShiftPressed = false;
+    private boolean isDragSelecting = false;
+    private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
+    private NodePort overInput;
+    private Node overOutput;
+    private Node connectionOutput;
+    private NodePort connectionInput;
+    private Point2D connectionPoint;
+    private boolean startDragging;
+    private Point2D dragStartPoint;
+    private Point2D dragCurrentPoint;
 
     static {
         Image panCursorImage;
@@ -57,75 +101,99 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
             defaultCursor = Cursor.getDefaultCursor();
+            nodeGeneric = ImageIO.read(new File("res/node-generic.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+        PORT_COLORS.put(Port.TYPE_INT, Color.GRAY);
+        PORT_COLORS.put(Port.TYPE_FLOAT, Color.GRAY);
+        PORT_COLORS.put(Port.TYPE_STRING, Color.LIGHT_GRAY);
+        PORT_COLORS.put(Port.TYPE_BOOLEAN, Color.DARK_GRAY);
+        PORT_COLORS.put(Port.TYPE_POINT, Color.RED);
+        PORT_COLORS.put(Port.TYPE_COLOR, Color.CYAN);
+        PORT_COLORS.put("geometry", new Color(135, 136, 162));
+        PORT_COLORS.put("list", Color.PINK);
+
+    }
+
+    /**
+     * Tries to find an image representation for the node.
+     * The image should be located near the library, and have the same name as the library.
+     * <p/>
+     * If this node has no image, the prototype is searched to find its image. If no image could be found,
+     * a generic image is returned.
+     *
+     * @param node           the node
+     * @param nodeRepository the list of nodes to look for the icon
+     * @return an Image object.
+     */
+    public static BufferedImage getImageForNode(Node node, NodeRepository nodeRepository) {
+        for (NodeLibrary library : nodeRepository.getLibraries()) {
+            BufferedImage img = findNodeImage(library, node);
+            if (img != null) {
+                return img;
+            }
+        }
+        if (node.getPrototype() != null) {
+            return getImageForNode(node.getPrototype(), nodeRepository);
+        } else {
+            return nodeGeneric;
+        }
+    }
+
+    public static BufferedImage findNodeImage(NodeLibrary library, Node node) {
+        if (node == null || node.getImage() == null || node.getImage().isEmpty()) return null;
+        if (!library.getRoot().hasChild(node)) return null;
+        File libraryFile = library.getFile();
+        if (libraryFile != null) {
+            File libraryDirectory = libraryFile.getParentFile();
+            if (libraryDirectory != null) {
+                File nodeImageFile = new File(libraryDirectory, node.getImage());
+                if (nodeImageFile.exists()) {
+                    return readNodeImage(nodeImageFile);
+                }
+            }
+        }
+        return null;
+    }
+
+    public static BufferedImage readNodeImage(File nodeImageFile) {
+        String imagePath = nodeImageFile.getAbsolutePath();
+        if (nodeImageCache.containsKey(imagePath)) {
+            return nodeImageCache.get(imagePath);
+        } else {
+            try {
+                BufferedImage image = ImageIO.read(nodeImageFile);
+                nodeImageCache.put(imagePath, image);
+                return image;
+            } catch (IOException e) {
+                return null;
+            }
         }
     }
 
     public NetworkView(NodeBoxDocument document) {
         this.document = document;
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
-        SelectionHandler selectionHandler = new SelectionHandler();
-        addInputEventListener(selectionHandler);
-        setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
-        setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
-        // Remove default panning and zooming behaviour
-        removeInputEventListener(getPanEventHandler());
-        removeInputEventListener(getZoomEventHandler());
-        // Install custom panning and zooming
-        PInputEventFilter panFilter = new PInputEventFilter();
-        panFilter.setNotMask(InputEvent.CTRL_MASK);
-        PPanEventHandler panHandler = new PPanEventHandler() {
-            public void processEvent(final PInputEvent evt, final int i) {
-                if (evt.isMouseEvent() && evt.isLeftMouseButton() && panEnabled)
-                    super.processEvent(evt, i);
-            }
-        };
-        panHandler.setAutopan(false);
-        panHandler.setEventFilter(panFilter);
-        addInputEventListener(panHandler);
-        addInputEventListener(new DoubleClickHandler());
-        connectionLayer = new ConnectionLayer(this);
-        getCamera().addLayer(0, connectionLayer);
-        setZoomEventHandler(new PZoomEventHandler() {
-            public void processEvent(final PInputEvent evt, final int i) {
-                if (evt.isMouseWheelEvent()) {
-                    double currentScale = evt.getCamera().getViewScale();
-                    double scaleDelta = 1D - 0.1 * evt.getWheelRotation();
-                    double newScale = currentScale * scaleDelta;
-                    if (newScale < MIN_ZOOM) {
-                        scaleDelta = MIN_ZOOM / currentScale;
-                    } else if (newScale > MAX_ZOOM) {
-                        scaleDelta = MAX_ZOOM / currentScale;
-                    }
-                    final Point2D p = evt.getPosition();
-                    evt.getCamera().scaleViewAboutPoint(scaleDelta, p.getX(), p.getY());
-                }
-            }
-        });
-        DialogHandler dialogHandler = new DialogHandler();
-        addKeyListener(dialogHandler);
-        addKeyListener(new DeleteHandler());
-        addKeyListener(new UpDownHandler());
-        addKeyListener(this);
+        initEventHandlers();
         initMenus();
+    }
+
+    private void initEventHandlers() {
+        setFocusable(true);
         // This is disabled so we can detect the tab key.
         setFocusTraversalKeysEnabled(false);
+        addKeyListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
+        addMouseWheelListener(this);
     }
 
     private void initMenus() {
         networkMenu = new JPopupMenu();
-        networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
-        PopupHandler popupHandler = new PopupHandler();
-        addInputEventListener(popupHandler);
-    }
-
-    @Override
-    public void setBounds(int x, int y, int width, int height) {
-        super.setBounds(x, y, width, height);
-        connectionLayer.setBounds(getBounds());
     }
 
     public NodeBoxDocument getDocument() {
@@ -136,6 +204,8 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
         return document.getActiveNetwork();
     }
 
+    //// Events ////
+
     /**
      * Refresh the nodes and connections cache.
      */
@@ -145,51 +215,377 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
     }
 
     public void updateNodes() {
-        getLayer().removeAllChildren();
-        deselectAll();
-        if (getActiveNetwork() == null) return;
-        // Add nodes
-        for (Node n : getActiveNetwork().getChildren()) {
-            NodeView nv = new NodeView(this, n.getName());
-            getLayer().addChild(nv);
-        }
-        // TODO: Do we need validate?
-        validate();
         repaint();
     }
 
     public void updateConnections() {
-        connectionLayer.repaint();
+        repaint();
     }
 
     public void updatePosition(Node node) {
         updateConnections();
     }
 
+    public void checkErrorAndRepaint() {
+        //if (!networkError && !activeNetwork.hasError()) return;
+        //networkError = activeNetwork.hasError();
+        repaint();
+    }
+
+    public void codeChanged(Node node, boolean changed) {
+        repaint();
+    }
+
+    //// Model queries ////
+
     public Node getActiveNode() {
         return document.getActiveNode();
     }
 
+    private ImmutableList<Node> getNodes() {
+        return getDocument().getActiveNetwork().getChildren();
+    }
+
+    private ImmutableList<Node> getNodesReversed() {
+        return getNodes().reverse();
+    }
+
+    private Iterable<Connection> getConnections() {
+        return getDocument().getActiveNetwork().getConnections();
+    }
+
+    //// Painting the nodes ////
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+        // Draw background
+        g2.setColor(Theme.NETWORK_BACKGROUND_COLOR);
+        g2.fill(g.getClipBounds());
+
+        // Paint the grid
+        // (The grid is not really affected by the view transform)
+        paintGrid(g2);
+
+        // Set the view transform
+        AffineTransform originalTransform = g2.getTransform();
+        g2.transform(getViewTransform());
+
+        paintNodes(g2);
+        paintConnections(g2);
+        paintCurrentConnection(g2);
+        paintPortTooltip(g2);
+        paintDragSelection(g2);
+
+        // Restore original transform
+        g2.setTransform(originalTransform);
+    }
+
+    private void paintGrid(Graphics2D g) {
+        g.setColor(Theme.NETWORK_GRID_COLOR);
+
+        int gridCellSize = (int) Math.round(GRID_CELL_SIZE * viewScale);
+        int gridOffset = (int) Math.round(GRID_OFFSET * viewScale);
+        if (gridCellSize < 10) return;
+
+        int transformOffsetX = (int) (viewX % gridCellSize);
+        int transformOffsetY = (int) (viewY % gridCellSize);
+
+        for (int y = -gridCellSize; y < getHeight() + gridCellSize; y += gridCellSize) {
+            g.drawLine(0, y - gridOffset + transformOffsetY, getWidth(), y - gridOffset + transformOffsetY);
+        }
+        for (int x = -gridCellSize; x < getWidth() + gridCellSize; x += gridCellSize) {
+            g.drawLine(x - gridOffset + transformOffsetX, 0, x - gridOffset + transformOffsetX, getHeight());
+        }
+    }
+
+    private void paintConnections(Graphics2D g) {
+        g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
+        g.setStroke(CONNECTION_STROKE);
+        for (Connection connection : getConnections()) {
+            paintConnection(g, connection);
+        }
+    }
+
+    private void paintConnection(Graphics2D g, Connection connection) {
+        Node outputNode = findNodeWithName(connection.getOutputNode());
+        Node inputNode = findNodeWithName(connection.getInputNode());
+        Port inputPort = inputNode.getInput(connection.getInputPort());
+        g.setColor(portTypeColor(outputNode.getOutputType()));
+        Rectangle outputRect = nodeRect(outputNode);
+        Rectangle inputRect = nodeRect(inputNode);
+        paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 4);
+
+    }
+
+    private void paintCurrentConnection(Graphics2D g) {
+        g.setColor(Theme.CONNECTION_DEFAULT_COLOR);
+        if (connectionOutput != null) {
+            Rectangle outputRect = nodeRect(connectionOutput);
+            g.setColor(portTypeColor(connectionOutput.getOutputType()));
+            paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, (int) connectionPoint.getX(), (int) connectionPoint.getY());
+        }
+    }
+
+    private static void paintConnectionLine(Graphics2D g, int x0, int y0, int x1, int y1) {
+        double dy = Math.abs(y1 - y0);
+        if (dy < GRID_CELL_SIZE) {
+            g.drawLine(x0, y0, x1, y1);
+        } else {
+            double halfDx = Math.abs(x1 - x0) / 2;
+            GeneralPath p = new GeneralPath();
+            p.moveTo(x0, y0);
+            p.curveTo(x0, y0 + halfDx, x1, y1 - halfDx, x1, y1);
+            g.draw(p);
+        }
+    }
+
+    private void paintNodes(Graphics2D g) {
+        g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
+        for (Node node : getNodes()) {
+            Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
+            BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
+            paintNode(g, node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
+        }
+    }
+
+    private static Color portTypeColor(String type) {
+        Color portColor = PORT_COLORS.get(type);
+        return portColor == null ? DEFAULT_PORT_COLOR : portColor;
+    }
+
+    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+        Rectangle r = nodeRect(node);
+        String outputType = node.getOutputType();
+
+        // Draw selection ring
+        if (selected) {
+            g.setColor(Color.WHITE);
+            g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
+        }
+
+        // Draw node
+        g.setColor(portTypeColor(outputType));
+        if (selected) {
+            g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
+        } else {
+            g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
+        }
+
+        // Draw render flag
+        if (rendered) {
+            g.setColor(Color.WHITE);
+            GeneralPath gp = new GeneralPath();
+            gp.moveTo(r.x + NODE_WIDTH - 2, r.y + NODE_HEIGHT - 20);
+            gp.lineTo(r.x + NODE_WIDTH - 2, r.y + NODE_HEIGHT - 2);
+            gp.lineTo(r.x + NODE_WIDTH - 20, r.y + NODE_HEIGHT - 2);
+            g.fill(gp);
+        }
+
+        // Draw input ports
+        g.setColor(Color.WHITE);
+        int portX = 0;
+        for (Port input : node.getInputs()) {
+            if (hoverInputPort == input) {
+                g.setColor(PORT_HOVER_COLOR);
+            } else {
+                g.setColor(portTypeColor(input.getType()));
+            }
+            // Highlight ports that match the dragged connection type
+            int portHeight = PORT_HEIGHT;
+            if (connectionOutput != null) {
+                if (connectionOutput.getOutputType().equals(input.getType())) {
+                    portHeight = PORT_HEIGHT * 2;
+                } else {
+                    portHeight = 1;
+                }
+            }
+            g.fillRect(r.x + portX, r.y - portHeight, PORT_WIDTH, portHeight);
+            portX += PORT_WIDTH + PORT_SPACING;
+        }
+
+        // Draw output port
+        if (hoverOutput && connectionOutput == null) {
+            g.setColor(PORT_HOVER_COLOR);
+        } else {
+            g.setColor(portTypeColor(outputType));
+        }
+        g.fillRect(r.x, r.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+
+        // Draw icon
+        g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING, NODE_ICON_SIZE, NODE_ICON_SIZE, null);
+        g.setColor(Color.WHITE);
+        g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
+    }
+
+    private void paintPortTooltip(Graphics2D g) {
+        if (overInput != null) {
+            Rectangle r = inputPortRect(overInput.node, overInput.port);
+            Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
+            String text = String.format("%s (%s)", overInput.port.getName(), overInput.port.getType());
+            paintTooltip(g, pt, text);
+        } else if (overOutput != null && connectionOutput == null) {
+            Rectangle r = outputPortRect(overOutput);
+            Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
+            String text = String.format("output (%s)", overOutput.getOutputType());
+            paintTooltip(g, pt, text);
+        }
+    }
+
+    private static void paintTooltip(Graphics2D g, Point2D point, String text) {
+        FontMetrics fontMetrics = g.getFontMetrics();
+        int textWidth = fontMetrics.stringWidth(text);
+
+        int verticalOffset = 10;
+        Rectangle r = new Rectangle((int) point.getX(), (int) point.getY() + verticalOffset, textWidth, fontMetrics.getHeight());
+        r.grow(4, 3);
+        g.setColor(TOOLTIP_STROKE_COLOR);
+        g.drawRoundRect(r.x, r.y, r.width, r.height, 8, 8);
+        g.setColor(TOOLTIP_BACKGROUND_COLOR);
+        g.fillRoundRect(r.x, r.y, r.width, r.height, 8, 8);
+
+        g.setColor(TOOLTIP_TEXT_COLOR);
+        g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent() + verticalOffset);
+    }
+
+    private void paintDragSelection(Graphics2D g) {
+        if (isDragSelecting) {
+            Rectangle r = dragSelectRect();
+            g.setColor(DRAG_SELECTION_COLOR);
+            g.setStroke(DRAG_SELECTION_STROKE);
+            g.fill(r);
+            // To get a smooth line we need to subtract one from the width and height.
+            g.drawRect((int) r.getX(), (int) r.getY(), (int) r.getWidth() - 1, (int) r.getHeight() - 1);
+        }
+    }
+
+    private Rectangle dragSelectRect() {
+        int x0 = (int) dragStartPoint.getX();
+        int y0 = (int) dragStartPoint.getY();
+        int x1 = (int) dragCurrentPoint.getX();
+        int y1 = (int) dragCurrentPoint.getY();
+        int x = Math.min(x0, x1);
+        int y = Math.min(y0, y1);
+        int w = (int) Math.abs(dragCurrentPoint.getX() - dragStartPoint.getX());
+        int h = (int) Math.abs(dragCurrentPoint.getY() - dragStartPoint.getY());
+        return new Rectangle(x, y, w, h);
+    }
+
+    private static Rectangle nodeRect(Node node) {
+        return new Rectangle(nodePoint(node), NODE_DIMENSION);
+    }
+
+    private static Rectangle inputPortRect(Node node, Port port) {
+        Point pt = nodePoint(node);
+        Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        growHitRectangle(portRect);
+        return portRect;
+    }
+
+    private static Rectangle outputPortRect(Node node) {
+        Point pt = nodePoint(node);
+        Rectangle portRect = new Rectangle(pt.x, pt.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        growHitRectangle(portRect);
+        return portRect;
+    }
+
+    private static void growHitRectangle(Rectangle r) {
+        r.grow(2, 2);
+    }
+
+    private static Point nodePoint(Node node) {
+        int nodeX = ((int) node.getPosition().getX()) * GRID_CELL_SIZE;
+        int nodeY = ((int) node.getPosition().getY()) * GRID_CELL_SIZE;
+        return new Point(nodeX, nodeY);
+    }
+
+    private Point pointToGridPoint(Point e) {
+        Point2D pt = getInverseViewTransform().transform(e, null);
+        return new Point(
+                (int) Math.floor(pt.getX() / GRID_CELL_SIZE),
+                (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
+    }
+
+    private static int portOffset(Node node, Port port) {
+        int portIndex = node.getInputs().indexOf(port);
+        return (PORT_WIDTH + PORT_SPACING) * portIndex;
+    }
+
+    //// View Transform ////
+
+    private void setViewTransform(double viewX, double viewY, double viewScale) {
+        this.viewX = viewX;
+        this.viewY = viewY;
+        this.viewScale = viewScale;
+        this.viewTransform = null;
+        this.inverseViewTransform = null;
+    }
+
+    private AffineTransform getViewTransform() {
+        if (viewTransform == null) {
+            viewTransform = new AffineTransform();
+            viewTransform.translate(viewX, viewY);
+            viewTransform.scale(viewScale, viewScale);
+        }
+        return viewTransform;
+    }
+
+    private AffineTransform getInverseViewTransform() {
+        if (inverseViewTransform == null) {
+            try {
+                inverseViewTransform = getViewTransform().createInverse();
+            } catch (NoninvertibleTransformException e) {
+                inverseViewTransform = new AffineTransform();
+            }
+        }
+        return inverseViewTransform;
+    }
+
+    private void resetViewTransform() {
+        setViewTransform(0, 0, 1);
+        repaint();
+    }
+
     //// View queries ////
 
-    public NodeView getNodeView(Node node) {
-        if (node == null) return null;
-        for (Object child : getLayer().getChildrenReference()) {
-            if (!(child instanceof NodeView)) continue;
-            if (((NodeView) child).getNode() == node)
-                return (NodeView) child;
+    private Node findNodeWithName(String name) {
+        return getActiveNetwork().getChild(name);
+    }
+
+    public Node getNodeAt(Point2D point) {
+        for (Node node : getNodesReversed()) {
+            Rectangle r = nodeRect(node);
+            if (r.contains(point)) {
+                return node;
+            }
         }
         return null;
     }
 
-    public NodeView getNodeViewAt(Point2D point) {
-        for (Object child : getLayer().getChildrenReference()) {
-            if (!(child instanceof NodeView)) continue;
-            NodeView nv = (NodeView) child;
-            nodebox.graphics.Point pt = nv.getNode().getPosition();
-            Rectangle2D r = new Rectangle2D.Double(pt.x, pt.y, NodeView.NODE_FULL_SIZE, NodeView.NODE_FULL_SIZE);
+    public Node getNodeAt(MouseEvent e) {
+        return getNodeAt(e.getPoint());
+    }
+
+    public Node getNodeWithOutputPortAt(Point2D point) {
+        for (Node node : getNodesReversed()) {
+            Rectangle r = outputPortRect(node);
             if (r.contains(point)) {
-                return nv;
+                return node;
+            }
+        }
+        return null;
+    }
+
+    public NodePort getInputPortAt(Point2D point) {
+        for (Node node : getNodesReversed()) {
+            for (Port port : node.getInputs()) {
+                Rectangle r = inputPortRect(node, port);
+                if (r.contains(point)) {
+                    return NodePort.of(node, port);
+                }
             }
         }
         return null;
@@ -197,19 +593,16 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
 
     //// Selections ////
 
-    public boolean isSelected(Node node) {
-        if (node == null) return false;
-        NodeView nodeView = getNodeView(node);
-        return isSelected(nodeView);
+    public boolean isRendered(Node node) {
+        return getActiveNetwork().getRenderedChild() == node;
     }
 
-    public boolean isSelected(NodeView nodeView) {
-        return nodeView != null && selection.contains(nodeView);
+    public boolean isSelected(Node node) {
+        return (selectedNodes.contains(node.getName()));
     }
 
     public void select(Node node) {
-        NodeView nodeView = getNodeView(node);
-        addToSelection(nodeView);
+        selectedNodes.add(node.getName());
     }
 
     /**
@@ -220,451 +613,317 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
      * @param node The node to select. If node is null, everything is deselected.
      */
     public void singleSelect(Node node) {
-        NodeView nodeView = getNodeView(node);
-        singleSelect(nodeView);
-    }
-
-    /**
-     * Select this node view, and only this node view.
-     * <p/>
-     * All other selected nodes will be deselected.
-     *
-     * @param nodeView The node view to select or null to deselect everything.
-     */
-    public void singleSelect(NodeView nodeView) {
-        connectionLayer.deselect();
-        if (nodeView == null) return;
-        if (selection.size() == 1 && selection.contains(nodeView)) return;
-        for (NodeView nv : selection) {
-            nv.setSelected(false);
+        if (selectedNodes.size() == 1 && selectedNodes.contains(node.getName())) return;
+        selectedNodes.clear();
+        if (node != null && getActiveNetwork().hasChild(node)) {
+            selectedNodes.add(node.getName());
+            firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
+            document.setActiveNode(node);
         }
-        selection.clear();
-        selection.add(nodeView);
-        nodeView.setSelected(true);
-        firePropertyChange(SELECT_PROPERTY, null, selection);
-        document.setActiveNode(nodeView.getNode());
+        repaint();
     }
 
     public void select(Iterable<Node> nodes) {
-        Set<NodeView> nodeViews = nodesToNodeViews(nodes);
-        select(nodeViews);
+        selectedNodes.clear();
+        for (Node node : nodes) {
+            selectedNodes.add(node.getName());
+        }
     }
 
-    public void select(Set<NodeView> newSelection) {
-        boolean selectionChanged = false;
-        ArrayList<NodeView> nodeViewsToRemove = new ArrayList<NodeView>();
-        for (NodeView nodeView : selection) {
-            if (!newSelection.contains(nodeView)) {
-                selectionChanged = true;
-                nodeView.setSelected(false);
-                nodeViewsToRemove.add(nodeView);
+    public void toggleSelection(Node node) {
+        checkNotNull(node);
+        if (selectedNodes.isEmpty()) {
+            singleSelect(node);
+
+        } else {
+            if (selectedNodes.contains(node.getName())) {
+                selectedNodes.remove(node.getName());
+            } else {
+                selectedNodes.add(node.getName());
             }
+            firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
+            repaint();
         }
-        for (NodeView nodeView : nodeViewsToRemove) {
-            selection.remove(nodeView);
-        }
-        for (NodeView nodeView : newSelection) {
-            if (!selection.contains(nodeView)) {
-                selectionChanged = true;
-                nodeView.setSelected(true);
-                selection.add(nodeView);
-            }
-        }
-        if (selectionChanged)
-            firePropertyChange(SELECT_PROPERTY, null, selection);
-    }
-
-    public void addToSelection(NodeView nodeView) {
-        if (nodeView == null) return;
-        // If the selection already contained the object, bail out.
-        // This is to prevent the select event from firing.
-        if (selection.contains(nodeView)) return;
-        selection.add(nodeView);
-        nodeView.setSelected(true);
-        firePropertyChange(SELECT_PROPERTY, null, selection);
-    }
-
-    public void addToSelection(Set<NodeView> newSelection) {
-        boolean selectionChanged = false;
-        for (NodeView nodeView : newSelection) {
-            if (!selection.contains(nodeView)) {
-                selectionChanged = true;
-                nodeView.setSelected(true);
-                selection.add(nodeView);
-            }
-        }
-        if (selectionChanged)
-            firePropertyChange(SELECT_PROPERTY, null, selection);
-    }
-
-    public void deselect(NodeView nodeView) {
-        if (nodeView == null) return;
-        // If the selection didn't contain the object in the first place, bail out.
-        // This is to prevent the select event from firing.
-        if (!selection.contains(nodeView)) return;
-        selection.remove(nodeView);
-        nodeView.setSelected(false);
-        firePropertyChange(SELECT_PROPERTY, null, selection);
-    }
-
-    public void selectAll() {
-        boolean selectionChanged = false;
-        for (Object child : getLayer().getChildrenReference()) {
-            if (!(child instanceof NodeView)) continue;
-            NodeView nodeView = (NodeView) child;
-            // Check if the selection already contained the node view.
-            // If it didn't, that means that the old selection is different
-            // from the new selection.
-            if (!selection.contains(nodeView)) {
-                selectionChanged = true;
-                nodeView.setSelected(true);
-                selection.add(nodeView);
-            }
-        }
-        if (selectionChanged)
-            firePropertyChange(SELECT_PROPERTY, null, selection);
     }
 
     public void deselectAll() {
-        // If the selection was already empty, we don't need to do anything.
-        if (selection.isEmpty()) return;
-        for (NodeView nodeView : selection) {
-            nodeView.setSelected(false);
-        }
-        selection.clear();
-        connectionLayer.deselect();
-    }
-
-    private Set<NodeView> nodesToNodeViews(Iterable<Node> nodes) {
-        Set<NodeView> nodeViews = new HashSet<NodeView>();
-        for (Node node : nodes) {
-            nodeViews.add(getNodeView(node));
-        }
-        return nodeViews;
-    }
-
-    private Set<Node> nodeViewsToNodes(Iterable<NodeView> nodeViews) {
-        Set<Node> nodes = new HashSet<Node>();
-        for (NodeView nodeView : nodeViews) {
-            nodes.add(nodeView.getNode());
-        }
-        return nodes;
-    }
-
-    public List<Node> getSelectedNodes() {
-        ArrayList<Node> nodes = new ArrayList<Node>();
-        for (NodeView nv : selection) {
-            nodes.add(nv.getNode());
-        }
-        return nodes;
-    }
-
-    public boolean hasSelectedConnection() {
-        return connectionLayer.hasSelection();
-    }
-
-    public void deleteSelectedConnection() {
-        if (hasSelectedConnection())
-            connectionLayer.deleteSelected();
-    }
-
-    //// Events ////
-
-    public void checkErrorAndRepaint() {
-        //if (!networkError && !activeNetwork.hasError()) return;
-        //networkError = activeNetwork.hasError();
+        if (selectedNodes.isEmpty()) return;
+        selectedNodes.clear();
+        firePropertyChange(SELECT_PROPERTY, null, selectedNodes);
+        document.setActiveNode((Node) null);
         repaint();
     }
 
-    public void codeChanged(Node node, boolean changed) {
-        NodeView nv = getNodeView(node);
-        if (nv == null) return;
-        nv.setCodeChanged(changed);
-        repaint();
+    public Iterable<String> getSelectedNodeNames() {
+        return selectedNodes;
     }
 
-    //// Dragging ////
-
-    /**
-     * Change the position of all the selected nodes by adding the delta values to their positions.
-     *
-     * @param deltaX the change from the original X position.
-     * @param deltaY the change from the original Y position.
-     */
-    public void dragSelection(double deltaX, double deltaY) {
-        for (NodeView nv : selection) {
-            Point2D pt = nv.getOffset();
-            nv.setOffset(pt.getX() + deltaX, pt.getY() + deltaY);
+    public Iterable<Node> getSelectedNodes() {
+        ImmutableList.Builder<Node> b = new ImmutableList.Builder<nodebox.node.Node>();
+        for (String name : getSelectedNodeNames()) {
+            b.add(findNodeWithName(name));
         }
+        return b.build();
     }
 
-    //// Connections ////
-
-    /**
-     * This method gets called when we start dragging a connection line from a node view.
-     *
-     * @param connectionSource the node view where we start from.
-     */
-    public void startConnection(NodeView connectionSource) {
-        this.connectionSource = connectionSource;
-    }
-
-    /**
-     * This method gets called from the NodeView to connect the output port to the input port.
-     *
-     * @param outputNode The output node.
-     * @param inputNode  The input node.
-     * @param inputPort  The input port.
-     */
-    public void connect(Node outputNode, Node inputNode, Port inputPort) {
-        getDocument().connect(outputNode, inputNode, inputPort);
-    }
-
-    /**
-     * This method gets called when a dragging operation ends.
-     * <p/>
-     * We don't care if a connection was established or not.
-     */
-    public void endConnection() {
-        NodeView oldTarget = this.connectionTarget;
-        this.connectionSource = null;
-        connectionTarget = null;
-        connectionPoint = null;
-        if (oldTarget != null)
-            oldTarget.repaint();
-        connectionLayer.repaint();
-    }
-
-    /**
-     * Return true if we are in the middle of a connection drag operation.
-     *
-     * @return true if we are connecting nodes together.
-     */
-    public boolean isConnecting() {
-        return connectionSource != null;
-    }
-
-    /**
-     * NodeView calls this method to indicate that the mouse was dragged while connecting.
-     * <p/>
-     * This method updates the point and redraws the connection layer.
-     *
-     * @param pt the new mouse location.
-     */
-    public void dragConnectionPoint(Point2D pt) {
-        assert isConnecting();
-        this.connectionPoint = pt;
-        connectionLayer.repaint();
-    }
-
-    /**
-     * NodeView calls this method to indicate that the new target is now the given node view.
-     *
-     * @param target the new NodeView target.
-     */
-    public void setTemporaryConnectionTarget(NodeView target) {
-        NodeView oldTarget = this.connectionTarget;
-        this.connectionTarget = target;
-        if (oldTarget != null)
-            oldTarget.repaint();
-        if (connectionTarget != null)
-            connectionTarget.repaint();
-    }
-
-    public NodeView getConnectionSource() {
-        return connectionSource;
-    }
-
-    public NodeView getConnectionTarget() {
-        return connectionTarget;
-    }
-
-    public Point2D getConnectionPoint() {
-        return connectionPoint;
+    public void deleteSelection() {
+        document.removeNodes(getSelectedNodes());
     }
 
     //// Network navigation ////
 
     private void goUp() {
         JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-//        getDocument().goUp();
     }
 
     private void goDown() {
         JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-//        if (selection.size() != 1) {
-//            Toolkit.getDefaultToolkit().beep();
-//            return;
-//        }
-//        NodeView selectedNode = selection.iterator().next();
-//
-//        String childPath = Node.path(getDocument().getActiveNetworkPath(), selectedNode.getNodeName());
-//        getDocument().setActiveNetwork(childPath);
     }
 
-    //// Other node operations ////
+    //// Input Events ////
 
     public void keyTyped(KeyEvent e) {
+        switch (e.getKeyChar()) {
+            case KeyEvent.VK_BACK_SPACE:
+                getDocument().deleteSelection();
+                break;
+            case KeyEvent.VK_U:
+                goUp();
+                break;
+            case KeyEvent.VK_ENTER:
+                goDown();
+                break;
+        }
     }
 
     public void keyPressed(KeyEvent e) {
-        panEnabled = e.getKeyCode() == KeyEvent.VK_SPACE;
-        if (panEnabled && !getCursor().equals(panCursor))
+        int keyCode = e.getKeyCode();
+        if (keyCode == KeyEvent.VK_SHIFT) {
+            isShiftPressed = true;
+        } else if (keyCode == KeyEvent.VK_SPACE) {
+            isSpacePressed = true;
             setCursor(panCursor);
+        } else if (keyCode == KeyEvent.VK_UP) {
+            moveSelectedNodes(0, -1);
+        } else if (keyCode == KeyEvent.VK_RIGHT) {
+            moveSelectedNodes(1, 0);
+        } else if (keyCode == KeyEvent.VK_DOWN) {
+            moveSelectedNodes(0, 1);
+        } else if (keyCode == KeyEvent.VK_LEFT) {
+            moveSelectedNodes(-1, 0);
+        }
+    }
+
+    private void moveSelectedNodes(int dx, int dy) {
+        for (Node node : getSelectedNodes()) {
+            getDocument().setNodePosition(node, node.getPosition().moved(dx, dy));
+        }
     }
 
     public void keyReleased(KeyEvent e) {
-        panEnabled = false;
-        if (!getCursor().equals(defaultCursor))
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+            isShiftPressed = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            isSpacePressed = false;
             setCursor(defaultCursor);
-    }
-
-    public  boolean isPanning() {
-        return panEnabled;
-    }
-
-    //// Inner classes ////
-
-    private class SelectionMarker extends PNode {
-        public SelectionMarker(Point2D p) {
-            setOffset(p);
-        }
-
-        protected void paint(PPaintContext c) {
-            Graphics2D g = c.getGraphics();
-            g.setColor(Theme.NETWORK_SELECTION_COLOR);
-            PBounds b = getBounds();
-            // Inset the bounds so we don't draw outside the refresh region.
-            b.inset(1, 1);
-            g.fill(b);
-            g.setColor(Theme.NETWORK_SELECTION_BORDER_COLOR);
-            g.draw(b);
         }
     }
 
-    class SelectionHandler extends PBasicInputEventHandler {
-        private Set<NodeView> temporarySelection = new HashSet<NodeView>();
 
-        public void mouseClicked(PInputEvent e) {
-            if (e.getButton() != MouseEvent.BUTTON1) return;
-            deselectAll();
-            getDocument().setActiveNode((Node) null);
-            connectionLayer.mouseClickedEvent(e);
-        }
+    public boolean isSpacePressed() {
+        return isSpacePressed;
+    }
 
-        public void mousePressed(PInputEvent e) {
-            if (e.getButton() != MouseEvent.BUTTON1) return;
-            temporarySelection.clear();
-            // Make sure no Node View is under the mouse cursor.
-            // In that case, we're not selecting, but moving a node.
-            Point2D p = e.getPosition();
-            NodeView nv = getNodeViewAt(p);
-            if (nv == null) {
-                selectionMarker = new SelectionMarker(p);
-                getLayer().addChild(selectionMarker);
-            } else {
-                selectionMarker = null;
-            }
-        }
-
-        public void mouseDragged(PInputEvent e) {
-            if (selectionMarker == null) return;
-            Point2D prev = selectionMarker.getOffset();
-            Point2D p = e.getPosition();
-            double width = p.getX() - prev.getX();
-            double absWidth = Math.abs(width);
-            double height = p.getY() - prev.getY();
-            double absHeight = Math.abs(height);
-            selectionMarker.setWidth(absWidth);
-            selectionMarker.setHeight(absHeight);
-            selectionMarker.setX(absWidth != width ? width : 0);
-            selectionMarker.setY(absHeight != height ? height : 0);
-            ListIterator childIter = getLayer().getChildrenIterator();
-            connectionLayer.deselect();
-            temporarySelection.clear();
-            while (childIter.hasNext()) {
-                Object o = childIter.next();
-                if (o instanceof NodeView) {
-                    NodeView nodeView = (NodeView) o;
-                    PNode n = (PNode) o;
-                    if (selectionMarker.getFullBounds().intersects(n.getFullBounds())) {
-                        nodeView.setSelected(true);
-                        temporarySelection.add(nodeView);
+    public void mouseClicked(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            if (e.getClickCount() == 1) {
+                Node clickedNode = getNodeAt(pt);
+                if (clickedNode == null) {
+                    deselectAll();
+                } else {
+                    if (isShiftPressed) {
+                        toggleSelection(clickedNode);
                     } else {
-                        nodeView.setSelected(false);
+                        singleSelect(clickedNode);
                     }
+                }
+            } else if (e.getClickCount() == 2) {
+                Node clickedNode = getNodeAt(pt);
+                if (clickedNode == null) {
+                    Point gridPoint = pointToGridPoint(e.getPoint());
+                    getDocument().showNodeSelectionDialog(gridPoint);
+                } else {
+                    document.setRenderedNode(clickedNode);
                 }
             }
         }
+    }
 
-        public void mouseReleased(PInputEvent e) {
-            if (selectionMarker == null) return;
-            getLayer().removeChild(selectionMarker);
-            selectionMarker = null;
-            select(temporarySelection);
-            temporarySelection.clear();
+    public void mousePressed(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            networkMenu.show(this, e.getX(), e.getY());
+        } else {
+            // If the space bar and mouse is pressed, we're getting ready to pan the view.
+            if (isSpacePressed) {
+                // When panning the view use the original mouse point, not the one affected by the view transform.
+                dragStartPoint = e.getPoint();
+                return;
+            }
+
+            Point2D pt = inverseViewTransformPoint(e.getPoint());
+
+            // Check if we're over an output port.
+            connectionOutput = getNodeWithOutputPortAt(pt);
+            if (connectionOutput != null) return;
+
+            // Check if we're over a connected input port.
+            connectionInput = getInputPortAt(pt);
+            if (connectionInput != null) {
+                // We're over a port, but is it connected?
+                Connection c = getActiveNetwork().getConnection(connectionInput.node.getName(), connectionInput.port.getName());
+                // Disconnect it, but start a new connection on the same node immediately.
+                if (c != null) {
+                    getDocument().disconnect(c);
+                    connectionOutput = getActiveNetwork().getChild(c.getOutputNode());
+                    connectionPoint = pt;
+                }
+                return;
+            }
+
+            // Check if we're pressing a node.
+            Node pressedNode = getNodeAt(pt);
+            if (pressedNode != null) {
+                // Don't immediately set "isDragging."
+                // We wait until we actually drag the first time to do the work.
+                startDragging = true;
+                return;
+            }
+
+            // We're creating a drag selection.
+            isDragSelecting = true;
+            dragStartPoint = pt;
         }
     }
 
-    private class UpDownHandler extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_U:
-                    goUp();
-                    break;
-                case KeyEvent.VK_ENTER:
-                    goDown();
-                    break;
+    public void mouseReleased(MouseEvent e) {
+        isDraggingNodes = false;
+        isDragSelecting = false;
+        if (connectionOutput != null && connectionInput != null) {
+            getDocument().connect(connectionOutput, connectionInput.node, connectionInput.port);
+        }
+        connectionOutput = null;
+        if (e.isPopupTrigger()) {
+            networkMenu.show(this, e.getX(), e.getY());
+        }
+        repaint();
+    }
+
+    public void mouseEntered(MouseEvent e) {
+        grabFocus();
+    }
+
+    public void mouseExited(MouseEvent e) {
+    }
+
+    public void mouseDragged(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        // Panning the view has the first priority.
+        if (isSpacePressed) {
+            // When panning the view use the original mouse point, not the one affected by the view transform.
+            Point2D offset = minPoint(e.getPoint(), dragStartPoint);
+            setViewTransform(viewX + offset.getX(), viewY + offset.getY(), viewScale);
+            dragStartPoint = e.getPoint();
+            repaint();
+            return;
+        }
+
+        if (connectionOutput != null) {
+            repaint();
+            connectionInput = getInputPortAt(pt);
+            connectionPoint = pt;
+            overOutput = getNodeWithOutputPortAt(pt);
+            overInput = getInputPortAt(pt);
+        }
+
+        if (startDragging) {
+            startDragging = false;
+            Node pressedNode = getNodeAt(pt);
+            if (pressedNode != null) {
+                if (selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
+                    singleSelect(pressedNode);
+                }
+                isDraggingNodes = true;
+                dragPositions = selectedNodePositions();
+                dragStartPoint = pt;
+            } else {
+                isDraggingNodes = false;
             }
         }
-    }
 
-    private class DialogHandler extends KeyAdapter {
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_TAB) {
-                document.showNodeSelectionDialog();
+        if (isDraggingNodes) {
+            Point2D offset = minPoint(pt, dragStartPoint);
+            int gridX = (int) Math.round(offset.getX() / GRID_CELL_SIZE);
+            int gridY = (int) Math.round(offset.getY() / (float) GRID_CELL_SIZE);
+            for (String name : selectedNodes) {
+                nodebox.graphics.Point originalPosition = dragPositions.get(name);
+                nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
+                getDocument().setNodePosition(findNodeWithName(name), newPosition);
             }
         }
-    }
 
-    private class DeleteHandler extends KeyAdapter {
-        public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                getDocument().deleteSelection();
+        if (isDragSelecting) {
+            dragCurrentPoint = pt;
+            Rectangle r = dragSelectRect();
+            selectedNodes.clear();
+            for (Node node : getNodes()) {
+                if (r.intersects(nodeRect(node))) {
+                    selectedNodes.add(node.getName());
+                }
             }
+            repaint();
         }
     }
 
-    private class PopupHandler extends PBasicInputEventHandler {
-        public void processEvent(PInputEvent e, int i) {
-            if (!e.isPopupTrigger()) return;
-            if (e.isHandled()) return;
-            Point2D p = e.getCanvasPosition();
-            networkMenu.show(NetworkView.this, (int) p.getX(), (int) p.getY());
-        }
+    public void mouseMoved(MouseEvent e) {
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        overOutput = getNodeWithOutputPortAt(pt);
+        overInput = getInputPortAt(pt);
+        // It is probably very inefficient to repaint the view every time the mouse moves.
+        repaint();
     }
 
-    private class DoubleClickHandler extends PBasicInputEventHandler {
-        @Override
-        public void processEvent(PInputEvent e, int i) {
-            if (e.getClickCount() != 2) return;
-            NodeView view = getNodeViewAt(e.getPosition());
-            if (view != null || e.isHandled()) return;
-            e.setHandled(true);
-            document.showNodeSelectionDialog();
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        double scaleDelta = 1F - e.getWheelRotation() / 10F;
+        double newViewScale = viewScale * scaleDelta;
+
+        if (newViewScale < MIN_ZOOM) {
+            scaleDelta = MIN_ZOOM / viewScale;
+        } else if (newViewScale > MAX_ZOOM) {
+            scaleDelta = MAX_ZOOM / viewScale;
         }
+
+        double vx = viewX - (e.getX() - viewX) * (scaleDelta - 1);
+        double vy = viewY - (e.getY() - viewY) * (scaleDelta - 1);
+        setViewTransform(vx, vy, viewScale * scaleDelta);
+        repaint();
     }
 
-    private class NewNodeAction extends AbstractAction {
-        public NewNodeAction() {
-            super("New Node...");
+    private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
+        ImmutableMap.Builder<String, nodebox.graphics.Point> b = ImmutableMap.builder();
+        for (String nodeName : selectedNodes) {
+            b.put(nodeName, findNodeWithName(nodeName).getPosition());
         }
+        return b.build();
+    }
 
-        public void actionPerformed(ActionEvent e) {
-            document.showNodeSelectionDialog();
-        }
+    private Point2D inverseViewTransformPoint(Point p) {
+        Point2D pt = new Point2D.Double(p.getX(), p.getY());
+        return getInverseViewTransform().transform(pt, null);
+    }
+
+    private Point2D minPoint(Point2D a, Point2D b) {
+        return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
     }
 
     private class ResetViewAction extends AbstractAction {
@@ -673,7 +932,7 @@ public class NetworkView extends PCanvas implements PaneView, KeyListener {
         }
 
         public void actionPerformed(ActionEvent e) {
-            getCamera().setViewTransform(new AffineTransform());
+            resetViewTransform();
         }
     }
 

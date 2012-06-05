@@ -5,7 +5,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import nodebox.graphics.Point;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +29,50 @@ public final class Node {
         } else {
             return Joiner.on("/").join(parentPath, nodeName);
         }
+    }
+
+    /**
+     * Check if data from the output node can be converted and used in the input port.
+     * <p/>
+     * The relation is not commutative:
+     * an output port that can be converted to an input port does not imply the reverse.
+     *
+     * @param outputNode The output node
+     * @param inputPort  The input port
+     * @return true if the input port is compatible
+     */
+    public static boolean isCompatible(Node outputNode, Port inputPort) {
+        checkNotNull(outputNode);
+        checkNotNull(inputPort);
+        return isCompatible(outputNode.getOutputType(), inputPort.getType());
+    }
+
+    /**
+     * Check if data from the output can be converted and used in the input.
+     * <p/>
+     * The relation is not commutative:
+     * an output port that can be converted to an input port does not imply the reverse.
+     *
+     * @param outputType The type of the output port of the upstream node
+     * @param inputType  The type of the input port of the downstream node
+     * @return true if the types are compatible
+     */
+    public static boolean isCompatible(String outputType, String inputType) {
+        checkNotNull(outputType);
+        checkNotNull(inputType);
+        // If the output and input type are the same, they are compatible.
+        if (outputType.equals(inputType)) return true;
+        // Everything can be converted to a string.
+        if (inputType.equals(Port.TYPE_STRING)) return true;
+        // Integers can be converted to floating-point numbers without loss of information.
+        if (outputType.equals(Port.TYPE_INT) && inputType.equals(Port.TYPE_FLOAT)) return true;
+        // Floating-point numbers can be converted to integers: they are rounded.
+        if (outputType.equals(Port.TYPE_FLOAT) && inputType.equals(Port.TYPE_INT)) return true;
+        // A number can be converted to a point: both X and Y then get the same value.
+        if (outputType.equals(Port.TYPE_INT) && inputType.equals(Port.TYPE_POINT)) return true;
+        if (outputType.equals(Port.TYPE_FLOAT) && inputType.equals(Port.TYPE_POINT)) return true;
+        // If none of these tests pass, the types are not compatible.
+        return false;
     }
 
     public enum Attribute {PROTOTYPE, NAME, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
@@ -132,7 +175,7 @@ public final class Node {
         return !children.isEmpty();
     }
 
-    public Collection<Node> getChildren() {
+    public ImmutableList<Node> getChildren() {
         return children;
     }
 
@@ -675,6 +718,22 @@ public final class Node {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Find the connection with the given inputNode and port.
+     *
+     * @param inputNode The child input node
+     * @param inputPort The child input port
+     * @return the Connection object, or null if the connection could not be found.
+     */
+    public Connection getConnection(String inputNode, String inputPort) {
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
+                return c;
+
+        }
+        return null;
     }
 
     /**

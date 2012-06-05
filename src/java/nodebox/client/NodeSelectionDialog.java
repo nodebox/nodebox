@@ -3,7 +3,6 @@ package nodebox.client;
 import nodebox.node.Node;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
-import nodebox.ui.SwingUtils;
 import nodebox.ui.Theme;
 import nodebox.util.StringUtils;
 
@@ -133,7 +132,7 @@ public class NodeSelectionDialog extends JDialog {
             }
             setEnabled(list.isEnabled());
             setFont(list.getFont());
-            setIcon(new ImageIcon(NodeView.getImageForNode(node, repository)));
+            setIcon(new ImageIcon(NetworkView.getImageForNode(node, repository)));
             setBorder(Theme.BOTTOM_BORDER);
             setOpaque(true);
             return this;

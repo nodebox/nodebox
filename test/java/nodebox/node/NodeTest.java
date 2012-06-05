@@ -7,9 +7,25 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static junit.framework.Assert.*;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class NodeTest {
+
+    @Test
+    public void testIsCompatible() {
+        assertTrue("Nodes with the same type are always compatible.", Node.isCompatible("foo", "foo"));
+
+        assertTrue("Everything can be converted to a string.", Node.isCompatible("foo", Port.TYPE_STRING));
+        assertFalse("But not every type can take in a string.", Node.isCompatible(Port.TYPE_STRING, "foo"));
+
+        assertTrue("Floating-point numbers will be rounded to integers.", Node.isCompatible(Port.TYPE_FLOAT, Port.TYPE_INT));
+        assertTrue("Integers will be converted to floating-point numbers.", Node.isCompatible(Port.TYPE_INT, Port.TYPE_FLOAT));
+
+        assertTrue("Floating-point numbers can be converted to points.", Node.isCompatible(Port.TYPE_FLOAT, Port.TYPE_POINT));
+        assertTrue("Integers can be converted to points.", Node.isCompatible(Port.TYPE_INT, Port.TYPE_POINT));
+        assertFalse("Points can not be converted to numbers.", Node.isCompatible(Port.TYPE_POINT, Port.TYPE_FLOAT));
+    }
 
     @Test
     public void testPath() {

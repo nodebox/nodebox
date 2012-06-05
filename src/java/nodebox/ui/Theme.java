@@ -18,11 +18,12 @@ public class Theme {
 
     // Network view
     public static final Color NETWORK_BACKGROUND_COLOR = new Color(69, 69, 69);
+    public static final Color NETWORK_GRID_COLOR = new Color(85, 85, 85);
     public static final Color NETWORK_SELECTION_COLOR = new Color(200, 200, 200, 100);
     public static final Color NETWORK_SELECTION_BORDER_COLOR = new Color(100, 100, 100, 100);
     public static final Color NETWORK_NODE_NAME_COLOR = new Color(194, 194, 194);
     public static final Color NETWORK_NODE_NAME_SHADOW_COLOR = new Color(23, 23, 23);
-    public static final Color CONNECTION_DEFAULT_COLOR = new Color(100, 100, 100);
+    public static final Color CONNECTION_DEFAULT_COLOR = new Color(200, 200, 200);
     public static final Color CONNECTION_CONNECTING_COLOR = new Color(170, 167, 18);
     public static final Color CONNECTION_ACTION_COLOR = new Color(0, 116, 168);
 
