@@ -49,12 +49,12 @@
             description="Calculate the geometric center point of a shape.">
         </node>
 
-        <node function="pyvector/colorize" name="colorize" image="colorize.png" outputType="geometry"
+        <node function="corevector/colorize" name="colorize" image="colorize.png" outputType="geometry"
               position="250,340"
               prototype="filter" description="Change the color of a shape.">
             <port type="color" name="fill" value="#000000ff"/>
             <port type="color" name="stroke" value="#000000ff"/>
-            <port name="strokeWidth" min="0.0" value="0.0" label="Stroke Width" bounding="hard" type="float"/>
+            <port name="strokeWidth" min="0.0" value="0.0" label="Stroke Width" type="float"/>
         </node>
 
         <node function="pyvector/compound" name="compound" image="compound.png" outputType="geometry"

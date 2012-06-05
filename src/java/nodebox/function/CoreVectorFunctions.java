@@ -20,7 +20,7 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "color", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
+                "align", "arc", "centroid", "colorize", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
@@ -97,6 +97,7 @@ public class CoreVectorFunctions {
 
     /**
      * Calculate the geometric center of a shape.
+     *
      * @param grob The input shape.
      * @return a Point at the center of the input shape.
      */
@@ -105,14 +106,26 @@ public class CoreVectorFunctions {
         return grob.getBounds().getCentroid();
     }
 
-    public static Geometry color(Geometry geometry, Color fill, Color stroke, double strokeWidth) {
-        Geometry copy = geometry.clone();
-        for (Path path : copy.getPaths()) {
-            path.setFill(fill);
-            path.setStroke(stroke);
-            path.setStrokeWidth(strokeWidth);
+    /**
+     * Change the color of a shape.
+     *
+     * @param shape       The input shape.
+     * @param fill        The new fill color.
+     * @param stroke      The new stroke color.
+     * @param strokeWidth The new stroke width.
+     * @return The new colored shape.
+     */
+    public static Colorizable colorize(Colorizable shape, Color fill, Color stroke, double strokeWidth) {
+        if (shape == null) return null;
+        Colorizable newShape = shape.clone();
+        newShape.setFill(fill);
+        if (strokeWidth > 0) {
+            newShape.setStrokeColor(stroke);
+            newShape.setStrokeWidth(strokeWidth);
+        } else {
+            newShape.setStrokeColor(null);
         }
-        return copy;
+        return newShape;
     }
 
     public static Path ellipse(Point position, double width, double height) {

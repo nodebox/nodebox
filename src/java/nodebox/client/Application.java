@@ -245,12 +245,12 @@ public class Application implements Host {
         NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
         NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
         NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
-        NodeLibrary lSystemLibrary = NodeLibrary.load(new File("libraries/l_system/l_system.ndbx"), NodeRepository.of());
-        NodeLibrary packingLibrary = NodeLibrary.load(new File("libraries/packing/packing.ndbx"), NodeRepository.of());
+//        NodeLibrary lSystemLibrary = NodeLibrary.load(new File("libraries/l_system/l_system.ndbx"), NodeRepository.of());
+//        NodeLibrary packingLibrary = NodeLibrary.load(new File("libraries/packing/packing.ndbx"), NodeRepository.of());
 
         systemRepository = NodeRepository.of(coreLibrary, mathLibrary, stringLibrary,
                 listLibrary, dataLibrary, colorLibrary,
-                corevectorLibrary, lSystemLibrary, packingLibrary);
+                corevectorLibrary);
     }
 
     //// Application events ////

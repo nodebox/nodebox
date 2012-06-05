@@ -11,4 +11,6 @@ public interface Colorizable {
     void setStroke(Color c);
 
     void setStrokeWidth(double strokeWidth);
+
+    public Colorizable clone();
 }
