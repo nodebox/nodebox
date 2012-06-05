@@ -79,6 +79,10 @@ public class Rect implements Iterable {
         return y;
     }
 
+    public Point getCentroid() {
+        return new Point(x + width / 2, y + height / 2);
+    }
+
     public boolean isEmpty() {
         Rect n = normalized();
         return n.width <= 0 || n.height <= 0;

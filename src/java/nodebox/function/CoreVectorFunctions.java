@@ -20,7 +20,7 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "color", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
+                "align", "arc", "centroid", "color", "ellipse", "freehand", "grid", "line", "rect", "valuesToPoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
@@ -93,6 +93,16 @@ public class CoreVectorFunctions {
         }
         return new Path(new Arc2D.Double(position.x - width / 2, position.y - height / 2, width, height,
                 -startAngle, -degrees, awtType));
+    }
+
+    /**
+     * Calculate the geometric center of a shape.
+     * @param grob The input shape.
+     * @return a Point at the center of the input shape.
+     */
+    public static Point centroid(Grob grob) {
+        if (grob == null) return Point.ZERO;
+        return grob.getBounds().getCentroid();
     }
 
     public static Geometry color(Geometry geometry, Color fill, Color stroke, double strokeWidth) {

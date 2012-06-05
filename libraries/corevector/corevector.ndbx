@@ -45,8 +45,8 @@
             </port>
         </node>
         
-        <node function="pyvector/center_point" name="center_point" outputType="point" prototype="filter"
-            description="Calculate the center point of a shape.">
+        <node function="corevector/centroid" name="centroid" outputType="point" prototype="filter"
+            description="Calculate the geometric center point of a shape.">
         </node>
 
         <node function="pyvector/colorize" name="colorize" image="colorize.png" outputType="geometry"
