@@ -155,6 +155,16 @@ public class NodeLibraryControllerTest {
     }
 
     @Test
+    public void testSetPortValueInSubnet() {
+        Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 10.0));
+        Node subnet = Node.ROOT.withName("subnet").withChildAdded(numberNode).withRenderedChildName("number");
+        controller.addNode("/", subnet);
+        assertResultsEqual(controller.getNodeLibrary().getRoot(), controller.getNode("/subnet"), 10.0);
+        controller.setPortValue("/subnet/number", "value", 42.0);
+        assertResultsEqual(controller.getNodeLibrary().getRoot(), controller.getNode("/subnet"), 42.0);
+    }
+
+    @Test
     public void testUniqueNodeName() {
         Node proto = Node.ROOT.withName("protoNode");
         controller.createNode("/", proto);
