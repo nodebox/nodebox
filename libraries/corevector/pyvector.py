@@ -3,7 +3,7 @@ from random import seed as _seed, uniform
 
 from java.awt.geom import Arc2D
 
-import handles
+import pyhandles
 
 from nodebox.graphics import Geometry, Path, Contour, Color, Transform, Text, Point, Rect
 from nodebox.util.Geometry import coordinates, angle, distance
