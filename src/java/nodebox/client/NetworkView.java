@@ -19,6 +19,7 @@ import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final String RENDER_PROPERTY = "render";
     public static final String NETWORK_PROPERTY = "network";
 
+    private static Map<String, BufferedImage> nodeImageCache = new HashMap<String, BufferedImage>();
     private static BufferedImage nodeGeneric;
 
     public static final float MIN_ZOOM = 0.05f;
@@ -149,15 +151,26 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             if (libraryDirectory != null) {
                 File nodeImageFile = new File(libraryDirectory, node.getImage());
                 if (nodeImageFile.exists()) {
-                    try {
-                        return ImageIO.read(nodeImageFile);
-                    } catch (IOException ignored) {
-                        // Pass through
-                    }
+                    return readNodeImage(nodeImageFile);
                 }
             }
         }
         return null;
+    }
+
+    public static BufferedImage readNodeImage(File nodeImageFile) {
+        String imagePath = nodeImageFile.getAbsolutePath();
+        if (nodeImageCache.containsKey(imagePath)) {
+            return nodeImageCache.get(imagePath);
+        } else {
+            try {
+                BufferedImage image = ImageIO.read(nodeImageFile);
+                nodeImageCache.put(imagePath, image);
+                return image;
+            } catch (IOException e) {
+                return null;
+            }
+        }
     }
 
     public NetworkView(NodeBoxDocument document) {
