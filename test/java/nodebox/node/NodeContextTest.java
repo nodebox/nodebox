@@ -21,6 +21,11 @@ import static nodebox.util.Assertions.assertResultsEqual;
 
 public class NodeContextTest {
 
+    public static final Node numberNode = Node.ROOT
+            .withName("number")
+            .withFunction("math/number")
+            .withInputAdded(Port.floatPort("number", 0));
+
     public static final Node valuesToPointNode = Node.ROOT
             .withName("values_to_point")
             .withFunction("corevector/valuesToPoint")
@@ -327,6 +332,30 @@ public class NodeContextTest {
         assertResultsEqual((Iterable) Iterables.get(results, 1), 8.0, 11.0, 14.0);
         assertResultsEqual((Iterable) Iterables.get(results, 2), 11.0, 15.0);
         assertResultsEqual((Iterable) Iterables.get(results, 3), 14.0, 19.0, 24.0);
+    }
+
+    @Test
+    public void testRenderSubnetwork() {
+        Node number1 = numberNode.extend()
+                .withName("number1")
+                .withInputValue("number", 1.0);
+        Node number2 = numberNode.extend()
+                .withName("number2")
+                .withInputValue("number", 2.0);
+        Node add1 = addNode.extend().withName("add1");
+        Node subnet = Node.ROOT
+                .withName("subnet1")
+                .withChildAdded(number1)
+                .withChildAdded(number2)
+                .withChildAdded(add1)
+                .withRenderedChildName("add1")
+                .connect("number1", "add1", "v1")
+                .connect("number2", "add1", "v2");
+        Node net = Node.ROOT
+                .withChildAdded(subnet)
+                .withRenderedChildName("subnet1");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 3.0);
     }
 
     @Test
