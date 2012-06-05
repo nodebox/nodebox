@@ -1,17 +1,15 @@
 package nodebox.client.visualizer;
 
 import com.google.common.collect.Iterables;
-import nodebox.graphics.Path;
 import nodebox.graphics.Point;
 
 import java.awt.*;
-import java.awt.geom.Dimension2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 
 public class PointVisualizer implements Visualizer {
 
     public static final PointVisualizer INSTANCE = new PointVisualizer();
+    public static final double HALF_POINT_SIZE = 2;
     public static final double POINT_SIZE = 4;
 
     private PointVisualizer() {
@@ -54,19 +52,20 @@ public class PointVisualizer implements Visualizer {
     }
 
     public static void drawPoints(Graphics2D g, Iterable<Point> points) {
-        Path onCurves = new Path();
-        Path offCurves = new Path();
-        onCurves.setFill(new nodebox.graphics.Color(0, 0, 1));
-        offCurves.setFill(new nodebox.graphics.Color(1, 0, 0));
+        GeneralPath onCurves = new GeneralPath();
+        GeneralPath offCurves = new GeneralPath();
         for (Point point : points) {
+            Shape s = new Ellipse2D.Double(point.x - HALF_POINT_SIZE, point.y - HALF_POINT_SIZE, POINT_SIZE, POINT_SIZE);
             if (point.isOnCurve()) {
-                onCurves.ellipse(point.x, point.y, POINT_SIZE, POINT_SIZE);
+                onCurves.append(s, false);
             } else {
-                offCurves.ellipse(point.x, point.y, POINT_SIZE, POINT_SIZE);
+                offCurves.append(s, false);
             }
         }
-        onCurves.draw(g);
-        offCurves.draw(g);
+        g.setColor(Color.BLUE);
+        g.fill(onCurves);
+        g.setColor(Color.RED);
+        g.fill(offCurves);
     }
 
 }
