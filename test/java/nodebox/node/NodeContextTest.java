@@ -28,7 +28,7 @@ public class NodeContextTest {
 
     public static final Node valuesToPointNode = Node.ROOT
             .withName("values_to_point")
-            .withFunction("corevector/valuesToPoint")
+            .withFunction("corevector/makePoint")
             .withOutputType("point")
             .withInputAdded(Port.floatPort("x", 0))
             .withInputAdded(Port.floatPort("y", 0));

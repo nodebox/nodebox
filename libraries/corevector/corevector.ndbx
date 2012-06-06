@@ -198,7 +198,7 @@
             <port type="float" name="distance" value="100.0"/>
         </node>
 
-        <node function="pyvector/make_point" name="make_point" image="filter.png" outputType="point"
+        <node function="corevector/makePoint" name="make_point" image="filter.png" outputType="point"
               position="170,510"
               prototype="generator" description="Creates a point based on two numbers.">
             <port type="float" name="x" value="0.0" label="x"/>

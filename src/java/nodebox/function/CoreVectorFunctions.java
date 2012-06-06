@@ -22,7 +22,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "lineAngle",
-                "rect", "toPoints", "valuesToPoint",
+                "rect", "toPoints", "makePoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle", "lineAngleHandle");
     }
 
@@ -358,7 +358,7 @@ public class CoreVectorFunctions {
      * @param y The y coordinate.
      * @return A new Point.
      */
-    public static Point valuesToPoint(double x, double y) {
+    public static Point makePoint(double x, double y) {
         return new Point(x, y);
     }
 
