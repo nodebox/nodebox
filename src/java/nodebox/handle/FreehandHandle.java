@@ -51,14 +51,13 @@ public class FreehandHandle extends AbstractHandle {
         currentPoint = pt;
         String pathString = (String) getValue(pathPortName);
         if (newPath) {
-            if (pathString.isEmpty()) {
-                pathString = " ";
-            }
-            pathString += "M ";
+            pathString += "M";
             newPath = false;
+        } else {
+            pathString += " ";
         }
         // Use US locale, otherwise the code might generate a "," instead of a "." as the floating point.
-        pathString += String.format(Locale.US, "%.2f %.2f ", pt.getX(), pt.getY());
+        pathString += String.format(Locale.US, "%.2f,%.2f ", pt.getX(), pt.getY());
         silentSet(pathPortName, pathString);
         updateHandle();
         return true;

@@ -175,6 +175,7 @@ public class CoreVectorFunctions {
     }
 
     /**
+     * Create an ellipse at the given position.
      *
      * @param position The center position of the ellipse.
      * @param width    The ellipse width.
@@ -198,9 +199,20 @@ public class CoreVectorFunctions {
         return shape.getPoints();
     }
 
-    private final static Splitter POINT_SPLITTER = Splitter.on(" ");
-    private final static Splitter CONTOUR_SPLITTER = Splitter.on("M");
+    private final static Splitter PATH_SPLITTER = Splitter.on("M").omitEmptyStrings();
+    private final static Splitter CONTOUR_SPLITTER = Splitter.on(" ").omitEmptyStrings();
+    private final static Splitter POINT_SPLITTER = Splitter.on(",");
 
+    /**
+     * Create a new, open path with the given path string.
+     * <p/>
+     * The path string is composed of contour strings, starting with "M". Points are separated by a a space, e.g.:
+     * <p/>
+     * "M0,0 100,0 100,100 0,100M10,20 30,40 50,60"
+     *
+     * @param pathString The string to parse
+     * @return a new Path.
+     */
     public static Path freehand(String pathString) {
         if (pathString == null) return new Path();
         Path p = parsePath(pathString);
@@ -213,7 +225,7 @@ public class CoreVectorFunctions {
         checkNotNull(s);
         Path p = new Path();
         s = s.trim();
-        for (String pointString : CONTOUR_SPLITTER.split(s)) {
+        for (String pointString : PATH_SPLITTER.split(s)) {
             pointString = pointString.trim();
             if (!pointString.isEmpty()) {
                 p.add(parseContour(pointString));
@@ -224,17 +236,28 @@ public class CoreVectorFunctions {
 
     public static Contour parseContour(String s) {
         Contour contour = new Contour();
-        Double x = null;
+        for (String pointString : CONTOUR_SPLITTER.split(s)) {
+            contour.addPoint(parsePoint(pointString));
+        }
+        return contour;
+    }
+
+    public static Point parsePoint(String s) {
+        Double x = null, y = null;
         for (String numberString : POINT_SPLITTER.split(s)) {
             if (x == null) {
                 x = Double.parseDouble(numberString);
+            } else if (y == null) {
+                y = Double.parseDouble(numberString);
             } else {
-                double y = Double.parseDouble(numberString);
-                contour.addPoint(x, y);
-                x = null;
+                throw new IllegalArgumentException("Too many coordinates in point " + s);
             }
         }
-        return contour;
+        if (x != null && y != null) {
+            return new Point(x, y);
+        } else {
+            throw new IllegalArgumentException("Could not parse point " + s);
+        }
     }
 
     public static List<Point> grid(long rows, long columns, double width, double height, Point position) {
