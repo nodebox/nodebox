@@ -189,10 +189,10 @@
             <port type="point" name="point2" value="100,100"/>
         </node>
 
-        <node function="pyvector/line_angle" name="line_angle" image="line_angle.png" outputType="geometry"
+        <node function="corevector/lineAngle" name="line_angle" image="line_angle.png" outputType="geometry"
               position="180,180"
               prototype="generator" description="Draw a line between a point and angle and distance."
-              handle="pyvector/handle_rotate">
+              handle="corevector/lineAngleHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="float" name="angle" value="0.0"/>
             <port type="float" name="distance" value="100.0"/>

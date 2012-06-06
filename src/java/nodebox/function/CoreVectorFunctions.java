@@ -9,6 +9,7 @@ import java.awt.geom.Arc2D;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static nodebox.function.MathFunctions.coordinates;
 
 /**
  * Core vector function library.
@@ -20,9 +21,9 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "rect",
-                "toPoints", "valuesToPoint",
-                "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
+                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "lineAngle",
+                "rect", "toPoints", "valuesToPoint",
+                "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle", "lineAngleHandle");
     }
 
     /**
@@ -315,6 +316,23 @@ public class CoreVectorFunctions {
     }
 
     /**
+     * Create a line at the given starting point with the end point calculated by the angle and distance.
+     *
+     * @param point    The starting point of the line.
+     * @param angle    The angle of the line.
+     * @param distance The distance of the line.
+     * @return A new line.
+     */
+    public static Path lineAngle(Point point, double angle, double distance) {
+        Point p2 = coordinates(point, angle, distance);
+        Path p = new Path();
+        p.line(point.x, point.y, p2.x, p2.y);
+        p.setFill(null);
+        p.setStroke(Color.BLACK);
+        return p;
+    }
+
+    /**
      * Create a rectangle.
      *
      * @param position  The center position of the rectangle.
@@ -360,6 +378,13 @@ public class CoreVectorFunctions {
 
     public static Handle pointHandle() {
         return new PointHandle();
+    }
+
+    public static Handle lineAngleHandle() {
+        CombinedHandle handle = new CombinedHandle();
+        handle.addHandle(new PointHandle());
+        handle.addHandle(new RotateHandle("angle", "position"));
+        return handle;
     }
 
 }
