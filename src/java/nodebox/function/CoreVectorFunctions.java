@@ -260,6 +260,19 @@ public class CoreVectorFunctions {
         }
     }
 
+    /**
+     * Create a grid of (rows * columns) points.
+     * <p/>
+     * The total width and height of the grid are given, and the
+     * spacing between rows and columns is calculated.
+     *
+     * @param rows     The number of rows.
+     * @param columns  The number of columns.
+     * @param width    The total width of the grid.
+     * @param height   The total height of the grid.
+     * @param position The center position of the grid.
+     * @return A list of Points.
+     */
     public static List<Point> grid(long rows, long columns, double width, double height, Point position) {
         double columnSize, left, rowSize, top;
         if (columns > 1) {
@@ -286,6 +299,13 @@ public class CoreVectorFunctions {
         return builder.build();
     }
 
+    /**
+     * Create a line from point 1 to point 2.
+     *
+     * @param p1 The first point.
+     * @param p2 The second point.
+     * @return A line between two points.
+     */
     public static Path line(Point p1, Point p2) {
         Path p = new Path();
         p.line(p1.x, p1.y, p2.x, p2.y);
@@ -294,6 +314,15 @@ public class CoreVectorFunctions {
         return p;
     }
 
+    /**
+     * Create a rectangle.
+     *
+     * @param position  The center position of the rectangle.
+     * @param width     The width of the rectangle.
+     * @param height    The height of the rectangle.
+     * @param roundness The roundness of the rectangle, given as a x,y Point. If the roundness is (0,0), we draw a normal rectangle.
+     * @return The new rectangle.
+     */
     public static Path rect(Point position, double width, double height, Point roundness) {
         Path p = new Path();
         if (roundness.equals(Point.ZERO)) {
@@ -304,6 +333,13 @@ public class CoreVectorFunctions {
         return p;
     }
 
+    /**
+     * Create a new point with the given x,y coordinates.
+     *
+     * @param x The x coordinate.
+     * @param y The y coordinate.
+     * @return A new Point.
+     */
     public static Point valuesToPoint(double x, double y) {
         return new Point(x, y);
     }
