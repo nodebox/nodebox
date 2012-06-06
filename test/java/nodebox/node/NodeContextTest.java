@@ -326,12 +326,12 @@ public class NodeContextTest {
                 .withRenderedChildName("slice")
                 .connect("sample3", "slice", "list")
                 .connect("sample4", "slice", "size");
-        Iterable results = context.renderNode(net);
+        Iterable<?> results = context.renderNode(net);
         assertEquals(4, Iterables.size(results));
-        assertResultsEqual((Iterable) Iterables.get(results, 0), 5.0, 7.0);
-        assertResultsEqual((Iterable) Iterables.get(results, 1), 8.0, 11.0, 14.0);
-        assertResultsEqual((Iterable) Iterables.get(results, 2), 11.0, 15.0);
-        assertResultsEqual((Iterable) Iterables.get(results, 3), 14.0, 19.0, 24.0);
+        assertResultsEqual((Iterable<?>) Iterables.get(results, 0), 5.0, 7.0);
+        assertResultsEqual((Iterable<?>) Iterables.get(results, 1), 8.0, 11.0, 14.0);
+        assertResultsEqual((Iterable<?>) Iterables.get(results, 2), 11.0, 15.0);
+        assertResultsEqual((Iterable<?>) Iterables.get(results, 3), 14.0, 19.0, 24.0);
     }
 
     @Test
