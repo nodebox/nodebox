@@ -822,7 +822,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 try {
                     handle = (Handle) handleFunction.invoke();
                 } catch (Exception e) {
-                    // todo: error reporting
+                    LOG.log(Level.WARNING, "Error while creating handle for " + activeNode, e);
                 }
             }
 
