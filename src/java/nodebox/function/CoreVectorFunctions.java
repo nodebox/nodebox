@@ -25,12 +25,24 @@ public class CoreVectorFunctions {
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle");
     }
 
+    /**
+     * Example function that generates a path.
+     * This is here so people can view and change the existing code.
+     *
+     * @return An example Path.
+     */
     public static Path generator() {
         Path p = new Path();
         p.rect(0, 0, 100, 100);
         return p;
     }
 
+    /**
+     * Example function that rotates the given shape.
+     *
+     * @param geometry The input geometry.
+     * @return The new, rotated geometry.
+     */
     public static Geometry filter(Geometry geometry) {
         if (geometry == null) return null;
         Transform t = new Transform();
@@ -82,6 +94,19 @@ public class CoreVectorFunctions {
         }
     }
 
+    /**
+     * Create an arc at the given position.
+     * <p/>
+     * Arcs rotate in the opposite direction from Java's Arc2D to be compatible with our transform functions.
+     *
+     * @param position   The position of the arc.
+     * @param width      The arc width.
+     * @param height     The arc height.
+     * @param startAngle The start angle.
+     * @param degrees    The amount of degrees.
+     * @param arcType    The type of arc. Either "chord", "pie", or "open"
+     * @return The new arc.
+     */
     public static Path arc(Point position, double width, double height, double startAngle, double degrees, String arcType) {
 
         int awtType;
@@ -149,6 +174,13 @@ public class CoreVectorFunctions {
         return p;
     }
 
+    /**
+     *
+     * @param position The center position of the ellipse.
+     * @param width    The ellipse width.
+     * @param height   The ellipse height.
+     * @return The new ellipse, as a Path.
+     */
     public static Path ellipse(Point position, double width, double height) {
         Path p = new Path();
         p.ellipse(position.x, position.y, width, height);
