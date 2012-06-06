@@ -111,7 +111,7 @@ public class NodeContext {
             }
             return outputValues;
         } else {
-            List list = new ArrayList();
+            List<Object> list = new ArrayList<Object>();
             for (Object o : outputValues) {
                 list.add(convert((Iterable) o, inputType));
             }
@@ -186,7 +186,8 @@ public class NodeContext {
      */
     private int level(Iterable it) {
         if (it == null) return 0;
-        Iterator<Object> iterator = it.iterator();
+
+        Iterator<?> iterator = it.iterator();
         if (! iterator.hasNext()) return 0;
         Object first = iterator.next();
         // We check if the structure implements List rather than Iterable,
@@ -283,7 +284,7 @@ public class NodeContext {
      * @return The nested list of return values.
      */
     private List mapNestedValues(Node node, Function function, List<ValueOrList> inputValues) {
-        List results = new ArrayList();
+        List<Object> results = new ArrayList<Object>();
         int i = 0;
         for (ValueOrList value : inputValues) {
             if (level(value) > 0) {

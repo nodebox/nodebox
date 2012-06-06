@@ -20,7 +20,7 @@ public final class ListUtils {
     }
 
     private static Class nestedListClass(Iterable<?> objects, Class klass) {
-        Class c = klass;
+        Class<?> c = klass;
         for (Object o : objects) {
             if (o == null) return Object.class;
             if (o instanceof List) {
