@@ -21,7 +21,7 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "ellipse", "freehand", "grid", "line", "lineAngle",
+                "align", "arc", "centroid", "colorize", "connect", "doNothing", "ellipse", "freehand", "grid", "line", "lineAngle",
                 "rect", "toPoints", "makePoint",
                 "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle", "lineAngleHandle");
     }
@@ -173,6 +173,18 @@ public class CoreVectorFunctions {
         p.setFill(null);
         p.setStroke(Color.BLACK);
         return p;
+    }
+
+    /**
+     * Return the given object back, as-is.
+     * <p/>
+     * This function is used in nodes for organizational purposes.
+     *
+     * @param object The input object.
+     * @return The unchanged input object.
+     */
+    public static Object doNothing(Object object) {
+        return object;
     }
 
     /**

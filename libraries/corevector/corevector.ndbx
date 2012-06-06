@@ -205,7 +205,7 @@
             <port type="float" name="y" value="0.0" label="y"/>
         </node>
 
-        <node function="pyvector/null" name="null" image="null.png" outputType="geometry" position="170,420"
+        <node function="corevector/doNothing" name="null" image="null.png" outputType="geometry" position="170,420"
               prototype="filter" description="Does nothing.">
         </node>
 
