@@ -350,8 +350,8 @@
               description="Get the points of a given shape.">
         </node>
 
-        <node function="pyvector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
-              prototype="filter" description="Decompose shape into multiple geometries.">
+        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
+              prototype="filter" description="Decompose the input geometry into its paths.">
         </node>
 
         <node function="pyvector/wiggle" name="wiggle" image="wiggle.png" outputType="geometry" position="170,500"

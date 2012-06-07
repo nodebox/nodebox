@@ -22,7 +22,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "group", "line", "lineAngle", "makePoint", "rect", "toPoints",
+                "freehand", "grid", "group", "line", "lineAngle", "makePoint", "rect", "toPoints", "ungroup",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -438,6 +438,23 @@ public class CoreVectorFunctions {
     public static List<Point> toPoints(IGeometry shape) {
         if (shape == null) return null;
         return shape.getPoints();
+    }
+
+    /**
+     * Decompose the given geometry into paths.
+     *
+     * @param shape The input geometry
+     * @return The list of contained paths.
+     */
+    public static List<Path> ungroup(IGeometry shape) {
+        if (shape == null) return null;
+        if (shape instanceof Geometry) {
+            return ((Geometry) shape).getPaths();
+        } else if (shape instanceof Path) {
+            return ImmutableList.of((Path) shape);
+        } else {
+            throw new RuntimeException("Don't know how to decompose " + shape + " into paths.");
+        }
     }
 
     /**
