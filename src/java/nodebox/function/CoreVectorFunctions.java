@@ -21,9 +21,9 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "doNothing", "ellipse", "freehand", "grid", "line", "lineAngle",
+                "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "freehand", "grid", "line", "lineAngle",
                 "rect", "toPoints", "makePoint",
-                "fourPointHandle", "freehandHandle", "lineHandle", "pointHandle", "lineAngleHandle");
+                "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
     /**
@@ -173,6 +173,47 @@ public class CoreVectorFunctions {
         p.setFill(null);
         p.setStroke(Color.BLACK);
         return p;
+    }
+
+
+    public static Geometry copy(IGeometry shape, long copies, String order, Point translate, double rotate, Point scale) {
+        Geometry geo = new Geometry();
+        double tx = 0;
+        double ty = 0;
+        double r = 0;
+        double sx = 1.0;
+        double sy = 1.0;
+        char[] cOrder = order.toCharArray();
+
+        for (long i = 0; i < copies; i++) {
+            Transform t = new Transform();
+
+            // Each letter of the order describes an operation.
+            for (char op : cOrder) {
+                if (op == 't') {
+                    t.translate(tx, ty);
+                } else if (op == 'r') {
+                    t.rotate(r);
+                } else if (op == 's') {
+                    t.scale(sx, sy);
+                }
+            }
+
+            if (shape instanceof Path) {
+                Path newPath = t.map((Path)shape);
+                geo.add(newPath);
+            } else if (shape instanceof Geometry) {
+                Geometry newGeo = t.map((Geometry) shape);
+                geo.extend(newGeo);
+            }
+
+            tx += translate.x;
+            ty += translate.y;
+            r += rotate;
+            sx += scale.x;
+            sy += scale.y;
+        }
+        return geo;
     }
 
     /**
@@ -388,15 +429,19 @@ public class CoreVectorFunctions {
         return new LineHandle();
     }
 
-    public static Handle pointHandle() {
-        return new PointHandle();
-    }
-
     public static Handle lineAngleHandle() {
         CombinedHandle handle = new CombinedHandle();
         handle.addHandle(new PointHandle());
         handle.addHandle(new RotateHandle("angle", "position"));
         return handle;
+    }
+
+    public static Handle pointHandle() {
+        return new PointHandle();
+    }
+
+    public static Handle translateHandle() {
+        return new TranslateHandle();
     }
 
 }

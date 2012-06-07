@@ -75,10 +75,9 @@
             <port type="boolean" name="closed" value="true"/>
         </node>
 
-        <node function="pyvector/copy" name="copy" image="copy.png" outputType="geometry" position="170,340"
-              prototype="filter" description="Create multiple copies of a shape." handle="pyvector/handle_translate">
+        <node function="corevector/copy" name="copy" image="copy.png" outputType="geometry" position="170,340"
+              prototype="filter" description="Create multiple copies of a shape." handle="corevector/translateHandle">
             <port bounding="hard" type="int" name="copies" value="1" min="1.0"/>
-            <port type="string" name="order" value="tsr"/>
             <port type="string" name="order" value="tsr" label="Trans Scale Rot" widget="menu">
                 <menu key="srt" label="Scale Rot Trans"/>
                 <menu key="str" label="Scale Trans Rot"/>
