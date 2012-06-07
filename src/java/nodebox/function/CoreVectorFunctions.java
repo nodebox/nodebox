@@ -21,8 +21,8 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "freehand", "grid", "line", "lineAngle",
-                "rect", "toPoints", "makePoint",
+                "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
+                "freehand", "grid", "line", "lineAngle", "rect", "toPoints", "makePoint",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -260,7 +260,7 @@ public class CoreVectorFunctions {
      * @param position        The center of the target shape.
      * @param width           The width of the target bounds.
      * @param height          The height of the target shape.
-     * @param keepProportions If true, scales X and Y together, proportionally.
+     * @param keepProportions If true, the shape will not be stretched or squashed.
      * @return A new shape that fits within the given bounds.
      */
     public static IGeometry fit(IGeometry shape, Point position, double width, double height, boolean keepProportions) {
@@ -288,6 +288,21 @@ public class CoreVectorFunctions {
         t.scale(sx, sy);
         t.translate(-bw / 2 - bounds.x, -bh / 2 - bounds.y);
         return t.map(shape);
+    }
+
+    /**
+     * Fit a shape to another given shape.
+     * @param shape The shape to fit.
+     * @param bounding The bounding, or target shape.
+     * @param keepProportions If true, the shape will not be stretched or squashed.
+     * @return A new shape that fits within the given bounding shape.
+     */
+    public static IGeometry fitTo(IGeometry shape, IGeometry bounding, boolean keepProportions) {
+        if (shape == null) return null;
+        if (bounding == null) return shape;
+
+        Rect bounds = bounding.getBounds();
+        return fit(shape, bounds.getCentroid(), bounds.width, bounds.height, keepProportions);
     }
 
     private final static Splitter PATH_SPLITTER = Splitter.on("M").omitEmptyStrings();

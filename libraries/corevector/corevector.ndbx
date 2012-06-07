@@ -143,7 +143,7 @@
             <port type="boolean" name="keep_proportions" value="true"/>
         </node>
 
-        <node function="pyvector/fit_to" name="fit_to" image="fit_to.png" outputType="geometry" position="410,340"
+        <node function="corevector/fitTo" name="fit_to" image="fit_to.png" outputType="geometry" position="410,340"
               prototype="filter" description="Fit a shape to another shape.">
             <port type="geometry" name="bounding"/>
             <port type="boolean" name="keep_proportions" value="true"/>
