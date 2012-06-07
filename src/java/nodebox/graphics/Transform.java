@@ -154,6 +154,16 @@ public class Transform implements Cloneable {
         return new Rect(transformedOrigin.getX(), transformedOrigin.getY(), transformedSize.getX(), transformedSize.getY());
     }
 
+    public IGeometry map(IGeometry shape) {
+        if (shape instanceof Path) {
+            return map((Path) shape);
+        } else if (shape instanceof Geometry) {
+            return map((Geometry) shape);
+        } else {
+            throw new RuntimeException("Unsupported geometry type " + shape);
+        }
+    }
+
     public Path map(Path p) {
         Path newPath = new Path(p, false);
         for (Contour c : p.getContours()) {

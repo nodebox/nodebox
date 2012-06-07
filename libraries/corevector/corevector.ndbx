@@ -135,8 +135,8 @@
             <port type="float" name="height" value="100.0"/>
         </node>
 
-        <node function="pyvector/fit" name="fit" image="fit.png" outputType="geometry" position="410,340"
-              prototype="filter" description="Fit a shape within bounds." handle="pyvector/handle_four_point">
+        <node function="corevector/fit" name="fit" image="fit.png" outputType="geometry" position="410,340"
+              prototype="filter" description="Fit a shape within bounds." handle="corevector/fourPointHandle">
             <port type="point" name="position" value="0,0"/>
             <port type="float" name="width" value="300.0"/>
             <port type="float" name="height" value="300.0"/>

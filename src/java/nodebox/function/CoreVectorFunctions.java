@@ -21,7 +21,7 @@ public class CoreVectorFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
-                "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "freehand", "grid", "line", "lineAngle",
+                "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "freehand", "grid", "line", "lineAngle",
                 "rect", "toPoints", "makePoint",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
@@ -200,7 +200,7 @@ public class CoreVectorFunctions {
             }
 
             if (shape instanceof Path) {
-                Path newPath = t.map((Path)shape);
+                Path newPath = t.map((Path) shape);
                 geo.add(newPath);
             } else if (shape instanceof Geometry) {
                 Geometry newGeo = t.map((Geometry) shape);
@@ -251,6 +251,43 @@ public class CoreVectorFunctions {
     public static List<Point> toPoints(IGeometry shape) {
         if (shape == null) return null;
         return shape.getPoints();
+    }
+
+    /**
+     * Fit a shape within the given bounds.
+     *
+     * @param shape           The shape to fit.
+     * @param position        The center of the target shape.
+     * @param width           The width of the target bounds.
+     * @param height          The height of the target shape.
+     * @param keepProportions If true, scales X and Y together, proportionally.
+     * @return A new shape that fits within the given bounds.
+     */
+    public static IGeometry fit(IGeometry shape, Point position, double width, double height, boolean keepProportions) {
+        if (shape == null) return null;
+
+        Rect bounds = shape.getBounds();
+
+        // Make sure bw and bh aren't infinitely small numbers.
+        // This will lead to incorrect transformations with for examples lines.
+        double bw = bounds.width > 0.000000000001 ? bounds.width : 0;
+        double bh = bounds.height > 0.000000000001 ? bounds.height : 0;
+
+        Transform t = new Transform();
+        t.translate(position.x, position.y);
+        double sx, sy;
+        if (keepProportions) {
+            // don't scale widths or heights that are equal to zero.
+            sx = bw > 0 ? width / bw : Float.MAX_VALUE;
+            sy = bh > 0 ? height / bh : Float.MAX_VALUE;
+            sx = sy = Math.min(sx, sy);
+        } else {
+            sx = bw > 0 ? width / bw : 1;
+            sy = bh > 0 ? height / bh : 1;
+        }
+        t.scale(sx, sy);
+        t.translate(-bw / 2 - bounds.x, -bh / 2 - bounds.y);
+        return t.map(shape);
     }
 
     private final static Splitter PATH_SPLITTER = Splitter.on("M").omitEmptyStrings();
