@@ -169,7 +169,7 @@
             <port type="point" name="position" value="0,0"/>
         </node>
 
-        <node function="pyvector/group" name="group" image="group.png" outputType="geometry" position="90,420"
+        <node function="corevector/group" name="group" image="group.png" outputType="geometry" position="90,420"
               prototype="generator" description="Combine multiple geometries together.">
             <port type="geometry" name="shapes" range="list"/>
         </node>

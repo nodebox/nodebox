@@ -22,7 +22,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "line", "lineAngle", "makePoint", "rect", "toPoints",
+                "freehand", "grid", "group", "line", "lineAngle", "makePoint", "rect", "toPoints",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -354,6 +354,28 @@ public class CoreVectorFunctions {
             }
         }
         return builder.build();
+    }
+
+
+    /**
+     * Combine multiple shapes together into one Geometry.
+     *
+     * @param shapes The list of shapes (Path or Geometry objects) to combine.
+     * @return The combined Geometry.
+     */
+    public static Geometry group(List<IGeometry> shapes) {
+        if (shapes == null) return null;
+        Geometry geo = new Geometry();
+        for (IGeometry shape : shapes) {
+            if (shape instanceof Path) {
+                geo.add((Path) shape);
+            } else if (shape instanceof Geometry) {
+                geo.extend((Geometry) shape);
+            } else {
+                throw new RuntimeException("Unable to group " + shape + ": I can only group paths or geometry objects.");
+            }
+        }
+        return geo;
     }
 
     /**
