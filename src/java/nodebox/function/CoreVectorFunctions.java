@@ -22,7 +22,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "line", "lineAngle", "rect", "toPoints", "makePoint",
+                "freehand", "grid", "line", "lineAngle", "makePoint", "rect", "toPoints",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -243,17 +243,6 @@ public class CoreVectorFunctions {
     }
 
     /**
-     * Get the points of a given shape.
-     *
-     * @param shape The input shape.
-     * @return A list of all points of the shape.
-     */
-    public static List<Point> toPoints(IGeometry shape) {
-        if (shape == null) return null;
-        return shape.getPoints();
-    }
-
-    /**
      * Fit a shape within the given bounds.
      *
      * @param shape           The shape to fit.
@@ -292,8 +281,9 @@ public class CoreVectorFunctions {
 
     /**
      * Fit a shape to another given shape.
-     * @param shape The shape to fit.
-     * @param bounding The bounding, or target shape.
+     *
+     * @param shape           The shape to fit.
+     * @param bounding        The bounding, or target shape.
      * @param keepProportions If true, the shape will not be stretched or squashed.
      * @return A new shape that fits within the given bounding shape.
      */
@@ -325,45 +315,6 @@ public class CoreVectorFunctions {
         p.setFill(null);
         p.setStroke(Color.BLACK);
         return p;
-    }
-
-    public static Path parsePath(String s) {
-        checkNotNull(s);
-        Path p = new Path();
-        s = s.trim();
-        for (String pointString : PATH_SPLITTER.split(s)) {
-            pointString = pointString.trim();
-            if (!pointString.isEmpty()) {
-                p.add(parseContour(pointString));
-            }
-        }
-        return p;
-    }
-
-    public static Contour parseContour(String s) {
-        Contour contour = new Contour();
-        for (String pointString : CONTOUR_SPLITTER.split(s)) {
-            contour.addPoint(parsePoint(pointString));
-        }
-        return contour;
-    }
-
-    public static Point parsePoint(String s) {
-        Double x = null, y = null;
-        for (String numberString : POINT_SPLITTER.split(s)) {
-            if (x == null) {
-                x = Double.parseDouble(numberString);
-            } else if (y == null) {
-                y = Double.parseDouble(numberString);
-            } else {
-                throw new IllegalArgumentException("Too many coordinates in point " + s);
-            }
-        }
-        if (x != null && y != null) {
-            return new Point(x, y);
-        } else {
-            throw new IllegalArgumentException("Could not parse point " + s);
-        }
     }
 
     /**
@@ -457,6 +408,17 @@ public class CoreVectorFunctions {
     }
 
     /**
+     * Get the points of a given shape.
+     *
+     * @param shape The input shape.
+     * @return A list of all points of the shape.
+     */
+    public static List<Point> toPoints(IGeometry shape) {
+        if (shape == null) return null;
+        return shape.getPoints();
+    }
+
+    /**
      * Create a new point with the given x,y coordinates.
      *
      * @param x The x coordinate.
@@ -465,6 +427,47 @@ public class CoreVectorFunctions {
      */
     public static Point makePoint(double x, double y) {
         return new Point(x, y);
+    }
+
+    //// Utility functions ////
+
+    public static Path parsePath(String s) {
+        checkNotNull(s);
+        Path p = new Path();
+        s = s.trim();
+        for (String pointString : PATH_SPLITTER.split(s)) {
+            pointString = pointString.trim();
+            if (!pointString.isEmpty()) {
+                p.add(parseContour(pointString));
+            }
+        }
+        return p;
+    }
+
+    public static Contour parseContour(String s) {
+        Contour contour = new Contour();
+        for (String pointString : CONTOUR_SPLITTER.split(s)) {
+            contour.addPoint(parsePoint(pointString));
+        }
+        return contour;
+    }
+
+    public static Point parsePoint(String s) {
+        Double x = null, y = null;
+        for (String numberString : POINT_SPLITTER.split(s)) {
+            if (x == null) {
+                x = Double.parseDouble(numberString);
+            } else if (y == null) {
+                y = Double.parseDouble(numberString);
+            } else {
+                throw new IllegalArgumentException("Too many coordinates in point " + s);
+            }
+        }
+        if (x != null && y != null) {
+            return new Point(x, y);
+        } else {
+            throw new IllegalArgumentException("Could not parse point " + s);
+        }
     }
 
     //// Handles ////
@@ -477,15 +480,15 @@ public class CoreVectorFunctions {
         return new FreehandHandle();
     }
 
-    public static Handle lineHandle() {
-        return new LineHandle();
-    }
-
     public static Handle lineAngleHandle() {
         CombinedHandle handle = new CombinedHandle();
         handle.addHandle(new PointHandle());
         handle.addHandle(new RotateHandle("angle", "position"));
         return handle;
+    }
+
+    public static Handle lineHandle() {
+        return new LineHandle();
     }
 
     public static Handle pointHandle() {
