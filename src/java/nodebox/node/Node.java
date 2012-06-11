@@ -32,7 +32,7 @@ public final class Node {
         }
     }
 
-    public enum Attribute {PROTOTYPE, NAME, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+    public enum Attribute {PROTOTYPE, NAME, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, PUBLISHED_INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
@@ -45,6 +45,7 @@ public final class Node {
     private final String function;
     private final Point position;
     private final ImmutableList<Port> inputs;
+    private final ImmutableList<PublishedPort> publishedInputs;
     private final String outputType;
     private final Port.Range outputRange;
     private final ImmutableList<Node> children;
@@ -66,6 +67,7 @@ public final class Node {
         function = "core/zero";
         position = Point.ZERO;
         inputs = ImmutableList.of();
+        publishedInputs = ImmutableList.of();
         outputType = Port.TYPE_FLOAT;
         outputRange = Port.DEFAULT_RANGE;
         children = ImmutableList.of();
@@ -81,7 +83,8 @@ public final class Node {
     }
 
     private Node(Node prototype, String name, String description, String image, String function,
-                 Point position, ImmutableList<Port> inputs, String outputType, Port.Range outputRange, ImmutableList<Node> children,
+                 Point position, ImmutableList<Port> inputs, ImmutableList<PublishedPort> publishedInputs,
+                 String outputType, Port.Range outputRange, ImmutableList<Node> children,
                  String renderedChildName, ImmutableList<Connection> connections, String handle) {
         checkAllNotNull(prototype, name, description, image, function,
                 position, inputs, outputType, children,
@@ -94,6 +97,7 @@ public final class Node {
         this.function = function;
         this.position = position;
         this.inputs = inputs;
+        this.publishedInputs = publishedInputs;
         this.outputType = outputType;
         this.outputRange = outputRange;
         this.children = children;
@@ -485,6 +489,90 @@ public final class Node {
         return withInputChanged(portName, p);
     }
 
+    public List<PublishedPort> getPublishedInputs() {
+        return publishedInputs;
+    }
+
+    public boolean isPublished(String inputNode, String inputPort) {
+        for (PublishedPort p : publishedInputs) {
+            if (p.getInputNode().equals(inputNode) && p.getInputPort().equals(inputPort))
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Create a new node with the given input Node/port published.
+     *
+     * @param inputNode      The name of the input Node.
+     * @param inputPort      The name of the input Port.
+     * @param publishedName  The name of by which the published port is known..
+     * @return A new Node.
+     */
+    public Node publish(String inputNode, String inputPort, String publishedName) {
+        checkNotNull(publishedName, "Published name cannot be null.");
+        checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
+        Node input = getChild(inputNode);
+        checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
+        checkArgument(! isPublished(inputNode, inputPort), "The port %s on node %s has already been published.", inputPort, inputNode);
+        PublishedPort newPublishedInput = new PublishedPort(inputNode, inputPort, publishedName);
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : getPublishedInputs())
+            b.add(pp);
+        b.add(newPublishedInput);
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }
+
+    public Node withPublishedPortAdded(PublishedPort p) {
+        return publish(p.getInputNode(), p.getInputPort(), p.getPublishedName());
+    }
+
+    /**
+     * Create a new node with the given published port removed.
+     *
+     * @param publishedInput The published port to remove.
+     * @return A new Node.
+     */
+    public Node unpublish(PublishedPort publishedInput) {
+        checkArgument(getPublishedInputs().contains(publishedInput), "Node %s does not have a published port %s", this, publishedInput);
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : getPublishedInputs()) {
+            if (pp != publishedInput)
+                b.add(pp);
+        }
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }
+
+    public Node unpublish(String inputNode, String inputPort) {
+        checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
+        Node input = getChild(inputNode);
+        checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
+
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : getPublishedInputs()) {
+            if (pp.getInputNode().equals(inputNode) && pp.getInputPort().equals(inputPort)) {
+
+            } else {
+                b.add(pp);
+            }
+        }
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }
+
+    public Node unpublish(String inputNode) {
+        checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
+
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : getPublishedInputs()) {
+            if (pp.getInputNode().equals(inputNode)) {
+
+            } else {
+                b.add(pp);
+            }
+        }
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }
+
     /**
      * Create a new node with the given output type.
      * <p/>
@@ -718,6 +806,7 @@ public final class Node {
         String function = this.function;
         Point position = this.position;
         ImmutableList<Port> inputs = this.inputs;
+        ImmutableList<PublishedPort> publishedInputs = this.publishedInputs;
         String outputType = this.outputType;
         Port.Range outputRange = this.outputRange;
         ImmutableList<Node> children = this.children;
@@ -746,6 +835,9 @@ public final class Node {
                 break;
             case INPUTS:
                 inputs = (ImmutableList<Port>) value;
+                break;
+            case PUBLISHED_INPUTS:
+                publishedInputs = (ImmutableList<PublishedPort>) value;
                 break;
             case OUTPUT_TYPE:
                 outputType = (String) value;
@@ -780,7 +872,7 @@ public final class Node {
         }
 
         return new Node(prototype, name, description, image, function, position,
-                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
     //// Object overrides ////
@@ -788,7 +880,7 @@ public final class Node {
     @Override
     public int hashCode() {
         return Objects.hashCode(prototype, name, description, image, function, position,
-                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
     @Override
@@ -802,6 +894,7 @@ public final class Node {
                 && Objects.equal(function, other.function)
                 && Objects.equal(position, other.position)
                 && Objects.equal(inputs, other.inputs)
+                && Objects.equal(publishedInputs, other.publishedInputs)
                 && Objects.equal(outputType, other.outputType)
                 && Objects.equal(children, other.children)
                 && Objects.equal(renderedChildName, other.renderedChildName)
