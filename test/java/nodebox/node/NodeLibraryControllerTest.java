@@ -36,6 +36,38 @@ public class NodeLibraryControllerTest {
     }
 
     @Test
+    public void testAddPort() {
+        Node gamma = Node.ROOT.withName("gamma");
+        controller.addNode("/", gamma);
+        assertFalse(controller.getNodeLibrary().getNodeForPath("/gamma").hasInput("p"));
+        controller.addPort("/gamma", "p", Port.TYPE_INT);
+        assertTrue(controller.getNodeLibrary().getNodeForPath("/gamma").hasInput("p"));
+    }
+
+    @Test
+    public void testRemovePort() {
+        Node gamma = Node.ROOT.withName("gamma").withInputAdded(Port.intPort("p", 0));
+        controller.addNode("/", gamma);
+        assertTrue(controller.getNodeLibrary().getNodeForPath("/gamma").hasInput("p"));
+        controller.removePort("/", "gamma", "p");
+        assertFalse(controller.getNodeLibrary().getNodeForPath("/gamma").hasInput("p"));
+    }
+
+    @Test
+    public void testRemoveConnectedPort() {
+        Node gamma = Node.ROOT.withName("gamma").withInputAdded(Port.intPort("p", 0));
+        Node delta = Node.ROOT.withName("delta").withInputAdded(Port.intPort("q", 0));
+        controller.addNode("/", gamma);
+        controller.addNode("/", delta);
+        controller.connect("/", gamma, delta, delta.getInput("q"));
+        assertTrue(controller.getNodeLibrary().getNodeForPath("/delta").hasInput("q"));
+        assertEquals(1, controller.getNodeLibrary().getRoot().getConnections().size());
+        controller.removePort("/", "delta", "q");
+        assertFalse(controller.getNodeLibrary().getNodeForPath("/delta").hasInput("q"));
+        assertEquals(0, controller.getNodeLibrary().getRoot().getConnections().size());
+    }
+
+    @Test
     public void testAddNode() {
         NodeLibrary library;
 

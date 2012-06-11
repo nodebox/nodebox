@@ -178,7 +178,15 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
 
-    public void removePort(String nodePath, String portName) {
+    public void removePort(String parentPath, String nodeName, String portName) {
+        List<Connection> connections = getNode(parentPath).getConnections();
+        String nodePath = Node.path(parentPath, nodeName);
+        for (Connection c : connections) {
+            if (c.getInputNode().equals(nodeName) && c.getInputPort().equals(portName)) {
+                disconnect(parentPath, c);
+                break;
+            }
+        }
         Node newNode = getNode(nodePath).withInputRemoved(portName);
         replaceNodeInPath(nodePath, newNode);
     }

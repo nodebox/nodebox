@@ -482,7 +482,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void removePort(Node node, String portName) {
         checkArgument(getActiveNetwork().hasChild(node));
         addEdit("Remove Port");
-        controller.removePort(Node.path(activeNetworkPath, node), portName);
+        controller.removePort(activeNetworkPath, node.getName(), portName);
 
         if (node == getActiveNode()) {
             portView.updateAll();
