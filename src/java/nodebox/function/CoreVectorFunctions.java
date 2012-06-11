@@ -22,7 +22,8 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "rect", "toPoints", "ungroup",
+                "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "pointOnPath", "rect",
+                "toPoints", "ungroup",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -438,6 +439,20 @@ public class CoreVectorFunctions {
             p.curveto(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height);
         }
         return p;
+    }
+
+    /**
+     * Calculate a point on the given shape.
+     *
+     * @param shape The shape.
+     * @param t     The position of the point, going from 0.0-range
+     * @param range The range of the path. If you use 100.0, t=50.0 will be the middle of the path.
+     * @return The point on the given location of the path.
+     */
+    public static Point pointOnPath(AbstractGeometry shape, double t, double range) {
+        if (shape == null) return null;
+        t = Math.abs(t % range);
+        return shape.pointAt(t / range);
     }
 
     /**

@@ -389,7 +389,7 @@
             </port>
         </node>
 
-        <node function="pyvector/point_on_path" name="point_on_path" prototype="generator"
+        <node function="corevector/pointOnPath" name="point_on_path" prototype="generator"
               description="Calculate a point on a path.">
             <port type="shape" name="shape"/>
             <port type="float" name="t"/>

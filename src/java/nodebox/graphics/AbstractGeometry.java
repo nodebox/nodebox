@@ -74,6 +74,8 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
         return delta;
     }
 
+    public abstract Point pointAt(double t);
+
     public abstract IGeometry clone();
 
 }
