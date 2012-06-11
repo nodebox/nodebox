@@ -62,4 +62,17 @@ public class MathUtils {
     public static double clamp(double v, double min, double max) {
         return min > v ? min : max < v ? max : v;
     }
+
+    /**
+     * Round a value to the nearest "step".
+     *
+     * @param v        The value to snap.
+     * @param distance The distance between steps.
+     * @param strength The strength of rounding. If 1 the values will always be on a step. If zero, the value is unchanged.
+     * @return The snapped value.
+     */
+    public static double snap(double v, double distance, double strength) {
+        return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
+    }
+
 }

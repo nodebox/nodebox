@@ -44,9 +44,9 @@
                 <menu key="open" label="Open"/>
             </port>
         </node>
-        
+
         <node function="corevector/centroid" name="centroid" outputType="point" prototype="filter"
-            description="Calculate the geometric center point of a shape.">
+              description="Calculate the geometric center point of a shape.">
         </node>
 
         <node function="corevector/colorize" name="colorize" image="colorize.png" outputType="geometry"
@@ -121,10 +121,10 @@
             <port type="string" name="horizontal" value="none"/>
             <port type="string" name="vertical" value="none"/>
         </node>
-        
+
         <node function="pyvector/draw_path" name="draw_path" image="draw_path.png" outputType="geometry"
-            position="250,580" prototype="generator"
-            description="Draw Bezier Paths." handle="pyvector/handle_draw_path">
+              position="250,580" prototype="generator"
+              description="Draw Bezier Paths." handle="pyvector/handle_draw_path">
             <port type="string" name="path"/>
         </node>
 
@@ -159,7 +159,8 @@
               description="A network of geometry nodes.">
         </node>
 
-        <node function="corevector/grid" name="grid" image="grid.png" outputType="point" outputRange="list" position="170,90"
+        <node function="corevector/grid" name="grid" image="grid.png" outputType="point" outputRange="list"
+              position="170,90"
               prototype="generator" description="Create a grid of points."
               handle="corevector/fourPointHandle">
             <port type="int" name="rows" value="10" min="1.0"/>
@@ -257,7 +258,8 @@
             <port type="boolean" name="per_contour" value="false"/>
         </node>
 
-        <node function="pyvector/scatter" outputRange="list" name="scatter" image="scatter.png" outputType="list" position="410,420"
+        <node function="pyvector/scatter" outputRange="list" name="scatter" image="scatter.png" outputType="list"
+              position="410,420"
               prototype="filter" description="Generate points within the boundaries of a shape.">
             <port bounding="hard" type="int" name="amount" value="20" min="0.0"/>
             <port type="int" name="seed" value="0"/>
@@ -272,8 +274,8 @@
             <port type="boolean" name="keep_geometry" value="true"/>
         </node>
 
-        <node function="pyvector/snap" name="snap" image="snap.png" outputType="geometry" position="410,500"
-              prototype="filter" description="Snap geometry to a grid." handle="pyvector/handle_snap">
+        <node function="corevector/snap" name="snap" image="snap.png" outputType="geometry" position="410,500"
+              prototype="filter" description="Snap geometry to a grid." handle="corevector/snapHandle">
             <port bounding="hard" type="float" name="distance" value="10.0" min="1.0"/>
             <port name="strength" min="0.0" max="100.0" value="100.0" bounding="hard" type="float"/>
             <port type="point" name="position" value="0,0"/>
@@ -345,12 +347,14 @@
             <port type="point" name="scale" value="100,100" label="Scale"/>
         </node>
 
-        <node function="corevector/toPoints" outputRange="list" name="to_points" image="to_points.png" outputType="point"
+        <node function="corevector/toPoints" outputRange="list" name="to_points" image="to_points.png"
+              outputType="point"
               position="100,540" prototype="filter"
               description="Get the points of a given shape.">
         </node>
 
-        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
+        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list"
+              position="90,420"
               prototype="filter" description="Decompose the input geometry into its paths.">
         </node>
 
@@ -383,7 +387,7 @@
               description="Generates a visual link between two shapes.">
             <port type="shape" name="shape1"/>
             <port type="shape" name="shape2"/>
-            <port type="string" name="orientation" value="horizontal"  widget="menu">
+            <port type="string" name="orientation" value="horizontal" widget="menu">
                 <menu key="horizontal" label="Horizontal"/>
                 <menu key="vertical" label="Vertical"/>
             </port>

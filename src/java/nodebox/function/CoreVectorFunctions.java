@@ -1,10 +1,13 @@
 package nodebox.function;
 
+import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import nodebox.graphics.*;
 import nodebox.handle.*;
+import nodebox.util.MathUtils;
 
+import javax.annotation.Nullable;
 import java.awt.geom.Arc2D;
 import java.util.List;
 
@@ -23,8 +26,9 @@ public class CoreVectorFunctions {
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
                 "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "pointOnPath", "rect",
-                "toPoints", "ungroup",
-                "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
+                "snap", "toPoints", "ungroup",
+                "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "snapHandle",
+                "translateHandle");
     }
 
     /**
@@ -456,6 +460,28 @@ public class CoreVectorFunctions {
     }
 
     /**
+     * Snap the shape to a grid.
+     *
+     * @param shape    The shape to snap.
+     * @param distance The grid size, or distance between grid lines.
+     * @param strength The snap strength, between 0.0-100.0. If 0.0, no snapping occurs. If 100.0, all points are on the grid.
+     * @param position The grid position.
+     * @return The snapped geometry.
+     */
+    public static AbstractGeometry snap(AbstractGeometry shape, final double distance, final double strength, final Point position) {
+        if (shape == null) return null;
+        final double dStrength = strength / 100.0;
+        return shape.mapPoints(new Function<Point, Point>() {
+            public Point apply(@Nullable Point point) {
+                if (point == null) return Point.ZERO;
+                double x = MathUtils.snap(point.x + position.x, distance, dStrength) - position.x;
+                double y = MathUtils.snap(point.y + position.y, distance, dStrength) - position.y;
+                return new Point(x, y);
+            }
+        });
+    }
+
+    /**
      * Create a rectangle.
      *
      * @param position  The center position of the rectangle.
@@ -577,6 +603,10 @@ public class CoreVectorFunctions {
 
     public static Handle pointHandle() {
         return new PointHandle();
+    }
+
+    public static Handle snapHandle() {
+        return new SnapHandle();
     }
 
     public static Handle translateHandle() {

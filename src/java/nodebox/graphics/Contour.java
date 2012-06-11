@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import com.google.common.base.Function;
+
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
@@ -425,6 +427,18 @@ public class Contour extends AbstractGeometry {
 
     public Path toPath() {
         return new Path(this);
+    }
+
+    //// Functional operations ////
+
+    public AbstractGeometry mapPoints(Function<Point, Point> pointFunction) {
+        Contour c = new Contour();
+        c.setClosed(isClosed());
+        for (Point point : getPoints()) {
+            Point newPoint = pointFunction.apply(point);
+            c.addPoint(newPoint);
+        }
+        return c;
     }
 
     //// Object operations ////

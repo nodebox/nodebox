@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import com.google.common.base.Function;
+
 import java.util.Iterator;
 
 /**
@@ -77,5 +79,14 @@ public abstract class AbstractGeometry extends AbstractTransformable implements 
     public abstract Point pointAt(double t);
 
     public abstract IGeometry clone();
+
+    /**
+     * Change all points in the geometry and return a mutated copy.
+     * The original geometry remains unchanged.
+     *
+     * @param pointFunction The function to apply to each point.
+     * @return The new geometry.
+     */
+    public abstract AbstractGeometry mapPoints(Function<Point, Point> pointFunction);
 
 }

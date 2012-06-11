@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import com.google.common.base.Function;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -405,6 +407,17 @@ public class Geometry extends AbstractGeometry implements Colorizable {
 
     public IGeometry flattened() {
         throw new UnsupportedOperationException();
+    }
+
+    //// Functional operations ////
+
+    public AbstractGeometry mapPoints(Function<Point, Point> pointFunction) {
+        Geometry newGeometry = new Geometry();
+        for (Path p : getPaths()) {
+            Path newPath = (Path) p.mapPoints(pointFunction);
+            newGeometry.add(newPath);
+        }
+        return newGeometry;
     }
 
     //// Object methods ////

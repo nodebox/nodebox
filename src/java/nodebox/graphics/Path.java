@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import com.google.common.base.Function;
+
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
@@ -1014,6 +1016,17 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
 
     public Path cloneAndClear() {
         return new Path(this, false);
+    }
+
+    //// Functional operations ////
+
+    public AbstractGeometry mapPoints(Function<Point, Point> pointFunction) {
+        Path newPath = this.cloneAndClear();
+        for (Contour c : getContours()) {
+            Contour newContour = (Contour) c.mapPoints(pointFunction);
+            newPath.add(newContour);
+        }
+        return newPath;
     }
 
     //// Iterator implementation
