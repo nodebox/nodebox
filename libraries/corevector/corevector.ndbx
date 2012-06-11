@@ -379,7 +379,7 @@
         <node function="pyvector/wiggle_contours" name="wiggle_contours" position="170,510"
               prototype="wiggle_points" description="Shift paths by a random amount."/>
 
-        <node function="pyvector/link" name="link" prototype="generator"
+        <node function="corevector/link" name="link" prototype="generator"
               description="Generates a visual link between two shapes.">
             <port type="shape" name="shape1"/>
             <port type="shape" name="shape2"/>

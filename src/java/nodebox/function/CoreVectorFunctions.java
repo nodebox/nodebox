@@ -22,7 +22,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "group", "line", "lineAngle", "makePoint", "rect", "toPoints", "ungroup",
+                "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "rect", "toPoints", "ungroup",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "translateHandle");
     }
 
@@ -407,6 +407,36 @@ public class CoreVectorFunctions {
         p.line(point.x, point.y, p2.x, p2.y);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        return p;
+    }
+
+    /**
+     * Create a path that visually links the two shapes together.
+     * The shapes are only used for their bounding rectangles.
+     *
+     * @param shape1      The first shape.
+     * @param shape2      The second shape.
+     * @param orientation The link orientation, either "horizontal" or "vertical".
+     * @return A new path.
+     */
+    public static Path link(Grob shape1, Grob shape2, String orientation) {
+        if (shape1 == null || shape2 == null) return null;
+        Path p = new Path();
+        Rect a = shape1.getBounds();
+        Rect b = shape2.getBounds();
+        if (orientation.equals("horizontal")) {
+            double hw = (b.x - (a.x + a.width)) / 2;
+            p.moveto(a.x + a.width, a.y);
+            p.curveto(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y);
+            p.lineto(b.x, b.y + b.height);
+            p.curveto(b.x - hw, b.y + b.height, a.x + a.width + hw, a.y + a.height, a.x + a.width, a.y + a.height);
+        } else {
+            double hh = (b.y - (a.y + a.height)) / 2;
+            p.moveto(a.x, a.y + a.height);
+            p.curveto(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y);
+            p.lineto(b.x + b.width, b.y);
+            p.curveto(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height);
+        }
         return p;
     }
 
