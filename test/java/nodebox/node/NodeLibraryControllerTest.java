@@ -14,7 +14,6 @@ public class NodeLibraryControllerTest {
     @Before
     public void setUp() throws Exception {
         controller = NodeLibraryController.create();
-
     }
 
     @Test
@@ -23,16 +22,16 @@ public class NodeLibraryControllerTest {
         Node beta = Node.ROOT.withName("beta");
         controller.addNode("/", alpha);
         controller.addNode("/", beta);
-        assertNull(controller.getNodeLibrary().getRoot().getRenderedChild());
+        assertNull(controller.getRootNode().getRenderedChild());
 
         controller.setRenderedChild("/", "alpha");
-        assertEquals(alpha, controller.getNodeLibrary().getRoot().getRenderedChild());
+        assertEquals(alpha, controller.getRootNode().getRenderedChild());
 
         controller.setRenderedChild("/", "beta");
-        assertEquals(beta, controller.getNodeLibrary().getRoot().getRenderedChild());
+        assertEquals(beta, controller.getRootNode().getRenderedChild());
 
         controller.setRenderedChild("/", "");
-        assertNull(controller.getNodeLibrary().getRoot().getRenderedChild());
+        assertNull(controller.getRootNode().getRenderedChild());
     }
 
     @Test
@@ -61,10 +60,10 @@ public class NodeLibraryControllerTest {
         controller.addNode("/", delta);
         controller.connect("/", gamma, delta, delta.getInput("q"));
         assertTrue(controller.getNodeLibrary().getNodeForPath("/delta").hasInput("q"));
-        assertEquals(1, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(1, controller.getRootNode().getConnections().size());
         controller.removePort("/", "delta", "q");
         assertFalse(controller.getNodeLibrary().getNodeForPath("/delta").hasInput("q"));
-        assertEquals(0, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(0, controller.getRootNode().getConnections().size());
     }
 
     @Test
@@ -95,9 +94,9 @@ public class NodeLibraryControllerTest {
     public void testAddNodeUniqueName() {
         Node gamma = Node.ROOT.withName("gamma");
         controller.addNode("/", gamma);
-        assertTrue(controller.getNodeLibrary().getRoot().hasChild("gamma"));
+        assertTrue(controller.getRootNode().hasChild("gamma"));
         controller.addNode("/", gamma);
-        assertTrue(controller.getNodeLibrary().getRoot().hasChild("gamma1"));
+        assertTrue(controller.getRootNode().hasChild("gamma1"));
     }
 
     /**
@@ -154,7 +153,7 @@ public class NodeLibraryControllerTest {
         controller.addNode("/", alpha);
         controller.addNode("/", beta);
         controller.connect("/", alpha, beta, beta.getInput("number"));
-        Node root = controller.getNodeLibrary().getRoot();
+        Node root = controller.getRootNode();
         assertTrue(root.isConnected("alpha"));
         assertTrue(root.isConnected("beta"));
     }
@@ -163,7 +162,7 @@ public class NodeLibraryControllerTest {
     public void testCreateNode() {
         Node proto = Node.ROOT.withName("protoNode");
         controller.createNode("/", proto);
-        assertTrue(controller.getNodeLibrary().getRoot().hasChild("protoNode1"));
+        assertTrue(controller.getRootNode().hasChild("protoNode1"));
         assertSame(proto, controller.getNodeLibrary().getNodeForPath("/protoNode1").getPrototype());
     }
     
@@ -171,9 +170,9 @@ public class NodeLibraryControllerTest {
     public void testRemoveNode() {
         Node child = Node.ROOT.withName("child");
         controller.addNode("/", child);
-        assertTrue(controller.getNodeLibrary().getRoot().hasChild("child"));
+        assertTrue(controller.getRootNode().hasChild("child"));
         controller.removeNode("/", "child");
-        assertFalse(controller.getNodeLibrary().getRoot().hasChild("child"));
+        assertFalse(controller.getRootNode().hasChild("child"));
         assertNull(controller.getNodeLibrary().getNodeForPath("/child"));
     }
 
@@ -191,9 +190,9 @@ public class NodeLibraryControllerTest {
         Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 10.0));
         Node subnet = Node.ROOT.withName("subnet").withChildAdded(numberNode).withRenderedChildName("number");
         controller.addNode("/", subnet);
-        assertResultsEqual(controller.getNodeLibrary().getRoot(), controller.getNode("/subnet"), 10.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), 10.0);
         controller.setPortValue("/subnet/number", "value", 42.0);
-        assertResultsEqual(controller.getNodeLibrary().getRoot(), controller.getNode("/subnet"), 42.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), 42.0);
     }
 
     @Test
@@ -202,18 +201,18 @@ public class NodeLibraryControllerTest {
         controller.createNode("/", proto);
         controller.createNode("/", proto);
         controller.createNode("/", proto);
-        Node rootNode = controller.getNodeLibrary().getRoot();
+        Node rootNode = controller.getRootNode();
         assertFalse(rootNode.hasChild("protoNode"));
         assertTrue(rootNode.hasChild("protoNode1"));
         assertTrue(rootNode.hasChild("protoNode2"));
         assertTrue(rootNode.hasChild("protoNode3"));
 
         controller.removeNode("/","protoNode2");
-        rootNode = controller.getNodeLibrary().getRoot();
+        rootNode = controller.getRootNode();
         assertFalse(rootNode.hasChild("protoNode2"));
 
         controller.createNode("/", proto);
-        rootNode = controller.getNodeLibrary().getRoot();
+        rootNode = controller.getRootNode();
         assertTrue(rootNode.hasChild("protoNode2"));
         assertFalse(rootNode.hasChild("protoNode4"));
     }
@@ -223,8 +222,8 @@ public class NodeLibraryControllerTest {
         Node child = Node.ROOT.withName("child");
         controller.addNode("/", child);
         controller.renameNode("/", "child", "n");
-        assertFalse(controller.getNodeLibrary().getRoot().hasChild("child"));
-        assertTrue(controller.getNodeLibrary().getRoot().hasChild("n"));
+        assertFalse(controller.getRootNode().hasChild("child"));
+        assertTrue(controller.getRootNode().hasChild("n"));
     }
 
     @Test
@@ -232,29 +231,29 @@ public class NodeLibraryControllerTest {
         Node child = Node.ROOT.withName("child");
         controller.addNode("/", child);
         controller.setRenderedChild("/", "child");
-        assertTrue(controller.getNodeLibrary().getRoot().getRenderedChildName().equals("child"));
+        assertTrue(controller.getRootNode().getRenderedChildName().equals("child"));
         controller.renameNode("/", "child", "n");
-        assertTrue(controller.getNodeLibrary().getRoot().getRenderedChildName().equals("n"));
+        assertTrue(controller.getRootNode().getRenderedChildName().equals("n"));
     }
 
     @Test
     public void testSimpleConnection() {
-        assertEquals(0, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(0, controller.getRootNode().getConnections().size());
         createSimpleConnection();
-        assertEquals(1, controller.getNodeLibrary().getRoot().getConnections().size());
-        Connection c = controller.getNodeLibrary().getRoot().getConnections().get(0);
+        assertEquals(1, controller.getRootNode().getConnections().size());
+        Connection c = controller.getRootNode().getConnections().get(0);
         assertEquals("negate", c.getInputNode());
         assertEquals("value", c.getInputPort());
         assertEquals("number", c.getOutputNode());
-        assertResultsEqual(controller.getNodeLibrary().getRoot(), controller.getNode("/negate"), -20.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/negate"), -20.0);
     }
 
     @Test
     public void testSimpleDisconnect() {
         createSimpleConnection();
-        Connection c = controller.getNodeLibrary().getRoot().getConnections().get(0);
+        Connection c = controller.getRootNode().getConnections().get(0);
         controller.disconnect("/", c);
-        assertEquals(0, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(0, controller.getRootNode().getConnections().size());
     }
     
     @Test
@@ -263,17 +262,17 @@ public class NodeLibraryControllerTest {
         Node invert2Node = Node.ROOT.withName("invert2").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
         controller.addNode("/", invert2Node);
         controller.connect("/", controller.getNode("/number"), invert2Node, invert2Node.getInput("value"));
-        assertEquals(2, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(2, controller.getRootNode().getConnections().size());
         controller.removeNode("/", "number");
-        assertEquals(0, controller.getNodeLibrary().getRoot().getConnections().size());
+        assertEquals(0, controller.getRootNode().getConnections().size());
     }
 
     @Test
     public void testConnectedNodeRenaming() {
         createSimpleConnection();
         controller.renameNode("/", "negate", "invert");
-        assertEquals(1, controller.getNodeLibrary().getRoot().getConnections().size());
-        Connection c = controller.getNodeLibrary().getRoot().getConnections().get(0);
+        assertEquals(1, controller.getRootNode().getConnections().size());
+        Connection c = controller.getRootNode().getConnections().get(0);
         assertEquals("invert", c.getInputNode());
         assertEquals("value", c.getInputPort());
         assertEquals("number", c.getOutputNode());
@@ -286,12 +285,12 @@ public class NodeLibraryControllerTest {
         controller.setRenderedChild("/", "alpha");
         Node beta = Node.ROOT.withName("beta");
         controller.addNode("/", beta);
-        assertEquals("alpha", controller.getNodeLibrary().getRoot().getRenderedChildName());
+        assertEquals("alpha", controller.getRootNode().getRenderedChildName());
         controller.removeNode("/", "beta");
-        assertEquals("alpha", controller.getNodeLibrary().getRoot().getRenderedChildName());
+        assertEquals("alpha", controller.getRootNode().getRenderedChildName());
         controller.removeNode("/", "alpha");
-        assertEquals("", controller.getNodeLibrary().getRoot().getRenderedChildName());
-        assertNull(controller.getNodeLibrary().getRoot().getRenderedChild());
+        assertEquals("", controller.getRootNode().getRenderedChildName());
+        assertNull(controller.getRootNode().getRenderedChild());
     }
 
     private void createSimpleConnection() {

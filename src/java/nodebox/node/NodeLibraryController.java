@@ -52,6 +52,10 @@ public class NodeLibraryController {
         this.nodeLibrary = nodeLibrary;
     }
 
+    public Node getRootNode() {
+        return nodeLibrary.getRoot();
+    }
+
     public void setFunctionRepository(FunctionRepository functionRepository) {
         nodeLibrary = nodeLibrary.withFunctionRepository(functionRepository);
     }
@@ -350,7 +354,7 @@ public class NodeLibraryController {
      */
     private Node replacedInPath(String nodePath, Node node) {
         if (!nodePath.contains("/"))
-            return nodeLibrary.getRoot().withChildReplaced(nodePath, node);
+            return getRootNode().withChildReplaced(nodePath, node);
         List<String> parts = ImmutableList.copyOf(Splitter.on("/").split(nodePath));
         List<String> parentParts = parts.subList(0, parts.size() - 1);
         String childName = parts.get(parts.size() - 1);
