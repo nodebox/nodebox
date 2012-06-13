@@ -78,9 +78,15 @@ public class ViewerPane extends Pane {
     }
 
     public void setOutputValues(Iterable<?> objects) {
-        Iterable<?> nonNulls = Iterables.filter(objects, Predicates.notNull());
-        this.outputValues = ImmutableList.copyOf(nonNulls);
-        currentView.setOutputValues(ImmutableList.copyOf(this.outputValues));
+        if (objects == null) {
+            this.outputValues = ImmutableList.of();
+            currentView.setOutputValues(ImmutableList.of());
+        }
+        else {
+            Iterable<?> nonNulls = Iterables.filter(objects, Predicates.notNull());
+            this.outputValues = ImmutableList.copyOf(nonNulls);
+            currentView.setOutputValues(ImmutableList.copyOf(this.outputValues));
+        }
     }
 
     public void toggleOrigin() {
