@@ -248,9 +248,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void setNodeName(Node node, String name) {
         checkNotNull(node);
         checkNotNull(name);
-        controller.renameNode(activeNetworkPath, Node.path(activeNetworkPath, node), name);
+        controller.renameNode(activeNetworkPath, node.getName(), name);
+        setActiveNode(name);
         networkView.updateNodes();
-        // Renaming the node can have an effect on expressions, so recalculate the network.
+        networkView.singleSelect(getActiveNode());
         requestRender();
     }
 

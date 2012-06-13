@@ -191,23 +191,27 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
-    public void renameNode(String parentPath, String nodePath, String newName) {
+    public void renameNode(String parentPath, String oldName, String newName) {
         List<Connection> connections = getNode(parentPath).getConnections();
-        String oldName = getNode(nodePath).getName();
-
+        String nodePath = Node.path(parentPath, oldName);
+        String renderedChildName = getNode(parentPath).getRenderedChildName();
         Node newNode = getNode(nodePath).withName(newName);
         removeNode(parentPath, oldName);
         addNode(parentPath, newNode);
+        if (renderedChildName.equals(oldName))
+            setRenderedChild(parentPath, newName);
 
+        Node oldParent = getNode(parentPath);
+        Node newParent = oldParent;
         for (Connection c : connections) {
             if (c.getInputNode().equals(oldName)) {
-                Node newParent = getNode(parentPath).connect(c.getOutputNode(), newNode.getName(), c.getInputPort());
-                replaceNodeInPath(parentPath, newParent);
+                newParent = newParent.connect(c.getOutputNode(), newNode.getName(), c.getInputPort());
             } else if (c.getOutputNode().equals(oldName)) {
-                Node newParent = getNode(parentPath).connect(newNode.getName(), c.getInputNode(), c.getInputPort());
-                replaceNodeInPath(parentPath, newParent);
+                newParent = newParent.connect(newNode.getName(), c.getInputNode(), c.getInputPort());
             }
         }
+        if (newParent != oldParent)
+            replaceNodeInPath(parentPath, newParent);
     }
 
     public void addPort(String nodePath, String portName, String portType) {
