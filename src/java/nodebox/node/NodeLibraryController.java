@@ -3,6 +3,7 @@ package nodebox.node;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import nodebox.function.CoreFunctions;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
@@ -123,14 +124,11 @@ public class NodeLibraryController {
     }
 
     public Node addNode(String parentPath, Node node) {
-        Node parent = getNode(parentPath);
-        if (parent.hasChild(node.getName())) {
-            String uniqueName = parent.uniqueName(node.getName());
-            node = node.withName(uniqueName);
-        }
         Node newParent = getNode(parentPath).withChildAdded(node);
         replaceNodeInPath(parentPath, newParent);
-        return node;
+        // We can't return the given node argument itself because withChildAdded might have chosen a new name,
+        // Instead return the child at the end of the parent's children list.
+        return Iterables.getLast(newParent.getChildren());
     }
 
     public List<Node> pasteNodes(String parentPath, Iterable<Node> nodes) {

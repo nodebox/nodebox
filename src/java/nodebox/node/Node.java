@@ -519,7 +519,10 @@ public final class Node {
      */
     public Node withChildAdded(Node node) {
         checkNotNull(node, "Node cannot be null.");
-        checkArgument(!hasChild(node.getName()), "A node named %s is already a child of node %s.", node.getName(), this);
+        if (hasChild(node.getName())) {
+            String uniqueName = uniqueName(node.getName());
+            node = node.withName(uniqueName);
+        }
         ImmutableList.Builder<Node> b = ImmutableList.builder();
         b.addAll(getChildren());
         b.add(node);
