@@ -540,6 +540,10 @@ public final class Node {
     public Node withChildRemoved(String childName) {
         Node childToRemove = getChild(childName);
         checkArgument(childToRemove != null, "Node %s is not a child of node %s.", childName, this);
+        if (isConnected(childName))
+            return disconnect(childName).withChildRemoved(childName);
+        if (renderedChildName.equals(childName))
+            return withRenderedChild(null).withChildRemoved(childName);
         ImmutableList.Builder<Node> b = ImmutableList.builder();
         for (Node child : getChildren()) {
             if (child != childToRemove)

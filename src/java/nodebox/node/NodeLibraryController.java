@@ -169,10 +169,7 @@ public class NodeLibraryController {
     }
 
     public void removeNode(String parentPath, String nodeName) {
-        String renderedChild = getNode(parentPath).getRenderedChildName();
-        Node newParent = getNode(parentPath).disconnect(nodeName).withChildRemoved(nodeName);
-        if (renderedChild.equals(nodeName))
-            newParent = newParent.withRenderedChild(null);
+        Node newParent = getNode(parentPath).withChildRemoved(nodeName);
         replaceNodeInPath(parentPath, newParent);
     }
 
