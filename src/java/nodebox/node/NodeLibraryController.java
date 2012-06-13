@@ -154,10 +154,14 @@ public class NodeLibraryController {
             if (newNames.containsKey(outputNodeName)) {
                 outputNodeName = newNames.get(outputNodeName);
             }
-            if (newNames.containsKey(inputNodeName)) {
+
+            if (parent.hasChild(outputNodeName) && newNames.containsKey(inputNodeName)) {
                 inputNodeName = newNames.get(inputNodeName);
-                makeConnection = true;
+
+                if (parent.hasChild(inputNodeName))
+                    makeConnection = true;
             }
+
             if (makeConnection) {
                 Node outputNode = parent.getChild(outputNodeName);
                 Node inputNode = parent.getChild(inputNodeName);
