@@ -100,10 +100,10 @@ public class NodeLibraryControllerTest {
     }
 
     /**
-     * Test that pasting nodes with connections works.
+     * Test that copying/pasting nodes with connections works.
      */
     @Test
-    public void testPasteNodes() {
+    public void testCopyPasteNodes() {
         createTestNetwork();
         // Now paste them
         controller.pasteNodes("/", controller.getRootNode(), ImmutableList.of(controller.getNode("/alpha"), controller.getNode("/beta")));
@@ -114,6 +114,38 @@ public class NodeLibraryControllerTest {
         assertTrue(root.isConnected("beta1"));
     }
 
+    /**
+     * Test that cutting/pasting nodes with connections works.
+     */
+    @Test
+    public void testCutPasteNodes() {
+        createTestNetwork();
+        Node root = controller.getRootNode();
+        Node alpha = controller.getNode("/alpha");
+        Node beta = controller.getNode("/beta");
+        controller.removeNode("/", "alpha");
+        controller.removeNode("/", "beta");
+        controller.pasteNodes("/", root, ImmutableList.of(alpha, beta));
+        assertTrue(root.hasChild("alpha"));
+        assertTrue(root.hasChild("beta"));
+        assertTrue(root.isConnected("alpha"));
+        assertTrue(root.isConnected("beta"));
+    }
+
+    /**
+     * Test that copying/pasting nodes with connections into subnetworks works.
+     */
+    @Test
+    public void testPasteIntoSubnetwork() {
+        createTestNetwork();
+        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.pasteNodes("/subnet", controller.getRootNode(), ImmutableList.of(controller.getNode("/alpha"), controller.getNode("/beta")));
+        Node subnet = controller.getNode("/subnet");
+        assertTrue(subnet.hasChild("alpha"));
+        assertTrue(subnet.hasChild("beta"));
+        assertTrue(subnet.isConnected("alpha"));
+        assertTrue(subnet.isConnected("beta"));
+    }
 
     /**
      * Test pasting a node with its output connected.
@@ -145,6 +177,24 @@ public class NodeLibraryControllerTest {
         assertTrue(root.isConnected("alpha"));
         assertTrue(root.isConnected("beta"));
         assertTrue(root.isConnected("beta1"));
+    }
+
+    /**
+     * Test pasting a node with its output connected but with the input removed between copying/pasting.
+     * No new connection is made.
+     */
+    @Test
+    public void testPasteInputNodePartial() {
+        createTestNetwork();
+        Node root = controller.getRootNode();
+        controller.removeNode("/", "alpha");
+        // Now paste them
+        controller.pasteNodes("/", root, ImmutableList.of(controller.getNode("/beta")));
+        root = controller.getRootNode();
+        assertTrue(root.hasChild("beta1"));
+        assertFalse(root.hasChild("alpha"));
+        assertFalse(root.isConnected("beta"));
+        assertFalse(root.isConnected("beta1"));
     }
 
     private void createTestNetwork() {
