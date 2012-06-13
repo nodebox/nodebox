@@ -135,11 +135,8 @@ public class NodeLibraryController {
         return Iterables.getLast(newParent.getChildren());
     }
 
-    public List<Node> pasteNodes(String parentPath, Iterable<Node> nodes) {
-        Node parent = getNode(parentPath);
-
+    public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes) {
         Map<String, String> newNames = new HashMap<String, String>();
-
 
         ImmutableList.Builder<Node> b = new ImmutableList.Builder<Node>();
         for (Node node : nodes) {
@@ -149,8 +146,8 @@ public class NodeLibraryController {
             newNames.put(node.getName(), newNode.getName());
         }
 
-        parent = getNode(parentPath);
-        for (Connection c : parent.getConnections()) {
+        Node parent = getNode(parentPath);
+        for (Connection c : nodesParent.getConnections()) {
             boolean makeConnection = false;
             String outputNodeName = c.getOutputNode();
             String inputNodeName = c.getInputNode();
@@ -165,7 +162,7 @@ public class NodeLibraryController {
                 Node outputNode = parent.getChild(outputNodeName);
                 Node inputNode = parent.getChild(inputNodeName);
                 Port inputPort = inputNode.getInput(c.getInputPort());
-                connect("/", outputNode, inputNode, inputPort);
+                connect(parentPath, outputNode, inputNode, inputPort);
             }
         }
 

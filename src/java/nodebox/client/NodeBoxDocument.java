@@ -1441,7 +1441,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void paste() {
         addEdit("Paste node");
         if (nodeClipboard == null) return;
-        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.nodes);
+        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes);
 
         networkView.updateAll();
         networkView.select(newNodes);

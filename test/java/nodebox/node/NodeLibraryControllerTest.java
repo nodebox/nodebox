@@ -106,8 +106,8 @@ public class NodeLibraryControllerTest {
     public void testPasteNodes() {
         createTestNetwork();
         // Now paste them
-        controller.pasteNodes("/", ImmutableList.of(controller.getNode("/alpha"), controller.getNode("/beta")));
-        Node root = controller.getNodeLibrary().getRoot();
+        controller.pasteNodes("/", controller.getRootNode(), ImmutableList.of(controller.getNode("/alpha"), controller.getNode("/beta")));
+        Node root = controller.getRootNode();
         assertTrue(root.hasChild("alpha1"));
         assertTrue(root.hasChild("beta1"));
         assertTrue(root.isConnected("alpha1"));
@@ -123,8 +123,8 @@ public class NodeLibraryControllerTest {
     public void testPasteOutputNode() {
         createTestNetwork();
         // Now paste them
-        controller.pasteNodes("/", ImmutableList.of(controller.getNode("/alpha")));
-        Node root = controller.getNodeLibrary().getRoot();
+        controller.pasteNodes("/", controller.getRootNode(), ImmutableList.of(controller.getNode("/alpha")));
+        Node root = controller.getRootNode();
         assertTrue(root.hasChild("alpha1"));
         assertTrue(root.isConnected("alpha"));
         assertTrue(root.isConnected("beta"));
@@ -139,8 +139,8 @@ public class NodeLibraryControllerTest {
     public void testPasteInputNode() {
         createTestNetwork();
         // Now paste them
-        controller.pasteNodes("/", ImmutableList.of(controller.getNode("/beta")));
-        Node root = controller.getNodeLibrary().getRoot();
+        controller.pasteNodes("/", controller.getRootNode(), ImmutableList.of(controller.getNode("/beta")));
+        Node root = controller.getRootNode();
         assertTrue(root.hasChild("beta1"));
         assertTrue(root.isConnected("alpha"));
         assertTrue(root.isConnected("beta"));
