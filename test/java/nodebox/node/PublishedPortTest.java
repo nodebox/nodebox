@@ -13,6 +13,11 @@ public class PublishedPortTest {
             .withFunction("math/number")
             .withInputAdded(Port.floatPort("number", 42));
 
+    public static final Node number23Node = Node.ROOT
+            .withName("number23")
+            .withFunction("math/number")
+            .withInputAdded(Port.floatPort("number", 23));
+
     public static final Node net = Node.ROOT
             .withChildAdded(number42Node)
             .withRenderedChildName("number42");
@@ -38,9 +43,15 @@ public class PublishedPortTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testPublishSameInputTwice() {
-        Node n = net;
-        n = n.publish("number42", "number", "pNumber");
-        n.publish("number42", "number", "pNumber");
+        net.publish("number42", "number", "pNumber")
+            .publish("number42", "number", "pNumber");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAlreadyUsedPublishedName() {
+        net.withChildAdded(number23Node)
+                .publish("number42", "number", "pNumber")
+                .publish("number23", "number", "pNumber");
     }
 
     @Test
@@ -51,5 +62,11 @@ public class PublishedPortTest {
         n = n.unpublish("number42", "number");
         assertEquals(0, n.getPublishedInputs().size());
         assertFalse(n.isPublished("number42", "number"));
+        n = n.publish("number42", "number", "aNumber");
+        assertEquals(1, n.getPublishedInputs().size());
+        assertTrue(n.hasPublishedInput("aNumber"));
+        n = n.unpublish("aNumber");
+        assertEquals(0, n.getPublishedInputs().size());
+        assertFalse(n.hasPublishedInput("aNumber"));
     }
 }

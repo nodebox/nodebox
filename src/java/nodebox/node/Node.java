@@ -568,12 +568,25 @@ public final class Node {
         return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
     }
 
-    public Node unpublish(String inputNode) {
+    /*public Node unpublish(String inputNode) {
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
 
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : getPublishedInputs()) {
             if (pp.getInputNode().equals(inputNode)) {
+
+            } else {
+                b.add(pp);
+            }
+        }
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }*/
+
+    public Node unpublish(String publishedName) {
+        checkArgument(hasPublishedInput(publishedName), "Node %s does not have a published input named %s.", this, publishedName);
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : getPublishedInputs()) {
+            if (pp.getPublishedName().equals(publishedName)) {
 
             } else {
                 b.add(pp);
