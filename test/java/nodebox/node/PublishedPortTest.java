@@ -28,7 +28,7 @@ public class PublishedPortTest {
         assertEquals(0, n.getPublishedInputs().size());
         n = n.publish("number42", "number", "pNumber");
         assertEquals(1, n.getPublishedInputs().size());
-        assertTrue(n.isPublished("number42", "number"));
+        assertTrue(n.hasPublishedChildInput("number42", "number"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -61,7 +61,7 @@ public class PublishedPortTest {
         assertEquals(1, n.getPublishedInputs().size());
         n = n.unpublish("number42", "number");
         assertEquals(0, n.getPublishedInputs().size());
-        assertFalse(n.isPublished("number42", "number"));
+        assertFalse(n.hasPublishedChildInput("number42", "number"));
         n = n.publish("number42", "number", "aNumber");
         assertEquals(1, n.getPublishedInputs().size());
         assertTrue(n.hasPublishedInput("aNumber"));
