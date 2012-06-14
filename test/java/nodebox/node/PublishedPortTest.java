@@ -27,6 +27,16 @@ public class PublishedPortTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void testPublishFromUnexistingChild() {
+        net.publish("number3", "number", "pNumber");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testPublishFromUnexistingChildInput() {
+        net.publish("number42", "myNumber", "pNumber");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void testPublishSameInputTwice() {
         Node n = net;
         n = n.publish("number42", "number", "pNumber");
