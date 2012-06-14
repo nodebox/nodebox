@@ -165,6 +165,10 @@ public final class Node {
     }
 
     public List<Port> getInputs() {
+        return inputs;
+    }
+
+    public List<Port> getAllInputs() {
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         b.addAll(getPublishedInputPorts());
         b.addAll(inputs);
@@ -173,7 +177,7 @@ public final class Node {
 
     public Port getInput(String name) {
         checkNotNull(name, "Port name cannot be null.");
-        for (Port p : inputs) {
+        for (Port p : getInputs()) {
             if (p.getName().equals(name)) {
                 return p;
             }
@@ -216,7 +220,7 @@ public final class Node {
     }
 
     public boolean hasListInputs() {
-        for (Port port : getInputs()) {
+        for (Port port : getAllInputs()) {
             if (port.hasListRange())
                 return true;
         }
@@ -413,7 +417,7 @@ public final class Node {
         checkNotNull(port, "Port cannot be null.");
         checkArgument(!hasInput(port.getName()), "An input port named %s already exists on node %s.", port.getName(), this);
         ImmutableList.Builder<Port> b = ImmutableList.builder();
-        b.addAll(inputs);
+        b.addAll(getInputs());
         b.add(port);
         return newNodeWithAttribute(Attribute.INPUTS, b.build());
     }
@@ -434,7 +438,7 @@ public final class Node {
             return unpublish(portName);
 
         ImmutableList.Builder<Port> b = ImmutableList.builder();
-        for (Port port : inputs) {
+        for (Port port : getInputs()) {
             if (portToRemove != port)
                 b.add(port);
         }
@@ -463,7 +467,7 @@ public final class Node {
         }
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         // Add all ports back in the correct order.
-        for (Port port : inputs) {
+        for (Port port : getInputs()) {
             if (port == oldPort) {
                 b.add(newPort);
             } else {
