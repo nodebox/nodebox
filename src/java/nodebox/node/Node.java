@@ -501,6 +501,14 @@ public final class Node {
         return false;
     }
 
+    public boolean hasPublishedInput(String publishedName) {
+        for (PublishedPort p : publishedInputs) {
+            if (p.getPublishedName().equals(publishedName))
+                return true;
+        }
+        return false;
+    }
+
     /**
      * Create a new node with the given input Node/port published.
      *
@@ -515,6 +523,7 @@ public final class Node {
         Node input = getChild(inputNode);
         checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
         checkArgument(! isPublished(inputNode, inputPort), "The port %s on node %s has already been published.", inputPort, inputNode);
+        checkArgument(! hasPublishedInput(publishedName), "Node %s already has a published input named %s.", this, publishedName);
         PublishedPort newPublishedInput = new PublishedPort(inputNode, inputPort, publishedName);
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : getPublishedInputs())
