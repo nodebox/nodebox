@@ -237,6 +237,16 @@
         <!-- Copy version number -->
         <copy file="version.properties" todir="${mac.application.resources.java}" />
     </target>
+    
+    <target name="dist-mac-signed" depends="dist-mac" description="Make a signed OS X application">
+        <!-- We get the current user.name (the full name) from Git -->
+        <exec executable="git" outputproperty="apple.developer.name">
+            <arg line="config --get user.name"/>
+        </exec>
+        <exec executable="codesign">
+            <arg line="-s 'Developer ID Application: ${apple.developer.name}' -f -vvv ${mac.application}"/>
+        </exec>
+    </target>
 
     <!-- Install target, for building the actual product -->
     <target name="install" depends="dist-mac" description="Create application">

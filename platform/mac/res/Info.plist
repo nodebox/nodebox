@@ -27,18 +27,22 @@
     <string>6.0</string>
     <key>CFBundleName</key>
     <string>NodeBox</string>
+    <key>CFBundleDisplayName</key>
+    <string>NodeBox</string>
+    <key>CFBundleIdentifier</key>
+    <string>be.emrg.nodebox</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
-    <string>????</string>
+    <string>ndbx</string>
     <key>CFBundleGetInfoString</key>
-    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2011</string>
+    <string>3.0a19, Copyright NodeBox, (c) 2004-2012</string>
     <key>CFBundleShortVersionString</key>
-    <string>@@VERSION@@</string>
+    <string>3.0a19</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>Java</key>
-   <dict>
+    <dict>
       <key>ClassPath</key>
       <string>$APP_PACKAGE/Contents/Resources/Java/lib/nodebox.jar:$APP_PACKAGE/Contents/Resources/Java/lib/asm.jar:$APP_PACKAGE/Contents/Resources/Java/lib/clojure-1.3.0.jar:$APP_PACKAGE/Contents/Resources/Java/lib/guava-11.0.1.jar:$APP_PACKAGE/Contents/Resources/Java/lib/iText.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jna.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jsr305-1.3.9.jar:$APP_PACKAGE/Contents/Resources/Java/lib/jython.jar:$APP_PACKAGE/Contents/Resources/Java/lib/mvel.jar:$APP_PACKAGE/Contents/Resources/Java/lib/opencsv-2.3.jar:$APP_PACKAGE/Contents/Resources/Java/lib/piccolo.jar:$APP_PACKAGE/Contents/Resources/Java/lib/xercesImpl.jar</string>
       <key>JVMVersion</key>
