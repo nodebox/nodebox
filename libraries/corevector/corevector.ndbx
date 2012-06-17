@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="python:corevector.py" rel="functions"/>
-    <node name="root" renderedChild="align">
+    <node name="root" description="Generate and manipulate vector graphics." renderedChild="align">
         <node function="corevector/generator" name="generator" image="generator.png" outputType="geometry"
               position="10,90"
               description="Template for creating nodes that generator vector data.">
@@ -257,7 +257,7 @@
             <port type="boolean" name="per_contour" value="false"/>
         </node>
 
-        <node function="corevector/scatter" outputRange="list" name="scatter" image="scatter.png" outputType="list" position="410,420"
+        <node function="corevector/scatter" outputRange="list" name="scatter" image="scatter.png" outputType="point" position="410,420"
               prototype="filter" description="Generate points within the boundaries of a shape.">
             <port bounding="hard" type="int" name="amount" value="20" min="0.0"/>
             <port type="int" name="seed" value="0"/>
@@ -345,12 +345,12 @@
             <port type="point" name="scale" value="100,100" label="Scale"/>
         </node>
 
-        <node function="corevector/to_points" outputRange="list" name="to_points" image="to_points.png" outputType="list"
+        <node function="corevector/to_points" outputRange="list" name="to_points" image="to_points.png" outputType="point"
               position="100,540" prototype="filter"
               description="Return the points of a given shape.">
         </node>
 
-        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="list" position="90,420"
+        <node function="corevector/ungroup" outputRange="list" name="ungroup" image="ungroup.png" outputType="geometry" position="90,420"
               prototype="filter" description="Decompose shape into multiple geometries.">
         </node>
 

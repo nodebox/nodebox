@@ -1,68 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="java:nodebox.function.ListFunctions" rel="functions"/>
-    <node name="root" renderedChild="reverse">
-        <node description="Combine multiple lists into one." outputRange="list" function="list/combine" name="combine" position="20.00,160.00" image="generic.png">
+    <node name="root" description="Process all kinds of lists." renderedChild="reverse">
+        <node description="Combine multiple lists into one." outputType="list" outputRange="list" function="list/combine" name="combine" position="20.00,160.00" image="generic.png">
             <port name="list1" type="list" range="list"/>
             <port name="list2" type="list" range="list"/>
             <port name="list3" type="list" range="list"/>
         </node>
-        <node description="Count the number of items in the list." function="list/count" name="count" position="20.00,0.00" image="generic.png">
+        <node description="Count the number of items in the list." outputType="int" function="list/count" name="count" position="20.00,0.00" image="generic.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Cull the list." outputRange="list" function="list/cull" name="cull" position="20.00,65.00">
+        <node description="Cull the list." outputType="list" outputRange="list" function="list/cull" name="cull" position="20.00,65.00">
           <port name="list" type="list" range="list"/>
           <port name="booleans" type="list" range="list"/>
         </node>
-        <node description="Make every element appear only once in the list." outputRange="list" function="list/distinct" name="distinct" position="220.00,250.00" image="generic.png">
+        <node description="Make every element appear only once in the list." outputType="list" outputRange="list" function="list/distinct" name="distinct" position="220.00,250.00" image="generic.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Filter the list." outputRange="list" function="list/filter" name="filter" position="20.00,65.00">
+        <node description="Filter the list." outputType="list" outputRange="list" function="list/filter" name="filter" position="20.00,65.00">
           <port name="list" type="list" range="list"/>
           <port name="booleans" type="list" range="list"/>
         </node>
-        <node description="Take the first item of the list." function="list/first" name="first" position="20.00,80.00" image="first.png">
+        <node description="Take the first item of the list." outputType="data" function="list/first" name="first" position="20.00,80.00" image="first.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Take the last item of the list." function="list/last" name="last" position="260.00,80.00" image="last.png">
+        <node description="Take the last item of the list." outputType="data" function="list/last" name="last" position="260.00,80.00" image="last.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Pick a specified number of items from the list in random order." outputRange="list" function="list/pick" name="pick" position="100.00,250.00" image="generic.png">
+        <node description="Pick a specified number of items from the list in random order." outputType="list" outputRange="list" function="list/pick" name="pick" position="100.00,250.00" image="generic.png">
             <port name="list" type="list" range="list"/>
             <port name="amount" type="int" value="5"/>
             <port name="seed" type="int" value="0"/>
         </node>
-        <node description="Take all but the first items of the list." outputRange="list" function="list/rest" name="rest" position="180.00,80.00" image="rest.png">
+        <node description="Take all but the first items of the list." outputType="list" outputRange="list" function="list/rest" name="rest" position="180.00,80.00" image="rest.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Repeat the list a number of times." outputRange="list" function="list/repeat" name="repeat" position="180.00,200.00" image="repeat.png">
-            <port name="list" type="list" range="list"/>
-            <port name="amount" type="int" value="1"/>
-        </node>
-        <node description="Reverse the list." outputRange="list" function="list/reverse" name="reverse" position="180.00,160.00" image="generic.png">
-            <port name="list" type="list" range="list"/>
-        </node>
-        <node description="Take the second item of the list." function="list/second" name="second" position="100.00,80.00" image="second.png">
-            <port name="list" type="list" range="list"/>
-        </node>
-        <node description="Shift the elements of a list a number of times." outputRange="list" function="list/shift" name="shift" position="260.00,250.00" image="generic.png">
+        <node description="Repeat the list a number of times." outputType="list" outputRange="list" function="list/repeat" name="repeat" position="180.00,200.00" image="repeat.png">
             <port name="list" type="list" range="list"/>
             <port name="amount" type="int" value="1"/>
         </node>
-        <node description="Shuffle items in the list in random order." outputRange="list" function="list/shuffle" name="shuffle" position="20.00,250.00" image="shuffle.png">
+        <node description="Reverse the list." outputType="list" outputRange="list" function="list/reverse" name="reverse" position="180.00,160.00" image="generic.png">
+            <port name="list" type="list" range="list"/>
+        </node>
+        <node description="Take the second item of the list." outputType="data" function="list/second" name="second" position="100.00,80.00" image="second.png">
+            <port name="list" type="list" range="list"/>
+        </node>
+        <node description="Shift the elements of a list a number of times." outputType="list" outputRange="list" function="list/shift" name="shift" position="260.00,250.00" image="generic.png">
+            <port name="list" type="list" range="list"/>
+            <port name="amount" type="int" value="1"/>
+        </node>
+        <node description="Shuffle items in the list in random order." outputType="list" outputRange="list" function="list/shuffle" name="shuffle" position="20.00,250.00" image="shuffle.png">
             <port name="list" type="list" range="list"/>
             <port name="seed" type="int" value="0"/>
         </node>
-        <node description="Sort items in the list." outputRange="list" function="list/sort" name="sort" position="260.00,160.00" image="sort.png">
+        <node description="Sort items in the list." outputType="list" outputRange="list" function="list/sort" name="sort" position="260.00,160.00" image="sort.png">
             <port name="list" type="list" range="list"/>
             <port name="key" type="string"/>
         </node>
-        <node description="Take a portion of the original list." outputRange="list" function="list/slice" name="slice" position="100.00,160.00" image="slice.png">
+        <node description="Take a portion of the original list." outputType="list" outputRange="list" function="list/slice" name="slice" position="100.00,160.00" image="slice.png">
             <port name="list" type="list" range="list"/>
             <port min="0.0" name="start_index" type="int" value="0"/>
             <port min="0.0" name="size" type="int" value="10"/>
         </node>
-        <node description="Take every nth element of the original list." outputRange="list" function="list/takeEvery" name="take_every" position="100.00,160.00" image="take_every.png">
+        <node description="Take every nth element of the original list." outputType="list" outputRange="list" function="list/takeEvery" name="take_every" position="100.00,160.00" image="take_every.png">
             <port name="list" type="list" range="list"/>
             <port min="1.0" name="n" type="int" value="1"/>
         </node>

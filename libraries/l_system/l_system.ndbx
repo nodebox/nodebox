@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="python:l_system.py" rel="functions"/>
-    <node name="root" renderedChild="l_system">
+    <node name="root" description="Generate trees using L-systems." renderedChild="l_system">
 
         <node function="l_system/l_system" name="l_system"
-              description="Create a growing tree simulation." image="l_system.png">
+              description="Create a growing tree simulation." image="l_system.png" outputType="geometry">
             <port type="shape" name="shape"/>
             <port type="point" name="position"/>
             <port type="float" name="generations" min="0" max="5" value="3.0"/>

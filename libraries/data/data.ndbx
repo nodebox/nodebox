@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="java:nodebox.function.DataFunctions" rel="functions"/>
-    <node name="root" renderedChild="lookup">
-        <node description="Look up a value." function="data/lookup" name="lookup" position="20,100" image="lookup.png">
+    <node name="root" description="Import and manipulate all kinds of data." renderedChild="lookup">
+        <node description="Look up a value." function="data/lookup" name="lookup" position="20,100" image="lookup.png" outputType="data">
             <port name="list" type="list"/>
             <port name="key" type="string" value="x" />
         </node>
