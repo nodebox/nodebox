@@ -321,6 +321,11 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
 
+    public void connect(String parentPath, String outputNode, String inputNode, String inputPort) {
+        Node newParent = getNode(parentPath).connect(outputNode, inputNode, inputPort);
+        replaceNodeInPath(parentPath, newParent);
+    }
+
     public void disconnect(String parentPath, Connection connection) {
         Node newParent = getNode(parentPath).disconnect(connection);
         replaceNodeInPath(parentPath, newParent);
