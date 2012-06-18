@@ -84,7 +84,7 @@ public class NodeContext {
                 Iterable<?> result = convert(outputValuesMap.get(outputNode), child.getInput(c.getInputPort()).getType());
                 // Check if the result is null. This can happen if there is a cycle in the network.
                 if (result != null) {
-                    inputValuesMap.put(NodePort.of(child, c.getInputPort()), result);
+                    inputValuesMap.put(NodePort.of(child.getName(), c.getInputPort()), result);
                 }
             }
         }
@@ -151,7 +151,7 @@ public class NodeContext {
         // Get the input values.
         ArrayList<ValueOrList> inputValues = new ArrayList<ValueOrList>();
         for (Port p : node.getInputs()) {
-            NodePort np = NodePort.of(node, p);
+            NodePort np = NodePort.of(node.getName(), p.getName());
             if (p.getType().equals("context")) {
                 inputValues.add(ValueOrList.ofValue(this));
             } else if (inputValuesMap.containsKey(np)) {
@@ -443,18 +443,14 @@ public class NodeContext {
      * This is used as the key for the inputValuesMap.
      */
     public static final class NodePort {
-        private final Node node;
-        private final Port port;
+        private final String node;
+        private final String port;
 
-        public static NodePort of(Node node, Port port) {
-            return new NodePort(node, port);
+        public static NodePort of(String nodeName, String portName) {
+            return new NodePort(nodeName, portName);
         }
 
-        public static NodePort of(Node node, String portName) {
-            return new NodePort(node, node.getInput(portName));
-        }
-
-        private NodePort(Node node, Port port) {
+        private NodePort(String node, String port) {
             checkNotNull(node);
             checkNotNull(port);
             this.node = node;
