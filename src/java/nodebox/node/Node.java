@@ -445,6 +445,11 @@ public final class Node {
         return newNodeWithAttribute(Attribute.INPUTS, b.build());
     }
 
+    private Node withChildInputChanged(String childName, String portName, Port newPort) {
+        // todo: checks
+        return withChildReplaced(childName, getChild(childName).withInputChanged(portName, newPort));
+    }
+
     /**
      * Create a new node with the given input port replaced.
      * <p/>
@@ -457,14 +462,12 @@ public final class Node {
     public Node withInputChanged(String portName, Port newPort) {
         Port oldPort = getInput(portName);
         checkNotNull(oldPort, "Input port %s does not exist on node %s.", portName, this);
+
         if (hasPublishedInput(portName)) {
-            for (PublishedPort pp : publishedInputs) {
-                if (pp.getPublishedName().equals(portName)) {
-                    Node child = getChild(pp.getInputNode());
-                    return withChildReplaced(pp.getInputNode(), child.withInputChanged(pp.getInputPort(), newPort));
-                }
-            }
+            PublishedPort p = getPublishedInput(portName);
+            return withChildInputChanged(p.getInputNode(), p.getInputPort(), newPort);
         }
+
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         // Add all ports back in the correct order.
         for (Port port : getInputs()) {
@@ -538,12 +541,17 @@ public final class Node {
         return false;
     }
 
-    public boolean hasPublishedInput(String publishedName) {
+    public PublishedPort getPublishedInput(String publishedName) {
         for (PublishedPort p : publishedInputs) {
             if (p.getPublishedName().equals(publishedName))
-                return true;
+                return p;
         }
-        return false;
+        return null;
+
+    }
+
+    public boolean hasPublishedInput(String publishedName) {
+        return getPublishedInput(publishedName) != null;
     }
 
     /**
@@ -707,6 +715,28 @@ public final class Node {
         return newNodeWithAttribute(Attribute.CHILDREN, b.build());
     }
 
+    private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
+        for (PublishedPort pp : publishedInputs) {
+            if (pp.getInputNode().equals(childName)) {
+                if (! newChild.hasInput(pp.getInputPort()))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private Node withConsistentPublishedInputs(String childName, Node newChild) {
+        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+        for (PublishedPort pp : publishedInputs) {
+            if (pp.getInputNode().equals(childName)) {
+                if (newChild.hasInput(pp.getInputPort()))
+                    b.add(pp);
+            } else
+                b.add(pp);
+        }
+        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+    }
+
     /**
      * Create a new node with the child replaced by the given node.
      * <p/>
@@ -721,24 +751,10 @@ public final class Node {
         checkNotNull(newChild);
         checkArgument(newChild.getName().equals(childName), "New child %s does not have the same name as old child %s.", newChild, childName);
         checkArgument(childToReplace != null, "Node %s is not a child of node %s.", childName, this);
-        if (hasPublishedChildInputs(childName)) {
-            ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-            boolean changed = false;
-            for (PublishedPort pp : publishedInputs) {
-                if (pp.getInputNode().equals(childName)) {
-                    if (newChild.hasInput(pp.getInputPort())) {
-                        b.add(pp);
-                    } else {
-                        changed = true;
-                    }
-                } else {
-                    b.add(pp);
-                }
-            }
-            if (changed)
-                return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build()).withChildReplaced(childName, newChild);
-        }
 
+        if (! isConsistentWithPublishedInputs(childName, newChild))
+            return withConsistentPublishedInputs(childName, newChild)
+                    .withChildReplaced(childName, newChild);
 
         ImmutableList.Builder<Node> b = ImmutableList.builder();
         for (Node child : getChildren()) {
