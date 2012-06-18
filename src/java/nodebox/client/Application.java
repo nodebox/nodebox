@@ -93,7 +93,6 @@ public class Application implements Host {
                     registerForMacOSXEvents();
                     updater = new Updater(Application.this);
                     updater.checkForUpdatesInBackground();
-                    publish("Loading Python");
                     initPython();
                 } catch (RuntimeException ex) {
                     return ex;
@@ -233,7 +232,7 @@ public class Application implements Host {
     }
 
     private void initPython() {
-        PythonUtils.initializePython();
+        // Actually initializing Python happens in the library.
         lookForLibraries();
     }
 

@@ -7,10 +7,15 @@ import org.python.core.PySystemState;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PythonUtils {
+public final class PythonUtils {
 
-    public static void initializePython() {
+    static AtomicBoolean isInitialized = new AtomicBoolean(false);
+
+    public synchronized static void initializePython() {
+        if (isInitialized.get()) return;
+
         // Set the Jython package cache directory.
         Properties jythonProperties = new Properties();
         String jythonCacheDir = Platform.getUserDataDirectory() + Platform.SEP + "_jythoncache";
@@ -33,6 +38,8 @@ public class PythonUtils {
 
         // Add the user's Python directory.
         Py.getSystemState().path.add(new PyString(Platform.getUserPythonDirectory().getAbsolutePath()));
+
+        isInitialized.set(true);
     }
 
 }
