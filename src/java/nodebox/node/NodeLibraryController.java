@@ -331,6 +331,16 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
 
+    public void publish(String parentPath, String childNode, String childPort, String publishedName) {
+        Node newParent = getNode(parentPath).publish(childNode, childPort, publishedName);
+        replaceNodeInPath(parentPath, newParent);
+    }
+
+    public void unpublish(String parentPath, String publishedName) {
+        Node newParent = getNode(parentPath).unpublish(publishedName);
+        replaceNodeInPath(parentPath, newParent);
+    }
+
     /**
      * Replace the node at the given path with the new node.
      * Afterwards, the nodeLibrary field is set to the new NodeLibrary.

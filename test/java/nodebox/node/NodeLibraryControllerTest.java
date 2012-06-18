@@ -207,7 +207,7 @@ public class NodeLibraryControllerTest {
         assertTrue(root.isConnected("alpha"));
         assertTrue(root.isConnected("beta"));
     }
-    
+
     @Test
     public void testCreateNode() {
         Node proto = Node.ROOT.withName("protoNode");
@@ -341,6 +341,34 @@ public class NodeLibraryControllerTest {
         controller.removeNode("/", "alpha");
         assertEquals("", controller.getRootNode().getRenderedChildName());
         assertNull(controller.getRootNode().getRenderedChild());
+    }
+
+    @Test
+    public void testPublish() {
+        Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
+        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.addNode("/subnet", invertNode);
+        controller.setRenderedChild("/subnet", "negate");
+        controller.publish("/subnet", "negate", "value", "n");
+        assertTrue(controller.getNode("/subnet").hasPublishedInput("n"));
+        controller.setPortValue("/subnet", "n", 42.0);
+        assertEquals(42, controller.getNode("/subnet/negate").getInput("value").intValue());
+        Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 20));
+        controller.addNode("/", numberNode);
+        controller.connect("/", "number", "subnet", "n");
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), -20.0);
+        controller.setPortValue("/number", "value", 55.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), -55.0);
+    }
+
+    @Test
+    public void testSimpleUnpublish() {
+        Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
+        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.addNode("/subnet", invertNode);
+        controller.publish("/subnet", "negate", "value", "n");
+        controller.unpublish("/subnet", "n");
+        assertFalse(controller.getNode("/subnet").hasPublishedInput("n"));
     }
 
     private void createSimpleConnection() {
