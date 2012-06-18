@@ -156,7 +156,7 @@ public class PythonLibrary extends FunctionLibrary {
 
     public ImmutableMap<String, Function> getFunctionMap() {
         try {
-            return functionMap.get(2000, TimeUnit.SECONDS);
+            return functionMap.get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
