@@ -1,7 +1,9 @@
 package nodebox.function;
 
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import nodebox.client.PythonUtils;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 import org.python.core.*;
@@ -9,6 +11,7 @@ import org.python.util.PythonInterpreter;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -63,7 +66,7 @@ public class PythonLibrary extends FunctionLibrary {
      * Load the Python module.
      *
      * @param namespace The name space in which the library resides.
-     * @param baseFile The file to which the path of this library is relative to.
+     * @param baseFile  The file to which the path of this library is relative to.
      * @param fileName  The file name.
      * @return The new Python library.
      * @throws LoadException If the script could not be loaded.
@@ -76,45 +79,54 @@ public class PythonLibrary extends FunctionLibrary {
                 path = baseFile.getCanonicalPath();
                 file = new File(path + File.separator + fileName);
             } else {
-                path = new File(fileName).getParentFile().getCanonicalPath();
                 file = new File(fileName);
             }
-            Py.getSystemState().path.append(new PyString(path));
             return new PythonLibrary(namespace, file, loadScript(file));
         } catch (IOException e) {
             throw new LoadException(fileName, e);
         }
     }
 
-    private static ImmutableMap<String, Function> loadScript(File file) {
-        PythonInterpreter interpreter = new PythonInterpreter();
-        try {
-            interpreter.execfile(file.getCanonicalPath());
-        } catch (IOException e) {
-            throw new LoadException(file.getName(), e);
-        } catch (PyException e) {
-            throw new LoadException(file.getName(), e);
-        }
-        PyStringMap map = (PyStringMap) interpreter.getLocals();
+    private static Future<ImmutableMap<String, Function>> loadScript(final File file) {
+        FutureTask<ImmutableMap<String, Function>> task = new FutureTask<ImmutableMap<String, Function>>(new Callable<ImmutableMap<String, Function>>() {
+            public ImmutableMap<String, Function> call() throws Exception {
+                // This creates a dependency between function and the client.
+                // However, we need to know the load paths before we can do anything, so this is necessary.
+                PythonUtils.initializePython();
+                Py.getSystemState().path.append(new PyString(file.getParentFile().getCanonicalPath()));
+                PythonInterpreter interpreter = new PythonInterpreter();
+                try {
+                    interpreter.execfile(file.getCanonicalPath());
+                } catch (IOException e) {
+                    throw new LoadException(file.getName(), e);
+                } catch (PyException e) {
+                    throw new LoadException(file.getName(), e);
+                }
+                PyStringMap map = (PyStringMap) interpreter.getLocals();
 
-        ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
+                ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
 
-        for (Object key : map.keys()) {
-            Object o = map.get(Py.java2py(key));
-            if (o instanceof PyFunction) {
-                String name = (String) key;
-                Function f = new PythonFunction(name, (PyFunction) o);
-                builder.put(name, f);
+                for (Object key : map.keys()) {
+                    Object o = map.get(Py.java2py(key));
+                    if (o instanceof PyFunction) {
+                        String name = (String) key;
+                        Function f = new PythonFunction(name, (PyFunction) o);
+                        builder.put(name, f);
+                    }
+                }
+                return builder.build();
             }
-        }
-        return builder.build();
+        });
+        Thread t = new Thread(task);
+        t.start();
+        return task;
     }
 
     private final String namespace;
     private final File file;
-    private ImmutableMap<String, Function> functionMap;
+    private Future<ImmutableMap<String, Function>> functionMap;
 
-    private PythonLibrary(String namespace, File file, ImmutableMap<String, Function> functionMap) {
+    private PythonLibrary(String namespace, File file, Future<ImmutableMap<String, Function>> functionMap) {
         this.namespace = namespace;
         this.file = file;
         this.functionMap = functionMap;
@@ -125,11 +137,11 @@ public class PythonLibrary extends FunctionLibrary {
         File parentFile = baseFile != null ? baseFile.getParentFile() : null;
         return "python:" + FileUtils.getRelativeLink(file, parentFile);
     }
-    
+
     public String getSimpleIdentifier() {
         return file.getName();
     }
-    
+
     public String getNamespace() {
         return namespace;
     }
@@ -142,12 +154,20 @@ public class PythonLibrary extends FunctionLibrary {
         return file;
     }
 
+    public ImmutableMap<String, Function> getFunctionMap() {
+        try {
+            return functionMap.get(2000, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Function getFunction(String name) {
-        return functionMap.get(name);
+        return getFunctionMap().get(name);
     }
 
     public boolean hasFunction(String name) {
-        return functionMap.containsKey(name);
+        return getFunctionMap().containsKey(name);
     }
 
     /**
