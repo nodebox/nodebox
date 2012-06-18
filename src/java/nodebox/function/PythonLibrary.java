@@ -1,6 +1,5 @@
 package nodebox.function;
 
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.client.PythonUtils;
@@ -11,7 +10,9 @@ import org.python.util.PythonInterpreter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -80,6 +81,9 @@ public class PythonLibrary extends FunctionLibrary {
                 file = new File(path + File.separator + fileName);
             } else {
                 file = new File(fileName);
+            }
+            if (!file.exists()) {
+                throw new LoadException(file.getCanonicalPath(), "Library does not exist.");
             }
             return new PythonLibrary(namespace, file, loadScript(file));
         } catch (IOException e) {
