@@ -361,6 +361,37 @@ public class NodeContextTest {
     }
 
     @Test
+    public void testRenderNetworkWithPublishedPort() {
+        Node subnet = createSubnetwork("subnet1", 0.0, 0.0)
+                .publish("number1", "number", "value1")
+                .publish("number2", "number", "value2")
+                .withInputValue("value1", 2.0)
+                .withInputValue("value2", 3.0);
+        Node net = Node.ROOT
+                .withChildAdded(subnet)
+                .withRenderedChildName("subnet1");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 5.0);
+    }
+
+    @Test
+    public void testRenderNetworkWithConnectedPublishedPort() {
+        Node subnet = createSubnetwork("subnet1", 0.0, 1.0)
+                .publish("number1", "number", "value1")
+                .withInputValue("value1", 2.0);
+        Node number1 = numberNode.extend()
+                .withName("number1")
+                .withInputValue("number", 10.0);
+        Node net = Node.ROOT
+                .withChildAdded(subnet)
+                .withChildAdded(number1)
+                .withRenderedChildName("subnet1")
+                .connect("number1", "subnet1", "value1");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 11.0);
+    }
+
+    @Test
     public void testFrame() {
         Node frame = Node.ROOT
                 .withName("frame")
