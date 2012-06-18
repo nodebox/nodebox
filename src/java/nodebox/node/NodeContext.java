@@ -137,6 +137,14 @@ public class NodeContext {
         // If the node has children, forgo the operation of the current node and evaluate the child.
         if (node.hasRenderedChild()) {
             NodeContext context = new NodeContext(nodeLibrary, functionRepository, frame);
+            for (PublishedPort pp : node.getPublishedInputs()) {
+                NodePort np = NodePort.of(node.getName(), pp.getPublishedName());
+                if (inputValuesMap.containsKey(np)) {
+                    context.inputValuesMap.put(NodePort.of(pp.getInputNode(), pp.getInputPort()),
+                            inputValuesMap.get(np));
+
+                }
+            }
             context.renderNetwork(node);
             Node renderedChild = node.getRenderedChild();
             Iterable<?> results = context.getResults(renderedChild);
@@ -446,8 +454,8 @@ public class NodeContext {
         private final String node;
         private final String port;
 
-        public static NodePort of(String nodeName, String portName) {
-            return new NodePort(nodeName, portName);
+        public static NodePort of(String node, String port) {
+            return new NodePort(node, port);
         }
 
         private NodePort(String node, String port) {

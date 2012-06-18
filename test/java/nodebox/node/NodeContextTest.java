@@ -361,7 +361,7 @@ public class NodeContextTest {
     }
 
     @Test
-    public void testRenderNetworkWithPublishedPort() {
+    public void testRenderNetworkWithPublishedPorts() {
         Node subnet = createSubnetwork("subnet1", 0.0, 0.0)
                 .publish("number1", "number", "value1")
                 .publish("number2", "number", "value2")
@@ -375,7 +375,7 @@ public class NodeContextTest {
     }
 
     @Test
-    public void testRenderNetworkWithConnectedPublishedPort() {
+    public void testRenderNetworkWithConnectedPublishedPorts() {
         Node subnet = createSubnetwork("subnet1", 0.0, 1.0)
                 .publish("number1", "number", "value1")
                 .withInputValue("value1", 2.0);
@@ -392,6 +392,54 @@ public class NodeContextTest {
     }
 
     @Test
+    public void testRenderNestedNetworkWithConnectedPublishedPorts() {
+        Node subnet1 = createSubnetwork("subnet1", 0.0, 0.0)
+                .publish("number1", "number", "n1")
+                .publish("number2", "number", "n2");
+        Node subnet2 = createSubnetwork("subnet2", 0.0, 0.0)
+                .publish("number1", "number", "n1")
+                .publish("number2", "number", "n2");
+        Node add1 = addNode.extend().withName("add1");
+        Node subnet = Node.ROOT
+                .withName("subnet")
+                .withChildAdded(subnet1)
+                .withChildAdded(subnet2)
+                .withChildAdded(add1)
+                .withRenderedChildName("add1")
+                .connect("subnet1", "add1", "v1")
+                .connect("subnet2", "add1", "v2")
+                .publish("subnet1", "n1", "value1")
+                .publish("subnet1", "n2", "value2")
+                .publish("subnet2", "n1", "value3")
+                .publish("subnet2", "n2", "value4");
+        Node number1 = numberNode.extend()
+                .withName("number1")
+                .withInputValue("number", 11.0);
+        Node number2 = numberNode.extend()
+                .withName("number2")
+                .withInputValue("number", 22.0);
+        Node number3 = numberNode.extend()
+                .withName("number3")
+                .withInputValue("number", 33.0);
+        Node number4 = numberNode.extend()
+                .withName("number4")
+                .withInputValue("number", 44.0);
+        Node net = Node.ROOT
+                .withChildAdded(number1)
+                .withChildAdded(number2)
+                .withChildAdded(number3)
+                .withChildAdded(number4)
+                .withChildAdded(subnet)
+                .withRenderedChildName("subnet")
+                .connect("number1", "subnet", "value1")
+                .connect("number2", "subnet", "value2")
+                .connect("number3", "subnet", "value3")
+                .connect("number4", "subnet", "value4");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 110.0);
+    }
+
+        @Test
     public void testFrame() {
         Node frame = Node.ROOT
                 .withName("frame")
