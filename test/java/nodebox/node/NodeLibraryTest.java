@@ -94,6 +94,7 @@ public class NodeLibraryTest {
 
         // Persist / load the library and assert it still returns the correct result.
         NodeLibrary restoredLibrary = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        context = new NodeContext(restoredLibrary);
         assertResultsEqual(context.renderNode(restoredLibrary.getRoot()), -42.0);
     }
 

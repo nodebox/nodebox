@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="python:packing.py" rel="functions"/>
-    <node name="root" renderedChild="pack">
+    <node name="root" description="Pack geometric objects together." renderedChild="pack">
 
         <node function="packing/pack" name="pack"
-              description="Pack objects.">
+              description="Pack objects." outputType="geometry">
             <port type="shape" name="shapes" range="list"/>
             <port type="int" name="iterations" value="5"/>
             <port type="float" name="padding" value="2.0"/>
@@ -12,7 +12,7 @@
         </node>
 
     <node function="packing/angle_pack" name="angle_pack"
-          description="Pack objects by angling on the object.">
+          description="Pack objects by angling on the object." outputType="geometry">
         <port type="shape" name="shapes" range="list"/>
         <port type="int" name="seed"/>
         <port type="float" name="limit" value="10.0"/>

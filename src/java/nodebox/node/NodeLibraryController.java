@@ -1,6 +1,9 @@
 package nodebox.node;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import nodebox.function.CoreFunctions;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
@@ -47,6 +50,10 @@ public class NodeLibraryController {
 
     public void setNodeLibrary(NodeLibrary nodeLibrary) {
         this.nodeLibrary = nodeLibrary;
+    }
+
+    public Node getRootNode() {
+        return nodeLibrary.getRoot();
     }
 
     public void setFunctionRepository(FunctionRepository functionRepository) {
@@ -121,21 +128,15 @@ public class NodeLibraryController {
     }
 
     public Node addNode(String parentPath, Node node) {
-        Node parent = getNode(parentPath);
-        if (parent.hasChild(node.getName())) {
-            String uniqueName = parent.uniqueName(node.getName());
-            node = node.withName(uniqueName);
-        }
         Node newParent = getNode(parentPath).withChildAdded(node);
         replaceNodeInPath(parentPath, newParent);
-        return node;
+        // We can't return the given node argument itself because withChildAdded might have chosen a new name,
+        // Instead return the child at the end of the parent's children list.
+        return Iterables.getLast(newParent.getChildren());
     }
 
-    public List<Node> pasteNodes(String parentPath, Iterable<Node> nodes) {
-        Node parent = getNode(parentPath);
-
+    public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes) {
         Map<String, String> newNames = new HashMap<String, String>();
-
 
         ImmutableList.Builder<Node> b = new ImmutableList.Builder<Node>();
         for (Node node : nodes) {
@@ -145,23 +146,27 @@ public class NodeLibraryController {
             newNames.put(node.getName(), newNode.getName());
         }
 
-        parent = getNode(parentPath);
-        for (Connection c : parent.getConnections()) {
+        Node parent = getNode(parentPath);
+        for (Connection c : nodesParent.getConnections()) {
             boolean makeConnection = false;
             String outputNodeName = c.getOutputNode();
             String inputNodeName = c.getInputNode();
             if (newNames.containsKey(outputNodeName)) {
                 outputNodeName = newNames.get(outputNodeName);
             }
-            if (newNames.containsKey(inputNodeName)) {
+
+            if (parent.hasChild(outputNodeName) && newNames.containsKey(inputNodeName)) {
                 inputNodeName = newNames.get(inputNodeName);
-                makeConnection = true;
+
+                if (parent.hasChild(inputNodeName))
+                    makeConnection = true;
             }
+
             if (makeConnection) {
                 Node outputNode = parent.getChild(outputNodeName);
                 Node inputNode = parent.getChild(inputNodeName);
                 Port inputPort = inputNode.getInput(c.getInputPort());
-                connect("/", outputNode, inputNode, inputPort);
+                connect(parentPath, outputNode, inputNode, inputPort);
             }
         }
 
@@ -169,35 +174,44 @@ public class NodeLibraryController {
     }
 
     public void removeNode(String parentPath, String nodeName) {
-        String renderedChild = getNode(parentPath).getRenderedChildName();
-        Node newParent = getNode(parentPath).disconnect(nodeName).withChildRemoved(nodeName);
-        if (renderedChild.equals(nodeName))
-            newParent = newParent.withRenderedChild(null);
+        Node newParent = getNode(parentPath).withChildRemoved(nodeName);
         replaceNodeInPath(parentPath, newParent);
     }
 
-    public void removePort(String nodePath, String portName) {
+    public void removePort(String parentPath, String nodeName, String portName) {
+        List<Connection> connections = getNode(parentPath).getConnections();
+        String nodePath = Node.path(parentPath, nodeName);
+        for (Connection c : connections) {
+            if (c.getInputNode().equals(nodeName) && c.getInputPort().equals(portName)) {
+                disconnect(parentPath, c);
+                break;
+            }
+        }
         Node newNode = getNode(nodePath).withInputRemoved(portName);
         replaceNodeInPath(nodePath, newNode);
     }
 
-    public void renameNode(String parentPath, String nodePath, String newName) {
+    public void renameNode(String parentPath, String oldName, String newName) {
         List<Connection> connections = getNode(parentPath).getConnections();
-        String oldName = getNode(nodePath).getName();
-
+        String nodePath = Node.path(parentPath, oldName);
+        String renderedChildName = getNode(parentPath).getRenderedChildName();
         Node newNode = getNode(nodePath).withName(newName);
         removeNode(parentPath, oldName);
         addNode(parentPath, newNode);
+        if (renderedChildName.equals(oldName))
+            setRenderedChild(parentPath, newName);
 
+        Node oldParent = getNode(parentPath);
+        Node newParent = oldParent;
         for (Connection c : connections) {
             if (c.getInputNode().equals(oldName)) {
-                Node newParent = getNode(parentPath).connect(c.getOutputNode(), newNode.getName(), c.getInputPort());
-                replaceNodeInPath(parentPath, newParent);
+                newParent = newParent.connect(c.getOutputNode(), newNode.getName(), c.getInputPort());
             } else if (c.getOutputNode().equals(oldName)) {
-                Node newParent = getNode(parentPath).connect(newNode.getName(), c.getInputNode(), c.getInputPort());
-                replaceNodeInPath(parentPath, newParent);
+                newParent = newParent.connect(newNode.getName(), c.getInputNode(), c.getInputPort());
             }
         }
+        if (newParent != oldParent)
+            replaceNodeInPath(parentPath, newParent);
     }
 
     public void addPort(String nodePath, String portName, String portType) {
@@ -326,11 +340,29 @@ public class NodeLibraryController {
         if (nodePath.isEmpty()) {
             newRoot = node;
         } else {
-            // TODO Recursively replace nodes at higher levels.
-            checkArgument(!nodePath.contains("/"), "Subpaths are not supported yet.");
-            newRoot = nodeLibrary.getRoot().withChildReplaced(nodePath, node);
+            newRoot = replacedInPath(nodePath, node);
         }
         nodeLibrary = nodeLibrary.withRoot(newRoot);
+    }
+
+    /**
+     * Replace the node at the given path with the new node.
+     * Helper function that replaces nodes recursively (i.e. deepest sublevels first,
+     * then going up, until the root node has been reached).
+     *
+     * @param nodePath The node path. This path needs to exist.
+     * @param node     The new node to put in place of the old node.
+     */
+    private Node replacedInPath(String nodePath, Node node) {
+        if (!nodePath.contains("/"))
+            return getRootNode().withChildReplaced(nodePath, node);
+        List<String> parts = ImmutableList.copyOf(Splitter.on("/").split(nodePath));
+        List<String> parentParts = parts.subList(0, parts.size() - 1);
+        String childName = parts.get(parts.size() - 1);
+        String parentPath = Joiner.on("/").join(parentParts);
+        Node parent = nodeLibrary.getNodeForPath("/" + parentPath);
+        Node newParent = parent.withChildReplaced(childName, node);
+        return replacedInPath(parentPath, newParent);
     }
 
 }

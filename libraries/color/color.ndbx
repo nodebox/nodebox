@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="1.0" type="file">
     <link href="java:nodebox.function.ColorFunctions" rel="functions"/>
-    <node name="root" renderedChild="rgb_color">
+    <node name="root" renderedChild="rgb_color" description="Create colors.">
         <node description="Create a color." function="color/color" name="color" position="20,100" outputType="color">
             <port name="color" type="color" />
         </node>

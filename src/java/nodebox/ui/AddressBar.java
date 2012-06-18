@@ -59,7 +59,7 @@ public class AddressBar extends JPanel implements MouseListener {
         if (path.length() == 1) {
             setSegments(ROOT_LIST);
         } else {
-            setSegments(Iterables.concat(ROOT_LIST, Splitter.on("/").split(path)));
+            setSegments(Iterables.concat(ROOT_LIST, Splitter.on("/").split(path.substring(1))));
         }
     }
 
@@ -149,7 +149,7 @@ public class AddressBar extends JPanel implements MouseListener {
     }
 
     private String pathForIndex(int endIndex) {
-        return "/" + Joiner.on("/").join(segments.subList(0, endIndex));
+        return "/" + Joiner.on("/").join(segments.subList(1, endIndex + 1));
     }
 
     /**

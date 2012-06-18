@@ -248,9 +248,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void setNodeName(Node node, String name) {
         checkNotNull(node);
         checkNotNull(name);
-        controller.renameNode(activeNetworkPath, Node.path(activeNetworkPath, node), name);
+        controller.renameNode(activeNetworkPath, node.getName(), name);
+        setActiveNode(name);
         networkView.updateNodes();
-        // Renaming the node can have an effect on expressions, so recalculate the network.
+        networkView.singleSelect(getActiveNode());
         requestRender();
     }
 
@@ -482,7 +483,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void removePort(Node node, String portName) {
         checkArgument(getActiveNetwork().hasChild(node));
         addEdit("Remove Port");
-        controller.removePort(Node.path(activeNetworkPath, node), portName);
+        controller.removePort(activeNetworkPath, node.getName(), portName);
 
         if (node == getActiveNode()) {
             portView.updateAll();
@@ -1440,7 +1441,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void paste() {
         addEdit("Paste node");
         if (nodeClipboard == null) return;
-        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.nodes);
+        List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes);
 
         networkView.updateAll();
         networkView.select(newNodes);

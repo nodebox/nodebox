@@ -519,7 +519,10 @@ public final class Node {
      */
     public Node withChildAdded(Node node) {
         checkNotNull(node, "Node cannot be null.");
-        checkArgument(!hasChild(node.getName()), "A node named %s is already a child of node %s.", node.getName(), this);
+        if (hasChild(node.getName())) {
+            String uniqueName = uniqueName(node.getName());
+            node = node.withName(uniqueName);
+        }
         ImmutableList.Builder<Node> b = ImmutableList.builder();
         b.addAll(getChildren());
         b.add(node);
@@ -537,6 +540,10 @@ public final class Node {
     public Node withChildRemoved(String childName) {
         Node childToRemove = getChild(childName);
         checkArgument(childToRemove != null, "Node %s is not a child of node %s.", childName, this);
+        if (isConnected(childName))
+            return disconnect(childName).withChildRemoved(childName);
+        if (renderedChildName.equals(childName))
+            return withRenderedChild(null).withChildRemoved(childName);
         ImmutableList.Builder<Node> b = ImmutableList.builder();
         for (Node child : getChildren()) {
             if (child != childToRemove)
