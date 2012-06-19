@@ -21,10 +21,10 @@
           <port name="list" type="list" range="list"/>
           <port name="booleans" type="list" range="list"/>
         </node>
-        <node description="Take the first item of the list." outputType="data" function="list/first" name="first" position="20.00,80.00" image="first.png">
+        <node description="Take the first item of the list." outputType="list" function="list/first" name="first" position="20.00,80.00" image="first.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Take the last item of the list." outputType="data" function="list/last" name="last" position="260.00,80.00" image="last.png">
+        <node description="Take the last item of the list." outputType="list" function="list/last" name="last" position="260.00,80.00" image="last.png">
             <port name="list" type="list" range="list"/>
         </node>
         <node description="Pick a specified number of items from the list in random order." outputType="list" outputRange="list" function="list/pick" name="pick" position="100.00,250.00" image="generic.png">
@@ -42,7 +42,7 @@
         <node description="Reverse the list." outputType="list" outputRange="list" function="list/reverse" name="reverse" position="180.00,160.00" image="generic.png">
             <port name="list" type="list" range="list"/>
         </node>
-        <node description="Take the second item of the list." outputType="data" function="list/second" name="second" position="100.00,80.00" image="second.png">
+        <node description="Take the second item of the list." outputType="list" function="list/second" name="second" position="100.00,80.00" image="second.png">
             <port name="list" type="list" range="list"/>
         </node>
         <node description="Shift the elements of a list a number of times." outputType="list" outputRange="list" function="list/shift" name="shift" position="260.00,250.00" image="generic.png">
