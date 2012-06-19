@@ -4,6 +4,13 @@ import com.google.common.base.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Aliases a child input port on a network node.
+ * </p>
+ *
+ * By publishing a child node's port on a network node, you make the port and it's data accessible
+ * to the network and all of its sibling nodes.
+ */
 public class PublishedPort {
 
     private final String inputNode;
@@ -11,7 +18,7 @@ public class PublishedPort {
     private final String publishedName;
 
     /**
-     * Creates a published port of a given port and a name by which it is known.
+     * Creates a published port of a given child node and port and a name by which it is known.
      *
      * @param inputNode     The name of the input Node.
      * @param inputPort     The name of the input Port.

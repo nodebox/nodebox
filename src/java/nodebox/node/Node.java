@@ -549,7 +549,6 @@ public final class Node {
                 return p;
         }
         return null;
-
     }
 
     public boolean hasPublishedInput(String publishedName) {
@@ -557,11 +556,11 @@ public final class Node {
     }
 
     /**
-     * Create a new node with the given input Node/port published.
+     * Create a new node with the given child input node/port published.
      *
-     * @param inputNode      The name of the input Node.
-     * @param inputPort      The name of the input Port.
-     * @param publishedName  The name of by which the published port is known..
+     * @param inputNode      The name of the child input Node.
+     * @param inputPort      The name of the child input Port.
+     * @param publishedName  The name of by which the published port is known.
      * @return A new Node.
      */
     public Node publish(String inputNode, String inputPort, String publishedName) {
@@ -717,6 +716,16 @@ public final class Node {
         return newNodeWithAttribute(Attribute.CHILDREN, b.build());
     }
 
+
+    /**
+     * Checks if a new node of which the given node would become a new child node is internally
+     * consistent with the published inputs it already has, for example if the network
+     * still exposes a child port that was removed from the candidate node.
+     *
+     * @param childName The name of the child node to be replaced
+     * @param newChild  The new candidate node
+     * @return true if the resulting network would be internatlly consistent.
+     */
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
         for (PublishedPort pp : publishedInputs) {
             if (pp.getInputNode().equals(childName)) {
@@ -727,6 +736,15 @@ public final class Node {
         return true;
     }
 
+    /**
+     * Create a new node of which the published inputs are consistent with
+     * the given node if the given node would become a new child of this node.
+     * Note that the given child node is NOT added as a new child on this node.
+     *
+     * @param childName The name of the child node to be replaced
+     * @param newChild  The candidate node
+     * @return A new node
+     */
     private Node withConsistentPublishedInputs(String childName, Node newChild) {
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : publishedInputs) {
