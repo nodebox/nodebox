@@ -382,8 +382,8 @@
 
         <node function="corevector/link" name="link" prototype="generator"
               description="Generates a visual link between two shapes.">
-            <port type="shape" name="shape1"/>
-            <port type="shape" name="shape2"/>
+            <port type="geometry" name="shape1"/>
+            <port type="geometry" name="shape2"/>
             <port type="string" name="orientation" value="horizontal" widget="menu">
                 <menu key="horizontal" label="Horizontal"/>
                 <menu key="vertical" label="Vertical"/>
@@ -392,7 +392,7 @@
 
         <node function="corevector/pointOnPath" name="point_on_path" prototype="generator"
               description="Calculate a point on a path.">
-            <port type="shape" name="shape"/>
+            <port type="geometry" name="shape"/>
             <port type="float" name="t"/>
             <port type="float" name="range" value="100.0"/>
         </node>
@@ -408,7 +408,7 @@
         <node function="pyvector/write_points" name="write_points" prototype="generator"
               description="Create a points file with the given shape.">
             <port type="context" name="context"/>
-            <port type="shape" name="shape"/>
+            <port type="geometry" name="shape"/>
             <port type="string" name="prefix"/>
         </node>
 
