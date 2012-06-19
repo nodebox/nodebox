@@ -300,6 +300,21 @@ public class NodeLibraryTest {
         assertEquals(true, firstResult);
     }
 
+    @Test
+    public void testPublishedPortSerialization() {
+        Node inner = Node.ROOT.withName("inner")
+                .withInputAdded(Port.floatPort("value", 0.0))
+                .withFunction("math/number");
+        Node outer = Node.ROOT.withName("outer")
+                .withChildAdded(inner)
+                .publish("inner", "value", "v")
+                .withInputValue("v", 11.0);
+        assertEquals(11, outer.getChild("inner").getInput("value").intValue());
+        NodeLibrary originalLibrary = libraryWithChildren("test", outer);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        assertTrue(library.getNodeForPath("/outer").hasPublishedInput("v"));
+        assertEquals(11, library.getNodeForPath("/outer/inner").getInput("value").intValue());
+    }
 
     public Node makeLetterMenuNode() {
         MenuItem alpha = new MenuItem("a", "Alpha");

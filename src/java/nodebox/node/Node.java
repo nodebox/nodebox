@@ -276,6 +276,8 @@ public final class Node {
             return getPosition();
         } else if (attribute == Attribute.INPUTS) {
             return getInputs();
+        } else if (attribute == Attribute.PUBLISHED_INPUTS) {
+            return getPublishedInputs();
         } else if (attribute == Attribute.OUTPUT_TYPE) {
             return getOutputType();
         } else if (attribute == Attribute.OUTPUT_RANGE) {

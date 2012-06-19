@@ -222,7 +222,11 @@ public class NodeLibrary {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 String tagName = reader.getLocalName();
-                if (tagName.equals("port")) {
+                if (tagName.equals("node")) {
+                    node = node.withChildAdded(parseNode(reader, node, nodeRepository));
+                } else if (tagName.equals("publishedPort")) {
+                    node = node.withPublishedPortAdded(parsePublishedPort(reader));
+                } else if (tagName.equals("port")) {
                     String portName = reader.getAttributeValue(null, "name");
                     // Remove the port if it is already on the prototype.
                     if (node.hasInput(portName)) {
@@ -230,8 +234,6 @@ public class NodeLibrary {
                     } else {
                         node = node.withInputAdded(parsePort(reader, null));
                     }
-                } else if (tagName.equals("node")) {
-                    node = node.withChildAdded(parseNode(reader, node, nodeRepository));
                 } else if (tagName.equals("conn")) {
                     node = node.withConnectionAdded(parseConnection(reader));
                 } else {
@@ -321,6 +323,15 @@ public class NodeLibrary {
         return port;
     }
 
+    private static PublishedPort parsePublishedPort(XMLStreamReader reader) throws XMLStreamException {
+        String child = reader.getAttributeValue(null, "childPort");
+        Iterator<String> inputIterator = PORT_NAME_SPLITTER.split(child).iterator();
+        String childNode = inputIterator.next();
+        String childPort = inputIterator.next();
+        String publishedName = reader.getAttributeValue(null, "name");
+        return new PublishedPort(childNode, childPort, publishedName);
+    }
+
     private static MenuItem parseMenuItem(XMLStreamReader reader) throws XMLStreamException {
         String key = reader.getAttributeValue(null, "key");
         String label = reader.getAttributeValue(null, "label");
@@ -337,7 +348,7 @@ public class NodeLibrary {
         String inputPort = inputIterator.next();
         return new Connection(outputNode, inputNode, inputPort);
     }
-    
+
     ///// Mutation methods ////
     
     public NodeLibrary withRoot(Node newRoot) {

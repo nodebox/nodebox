@@ -175,13 +175,6 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, Node.Attribute.RENDERED_CHILD_NAME))
             el.setAttribute("renderedChild", node.getRenderedChildName());
 
-        // Add the input ports
-        if (shouldWriteAttribute(node, Node.Attribute.INPUTS)) {
-            for (Port port : node.getInputs()) {
-                writePort(doc, el, node, port, Port.Direction.INPUT);
-            }
-        }
-
         // Add the children
         if (shouldWriteAttribute(node, Node.Attribute.CHILDREN)) {
             // Sort the children.
@@ -195,6 +188,20 @@ public class NDBXWriter {
             while (!children.isEmpty()) {
                 Node child = children.get(0);
                 writeOrderedChild(doc, el, children, child, nodeRepository);
+            }
+        }
+
+        // Add the published ports
+        if (shouldWriteAttribute(node, Node.Attribute.PUBLISHED_INPUTS)) {
+            for (PublishedPort publishedInput : node.getPublishedInputs()) {
+                writePublishedInput(doc, el, publishedInput);
+            }
+        }
+
+        // Add the input ports
+        if (shouldWriteAttribute(node, Node.Attribute.INPUTS)) {
+            for (Port port : node.getInputs()) {
+                writePort(doc, el, node, port, Port.Direction.INPUT);
             }
         }
 
@@ -309,6 +316,13 @@ public class NDBXWriter {
         connElement.setAttribute("output", String.format("%s", conn.getOutputNode()));
         connElement.setAttribute("input", String.format("%s.%s", conn.getInputNode(), conn.getInputPort()));
         parent.appendChild(connElement);
+    }
+
+    private static void writePublishedInput(Document doc, Element parent, PublishedPort publishedInput) {
+        Element publishedPortElement = doc.createElement("publishedPort");
+        publishedPortElement.setAttribute("childPort", String.format("%s.%s", publishedInput.getInputNode(), publishedInput.getInputPort()));
+        publishedPortElement.setAttribute("name", String.format("%s", publishedInput.getPublishedName()));
+        parent.appendChild(publishedPortElement);
     }
 
     private static class NodeNameComparator implements Comparator<Node> {
