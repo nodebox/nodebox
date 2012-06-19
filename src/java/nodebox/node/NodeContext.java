@@ -140,7 +140,7 @@ public class NodeContext {
             for (PublishedPort pp : node.getPublishedInputs()) {
                 NodePort np = NodePort.of(node.getName(), pp.getPublishedName());
                 if (inputValuesMap.containsKey(np)) {
-                    context.inputValuesMap.put(NodePort.of(pp.getInputNode(), pp.getInputPort()),
+                    context.inputValuesMap.put(NodePort.of(pp.getChildNode(), pp.getChildPort()),
                             inputValuesMap.get(np));
 
                 }

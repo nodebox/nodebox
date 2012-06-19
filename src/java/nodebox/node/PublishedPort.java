@@ -5,40 +5,43 @@ import com.google.common.base.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Aliases a child input port on a network node.
+ * Publishes a child node's input port on a network node.
  * </p>
  *
  * By publishing a child node's port on a network node, you make the port and it's data accessible
- * to the network and all of its sibling nodes.
+ * to the network and all of its sibling nodes. The aliased port can be used as on the network node
+ * as if it was one of its own actual input ports.
+ * </p>
+ * A published port can itself be published again on a higher network level.
  */
 public class PublishedPort {
 
-    private final String inputNode;
-    private final String inputPort;
+    private final String childNode;
+    private final String childPort;
     private final String publishedName;
 
     /**
      * Creates a published port of a given child node and port and a name by which it is known.
      *
-     * @param inputNode     The name of the input Node.
-     * @param inputPort     The name of the input Port.
+     * @param childNode     The name of the child Node.
+     * @param childPort     The name of the child Port.
      * @param publishedName The name by which the published port is known.
      */
-    public PublishedPort(String inputNode, String inputPort, String publishedName) {
-        checkNotNull(inputNode);
-        checkNotNull(inputPort);
+    public PublishedPort(String childNode, String childPort, String publishedName) {
+        checkNotNull(childNode);
+        checkNotNull(childPort);
         checkNotNull(publishedName);
-        this.inputNode = inputNode;
-        this.inputPort = inputPort;
+        this.childNode = childNode;
+        this.childPort = childPort;
         this.publishedName = publishedName;
     }
 
-    public String getInputNode() {
-        return inputNode;
+    public String getChildNode() {
+        return childNode;
     }
 
-    public String getInputPort() {
-        return inputPort;
+    public String getChildPort() {
+        return childPort;
     }
 
     public String getPublishedName() {
@@ -49,21 +52,21 @@ public class PublishedPort {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(inputNode, inputPort, publishedName);
+        return Objects.hashCode(childNode, childPort, publishedName);
     }
 
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof PublishedPort)) return false;
         final PublishedPort other = (PublishedPort) o;
-        return Objects.equal(inputNode, other.inputNode)
-                && Objects.equal(inputPort, other.inputPort)
+        return Objects.equal(childNode, other.childNode)
+                && Objects.equal(childPort, other.childPort)
                 && Objects.equal(publishedName, other.publishedName);
     }
 
     @Override
     public String toString() {
-        return String.format("<PublishedPort %s : %s.%s>", getPublishedName(), getInputNode(), getInputPort());
+        return String.format("<PublishedPort %s : %s.%s>", getPublishedName(), getChildNode(), getChildPort());
     }
 
 }

@@ -184,7 +184,7 @@ public final class Node {
         }
         for (PublishedPort p : publishedInputs) {
             if (p.getPublishedName().equals(name))
-                return getChild(p.getInputNode()).getInput(p.getInputPort());
+                return getChild(p.getChildNode()).getInput(p.getChildPort());
         }
         return null;
     }
@@ -467,7 +467,7 @@ public final class Node {
 
         if (hasPublishedInput(portName)) {
             PublishedPort p = getPublishedInput(portName);
-            return withChildInputChanged(p.getInputNode(), p.getInputPort(), newPort);
+            return withChildInputChanged(p.getChildNode(), p.getChildPort(), newPort);
         }
 
         ImmutableList.Builder<Port> b = ImmutableList.builder();
@@ -522,14 +522,14 @@ public final class Node {
     public List<Port> getPublishedInputPorts() {
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         for (PublishedPort p : publishedInputs) {
-            b.add(getChild(p.getInputNode()).getInput(p.getInputPort()));
+            b.add(getChild(p.getChildNode()).getInput(p.getChildPort()));
         }
         return b.build();
     }
 
     public boolean hasPublishedChildInput(String inputNode, String inputPort) {
         for (PublishedPort p : publishedInputs) {
-            if (p.getInputNode().equals(inputNode) && p.getInputPort().equals(inputPort))
+            if (p.getChildNode().equals(inputNode) && p.getChildPort().equals(inputPort))
                 return true;
         }
         return false;
@@ -537,7 +537,7 @@ public final class Node {
 
     public boolean hasPublishedChildInputs(String inputNode) {
         for (PublishedPort p : publishedInputs) {
-            if (p.getInputNode().equals(inputNode))
+            if (p.getChildNode().equals(inputNode))
                 return true;
         }
         return false;
@@ -585,7 +585,7 @@ public final class Node {
     }
 
     public Node withPublishedPortAdded(PublishedPort p) {
-        return publish(p.getInputNode(), p.getInputPort(), p.getPublishedName());
+        return publish(p.getChildNode(), p.getChildPort(), p.getPublishedName());
     }
 
     /**
@@ -611,7 +611,7 @@ public final class Node {
 
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : getPublishedInputs()) {
-            if (pp.getInputNode().equals(inputNode) && pp.getInputPort().equals(inputPort)) {
+            if (pp.getChildNode().equals(inputNode) && pp.getChildPort().equals(inputPort)) {
 
             } else {
                 b.add(pp);
@@ -625,7 +625,7 @@ public final class Node {
 
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : getPublishedInputs()) {
-            if (pp.getInputNode().equals(node)) {
+            if (pp.getChildNode().equals(node)) {
 
             } else {
                 b.add(pp);
@@ -728,8 +728,8 @@ public final class Node {
      */
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
         for (PublishedPort pp : publishedInputs) {
-            if (pp.getInputNode().equals(childName)) {
-                if (! newChild.hasInput(pp.getInputPort()))
+            if (pp.getChildNode().equals(childName)) {
+                if (! newChild.hasInput(pp.getChildPort()))
                     return false;
             }
         }
@@ -748,8 +748,8 @@ public final class Node {
     private Node withConsistentPublishedInputs(String childName, Node newChild) {
         ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
         for (PublishedPort pp : publishedInputs) {
-            if (pp.getInputNode().equals(childName)) {
-                if (newChild.hasInput(pp.getInputPort()))
+            if (pp.getChildNode().equals(childName)) {
+                if (newChild.hasInput(pp.getChildPort()))
                     b.add(pp);
             } else
                 b.add(pp);
