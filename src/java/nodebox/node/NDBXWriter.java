@@ -320,7 +320,7 @@ public class NDBXWriter {
 
     private static void writePublishedInput(Document doc, Element parent, PublishedPort publishedInput) {
         Element publishedPortElement = doc.createElement("publishedPort");
-        publishedPortElement.setAttribute("childPort", String.format("%s.%s", publishedInput.getInputNode(), publishedInput.getInputPort()));
+        publishedPortElement.setAttribute("ref", String.format("%s.%s", publishedInput.getChildNode(), publishedInput.getChildPort()));
         publishedPortElement.setAttribute("name", String.format("%s", publishedInput.getPublishedName()));
         parent.appendChild(publishedPortElement);
     }

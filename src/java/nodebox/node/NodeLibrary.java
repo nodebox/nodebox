@@ -324,7 +324,7 @@ public class NodeLibrary {
     }
 
     private static PublishedPort parsePublishedPort(XMLStreamReader reader) throws XMLStreamException {
-        String child = reader.getAttributeValue(null, "childPort");
+        String child = reader.getAttributeValue(null, "ref");
         Iterator<String> inputIterator = PORT_NAME_SPLITTER.split(child).iterator();
         String childNode = inputIterator.next();
         String childPort = inputIterator.next();
