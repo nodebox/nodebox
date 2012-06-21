@@ -135,41 +135,10 @@ public class NodeLibraryController {
     }
 
     public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes) {
-        Map<String, String> newNames = new HashMap<String, String>();
-
-        ImmutableList.Builder<Node> b = new ImmutableList.Builder<Node>();
-        for (Node node : nodes) {
-            Node newNode = node.withPosition(node.getPosition().moved(20, 80));
-            newNode = addNode(parentPath, newNode);
-            b.add(newNode);
-            newNames.put(node.getName(), newNode.getName());
-        }
-
         Node parent = getNode(parentPath);
-        for (Connection c : nodesParent.getConnections()) {
-            boolean makeConnection = false;
-            String outputNodeName = c.getOutputNode();
-            String inputNodeName = c.getInputNode();
-            if (newNames.containsKey(outputNodeName)) {
-                outputNodeName = newNames.get(outputNodeName);
-            }
-
-            if (parent.hasChild(outputNodeName) && newNames.containsKey(inputNodeName)) {
-                inputNodeName = newNames.get(inputNodeName);
-
-                if (parent.hasChild(inputNodeName))
-                    makeConnection = true;
-            }
-
-            if (makeConnection) {
-                Node outputNode = parent.getChild(outputNodeName);
-                Node inputNode = parent.getChild(inputNodeName);
-                Port inputPort = inputNode.getInput(c.getInputPort());
-                connect(parentPath, outputNode, inputNode, inputPort);
-            }
-        }
-
-        return b.build();
+        Node newParent = parent.withChildrenAdded(nodesParent, nodes);
+        replaceNodeInPath(parentPath, newParent);
+        return ImmutableList.copyOf(Iterables.skip(newParent.getChildren(), parent.getChildren().size()));
     }
 
     public void removeNode(String parentPath, String nodeName) {

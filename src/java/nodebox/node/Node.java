@@ -3,10 +3,13 @@ package nodebox.node;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -981,6 +984,50 @@ public final class Node {
                 return true;
         }
         return false;
+    }
+
+    /**
+     * Create a new node with a number of nodes from another network copied into.
+     * </p>
+     * The original parent of the nodes is given so that previous connections can be recreated.
+     *
+     * @param nodesParent The original parent of the nodes to copy.
+     * @param nodes       The nodes to copy.
+     * @return A new Node.
+     */
+    public Node withChildrenAdded(Node nodesParent, Iterable<Node> nodes) {
+        Map<String, String> newNames = new HashMap<String, String>();
+        Node newParent = this;
+
+        for (Node node : nodes) {
+            Node newNode = node.withPosition(node.getPosition().moved(20, 80));
+            newParent = newParent.withChildAdded(newNode);
+            newNode = Iterables.getLast(newParent.getChildren());
+            newNames.put(node.getName(), newNode.getName());
+        }
+
+        // TODO: Recreate published inputs?
+
+        for (Connection c : nodesParent.getConnections()) {
+            String outputNodeName = c.getOutputNode();
+            String inputNodeName = c.getInputNode();
+
+            if (newNames.containsKey(outputNodeName)) {
+                outputNodeName = newNames.get(outputNodeName);
+            }
+
+            if (newParent.hasChild(outputNodeName) && newNames.containsKey(inputNodeName)) {
+                inputNodeName = newNames.get(inputNodeName);
+
+                if (newParent.hasChild(inputNodeName)) {
+                    Node outputNode = newParent.getChild(outputNodeName);
+                    Node inputNode = newParent.getChild(inputNodeName);
+                    Port inputPort = inputNode.getInput(c.getInputPort());
+                    newParent = newParent.connect(outputNode.getName(), inputNode.getName(), inputPort.getName());
+                }
+            }
+        }
+        return newParent;
     }
 
     /**
