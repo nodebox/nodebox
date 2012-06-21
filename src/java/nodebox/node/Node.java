@@ -448,6 +448,44 @@ public final class Node {
     }
 
     /**
+     * Create a new node with the given child node renamed.
+     * <p/>
+     * If you call this on ROOT, extend() is called implicitly.
+     *
+     * @param childName The name of the child node to rename.
+     * @param newName   The new name of the child node.
+     * @return A new Node.
+     */
+    public Node withChildRenamed(String childName, String newName) {
+        if (childName.equals(newName)) return this;
+        Node newNode = getChild(childName).withName(newName);
+        Node newParent = withChildRemoved(childName).withChildAdded(newNode);
+        if (renderedChildName.equals(childName))
+            newParent = newParent.withRenderedChild(newNode);
+
+        if (hasPublishedChildInputs(childName)) {
+            ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+            for (PublishedPort pp : publishedInputs) {
+                if (pp.getChildNode().equals(childName)) {
+                    b.add(new PublishedPort(newName, pp.getChildPort(), pp.getPublishedName()));
+                } else
+                    b.add(pp);
+            }
+            newParent = newParent.newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+        } else {
+            for (Connection c : getConnections()) {
+                if (c.getInputNode().equals(childName)) {
+                    newParent = newParent.connect(c.getOutputNode(), newName, c.getInputPort());
+                } else if (c.getOutputNode().equals(childName)) {
+                    newParent = newParent.connect(newName, c.getInputNode(), c.getInputPort());
+                }
+            }
+        }
+
+        return newParent;
+    }
+
+    /**
      * Create a new node with the given child input port removed.
      * <p/>
      * If you call this on ROOT, extend() is called implicitly.

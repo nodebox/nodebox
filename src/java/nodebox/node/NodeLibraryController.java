@@ -183,26 +183,8 @@ public class NodeLibraryController {
     }
 
     public void renameNode(String parentPath, String oldName, String newName) {
-        List<Connection> connections = getNode(parentPath).getConnections();
-        String nodePath = Node.path(parentPath, oldName);
-        String renderedChildName = getNode(parentPath).getRenderedChildName();
-        Node newNode = getNode(nodePath).withName(newName);
-        removeNode(parentPath, oldName);
-        addNode(parentPath, newNode);
-        if (renderedChildName.equals(oldName))
-            setRenderedChild(parentPath, newName);
-
-        Node oldParent = getNode(parentPath);
-        Node newParent = oldParent;
-        for (Connection c : connections) {
-            if (c.getInputNode().equals(oldName)) {
-                newParent = newParent.connect(c.getOutputNode(), newNode.getName(), c.getInputPort());
-            } else if (c.getOutputNode().equals(oldName)) {
-                newParent = newParent.connect(newNode.getName(), c.getInputNode(), c.getInputPort());
-            }
-        }
-        if (newParent != oldParent)
-            replaceNodeInPath(parentPath, newParent);
+        Node newParent = getNode(parentPath).withChildRenamed(oldName, newName);
+        replaceNodeInPath(parentPath, newParent);
     }
 
     public void addPort(String nodePath, String portName, String portType) {
