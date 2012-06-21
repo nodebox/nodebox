@@ -8,6 +8,7 @@ import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.*;
@@ -607,6 +608,46 @@ public final class Port {
         checkNotNull(items);
         checkArgument(type.equals(Port.TYPE_STRING), "You can only use menu items on string ports, not %s", this);
         return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), getMaximumValue(), items);
+    }
+
+    public Port withMenuItemAdded(String key, String label) {
+        ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
+        b.addAll(menuItems);
+        b.add(new MenuItem(key, label));
+        return withMenuItems(b.build());
+    }
+
+    public Port withMenuItemRemoved(MenuItem menuItem) {
+        ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
+        for (MenuItem item : menuItems) {
+            if (item.equals(menuItem)) {
+                // Do nothing
+            } else {
+                b.add(item);
+            }
+        }
+        return withMenuItems(b.build());
+    }
+
+    public Port withMenuItemMoved(int index, boolean up) {
+        checkArgument(index < 0 || index >= menuItems.size());
+        List<MenuItem> items = new ArrayList<MenuItem>(0);
+        items.addAll(menuItems);
+        MenuItem item = items.get(index);
+        items.remove(item);
+        if (up)
+            items.add(index - 1, item);
+        else
+            items.add(index + 1, item);
+        return withMenuItems(ImmutableList.copyOf(items));
+    }
+
+    public Port withMenuItemChanged(int index, String key, String label) {
+        checkArgument(index < 0 || index >= menuItems.size());
+        List<MenuItem> items = new ArrayList<MenuItem>(0);
+        items.addAll(menuItems);
+        items.set(index, new MenuItem(key, label));
+        return withMenuItems(ImmutableList.copyOf(items));
     }
 
     public Port withParsedAttribute(Attribute attribute, String valueString) {
