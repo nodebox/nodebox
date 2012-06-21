@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class provides mutable access to the immutable NodeLibrary.
@@ -179,16 +178,8 @@ public class NodeLibraryController {
     }
 
     public void removePort(String parentPath, String nodeName, String portName) {
-        List<Connection> connections = getNode(parentPath).getConnections();
-        String nodePath = Node.path(parentPath, nodeName);
-        for (Connection c : connections) {
-            if (c.getInputNode().equals(nodeName) && c.getInputPort().equals(portName)) {
-                disconnect(parentPath, c);
-                break;
-            }
-        }
-        Node newNode = getNode(nodePath).withInputRemoved(portName);
-        replaceNodeInPath(nodePath, newNode);
+        Node newParent = getNode(parentPath).withChildInputRemoved(nodeName, portName);
+        replaceNodeInPath(parentPath, newParent);
     }
 
     public void renameNode(String parentPath, String oldName, String newName) {

@@ -447,6 +447,26 @@ public final class Node {
         return newNodeWithAttribute(Attribute.INPUTS, b.build());
     }
 
+    /**
+     * Create a new node with the given child input port removed.
+     * <p/>
+     * If you call this on ROOT, extend() is called implicitly.
+     *
+     * @param childName The name of the child node to which the child port belongs to.
+     * @param portName  The name of the child port to remove.
+     * @return A new Node.
+     */
+    public Node withChildInputRemoved(String childName, String portName) {
+        checkArgument(hasChild(childName), "Node %s does not have a child named %s.", this, childName);
+        Node child = getChild(childName);
+        checkArgument(child.hasInput(portName), "Node %s does not have an input port %s.", childName, portName);
+        if (hasPublishedChildInput(childName, portName))
+            return unpublish(childName, portName).withChildInputRemoved(childName, portName);
+        if (isConnected(childName, portName))
+            return disconnect(childName, portName).withChildInputRemoved(childName, portName);
+        return withChildReplaced(childName, child.withInputRemoved(portName));
+    }
+
     private Node withChildInputChanged(String childName, String portName, Port newPort) {
         // todo: checks
         return withChildReplaced(childName, getChild(childName).withInputChanged(portName, newPort));
@@ -883,6 +903,28 @@ public final class Node {
         return newNodeWithAttribute(Attribute.CONNECTIONS, b.build());
     }
 
+    /**
+     * Create a new node with a connection to the given child/port removed.
+     *
+     * @param node     The node of which to remove the connection.
+     * @param portName The port of which to remove the connection.
+     * @return A new Node.
+     */
+    public Node disconnect(String node, String portName) {
+        checkArgument(hasChild(node), "Node %s does not have a child named %s.", this, node);
+        Node child = getChild(node);
+        checkArgument(child.hasInput(portName), "Node %s does not have an input port %s.", node, portName);
+        ImmutableList.Builder<Connection> b = ImmutableList.builder();
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(node) && c.getInputPort().equals(portName)) {
+
+            } else {
+                b.add(c);
+            }
+        }
+        return newNodeWithAttribute(Attribute.CONNECTIONS, b.build());
+    }
+
     public Node withConnectionAdded(Connection connection) {
         return connect(connection.getOutputNode(), connection.getInputNode(), connection.getInputPort());
     }
@@ -890,6 +932,14 @@ public final class Node {
     public boolean isConnected(String node) {
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(node) || c.getOutputNode().equals(node))
+                return true;
+        }
+        return false;
+    }
+
+    public boolean isConnected(String node, String port) {
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(node) && c.getInputPort().equals(port))
                 return true;
         }
         return false;
