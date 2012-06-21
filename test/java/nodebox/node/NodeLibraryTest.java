@@ -8,6 +8,7 @@ import nodebox.function.ListFunctions;
 import nodebox.function.MathFunctions;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
+import nodebox.util.LoadException;
 import org.junit.Test;
 
 import java.io.File;
@@ -314,6 +315,55 @@ public class NodeLibraryTest {
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         assertTrue(library.getNodeForPath("/outer").hasPublishedInput("v"));
         assertEquals(11, library.getNodeForPath("/outer/inner").getInput("value").intValue());
+    }
+
+    @Test
+    public void testParseFormatVersion() {
+        assertEquals("1.0", NodeLibrary.parseFormatVersion("<ndbx formatVersion='1.0'>"));
+        assertEquals("2", NodeLibrary.parseFormatVersion("<ndbx type=\"file\" formatVersion=\"2\">"));
+    }
+
+    /**
+     * Test if a file upgrade succeeds.
+     */
+    @Test
+    public void testUpgrade1to2() {
+        File version1File = new File("test/files/upgrade-v1.ndbx");
+        UpgradeResult result = NodeLibrary.upgradeTo(version1File, "2");
+        assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"4.00,2.00\""));
+        // TODO We can't use these checks yet since the current version is still 1.0.
+//        NodeLibrary upgradedLibrary = result.getLibrary(NodeRepository.of());
+//        Node root = upgradedLibrary.getRoot();
+//        Node alpha = root.getChild("alpha");
+//        assertEquals(new Point(4, 2), alpha.getPosition());
+    }
+
+    /**
+     * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
+     */
+    @Test
+    public void testTooOldToUpgrade() {
+        File version09File = new File("test/files/upgrade-v0.9.ndbx");
+        try {
+            NodeLibrary.upgrade(version09File);
+            fail("Should have thrown a LoadException.");
+        } catch (LoadException e) {
+            assertTrue(e.getMessage().contains("too old"));
+        }
+    }
+
+    /**
+     * Test upgrading from 999 files, which should fail since this format is too new.
+     */
+    @Test
+    public void testTooNewToUpgrade() {
+        File version999Files = new File("test/files/upgrade-v999.ndbx");
+        try {
+            NodeLibrary.upgrade(version999Files);
+            fail("Should have thrown a LoadException.");
+        } catch (LoadException e) {
+            assertTrue(e.getMessage().contains("too new"));
+        }
     }
 
     public Node makeLetterMenuNode() {

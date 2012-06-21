@@ -73,22 +73,16 @@ public class PythonLibrary extends FunctionLibrary {
      * @throws LoadException If the script could not be loaded.
      */
     public static PythonLibrary loadScript(String namespace, File baseFile, String fileName) throws LoadException {
-        try {
-            File file;
-            String path;
-            if (baseFile != null) {
-                path = baseFile.getCanonicalPath();
-                file = new File(path + File.separator + fileName);
-            } else {
-                file = new File(fileName);
-            }
-            if (!file.exists()) {
-                throw new LoadException(file.getCanonicalPath(), "Library does not exist.");
-            }
-            return new PythonLibrary(namespace, file, loadScript(file));
-        } catch (IOException e) {
-            throw new LoadException(fileName, e);
+        File file;
+        if (baseFile != null) {
+            file = new File(baseFile, fileName);
+        } else {
+            file = new File(fileName);
         }
+        if (!file.exists()) {
+            throw new LoadException(file, "Library does not exist.");
+        }
+        return new PythonLibrary(namespace, file, loadScript(file));
     }
 
     private static Future<ImmutableMap<String, Function>> loadScript(final File file) {
@@ -102,9 +96,9 @@ public class PythonLibrary extends FunctionLibrary {
                 try {
                     interpreter.execfile(file.getCanonicalPath());
                 } catch (IOException e) {
-                    throw new LoadException(file.getName(), e);
+                    throw new LoadException(file, e);
                 } catch (PyException e) {
-                    throw new LoadException(file.getName(), e);
+                    throw new LoadException(file, e);
                 }
                 PyStringMap map = (PyStringMap) interpreter.getLocals();
 

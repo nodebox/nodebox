@@ -20,15 +20,15 @@ public final class JavaLibrary extends FunctionLibrary {
             Field instanceField = c.getDeclaredField("LIBRARY");
             return (JavaLibrary) instanceField.get(null);
         } catch (ClassNotFoundException e) {
-            throw new LoadException(identifier, e);
+            throw new LoadException(null, e);
         } catch (NoSuchFieldException e) {
-            throw new LoadException(identifier, e);
+            throw new LoadException(null, e);
         } catch (IllegalAccessException e) {
-            throw new LoadException(identifier, e);
+            throw new LoadException(null, e);
         } catch (ClassCastException e) {
-            throw new LoadException(identifier, e);
+            throw new LoadException(null, e);
         } catch (ExceptionInInitializerError e) {
-            throw new LoadException(identifier, e);
+            throw new LoadException(null, e);
         }
     }
 
