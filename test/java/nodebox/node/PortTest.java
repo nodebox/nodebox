@@ -68,6 +68,24 @@ public class PortTest {
         assertEquals(2, p.getMenuItems().size());
     }
 
+    @Test
+    public void testMoveMenuItem() {
+        Port p = menuItemsPort.withMenuItemMovedUp(2);
+        assertEquals(new MenuItem("keyC", "labelC"), p.getMenuItems().get(1));
+        p = p.withMenuItemMovedDown(0);
+        assertEquals(new MenuItem("keyA", "labelA"), p.getMenuItems().get(1));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMoveMenuItemMinIndex() {
+        menuItemsPort.withMenuItemMovedUp(0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMoveMenuItemMaxIndex() {
+        menuItemsPort.withMenuItemMovedDown(menuItemsPort.getMenuItems().size() - 1);
+    }
+
     /**
      * Test if values are clamped when a bounding range is specified.
      */

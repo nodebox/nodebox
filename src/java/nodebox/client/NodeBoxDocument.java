@@ -590,7 +590,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void movePortMenuItemDown(String portName, int itemIndex) {
         checkValidPort(portName);
         addEdit("Move Port Item Down");
-        controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, false);
+        controller.movePortMenuItemDown(getActiveNodePath(), portName, itemIndex);
         portView.updateAll();
     }
 
@@ -603,7 +603,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void movePortMenuItemUp(String portName, int itemIndex) {
         checkValidPort(portName);
         addEdit("Move Port Item Up");
-        controller.movePortMenuItem(getActiveNodePath(), portName, itemIndex, true);
+        controller.movePortMenuItemUp(getActiveNodePath(), portName, itemIndex);
         portView.updateAll();
     }
 

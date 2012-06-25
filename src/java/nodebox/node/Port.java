@@ -629,21 +629,27 @@ public final class Port {
         return withMenuItems(b.build());
     }
 
-    public Port withMenuItemMoved(int index, boolean up) {
-        checkArgument(index < 0 || index >= menuItems.size());
+    public Port withMenuItemMovedUp(int index) {
+        checkArgument(0 < index && index < menuItems.size());
+        return withMenuItemMoved(index, index - 1);
+    }
+
+    public Port withMenuItemMovedDown(int index) {
+        checkArgument(0 <= index && index < menuItems.size() - 1);
+        return withMenuItemMoved(index, index + 1);
+    }
+
+    private Port withMenuItemMoved(int fromIndex, int toIndex) {
         List<MenuItem> items = new ArrayList<MenuItem>(0);
         items.addAll(menuItems);
-        MenuItem item = items.get(index);
+        MenuItem item = items.get(fromIndex);
         items.remove(item);
-        if (up)
-            items.add(index - 1, item);
-        else
-            items.add(index + 1, item);
+        items.add(toIndex, item);
         return withMenuItems(ImmutableList.copyOf(items));
     }
 
     public Port withMenuItemChanged(int index, String key, String label) {
-        checkArgument(index < 0 || index >= menuItems.size());
+        checkArgument(0 <= index && index < menuItems.size());
         List<MenuItem> items = new ArrayList<MenuItem>(0);
         items.addAll(menuItems);
         items.set(index, new MenuItem(key, label));

@@ -203,9 +203,16 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
-    public void movePortMenuItem(String nodePath, String portName, int index, boolean up) {
+    public void movePortMenuItemUp(String nodePath, String portName, int index) {
         Node node = getNode(nodePath);
-        Port newPort = node.getInput(portName).withMenuItemMoved(index, up);
+        Port newPort = node.getInput(portName).withMenuItemMovedUp(index);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
+    public void movePortMenuItemDown(String nodePath, String portName, int index) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withMenuItemMovedDown(index);
         Node newNode = node.withInputChanged(portName, newPort);
         replaceNodeInPath(nodePath, newNode);
     }
