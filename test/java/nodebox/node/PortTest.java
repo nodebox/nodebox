@@ -69,6 +69,12 @@ public class PortTest {
     }
 
     @Test
+    public void testChangeMenuItem() {
+        Port p = menuItemsPort.withMenuItemChanged(0, "keyF", "labelF");
+        assertEquals(new MenuItem("keyF", "labelF"), p.getMenuItems().get(0));
+    }
+
+    @Test
     public void testMoveMenuItem() {
         Port p = menuItemsPort.withMenuItemMovedUp(2);
         assertEquals(new MenuItem("keyC", "labelC"), p.getMenuItems().get(1));
