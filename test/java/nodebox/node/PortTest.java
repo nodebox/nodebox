@@ -6,6 +6,11 @@ import static junit.framework.Assert.assertEquals;
 
 public class PortTest {
 
+    Port menuItemsPort = Port.stringPort("p", "keyA")
+            .withMenuItemAdded("keyA", "labelA")
+            .withMenuItemAdded("keyB", "labelB")
+            .withMenuItemAdded("keyC", "labelC");
+
     @Test
     public void testParsedPort() {
         assertEquals(42, Port.parsedPort("myInt", "int", "42").intValue());
@@ -48,6 +53,19 @@ public class PortTest {
         assertEquals(9999.0, p2.getValue());
         Port p3 = p1.withValue(-10.0);
         assertEquals(0.0, p3.getValue());
+    }
+
+    @Test
+    public void testAddMenuItem() {
+        Port p = menuItemsPort.withMenuItemAdded("keyD", "labelD");
+        assertEquals(4, p.getMenuItems().size());
+        assertEquals(new MenuItem("keyD", "labelD"), p.getMenuItems().get(3));
+    }
+
+    @Test
+    public void testRemoveMenuItem() {
+        Port p = menuItemsPort.withMenuItemRemoved(new MenuItem("keyC", "labelC"));
+        assertEquals(2, p.getMenuItems().size());
     }
 
     /**
