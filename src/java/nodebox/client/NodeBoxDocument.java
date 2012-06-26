@@ -1,7 +1,8 @@
 package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
-import nodebox.function.*;
+import nodebox.function.Function;
+import nodebox.function.FunctionRepository;
 import nodebox.graphics.ObjectsRenderer;
 import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
@@ -93,8 +94,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Node root = Node.ROOT.withName("root");
         Node rectPrototype = nodeRepository.getNode("corevector.rect");
         String name = root.uniqueName(rectPrototype.getName());
-        Node rect1 = rectPrototype.extend().withName(name).withPosition(new nodebox.graphics.Point(20, 20));
-        root = root.withChildAdded(rect1).withRenderedChild(rect1);
+        Node rect1 = rectPrototype.extend().withName(name).withPosition(new nodebox.graphics.Point(1, 1));
+        root = root
+                .withChildAdded(rect1)
+                .withRenderedChild(rect1);
         return NodeLibrary.create("untitled", root, nodeRepository, FunctionRepository.of());
     }
 
@@ -727,7 +730,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         activeNetworkPath = path;
         Node network = getNodeLibrary().getNodeForPath(path);
 
-        if (! restoring) {
+        if (!restoring) {
             if (network.getRenderedChild() != null) {
                 setActiveNode(network.getRenderedChildName());
             } else if (!network.isEmpty()) {
@@ -741,7 +744,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         addressBar.setPath(activeNetworkPath);
         //viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
         networkView.updateNodes();
-        if (! restoring)
+        if (!restoring)
             networkView.singleSelect(getActiveNode());
         viewerPane.repaint();
         dataSheet.repaint();
@@ -1094,9 +1097,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Add an edit to the undo manager.
      *
-     * @param command the command name.
-     * @param type    the type of edit
-     * @param objectId  the id for the edited object. This will be compared against.
+     * @param command  the command name.
+     * @param type     the type of edit
+     * @param objectId the id for the edited object. This will be compared against.
      */
     public void addEdit(String command, String type, String objectId) {
         if (!holdEdits) {
@@ -1444,36 +1447,30 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes);
 
         networkView.updateAll();
-        networkView.select(newNodes);
         setActiveNode(newNodes.get(0));
+        networkView.select(newNodes);
     }
 
     public void deleteSelection() {
-        java.util.List<Node> selectedNodes = networkView.getSelectedNodes();
-        if (!selectedNodes.isEmpty()) {
-            Node node = getActiveNode();
-            if (node != null && selectedNodes.contains(node))
-                viewerPane.setHandle(null);
-            removeNodes(networkView.getSelectedNodes());
-        }
-        else if (networkView.hasSelectedConnection())
-            networkView.deleteSelectedConnection();
+        networkView.deleteSelection();
     }
 
     /**
      * Start the dialog that allows a user to create a new node.
      */
     public void showNodeSelectionDialog() {
+        Point pt = new Point((int) (Math.random() * 10), (int) (Math.random() * 10));
+        showNodeSelectionDialog(pt);
+    }
+
+    /**
+     * Start the dialog that allows a user to create a new node.
+     *
+     * @param pt The point in "grid space"
+     */
+    public void showNodeSelectionDialog(Point pt) {
         NodeRepository repository = getNodeRepository();
         NodeSelectionDialog dialog = new NodeSelectionDialog(this, controller.getNodeLibrary(), repository);
-        Point pt = networkView.getMousePosition();
-        if (pt == null) {
-            pt = new Point((int) (Math.random() * 300), (int) (Math.random() * 300));
-        } else {
-            pt.x -= NodeView.NODE_IMAGE_SIZE / 2;
-            pt.y -= NodeView.NODE_IMAGE_SIZE / 2;
-        }
-        pt = (Point) networkView.getCamera().localToView(pt);
         dialog.setVisible(true);
         if (dialog.getSelectedNode() != null) {
             createNode(dialog.getSelectedNode(), new nodebox.graphics.Point(pt));

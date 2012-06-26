@@ -2,7 +2,7 @@
 <ndbx formatVersion="1.0" type="file">
     <link href="java:nodebox.function.ListFunctions" rel="functions"/>
     <node name="root" description="Process all kinds of lists." renderedChild="reverse">
-        <node description="Combine multiple lists into one." outputType="list" outputRange="list" function="list/combine" name="combine" position="20.00,160.00" image="generic.png">
+        <node description="Combine multiple lists into one." outputRange="list" function="list/combine" name="combine" position="20.00,160.00" image="generic.png" outputType="list">
             <port name="list1" type="list" range="list"/>
             <port name="list2" type="list" range="list"/>
             <port name="list3" type="list" range="list"/>

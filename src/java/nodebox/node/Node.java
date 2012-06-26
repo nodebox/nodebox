@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +35,50 @@ public final class Node {
     }
 
     public enum Attribute {PROTOTYPE, NAME, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, PUBLISHED_INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+
+    /**
+     * Check if data from the output node can be converted and used in the input port.
+     * <p/>
+     * The relation is not commutative:
+     * an output port that can be converted to an input port does not imply the reverse.
+     *
+     * @param outputNode The output node
+     * @param inputPort  The input port
+     * @return true if the input port is compatible
+     */
+    public static boolean isCompatible(Node outputNode, Port inputPort) {
+        checkNotNull(outputNode);
+        checkNotNull(inputPort);
+        return isCompatible(outputNode.getOutputType(), inputPort.getType());
+    }
+
+    /**
+     * Check if data from the output can be converted and used in the input.
+     * <p/>
+     * The relation is not commutative:
+     * an output port that can be converted to an input port does not imply the reverse.
+     *
+     * @param outputType The type of the output port of the upstream node
+     * @param inputType  The type of the input port of the downstream node
+     * @return true if the types are compatible
+     */
+    public static boolean isCompatible(String outputType, String inputType) {
+        checkNotNull(outputType);
+        checkNotNull(inputType);
+        // If the output and input type are the same, they are compatible.
+        if (outputType.equals(inputType)) return true;
+        // Everything can be converted to a string.
+        if (inputType.equals(Port.TYPE_STRING)) return true;
+        // Integers can be converted to floating-point numbers without loss of information.
+        if (outputType.equals(Port.TYPE_INT) && inputType.equals(Port.TYPE_FLOAT)) return true;
+        // Floating-point numbers can be converted to integers: they are rounded.
+        if (outputType.equals(Port.TYPE_FLOAT) && inputType.equals(Port.TYPE_INT)) return true;
+        // A number can be converted to a point: both X and Y then get the same value.
+        if (outputType.equals(Port.TYPE_INT) && inputType.equals(Port.TYPE_POINT)) return true;
+        if (outputType.equals(Port.TYPE_FLOAT) && inputType.equals(Port.TYPE_POINT)) return true;
+        // If none of these tests pass, the types are not compatible.
+        return false;
+    }
 
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
@@ -139,7 +182,7 @@ public final class Node {
         return !children.isEmpty();
     }
 
-    public Collection<Node> getChildren() {
+    public ImmutableList<Node> getChildren() {
         return children;
     }
 
@@ -619,9 +662,9 @@ public final class Node {
     /**
      * Create a new node with the given child input node/port published.
      *
-     * @param inputNode      The name of the child input Node.
-     * @param inputPort      The name of the child input Port.
-     * @param publishedName  The name of by which the published port is known.
+     * @param inputNode     The name of the child input Node.
+     * @param inputPort     The name of the child input Port.
+     * @param publishedName The name of by which the published port is known.
      * @return A new Node.
      */
     public Node publish(String inputNode, String inputPort, String publishedName) {
@@ -629,8 +672,8 @@ public final class Node {
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
         Node input = getChild(inputNode);
         checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
-        checkArgument(! hasPublishedChildInput(inputNode, inputPort), "The port %s on node %s has already been published.", inputPort, inputNode);
-        checkArgument(! hasInput(publishedName), "Node %s already has an input named %s.", this, publishedName);
+        checkArgument(!hasPublishedChildInput(inputNode, inputPort), "The port %s on node %s has already been published.", inputPort, inputNode);
+        checkArgument(!hasInput(publishedName), "Node %s already has an input named %s.", this, publishedName);
 
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
@@ -790,7 +833,7 @@ public final class Node {
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
         for (PublishedPort pp : publishedInputs) {
             if (pp.getChildNode().equals(childName)) {
-                if (! newChild.hasInput(pp.getChildPort()))
+                if (!newChild.hasInput(pp.getChildPort()))
                     return false;
             }
         }
@@ -833,7 +876,7 @@ public final class Node {
         checkArgument(newChild.getName().equals(childName), "New child %s does not have the same name as old child %s.", newChild, childName);
         checkArgument(childToReplace != null, "Node %s is not a child of node %s.", childName, this);
 
-        if (! isConsistentWithPublishedInputs(childName, newChild))
+        if (!isConsistentWithPublishedInputs(childName, newChild))
             return withConsistentPublishedInputs(childName, newChild)
                     .withChildReplaced(childName, newChild);
 
@@ -893,7 +936,7 @@ public final class Node {
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
         Node input = getChild(inputNode);
         checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
-        checkArgument(! hasPublishedChildInput(inputNode, inputPort), "Node %s has a published input for port %s of child %s.", this, inputNode, inputPort);
+        checkArgument(!hasPublishedChildInput(inputNode, inputPort), "Node %s has a published input for port %s of child %s.", this, inputNode, inputPort);
         Connection newConnection = new Connection(outputNode, inputNode, inputPort);
         ImmutableList.Builder<Connection> b = ImmutableList.builder();
         for (Connection c : getConnections()) {
@@ -1000,7 +1043,7 @@ public final class Node {
         Node newParent = this;
 
         for (Node node : nodes) {
-            Node newNode = node.withPosition(node.getPosition().moved(20, 80));
+            Node newNode = node.withPosition(node.getPosition().moved(4, 2));
             newParent = newParent.withChildAdded(newNode);
             newNode = Iterables.getLast(newParent.getChildren());
             newNames.put(node.getName(), newNode.getName());
@@ -1028,6 +1071,22 @@ public final class Node {
             }
         }
         return newParent;
+    }
+
+    /**
+     * Find the connection with the given inputNode and port.
+     *
+     * @param inputNode The child input node
+     * @param inputPort The child input port
+     * @return the Connection object, or null if the connection could not be found.
+     */
+    public Connection getConnection(String inputNode, String inputPort) {
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
+                return c;
+
+        }
+        return null;
     }
 
     /**
