@@ -110,7 +110,7 @@
         <junit haltonfailure="false">
             <classpath refid="project.classpath"/>
             <formatter type="xml"/>
-            <batchtest fork="yes" todir="${reports}">
+            <batchtest todir="${reports}">
                 <fileset dir="${build.test}" includes="**/*Test.class"/>
             </batchtest>
         </junit>
