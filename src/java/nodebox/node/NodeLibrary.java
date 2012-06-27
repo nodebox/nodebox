@@ -1,27 +1,33 @@
 package nodebox.node;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
+import nu.xom.*;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
+
+    public static final String CURRENT_FORMAT_VERSION = "1.0";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
@@ -47,7 +53,7 @@ public class NodeLibrary {
         try {
             return load(libraryName, null, new StringReader(xml), nodeRepository);
         } catch (XMLStreamException e) {
-            throw new LoadException("<none>", "Could not read NDBX string", e);
+            throw new LoadException(null, "Could not read NDBX string", e);
         }
     }
 
@@ -57,9 +63,9 @@ public class NodeLibrary {
         try {
             return load(libraryName, f, new FileReader(f), nodeRepository);
         } catch (FileNotFoundException e) {
-            throw new LoadException(f.getAbsolutePath(), "File not found.");
+            throw new LoadException(f, "File not found.");
         } catch (XMLStreamException e) {
-            throw new LoadException(f.getAbsolutePath(), "Could not read NDBX file", e);
+            throw new LoadException(f, "Could not read NDBX file", e);
         }
     }
 
@@ -89,7 +95,7 @@ public class NodeLibrary {
     public File getFile() {
         return file;
     }
-    
+
     public UUID getUuid() {
         return uuid;
     }
@@ -110,13 +116,163 @@ public class NodeLibrary {
         }
         return node;
     }
-    
+
     public NodeRepository getNodeRepository() {
         return nodeRepository;
     }
 
     public FunctionRepository getFunctionRepository() {
         return functionRepository;
+    }
+
+    //// Upgrading ////
+
+    private static Map<String, Method> upgradeMap = new HashMap<String, Method>();
+
+    /**
+     * Lookup an upgrade method by name.
+     * <p/>
+     * This method is not compatible
+     *
+     * @param methodName The upgrade method name.
+     * @return The Method object, to be invoked.
+     */
+    private static Method upgradeMethod(String methodName) {
+        try {
+            return NodeLibrary.class.getMethod(methodName, String.class);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    static {
+        upgradeMap.put("1.0", upgradeMethod("upgrade1to2"));
+    }
+
+    private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
+
+    public static String parseFormatVersion(String xml) {
+        Matcher m = formatVersionPattern.matcher(xml);
+        if (!m.find()) throw new RuntimeException("Invalid NodeBox file: " + xml);
+        return m.group(1);
+    }
+
+    private static String readFile(File file) {
+        try {
+            return Files.toString(file, Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Upgrade the given file to the latest library version. The file is supposed to be a NDBX file.
+     * <p/>
+     * It is harmless to pass in current version NDBX files.
+     *
+     * @param file The .ndbx file to upgrade.
+     * @return An upgrade result, containing warnings, correct XML code and a NodeLibrary object.
+     * @throws LoadException If the upgrade fails for some reason.
+     */
+    public static UpgradeResult upgrade(File file) throws LoadException {
+        return upgradeTo(file, CURRENT_FORMAT_VERSION);
+    }
+
+    /**
+     * Upgrade the given file to the target version. The file is supposed to be a NDBX file.
+     * <p/>
+     * It is harmless to pass in current version NDBX files.
+     *
+     * @param file The .ndbx file to upgrade.
+     * @return An upgrade result, containing warnings, correct XML code and a NodeLibrary object.
+     * @throws LoadException If the upgrade fails for some reason.
+     */
+    public static UpgradeResult upgradeTo(File file, String targetVersion) throws LoadException {
+        String currentXml = readFile(file);
+        String currentVersion = parseFormatVersion(currentXml);
+        ArrayList<String> warnings = new ArrayList<String>();
+        // Avoid upgrades getting stuck in an infinite loop.
+        int tries = 0;
+        while (!currentVersion.equals(targetVersion) && tries < 100) {
+            Method upgradeMethod = upgradeMap.get(currentVersion);
+            if (upgradeMethod == null) {
+                throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too old or too new.");
+            }
+            try {
+                UpgradeStringResult result = (UpgradeStringResult) upgradeMethod.invoke(null, readFile(file));
+                warnings.addAll(result.warnings);
+                currentXml = result.xml;
+            } catch (Exception e) {
+                throw new LoadException(file, "Upgrading to " + currentVersion + " failed.", e);
+            }
+            currentVersion = parseFormatVersion(currentXml);
+            tries++;
+        }
+        if (tries >= 100) {
+            throw new LoadException(file, "Got stuck in an infinite loop when trying to upgrade from " + currentVersion);
+        }
+        return new UpgradeResult(file, currentXml, warnings);
+    }
+
+    public static UpgradeStringResult upgrade1to2(String inputXml) throws LoadException {
+        // Version 2: Vertical node networks
+        // 1. Rotate all nodes 90 degrees by reversing X and Y positions.
+        // 2. Convert from pixel units to grid units by dividing by GRID_CELL_SIZE.
+        final int GRID_CELL_SIZE = 48;
+        return transformXml(inputXml, "2", new Function<Element, String>() {
+            @Override
+            public String apply(Element node) {
+                Attribute position = node.getAttribute("position");
+                if (position != null) {
+                    Point pt = Point.valueOf(position.getValue());
+                    Point reversedPoint = new Point(pt.y, pt.x);
+                    Point gridPoint = new Point(Math.round(reversedPoint.x / GRID_CELL_SIZE), Math.round(reversedPoint.y / GRID_CELL_SIZE));
+                    node.addAttribute(new Attribute("position", String.valueOf(gridPoint)));
+                }
+                return null;
+            }
+        });
+    }
+
+    private static UpgradeStringResult transformXml(String xml, String newFormatVersion, Function<Element, String> function) {
+        try {
+            Document document = new Builder().build(xml, null);
+            return transformDocument(document, newFormatVersion, function);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while upgrading to " + newFormatVersion + ".", e);
+        }
+    }
+
+    private static UpgradeStringResult transformDocument(Document document, String newFormatVersion, Function<Element, String> function) {
+        // Check that this is a NodeBox document and set the new formatVersion.
+        Element root = document.getRootElement();
+        checkArgument(root.getLocalName().equals("ndbx"), "This is not a valid NodeBox document.");
+        root.addAttribute(new Attribute("formatVersion", newFormatVersion));
+
+        // Recursively transform all nodes.
+        ArrayList<String> warnings = new ArrayList<String>();
+        transformNodesRecursive(root, function, warnings);
+        return new UpgradeStringResult(document.toXML(), ImmutableList.copyOf(warnings));
+    }
+
+    private static void transformNodesRecursive(Element parent, Function<Element, String> function, List<String> warnings) {
+        Elements nodes = parent.getChildElements("node");
+        for (int i = 0; i < nodes.size(); i++) {
+            Element node = nodes.get(i);
+            function.apply(node);
+            transformNodesRecursive(node, function, warnings);
+        }
+    }
+
+    private static class UpgradeStringResult {
+        private final String xml;
+        private final List<String> warnings;
+
+        private UpgradeStringResult(String xml, ImmutableList<String> warnings) {
+            this.xml = xml;
+            this.warnings = warnings;
+        }
+
     }
 
     //// Loading ////
@@ -130,6 +286,10 @@ public class NodeLibrary {
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 String tagName = reader.getLocalName();
                 if (tagName.equals("ndbx")) {
+                    String formatVersion = reader.getAttributeValue(null, "formatVersion");
+                    if (!CURRENT_FORMAT_VERSION.equals(formatVersion)) {
+                        throw new OutdatedLibraryException(file, "File uses version " + formatVersion + ", current version is " + CURRENT_FORMAT_VERSION + ".");
+                    }
                     String uuidString = reader.getAttributeValue(null, "uuid");
                     UUID uuid = (uuidString == null) ? UUID.randomUUID() : UUID.fromString(uuidString);
                     nodeLibrary = parseNDBX(libraryName, file, reader, nodeRepository, uuid);
@@ -350,11 +510,11 @@ public class NodeLibrary {
     }
 
     ///// Mutation methods ////
-    
+
     public NodeLibrary withRoot(Node newRoot) {
         return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.uuid);
     }
-    
+
     public NodeLibrary withFunctionRepository(FunctionRepository newRepository) {
         return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.uuid);
     }

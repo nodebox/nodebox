@@ -49,7 +49,7 @@ public class NDBXWriter {
             // Build the header.
             Element rootElement = doc.createElement("ndbx");
             rootElement.setAttribute("type", "file");
-            rootElement.setAttribute("formatVersion", "1.0");
+            rootElement.setAttribute("formatVersion", NodeLibrary.CURRENT_FORMAT_VERSION);
             rootElement.setAttribute("uuid", library.getUuid().toString());
             doc.appendChild(rootElement);
 

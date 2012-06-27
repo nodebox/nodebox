@@ -1,29 +1,37 @@
 package nodebox.util;
 
+import java.io.File;
+
 /**
  * An exception that wraps the errors that occur during library loading.
  */
 public class LoadException extends RuntimeException {
 
-    private final String fileName;
+    private final File file;
 
-    public LoadException(String fileName, Throwable t) {
-        super("Error while loading " + fileName + ": " + t, t);
-        this.fileName = fileName;
+    private static String errorMessage(File file, Object message) {
+        return "Error while loading "
+                + (file == null ? "unknown" : file.getName())
+                + (message == null ? "." : ": " + message.toString());
     }
 
-    public LoadException(String fileName, String message) {
-        super("Error while loading " + fileName + ": " + message);
-        this.fileName = fileName;
+    public LoadException(File file, Throwable t) {
+        super(errorMessage(file, t), t);
+        this.file = file;
     }
 
-    public LoadException(String fileName, String s, Throwable throwable) {
+    public LoadException(File file, String message) {
+        super(errorMessage(file, message));
+        this.file = file;
+    }
+
+    public LoadException(File file, String s, Throwable throwable) {
         super(s, throwable);
-        this.fileName = fileName;
+        this.file = file;
     }
 
-    public String getFileName() {
-        return fileName;
+    public File getFile() {
+        return file;
     }
 
 }

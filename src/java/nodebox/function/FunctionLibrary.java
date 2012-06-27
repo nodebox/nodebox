@@ -36,7 +36,7 @@ public abstract class FunctionLibrary {
         } else if (language.equals("python")) {
             return PythonLibrary.loadScript(file, identifier);
         } else {
-            throw new LoadException(language, "Unknown function library type " + language + ".");
+            throw new LoadException(file, "Unknown function library type " + language + ".");
         }
     }
 
