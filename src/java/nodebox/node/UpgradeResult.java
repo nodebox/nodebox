@@ -6,6 +6,8 @@ import org.python.google.common.collect.ImmutableList;
 import java.io.File;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * The result of NodeLibrary.upgrade().
  * <p/>
@@ -18,8 +20,10 @@ public class UpgradeResult {
     private final String xml;
     private final List<String> warnings;
 
-
     public UpgradeResult(File file, String xml, List<String> warnings) {
+        checkNotNull(file);
+        checkNotNull(xml);
+        checkNotNull(warnings);
         this.file = file;
         this.xml = xml;
         this.warnings = ImmutableList.copyOf(warnings);
@@ -51,12 +55,14 @@ public class UpgradeResult {
 
     /**
      * Get the upgraded library. This parses the upgraded XML into a new library format.
+     *
+     * @param baseFile The old ndbx file. This is used for loading libraries relative from the file.
      * @param nodeRepository The node repository to load nodes out of.
      * @return The new NodeLibrary.
      */
-    public NodeLibrary getLibrary(NodeRepository nodeRepository) {
+    public NodeLibrary getLibrary(File baseFile, NodeRepository nodeRepository) {
         String libraryName = FileUtils.stripExtension(getFile());
-        return NodeLibrary.load(libraryName, xml, nodeRepository);
+        return NodeLibrary.load(libraryName, xml, baseFile, nodeRepository);
     }
 
 }

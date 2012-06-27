@@ -12,6 +12,7 @@ import nodebox.node.*;
 import nodebox.node.MenuItem;
 import nodebox.ui.*;
 import nodebox.util.FileUtils;
+import nodebox.util.LoadException;
 
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
@@ -89,6 +90,52 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return Application.getInstance().getCurrentDocument();
     }
 
+    /**
+     * Static factory method to create a NodeBoxDocument from a file.
+     * <p/>
+     * This method can handle file upgrades.
+     *
+     * @param file the file to load.
+     * @return A NodeBoxDocument.
+     */
+    public static NodeBoxDocument load(File file) {
+        NodeLibrary library;
+        NodeBoxDocument document;
+        try {
+            library = NodeLibrary.load(file, Application.getInstance().getSystemRepository());
+            document = new NodeBoxDocument(library);
+            document.setDocumentFile(file);
+        } catch (OutdatedLibraryException e) {
+            UpgradeResult result = NodeLibrary.upgrade(file);
+            // The file is used here as the base name for finding relative libraries.
+            library = result.getLibrary(file, Application.getInstance().getSystemRepository());
+            document = new NodeBoxDocument(library);
+            document.showUpgradeResult(result);
+        } catch (LoadException e) {
+            throw new RuntimeException("Could not load " + file, e);
+        }
+        lastFilePath = file.getParentFile().getAbsolutePath();
+        return document;
+    }
+
+    /**
+     * Display the result of upgrading in a dialog box.
+     *
+     * @param result The UpgradeResult.
+     */
+    private void showUpgradeResult(UpgradeResult result) {
+        checkNotNull(result);
+        if (result.getWarnings().isEmpty()) return;
+        final UpgradeWarningsDialog dialog = new UpgradeWarningsDialog(result);
+        dialog.setLocationRelativeTo(this);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                dialog.setVisible(true);
+            }
+        });
+    }
+
     private static NodeLibrary createNewLibrary() {
         NodeRepository nodeRepository = Application.getInstance().getSystemRepository();
         Node root = Node.ROOT.withName("root");
@@ -153,12 +200,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
         loaded = true;
-    }
-
-    public NodeBoxDocument(File file) throws RuntimeException {
-        this(NodeLibrary.load(file, Application.getInstance().getSystemRepository()));
-        lastFilePath = file.getParentFile().getAbsolutePath();
-        setDocumentFile(file);
     }
 
     //// Node Library management ////
@@ -319,7 +360,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Change the node function.
      *
-     * @param node  The node to change.
+     * @param node     The node to change.
      * @param function The new function.
      */
     public void setNodeFunction(Node node, String function) {
@@ -335,7 +376,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Change the node handle function.
      *
-     * @param node  The node to change.
+     * @param node   The node to change.
      * @param handle The new handle function.
      */
     public void setNodeHandle(Node node, String handle) {
@@ -465,7 +506,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
-     * @param node          the node on which to add the port
+     * @param node     the node on which to add the port
      * @param portName the name of the new port
      * @param portType the type of the new port
      */
@@ -571,7 +612,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * Remove a menu item from the given port's menu.
      *
      * @param portName The name of the port to remove the menu item from.
-     * @param item      The menu item to remove
+     * @param item     The menu item to remove
      */
     public void removePortMenuItem(String portName, MenuItem item) {
         checkValidPort(portName);

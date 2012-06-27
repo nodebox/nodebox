@@ -293,6 +293,31 @@ public class NodeLibraryTest {
     }
 
     @Test
+    public void testWritePrototypeFirst() {
+        // We execute the test multiple times with the names switched to avoid that the order is accidentally correct.
+        // This can happen because of the hashing algorithm.
+        assertPrototypeBeforeInstance("alpha", "beta", "gamma");
+        assertPrototypeBeforeInstance("beta", "alpha", "gamma");
+        assertPrototypeBeforeInstance("gamma", "alpha", "beta");
+    }
+
+    private void assertPrototypeBeforeInstance(String prototypeName, String ... instanceNames) {
+        Node originalPrototype = Node.ROOT.withName(prototypeName);
+        Node network = Node.ROOT.withChildAdded(originalPrototype);
+        for (String instanceName : instanceNames) {
+            Node originalInstance = originalPrototype.extend().withName(instanceName);
+            network = network.withChildAdded(originalInstance);
+        }
+        NodeLibrary originalLibrary = NodeLibrary.create("test", network);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
+        Node prototype = library.getRoot().getChild(prototypeName);
+        for (String instanceName : instanceNames) {
+            Node instance = library.getRoot().getChild(instanceName);
+            assertSame(prototype, instance.getPrototype());
+        }
+    }
+
+    @Test
     public void testRelativePathsInWidgets() {
         NodeLibrary library = NodeLibrary.load(new File("test/files/relative-file.ndbx"), NodeRepository.of());
         NodeContext context = new NodeContext(library);
@@ -330,12 +355,11 @@ public class NodeLibraryTest {
     public void testUpgrade1to2() {
         File version1File = new File("test/files/upgrade-v1.ndbx");
         UpgradeResult result = NodeLibrary.upgradeTo(version1File, "2");
-        assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"4.00,2.00\""));
-        // TODO We can't use these checks yet since the current version is still 1.0.
-//        NodeLibrary upgradedLibrary = result.getLibrary(NodeRepository.of());
-//        Node root = upgradedLibrary.getRoot();
-//        Node alpha = root.getChild("alpha");
-//        assertEquals(new Point(4, 2), alpha.getPosition());
+        assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"12.00,2.00\""));
+        NodeLibrary upgradedLibrary = result.getLibrary(version1File, NodeRepository.of());
+        Node root = upgradedLibrary.getRoot();
+        Node alpha = root.getChild("alpha");
+        assertEquals(new Point(12, 2), alpha.getPosition());
     }
 
     /**

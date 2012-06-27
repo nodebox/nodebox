@@ -237,6 +237,7 @@ public class Application implements Host {
     }
 
     private void lookForLibraries() {
+
         NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.of());
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
         NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
@@ -244,12 +245,9 @@ public class Application implements Host {
         NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
         NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
         NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
-//        NodeLibrary lSystemLibrary = NodeLibrary.load(new File("libraries/l_system/l_system.ndbx"), NodeRepository.of());
-//        NodeLibrary packingLibrary = NodeLibrary.load(new File("libraries/packing/packing.ndbx"), NodeRepository.of());
 
-        systemRepository = NodeRepository.of(coreLibrary, mathLibrary, stringLibrary,
-                listLibrary, dataLibrary, colorLibrary,
-                corevectorLibrary);
+        systemRepository = NodeRepository.of(coreLibrary, mathLibrary, stringLibrary, colorLibrary, listLibrary,
+                dataLibrary, corevectorLibrary);
     }
 
     //// Application events ////
@@ -366,7 +364,7 @@ public class Application implements Host {
         }
 
         try {
-            NodeBoxDocument doc = new NodeBoxDocument(file);
+            NodeBoxDocument doc = NodeBoxDocument.load(file);
             addDocument(doc);
             NodeBoxMenuBar.addRecentFile(file);
             return true;

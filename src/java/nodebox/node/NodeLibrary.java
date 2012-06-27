@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
 
-    public static final String CURRENT_FORMAT_VERSION = "1.0";
+    public static final String CURRENT_FORMAT_VERSION = "2";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
@@ -56,6 +56,18 @@ public class NodeLibrary {
             throw new LoadException(null, "Could not read NDBX string", e);
         }
     }
+
+    public static NodeLibrary load(String libraryName, String xml, File baseFile, NodeRepository nodeRepository) throws LoadException {
+        checkNotNull(libraryName, "Library name cannot be null.");
+        checkNotNull(xml, "XML string cannot be null.");
+        try {
+            return load(libraryName, baseFile, new StringReader(xml), nodeRepository);
+        } catch (XMLStreamException e) {
+            throw new LoadException(null, "Could not read NDBX string", e);
+        }
+    }
+
+
 
     public static NodeLibrary load(File f, NodeRepository nodeRepository) throws LoadException {
         checkNotNull(f, "File cannot be null.");
@@ -219,19 +231,21 @@ public class NodeLibrary {
         // 1. Rotate all nodes 90 degrees by reversing X and Y positions.
         // 2. Convert from pixel units to grid units by dividing by GRID_CELL_SIZE.
         final int GRID_CELL_SIZE = 48;
-        return transformXml(inputXml, "2", new Function<Element, String>() {
+        UpgradeStringResult result = transformXml(inputXml, "2", new Function<Element, String>() {
             @Override
             public String apply(Element node) {
                 Attribute position = node.getAttribute("position");
                 if (position != null) {
                     Point pt = Point.valueOf(position.getValue());
                     Point reversedPoint = new Point(pt.y, pt.x);
-                    Point gridPoint = new Point(Math.round(reversedPoint.x / GRID_CELL_SIZE), Math.round(reversedPoint.y / GRID_CELL_SIZE));
+                    Point gridPoint = new Point(Math.round(reversedPoint.x / GRID_CELL_SIZE) * 3, Math.round(reversedPoint.y / GRID_CELL_SIZE));
                     node.addAttribute(new Attribute("position", String.valueOf(gridPoint)));
                 }
                 return null;
             }
         });
+        result.warnings.add("Nodes have been rotated. Your network will look different.");
+        return result;
     }
 
     private static UpgradeStringResult transformXml(String xml, String newFormatVersion, Function<Element, String> function) {
@@ -252,7 +266,7 @@ public class NodeLibrary {
         // Recursively transform all nodes.
         ArrayList<String> warnings = new ArrayList<String>();
         transformNodesRecursive(root, function, warnings);
-        return new UpgradeStringResult(document.toXML(), ImmutableList.copyOf(warnings));
+        return new UpgradeStringResult(document.toXML(), warnings);
     }
 
     private static void transformNodesRecursive(Element parent, Function<Element, String> function, List<String> warnings) {
@@ -268,7 +282,7 @@ public class NodeLibrary {
         private final String xml;
         private final List<String> warnings;
 
-        private UpgradeStringResult(String xml, ImmutableList<String> warnings) {
+        private UpgradeStringResult(String xml, List<String> warnings) {
             this.xml = xml;
             this.warnings = warnings;
         }

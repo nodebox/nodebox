@@ -55,8 +55,10 @@ public class Theme {
     public static final Color TEXT_WARNING_COLOR = new Color(200, 0, 0);
 
     // Borders
+    public static Color BORDER_COLOR;
     public static Border LINE_BORDER;
     public static Border TOP_BOTTOM_BORDER;
+    public static Border TOP_BORDER;
     public static Border BOTTOM_BORDER;
     public static Border PARAMETER_ROW_BORDER;
     public static Border PARAMETER_NOTES_BORDER;
@@ -75,18 +77,18 @@ public class Theme {
 
     static {
         // Initialize borders.
-        Color borderColor;
         if (Platform.onWindows()) {
-            borderColor = new Color(100, 100, 100);
+            BORDER_COLOR = new Color(100, 100, 100);
         } else if (Platform.onMac()) {
-            borderColor = new Color(200, 200, 200);
+            BORDER_COLOR = new Color(200, 200, 200);
         } else {
-            borderColor = new Color(200, 200, 200);
+            BORDER_COLOR = new Color(200, 200, 200);
         }
-        LINE_BORDER = BorderFactory.createLineBorder(borderColor);
+        LINE_BORDER = BorderFactory.createLineBorder(BORDER_COLOR);
         Color topColor = new Color(224, 224, 224);
         Color bottomColor = new Color(245, 245, 245);
         TOP_BOTTOM_BORDER = new TopBottomBorder(topColor, bottomColor);
+        TOP_BORDER = new TopBorder(new Color(168, 168, 168));
         Color whiteColor = new Color(255, 255, 255);
         BOTTOM_BORDER = new BottomBorder(whiteColor);
         PARAMETER_ROW_BORDER = new RowBorder();
@@ -151,6 +153,27 @@ public class Theme {
 
         public Insets getBorderInsets(Component c) {
             return new Insets(1, 0, 1, 0);
+        }
+
+        public boolean isBorderOpaque() {
+            return true;
+        }
+    }
+
+    public static class TopBorder implements Border {
+        private Color topColor;
+
+        public TopBorder(Color topColor) {
+            this.topColor = topColor;
+        }
+
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            g.setColor(topColor);
+            g.drawLine(x, y, x + width, y);
+        }
+
+        public Insets getBorderInsets(Component c) {
+            return new Insets(1, 0, 0, 0);
         }
 
         public boolean isBorderOpaque() {
