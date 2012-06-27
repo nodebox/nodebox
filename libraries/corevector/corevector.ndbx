@@ -34,7 +34,7 @@
                 <menu key="open" label="Open"/>
             </port>
         </node>
-        <node description="Calculate the geometric center point of a shape." function="corevector/centroid" name="centroid" outputType="point" position="7.00,6.00" prototype="filter"/>
+        <node description="Calculate the geometric center point of a shape." function="corevector/centroid" name="centroid" outputType="point" position="7.00,6.00" prototype="filter" image="centroid.png"/>
         <node description="Change the color of a shape." function="corevector/colorize" image="colorize.png" name="colorize" position="4.00,11.00" prototype="filter">
             <port name="fill" range="value" type="color" value="#000000ff" widget="color"/>
             <port name="stroke" range="value" type="color" value="#000000ff" widget="color"/>
@@ -144,12 +144,12 @@
                 <menu key="vertical" label="Vertical"/>
             </port>
         </node>
-        <node description="Creates a point based on two numbers." function="corevector/makePoint" image="filter.png" name="make_point" outputType="point" position="16.00,12.00" prototype="generator">
+        <node description="Creates a point based on two numbers." function="corevector/makePoint" image="make_point.png" name="make_point" outputType="point" position="16.00,12.00" prototype="generator">
             <port name="x" range="value" type="float" value="0.0" widget="float"/>
             <port name="y" range="value" type="float" value="0.0" widget="float"/>
         </node>
         <node description="Does nothing." function="corevector/doNothing" image="null.png" name="null" position="4.00,13.00" prototype="filter"/>
-        <node description="Calculate a point on a path." function="corevector/pointOnPath" name="point_on_path" position="13.00,11.00" prototype="generator">
+        <node description="Calculate a point on a path." function="corevector/pointOnPath" name="point_on_path" position="13.00,11.00" prototype="generator" image="point_on_path.png">
             <port name="shape" range="value" type="geometry" widget="none"/>
             <port name="t" range="value" type="float" value="0.0" widget="float"/>
             <port name="range" range="value" type="float" value="100.0" widget="float"/>
