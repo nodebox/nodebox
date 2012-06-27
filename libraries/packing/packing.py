@@ -63,6 +63,7 @@ def _pack(circles, damping=0.1, padding=2, exclude=[]):
 from random import seed as _seed
 
 def pack(shapes, iterations, padding, seed):
+    if shapes is None: return None
     _seed(seed)
     packed_objects = []
     for path in shapes:
