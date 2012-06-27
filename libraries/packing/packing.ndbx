@@ -1,25 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="1.0" type="file">
+<ndbx formatVersion="2" type="file" uuid="68cfb176-b692-4ac9-bce7-58033f84c1a2">
     <link href="python:packing.py" rel="functions"/>
-    <node name="root" description="Pack geometric objects together." renderedChild="pack">
-
-        <node function="packing/pack" name="pack"
-              description="Pack objects." outputType="geometry">
-            <port type="shape" name="shapes" range="list"/>
-            <port type="int" name="iterations" value="5"/>
-            <port type="float" name="padding" value="2.0"/>
-            <port type="int" name="seed"/>
+    <node description="Pack geometric objects together." name="root" renderedChild="pack">
+        <node description="Pack objects by angling on the object." function="packing/angle_pack" name="angle_pack" outputType="geometry" position="1.00,2.00">
+            <port name="shapes" range="list" type="shape" widget="none"/>
+            <port name="seed" range="value" type="int" value="0" widget="int"/>
+            <port name="limit" range="value" type="float" value="10.0" widget="float"/>
+            <port name="maximum_radius" range="value" type="float" value="5000.0" widget="float"/>
+            <port min="1.0" name="angle_tries" range="value" type="int" value="1" widget="int"/>
+            <port name="use_bounding_box" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-
-    <node function="packing/angle_pack" name="angle_pack"
-          description="Pack objects by angling on the object." outputType="geometry">
-        <port type="shape" name="shapes" range="list"/>
-        <port type="int" name="seed"/>
-        <port type="float" name="limit" value="10.0"/>
-        <port type="float" name="maximum_radius" value="5000.0"/>
-        <port type="int" name="angle_tries" value="1" min="1"/>
-        <port type="boolean" name="use_bounding_box" value="true"/>
-    </node>
-
+        <node description="Pack objects." function="packing/pack" name="pack" outputType="geometry" position="1.00,1.00">
+            <port name="shapes" range="list" type="shape" widget="none"/>
+            <port name="iterations" range="value" type="int" value="5" widget="int"/>
+            <port name="padding" range="value" type="float" value="2.0" widget="float"/>
+            <port name="seed" range="value" type="int" value="0" widget="int"/>
+        </node>
     </node>
 </ndbx>

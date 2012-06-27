@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="1.0" type="file">
+<ndbx formatVersion="2" type="file" uuid="b299e4dc-c763-4008-b8cb-d631e03c5c0a">
     <link href="java:nodebox.function.MathFunctions" rel="functions"/>
-    <node name="root" description="Calculate using numbers." renderedChild="slow_number">
-        <node description="Add two numbers." function="math/add" name="add" position="20,100" image="generic.png" outputType="float">
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="0.0"/>
+    <node description="Calculate using numbers." name="root" renderedChild="slow_number">
+        <node description="Convert every number to a positive number." function="math/abs" image="generic.png" name="abs" position="4.00,1.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Calculate the angle between two points." function="math/angle" name="angle"
-              position="220,300" image="angle.png" outputType="float">
-            <port name="point1" type="point" value="0.00,0.00"/>
-            <port name="point2" type="point" value="100.00,100.00"/>
+        <node description="Add two numbers." function="math/add" image="generic.png" name="add" position="4.00,2.00">
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Calculate the average of a list of numbers." function="math/average" name="average"
-              position="120,100" image="average.png" outputType="float">
-            <port name="values" type="float" range="list"/>
+        <node description="Calculate the angle between two points." function="math/angle" image="angle.png" name="angle" position="10.00,4.00">
+            <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Select between two values by comparing them." function="math/compare" name="compare"
-              position="120,100" image="compare.png" outputType="float">
-            <port type="string" name="comparator" value="&lt;" label="symbol" widget="menu">
+        <node description="Calculate the average of a list of numbers." function="math/average" image="average.png" name="average" position="7.00,3.00">
+            <port name="values" range="list" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Select between two values by comparing them." function="math/compare" image="compare.png" name="compare" position="7.00,4.00">
+            <port name="comparator" range="value" type="string" value="&lt;" widget="menu">
                 <menu key="&lt;" label="smaller than"/>
                 <menu key="&gt;" label="greater than"/>
                 <menu key="&lt;=" label="smaller or even than"/>
@@ -25,140 +25,111 @@
                 <menu key="==" label="equals"/>
                 <menu key="!=" label="not equals"/>
             </port>
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="0.0"/>
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Calculate a new point based on the angle and distance from an original point."
-              function="math/coordinates" name="coordinates" position="410,300" image="coordinates.png" outputType="point">
-            <port name="position" type="point" value="0.00,0.00"/>
-            <port name="angle" type="float" value="0.0"/>
-            <port name="distance" type="float" value="100.0"/>
-        </node>
-        <node description="Calculate the trigonometric cosine of an angle" function="math/cos" name="cos"
-              position="410,100" image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Convert radians to degrees." function="math/degrees" name="degrees" position="120,300"
-              image="generic.png" outputType="float">
-            <port name="radians" type="float" value="0.0"/>
-        </node>
-        <node description="Calculate the distance between two points." function="math/distance" name="distance"
-              position="320,300" image="distance.png" outputType="float">
-            <port name="point1" type="point" value="0.00,0.00"/>
-            <port name="point2" type="point" value="100.00,100.00"/>
-        </node>
-        <node description="Divide two numbers." function="math/divide" name="divide" position="320,100"
-              image="generic.png" outputType="float">
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="1.0"/>
-        </node>
-        <node description="Calculate the modulo: divide two numbers and keep the remainder." function="math/mod"
-              name="mod" position="320,100" image="mod.png" outputType="float">
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="1.0"/>
-        </node>
-        <node description="Negate the number. Changes the sign of a number." function="math/negate" name="negate"
-              position="120,10"
-              image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Convert every number to a positive number." function="math/abs" name="abs" position="20,100"
-              image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Calculate the natural logarithm of a value" function="math/log" name="log"
-              position="410,100" image="log.png" outputType="float">
-            <port name="value" type="float" value="1.0" min="0.01"/>
-        </node>
-        <node description="Transform a string to a list of numbers." outputRange="list" function="math/makeNumbers" name="make_numbers"
-              position="20,200" image="generic.png" outputType="float">
-            <port name="string" type="string" value="11;22;33"/>
-            <port name="separator" type="string" value=";"/>
-        </node>
-        <node description="Select the maximum value of a list of numbers." function="math/max" name="max"
-              position="120,100" image="max.png" outputType="float">
-            <port name="values" type="float" range="list"/>
-        </node>
-        <node description="Multiply two numbers." function="math/multiply" name="multiply" position="220,100"
-              image="generic.png" outputType="float">
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="1.0"/>
-        </node>
-        <node description="Select the minimum value of a list of numbers." function="math/min" name="min"
-              position="120,100" image="generic.png" outputType="float">
-            <port name="values" type="float" range="list"/>
-        </node>
-        <node description="Create a floating-point number which you can use as a variable." function="math/number"
-              name="number" position="20,10" image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Convert degrees to radians." function="math/radians" name="radians" position="20,300"
-              image="generic.png" outputType="float">
-            <port name="degrees" type="float" value="0.0"/>
-        </node>
-        <node description="Create a list of random numbers." outputRange="list" function="math/randomNumbers" name="random_numbers"
-              position="20,200" image="generic.png" outputType="float">
-            <port name="amount" type="int" value="10" min="0"/>
-            <port name="start" type="float" value="0.0"/>
-            <port name="end" type="float" value="100.0"/>
-            <port name="seed" type="int" value="0"/>
-        </node>
-        <node description="Generate a certain amount of numbers." outputRange="list" function="math/sample" name="sample"
-              position="120,220" image="generic.png" outputType="float">
-            <port name="amount" type="int" value="10" min="0"/>
-            <port name="start" type="float" value="0.0"/>
-            <port name="end" type="float" value="100.0"/>
-        </node>
-        <node description="Generate a range of numbers." outputRange="list" function="math/range" name="range" position="120,200" image="generic.png" outputType="float">
-            <port name="start" type="float" value="0.0"/>
-            <port name="end" type="float" value="10.0"/>
-            <port name="step" type="float" value="1.0"/>
-        </node>
-        <node description="Calculate a new point based on the angle and distance from an original point."
-              function="math/reflect" name="reflect" position="490,300" image="generic.png" outputType="point">
-            <port name="point1" type="point" value="0.00,0.00"/>
-            <port name="point2" type="point" value="100.00,100.00"/>
-            <port name="distance" type="float" value="100.0"/>
-            <port name="angle" type="float" value="0.0"/>
-        </node>
-        <node description="Calculate the trigonometric sine of an angle" function="math/sin" name="sin"
-              position="410,100" image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Test node that takes 1 second to calculate a number." function="math/slowNumber"
-              name="slow_number" position="20,400" image="generic.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Calculate the square root of a number." function="math/sqrt" name="sqrt" position="410,100"
-              image="sqrt.png" outputType="float">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Subtract two numbers." function="math/subtract" name="subtract" position="120,100"
-              image="generic.png" outputType="float">
-            <port name="value1" type="float" value="0.0"/>
-            <port name="value2" type="float" value="0.0"/>
-        </node>
-        <node description="Sum a list of numbers." function="math/sum" name="sum" position="120,100"
-              image="sum.png" outputType="float">
-            <port name="values" type="float" range="list"/>
-        </node>
-        <node description="Calculate a value as an integer" function="math/toInteger" name="to_integer"
-              position="410,100" image="generic.png" outputType="int">
-            <port name="value" type="float" value="0.0"/>
-        </node>
-        <node description="Convert a value from one range to another" function="math/convertRange" name="convert_range"
-              position="410,100" image="generic.png" outputType="float">
-            <port name="value" type="float" value="50"/>
-            <port name="source_start" type="float" value="0.0"/>
-            <port name="source_end" type="float" value="100.00"/>
-            <port name="target_start" type="float" value="0.0"/>
-            <port name="target_end" type="float" value="1.0"/>
-            <port name="method" type="string" value="clamp" widget="menu">
+        <node description="Convert a value from one range to another" function="math/convertRange" image="generic.png" name="convert_range" position="7.00,6.00">
+            <port name="value" range="value" type="float" value="50.0" widget="float"/>
+            <port name="source_start" range="value" type="float" value="0.0" widget="float"/>
+            <port name="source_end" range="value" type="float" value="100.0" widget="float"/>
+            <port name="target_start" range="value" type="float" value="0.0" widget="float"/>
+            <port name="target_end" range="value" type="float" value="1.0" widget="float"/>
+            <port name="method" range="value" type="string" value="clamp" widget="menu">
                 <menu key="mirror" label="Mirror"/>
                 <menu key="ignore" label="Ignore"/>
                 <menu key="wrap" label="Wrap"/>
                 <menu key="clamp" label="Clamp"/>
             </port>
+        </node>
+        <node description="Calculate a new point based on the angle and distance from an original point." function="math/coordinates" image="coordinates.png" name="coordinates" outputType="point" position="4.00,10.00">
+            <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="angle" range="value" type="float" value="0.0" widget="float"/>
+            <port name="distance" range="value" type="float" value="100.0" widget="float"/>
+        </node>
+        <node description="Calculate the trigonometric cosine of an angle" function="math/cos" image="generic.png" name="cos" position="10.00,1.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Convert radians to degrees." function="math/degrees" image="generic.png" name="degrees" position="13.00,4.00">
+            <port name="radians" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Calculate the distance between two points." function="math/distance" image="distance.png" name="distance" position="10.00,5.00">
+            <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
+        </node>
+        <node description="Divide two numbers." function="math/divide" image="generic.png" name="divide" position="7.00,5.00">
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node description="Calculate the natural logarithm of a value" function="math/log" image="log.png" name="log" position="7.00,8.00">
+            <port min="0.01" name="value" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node description="Transform a string to a list of numbers." function="math/makeNumbers" image="generic.png" name="make_numbers" outputRange="list" position="13.00,2.00">
+            <port name="string" range="value" type="string" value="11;22;33" widget="string"/>
+            <port name="separator" range="value" type="string" value=";" widget="string"/>
+        </node>
+        <node description="Select the maximum value of a list of numbers." function="math/max" image="max.png" name="max" position="7.00,2.00">
+            <port name="values" range="list" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Select the minimum value of a list of numbers." function="math/min" image="generic.png" name="min" position="7.00,1.00">
+            <port name="values" range="list" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Calculate the modulo: divide two numbers and keep the remainder." function="math/mod" image="mod.png" name="mod" position="4.00,6.00">
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node description="Multiply two numbers." function="math/multiply" image="generic.png" name="multiply" position="4.00,5.00">
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node description="Negate the number. Changes the sign of a number." function="math/negate" image="generic.png" name="negate" position="13.00,5.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Create a floating-point number which you can use as a variable." function="math/number" image="generic.png" name="number" position="1.00,1.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Convert degrees to radians." function="math/radians" image="generic.png" name="radians" position="13.00,3.00">
+            <port name="degrees" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Create a list of random numbers." function="math/randomNumbers" image="generic.png" name="random_numbers" outputRange="list" position="13.00,1.00">
+            <port min="0.0" name="amount" range="value" type="int" value="10" widget="int"/>
+            <port name="start" range="value" type="float" value="0.0" widget="float"/>
+            <port name="end" range="value" type="float" value="100.0" widget="float"/>
+            <port name="seed" range="value" type="int" value="0" widget="int"/>
+        </node>
+        <node description="Generate a range of numbers." function="math/range" image="generic.png" name="range" outputRange="list" position="10.00,2.00">
+            <port name="start" range="value" type="float" value="0.0" widget="float"/>
+            <port name="end" range="value" type="float" value="10.0" widget="float"/>
+            <port name="step" range="value" type="float" value="1.0" widget="float"/>
+        </node>
+        <node description="Calculate a new point based on the angle and distance from an original point." function="math/reflect" image="generic.png" name="reflect" outputType="point" position="4.00,11.00">
+            <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
+            <port name="distance" range="value" type="float" value="100.0" widget="float"/>
+            <port name="angle" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Generate a certain amount of numbers." function="math/sample" image="generic.png" name="sample" outputRange="list" position="10.00,3.00">
+            <port min="0.0" name="amount" range="value" type="int" value="10" widget="int"/>
+            <port name="start" range="value" type="float" value="0.0" widget="float"/>
+            <port name="end" range="value" type="float" value="100.0" widget="float"/>
+        </node>
+        <node description="Calculate the trigonometric sine of an angle" function="math/sin" image="generic.png" name="sin" position="4.00,8.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Test node that takes 1 second to calculate a number." function="math/slowNumber" image="generic.png" name="slow_number" position="13.00,8.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Calculate the square root of a number." function="math/sqrt" image="sqrt.png" name="sqrt" position="7.00,7.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Subtract two numbers." function="math/subtract" image="generic.png" name="subtract" position="4.00,4.00">
+            <port name="value1" range="value" type="float" value="0.0" widget="float"/>
+            <port name="value2" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Sum a list of numbers." function="math/sum" image="sum.png" name="sum" position="4.00,3.00">
+            <port name="values" range="list" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Calculate a value as an integer" function="math/toInteger" image="generic.png" name="to_integer" outputType="int" position="4.00,7.00">
+            <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
     </node>
 </ndbx>

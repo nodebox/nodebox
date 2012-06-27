@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="1.0" type="file">
+<ndbx formatVersion="2" type="file" uuid="03019fc2-1e6b-4940-ba8b-9e1dfc11f6ec">
     <link href="python:l_system.py" rel="functions"/>
-    <node name="root" description="Generate trees using L-systems." renderedChild="l_system">
-
-        <node function="l_system/l_system" name="l_system"
-              description="Create a growing tree simulation." image="l_system.png" outputType="geometry">
-            <port type="shape" name="shape"/>
-            <port type="point" name="position"/>
-            <port type="float" name="generations" min="0" max="5" value="3.0"/>
-            <port type="float" name="length" value="5.0"/>
-            <port type="float" name="length_scale" value="130.0"/>
-            <port type="float" name="angle" value="20.0"/>
-            <port type="float" name="angle_scale" value="110.0"/>
-            <port type="float" name="thickness_scale" value="170.0"/>
-            <port type="string" name="premise" value="FFFA"/>
-            <port type="string" name="rule_1" value="F=F[_?-;FFF]+F[_?;+FF]-[__?@F]"/>
-            <port type="string" name="rule_2" value=""/>
-            <port type="string" name="rule_3" value=""/>
+    <node description="Generate trees using L-systems." name="root" renderedChild="l_system">
+        <node description="Create a growing tree simulation." function="l_system/l_system" image="l_system.png" name="l_system" outputType="geometry" position="1.00,1.00">
+            <port name="shape" range="value" type="shape" widget="none"/>
+            <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port max="5.0" min="0.0" name="generations" range="value" type="float" value="3.0" widget="float"/>
+            <port name="length" range="value" type="float" value="5.0" widget="float"/>
+            <port name="length_scale" range="value" type="float" value="130.0" widget="float"/>
+            <port name="angle" range="value" type="float" value="20.0" widget="float"/>
+            <port name="angle_scale" range="value" type="float" value="110.0" widget="float"/>
+            <port name="thickness_scale" range="value" type="float" value="170.0" widget="float"/>
+            <port name="premise" range="value" type="string" value="FFFA" widget="string"/>
+            <port name="rule_1" range="value" type="string" value="F=F[_?-;FFF]+F[_?;+FF]-[__?@F]" widget="string"/>
+            <port name="rule_2" range="value" type="string" value="" widget="string"/>
+            <port name="rule_3" range="value" type="string" value="" widget="string"/>
         </node>
-
     </node>
 </ndbx>

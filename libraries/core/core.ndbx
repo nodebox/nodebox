@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="1.0" type="file">
+<ndbx formatVersion="2" type="file">
     <!-- We do not link to CoreFunctions since it is always included. -->
     <node name="root" renderedChild="frame" description="Provide essential nodes.">
-        <node description="Output the current frame." outputType="float" function="core/frame" name="frame" position="20,100"
+        <node description="Output the current frame." outputType="float" function="core/frame" name="frame" position="1,1"
               image="frame.png">
             <port name="context" type="context"/>
         </node>
