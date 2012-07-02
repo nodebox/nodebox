@@ -1,12 +1,15 @@
 package nodebox.client;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import nodebox.node.*;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
+import org.python.google.common.base.Joiner;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -684,7 +687,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     //// Network navigation ////
 
     private void goUp() {
-        JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
+        if (getDocument().getActiveNetworkPath().equals("/")) return;
+        Iterable it = Splitter.on("/").split(getDocument().getActiveNetworkPath());
+        int parts = Iterables.size(it);
+        String path = parts - 1 > 1 ? Joiner.on("/").join(Iterables.limit(it, parts - 1)) : "/";
+        getDocument().setActiveNetwork(path);
     }
 
     private void goDown() {
@@ -1024,7 +1031,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         public void actionPerformed(ActionEvent e) {
-
+            Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+            String childPath = Node.path(getDocument().getActiveNetworkPath(), node.getName());
+            getDocument().setActiveNetwork(childPath);
         }
     }
 }
