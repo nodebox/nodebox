@@ -97,18 +97,11 @@ public class NodeContext {
             Class outputType = ListUtils.listClass(outputValues);
             // Convert IGeometry type to points
             if (inputType.equals(Port.TYPE_POINT) && IGeometry.class.isAssignableFrom(outputType)) {
-                ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-                for (Object o : outputValues) {
-                    b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
-                }
-                return b.build();
-            } else if (inputType.equals(Port.TYPE_INT) && outputType.equals(Double.class)) {
-                ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-                for (Object o : outputValues) {
-                    b.add(((Double) o).intValue());
-                }
-                return b.build();
-            }
+                return Conversions.geometryToPoints(outputValues);
+            } else if (inputType.equals(Port.TYPE_INT) && Double.class.isAssignableFrom(outputType)) {
+                return Conversions.doubleToInt(outputValues);
+            } else if (inputType.equals(Port.TYPE_STRING))
+                return Conversions.toString(outputValues);
             return outputValues;
         } else {
             List<Object> list = new ArrayList<Object>();
@@ -487,4 +480,26 @@ public class NodeContext {
         public void call(List<Object> arguments, List<Object> results);
     }
 
+    private static final class Conversions {
+        private static Iterable<?> geometryToPoints(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
+            return b.build();
+        }
+
+        private static Iterable<?> doubleToInt(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(((Long) (Math.round((Double) o))).intValue());
+            return b.build();
+        }
+
+        private static Iterable<?> toString(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(o.toString());
+            return b.build();
+        }
+    };
 }
