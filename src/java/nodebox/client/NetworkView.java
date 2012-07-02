@@ -67,6 +67,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private final NodeBoxDocument document;
 
     private JPopupMenu networkMenu;
+    private Point networkMenuLocation;
+
+    private JPopupMenu nodeMenu;
+    private Point nodeMenuLocation;
 
     // View state
     private double viewX, viewY, viewScale = 1;
@@ -89,7 +93,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
-    private Point networkMenuLocation;
 
     static {
         Image panCursorImage;
@@ -196,6 +199,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
+
+        nodeMenu = new JPopupMenu();
+        nodeMenu.add(new SetRenderedAction());
+        nodeMenu.add(new RenameAction());
+        nodeMenu.add(new DeleteAction());
+        nodeMenu.add(new GoInAction());
     }
 
     public NodeBoxDocument getDocument() {
@@ -764,8 +773,15 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
-            networkMenuLocation = e.getPoint();
-            networkMenu.show(this, e.getX(), e.getY());
+            Point pt = e.getPoint();
+            Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
+            if (pressedNode != null) {
+                nodeMenuLocation = pt;
+                nodeMenu.show(this, e.getX(), e.getY());
+            } else {
+                networkMenuLocation = pt;
+                networkMenu.show(this, e.getX(), e.getY());
+            }
         } else {
             // If the space bar and mouse is pressed, we're getting ready to pan the view.
             if (isSpacePressed) {
@@ -961,4 +977,46 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
+    private class SetRenderedAction extends AbstractAction {
+        private SetRenderedAction() {
+            super("Set Rendered");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+            document.setRenderedNode(node);
+        }
+    }
+
+    private class RenameAction extends AbstractAction {
+        private RenameAction() {
+            super("Rename");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+
+        }
+    }
+
+    private class DeleteAction extends AbstractAction {
+        private DeleteAction() {
+            super("Delete");
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            deleteSelection();
+        }
+    }
+
+    private class GoInAction extends AbstractAction {
+        private GoInAction() {
+            super("Edit Children");
+            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+
+        }
+    }
 }
