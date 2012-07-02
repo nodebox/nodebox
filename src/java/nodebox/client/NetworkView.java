@@ -994,7 +994,15 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         public void actionPerformed(ActionEvent e) {
-
+            Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+            String s = JOptionPane.showInputDialog(NetworkView.this, "New name:", node.getName());
+            if (s == null || s.length() == 0)
+                return;
+            try {
+                getDocument().setNodeName(node, s);
+            } catch (InvalidNameException ex) {
+                JOptionPane.showMessageDialog(NetworkView.this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
