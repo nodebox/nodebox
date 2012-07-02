@@ -89,6 +89,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
+    private Point networkMenuLocation;
 
     static {
         Image panCursorImage;
@@ -192,6 +193,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void initMenus() {
         networkMenu = new JPopupMenu();
+        networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
     }
@@ -762,6 +764,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
+            networkMenuLocation = e.getPoint();
             networkMenu.show(this, e.getX(), e.getY());
         } else {
             // If the space bar and mouse is pressed, we're getting ready to pan the view.
@@ -924,6 +927,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private Point2D minPoint(Point2D a, Point2D b) {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
+    }
+
+    private class NewNodeAction extends AbstractAction {
+        private NewNodeAction() {
+            super("New Node");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Point gridPoint = pointToGridPoint(networkMenuLocation);
+            getDocument().showNodeSelectionDialog(gridPoint);
+        }
     }
 
     private class ResetViewAction extends AbstractAction {
