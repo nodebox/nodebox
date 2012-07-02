@@ -2,12 +2,17 @@ package nodebox.node;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.IGeometry;
+import nodebox.graphics.Color;
+import nodebox.graphics.Point;
 import nodebox.util.ListUtils;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.*;
@@ -21,6 +26,41 @@ public class NodeContext {
     private final Map<NodePort, Iterable<?>> inputValuesMap = new HashMap<NodePort, Iterable<?>>();
     private final Set<Node> renderedNodes = new HashSet<Node>();
 
+    private final static ImmutableMap<ConversionPair, String> conversionMap;
+    private final static ImmutableList<Class> ancestorTypes;
+
+    static {
+        ImmutableMap.Builder<ConversionPair, String> builder = ImmutableMap.builder();
+        builder.put(ConversionPair.of(Port.TYPE_STRING, Object.class), "toString");
+        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, String.class), "stringToBoolean");
+        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Long.class), "numberToBoolean");
+        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Double.class), "numberToBoolean");
+        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Number.class), "numberToBoolean");
+        builder.put(ConversionPair.of(Port.TYPE_INT, Double.class), "doubleToInt");
+        builder.put(ConversionPair.of(Port.TYPE_INT, String.class), "stringToInt");
+        builder.put(ConversionPair.of(Port.TYPE_INT, Boolean.class), "booleanToInt");
+        builder.put(ConversionPair.of(Port.TYPE_FLOAT, String.class), "stringToDouble");
+        builder.put(ConversionPair.of(Port.TYPE_FLOAT, Boolean.class), "booleanToDouble");
+        builder.put(ConversionPair.of(Port.TYPE_POINT, IGeometry.class), "geometryToPoints");
+        builder.put(ConversionPair.of(Port.TYPE_POINT, Long.class), "numberToPoint");
+        builder.put(ConversionPair.of(Port.TYPE_POINT, Double.class), "numberToPoint");
+        builder.put(ConversionPair.of(Port.TYPE_POINT, Number.class), "numberToPoint");
+        builder.put(ConversionPair.of(Port.TYPE_POINT, String.class), "stringToPoint");
+        builder.put(ConversionPair.of(Port.TYPE_COLOR, Long.class), "intToColor");
+        builder.put(ConversionPair.of(Port.TYPE_COLOR, Double.class), "doubleToColor");
+        builder.put(ConversionPair.of(Port.TYPE_COLOR, String.class), "stringToColor");
+        builder.put(ConversionPair.of(Port.TYPE_COLOR, Boolean.class), "booleanToColor");
+        conversionMap = builder.build();
+
+        ImmutableList.Builder<Class> b = ImmutableList.builder();
+        b.add(IGeometry.class);
+        b.add(Boolean.class);
+        b.add(Long.class);
+        b.add(Double.class);
+        b.add(Number.class);
+        b.add(String.class);
+        ancestorTypes = b.build();
+    }
 
     public NodeContext(NodeLibrary nodeLibrary) {
         this(nodeLibrary, null, 1);
@@ -92,17 +132,32 @@ public class NodeContext {
         return renderNode(child);
     }
 
+    private Class getAncestorType(Class type) {
+        for (Class klass : ancestorTypes) {
+            if (klass.isAssignableFrom(type))
+                return klass;
+        }
+        return Object.class;
+    }
+
     private Iterable<?> convert(Iterable<?> outputValues, String inputType) {
         if (level(outputValues) == 0) {
             Class outputType = ListUtils.listClass(outputValues);
-            // Convert IGeometry type to points
-            if (inputType.equals(Port.TYPE_POINT) && IGeometry.class.isAssignableFrom(outputType)) {
-                return Conversions.geometryToPoints(outputValues);
-            } else if (inputType.equals(Port.TYPE_INT) && Double.class.isAssignableFrom(outputType)) {
-                return Conversions.doubleToInt(outputValues);
-            } else if (inputType.equals(Port.TYPE_STRING))
-                return Conversions.toString(outputValues);
-            return outputValues;
+            Class ancestorType = getAncestorType(outputType);
+            String conversionMethod = conversionMap.get(ConversionPair.of(inputType, ancestorType));
+
+            if (conversionMethod != null) {
+                try {
+                    for (Method method : Conversions.class.getDeclaredMethods()) {
+                        if (method.getName().equals(conversionMethod))
+                            return (Iterable<?>) method.invoke(null, outputValues);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException("Error while accessing conversion method.", e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException("Error while accessing conversion method.", e);
+                }
+            }
         } else {
             List<Object> list = new ArrayList<Object>();
             for (Object o : outputValues) {
@@ -110,6 +165,8 @@ public class NodeContext {
             }
             return list;
         }
+
+        return outputValues;
     }
 
     /**
@@ -183,13 +240,13 @@ public class NodeContext {
      * Calculate the level of nesting for a given iterable.
      *
      * @param it The iterable to check
-     * @return  The level of nesting
+     * @return The level of nesting
      */
     private int level(Iterable it) {
         if (it == null) return 0;
 
         Iterator<?> iterator = it.iterator();
-        if (! iterator.hasNext()) return 0;
+        if (!iterator.hasNext()) return 0;
         Object first = iterator.next();
         // We check if the structure implements List rather than Iterable,
         // because we might be interested in certain kind of iterables (for example a Path object).
@@ -205,7 +262,7 @@ public class NodeContext {
      * Only if the given value contains a list, a value higher could be returned.
      *
      * @param v The input port value
-     * @return  The level of nesting
+     * @return The level of nesting
      */
     private int level(ValueOrList v) {
         if (!v.isList()) return 0;
@@ -216,7 +273,7 @@ public class NodeContext {
      * Calculate the expected level of nesting for the given set of input values.
      *
      * @param values A set of input values, either nested or unnested
-     * @return       The nesting output level.
+     * @return The nesting output level.
      */
     private int outputLevel(List<ValueOrList> values) {
         int sum = 0;
@@ -440,6 +497,35 @@ public class NodeContext {
 
     }
 
+    public static final class ConversionPair {
+        private final String type;
+        private final Class klass;
+
+        public static ConversionPair of(String type, Class klass) {
+            return new ConversionPair(type, klass);
+        }
+
+        private ConversionPair(String type, Class klass) {
+            checkNotNull(type);
+            checkNotNull(klass);
+            this.type = type;
+            this.klass = klass;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof ConversionPair)) return false;
+            final ConversionPair other = (ConversionPair) o;
+            return Objects.equal(type, other.type)
+                    && Objects.equal(klass, other.klass);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(type, klass);
+        }
+    }
+
     /**
      * This is used as the key for the inputValuesMap.
      */
@@ -481,25 +567,112 @@ public class NodeContext {
     }
 
     private static final class Conversions {
-        private static Iterable<?> geometryToPoints(Iterable<?> values) {
+        public static Iterable<?> geometryToPoints(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
             return b.build();
         }
 
-        private static Iterable<?> doubleToInt(Iterable<?> values) {
+        public static Iterable<?> doubleToInt(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Long) (Math.round((Double) o))).intValue());
             return b.build();
         }
 
-        private static Iterable<?> toString(Iterable<?> values) {
+        public static Iterable<?> toString(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(o.toString());
             return b.build();
         }
-    };
+
+        public static Iterable<?> stringToInt(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(Integer.parseInt((String) o));
+            return b.build();
+        }
+
+        public static Iterable<?> stringToDouble(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(Double.parseDouble((String) o));
+            return b.build();
+        }
+
+        public static Iterable<?> stringToBoolean(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(Boolean.parseBoolean(((String) o).toLowerCase()));
+            return b.build();
+        }
+
+        public static Iterable<?> booleanToInt(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(((Boolean) o) ? 1 : 0);
+            return b.build();
+        }
+
+        public static Iterable<?> booleanToDouble(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(((Boolean) o) ? 1.0 : 0.0);
+            return b.build();
+        }
+
+        public static Iterable<?> numberToBoolean(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(((Integer) o) == 1);
+            return b.build();
+        }
+
+        public static Iterable<?> stringToColor(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(Color.parseColor((String) o));
+            return b.build();
+        }
+
+        public static Iterable<?> intToColor(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(new Color(((Long) o) / 255.0));
+            return b.build();
+        }
+
+        public static Iterable<?> doubleToColor(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(new Color((Double) o));
+            return b.build();
+        }
+
+        public static Iterable<?> booleanToColor(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values)
+                b.add(((Boolean) o) ? Color.WHITE : Color.BLACK);
+            return b.build();
+        }
+
+        public static Iterable<?> numberToPoint(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values) {
+                double d = ((Number) o).doubleValue();
+                b.add(new Point(d, d));
+            }
+            return b.build();
+        }
+
+        public static Iterable<?> stringToPoint(Iterable<?> values) {
+            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
+            for (Object o : values) {
+                b.add(Point.valueOf((String) o));
+            }
+            return b.build();
+        }
+    }
 }
