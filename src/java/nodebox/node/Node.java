@@ -828,12 +828,31 @@ public final class Node {
      *
      * @param childName The name of the child node to be replaced
      * @param newChild  The new candidate node
-     * @return true if the resulting network would be internatlly consistent.
+     * @return true if the resulting network would be internally consistent.
      */
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
         for (PublishedPort pp : publishedInputs) {
             if (pp.getChildNode().equals(childName)) {
                 if (!newChild.hasInput(pp.getChildPort()))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if a new node of which the given node would become a new child node is internally
+     * consistent with the connections it already has, for example if the network
+     * still exposes a child port that was removed from the candidate node.
+     *
+     * @param childName The name of the child node to be replaced
+     * @param newChild  The new candidate node
+     * @return true if the resulting network would be internally consistent.
+     */
+    private boolean isConsistentWithConnections(String childName, Node newChild) {
+        for (Connection c : connections) {
+            if (c.getInputNode().equals(childName)) {
+                if (!newChild.hasInput(c.getInputPort()))
                     return false;
             }
         }
@@ -862,6 +881,27 @@ public final class Node {
     }
 
     /**
+     * Create a new node of which the connections are consistent with
+     * the given node if the given node would become a new child of this node.
+     * Note that the given child node is NOT added as a new child on this node.
+     *
+     * @param childName The name of the child node to be replaced
+     * @param newChild  The candidate node
+     * @return A new node
+     */
+    private Node withConsistentConnections(String childName, Node newChild) {
+        ImmutableList.Builder<Connection> b = ImmutableList.builder();
+        for (Connection c : connections) {
+            if (c.getInputNode().equals(childName)) {
+                if (newChild.hasInput(c.getInputPort()))
+                    b.add(c);
+            } else
+                b.add(c);
+        }
+        return newNodeWithAttribute(Attribute.CONNECTIONS, b.build());
+    }
+
+    /**
      * Create a new node with the child replaced by the given node.
      * <p/>
      * If you call this on ROOT, extend() is called implicitly.
@@ -878,6 +918,10 @@ public final class Node {
 
         if (!isConsistentWithPublishedInputs(childName, newChild))
             return withConsistentPublishedInputs(childName, newChild)
+                    .withChildReplaced(childName, newChild);
+
+        if (!isConsistentWithConnections(childName, newChild))
+            return withConsistentConnections(childName, newChild)
                     .withChildReplaced(childName, newChild);
 
         ImmutableList.Builder<Node> b = ImmutableList.builder();
