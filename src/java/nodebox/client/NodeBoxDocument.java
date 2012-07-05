@@ -505,6 +505,16 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    public void publish(String inputNode, String inputPort, String publishedName) {
+        addEdit("Publish");
+        controller.publish(activeNetworkPath, inputNode, inputPort, publishedName);
+    }
+
+    public void unpublish(String publishedName) {
+        addEdit("Unpublish");
+        controller.unpublish(activeNetworkPath, publishedName);
+    }
+
     /**
      * @param node     the node on which to add the port
      * @param portName the name of the new port

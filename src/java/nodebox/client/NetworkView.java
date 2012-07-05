@@ -790,13 +790,20 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
             Point pt = e.getPoint();
-            Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
-            if (pressedNode != null) {
-                nodeMenuLocation = pt;
-                nodeMenu.show(this, e.getX(), e.getY());
+            NodePort nodePort = getInputPortAt(inverseViewTransformPoint(pt));
+            if (nodePort != null) {
+                JPopupMenu pMenu = new JPopupMenu();
+                pMenu.add(new PublishAction(nodePort));
+                pMenu.show(this, e.getX(), e.getY());
             } else {
-                networkMenuLocation = pt;
-                networkMenu.show(this, e.getX(), e.getY());
+                Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
+                if (pressedNode != null) {
+                    nodeMenuLocation = pt;
+                    nodeMenu.show(this, e.getX(), e.getY());
+                } else {
+                    networkMenuLocation = pt;
+                    networkMenu.show(this, e.getX(), e.getY());
+                }
             }
         } else {
             // If the space bar and mouse is pressed, we're getting ready to pan the view.
@@ -990,6 +997,38 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
         public void actionPerformed(ActionEvent e) {
             goUp();
+        }
+    }
+
+    private class PublishAction extends AbstractAction {
+        private NodePort nodePort;
+
+        private PublishAction(NodePort nodePort) {
+            super(getActiveNetwork().hasPublishedChildInput(nodePort.getNode(), nodePort.getPort()) ? "Unpublish" : "Publish");
+            this.nodePort = nodePort;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            if (getActiveNetwork().hasPublishedChildInput(nodePort.getNode(), nodePort.getPort())) {
+                unpublish();
+            } else {
+                publish();
+            }
+        }
+
+        private void unpublish() {
+            for (PublishedPort pp : getActiveNetwork().getPublishedInputs()) {
+                if (pp.getChildNode().equals(nodePort.getNode()) &&
+                        pp.getChildPort().equals(nodePort.getPort()))
+                    getDocument().unpublish(pp.getPublishedName());
+            }
+        }
+
+        private void publish() {
+            String s = JOptionPane.showInputDialog(NetworkView.this, "Publish as:", nodePort.getPort());
+            if (s == null || s.length() == 0)
+                return;
+            getDocument().publish(nodePort.getNode(), nodePort.getPort(), s);
         }
     }
 
