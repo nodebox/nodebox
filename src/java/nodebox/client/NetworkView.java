@@ -402,7 +402,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         // Draw input ports
         g.setColor(Color.WHITE);
         int portX = 0;
-        for (Port input : node.getInputs()) {
+        for (Port input : node.getAllInputs()) {
             if (hoverInputPort == input) {
                 g.setColor(PORT_HOVER_COLOR);
             } else {
@@ -442,6 +442,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             Rectangle r = inputPortRect(overInputNode, overInputPort);
             Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
             String text = String.format("%s (%s)", overInput.port, overInputPort.getType());
+            if (overInputNode.hasPublishedInput(overInput.port))
+                text = text + " (published)";
             paintTooltip(g, pt, text);
         } else if (overOutput != null && connectionOutput == null) {
             Rectangle r = outputPortRect(overOutput);
@@ -526,7 +528,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private static int portOffset(Node node, Port port) {
-        int portIndex = node.getInputs().indexOf(port);
+        int portIndex = node.getAllInputs().indexOf(port);
         return (PORT_WIDTH + PORT_SPACING) * portIndex;
     }
 
@@ -597,6 +599,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public NodePort getInputPortAt(Point2D point) {
         for (Node node : getNodesReversed()) {
+            for (PublishedPort port : node.getPublishedInputs()) {
+                Rectangle r = inputPortRect(node, node.getInput(port.getPublishedName()));
+                if (r.contains(point))
+                    return NodePort.of(node.getName(), port.getPublishedName());
+            }
             for (Port port : node.getInputs()) {
                 Rectangle r = inputPortRect(node, port);
                 if (r.contains(point)) {
@@ -838,9 +845,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         isDraggingNodes = false;
         isDragSelecting = false;
         if (connectionOutput != null && connectionInput != null) {
-            Node inputNode = findNodeWithName(connectionInput.node);
-            Port inputPort = inputNode.getInput(connectionInput.port);
-            getDocument().connect(connectionOutput, inputNode, inputPort);
+            getDocument().connect(connectionOutput.getName(), connectionInput.node, connectionInput.port);
         }
         connectionOutput = null;
         if (e.isPopupTrigger()) {

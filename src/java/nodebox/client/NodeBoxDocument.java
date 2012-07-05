@@ -481,7 +481,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * @param inputNode  The input node.
      * @param inputPort  The input port.
      */
-    public void connect(Node outputNode, Node inputNode, Port inputPort) {
+    public void connect(String outputNode, String inputNode, String inputPort) {
         addEdit("Connect");
         controller.connect(activeNetworkPath, outputNode, inputNode, inputPort);
 
