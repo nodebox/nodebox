@@ -439,7 +439,28 @@ public class NodeContextTest {
         assertResultsEqual(context.getResults(subnet), 110.0);
     }
 
-        @Test
+    @Test
+    public void testRenderUnpublishAndDisconnect() {
+        Node subnet = createSubnetwork("subnet", 2.0, 3.0)
+                .publish("number1", "number", "n1")
+                .publish("number2", "number", "n2");
+        Node number = numberNode.extend()
+                .withName("number")
+                .withInputValue("number", 11.0);
+        Node net = Node.ROOT
+                .withChildAdded(number)
+                .withChildAdded(subnet)
+                .withRenderedChildName("subnet")
+                .connect("number", "subnet", "n1");
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 14.0);
+        subnet = subnet.unpublish("n1");
+        net = net.withChildReplaced("subnet", subnet);
+        context.renderNetwork(net);
+        assertResultsEqual(context.getResults(subnet), 5.0);
+    }
+
+    @Test
     public void testFrame() {
         Node frame = Node.ROOT
                 .withName("frame")
