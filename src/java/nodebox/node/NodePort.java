@@ -10,29 +10,25 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * This is used as the key for the inputValuesMap.
  */
 public final class NodePort {
-    public final Node node;
-    public final Port port;
+    public final String node;
+    public final String port;
 
-    public static NodePort of(Node node, Port port) {
+    public static NodePort of(String node, String port) {
         return new NodePort(node, port);
     }
 
-    public static NodePort of(Node node, String portName) {
-        return new NodePort(node, node.getInput(portName));
-    }
-
-    NodePort(Node node, Port port) {
+    NodePort(String node, String port) {
         checkNotNull(node);
         checkNotNull(port);
         this.node = node;
         this.port = port;
     }
 
-    public Node getNode() {
+    public String getNode() {
         return node;
     }
 
-    public Port getPort() {
+    public String getPort() {
         return port;
     }
 

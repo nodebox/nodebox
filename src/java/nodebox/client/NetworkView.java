@@ -360,7 +360,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private void paintNodes(Graphics2D g) {
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         for (Node node : getNodes()) {
-            Port hoverInputPort = overInput != null && overInput.node == node ? overInput.port : null;
+            Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
             paintNode(g, node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
         }
@@ -437,9 +437,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void paintPortTooltip(Graphics2D g) {
         if (overInput != null) {
-            Rectangle r = inputPortRect(overInput.node, overInput.port);
+            Node overInputNode = findNodeWithName(overInput.node);
+            Port overInputPort = overInputNode.getInput(overInput.port);
+            Rectangle r = inputPortRect(overInputNode, overInputPort);
             Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
-            String text = String.format("%s (%s)", overInput.port.getName(), overInput.port.getType());
+            String text = String.format("%s (%s)", overInput.port, overInputPort.getType());
             paintTooltip(g, pt, text);
         } else if (overOutput != null && connectionOutput == null) {
             Rectangle r = outputPortRect(overOutput);
@@ -598,7 +600,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             for (Port port : node.getInputs()) {
                 Rectangle r = inputPortRect(node, port);
                 if (r.contains(point)) {
-                    return NodePort.of(node, port);
+                    return NodePort.of(node.getName(), port.getName());
                 }
             }
         }
@@ -807,7 +809,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             connectionInput = getInputPortAt(pt);
             if (connectionInput != null) {
                 // We're over a port, but is it connected?
-                Connection c = getActiveNetwork().getConnection(connectionInput.node.getName(), connectionInput.port.getName());
+                Connection c = getActiveNetwork().getConnection(connectionInput.node, connectionInput.port);
                 // Disconnect it, but start a new connection on the same node immediately.
                 if (c != null) {
                     getDocument().disconnect(c);
@@ -836,7 +838,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         isDraggingNodes = false;
         isDragSelecting = false;
         if (connectionOutput != null && connectionInput != null) {
-            getDocument().connect(connectionOutput, connectionInput.node, connectionInput.port);
+            Node inputNode = findNodeWithName(connectionInput.node);
+            Port inputPort = inputNode.getInput(connectionInput.port);
+            getDocument().connect(connectionOutput, inputNode, inputPort);
         }
         connectionOutput = null;
         if (e.isPopupTrigger()) {

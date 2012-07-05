@@ -527,38 +527,6 @@ public class NodeContext {
     }
 
     /**
-     * This is used as the key for the inputValuesMap.
-     */
-    public static final class NodePort {
-        private final String node;
-        private final String port;
-
-        public static NodePort of(String node, String port) {
-            return new NodePort(node, port);
-        }
-
-        private NodePort(String node, String port) {
-            checkNotNull(node);
-            checkNotNull(port);
-            this.node = node;
-            this.port = port;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof NodePort)) return false;
-            final NodePort other = (NodePort) o;
-            return Objects.equal(node, other.node)
-                    && Objects.equal(port, other.port);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(node, port);
-        }
-    }
-
-    /**
      * Higher-order function that receives a list of arguments to invoke a function with.
      * It can add something to the list of results, if it wants.
      */
