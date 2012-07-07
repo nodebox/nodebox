@@ -688,7 +688,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * @param value    The new value.
      */
     public void setValue(String portName, Object value) {
-        Port port = checkValidPort(portName);
+        checkValidPort(portName);
         addEdit("Change Value", "changeValue", getActiveNodePath() + "#" + portName);
 
         controller.setPortValue(getActiveNodePath(), portName, value);
@@ -698,7 +698,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 //            nodeLibrary.setVariable(port.getName(), port.asString());
 //        }
 
-        portView.updatePortValue(port, value);
+        portView.updatePortValue(portName, value);
         // Setting a port might change enable expressions, and thus change the enabled state of a port row.
         portView.updateEnabledState();
         // Setting a port might change the enabled state of the handle.
@@ -915,10 +915,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public boolean hasInput(String portName) {
         Node node = getActiveNode();
         return node.hasInput(portName);
-    }
-
-    public boolean isConnected(Port p) {
-        return isConnected(p.getName());
     }
 
     public boolean isConnected(String portName) {

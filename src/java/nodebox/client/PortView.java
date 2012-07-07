@@ -95,14 +95,11 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
      * <p/>
      * Display the new value in the port's control UI.
      *
-     * @param port  The changed port.
-     * @param value The new port value.
+     * @param portName  The changed port.
+     * @param value     The new port value.
      */
-    public void updatePortValue(Port port, Object value) {
-        // Nodes that have expressions set don't display the actual value but the expression.
-        // Since the expression doesn't change, we can return immediately.
-        if (port.hasExpression()) return;
-        PortControl control = getControlForPort(port);
+    public void updatePortValue(String portName, Object value) {
+        PortControl control = getControlForPort(portName);
         if (control != null && control.isVisible()) {
             control.setValueForControl(value);
         }
@@ -133,7 +130,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             if (p.isCustomType()) continue;
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
-            if (getDocument().isConnected(p)) {
+            if (getDocument().isConnected(p.getName())) {
                 control = new JLabel("<connected>");
                 control.setMinimumSize(new Dimension(10, 35));
                 control.setFont(Theme.SMALL_FONT);
@@ -185,8 +182,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
         }
     }
 
-    public PortControl getControlForPort(Port p) {
-        return controlMap.get(p.getName());
+    public PortControl getControlForPort(String portName) {
+        return controlMap.get(portName);
     }
 
     public void onValueChange(PortControl control, Object newValue) {
