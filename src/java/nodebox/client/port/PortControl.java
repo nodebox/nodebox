@@ -9,6 +9,10 @@ public interface PortControl {
 
     public Port getPort();
 
+    public String getDisplayName();
+
+    public void setDisplayName(String displayName);
+
     public void setValueForControl(Object v);
 
     public boolean isEnabled();

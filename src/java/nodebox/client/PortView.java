@@ -3,6 +3,7 @@ package nodebox.client;
 import nodebox.client.port.*;
 import nodebox.node.Node;
 import nodebox.node.Port;
+import nodebox.node.PublishedPort;
 import nodebox.ui.Pane;
 import nodebox.ui.PaneView;
 import nodebox.ui.Theme;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
 
 public class PortView extends JComponent implements PaneView, PortControl.OnValueChangeListener {
 
@@ -95,8 +97,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
      * <p/>
      * Display the new value in the port's control UI.
      *
-     * @param portName  The changed port.
-     * @param value     The new port value.
+     * @param portName The changed port.
+     * @param value    The new port value.
      */
     public void updatePortValue(String portName, Object value) {
         PortControl control = getControlForPort(portName);
@@ -121,16 +123,26 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     private void rebuildInterface() {
         controlPanel.removeAll();
         controlMap.clear();
-        if (getActiveNode() == null) return;
+        Node node = getActiveNode();
+
+        if (node == null) return;
         int rowIndex = 0;
-        for (Port p : getActiveNode().getInputs()) {
-            // Ports starting with underscores are hidden.
-            if (p.getName().startsWith("_")) continue;
+
+        ArrayList<String> portNames = new ArrayList<String>();
+
+        for (PublishedPort pp : node.getPublishedInputs())
+            portNames.add(pp.getPublishedName());
+        for (Port p : node.getInputs())
+            portNames.add(p.getName());
+
+        for (String portName : portNames) {
+            Port p = node.getInput(portName);
+            if (portName.startsWith("_") || p.getName().startsWith("_")) continue;
             // Ports of which the values aren't persisted are hidden as well.
             if (p.isCustomType()) continue;
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
-            if (getDocument().isConnected(p.getName())) {
+            if (getDocument().isConnected(portName)) {
                 control = new JLabel("<connected>");
                 control.setMinimumSize(new Dimension(10, 35));
                 control.setFont(Theme.SMALL_FONT);
@@ -138,7 +150,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             } else if (widgetClass != null) {
                 control = (JComponent) constructControl(widgetClass, p);
                 ((PortControl) control).setValueChangeListener(this);
-                controlMap.put(p.getName(), (PortControl) control);
+                ((PortControl) control).setDisplayName(portName);
+                controlMap.put(portName, (PortControl) control);
             } else {
                 control = new JLabel("  ");
             }
@@ -148,7 +161,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             rowConstraints.gridy = rowIndex;
             rowConstraints.fill = GridBagConstraints.HORIZONTAL;
             rowConstraints.weightx = 1.0;
-            PortRow portRow = new PortRow(getDocument(), p.getName(), control);
+            PortRow portRow = new PortRow(getDocument(), portName, control);
             portRow.setEnabled(p.isEnabled());
             controlPanel.add(portRow, rowConstraints);
             rowIndex++;
@@ -187,7 +200,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     }
 
     public void onValueChange(PortControl control, Object newValue) {
-        document.setValue(control.getPort().getName(), newValue);
+        document.setValue(control.getDisplayName(), newValue);
     }
 
     private class ControlPanel extends JPanel {

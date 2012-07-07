@@ -7,10 +7,20 @@ import javax.swing.*;
 public abstract class AbstractPortControl extends JComponent implements PortControl {
 
     protected Port port;
+    private String displayName;
     private OnValueChangeListener onValueChangeListener;
 
     protected AbstractPortControl(Port port) {
         this.port = port;
+        displayName = port.getName();
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public Port getPort() {

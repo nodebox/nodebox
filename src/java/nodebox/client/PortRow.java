@@ -4,6 +4,7 @@ import nodebox.node.Node;
 import nodebox.node.Port;
 import nodebox.ui.ShadowLabel;
 import nodebox.ui.Theme;
+import nodebox.util.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -46,7 +47,7 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
         Dimension labelSize = new Dimension(PortView.LABEL_WIDTH, 16);
 
         Port port = getPort();
-        label = new ShadowLabel(port.getLabel());
+        label = new ShadowLabel(StringUtils.humanizeName(portName));
         label.setToolTipText(port.getName());
         label.setBorder(null);
         label.setPreferredSize(labelSize);
