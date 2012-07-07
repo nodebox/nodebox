@@ -134,8 +134,9 @@ public class NodeContext {
 
     private Class getAncestorType(Class type) {
         for (Class klass : ancestorTypes) {
-            if (klass.isAssignableFrom(type))
-                return klass;
+            Class<?> c = klass;
+            if (c.isAssignableFrom(type))
+                return c;
         }
         return Object.class;
     }

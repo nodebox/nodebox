@@ -697,7 +697,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void goUp() {
         if (getDocument().getActiveNetworkPath().equals("/")) return;
-        Iterable it = Splitter.on("/").split(getDocument().getActiveNetworkPath());
+        Iterable<String> it = Splitter.on("/").split(getDocument().getActiveNetworkPath());
         int parts = Iterables.size(it);
         String path = parts - 1 > 1 ? Joiner.on("/").join(Iterables.limit(it, parts - 1)) : "/";
         getDocument().setActiveNetwork(path);
