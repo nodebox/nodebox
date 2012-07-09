@@ -366,7 +366,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
     }
 
-    private static Color portTypeColor(String type) {
+    public static Color portTypeColor(String type) {
         Color portColor = PORT_COLORS.get(type);
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }

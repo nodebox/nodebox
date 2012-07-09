@@ -11,6 +11,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataListener;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -132,7 +133,14 @@ public class NodeSelectionDialog extends JDialog {
             }
             setEnabled(list.isEnabled());
             setFont(list.getFont());
-            setIcon(new ImageIcon(NetworkView.getImageForNode(node, repository)));
+            int iconSize = NetworkView.NODE_ICON_SIZE;
+            int nodePadding = NetworkView.NODE_PADDING;
+            BufferedImage bi = new BufferedImage(iconSize + nodePadding * 2, iconSize + nodePadding * 2, BufferedImage.TYPE_INT_ARGB);
+            Graphics g = bi.createGraphics();
+            g.setColor(NetworkView.portTypeColor(node.getOutputType()));
+            g.fillRect(0, 0, iconSize + nodePadding * 2, iconSize + nodePadding * 2);
+            g.drawImage(NetworkView.getImageForNode(node, repository), nodePadding, nodePadding, iconSize, iconSize, null, null);
+            setIcon(new ImageIcon(bi));
             setBorder(Theme.BOTTOM_BORDER);
             setOpaque(true);
             return this;
