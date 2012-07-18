@@ -2,7 +2,7 @@
 
 # Convert SVG artwork to PNG images.
 # The SVG images are created as black artwork, so we also invert them.
-# This script needs png2svg and ImageMagick to work.
+# This script needs png2svg (or Inkscape if you're not using Mac) and ImageMagick to work.
 # On Mac, using Homebrew, you can install these dependencies like this:
 #
 #     brew install png2svg imagemagick
