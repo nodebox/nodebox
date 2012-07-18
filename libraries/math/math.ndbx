@@ -5,7 +5,7 @@
         <node description="Convert every number to a positive number." function="math/abs" image="generic.png" name="abs" position="4.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Add two numbers." function="math/add" image="generic.png" name="add" position="4.00,2.00">
+        <node description="Add two numbers." function="math/add" image="add.png" name="add" position="4.00,2.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="0.0" widget="float"/>
         </node>
@@ -56,7 +56,7 @@
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Divide two numbers." function="math/divide" image="generic.png" name="divide" position="7.00,5.00">
+        <node description="Divide two numbers." function="math/divide" image="divide.png" name="divide" position="7.00,5.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="1.0" widget="float"/>
         </node>
@@ -77,7 +77,7 @@
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="1.0" widget="float"/>
         </node>
-        <node description="Multiply two numbers." function="math/multiply" image="generic.png" name="multiply" position="4.00,5.00">
+        <node description="Multiply two numbers." function="math/multiply" image="multiply.png" name="multiply" position="4.00,5.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="1.0" widget="float"/>
         </node>
@@ -121,7 +121,7 @@
         <node description="Calculate the square root of a number." function="math/sqrt" image="sqrt.png" name="sqrt" position="7.00,7.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Subtract two numbers." function="math/subtract" image="generic.png" name="subtract" position="4.00,4.00">
+        <node description="Subtract two numbers." function="math/subtract" image="subtract.png" name="subtract" position="4.00,4.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="0.0" widget="float"/>
         </node>

@@ -136,7 +136,7 @@
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
             <port name="distance" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Generates a visual link between two shapes." function="corevector/link" name="link" position="7.00,1.00" prototype="generator">
+        <node description="Generates a visual link between two shapes." function="corevector/link" image="link.png" name="link" position="7.00,1.00" prototype="generator">
             <port name="shape1" range="value" type="geometry" widget="none"/>
             <port name="shape2" range="value" type="geometry" widget="none"/>
             <port name="orientation" range="value" type="string" value="horizontal" widget="menu">
@@ -160,7 +160,7 @@
             <port min="3.0" name="sides" range="value" type="int" value="3" widget="int"/>
             <port name="align" range="value" type="boolean" value="false" widget="toggle"/>
         </node>
-        <node description="Create a quadratic curve with one off-curve point." function="pyvector/quad_curve" name="quad_curve" position="4.00,6.00" prototype="generator">
+        <node description="Create a quadratic curve with one off-curve point." function="pyvector/quad_curve" image="quad_curve.png" name="quad_curve" position="4.00,6.00" prototype="generator">
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,0.00" widget="point"/>
             <port name="t" range="value" type="float" value="50.0" widget="float"/>
