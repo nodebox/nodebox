@@ -10,11 +10,17 @@
 from glob import glob
 from os import system
 import os.path
+import sys
 
 SOURCE_DIRECTORY = 'artwork'
 TARGET_DIRECTORY = 'libraries'
 
 LIBRARIES = ['corevector', 'coreimage', 'data', 'list', 'math']
+
+if sys.platform == 'darwin':
+    SVG2PNG_COMMAND = 'svg2png -w 26 -h 26 %s %s'
+else:
+    SVG2PNG_COMMAND = "inkscape -w 26 -h 26 -f %s -e %s"
 
 def png_file(svg_file, target_directory):
     base, ext = os.path.splitext(os.path.basename(svg_file))
@@ -25,7 +31,7 @@ def convert_svg_file(svg_file, target_directory, overwrite=False):
     target_file = png_file(svg_file, target_directory)
     if not os.path.exists(target_file) or overwrite:
         print target_file
-        os.system('svg2png -w 26 -h 26 %s %s' % (svg_file, target_file))
+        os.system(SVG2PNG_COMMAND % (svg_file, target_file))
         os.system('mogrify -negate %s' % target_file)
     
 def convert_directory(source_directory, target_directory):
