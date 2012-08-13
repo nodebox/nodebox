@@ -1,6 +1,5 @@
 package nodebox.client;
 
-import nodebox.base.Preconditions;
 import nodebox.ui.Theme;
 import org.python.util.PythonInterpreter;
 
@@ -13,6 +12,8 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Console extends JFrame implements WindowListener, FocusListener {
 
@@ -150,7 +151,7 @@ public class Console extends JFrame implements WindowListener, FocusListener {
             return;
         historyOffset--;
         if (historyOffset == 0) {
-            Preconditions.checkNotNull(temporarySavedCommand, "temporarySavedCommand is null.");
+            checkNotNull(temporarySavedCommand, "temporarySavedCommand is null.");
             setCommand(temporarySavedCommand);
             temporarySavedCommand = null;
         } else {
