@@ -131,5 +131,17 @@
         <node description="Calculate a value as an integer" function="math/toInteger" image="generic.png" name="to_integer" outputType="int" position="4.00,7.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
+        <node description="Calculate a value based from wave inputs." function="math/wave" image="generic.png" name="wave" position="10.00,6.00">
+            <port name="min" range="value" type="float" value="0.0" widget="float"/>
+            <port name="max" range="value" type="float" value="100.0" widget="float"/>
+            <port name="speed" range="value" type="float" value="60.0" widget="float"/>
+            <port name="frame" range="value" type="float" value="0.0" widget="float"/>
+            <port name="type" range="value" type="string" value="sine" widget="menu">
+                <menu key="sine" label="Sine"/>
+                <menu key="square" label="Square"/>
+                <menu key="triangle" label="Triangle"/>
+                <menu key="sawtooth" label="Sawtooth"/>
+            </port>
+        </node>
     </node>
 </ndbx>

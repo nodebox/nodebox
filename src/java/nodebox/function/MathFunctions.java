@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 import nodebox.util.Geometry;
+import nodebox.util.waves.*;
 
 import java.util.*;
 
@@ -21,6 +22,10 @@ public class MathFunctions {
     public static final String OVERFLOW_MIRROR = "mirror";
     public static final String OVERFLOW_CLAMP = "clamp";
     public static final String OVERFLOW_IGNORE = "ignore";
+    public static final String WAVE_SINE = "sine";
+    public static final String WAVE_SQUARE = "square";
+    public static final String WAVE_TRIANGLE = "triangle";
+    public static final String WAVE_SAWTOOTH = "sawtooth";
 
     static {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
@@ -30,7 +35,7 @@ public class MathFunctions {
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
                 "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos",
-                "convertRange",
+                "convertRange", "wave",
                 "slowNumber");
     }
 
@@ -311,8 +316,6 @@ public class MathFunctions {
         if (overflowMethod.equals(OVERFLOW_WRAP)) {
             value = srcMin + value % (srcMax - srcMin);
         } else if (overflowMethod.equals(OVERFLOW_MIRROR)) {
-
-
             double rest = value % (srcMax - srcMin);
             if ((int) (value / (srcMax - srcMin)) % 2 == 1)
                 value = srcMax - rest;
@@ -332,6 +335,23 @@ public class MathFunctions {
 
         // Convert value to target range.
         return targetMin + value * (targetMax - targetMin);
+    }
+
+    public static double wave(double min, double max, double speed, double frame, String waveType) {
+        float fmin = (float) min;
+        float fmax = (float) max;
+        float fspeed = (float) speed;
+
+        AbstractWave wave;
+        if (waveType.equals(WAVE_TRIANGLE))
+            wave = TriangleWave.from(fmin, fmax, fspeed);
+        else if (waveType.equals(WAVE_SQUARE))
+            wave = SquareWave.from(fmin, fmax, fspeed);
+        else if (waveType.equals(WAVE_SAWTOOTH))
+            wave = SawtoothWave.from(fmin, fmax, fspeed);
+        else
+            wave = SineWave.from(fmin, fmax, fspeed);
+        return wave.getValueAt((float) frame);
     }
 
 }
