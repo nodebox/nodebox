@@ -278,10 +278,8 @@ public class NodeContext {
      */
     private int outputLevel(List<ValueOrList> values) {
         int sum = 0;
-        int counter = 0;
         for (ValueOrList v : values) {
             sum += level(v);
-            counter += 1;
         }
         return sum;
     }
