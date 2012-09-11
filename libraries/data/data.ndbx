@@ -2,10 +2,10 @@
 <ndbx formatVersion="2" type="file" uuid="16d37cb2-e85b-4e00-a6a2-92340bd2c5b1">
     <link href="java:nodebox.function.DataFunctions" rel="functions"/>
     <node description="Import and manipulate all kinds of data." name="root" renderedChild="lookup">
-        <node description="Import a CSV file." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00">
+        <node description="Import a CSV file." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00" category="data">
             <port name="file" range="value" type="string" value="" widget="file"/>
         </node>
-        <node description="Look up a value." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00">
+        <node description="Look up a value." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
             <port name="list" range="value" type="list" widget="none"/>
             <port name="key" range="value" type="string" value="x" widget="string"/>
         </node>

@@ -145,6 +145,10 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, Node.Attribute.NAME))
             el.setAttribute("name", node.getName());
 
+        // Write category
+        if (shouldWriteAttribute(node, Node.Attribute.CATEGORY))
+            el.setAttribute("category", node.getCategory());
+
         // Write description
         if (shouldWriteAttribute(node, Node.Attribute.DESCRIPTION))
             el.setAttribute("description", node.getDescription());

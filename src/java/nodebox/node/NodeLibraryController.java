@@ -91,6 +91,11 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setNodeCategory(String nodePath, String category) {
+        Node newNode = getNode(nodePath).withCategory(category);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setNodeDescription(String nodePath, String description) {
         Node newNode = getNode(nodePath).withDescription(description);
         replaceNodeInPath(nodePath, newNode);

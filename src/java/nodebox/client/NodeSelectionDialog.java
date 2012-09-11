@@ -24,11 +24,13 @@ public class NodeSelectionDialog extends JDialog {
         private NodeRepository repository;
         private java.util.List<Node> filteredNodes;
         private String searchString;
+        private String category;
 
         private FilteredNodeListModel(NodeLibrary library, NodeRepository repository) {
             this.library = library;
             this.repository = repository;
             searchString = "";
+            category = null;
             filteredNodes = new ArrayList<Node>();
             filteredNodes.addAll(repository.getNodes());
             //filteredNodes.addAll(library.getExportedNodes());
@@ -44,7 +46,7 @@ public class NodeSelectionDialog extends JDialog {
             if (searchString.length() == 0) {
                 // Add all the nodes from the repository.
                 filteredNodes.clear();
-                filteredNodes.addAll(repository.getNodes());
+                filteredNodes.addAll(repository.getNodesByCategory(category));
                 // Add all the exported nodes from the current library.
                 //filteredNodes.addAll(library.getExportedNodes());
                 Collections.sort(filteredNodes, new NodeNameComparator());
@@ -53,7 +55,7 @@ public class NodeSelectionDialog extends JDialog {
 
                 filteredNodes.clear();
                 // Add all the nodes from the repository.
-                for (Node node : repository.getNodes()) {
+                for (Node node : repository.getNodesByCategory(category)) {
                     if (contains(node, searchString))
                         nodes.add(node);
                 }
@@ -65,6 +67,15 @@ public class NodeSelectionDialog extends JDialog {
 
                 filteredNodes.addAll(sortNodes(nodes, this.searchString));
             }
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+            setSearchString(searchString);
         }
 
         private boolean contains(Node node, String searchString) {
@@ -151,6 +162,7 @@ public class NodeSelectionDialog extends JDialog {
     private FilteredNodeListModel filteredNodeListModel;
 
     private final String ALL_CATEGORIES = "All";
+    private final String OTHER_CATEGORIES = "Other";
 
     public NodeSelectionDialog(NodeLibrary library, NodeRepository repository) {
         this(null, library, repository);
@@ -195,10 +207,12 @@ public class NodeSelectionDialog extends JDialog {
 
     public void reloadCategories() {
         categoryList.removeAll();
-        categoryList.addCategory(ALL_CATEGORIES);
-        //categoryList.addCategory("Geometry");
-        //categoryList.addCategory("Math");
-        //categoryList.addCategory("String");
+        categoryList.addCategory(ALL_CATEGORIES, null);
+        for (String category : repository.getCategories()) {
+            if (category != null && ! category.isEmpty())
+                categoryList.addCategory(StringUtils.humanizeName(category), category);
+        }
+        categoryList.addCategory(OTHER_CATEGORIES, "");
         categoryList.setSelectedCategory(ALL_CATEGORIES);
     }
 
@@ -302,11 +316,14 @@ public class NodeSelectionDialog extends JDialog {
 
     private class CategoryLabel extends JComponent {
 
-        private String category;
+        private String text;
+        private Object source;
+
         private boolean selected;
 
-        private CategoryLabel(String category) {
-            this.category = category;
+        private CategoryLabel(String text, Object source) {
+            this.text = text;
+            this.source = source;
             setMinimumSize(new Dimension(100, 25));
             setMaximumSize(new Dimension(500, 25));
             setPreferredSize(new Dimension(120, 25));
@@ -332,7 +349,7 @@ public class NodeSelectionDialog extends JDialog {
             }
             g2.setFont(Theme.SMALL_FONT);
             g2.setColor(Color.BLACK);
-            g2.drawString(category, 15, 18);
+            g2.drawString(text, 15, 18);
         }
     }
 
@@ -351,14 +368,14 @@ public class NodeSelectionDialog extends JDialog {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         }
 
-        public void addCategory(final String category) {
-            final CategoryLabel label = new CategoryLabel(category);
+        public void addCategory(final String categoryLabel, final Object source) {
+            final CategoryLabel label = new CategoryLabel(categoryLabel, source);
             label.addMouseListener(new MouseInputAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     setSelectedCategory(label);
                 }
             });
-            labelMap.put(category, label);
+            labelMap.put(categoryLabel, label);
             add(label);
         }
 
@@ -368,6 +385,12 @@ public class NodeSelectionDialog extends JDialog {
             selectedCategory = label;
             if (selectedCategory != null) {
                 selectedCategory.setSelected(true);
+                filteredNodeListModel.setCategory((String) selectedCategory.source);
+                // Trigger a model reload.
+                nodeList.setModel(filteredNodeListModel);
+                nodeList.setSelectedIndex(0);
+                nodeList.ensureIndexIsVisible(0);
+                nodeList.repaint();
             }
         }
 

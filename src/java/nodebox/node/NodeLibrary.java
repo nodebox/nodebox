@@ -361,6 +361,7 @@ public class NodeLibrary {
     private static Node parseNode(XMLStreamReader reader, Node parent, NodeRepository nodeRepository) throws XMLStreamException {
         String prototypeId = reader.getAttributeValue(null, "prototype");
         String name = reader.getAttributeValue(null, "name");
+        String category = reader.getAttributeValue(null, "category");
         String description = reader.getAttributeValue(null, "description");
         String image = reader.getAttributeValue(null, "image");
         String function = reader.getAttributeValue(null, "function");
@@ -377,6 +378,8 @@ public class NodeLibrary {
 
         if (name != null)
             node = node.withName(name);
+        if (category != null)
+            node = node.withCategory(category);
         if (description != null)
             node = node.withDescription(description);
         if (image != null)

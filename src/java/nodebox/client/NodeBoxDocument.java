@@ -300,6 +300,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
+     * Change the category for the node.
+     *
+     * @param node     The node to change.
+     * @param category The new category.
+     */
+    public void setNodeCategory(Node node, String category) {
+        checkNotNull(node);
+        checkNotNull(category);
+        addEdit("Set Node Category");
+        String nodePath = Node.path(activeNetworkPath, node);
+        controller.setNodeCategory(nodePath, category);
+    }
+
+    /**
      * Change the description for the node.
      *
      * @param node        The node to change.

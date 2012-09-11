@@ -14,6 +14,7 @@ import java.util.Locale;
 
 public class NodeSettingsEditor extends JPanel implements ActionListener, FocusListener {
 
+    private JTextField categoryField;
     private JTextField descriptionField;
     private JTextField imageField;
     private JTextField outputTypeField;
@@ -57,6 +58,12 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
         // The panel uses an absolute layout.
         setLayout(null);
 
+        // Category
+        categoryField = new JTextField(20);
+        categoryField.addActionListener(this);
+        categoryField.addFocusListener(this);
+        addRow("Category", categoryField);
+
         // Description
         descriptionField = new JTextField(20);
         descriptionField.addActionListener(this);
@@ -99,6 +106,7 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
 
     public void updateValues() {
         Node node = getNode();
+        categoryField.setText(node.getCategory());
         descriptionField.setText(node.getDescription());
         imageField.setText(node.getImage());
         outputTypeField.setText(node.getOutputType());
@@ -116,7 +124,11 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
 
     public void actionPerformed(ActionEvent e) {
         Node node = getNode();
-        if (e.getSource() == descriptionField) {
+        if (e.getSource() == categoryField) {
+            String newValue = categoryField.getText();
+            if (node.getCategory() != null && node.getCategory().equals(newValue)) return;
+            nodeAttributesDialog.setNodeCategory(newValue);
+        } else if (e.getSource() == descriptionField) {
             String newValue = descriptionField.getText();
             if (node.getDescription() != null && node.getDescription().equals(newValue)) return;
             nodeAttributesDialog.setNodeDescription(newValue);
