@@ -235,6 +235,7 @@ public class NodeSelectionDialog extends JDialog {
             index = nodeList.getModel().getSize() - 1;
         }
         nodeList.setSelectedIndex(index);
+        nodeList.ensureIndexIsVisible(index);
     }
 
     private void moveDown() {
@@ -244,6 +245,7 @@ public class NodeSelectionDialog extends JDialog {
             index = 0;
         }
         nodeList.setSelectedIndex(index);
+        nodeList.ensureIndexIsVisible(index);
     }
 
     private void selectAndClose() {
@@ -324,8 +326,9 @@ public class NodeSelectionDialog extends JDialog {
         private CategoryLabel(String text, Object source) {
             this.text = text;
             this.source = source;
-            setMinimumSize(new Dimension(100, 25));
+            setMinimumSize(new Dimension(120, 25));
             setMaximumSize(new Dimension(500, 25));
+            setPreferredSize(new Dimension(120, 25));
             setPreferredSize(new Dimension(120, 25));
             setAlignmentX(JComponent.LEFT_ALIGNMENT);
         }
