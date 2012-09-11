@@ -7,7 +7,6 @@ import nodebox.graphics.*;
 import nodebox.handle.*;
 import nodebox.util.MathUtils;
 
-import javax.annotation.Nullable;
 import java.awt.geom.Arc2D;
 import java.util.List;
 
@@ -472,7 +471,7 @@ public class CoreVectorFunctions {
         if (shape == null) return null;
         final double dStrength = strength / 100.0;
         return shape.mapPoints(new Function<Point, Point>() {
-            public Point apply(@Nullable Point point) {
+            public Point apply(Point point) {
                 if (point == null) return Point.ZERO;
                 double x = MathUtils.snap(point.x + position.x, distance, dStrength) - position.x;
                 double y = MathUtils.snap(point.y + position.y, distance, dStrength) - position.y;

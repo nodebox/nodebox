@@ -18,7 +18,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
@@ -255,11 +254,7 @@ public class Viewer extends PCanvas implements OutputView, MouseListener, MouseM
         Point2D originalPoint = new Point2D.Float(e.getX(), e.getY());
         PAffineTransform transform = getCamera().getViewTransform();
         Point2D transformedPoint;
-        try {
-            transformedPoint = transform.inverseTransform(originalPoint, null);
-        } catch (NoninvertibleTransformException ex) {
-            return new nodebox.graphics.Point(0, 0);
-        }
+        transformedPoint = transform.inverseTransform(originalPoint, null);
         Point2D offset = viewerLayer.getOffset();
         double cx = -offset.getX() + transformedPoint.getX();
         double cy = -offset.getY() + transformedPoint.getY();
