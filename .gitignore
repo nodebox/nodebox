@@ -4,6 +4,7 @@ dist
 out
 reports
 /bin
+target
 
 # Mac OS X custom attribute files
 .DS_Store
