@@ -14,8 +14,8 @@ public class FunctionLibraryTest {
 
     @Test
     public void testLoadClojure() {
-        String href = "clojure:test/clojure/math.clj";
-        FunctionLibrary clojureLibrary = FunctionLibrary.load("clojure:test/clojure/math.clj");
+        String href = "clojure:src/test/clojure/math.clj";
+        FunctionLibrary clojureLibrary = FunctionLibrary.load(href);
         assertEquals("clojure-math", clojureLibrary.getNamespace());
         assertTrue(clojureLibrary.hasFunction("add"));
         assertEquals(href, clojureLibrary.getLink(new File(userDir, "test.ndbx")));
@@ -23,7 +23,7 @@ public class FunctionLibraryTest {
 
     @Test
     public void testLoadPython() {
-        String href = "python:test/python/functions.py";
+        String href = "python:src/test/python/functions.py";
         FunctionLibrary pythonLibrary = FunctionLibrary.load(href);
         assertEquals("functions", pythonLibrary.getNamespace());
         assertTrue(pythonLibrary.hasFunction("add"));

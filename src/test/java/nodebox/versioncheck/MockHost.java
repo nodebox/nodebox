@@ -16,7 +16,7 @@ public class MockHost implements Host {
     }
 
     public String getIconFile() {
-        return "test/mockboxlogo.png";
+        return "src/test/files/mockboxlogo.png";
     }
 
     public String getAppcastURL() {

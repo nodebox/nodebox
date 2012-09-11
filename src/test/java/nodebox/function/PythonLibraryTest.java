@@ -12,7 +12,7 @@ import static nodebox.util.Assertions.assertResultsEqual;
 
 public class PythonLibraryTest {
 
-    private final FunctionLibrary pyLibrary = PythonLibrary.loadScript("py-functions", "test/python/functions.py");
+    private final FunctionLibrary pyLibrary = PythonLibrary.loadScript("py-functions", "src/test/python/functions.py");
     private final FunctionRepository functions = FunctionRepository.of(pyLibrary);
     private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
     private final NodeContext context = new NodeContext(testLibrary);
@@ -82,7 +82,7 @@ public class PythonLibraryTest {
 
     @Test(expected = LoadException.class)
     public void testLoadError() {
-        PythonLibrary.loadScript("py-error", "test/python/nonexisting.py");
+        PythonLibrary.loadScript("py-error", "src/test/python/nonexisting.py");
     }
 
 }

@@ -38,7 +38,7 @@ public class DataFunctionsTest {
 
     @Test
     public void testImportCSV() {
-        List<Map<String, Object>> l = importCSV("test/files/colors.csv");
+        List<Map<String, Object>> l = importCSV("src/test/files/colors.csv");
         assertEquals(5, l.size());
         Map<String, Object> black = l.get(0);
         assertResultsEqual(black.keySet(), "Name", "Red", "Green", "Blue");
@@ -49,7 +49,7 @@ public class DataFunctionsTest {
 
     @Test
     public void testImportCSVUnicode() {
-        List<Map<String, Object>> l = importCSV("test/files/unicode.csv");
+        List<Map<String, Object>> l = importCSV("src/test/files/unicode.csv");
         assertEquals(2, l.size());
         Map<String, Object> frederik = l.get(0);
         assertResultsEqual(frederik.keySet(), "Name", "Age");
@@ -71,7 +71,7 @@ public class DataFunctionsTest {
 
     @Test
     public void testImportCSVWithWhitespace() {
-        List<Map<String, Object>> l = importCSV("test/files/whitespace.csv");
+        List<Map<String, Object>> l = importCSV("src/test/files/whitespace.csv");
         assertEquals(2, l.size());
         Map<String, Object> alice = l.get(0);
         assertResultsEqual(alice.keySet(), "Name", "Age");
@@ -82,7 +82,7 @@ public class DataFunctionsTest {
 
     @Test
     public void testImportCSVWithBadHeaders() {
-        List<Map<String, Object>> l = importCSV("test/files/bad-headers.csv");
+        List<Map<String, Object>> l = importCSV("src/test/files/bad-headers.csv");
         assertEquals(2, l.size());
         Map<String, Object> row1 = l.get(0);
         assertResultsEqual(row1.keySet(), "Alpha", "Column 2", "Column 3");

@@ -11,7 +11,7 @@ import static nodebox.util.Assertions.assertResultsEqual;
 
 public class ClojureLibraryTest {
 
-    private final FunctionLibrary mathLibrary = ClojureLibrary.loadScript("test/clojure/math.clj");
+    private final FunctionLibrary mathLibrary = ClojureLibrary.loadScript("src/test/clojure/math.clj");
     private final FunctionRepository functions = FunctionRepository.of(mathLibrary);
     private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
     private final NodeContext context = new NodeContext(testLibrary);
@@ -41,7 +41,7 @@ public class ClojureLibraryTest {
 
     @Test(expected = LoadException.class)
     public void testNoVarAtEnd() {
-        ClojureLibrary.loadScript("test/clojure/no-var-at-end.clj");
+        ClojureLibrary.loadScript("src/test/clojure/no-var-at-end.clj");
     }
 
 }

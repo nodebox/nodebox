@@ -141,14 +141,14 @@ public class NodeLibraryTest {
      */
     @Test
     public void testRelativeImport() {
-        File relativeImportFile = new File("test/files/relative-import.ndbx");
+        File relativeImportFile = new File("src/test/files/relative-import.ndbx");
         NodeLibrary originalLibrary = NodeLibrary.load(relativeImportFile, NodeRepository.of());
         FunctionRepository repository = originalLibrary.getFunctionRepository();
         assertTrue(repository.hasLibrary("relative"));
         assertTrue(repository.hasFunction("relative/concat"));
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         FunctionLibrary relativeLibrary = library.getFunctionRepository().getLibrary("relative");
-        assertEquals("python:test/files/relative.py", relativeLibrary.getLink(new File(userDir, "test.ndbx")));
+        assertEquals("python:src/test/files/relative.py", relativeLibrary.getLink(new File(userDir, "test.ndbx")));
         assertEquals("python:relative.py", relativeLibrary.getLink(relativeImportFile));
     }
 
@@ -244,7 +244,7 @@ public class NodeLibraryTest {
 
     @Test
     public void testReadMenus() {
-        NodeLibrary menuLibrary = NodeLibrary.load(new File("test/files/menus.ndbx"), NodeRepository.of());
+        NodeLibrary menuLibrary = NodeLibrary.load(new File("src/test/files/menus.ndbx"), NodeRepository.of());
         Port thePort = menuLibrary.getRoot().getInput("thePort");
         assertTrue(thePort.hasMenu());
         assertEquals(2, thePort.getMenuItems().size());
@@ -319,7 +319,7 @@ public class NodeLibraryTest {
 
     @Test
     public void testRelativePathsInWidgets() {
-        NodeLibrary library = NodeLibrary.load(new File("test/files/relative-file.ndbx"), NodeRepository.of());
+        NodeLibrary library = NodeLibrary.load(new File("src/test/files/relative-file.ndbx"), NodeRepository.of());
         NodeContext context = new NodeContext(library);
         Iterable<?> results = context.renderNode(library.getRoot());
         Object firstResult = results.iterator().next();
@@ -353,7 +353,7 @@ public class NodeLibraryTest {
      */
     @Test
     public void testUpgrade1to2() {
-        File version1File = new File("test/files/upgrade-v1.ndbx");
+        File version1File = new File("src/test/files/upgrade-v1.ndbx");
         UpgradeResult result = NodeLibrary.upgradeTo(version1File, "2");
         assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"12.00,2.00\""));
         NodeLibrary upgradedLibrary = result.getLibrary(version1File, NodeRepository.of());
@@ -367,7 +367,7 @@ public class NodeLibraryTest {
      */
     @Test
     public void testTooOldToUpgrade() {
-        File version09File = new File("test/files/upgrade-v0.9.ndbx");
+        File version09File = new File("src/test/files/upgrade-v0.9.ndbx");
         try {
             NodeLibrary.upgrade(version09File);
             fail("Should have thrown a LoadException.");
@@ -381,7 +381,7 @@ public class NodeLibraryTest {
      */
     @Test
     public void testTooNewToUpgrade() {
-        File version999Files = new File("test/files/upgrade-v999.ndbx");
+        File version999Files = new File("src/test/files/upgrade-v999.ndbx");
         try {
             NodeLibrary.upgrade(version999Files);
             fail("Should have thrown a LoadException.");

@@ -6,9 +6,9 @@
         <property file="build.properties"/>
         <property file="version.properties"/>
         <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
-        <property name="src" value="src/java"/>
+        <property name="src" value="src/main/java"/>
         <property name="res" value="res"/>
-        <property name="test" value="test/java"/>
+        <property name="test" value="src/test/java"/>
         <property name="lib" value="lib"/>
         <property name="libraries" value="libraries"/>
         <property name="examples" value="examples"/>
@@ -132,7 +132,7 @@
     </target>
 
     <target  name="nodeboxlibs" depends="init">
-        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src/python"/>
+        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src/main/python"/>
     </target>
 
     <target  name="archives" depends="jar,nodeboxlibs"/>

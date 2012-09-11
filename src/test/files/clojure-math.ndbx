@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Example NDBX file that wraps clojure/math.clj. -->
 <ndbx formatVersion="1.0">
-    <link rel="functions" href="test/clojure/math.clj"/>
+    <link rel="functions" href="src/test/clojure/math.clj"/>
     <node name="add" function="clojure-math/add" outputType="int">
         <port name="int1" type="int">
             <value>0</value>
