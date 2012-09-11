@@ -2,6 +2,7 @@ package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import nodebox.client.PythonUtils;
 import nodebox.function.FunctionRepository;
 
@@ -69,6 +70,24 @@ public class NodeRepository {
             builder.addAll(library.getRoot().getChildren());
         }
         return builder.build();
+    }
+
+    public List<Node> getNodesByCategory(String category) {
+        if (category == null) return getNodes();
+        ImmutableList.Builder<Node> builder = ImmutableList.builder();
+        for (Node node : getNodes()) {
+            if (node.getCategory().equals(category))
+                builder.add(node);
+        }
+        return builder.build();
+    }
+
+    public List<String> getCategories() {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        for (Node node : getNodes()) {
+            builder.add(node.getCategory());
+        }
+        return ImmutableList.copyOf(builder.build());
     }
 
     /**

@@ -10,15 +10,11 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListDataListener;
+import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 
 public class NodeSelectionDialog extends JDialog {
 
@@ -28,11 +24,13 @@ public class NodeSelectionDialog extends JDialog {
         private NodeRepository repository;
         private java.util.List<Node> filteredNodes;
         private String searchString;
+        private String category;
 
         private FilteredNodeListModel(NodeLibrary library, NodeRepository repository) {
             this.library = library;
             this.repository = repository;
             searchString = "";
+            category = null;
             filteredNodes = new ArrayList<Node>();
             filteredNodes.addAll(repository.getNodes());
             //filteredNodes.addAll(library.getExportedNodes());
@@ -48,7 +46,7 @@ public class NodeSelectionDialog extends JDialog {
             if (searchString.length() == 0) {
                 // Add all the nodes from the repository.
                 filteredNodes.clear();
-                filteredNodes.addAll(repository.getNodes());
+                filteredNodes.addAll(repository.getNodesByCategory(category));
                 // Add all the exported nodes from the current library.
                 //filteredNodes.addAll(library.getExportedNodes());
                 Collections.sort(filteredNodes, new NodeNameComparator());
@@ -57,7 +55,7 @@ public class NodeSelectionDialog extends JDialog {
 
                 filteredNodes.clear();
                 // Add all the nodes from the repository.
-                for (Node node : repository.getNodes()) {
+                for (Node node : repository.getNodesByCategory(category)) {
                     if (contains(node, searchString))
                         nodes.add(node);
                 }
@@ -69,6 +67,15 @@ public class NodeSelectionDialog extends JDialog {
 
                 filteredNodes.addAll(sortNodes(nodes, this.searchString));
             }
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+            setSearchString(searchString);
         }
 
         private boolean contains(Node node, String searchString) {
@@ -149,9 +156,13 @@ public class NodeSelectionDialog extends JDialog {
 
     private NodeRepository repository;
     private JTextField searchField;
+    private CategoryList categoryList;
     private JList nodeList;
     private Node selectedNode;
     private FilteredNodeListModel filteredNodeListModel;
+
+    private final String ALL_CATEGORIES = "All";
+    private final String OTHER_CATEGORIES = "Other";
 
     public NodeSelectionDialog(NodeLibrary library, NodeRepository repository) {
         this(null, library, repository);
@@ -180,11 +191,29 @@ public class NodeSelectionDialog extends JDialog {
         nodeList.setCellRenderer(new NodeRenderer());
         JScrollPane nodeScroll = new JScrollPane(nodeList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         nodeScroll.setBorder(null);
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        categoryList = new CategoryList();
+        reloadCategories();
+        centerPanel.add(categoryList, BorderLayout.WEST);
+        centerPanel.add(nodeScroll, BorderLayout.CENTER);
+        centerPanel.validate();
+
         panel.add(searchField, BorderLayout.NORTH);
-        panel.add(nodeScroll, BorderLayout.CENTER);
+        panel.add(centerPanel, BorderLayout.CENTER);
         setContentPane(panel);
         setSize(500, 400);
         setLocationRelativeTo(owner);
+    }
+
+    public void reloadCategories() {
+        categoryList.removeAll();
+        categoryList.addCategory(ALL_CATEGORIES, null);
+        for (String category : repository.getCategories()) {
+            if (category != null && ! category.isEmpty())
+                categoryList.addCategory(StringUtils.humanizeName(category), category);
+        }
+        categoryList.addCategory(OTHER_CATEGORIES, "");
+        categoryList.setSelectedCategory(ALL_CATEGORIES);
     }
 
     public Node getSelectedNode() {
@@ -206,6 +235,7 @@ public class NodeSelectionDialog extends JDialog {
             index = nodeList.getModel().getSize() - 1;
         }
         nodeList.setSelectedIndex(index);
+        nodeList.ensureIndexIsVisible(index);
     }
 
     private void moveDown() {
@@ -215,6 +245,7 @@ public class NodeSelectionDialog extends JDialog {
             index = 0;
         }
         nodeList.setSelectedIndex(index);
+        nodeList.ensureIndexIsVisible(index);
     }
 
     private void selectAndClose() {
@@ -282,6 +313,94 @@ public class NodeSelectionDialog extends JDialog {
     private class NodeNameComparator implements Comparator<Node> {
         public int compare(Node node1, Node node2) {
             return node1.getName().compareTo(node2.getName());
+        }
+    }
+
+    private class CategoryLabel extends JComponent {
+
+        private String text;
+        private Object source;
+
+        private boolean selected;
+
+        private CategoryLabel(String text, Object source) {
+            this.text = text;
+            this.source = source;
+            setMinimumSize(new Dimension(120, 25));
+            setMaximumSize(new Dimension(500, 25));
+            setPreferredSize(new Dimension(120, 25));
+            setPreferredSize(new Dimension(120, 25));
+            setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        }
+
+        public boolean isSelected() {
+            return selected;
+        }
+
+        public void setSelected(boolean selected) {
+            this.selected = selected;
+            repaint();
+        }
+
+        @Override
+        public void paint(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g;
+            if (selected) {
+                Rectangle clip = g2.getClipBounds();
+                g2.setColor(new java.awt.Color(224, 224, 224));
+                g2.fillRect(clip.x, clip.y, clip.width, clip.height);
+            }
+            g2.setFont(Theme.SMALL_FONT);
+            g2.setColor(Color.BLACK);
+            g2.drawString(text, 15, 18);
+        }
+    }
+
+
+    private class CategoryList extends JPanel {
+        private CategoryLabel selectedCategory;
+        private Map<String, CategoryLabel> labelMap = new HashMap<String, CategoryLabel>();
+
+        private CategoryList() {
+            super(null);
+            Dimension d = new Dimension(120, 300);
+            setBackground(new java.awt.Color(244, 244, 244));
+            setBorder(null);
+            setOpaque(true);
+            setPreferredSize(d);
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        }
+
+        public void addCategory(final String categoryLabel, final Object source) {
+            final CategoryLabel label = new CategoryLabel(categoryLabel, source);
+            label.addMouseListener(new MouseInputAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    setSelectedCategory(label);
+                }
+            });
+            labelMap.put(categoryLabel, label);
+            add(label);
+        }
+
+        public void setSelectedCategory(CategoryLabel label) {
+            if (selectedCategory != null)
+                selectedCategory.setSelected(false);
+            selectedCategory = label;
+            if (selectedCategory != null) {
+                selectedCategory.setSelected(true);
+                filteredNodeListModel.setCategory((String) selectedCategory.source);
+                // Trigger a model reload.
+                nodeList.setModel(filteredNodeListModel);
+                nodeList.setSelectedIndex(0);
+                nodeList.ensureIndexIsVisible(0);
+                nodeList.repaint();
+            }
+        }
+
+        public void setSelectedCategory(String value) {
+            CategoryLabel label = labelMap.get(value);
+            assert label != null;
+            setSelectedCategory(label);
         }
     }
 }

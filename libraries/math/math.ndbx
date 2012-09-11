@@ -5,7 +5,7 @@
         <node description="Convert every number to a positive number." function="math/abs" image="generic.png" name="abs" outputType="float" position="4.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Add two numbers." function="math/add" image="add.png" name="add" outputType="float" position="4.00,2.00">
+        <node description="Add two numbers." function="math/add" image="add.png" name="add" position="4.00,2.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="0.0" widget="float"/>
         </node>

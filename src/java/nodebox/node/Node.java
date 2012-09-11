@@ -34,7 +34,7 @@ public final class Node {
         }
     }
 
-    public enum Attribute {PROTOTYPE, NAME, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, PUBLISHED_INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, PUBLISHED_INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
 
     /**
      * Check if data from the output node can be converted and used in the input port.
@@ -86,6 +86,7 @@ public final class Node {
 
     private final Node prototype;
     private final String name;
+    private final String category;
     private final String description;
     private final String image;
     private final String function;
@@ -108,6 +109,7 @@ public final class Node {
         checkState(ROOT == null, "You cannot create more than one root node.");
         prototype = null;
         name = "_root";
+        category = "";
         description = "";
         image = "";
         function = "core/zero";
@@ -128,7 +130,7 @@ public final class Node {
         }
     }
 
-    private Node(Node prototype, String name, String description, String image, String function,
+    private Node(Node prototype, String name, String category, String description, String image, String function,
                  Point position, ImmutableList<Port> inputs, ImmutableList<PublishedPort> publishedInputs,
                  String outputType, Port.Range outputRange, ImmutableList<Node> children,
                  String renderedChildName, ImmutableList<Connection> connections, String handle) {
@@ -138,6 +140,7 @@ public final class Node {
         checkArgument(!name.equals("_root"), "The name _root is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
+        this.category = category;
         this.description = description;
         this.image = image;
         this.function = function;
@@ -160,6 +163,10 @@ public final class Node {
 
     public String getName() {
         return name;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     public String getDescription() {
@@ -312,6 +319,8 @@ public final class Node {
             return getPrototype();
         } else if (attribute == Attribute.NAME) {
             return getName();
+        } else if (attribute == Attribute.CATEGORY) {
+            return getCategory();
         } else if (attribute == Attribute.DESCRIPTION) {
             return getDescription();
         } else if (attribute == Attribute.IMAGE) {
@@ -403,6 +412,18 @@ public final class Node {
     public Node withName(String name) {
         validateName(name);
         return newNodeWithAttribute(Attribute.NAME, name);
+    }
+
+    /**
+     * Create a new node with the given category.
+     * <p/>
+     * If you call this on ROOT, extend() is called implicitly.
+     *
+     * @param category new node category.
+     * @return A new Node.
+     */
+    public Node withCategory(String category) {
+        return newNodeWithAttribute(Attribute.CATEGORY, category);
     }
 
     /**
@@ -1162,6 +1183,7 @@ public final class Node {
     private Node newNodeWithAttribute(Attribute attribute, Object value) {
         Node prototype = this.prototype;
         String name = this.name;
+        String category = this.category;
         String description = this.description;
         String image = this.image;
         String function = this.function;
@@ -1181,6 +1203,9 @@ public final class Node {
                 break;
             case NAME:
                 name = (String) value;
+                break;
+            case CATEGORY:
+                category = (String) value;
                 break;
             case DESCRIPTION:
                 description = (String) value;
@@ -1232,7 +1257,7 @@ public final class Node {
             name = "node";
         }
 
-        return new Node(prototype, name, description, image, function, position,
+        return new Node(prototype, name, category, description, image, function, position,
                 inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
@@ -1240,7 +1265,7 @@ public final class Node {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(prototype, name, description, image, function, position,
+        return Objects.hashCode(prototype, name, category, description, image, function, position,
                 inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
@@ -1250,6 +1275,7 @@ public final class Node {
         final Node other = (Node) o;
         return Objects.equal(prototype, other.prototype)
                 && Objects.equal(name, other.name)
+                && Objects.equal(category, other.category)
                 && Objects.equal(description, other.description)
                 && Objects.equal(image, other.image)
                 && Objects.equal(function, other.function)
