@@ -199,7 +199,7 @@
         <node description="Resize the shape by scaling it." function="pyvector/scale" handle="pyvector/handle_scale" image="scale.png" name="scale" position="13.00,16.00" prototype="filter">
             <port name="scale" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Generate points within the boundaries of a shape." function="corevector/scatter" image="scatter.png" name="scatter" outputRange="list" outputType="point" position="7.00,16.00" prototype="filter">
+        <node description="Generate points within the boundaries of a shape." function="pyvector/scatter" image="scatter.png" name="scatter" outputRange="list" outputType="point" position="7.00,16.00" prototype="filter">
             <port min="0.0" name="amount" range="value" type="int" value="20" widget="int"/>
             <port name="seed" range="value" type="int" value="0" widget="int"/>
         </node>
