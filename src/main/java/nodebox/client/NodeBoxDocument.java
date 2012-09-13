@@ -129,7 +129,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final UpgradeWarningsDialog dialog = new UpgradeWarningsDialog(result);
         dialog.setLocationRelativeTo(this);
         SwingUtilities.invokeLater(new Runnable() {
-            @Override
             public void run() {
                 dialog.setVisible(true);
             }
