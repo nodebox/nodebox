@@ -13,7 +13,10 @@ import nodebox.util.ListUtils;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -134,15 +137,11 @@ public final class NodeContext {
             return renderNode(child);
         } else {
             // The list of values that need to be processed for this port.
-            List<List<?>> portArguments = new ArrayList<List<?>>();
+            Map<Port, List<?>> portArguments = new LinkedHashMap<Port, List<?>>();
 
             for (Port port : child.getInputs()) {
                 List<?> result = evaluatePort(network, child, port);
-                if (port.hasListRange()) {
-                    portArguments.add(ImmutableList.of(result));
-                } else {
-                    portArguments.add(result);
-                }
+                portArguments.put(port, result);
             }
 
             // A prepared list of argument lists, each for one invocation of the child node.
@@ -297,17 +296,40 @@ public final class NodeContext {
      * [4 "b" true]
      * [5 "a" true]]
      */
-    private static List<List<?>> buildArgumentLists(List<List<?>> perPortLists) {
+    private static List<List<?>> buildArgumentLists(Map<Port, List<?>> argumentsPerPort) {
         List<List<?>> argumentLists = new ArrayList<List<?>>();
-        int maxSize = biggestList(perPortLists);
+
+        int maxSize = biggestArgumentList(argumentsPerPort);
         for (int i = 0; i < maxSize; i++) {
-            ArrayList<Object> argumentList = new ArrayList<Object>(perPortLists.size());
-            for (List<?> portList : perPortLists) {
-                argumentList.add(wrappingGet(portList, i));
+            ArrayList<Object> argumentList = new ArrayList<Object>(argumentsPerPort.size());
+            for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
+                if (entry.getKey().hasListRange()) {
+                    argumentList.add(entry.getValue());
+                } else {
+                    argumentList.add(wrappingGet(entry.getValue(), i));
+                }
             }
             argumentLists.add(argumentList);
         }
         return argumentLists;
+    }
+
+    private static int biggestArgumentList(Map<Port, List<?>> argumentsPerPort) {
+        int maxSize = 0;
+        for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
+            maxSize = Math.max(maxSize, argumentListSize(entry.getKey(), entry.getValue()));
+        }
+        return maxSize;
+    }
+
+    private static int argumentListSize(Port port, List<?> arguments) {
+        // If the port takes in a list, he will always take the entire argument list as an argument.
+        // Therefore, the size of arguments is 1.
+        if (port.hasListRange()) {
+            return 1;
+        } else {
+            return arguments.size();
+        }
     }
 
     /**
