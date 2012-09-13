@@ -2,12 +2,7 @@ package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import nodebox.function.CoreVectorFunctions;
-import nodebox.function.FunctionRepository;
-import nodebox.function.ListFunctions;
-import nodebox.function.MathFunctions;
-import nodebox.function.StringFunctions;
-import nodebox.function.TestFunctions;
+import nodebox.function.*;
 import nodebox.graphics.Point;
 import nodebox.util.SideEffects;
 import org.junit.Before;
@@ -534,4 +529,43 @@ public class NodeContextTest {
                 .connect("makeNumbers2", "calculateMultiple", "v3");
         return net;
     }
+
+    @Test
+    public void testNestedNetworks() {
+        Node makeNestedWords = Node.ROOT
+                .withName("makeNestedWords")
+                .withFunction("test/makeNestedWords")
+                .withOutputType("string")
+                .withOutputRange(Port.Range.LIST);
+
+        Node countNet = createLengthCountNetwork();
+
+        Node mainNetwork = Node.ROOT
+                .withChildAdded(makeNestedWords)
+                .withChildAdded(countNet)
+                .connect("makeNestedWords", "countNetwork", "text")
+                .withRenderedChild(countNet);
+
+        List<Integer> aCounts =ImmutableList.of(5, 11, 9);
+        List<Integer> bCounts = ImmutableList.of(6, 4, 4);
+        List<Integer> cCounts = ImmutableList.of(5, 8, 6);
+        List<List<Integer>> expectedCounts = ImmutableList.of(aCounts, bCounts, cCounts);
+
+        ImmutableList<?> results = ImmutableList.copyOf(context.renderNode(mainNetwork));
+        assertEquals(expectedCounts, results);
+    }
+
+    private Node createLengthCountNetwork() {
+        Node countLetters = Node.ROOT
+                .withName("countLetters")
+                .withFunction("string/length")
+                .withOutputType("string")
+                .withInputAdded(Port.stringPort("text", ""));
+        return Node.ROOT
+                .withName("countNetwork")
+                .withChildAdded(countLetters)
+                .publish("countLetters", "text", "text")
+                .withRenderedChild(countLetters);
+    }
+
 }

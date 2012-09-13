@@ -1,8 +1,10 @@
 package nodebox.function;
 
+import com.google.common.collect.ImmutableList;
 import nodebox.graphics.Point;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * A function library containing special functions for testing.
@@ -12,7 +14,7 @@ public class TestFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "makeNull", "fileExists", "calculateMultipleArgs");
+        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "makeNull", "fileExists", "calculateMultipleArgs", "makeNestedWords");
     }
 
     public static String allTypes(int i, float f, String s, Point pt) {
@@ -40,4 +42,12 @@ public class TestFunctions {
     public static double calculateMultipleArgs(double a, double b, double c, double d) {
         return a + b * c + d;
     }
+
+    public static List<List<String>> makeNestedWords() {
+        List<String> aWords = ImmutableList.of("apple", "abstraction", "albatross");
+        List<String> bWords = ImmutableList.of("banana", "bird", "boat");
+        List<String> cWords = ImmutableList.of("clock", "creature", "coffee");
+        return ImmutableList.of(aWords, bWords, cWords);
+    }
+
 }

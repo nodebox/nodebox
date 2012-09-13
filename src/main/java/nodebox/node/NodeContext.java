@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
-import nodebox.graphics.IGeometry;
 import nodebox.graphics.Color;
+import nodebox.graphics.IGeometry;
 import nodebox.graphics.Point;
 import nodebox.util.ListUtils;
 
@@ -142,29 +142,21 @@ public class NodeContext {
     }
 
     private Iterable<?> convert(Iterable<?> outputValues, String inputType) {
-        if (level(outputValues) == 0) {
-            Class outputType = ListUtils.listClass(outputValues);
-            Class ancestorType = getAncestorType(outputType);
-            String conversionMethod = conversionMap.get(ConversionPair.of(inputType, ancestorType));
+        Class outputType = ListUtils.listClass(outputValues);
+        Class ancestorType = getAncestorType(outputType);
+        String conversionMethod = conversionMap.get(ConversionPair.of(inputType, ancestorType));
 
-            if (conversionMethod != null) {
-                try {
-                    for (Method method : Conversions.class.getDeclaredMethods()) {
-                        if (method.getName().equals(conversionMethod))
-                            return (Iterable<?>) method.invoke(null, outputValues);
-                    }
-                } catch (IllegalAccessException e) {
-                    throw new RuntimeException("Error while accessing conversion method.", e);
-                } catch (InvocationTargetException e) {
-                    throw new RuntimeException("Error while accessing conversion method.", e);
+        if (conversionMethod != null) {
+            try {
+                for (Method method : Conversions.class.getDeclaredMethods()) {
+                    if (method.getName().equals(conversionMethod))
+                        return (Iterable<?>) method.invoke(null, outputValues);
                 }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Error while accessing conversion method.", e);
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException("Error while accessing conversion method.", e);
             }
-        } else {
-            List<Object> list = new ArrayList<Object>();
-            for (Object o : outputValues) {
-                list.add(convert((Iterable) o, inputType));
-            }
-            return list;
         }
 
         return outputValues;
@@ -238,53 +230,6 @@ public class NodeContext {
     }
 
     /**
-     * Calculate the level of nesting for a given iterable.
-     *
-     * @param it The iterable to check
-     * @return The level of nesting
-     */
-    private int level(Iterable it) {
-        if (it == null) return 0;
-
-        Iterator<?> iterator = it.iterator();
-        if (!iterator.hasNext()) return 0;
-        Object first = iterator.next();
-        // We check if the structure implements List rather than Iterable,
-        // because we might be interested in certain kind of iterables (for example a Path object).
-        // Deconstructing those kind of iterables may not be what we want.
-        if (first instanceof List) {
-            return 1 + level((Iterable) first);
-        }
-        return 0;
-    }
-
-    /**
-     * Calculate the level of nesting for a given input.
-     * Only if the given value contains a list, a value higher could be returned.
-     *
-     * @param v The input port value
-     * @return The level of nesting
-     */
-    private int level(ValueOrList v) {
-        if (!v.isList()) return 0;
-        return level(v.getList());
-    }
-
-    /**
-     * Calculate the expected level of nesting for the given set of input values.
-     *
-     * @param values A set of input values, either nested or unnested
-     * @return The nesting output level.
-     */
-    private int outputLevel(List<ValueOrList> values) {
-        int sum = 0;
-        for (ValueOrList v : values) {
-            sum += level(v);
-        }
-        return sum;
-    }
-
-    /**
      * Perform the function over all the sets of input values, returning a list or
      * combining the results in a list.
      * <p/>
@@ -299,7 +244,9 @@ public class NodeContext {
         // If the node has no input ports, execute the node once for its side effects.
         if (node.getInputs().isEmpty()) {
             Object returnValue = invokeFunction(node, function, ImmutableList.of());
-            if (returnValue != null) {
+            if (returnValue != null && node.hasListOutputRange()) {
+                return (Iterable<?>) returnValue;
+            } else if (returnValue != null) {
                 return ImmutableList.of(returnValue);
             } else {
                 return ImmutableList.of();
@@ -308,19 +255,14 @@ public class NodeContext {
 
         List results;
 
-        int l = outputLevel(inputValues);
-        if (l == 0 || (l == 1 && node.hasListInputs())) {
-            results = mapValuesInternal(node, inputValues, new FunctionInvoker() {
-                public void call(List<Object> arguments, List<Object> results) {
-                    Object returnValue = invokeFunction(node, function, arguments);
-                    if (returnValue != null) {
-                        results.add(returnValue);
-                    }
+        results = mapValuesInternal(node, inputValues, new FunctionInvoker() {
+            public void call(List<Object> arguments, List<Object> results) {
+                Object returnValue = invokeFunction(node, function, arguments);
+                if (returnValue != null) {
+                    results.add(returnValue);
                 }
-            });
-        } else {
-            results = mapNestedValues(node, function, inputValues);
-        }
+            }
+        });
 
         if (results.isEmpty())
             return ImmutableList.of();
@@ -328,43 +270,6 @@ public class NodeContext {
             return (Iterable<?>) results.get(0);
         else
             return results;
-    }
-
-
-    /**
-     * Recursively extracts the nested list(s) until suitable input sets are found to run
-     * the node's function against. The results are then recursively built up and returned.
-     *
-     * @param node        The node to render.
-     * @param function    The node's function implementation.
-     * @param inputValues A list of all values for the input ports.
-     * @return The nested list of return values.
-     */
-    private List mapNestedValues(Node node, Function function, List<ValueOrList> inputValues) {
-        List<Object> results = new ArrayList<Object>();
-        int i = 0;
-        for (ValueOrList value : inputValues) {
-            if (level(value) > 0) {
-                for (Object o : value.getList()) {
-                    ArrayList<ValueOrList> nestedInputValues = new ArrayList<ValueOrList>();
-                    nestedInputValues.addAll(inputValues);
-                    if (o instanceof Iterable)
-                        nestedInputValues.set(i, ValueOrList.ofList((Iterable) o));
-                    else
-                        nestedInputValues.set(i, ValueOrList.ofValue(o));
-                    List nestedResults = (List) mapValues(node, function, nestedInputValues);
-                    if (nestedResults.size() == 1 && node.hasValueOutputRange() && node.hasListInputs()) {
-                        // flatten the results when the output is a single result from input with one
-                        // or more lists
-                        results.add(nestedResults.get(0));
-                    } else
-                        results.add(nestedResults);
-                }
-                break;
-            }
-            i += 1;
-        }
-        return results;
     }
 
     /**
@@ -398,7 +303,7 @@ public class NodeContext {
                 Port p = node.getInputs().get(i);
 
                 if (v.isList()) {
-                    if (p.hasListRange() && level(v) == 0) {
+                    if (p.hasListRange()) {
                         toExhaustList.remove(v);
                         arguments.add(v.getList());
                     } else {
