@@ -17,14 +17,11 @@ import java.util.*;
 
 import static com.google.common.base.Preconditions.*;
 
-public class NodeContext {
+public final class NodeContext {
 
-    private final NodeLibrary nodeLibrary;
-    private final FunctionRepository functionRepository;
-    private final double frame;
-    private final Map<Node, Iterable<?>> outputValuesMap = new HashMap<Node, Iterable<?>>();
-    private final Map<NodePort, Iterable<?>> inputValuesMap = new HashMap<NodePort, Iterable<?>>();
-    private final Set<Node> renderedNodes = new HashSet<Node>();
+//    private final Map<Node, Iterable<?>> outputValuesMap = new HashMap<Node, Iterable<?>>();
+//    private final Map<NodePort, Iterable<?>> inputValuesMap = new HashMap<NodePort, Iterable<?>>();
+//    private final Set<Node> renderedNodes = new HashSet<Node>();
 
     private final static ImmutableMap<ConversionPair, String> conversionMap;
     private final static ImmutableList<Class> ancestorTypes;
@@ -62,74 +59,122 @@ public class NodeContext {
         ancestorTypes = b.build();
     }
 
+    private final NodeLibrary nodeLibrary;
+    private final FunctionRepository functionRepository;
+    private final double frame;
+
+
     public NodeContext(NodeLibrary nodeLibrary) {
         this(nodeLibrary, null, 1);
     }
+
 
     public NodeContext(NodeLibrary nodeLibrary, double frame) {
         this(nodeLibrary, null, frame);
     }
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame) {
-        checkNotNull(nodeLibrary);
         this.nodeLibrary = nodeLibrary;
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.frame = frame;
     }
 
-    public Map<Node, Iterable<?>> getResultsMap() {
-        return outputValuesMap;
+
+    public NodeLibrary getNodeLibrary() {
+        return nodeLibrary;
     }
 
-    public Iterable<?> getResults(Node node) {
-        return outputValuesMap.get(node);
+    public FunctionRepository getFunctionRepository() {
+        return functionRepository;
+    }
+
+    public double getFrame() {
+        return frame;
     }
 
     /**
-     * Render the network by rendering its rendered child.
+     * Render the node by rendering its rendered child, or the function.
+     * Because it can't look at what network it is in, this function does not evaluate dependencies
+     * of the node. However, if this node is a network, the whole child node is evaluated.
      *
-     * @param network The network to render.
+     * @param node The node to render.
+     * @return The list of results.
      * @throws NodeRenderException If processing fails.
      */
-    public void renderNetwork(Node network) throws NodeRenderException {
-        checkNotNull(network);
-        if (network.getRenderedChild() != null) {
-            renderChild(network, network.getRenderedChild());
+    public List<?> renderNode(Node node) throws NodeRenderException {
+        checkNotNull(node);
+        checkNotNull(functionRepository);
+
+        // If the node has children, forgo the operation of the current node and evaluate the child.
+        if (node.hasRenderedChild()) {
+            return renderChild(node, node.getRenderedChild());
+        } else {
+            List<Object> arguments = new ArrayList<Object>();
+            for (Port port : node.getAllInputs()) {
+                arguments.add(getPortValue(port));
+            }
+            return postProcessResult(node, invokeNode(node, arguments));
         }
     }
 
-    /**
-     * Render the child in the network.
-     *
-     * @param network The network to render.
-     * @param child   The child node to render.
-     * @return The list of rendered values.
-     * @throws NodeRenderException If processing fails.
-     */
-    public Iterable<?> renderChild(Node network, Node child) throws NodeRenderException {
-        checkNotNull(network);
-        checkNotNull(child);
-        checkArgument(network.hasChild(child));
+    private List<?> postProcessResult(Node node, Object result) {
+        if (node.hasListOutputRange()) {
+            return (List<?>) result;
+        } else {
+            return result == null ? ImmutableList.of() : ImmutableList.of(result);
+        }
+    }
 
-        // Check if child was already rendered.
-        if (renderedNodes.contains(child)) return outputValuesMap.get(child);
-        renderedNodes.add(child);
+    public List<?> renderChild(Node network, Node child) throws NodeRenderException {
+        // A list of all result objects.
+        List<Object> resultsList = new ArrayList<Object>();
 
-        // Process dependencies
-        for (Connection c : network.getConnections()) {
-            if (Thread.currentThread().isInterrupted()) throw new NodeRenderException(child, "Interrupted");
-            if (c.getInputNode().equals(child.getName())) {
-                Node outputNode = network.getChild(c.getOutputNode());
-                renderChild(network, outputNode);
-                Iterable<?> result = convert(outputValuesMap.get(outputNode), child.getInput(c.getInputPort()).getType());
-                // Check if the result is null. This can happen if there is a cycle in the network.
-                if (result != null) {
-                    inputValuesMap.put(NodePort.of(child.getName(), c.getInputPort()), result);
+        // If the node has no input ports, execute the node once for its side effects.
+        if (child.getAllInputs().isEmpty()) {
+            return renderNode(child);
+        } else {
+            // The list of values that need to be processed for this port.
+            List<List<?>> portArguments = new ArrayList<List<?>>();
+
+            for (Port port : child.getInputs()) {
+                List<?> result = evaluatePort(network, child, port);
+                if (port.hasListRange()) {
+                    portArguments.add(ImmutableList.of(result));
+                } else {
+                    portArguments.add(result);
+                }
+            }
+
+            // A prepared list of argument lists, each for one invocation of the child node.
+            List<List<?>> argumentLists = buildArgumentLists(portArguments);
+
+            for (List<?> arguments : argumentLists) {
+                Object result = invokeNode(child, arguments);
+                if (child.hasListOutputRange()) {
+                    resultsList.addAll((List<?>) result);
+                } else {
+                    resultsList.add(result);
                 }
             }
         }
 
-        return renderNode(child);
+        return resultsList;
+//
+//
+//        for (PublishedPort pp : node.getPublishedInputs()) {
+//            NodePort np = NodePort.of(node.getName(), pp.getPublishedName());
+//            if (inputValuesMap.containsKey(np)) {
+//                context.inputValuesMap.put(NodePort.of(pp.getChildNode(), pp.getChildPort()),
+//                        inputValuesMap.get(np));
+//
+//            }
+//        }
+    }
+
+    private Object invokeNode(Node node, List<?> arguments) {
+        String functionName = node.getFunction();
+        Function function = functionRepository.getFunction(functionName);
+        return invokeFunction(node, function, arguments);
     }
 
     private Class getAncestorType(Class type) {
@@ -162,179 +207,49 @@ public class NodeContext {
         return outputValues;
     }
 
-    /**
-     * Render a single node.
-     * This doesn't evaluate child dependencies.
-     * On the network, renderNetwork the renderedChild.
-     * Note that we pass in the network, not the node to renderNetwork!
-     * This is because we can't go up from the node to the network to retrieve the connections.
-     *
-     * @param node The node to render.
-     * @return The list of rendered values.
-     * @throws NodeRenderException If processing fails.
-     */
-    public Iterable<?> renderNode(Node node) throws NodeRenderException {
-        checkNotNull(node);
-        checkState(!outputValuesMap.containsKey(node), "Node %s already has a rendered value.", node);
-
-        // If the node has children, forgo the operation of the current node and evaluate the child.
-        if (node.hasRenderedChild()) {
-            NodeContext context = new NodeContext(nodeLibrary, functionRepository, frame);
-            for (PublishedPort pp : node.getPublishedInputs()) {
-                NodePort np = NodePort.of(node.getName(), pp.getPublishedName());
-                if (inputValuesMap.containsKey(np)) {
-                    context.inputValuesMap.put(NodePort.of(pp.getChildNode(), pp.getChildPort()),
-                            inputValuesMap.get(np));
-
-                }
-            }
-            context.renderNetwork(node);
-            Node renderedChild = node.getRenderedChild();
-            Iterable<?> results = context.getResults(renderedChild);
-            outputValuesMap.put(node, results);
-            return results;
-        }
-
-        // Get the function.
-        String functionName = node.getFunction();
-        Function function = functionRepository.getFunction(functionName);
-
-        // Get the input values.
-        ArrayList<ValueOrList> inputValues = new ArrayList<ValueOrList>();
-        for (Port p : node.getInputs()) {
-            NodePort np = NodePort.of(node.getName(), p.getName());
-            if (p.getType().equals("context")) {
-                inputValues.add(ValueOrList.ofValue(this));
-            } else if (inputValuesMap.containsKey(np)) {
-                inputValues.add(ValueOrList.ofList(inputValuesMap.get(np)));
-            } else {
-                Object o = p.getValue();
-                if (p.isFileWidget()) {
-                    String path = (String) o;
-                    if (!path.startsWith("/")) {
-                        // Convert relative to absolute path.
-                        if (nodeLibrary.getFile() != null) {
-                            File f = new File(nodeLibrary.getFile().getParentFile(), (String) o);
-                            o = f.getAbsolutePath();
-                        }
-                    }
-                }
-                inputValues.add(ValueOrList.ofValue(o));
+    private Node findOutputNode(Node network, Node inputNode, Port inputPort) {
+        for (Connection c : network.getConnections()) {
+            if (c.getInputNode().equals(inputNode.getName()) && c.getInputPort().equals(inputPort.getName())) {
+                return network.getChild(c.getOutputNode());
             }
         }
+        return null;
+    }
 
-        // Invoke the node function.
-        Iterable<?> results = mapValues(node, function, inputValues);
-        outputValuesMap.put(node, results);
-        return results;
+    private List<?> evaluatePort(Node network, Node child, Port childPort) {
+        Node outputNode = findOutputNode(network, child, childPort);
+        if (outputNode != null) {
+            return renderChild(network, outputNode);
+        } else {
+            return ImmutableList.of(getPortValue(childPort));
+        }
     }
 
     /**
-     * Perform the function over all the sets of input values, returning a list or
-     * combining the results in a list.
+     * Get the value of the port.
      * <p/>
-     * If the input lists are of different length, stop processing after the shortest list.
-     *
-     * @param node        The node to render.
-     * @param function    The node's function implementation.
-     * @param inputValues A list of all values for the input ports.
-     * @return The list of return values.
+     * This method does some last-minute conversions and lookups on special cases:
+     * <ul>
+     * <li>If the port type is context, return a reference to the current node context.</li>
+     * <li>If the port is a file widget, convert relative to absolute paths.</li>
+     * </ul>
      */
-    private Iterable<?> mapValues(final Node node, final Function function, List<ValueOrList> inputValues) {
-        // If the node has no input ports, execute the node once for its side effects.
-        if (node.getInputs().isEmpty()) {
-            Object returnValue = invokeFunction(node, function, ImmutableList.of());
-            if (returnValue != null && node.hasListOutputRange()) {
-                return (Iterable<?>) returnValue;
-            } else if (returnValue != null) {
-                return ImmutableList.of(returnValue);
+    private Object getPortValue(Port port) {
+        if (port.getType().equals("context")) {
+            return this;
+        } else if (port.isFileWidget()) {
+            String path = port.stringValue();
+            if (!path.startsWith("/")) {
+                // Convert relative to absolute path.
+                if (nodeLibrary.getFile() != null) {
+                    File f = new File(nodeLibrary.getFile().getParentFile(), path);
+                    return f.getAbsolutePath();
+                }
             } else {
-                return ImmutableList.of();
+                return path;
             }
         }
-
-        List results;
-
-        results = mapValuesInternal(node, inputValues, new FunctionInvoker() {
-            public void call(List<Object> arguments, List<Object> results) {
-                Object returnValue = invokeFunction(node, function, arguments);
-                if (returnValue != null) {
-                    results.add(returnValue);
-                }
-            }
-        });
-
-        if (results.isEmpty())
-            return ImmutableList.of();
-        else if (node.hasListOutputRange() && results.size() == 1)
-            return (Iterable<?>) results.get(0);
-        else
-            return results;
-    }
-
-    /**
-     * Do the actual mapping function. This uses a higher-order function "FunctionInvoker" that is free to execute
-     * something with the arguments it gets and add to the results.
-     *
-     * @param node        The node to render.
-     * @param inputValues A list of all values for the input ports.
-     * @param op          The higher-order function that receives arguments and can manipulate the results.
-     * @return The list of results.
-     */
-    private List<?> mapValuesInternal(Node node, List<ValueOrList> inputValues, FunctionInvoker op) {
-        // If the node has no input ports, or if the minimum list size is zero, return an empty list.
-        if (node.getInputs().isEmpty() || !hasElements(inputValues)) {
-            return ImmutableList.of();
-        }
-
-        List<Object> results = new ArrayList<Object>();
-        Map<ValueOrList, Iterator> iteratorMap = new HashMap<ValueOrList, Iterator>();
-        boolean hasListArgument = false;
-
-        ArrayList<ValueOrList> toExhaustList = new ArrayList<ValueOrList>();
-        toExhaustList.addAll(inputValues);
-
-        while (true) {
-            if (Thread.currentThread().isInterrupted()) throw new NodeRenderException(node, "Interrupted.");
-            // Collect arguments by going through the input values.
-            List<Object> arguments = new ArrayList<Object>();
-            for (int i = 0; i < inputValues.size(); i++) {
-                ValueOrList v = inputValues.get(i);
-                Port p = node.getInputs().get(i);
-
-                if (v.isList()) {
-                    if (p.hasListRange()) {
-                        toExhaustList.remove(v);
-                        arguments.add(v.getList());
-                    } else {
-                        // Store each iterator in the map.
-                        if (!iteratorMap.containsKey(v)) {
-                            iteratorMap.put(v, v.getList().iterator());
-                        }
-                        Iterator iterator = iteratorMap.get(v);
-                        if (!iterator.hasNext()) {
-                            toExhaustList.remove(v);
-                            // End when the all lists are exhausted.
-                            if (toExhaustList.isEmpty()) {
-                                return results;
-                            }
-                            iterator = v.getList().iterator();
-                            iteratorMap.put(v, iterator);
-                        }
-                        arguments.add(iterator.next());
-                        hasListArgument = true;
-                    }
-                } else {
-                    toExhaustList.remove(v);
-                    arguments.add(v.getValue());
-                }
-            }
-            // Invoke the function.
-            op.call(arguments, results);
-            // If none of the arguments are lists, we're done.
-            if (!hasListArgument) break;
-        }
-        return results;
+        return port.getValue();
     }
 
     private Object invokeFunction(Node node, Function function, List<?> arguments) throws NodeRenderException {
@@ -345,8 +260,54 @@ public class NodeContext {
         }
     }
 
-    public double getFrame() {
-        return frame;
+    /**
+     * Return the size of the biggest list.
+     *
+     * @param listOfLists a list of lists.
+     * @return The maximum size.
+     */
+    private static int biggestList(List<List<?>> listOfLists) {
+        int maxSize = 0;
+        for (List<?> list : listOfLists) {
+            maxSize = Math.max(maxSize, list.size());
+        }
+        return maxSize;
+    }
+
+    /**
+     * Get the object of the list at the specified index.
+     * <p/>
+     * If the index is bigger than the list size, the index is wrapped.
+     */
+    private static Object wrappingGet(List<?> list, int index) {
+        return list.get(index % list.size());
+    }
+
+    /**
+     * Build the arguments to invoke a node with.
+     * <p/>
+     * Given the following lists per port:
+     * [[1 2 3 4 5] ["a" "b"] [true]]
+     * <p/>
+     * Builds the following argument lists:
+     * [
+     * [1 "a" true]
+     * [2 "b" true]
+     * [3 "a" true]
+     * [4 "b" true]
+     * [5 "a" true]]
+     */
+    private static List<List<?>> buildArgumentLists(List<List<?>> perPortLists) {
+        List<List<?>> argumentLists = new ArrayList<List<?>>();
+        int maxSize = biggestList(perPortLists);
+        for (int i = 0; i < maxSize; i++) {
+            ArrayList<Object> argumentList = new ArrayList<Object>(perPortLists.size());
+            for (List<?> portList : perPortLists) {
+                argumentList.add(wrappingGet(portList, i));
+            }
+            argumentLists.add(argumentList);
+        }
+        return argumentLists;
     }
 
     /**
@@ -428,14 +389,6 @@ public class NodeContext {
         public int hashCode() {
             return Objects.hashCode(type, klass);
         }
-    }
-
-    /**
-     * Higher-order function that receives a list of arguments to invoke a function with.
-     * It can add something to the list of results, if it wants.
-     */
-    private interface FunctionInvoker {
-        public void call(List<Object> arguments, List<Object> results);
     }
 
     private static final class Conversions {

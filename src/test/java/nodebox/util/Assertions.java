@@ -1,10 +1,7 @@
 package nodebox.util;
 
 import com.google.common.collect.ImmutableList;
-import nodebox.function.FunctionRepository;
-import nodebox.function.ListFunctions;
-import nodebox.function.MathFunctions;
-import nodebox.function.TestFunctions;
+import nodebox.function.*;
 import nodebox.node.Node;
 import nodebox.node.NodeContext;
 import nodebox.node.NodeLibrary;
@@ -15,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 public final class Assertions {
 
     static private final FunctionRepository functionRepository =
-            FunctionRepository.of(TestFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY);
+            FunctionRepository.of(TestFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY);
     static private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, NodeRepository.of(), functionRepository);
 
     public static void assertResultsEqual(Iterable<?> result, Object... args) {

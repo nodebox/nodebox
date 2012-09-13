@@ -68,19 +68,17 @@ public class ConnectionTest {
         Node n = net
                 .connect("number42", "add", "v1")
                 .connect("number5", "add", "v2");
-        context.renderNetwork(n);
-        assertResultsEqual(context.getResults(addNode), 47.0);
+        assertResultsEqual(n, 47.0);
     }
 
     @Test
     public void testCycles() {
+        // TODO Infinite loops are not supported anymore!
         // Create an infinite loop.
         Node n = net
                 .connect("number42", "add", "v1")
                 .connect("add", "number42", "number");
-        // Infinite loops are allowed: each node is only executed once.
-        context.renderNetwork(n);
-        assertResultsEqual(context.getResults(addNode), 42.0);
+        assertResultsEqual(n, 42.0);
     }
 
 }

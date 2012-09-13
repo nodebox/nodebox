@@ -91,13 +91,9 @@ public class NodeContextTest {
 
     @Test
     public void testSingleOutput() {
-        context.renderNode(valuesToPointNode);
-        Map<Node, Iterable<?>> resultsMap = context.getResultsMap();
-        assertEquals(1, resultsMap.size());
-        Iterable<?> results = context.getResults(valuesToPointNode);
-        List resultsList = ImmutableList.copyOf(results);
-        assertEquals(1, resultsList.size());
-        assertResultsEqual(resultsList, Point.ZERO);
+        List<?> results = context.renderNode(valuesToPointNode);
+        assertEquals(1, results.size());
+        assertResultsEqual(results, Point.ZERO);
     }
 
     @Test
@@ -190,10 +186,8 @@ public class NodeContextTest {
                 .withChildAdded(makeNumbers1)
                 .withChildAdded(incNode)
                 .connect("makeNumbers1", "inc", "number");
-        context.renderChild(net, incNode);
+        assertResultsEqual(net, incNode, 2.0, 3.0, 4.0);
         assertEquals(3, SideEffects.theCounter);
-        Iterable<?> results = context.getResults(incNode);
-        assertResultsEqual(results, 2.0, 3.0, 4.0);
     }
 
     /**
@@ -335,8 +329,7 @@ public class NodeContextTest {
         Node net = Node.ROOT
                 .withChildAdded(subnet)
                 .withRenderedChildName("subnet1");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 3.0);
+        assertResultsEqual(net, subnet, 3.0);
     }
 
     @Test
@@ -351,8 +344,7 @@ public class NodeContextTest {
                 .withRenderedChildName("add1")
                 .connect("subnet1", "add1", "v1")
                 .connect("subnet2", "add1", "v2");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(add1), 10.0);
+        assertResultsEqual(net, add1, 10.0);
     }
 
     @Test
@@ -365,8 +357,7 @@ public class NodeContextTest {
         Node net = Node.ROOT
                 .withChildAdded(subnet)
                 .withRenderedChildName("subnet1");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 5.0);
+        assertResultsEqual(net, subnet, 5.0);
     }
 
     @Test
@@ -382,8 +373,7 @@ public class NodeContextTest {
                 .withChildAdded(number1)
                 .withRenderedChildName("subnet1")
                 .connect("number1", "subnet1", "value1");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 11.0);
+        assertResultsEqual(net, subnet, 11.0);
     }
 
     @Test
@@ -430,8 +420,7 @@ public class NodeContextTest {
                 .connect("number2", "subnet", "value2")
                 .connect("number3", "subnet", "value3")
                 .connect("number4", "subnet", "value4");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 110.0);
+        assertResultsEqual(net, subnet, 110.0);
     }
 
     @Test
@@ -447,12 +436,10 @@ public class NodeContextTest {
                 .withChildAdded(subnet)
                 .withRenderedChildName("subnet")
                 .connect("number", "subnet", "n1");
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 14.0);
+        assertResultsEqual(net, subnet, 14.0);
         subnet = subnet.unpublish("n1");
         net = net.withChildReplaced("subnet", subnet);
-        context.renderNetwork(net);
-        assertResultsEqual(context.getResults(subnet), 5.0);
+        assertResultsEqual(net, subnet, 5.0);
     }
 
     @Test
@@ -546,13 +533,10 @@ public class NodeContextTest {
                 .connect("makeNestedWords", "countNetwork", "text")
                 .withRenderedChild(countNet);
 
-        List<Integer> aCounts =ImmutableList.of(5, 11, 9);
+        List<Integer> aCounts = ImmutableList.of(5, 11, 9);
         List<Integer> bCounts = ImmutableList.of(6, 4, 4);
         List<Integer> cCounts = ImmutableList.of(5, 8, 6);
-        List<List<Integer>> expectedCounts = ImmutableList.of(aCounts, bCounts, cCounts);
-
-        ImmutableList<?> results = ImmutableList.copyOf(context.renderNode(mainNetwork));
-        assertEquals(expectedCounts, results);
+        assertResultsEqual(mainNetwork, aCounts, bCounts, cCounts);
     }
 
     private Node createLengthCountNetwork() {

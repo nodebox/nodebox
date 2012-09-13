@@ -1020,15 +1020,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * Called when the active network has finished rendering.
      * Called on the Swing EDT so you can update the GUI.
      *
-     * @param context         The node context.
      * @param renderedNetwork The network that was rendered.
+     * @param results         The results of the render.
      */
-    public synchronized void finishedRendering(final NodeContext context, final Node renderedNetwork) {
+    public synchronized void finishedRendering(final Node renderedNetwork, final List<?> results) {
         finishCurrentRender();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 Node renderedChild = renderedNetwork.getRenderedChild();
-                Iterable<?> results = context.getResults(renderedChild);
                 lastRenderResult = results;
                 viewerPane.setOutputValues(results);
                 networkPane.clearError();
@@ -1088,8 +1087,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
                 Exception renderException = null;
                 startRendering(context);
+                List<?> results = null;
                 try {
-                    context.renderNetwork(renderNetwork);
+                    results = context.renderNode(renderNetwork);
                 } catch (NodeRenderException e) {
                     LOG.log(Level.WARNING, "Error while processing", e);
                     renderException = e;
@@ -1102,7 +1102,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 isRendering.set(false);
 
                 if (renderException == null) {
-                    finishedRendering(context, renderNetwork);
+                    finishedRendering(renderNetwork, results);
 
                     // If, in the meantime, we got a new renderNetwork request, call the renderNetwork method again.
                     if (shouldRender.get()) {
@@ -1448,9 +1448,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                             break;
 
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame);
-                        context.renderNetwork(exportNetwork);
+                        List<?> results = context.renderNode(exportNetwork);
                         Node renderedChild = exportNetwork.getRenderedChild();
-                        Iterable<?> results = context.getResults(renderedChild);
                         viewer.setOutputValue(results);
                         exportDelegate.frameDone(frame, results);
 

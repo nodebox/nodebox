@@ -14,7 +14,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </p>
  * A published port can itself be published again on a higher network level.
  */
-public class PublishedPort {
+public final class PublishedPort {
 
     private final String childNode;
     private final String childPort;
