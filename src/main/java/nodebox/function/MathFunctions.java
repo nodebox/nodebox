@@ -29,8 +29,8 @@ public class MathFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
-                "number", "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "log",
-                "sum", "average", "compare", "min", "max",
+                "number", "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow", "log",
+                "sum", "average", "compare", "min", "max", "ceil", "floor",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
@@ -67,6 +67,10 @@ public class MathFunctions {
 
     public static double sqrt(double n) {
         return Math.sqrt(n);
+    }
+
+    public static double pow(double n1, double n2) {
+        return Math.pow(n1, n2);
     }
 
     public static double log(double n) {
@@ -138,6 +142,14 @@ public class MathFunctions {
             min = Math.min(min, d);
         }
         return min;
+    }
+
+    public static double ceil(double n) {
+        return Math.ceil(n);
+    }
+
+    public static double floor(double n) {
+        return Math.floor(n);
     }
 
     public static boolean compare(String comparator, double n1, double n2) {
