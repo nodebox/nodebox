@@ -18,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class NodeContext {
 
@@ -171,8 +171,7 @@ public final class NodeContext {
     }
 
     private Object invokeNode(Node node, List<?> arguments) {
-        String functionName = node.getFunction();
-        Function function = functionRepository.getFunction(functionName);
+        Function function = functionRepository.getFunction(node.getFunction());
         return invokeFunction(node, function, arguments);
     }
 
@@ -260,20 +259,6 @@ public final class NodeContext {
     }
 
     /**
-     * Return the size of the biggest list.
-     *
-     * @param listOfLists a list of lists.
-     * @return The maximum size.
-     */
-    private static int biggestList(List<List<?>> listOfLists) {
-        int maxSize = 0;
-        for (List<?> list : listOfLists) {
-            maxSize = Math.max(maxSize, list.size());
-        }
-        return maxSize;
-    }
-
-    /**
      * Get the object of the list at the specified index.
      * <p/>
      * If the index is bigger than the list size, the index is wrapped.
@@ -330,58 +315,6 @@ public final class NodeContext {
         } else {
             return arguments.size();
         }
-    }
-
-    /**
-     * Return true if each element has a next element.
-     *
-     * @param ll The list of lists or values.
-     * @return true if each of the lists has values.
-     */
-    private static boolean hasElements(List<ValueOrList> ll) {
-        checkNotNull(ll);
-        if (ll.isEmpty()) return false;
-        for (ValueOrList v : ll) {
-            if (v.isList()) {
-                if (!v.getList().iterator().hasNext()) return false;
-            }
-        }
-        return true;
-    }
-
-    private static final class ValueOrList {
-        private final boolean isList;
-        private final Object value;
-
-        private static ValueOrList ofValue(Object value) {
-            return new ValueOrList(false, value);
-        }
-
-        private static ValueOrList ofList(Iterable list) {
-            return new ValueOrList(true, list);
-        }
-
-        private ValueOrList(boolean isList, Object value) {
-            checkArgument(!isList || value instanceof Iterable);
-            this.isList = isList;
-            this.value = value;
-        }
-
-
-        private Object getValue() {
-            checkState(!isList);
-            return value;
-        }
-
-        private Iterable getList() {
-            checkState(isList);
-            return (Iterable) value;
-        }
-
-        private boolean isList() {
-            return isList;
-        }
-
     }
 
     public static final class ConversionPair {
