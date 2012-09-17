@@ -1037,12 +1037,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         });
     }
 
-    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Exception e) {
+    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Throwable t) {
         finishCurrentRender();
         lastRenderResult = null;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                networkPane.setError(e);
+                networkPane.setError(t);
             }
         });
     }
@@ -1086,7 +1086,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         currentRender = renderService.submit(new Runnable() {
             public void run() {
                 final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
-                Exception renderException = null;
+                Throwable renderException = null;
                 startRendering(context);
                 try {
                     context.renderNetwork(renderNetwork);
