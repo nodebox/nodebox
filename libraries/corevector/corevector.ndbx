@@ -273,10 +273,5 @@
         </node>
         <node description="Shift paths by a random amount." function="pyvector/wiggle_contours" name="wiggle_contours" position="13.00,15.00" prototype="wiggle_points"/>
         <node description="Shift paths by a random amount." function="pyvector/wiggle_paths" name="wiggle_paths" position="10.00,15.00" prototype="wiggle_points"/>
-        <node description="Create a points file with the given shape." function="pyvector/write_points" name="write_points" position="13.00,12.00" prototype="generator">
-            <port name="context" range="value" type="context" widget="none"/>
-            <port name="shape" range="value" type="geometry" widget="none"/>
-            <port name="prefix" range="value" type="string" value="" widget="string"/>
-        </node>
     </node>
 </ndbx>

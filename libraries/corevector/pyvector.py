@@ -798,18 +798,6 @@ def quad_curve(pt1, pt2, t, distance):
     p.strokeWidth = 1.0
     return p
 
-def write_points(context, shape, prefix):
-    if shape is None: return None
-    if len(prefix.strip()) == 0: return shape
-    s = ""
-    for pt in shape.points:
-        s += "%.2f,%.2f " % (pt.x, pt.y)
-    fname = "%s-%04i.points" % (prefix, context.frame)
-    fp = open(fname, 'w')
-    fp.write(s + "\n")
-    fp.close()
-    return shape
-    
 def center_point(shape):
     if shape is None: return Point.ZERO
     bounds = shape.bounds
