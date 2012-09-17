@@ -93,7 +93,7 @@
         <node description="Draw Bezier Paths." function="pyvector/draw_path" image="draw_path.png" name="draw_path" position="4.00,8.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string"/>
         </node>
-        <node description="Create ellipses and circles." function="corevector/ellipse" image="ellipse.png" name="ellipse" position="4.00,2.00" prototype="generator">
+        <node description="Create ellipses and circles." function="corevector/ellipse" image="ellipse.png" name="ellipse" position="4.00,2.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
@@ -169,7 +169,7 @@
             <port name="t" range="value" type="float" value="50.0" widget="float"/>
             <port name="distance" range="value" type="float" value="50.0" widget="float"/>
         </node>
-        <node description="Create a rectangle or rounded rectangle." function="corevector/rect" image="rect.png" name="rect" position="4.00,1.00" prototype="generator">
+        <node description="Create a rectangle or rounded rectangle." function="corevector/rect" image="rect.png" name="rect" position="4.00,1.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
