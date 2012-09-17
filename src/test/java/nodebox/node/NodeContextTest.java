@@ -97,6 +97,14 @@ public class NodeContextTest {
     }
 
     @Test
+    public void testListRange() {
+        Node node = Node.ROOT
+                .withFunction("math/average")
+                .withInputAdded(Port.floatPort("values", 42).withRange(Port.Range.LIST));
+        assertResultsEqual(node);
+    }
+
+    @Test
     public void testSameOutputPort() {
         Node invert1 = invertNode.extend().withName("invert1").withInputValue("value", 1.0);
         Node invert2 = invertNode.extend().withName("invert2").withInputValue("value", 10.0);
