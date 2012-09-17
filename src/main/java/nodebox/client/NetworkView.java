@@ -704,22 +704,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         getDocument().setActiveNetwork(path);
     }
 
-    private void goDown() {
-        JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-    }
-
     //// Input Events ////
 
     public void keyTyped(KeyEvent e) {
         switch (e.getKeyChar()) {
             case KeyEvent.VK_BACK_SPACE:
                 getDocument().deleteSelection();
-                break;
-            case KeyEvent.VK_U:
-                goUp();
-                break;
-            case KeyEvent.VK_ENTER:
-                goDown();
                 break;
         }
     }
@@ -997,7 +987,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private class GoUpAction extends AbstractAction {
         private GoUpAction() {
             super("Go Up");
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_U, 0));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1080,7 +1069,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private class GoInAction extends AbstractAction {
         private GoInAction() {
             super("Edit Children");
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
         }
 
         public void actionPerformed(ActionEvent e) {
