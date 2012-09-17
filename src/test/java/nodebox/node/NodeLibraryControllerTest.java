@@ -236,13 +236,13 @@ public class NodeLibraryControllerTest {
     }
 
     @Test
-    public void testSetPortValueInSubnet() {
+    public void testSetPortValueInSubNet() {
         Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 10.0));
-        Node subnet = Node.ROOT.withName("subnet").withChildAdded(numberNode).withRenderedChildName("number");
-        controller.addNode("/", subnet);
-        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), 10.0);
-        controller.setPortValue("/subnet/number", "value", 42.0);
-        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet"), 42.0);
+        Node subNet = Node.NETWORK.withName("subNet").withChildAdded(numberNode).withRenderedChildName("number");
+        controller.addNode("/", subNet);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subNet"), 10.0);
+        controller.setPortValue("/subNet/number", "value", 42.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subNet"), 42.0);
     }
 
     @Test
@@ -346,7 +346,7 @@ public class NodeLibraryControllerTest {
     @Test
     public void testPublish() {
         Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
-        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.addNode("/", Node.NETWORK.withName("subnet"));
         controller.addNode("/subnet", invertNode);
         controller.setRenderedChild("/subnet", "negate");
         controller.publish("/subnet", "negate", "value", "n");

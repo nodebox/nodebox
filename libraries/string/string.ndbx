@@ -18,5 +18,8 @@
         <node description="Count the number of words in a string." function="string/wordCount" name="word_count" outputType="int" position="1.00,4.00" category="string">
             <port name="string" range="value" type="string" value="" widget="string"/>
         </node>
+        <node description="Generate a string." function="string/string" name="string" outputType="string" position="1.00,4.00" category="string">
+            <port name="value" range="value" type="string" value="" widget="string"/>
+        </node>
     </node>
 </ndbx>

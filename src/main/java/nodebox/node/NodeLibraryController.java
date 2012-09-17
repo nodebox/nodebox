@@ -9,10 +9,7 @@ import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -28,11 +25,11 @@ public class NodeLibraryController {
     private NodeLibrary nodeLibrary;
 
     public static NodeLibraryController create() {
-        return new NodeLibraryController(NodeLibrary.create("untitled", Node.ROOT, NodeRepository.of(), FunctionRepository.of()));
+        return new NodeLibraryController(NodeLibrary.create("untitled", Node.NETWORK, NodeRepository.of(), FunctionRepository.of()));
     }
 
     public static NodeLibraryController create(String libraryName, NodeRepository nodeRepository, FunctionRepository functionRepository) {
-        return new NodeLibraryController(NodeLibrary.create(libraryName, Node.ROOT, nodeRepository, functionRepository));
+        return new NodeLibraryController(NodeLibrary.create(libraryName, Node.NETWORK, nodeRepository, functionRepository));
     }
 
     public static NodeLibraryController withLibrary(NodeLibrary nodeLibrary) {

@@ -9,9 +9,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
+import static nodebox.util.Assertions.assertNoResults;
 import static nodebox.util.Assertions.assertResultsEqual;
 
 public class NodeContextTest {
@@ -120,7 +120,7 @@ public class NodeContextTest {
     public void testConnectedListProcessing() {
         Node makeNumbers1 = makeNumbersNode.extend().withName("makeNumbers1").withInputValue("string", "1 2 3 4");
         Node invert1 = invertNode.extend().withName("invert1");
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(makeNumbers1)
                 .withChildAdded(invert1)
                 .connect("makeNumbers1", "invert1", "value")
@@ -132,12 +132,11 @@ public class NodeContextTest {
     public void testEmptyListProcessing() {
         Node noNumbers = makeNumbersNode.extend().withName("noNumbers").withInputValue("string", "");
         Node add1 = addNode.extend().withName("add1");
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(noNumbers)
                 .withChildAdded(add1)
                 .connect("noNumbers", "add1", "v1");
-        context.renderChild(net, add1);
-        assertResultsEqual(context.renderChild(net, add1));
+        assertNoResults(net, add1);
     }
 
     /**
@@ -165,7 +164,7 @@ public class NodeContextTest {
     public void testSamePrototypeTwice() {
         Node invert1Node = invertNode.withName("invert1").withInputValue("value", 42.0);
         Node invert2Node = invertNode.withName("invert2");
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(invert1Node)
                 .withChildAdded(invert2Node)
                 .connect("invert1", "invert2", "value");
@@ -182,7 +181,7 @@ public class NodeContextTest {
                 .withName("inc")
                 .withFunction("side-effects/increaseAndCount")
                 .withInputAdded(Port.floatPort("number", 0));
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(makeNumbers1)
                 .withChildAdded(incNode)
                 .connect("makeNumbers1", "inc", "number");
@@ -197,7 +196,7 @@ public class NodeContextTest {
     public void testListWithValue() {
         Node makeNumbers1 = makeNumbersNode.withName("makeNumbers1").withInputValue("string", "1 2 3");
         Node add1 = addNode.extend().withName("add1").withInputValue("v2", 100.0);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(makeNumbers1)
                 .withChildAdded(add1)
                 .connect("makeNumbers1", "add1", "v1");
@@ -206,7 +205,7 @@ public class NodeContextTest {
 
     @Test
     public void testLongestList() {
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(threeNumbers)
                 .withChildAdded(fiveNumbers)
                 .withChildAdded(addNode)
@@ -222,7 +221,7 @@ public class NodeContextTest {
                 .withFunction("math/sum")
                 .withInputAdded(Port.floatPort("numbers", 0))
                 .withInputRange("numbers", Port.Range.LIST);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(sum)
                 .withChildAdded(threeNumbers)
                 .connect("threeNumbers", sum.getName(), "numbers");
@@ -238,7 +237,7 @@ public class NodeContextTest {
                 .withName("makeNull")
                 .withFunction("test/makeNull")
                 .withInputAdded(Port.floatPort("value", 0.0));
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(threeNumbers)
                 .withChildAdded(makeNull)
                 .connect("threeNumbers", "makeNull", "value");
@@ -252,12 +251,12 @@ public class NodeContextTest {
         Node makeNumbers = makeNumbersNode.extend()
                 .withName("makeNumbers")
                 .withInputValue("separator", ",");
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(makeStrings)
                 .withChildAdded(makeNumbers)
                 .withRenderedChildName("makeNumbers")
                 .connect("makeStrings", "makeNumbers", "string");
-        assertResultsEqual(context.renderNode(net), ImmutableList.of(1.0, 2.0), ImmutableList.of(3.0, 4.0), ImmutableList.of(5.0, 6.0));
+        assertResultsEqual(net, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
     }
 
     @Test
@@ -289,7 +288,7 @@ public class NodeContextTest {
         Node sample3 = sampleNode.extend()
                 .withName("sample3")
                 .withInputValue("amount", 4);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(sample1)
                 .withChildAdded(sample2)
                 .withChildAdded(sample3)
@@ -325,8 +324,8 @@ public class NodeContextTest {
 
     @Test
     public void testRenderSubnetwork() {
-        Node subnet = createSubnetwork("subnet1", 1.0, 2.0);
-        Node net = Node.ROOT
+        Node subnet = createSubNetwork("subnet1", 1.0, 2.0);
+        Node net = Node.NETWORK
                 .withChildAdded(subnet)
                 .withRenderedChildName("subnet1");
         assertResultsEqual(net, subnet, 3.0);
@@ -334,8 +333,8 @@ public class NodeContextTest {
 
     @Test
     public void testValidSubnetworkResults() {
-        Node subnet1 = createSubnetwork("subnet1", 1.0, 2.0);
-        Node subnet2 = createSubnetwork("subnet2", 3.0, 4.0);
+        Node subnet1 = createSubNetwork("subnet1", 1.0, 2.0);
+        Node subnet2 = createSubNetwork("subnet2", 3.0, 4.0);
         Node add1 = addNode.extend().withName("add1");
         Node net = Node.ROOT
                 .withChildAdded(subnet1)
@@ -349,20 +348,20 @@ public class NodeContextTest {
 
     @Test
     public void testRenderNetworkWithPublishedPorts() {
-        Node subnet = createSubnetwork("subnet1", 0.0, 0.0)
+        Node subNet = createSubNetwork("subnet1", 0.0, 0.0)
                 .publish("number1", "number", "value1")
                 .publish("number2", "number", "value2")
                 .withInputValue("value1", 2.0)
                 .withInputValue("value2", 3.0);
-        Node net = Node.ROOT
-                .withChildAdded(subnet)
+        Node net = Node.NETWORK
+                .withChildAdded(subNet)
                 .withRenderedChildName("subnet1");
-        assertResultsEqual(net, subnet, 5.0);
+        assertResultsEqual(net, subNet, 5.0);
     }
 
     @Test
     public void testRenderNetworkWithConnectedPublishedPorts() {
-        Node subnet = createSubnetwork("subnet1", 0.0, 1.0)
+        Node subnet = createSubNetwork("subnet1", 0.0, 1.0)
                 .publish("number1", "number", "value1")
                 .withInputValue("value1", 2.0);
         Node number1 = numberNode.extend()
@@ -378,14 +377,14 @@ public class NodeContextTest {
 
     @Test
     public void testRenderNestedNetworkWithConnectedPublishedPorts() {
-        Node subnet1 = createSubnetwork("subnet1", 0.0, 0.0)
+        Node subnet1 = createSubNetwork("subnet1", 0.0, 0.0)
                 .publish("number1", "number", "n1")
                 .publish("number2", "number", "n2");
-        Node subnet2 = createSubnetwork("subnet2", 0.0, 0.0)
+        Node subnet2 = createSubNetwork("subnet2", 0.0, 0.0)
                 .publish("number1", "number", "n1")
                 .publish("number2", "number", "n2");
         Node add1 = addNode.extend().withName("add1");
-        Node subnet = Node.ROOT
+        Node subnet = Node.NETWORK
                 .withName("subnet")
                 .withChildAdded(subnet1)
                 .withChildAdded(subnet2)
@@ -409,7 +408,7 @@ public class NodeContextTest {
         Node number4 = numberNode.extend()
                 .withName("number4")
                 .withInputValue("number", 44.0);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(number1)
                 .withChildAdded(number2)
                 .withChildAdded(number3)
@@ -425,21 +424,21 @@ public class NodeContextTest {
 
     @Test
     public void testRenderUnpublishAndDisconnect() {
-        Node subnet = createSubnetwork("subnet", 2.0, 3.0)
+        Node subNet = createSubNetwork("subNet", 2.0, 3.0)
                 .publish("number1", "number", "n1")
                 .publish("number2", "number", "n2");
         Node number = numberNode.extend()
                 .withName("number")
                 .withInputValue("number", 11.0);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(number)
-                .withChildAdded(subnet)
-                .withRenderedChildName("subnet")
-                .connect("number", "subnet", "n1");
-        assertResultsEqual(net, subnet, 14.0);
-        subnet = subnet.unpublish("n1");
-        net = net.withChildReplaced("subnet", subnet);
-        assertResultsEqual(net, subnet, 5.0);
+                .withChildAdded(subNet)
+                .withRenderedChildName("subNet")
+                .connect("number", "subNet", "n1");
+        assertResultsEqual(net, subNet, 14.0);
+        subNet = subNet.unpublish("n1");
+        net = net.withChildReplaced("subNet", subNet);
+        assertResultsEqual(net, subNet, 5.0);
     }
 
     @Test
@@ -460,7 +459,7 @@ public class NodeContextTest {
     // TODO Check list-unaware node with multiple outputs.
     // TODO Check list-unaware node with multiple inputs, single output.
 
-    private Node createSubnetwork(String name, double v1, double v2) {
+    private Node createSubNetwork(String name, double v1, double v2) {
         Node number1 = numberNode.extend()
                 .withName("number1")
                 .withInputValue("number", v1);
@@ -468,7 +467,7 @@ public class NodeContextTest {
                 .withName("number2")
                 .withInputValue("number", v2);
         Node add1 = addNode.extend().withName("add1");
-        Node subnet = Node.ROOT
+        Node subNet = Node.NETWORK
                 .withName(name)
                 .withChildAdded(number1)
                 .withChildAdded(number2)
@@ -476,7 +475,7 @@ public class NodeContextTest {
                 .withRenderedChildName("add1")
                 .connect("number1", "add1", "v1")
                 .connect("number2", "add1", "v2");
-        return subnet;
+        return subNet;
     }
 
     private Node createSampleNode(String name, int amount, double start, double end) {
@@ -503,7 +502,7 @@ public class NodeContextTest {
         Node calculate = calculateMultipleNode.extend()
                 .withInputValue("v2", 6.0)
                 .withInputValue("v4", 7.0);
-        Node net = Node.ROOT
+        return Node.NETWORK
                 .withChildAdded(makeStrings1)
                 .withChildAdded(makeStrings2)
                 .withChildAdded(makeNumbers1)
@@ -514,20 +513,90 @@ public class NodeContextTest {
                 .connect("makeStrings2", "makeNumbers2", "string")
                 .connect("makeNumbers1", "calculateMultiple", "v1")
                 .connect("makeNumbers2", "calculateMultiple", "v3");
-        return net;
     }
 
     @Test
-    public void testNestedNetworks() {
-        Node makeNestedWords = Node.ROOT
+    public void testListOutputRange() {
+        Node slice = Node.ROOT
+                .withName("slice")
+                .withFunction("list/slice")
+                .withInputAdded(Port.stringPort("list", "").withRange(Port.Range.LIST))
+                .withInputAdded(Port.intPort("start", 0))
+                .withInputAdded(Port.intPort("size", 1000))
+                .withOutputRange(Port.Range.LIST);
+        Node makeStrings = Node.ROOT
+                .withName("makeStrings")
+                .withFunction("string/makeStrings")
+                .withInputAdded(Port.stringPort("text", "A;B;C"))
+                .withInputAdded(Port.stringPort("separator", ";"))
+                .withOutputRange(Port.Range.LIST);
+        Node makeNumbers = Node.ROOT
+                .withName("makeNumbers")
+                .withFunction("math/makeNumbers")
+                .withInputAdded(Port.stringPort("text", "0;1;2"))
+                .withInputAdded(Port.stringPort("separator", ";"))
+                .withOutputRange(Port.Range.LIST);
+        Node net = Node.NETWORK
+                .withChildAdded(makeStrings)
+                .withChildAdded(makeNumbers)
+                .withChildAdded(slice)
+                .connect("makeStrings", "slice", "list")
+                .connect("makeNumbers", "slice", "start");
+
+        assertResultsEqual(net, slice, "A", "B", "C", "B", "C", "C");
+    }
+
+    @Test
+    public void testNestedGenerator() {
+        Node repeat = Node.ROOT
+                .withName("repeat")
+                .withFunction("list/repeat")
+                .withInputAdded(Port.customPort("value", "list").withRange(Port.Range.LIST))
+                .withInputAdded(Port.intPort("amount", 3))
+                .withOutputRange(Port.Range.LIST);
+
+        Node string = Node.ROOT
+                .withName("string")
+                .withFunction("string/string")
+                .withInputAdded(Port.stringPort("value", "A"))
+                .withOutputType("string");
+
+        Node repeatNet = Node.NETWORK
+                .withName("repeatNet")
+                .withChildAdded(string)
+                .withChildAdded(repeat)
+                .withRenderedChild(repeat)
+                .publish("string", "value", "strings")
+                .connect("string", "repeat", "value");
+
+        assertResultsEqual(repeatNet, "A", "A", "A");
+
+        Node makeStrings = Node.ROOT
+                .withName("makeStrings")
+                .withFunction("string/makeStrings")
+                .withInputAdded(Port.stringPort("value", "A;B;C"))
+                .withInputAdded(Port.stringPort("separator", ";"))
+                .withOutputRange(Port.Range.LIST);
+
+        Node net = Node.NETWORK
+                .withChildAdded(makeStrings)
+                .withChildAdded(repeatNet)
+                .withRenderedChild(repeatNet)
+                .connect("makeStrings", "repeatNet", "strings");
+
+        assertResultsEqual(net, ImmutableList.of("A", "A", "A"), ImmutableList.of("B", "B", "B"), ImmutableList.of("C", "C", "C"));
+    }
+
+    @Test
+    public void testNestedFilter() {
+        Node makeNestedWords = Node.NETWORK
                 .withName("makeNestedWords")
                 .withFunction("test/makeNestedWords")
-                .withOutputType("string")
-                .withOutputRange(Port.Range.LIST);
+                .withOutputType("string");
 
         Node countNet = createLengthCountNetwork();
 
-        Node mainNetwork = Node.ROOT
+        Node mainNetwork = Node.NETWORK
                 .withChildAdded(makeNestedWords)
                 .withChildAdded(countNet)
                 .connect("makeNestedWords", "countNetwork", "text")
@@ -545,11 +614,12 @@ public class NodeContextTest {
                 .withFunction("string/length")
                 .withOutputType("string")
                 .withInputAdded(Port.stringPort("text", ""));
-        return Node.ROOT
+        return Node.NETWORK
                 .withName("countNetwork")
                 .withChildAdded(countLetters)
                 .publish("countLetters", "text", "text")
-                .withRenderedChild(countLetters);
+                .withRenderedChild(countLetters)
+                .withOutputRange(Port.Range.VALUE);
     }
 
 }

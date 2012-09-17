@@ -27,7 +27,7 @@ public class ConnectionTest {
             .withInputAdded(Port.floatPort("v1", 0))
             .withInputAdded(Port.floatPort("v2", 0));
 
-    public static final Node net = Node.ROOT
+    public static final Node net = Node.NETWORK
             .withChildAdded(number42Node)
             .withChildAdded(number5Node)
             .withChildAdded(addNode)

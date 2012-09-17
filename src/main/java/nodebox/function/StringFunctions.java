@@ -14,7 +14,16 @@ public class StringFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "makeStrings", "length", "wordCount", "concatenate");
+        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate");
+    }
+
+    /**
+     * Return the input string, as-is.
+     * <p/>
+     * This is the identity functions for strings.
+     */
+    public static String string(String s) {
+        return s;
     }
 
     /**

@@ -18,6 +18,8 @@ public final class Node {
 
     public static final Node ROOT = new Node();
 
+    public static final Node NETWORK = ROOT.withOutputRange(Port.Range.LIST);
+
     public static String path(String parentPath, Node node) {
         checkNotNull(node);
         return path(parentPath, node.getName());

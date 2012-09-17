@@ -13,18 +13,11 @@ import nodebox.util.ListUtils;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class NodeContext {
-
-//    private final Map<Node, Iterable<?>> outputValuesMap = new HashMap<Node, Iterable<?>>();
-//    private final Map<NodePort, Iterable<?>> inputValuesMap = new HashMap<NodePort, Iterable<?>>();
-//    private final Set<Node> renderedNodes = new HashSet<Node>();
 
     private final static ImmutableMap<ConversionPair, String> conversionMap;
     private final static ImmutableList<Class> ancestorTypes;
@@ -105,19 +98,30 @@ public final class NodeContext {
      * @throws NodeRenderException If processing fails.
      */
     public List<?> renderNode(Node node) throws NodeRenderException {
+        return renderNode(node, Collections.<Port, Object>emptyMap());
+    }
+
+    public List<?> renderNode(Node node, Map<Port, ?> argumentMap) {
         checkNotNull(node);
         checkNotNull(functionRepository);
 
         // If the node has children, forgo the operation of the current node and evaluate the child.
         if (node.hasRenderedChild()) {
-            return renderChild(node, node.getRenderedChild());
-        } else {
-            List<Object> arguments = new ArrayList<Object>();
-            for (Port port : node.getAllInputs()) {
-                arguments.add(getPortValue(port));
-            }
-            return postProcessResult(node, invokeNode(node, arguments));
+            return renderChild(node, node.getRenderedChild(), argumentMap);
         }
+
+        List<Object> arguments = new ArrayList<Object>();
+        for (Port port : node.getAllInputs()) {
+            Object argument;
+            if (argumentMap.containsKey(port)) {
+                argument = argumentMap.get(port);
+            } else {
+                argument = getPortValue(port);
+            }
+            arguments.add(argument);
+        }
+        Object result = invokeNode(node, arguments);
+        return postProcessResult(node, result);
     }
 
     private List<?> postProcessResult(Node node, Object result) {
@@ -129,6 +133,10 @@ public final class NodeContext {
     }
 
     public List<?> renderChild(Node network, Node child) throws NodeRenderException {
+        return renderChild(network, child, Collections.<Port, Object>emptyMap());
+    }
+
+    public List<?> renderChild(Node network, Node child, Map<Port, ?> networkArgumentMap) {
         // A list of all result objects.
         List<Object> resultsList = new ArrayList<Object>();
 
@@ -139,35 +147,30 @@ public final class NodeContext {
             // The list of values that need to be processed for this port.
             Map<Port, List<?>> portArguments = new LinkedHashMap<Port, List<?>>();
 
-            for (Port port : child.getInputs()) {
-                List<?> result = evaluatePort(network, child, port);
-                portArguments.put(port, result);
+            for (Port port : child.getAllInputs()) {
+                if (networkArgumentMap.containsKey(port)) {
+                    portArguments.put(port, (List<?>) networkArgumentMap.get(port));
+                } else {
+                    List<?> result = evaluatePort(network, child, port);
+                    List<?> convertedResult = convertResultsForPort(port, result);
+                    portArguments.put(port, convertedResult);
+                }
             }
 
             // A prepared list of argument lists, each for one invocation of the child node.
-            List<List<?>> argumentLists = buildArgumentLists(portArguments);
+            List<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
 
-            for (List<?> arguments : argumentLists) {
-                Object result = invokeNode(child, arguments);
+            for (Map<Port, ?> argumentMap : argumentMaps) {
+                List<?> results = renderNode(child, argumentMap);
                 if (child.hasListOutputRange()) {
-                    resultsList.addAll((List<?>) result);
+                    resultsList.addAll(results);
                 } else {
-                    resultsList.add(result);
+                    resultsList.addAll(results);
                 }
             }
         }
 
-        return resultsList;
-//
-//
-//        for (PublishedPort pp : node.getPublishedInputs()) {
-//            NodePort np = NodePort.of(node.getName(), pp.getPublishedName());
-//            if (inputValuesMap.containsKey(np)) {
-//                context.inputValuesMap.put(NodePort.of(pp.getChildNode(), pp.getChildPort()),
-//                        inputValuesMap.get(np));
-//
-//            }
-//        }
+        return postProcessResult(network, resultsList);
     }
 
     private Object invokeNode(Node node, List<?> arguments) {
@@ -184,16 +187,16 @@ public final class NodeContext {
         return Object.class;
     }
 
-    private Iterable<?> convert(Iterable<?> outputValues, String inputType) {
-        Class outputType = ListUtils.listClass(outputValues);
+    private List<?> convertResultsForPort(Port port, List<?> values) {
+        Class outputType = ListUtils.listClass(values);
         Class ancestorType = getAncestorType(outputType);
-        String conversionMethod = conversionMap.get(ConversionPair.of(inputType, ancestorType));
+        String conversionMethod = conversionMap.get(ConversionPair.of(port.getType(), ancestorType));
 
         if (conversionMethod != null) {
             try {
                 for (Method method : Conversions.class.getDeclaredMethods()) {
                     if (method.getName().equals(conversionMethod))
-                        return (Iterable<?>) method.invoke(null, outputValues);
+                        return (List<?>) method.invoke(null, values);
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("Error while accessing conversion method.", e);
@@ -202,7 +205,7 @@ public final class NodeContext {
             }
         }
 
-        return outputValues;
+        return values;
     }
 
     private Node findOutputNode(Node network, Node inputNode, Port inputPort) {
@@ -271,32 +274,45 @@ public final class NodeContext {
      * Build the arguments to invoke a node with.
      * <p/>
      * Given the following lists per port:
-     * [[1 2 3 4 5] ["a" "b"] [true]]
+     * {alpha:[1 2 3 4 5]
+     * beta: ["a" "b"]
+     * gamma: [true]}
      * <p/>
-     * Builds the following argument lists:
+     * Builds the following argument maps:
      * [
-     * [1 "a" true]
-     * [2 "b" true]
-     * [3 "a" true]
-     * [4 "b" true]
-     * [5 "a" true]]
+     * {alpha: 1 beta:"a" gamma:true}
+     * {alpha: 2 beta:"b" gamma:true}
+     * {alpha: 3 beta:"a" gamma:true}
+     * {alpha: 4 beta:"b" gamma:true}
+     * {alpha: 5 beta:"a" gamma:true}]
      */
-    private static List<List<?>> buildArgumentLists(Map<Port, List<?>> argumentsPerPort) {
-        List<List<?>> argumentLists = new ArrayList<List<?>>();
+    private static List<Map<Port, ?>> buildArgumentMaps(Map<Port, List<?>> argumentsPerPort) {
+        List<Map<Port, ?>> argumentMaps = new ArrayList<Map<Port, ?>>();
+
+        int minSize = smallestArgumentList(argumentsPerPort);
+        if (minSize == 0) return Collections.emptyList();
 
         int maxSize = biggestArgumentList(argumentsPerPort);
         for (int i = 0; i < maxSize; i++) {
-            ArrayList<Object> argumentList = new ArrayList<Object>(argumentsPerPort.size());
+            Map<Port, Object> argumentMap = new HashMap<Port, Object>(argumentsPerPort.size());
             for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
                 if (entry.getKey().hasListRange()) {
-                    argumentList.add(entry.getValue());
+                    argumentMap.put(entry.getKey(), entry.getValue());
                 } else {
-                    argumentList.add(wrappingGet(entry.getValue(), i));
+                    argumentMap.put(entry.getKey(), wrappingGet(entry.getValue(), i));
                 }
             }
-            argumentLists.add(argumentList);
+            argumentMaps.add(argumentMap);
         }
-        return argumentLists;
+        return argumentMaps;
+    }
+
+    private static int smallestArgumentList(Map<Port, List<?>> argumentsPerPort) {
+        int minSize = Integer.MAX_VALUE;
+        for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
+            minSize = Math.min(minSize, argumentListSize(entry.getKey(), entry.getValue()));
+        }
+        return minSize;
     }
 
     private static int biggestArgumentList(Map<Port, List<?>> argumentsPerPort) {
@@ -306,6 +322,7 @@ public final class NodeContext {
         }
         return maxSize;
     }
+
 
     private static int argumentListSize(Port port, List<?> arguments) {
         // If the port takes in a list, he will always take the entire argument list as an argument.
@@ -347,98 +364,98 @@ public final class NodeContext {
     }
 
     private static final class Conversions {
-        public static Iterable<?> geometryToPoints(Iterable<?> values) {
+        public static List<?> geometryToPoints(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
             return b.build();
         }
 
-        public static Iterable<?> doubleToInt(Iterable<?> values) {
+        public static List<?> doubleToInt(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Long) (Math.round((Double) o))).intValue());
             return b.build();
         }
 
-        public static Iterable<?> toString(Iterable<?> values) {
+        public static List<?> toString(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(o.toString());
             return b.build();
         }
 
-        public static Iterable<?> stringToInt(Iterable<?> values) {
+        public static List<?> stringToInt(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(Integer.parseInt((String) o));
             return b.build();
         }
 
-        public static Iterable<?> stringToDouble(Iterable<?> values) {
+        public static List<?> stringToDouble(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(Double.parseDouble((String) o));
             return b.build();
         }
 
-        public static Iterable<?> stringToBoolean(Iterable<?> values) {
+        public static List<?> stringToBoolean(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(Boolean.parseBoolean(((String) o).toLowerCase()));
             return b.build();
         }
 
-        public static Iterable<?> booleanToInt(Iterable<?> values) {
+        public static List<?> booleanToInt(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Boolean) o) ? 1 : 0);
             return b.build();
         }
 
-        public static Iterable<?> booleanToDouble(Iterable<?> values) {
+        public static List<?> booleanToDouble(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Boolean) o) ? 1.0 : 0.0);
             return b.build();
         }
 
-        public static Iterable<?> numberToBoolean(Iterable<?> values) {
+        public static List<?> numberToBoolean(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Integer) o) == 1);
             return b.build();
         }
 
-        public static Iterable<?> stringToColor(Iterable<?> values) {
+        public static List<?> stringToColor(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(Color.parseColor((String) o));
             return b.build();
         }
 
-        public static Iterable<?> intToColor(Iterable<?> values) {
+        public static List<?> intToColor(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(new Color(((Long) o) / 255.0));
             return b.build();
         }
 
-        public static Iterable<?> doubleToColor(Iterable<?> values) {
+        public static List<?> doubleToColor(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(new Color((Double) o));
             return b.build();
         }
 
-        public static Iterable<?> booleanToColor(Iterable<?> values) {
+        public static List<?> booleanToColor(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values)
                 b.add(((Boolean) o) ? Color.WHITE : Color.BLACK);
             return b.build();
         }
 
-        public static Iterable<?> numberToPoint(Iterable<?> values) {
+        public static List<?> numberToPoint(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values) {
                 double d = ((Number) o).doubleValue();
@@ -447,7 +464,7 @@ public final class NodeContext {
             return b.build();
         }
 
-        public static Iterable<?> stringToPoint(Iterable<?> values) {
+        public static List<?> stringToPoint(Iterable<?> values) {
             ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
             for (Object o : values) {
                 b.add(Point.valueOf((String) o));

@@ -32,10 +32,10 @@ public class NodeLibraryTest {
         PythonUtils.initializePython();
         child1 = Node.ROOT.withName("child1");
         child2 = Node.ROOT.withName("child2");
-        parent = Node.ROOT.withName("parent")
+        parent = Node.NETWORK.withName("parent")
                 .withChildAdded(child1)
                 .withChildAdded(child2);
-        root = Node.ROOT.withChildAdded(parent);
+        root = Node.NETWORK.withChildAdded(parent);
         library = NodeLibrary.create("test", root, FunctionRepository.of());
         functions = FunctionRepository.of(MathFunctions.LIBRARY, ListFunctions.LIBRARY);
     }
@@ -83,15 +83,15 @@ public class NodeLibraryTest {
                 .withFunction("math/negate")
                 .withInputAdded(Port.floatPort("number", 0));
         Node invert1 = invert.extend().withName("invert1").withInputValue("number", 42.0);
-        Node root = Node.ROOT
+        Node net = Node.NETWORK
                 .withName("root")
                 .withChildAdded(invert)
                 .withChildAdded(invert1)
                 .withRenderedChild(invert1);
-        NodeLibrary originalLibrary = NodeLibrary.create("test", root, FunctionRepository.of(MathFunctions.LIBRARY));
+        NodeLibrary originalLibrary = NodeLibrary.create("test", net, FunctionRepository.of(MathFunctions.LIBRARY));
         // Assert the original library returns the correct result.
         NodeContext context = new NodeContext(originalLibrary);
-        assertResultsEqual(context.renderNode(root), -42.0);
+        assertResultsEqual(context.renderNode(net), -42.0);
 
         // Persist / load the library and assert it still returns the correct result.
         NodeLibrary restoredLibrary = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
@@ -170,7 +170,7 @@ public class NodeLibraryTest {
                 .withInputAdded(Port.customPort("list", "list"))
                 .withInputRange("list", Port.Range.LIST)
                 .withOutputRange(Port.Range.LIST);
-        Node net = Node.ROOT
+        Node net = Node.NETWORK
                 .withChildAdded(makeNumbers)
                 .withChildAdded(reverse)
                 .withRenderedChild(reverse)
