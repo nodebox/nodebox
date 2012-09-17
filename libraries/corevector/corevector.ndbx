@@ -239,7 +239,7 @@
             <port name="offset" range="value" type="float" value="0.0" widget="float"/>
             <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node description="Create a path out of text." function="pyvector/textpath" image="textpath.png" name="textpath" position="4.00,3.00" prototype="generator">
+        <node description="Create a path out of text." function="corevector/textpath" image="textpath.png" name="textpath" position="4.00,3.00" prototype="generator">
             <port name="text" range="value" type="string" value="hello" widget="string"/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font"/>
             <port name="font_size" range="value" type="float" value="24.0" widget="float"/>

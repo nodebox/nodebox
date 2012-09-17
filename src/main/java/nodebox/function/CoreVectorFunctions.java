@@ -25,7 +25,7 @@ public class CoreVectorFunctions {
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
                 "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "point", "pointOnPath", "rect",
-                "snap", "toPoints", "ungroup",
+                "snap", "toPoints", "ungroup", "textpath",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "snapHandle",
                 "translateHandle");
     }
@@ -525,6 +525,34 @@ public class CoreVectorFunctions {
         } else {
             throw new RuntimeException("Don't know how to decompose " + shape + " into paths.");
         }
+    }
+
+    /**
+     * Create a text path.
+     *
+     * @return A new Path.
+     */
+    public static Path textpath(String text, String fontName, double fontSize, String alignment, Point position, double width, double height) {
+        Text.Align align;
+        try {
+            align = Text.Align.valueOf(alignment);
+        } catch (IllegalArgumentException ignore) {
+            align = Text.Align.CENTER;
+        }
+        if (align == Text.Align.LEFT) {
+            position = position.moved(0, 0);
+        } else if (align == Text.Align.CENTER) {
+            position = position.moved(-width / 2, 0);
+        } else if (align == Text.Align.RIGHT) {
+            position = position.moved(-width, 0);
+        }
+
+        Text t = new Text(text, position.x, position.y, width, height);
+        t.setFontName(fontName);
+        t.setFontSize(fontSize);
+        t.setAlign(align);
+
+        return t.getPath();
     }
 
     /**
