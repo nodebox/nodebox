@@ -207,6 +207,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         nodeMenu.add(new SetRenderedAction());
         nodeMenu.add(new RenameAction());
         nodeMenu.add(new DeleteAction());
+        nodeMenu.add(new GroupIntoNetworkAction(null));
         nodeMenu.add(new GoInAction());
     }
 
@@ -795,6 +796,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 JPopupMenu pMenu = new JPopupMenu();
                 pMenu.add(new PublishAction(nodePort));
                 pMenu.show(this, e.getX(), e.getY());
+            } else if (selectedNodes.size() > 1) {
+                JPopupMenu pMenu = new JPopupMenu();
+                pMenu.add(new GroupIntoNetworkAction(pointToGridPoint(e.getPoint())));
+                pMenu.show(this, e.getX(), e.getY());
             } else {
                 Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
                 if (pressedNode != null) {
@@ -1082,6 +1087,24 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
             String childPath = Node.path(getDocument().getActiveNetworkPath(), node.getName());
             getDocument().setActiveNetwork(childPath);
+        }
+    }
+
+    private class GroupIntoNetworkAction extends AbstractAction {
+        private Point gridPoint;
+
+        private GroupIntoNetworkAction(Point gridPoint) {
+            super("Group Into Network Node");
+            this.gridPoint = gridPoint;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            nodebox.graphics.Point position;
+            if (gridPoint == null)
+                position = getNodeAt(inverseViewTransformPoint(nodeMenuLocation)).getPosition();
+            else
+                position = new nodebox.graphics.Point(gridPoint);
+            getDocument().groupIntoNetwork(position);
         }
     }
 }
