@@ -228,9 +228,6 @@
             <port name="outer" range="value" type="float" value="200.0" widget="float"/>
             <port name="inner" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Switches between multiple inputs." function="pyvector/switch" image="switch.png" name="switch" position="10.00,13.00" prototype="group">
-            <port name="index" range="value" type="int" value="0" widget="int"/>
-        </node>
         <node description="Text following a path" function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="filter">
             <port name="text" range="value" type="string" value="text following a path" widget="string"/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font"/>

@@ -62,6 +62,12 @@
             <port name="list" range="list" type="list" widget="none"/>
             <port name="key" range="value" type="string" value="" widget="string"/>
         </node>
+        <node description="Switch between multiple inputs." function="list/doSwitch" image="switch.png" name="switch" outputRange="list" position="10.00,13.00" category="list">
+            <port name="input1" range="list" type="list" widget="none"/>
+            <port name="input2" range="list" type="list" widget="none"/>
+            <port name="input3" range="list" type="list" widget="none"/>
+            <port name="index" range="value" type="int" value="0" widget="int"/>
+        </node>
         <node description="Take every nth element of the original list." function="list/takeEvery" image="generic.png" name="take_every" outputRange="list" outputType="list" position="4.00,2.00" category="list">
             <port name="list" range="list" type="list" widget="none"/>
             <port min="1.0" name="n" range="value" type="int" value="1" widget="int"/>
