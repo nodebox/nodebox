@@ -14,11 +14,13 @@ import nodebox.ui.*;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -748,6 +750,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         editorDialog.setSize(580, 751);
         editorDialog.setLocationRelativeTo(NodeBoxDocument.this);
         editorDialog.setVisible(true);
+    }
+
+    //// Screen shot ////
+
+    public void takeScreenshot(File outputFile) {
+        Container c = getContentPane();
+        BufferedImage img = new BufferedImage(c.getWidth(), c.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = img.createGraphics();
+        c.paint(g2);
+        try {
+            ImageIO.write(img, "png", outputFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //// HandleDelegate implementation ////

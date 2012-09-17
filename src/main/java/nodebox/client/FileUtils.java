@@ -33,6 +33,21 @@ public class FileUtils {
         return ext;
     }
 
+    /**
+     * Gets the name of a file without the extension.
+     *
+     * @param fileName the file name
+     * @return the extension of the file.
+     */
+    public static String getBaseName(String fileName) {
+        if (fileName == null) return null;
+        int pos = fileName.lastIndexOf(".");
+        // If there wasn't any '.' just return the string as is.
+        if (pos == -1) return fileName;
+        // Otherwise return the string, up to the dot.
+        return fileName.substring(0, pos);
+    }
+
 
     public static File showOpenDialog(Frame owner, String pathName, String extensions, String description) {
         return showFileDialog(owner, pathName, extensions, description, FileDialog.LOAD);
