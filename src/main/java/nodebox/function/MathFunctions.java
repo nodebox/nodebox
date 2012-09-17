@@ -29,8 +29,9 @@ public class MathFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
-                "number", "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow", "log",
-                "sum", "average", "compare", "min", "max", "ceil", "floor",
+                "number", "integer", "makeBoolean",
+                "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
+                "log","sum", "average", "compare", "min", "max", "ceil", "floor",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
@@ -41,6 +42,14 @@ public class MathFunctions {
 
     public static double number(double n) {
         return n;
+    }
+
+    public static long integer(long value) {
+        return value;
+    }
+
+    public static boolean makeBoolean(boolean value) {
+        return value;
     }
 
     public static double add(double n1, double n2) {

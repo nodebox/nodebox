@@ -90,7 +90,7 @@
         <node description="Negate the number. Changes the sign of a number." function="math/negate" image="generic.png" name="negate" outputType="float" position="13.00,5.00" category="math">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Create a floating-point number which you can use as a variable." function="math/number" image="generic.png" name="number" outputType="float" position="1.00,1.00" category="math">
+        <node description="Create a floating-point number that can be used as a variable." function="math/number" image="generic.png" name="number" outputType="float" position="1.00,1.00" category="math">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
         <node description="Convert degrees to radians." function="math/radians" image="generic.png" name="radians" outputType="float" position="13.00,3.00" category="math">
@@ -140,6 +140,12 @@
         </node>
         <node description="Calculate a value as an integer" function="math/toInteger" image="generic.png" name="to_integer" outputType="int" position="4.00,7.00" category="math">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node description="Create an integer value that can be used as a variable." function="math/integer" image="generic.png" name="integer" outputType="int" position="4.00,7.00" category="math">
+            <port name="value" type="int"/>
+        </node>
+        <node description="Create a boolean value that can be used as a variable." function="math/makeBoolean" image="generic.png" name="boolean" outputType="boolean" position="4.00,7.00" category="math">
+            <port name="value" type="boolean"/>
         </node>
         <node description="Calculate a value based from wave inputs." function="math/wave" image="generic.png" name="wave" outputType="float" position="10.00,6.00" category="math">
             <port name="min" range="value" type="float" value="0.0" widget="float"/>

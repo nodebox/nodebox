@@ -14,7 +14,16 @@ public class StringFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "makeStrings", "length", "wordCount", "concatenate");
+        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate");
+    }
+
+    /**
+     * Return the given string, as-is.
+     * <p/>
+     * This function is used for using strings as variables in NodeBox.
+     */
+    public static String string(String value) {
+        return value;
     }
 
     /**
