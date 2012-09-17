@@ -137,9 +137,12 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
 
         for (String portName : portNames) {
             Port p = node.getInput(portName);
+            // Hide ports with names that start with an underscore.
             if (portName.startsWith("_") || p.getName().startsWith("_")) continue;
-            // Ports of which the values aren't persisted are hidden as well.
+            // Hide ports whose values can't be persisted.
             if (p.isCustomType()) continue;
+            // Hide ports that accept lists.
+            if (p.hasListRange()) continue;
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
             if (getDocument().isConnected(portName)) {
