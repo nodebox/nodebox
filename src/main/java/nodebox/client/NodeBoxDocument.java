@@ -1533,21 +1533,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void groupIntoNetwork(nodebox.graphics.Point pt) {
         startEdits("Group Into Network Node");
-        String renderedChild = getActiveNetwork().getRenderedChildName();
-        cut();
-        Node subnet = controller.createNode(activeNetworkPath, Node.ROOT.withName("subnet"));
-        String subnetPath = Node.path(activeNetworkPath, subnet.getName());
-        List<Node> nodes = controller.pasteNodes(subnetPath, nodeClipboard.network, nodeClipboard.nodes);
-        for (Node node : nodes) {
-            controller.setNodePosition(Node.path(subnetPath, node.getName()), node.getPosition().moved(-4, -2));
-            if (node.getName().equals(renderedChild)) {
-                controller.setRenderedChild(subnetPath, node.getName());
-                break;
-            }
-        }
+        Node subnet = controller.groupIntoNetwork(activeNetworkPath, networkView.getSelectedNodes());
         controller.setNodePosition(Node.path(activeNetworkPath, subnet.getName()), pt);
         controller.setRenderedChild(activeNetworkPath, subnet.getName());
         stopEdits();
+
         setActiveNode(subnet);
         networkView.updateAll();
         networkView.select(subnet);

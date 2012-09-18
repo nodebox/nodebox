@@ -146,6 +146,26 @@ public class NodeLibraryController {
         return ImmutableList.copyOf(Iterables.skip(newParent.getChildren(), parent.getChildren().size()));
     }
 
+    public Node groupIntoNetwork(String parentPath, Iterable<Node> nodes) {
+        Node parent = getNode(parentPath);
+        String renderedChild = parent.getRenderedChildName();
+        Node newParent = parent;
+        for (Node node : nodes) {
+            newParent = newParent.withChildRemoved(node.getName());
+        }
+        Node subnet = Node.ROOT
+                .withName(newParent.uniqueName("subnet"))
+                .withChildrenAdded(parent, nodes);
+        for (Node node : subnet.getChildren()) {
+            subnet = subnet.withChildReplaced(node.getName(), node.withPosition(node.getPosition().moved(-4, -2)));
+            if (node.getName().equals(renderedChild))
+                subnet = subnet.withRenderedChildName(node.getName());
+        }
+        newParent = newParent.withChildAdded(subnet);
+        replaceNodeInPath(parentPath, newParent);
+        return getNode(Node.path(parentPath, subnet.getName()));
+    }
+
     public void removeNode(String parentPath, String nodeName) {
         Node newParent = getNode(parentPath).withChildRemoved(nodeName);
         replaceNodeInPath(parentPath, newParent);
