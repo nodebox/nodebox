@@ -53,14 +53,17 @@ public class NDBXWriter {
             rootElement.setAttribute("uuid", library.getUuid().toString());
             doc.appendChild(rootElement);
 
-            // Write out all the variables.
-//            for (String variableName : library.getVariableNames()) {
-//                String variableValue = library.getVariable(variableName);
-//                Element varElement = doc.createElement("var");
-//                rootElement.appendChild(varElement);
-//                varElement.setAttribute("name", variableName);
-//                varElement.setAttribute("value", variableValue);
-//            }
+            // Write out all the document properties.
+            Set<String> propertyNames = library.getPropertyNames();
+            ArrayList<String> orderedNames = new ArrayList<String>(propertyNames);
+            Collections.sort(orderedNames);
+            for (String propertyName : orderedNames) {
+                String propertyValue = library.getProperty(propertyName);
+                Element e = doc.createElement("property");
+                e.setAttribute("name", propertyName);
+                e.setAttribute("value", propertyValue);
+                rootElement.appendChild(e);
+            }
 
             // Write the function repository.
             writeFunctionRepository(doc, rootElement, library.getFunctionRepository(), file);
@@ -111,8 +114,7 @@ public class NDBXWriter {
      * Find the libraryname.nodename of the given node.
      * Searches the list of default node repositories to find it.
      *
-     *
-     * @param node The node to find.
+     * @param node           The node to find.
      * @param nodeRepository The list of node libraries to look for the node.
      * @return the node id, in the format libraryname.nodename.
      */
@@ -128,9 +130,9 @@ public class NDBXWriter {
     /**
      * Write out the node.
      *
-     * @param doc    the XML document
-     * @param parent the parent element
-     * @param node   the node to write
+     * @param doc            the XML document
+     * @param parent         the parent element
+     * @param node           the node to write
      * @param nodeRepository the repository that contains the node prototype
      */
     private static void writeNode(Document doc, Element parent, Node node, NodeRepository nodeRepository) {
@@ -246,11 +248,11 @@ public class NDBXWriter {
     /**
      * Write out the child. If the prototype of the child is also in this library, write that out first, recursively.
      *
-     * @param doc      the XML document
-     * @param parent   the parent element
-     * @param children a list of children that were written already.
- *                 When a child is written, we remove it from the list.
-     * @param child    the child to write
+     * @param doc            the XML document
+     * @param parent         the parent element
+     * @param children       a list of children that were written already.
+     *                       When a child is written, we remove it from the list.
+     * @param child          the child to write
      * @param nodeRepository the node repository that contains the node prototype
      */
     private static void writeOrderedChild(Document doc, Element parent, List<Node> children, Node child, NodeRepository nodeRepository) {
