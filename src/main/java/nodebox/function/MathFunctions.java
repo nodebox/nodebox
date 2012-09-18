@@ -35,7 +35,7 @@ public class MathFunctions {
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
-                "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos",
+                "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos", "pi", "e",
                 "convertRange", "wave",
                 "slowNumber");
     }
@@ -322,6 +322,14 @@ public class MathFunctions {
 
     public static double cos(double n) {
         return Math.cos(n);
+    }
+
+    public static double pi() {
+        return Math.PI;
+    }
+
+    public static double e() {
+        return Math.E;
     }
 
     public static double slowNumber(double n) {
