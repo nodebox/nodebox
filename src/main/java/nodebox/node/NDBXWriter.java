@@ -169,6 +169,10 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, Node.Attribute.FUNCTION))
             el.setAttribute("function", node.getFunction());
 
+        // Write handle function
+        if (shouldWriteAttribute(node, Node.Attribute.HANDLE))
+            el.setAttribute("handle", node.getHandle());
+
         // Write position
         if (shouldWriteAttribute(node, Node.Attribute.POSITION)) {
             Point position = node.getPosition();

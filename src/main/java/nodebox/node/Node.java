@@ -121,7 +121,7 @@ public final class Node {
         children = ImmutableList.of();
         renderedChildName = "";
         connections = ImmutableList.of();
-        handle = null;
+        handle = "";
     }
 
     private void checkAllNotNull(Object... args) {
