@@ -269,6 +269,15 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return getDocument().getActiveNetwork().getConnections();
     }
 
+    public static boolean isPublished(Node network, Node childNode, Port input) {
+        for (PublishedPort p : network.getPublishedInputs()) {
+            if (p.getChildNode().equals(childNode.getName()) && p.getChildPort().equals(input.getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     //// Painting the nodes ////
 
     @Override
@@ -363,7 +372,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
-            paintNode(g, node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
+            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
@@ -372,7 +381,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -418,7 +427,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                     portHeight = 1;
                 }
             }
+
+            if (isPublished(network, node, input)) {
+                Point2D topLeft = inverseViewTransformPoint(new Point(4, 0));
+                g.setColor(portTypeColor(input.getType()));
+                g.setStroke(CONNECTION_STROKE);
+                paintConnectionLine(g, (int)topLeft.getX(), (int)topLeft.getY(), r.x + portX + 4, r.y-2);
+            }
+
             g.fillRect(r.x + portX, r.y - portHeight, PORT_WIDTH, portHeight);
+
+
             portX += PORT_WIDTH + PORT_SPACING;
         }
 
