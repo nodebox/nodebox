@@ -53,8 +53,3 @@ From the command prompt, run:
     git clone git://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
-
-## Bugs / Features
-
-We use [Pivotal Tracker](https://www.pivotaltracker.com/projects/32126) to track bugs and new features.
-
