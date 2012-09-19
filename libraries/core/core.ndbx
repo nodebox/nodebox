@@ -6,5 +6,6 @@
               image="frame.png">
             <port name="context" type="context"/>
         </node>
+        <node name="network" description="Create a sub-network." outputRange="list" function="core/zero"/>
     </node>
 </ndbx>

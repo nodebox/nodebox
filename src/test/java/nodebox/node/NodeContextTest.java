@@ -261,6 +261,12 @@ public class NodeContextTest {
     }
 
     @Test
+    public void testRenderEmptyNetwork() {
+        Node network = Node.NETWORK;
+        assertResultsEqual(network, 0.0);
+    }
+
+    @Test
     public void testValidSubnetworkResults() {
         Node subnet1 = createAddNetwork("subnet1", 1.0, 2.0);
         Node subnet2 = createAddNetwork("subnet2", 3.0, 4.0);

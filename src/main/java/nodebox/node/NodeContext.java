@@ -118,7 +118,13 @@ public final class NodeContext {
 
     private List<?> postProcessResult(Node node, Object result) {
         if (node.hasListOutputRange()) {
-            return (List<?>) result;
+            // TODO This is a temporary fix for networks that have no rendered nodes.
+            // They execute the "core/zero" function which returns a single value, not a list.
+            if (result instanceof List<?>) {
+                return (List<?>) result;
+            } else {
+                return ImmutableList.of(result);
+            }
         } else if (result instanceof List && ((List) result).isEmpty()) {
             return (List<?>) result;
         } else {
