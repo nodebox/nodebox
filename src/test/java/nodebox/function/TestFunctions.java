@@ -14,7 +14,7 @@ public class TestFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "makeNull", "fileExists", "calculateMultipleArgs", "makeNestedWords");
+        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "makeNull", "fileExists", "makeNestedWords");
     }
 
     public static String allTypes(int i, float f, String s, Point pt) {
@@ -37,10 +37,6 @@ public class TestFunctions {
 
     public static boolean fileExists(String fileName) {
         return new File(fileName).exists();
-    }
-
-    public static double calculateMultipleArgs(double a, double b, double c, double d) {
-        return a + b * c + d;
     }
 
     public static List<List<String>> makeNestedWords() {

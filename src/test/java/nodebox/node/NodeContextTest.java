@@ -69,15 +69,7 @@ public class NodeContextTest {
             .withFunction("string/makeStrings")
             .withOutputRange(Port.Range.LIST)
             .withInputAdded(Port.stringPort("string", "Alpha;Beta;Gamma"))
-            .withInputAdded(Port.stringPort("sep", ";"));
-
-    public static final Node calculateMultipleNode = Node.ROOT
-            .withName("calculateMultiple")
-            .withFunction("test/calculateMultipleArgs")
-            .withInputAdded(Port.floatPort("v1", 0))
-            .withInputAdded(Port.floatPort("v2", 0))
-            .withInputAdded(Port.floatPort("v3", 0))
-            .withInputAdded(Port.floatPort("v4", 0));
+            .withInputAdded(Port.stringPort("separator", ";"));
 
     public static final FunctionRepository functions = FunctionRepository.of(CoreVectorFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY, SideEffects.LIBRARY, TestFunctions.LIBRARY);
     public static final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
@@ -265,28 +257,6 @@ public class NodeContextTest {
                 .withRenderedChildName("makeNumbers")
                 .connect("makeStrings", "makeNumbers", "string");
         assertResultsEqual(net, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
-    }
-
-    @Test
-    public void testNestedListsLevel0() {
-        Node net = createNestedNetwork("3,4", "2,3,4");
-        assertResultsEqual(context.renderNode(net), 22.0, 29.0, 34.0);
-    }
-
-    @Test
-    public void testNestedListsLevel1() {
-        Node net = createNestedNetwork("3,4;1,8", "2,3,4");
-        assertResultsEqual(context.renderNode(net), ImmutableList.of(22.0, 29.0, 34.0), ImmutableList.of(20.0, 33.0, 32.0));
-    }
-
-    @Test
-    public void testNestedListsLevel2() {
-        Node net = createNestedNetwork("3,4;1,8", "1,2;2,3,4");
-        assertResultsEqual(context.renderNode(net),
-                ImmutableList.of(
-                        ImmutableList.of(16.0, 23.0), ImmutableList.of(22.0, 29.0, 34.0)),
-                ImmutableList.of(
-                        ImmutableList.of(14.0, 27.0), ImmutableList.of(20.0, 33.0, 32.0)));
     }
 
     @Test
@@ -495,35 +465,6 @@ public class NodeContextTest {
                 .withInputValue("amount", amount)
                 .withInputValue("start", start)
                 .withInputValue("end", end);
-    }
-
-    private Node createNestedNetwork(String makeStrings1Value, String makeStrings2Value) {
-        Node makeStrings1 = makeStringsNode.extend()
-                .withName("makeStrings1")
-                .withInputValue("string", makeStrings1Value);
-        Node makeStrings2 = makeStringsNode.extend()
-                .withName("makeStrings2")
-                .withInputValue("string", makeStrings2Value);
-        Node makeNumbers1 = makeNumbersNode.extend()
-                .withName("makeNumbers1")
-                .withInputValue("separator", ",");
-        Node makeNumbers2 = makeNumbersNode.extend()
-                .withName("makeNumbers2")
-                .withInputValue("separator", ",");
-        Node calculate = calculateMultipleNode.extend()
-                .withInputValue("v2", 6.0)
-                .withInputValue("v4", 7.0);
-        return Node.NETWORK
-                .withChildAdded(makeStrings1)
-                .withChildAdded(makeStrings2)
-                .withChildAdded(makeNumbers1)
-                .withChildAdded(makeNumbers2)
-                .withChildAdded(calculate)
-                .withRenderedChildName("calculateMultiple")
-                .connect("makeStrings1", "makeNumbers1", "string")
-                .connect("makeStrings2", "makeNumbers2", "string")
-                .connect("makeNumbers1", "calculateMultiple", "v1")
-                .connect("makeNumbers2", "calculateMultiple", "v3");
     }
 
     @Test
