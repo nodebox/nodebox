@@ -145,7 +145,6 @@ public class NodeLibraryController {
 
     public Node groupIntoNetwork(String parentPath, Iterable<Node> nodes) {
         Node parent = getNode(parentPath);
-        String renderedChild = parent.getRenderedChildName();
         Node newParent = parent;
         for (Node node : nodes) {
             newParent = newParent.withChildRemoved(node.getName());
@@ -153,14 +152,74 @@ public class NodeLibraryController {
         Node subnet = Node.ROOT
                 .withName(newParent.uniqueName("subnet"))
                 .withChildrenAdded(parent, nodes);
+        List<String> nodeNames = new ArrayList<String>();
+
         for (Node node : subnet.getChildren()) {
             subnet = subnet.withChildReplaced(node.getName(), node.withPosition(node.getPosition().moved(-4, -2)));
-            if (node.getName().equals(renderedChild))
-                subnet = subnet.withRenderedChildName(node.getName());
+            nodeNames.add(node.getName());
         }
+
         newParent = newParent.withChildAdded(subnet);
+
+        // Input connections to the subnetwork.
+        for (Connection c : parent.getConnections()) {
+            String outputNodeName = c.getOutputNode();
+            String inputNodeName = c.getInputNode();
+            if (! subnet.hasChild(outputNodeName) && subnet.hasChild(inputNodeName)) {
+                subnet = subnet.publish(inputNodeName, c.getInputPort(), c.getInputPort());
+                newParent = newParent
+                        .withChildReplaced(subnet.getName(), subnet)
+                        .connect(outputNodeName, subnet.getName(), c.getInputPort());
+            }
+        }
+
+        // Find the most best candidate to become the subnetwork's rendered child.
+        String renderedChild = findRenderedChildInSubnet(parent, subnet, parent.getRenderedChildName());
+
+        // No suitable candidate was found, return the first found node that has an outgoing connection.
+        if (renderedChild == null) {
+            for (Connection c : parent.getConnections()) {
+                if (subnet.hasChild(c.getOutputNode()) && !subnet.hasChild(c.getInputNode())) {
+                    renderedChild = c.getOutputNode();
+                    break;
+                }
+            }
+        }
+
+        if (renderedChild != null) {
+            for (Node node : subnet.getChildren()) {
+                if (node.getName().equals(renderedChild)) {
+                    subnet = subnet.withRenderedChildName(node.getName());
+                    newParent = newParent.withChildReplaced(subnet.getName(), subnet);
+                    break;
+                }
+            }
+            // Subnetwork output connection(s).
+            for (Connection c : parent.getConnections()) {
+                if (renderedChild.equals(c.getOutputNode()))
+                    newParent = newParent.connect(subnet.getName(), c.getInputNode(), c.getInputPort());
+            }
+        }
+
         replaceNodeInPath(parentPath, newParent);
         return getNode(Node.path(parentPath, subnet.getName()));
+    }
+
+    private String findRenderedChildInSubnet(Node parent, Node subnet, String child) {
+        if (subnet.hasChild(child)) return child;
+        List<String> connectedNodes = new ArrayList<String>();
+        for (Connection c : parent.getConnections()) {
+            if (c.getInputNode().equals(child)) {
+                String outputNode = c.getOutputNode();
+                if (subnet.hasChild(outputNode)) return outputNode;
+                connectedNodes.add(outputNode);
+            }
+        }
+        for (String node : connectedNodes) {
+            String renderedChild = findRenderedChildInSubnet(parent, subnet, node);
+            if (renderedChild != null) return renderedChild;
+        }
+        return null;
     }
 
     public void removeNode(String parentPath, String nodeName) {
