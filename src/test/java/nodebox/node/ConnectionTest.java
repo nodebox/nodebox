@@ -71,8 +71,7 @@ public class ConnectionTest {
         assertResultsEqual(n, 47.0);
     }
 
-    @Test
-    public void testCycles() {
+    public void disabledTestCycles() {
         // TODO Infinite loops are not supported anymore!
         // Create an infinite loop.
         Node n = net
