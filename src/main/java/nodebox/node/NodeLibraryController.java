@@ -9,6 +9,7 @@ import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -149,7 +150,7 @@ public class NodeLibraryController {
         for (Node node : nodes) {
             newParent = newParent.withChildRemoved(node.getName());
         }
-        Node subnet = Node.ROOT
+        Node subnet = Node.NETWORK
                 .withName(newParent.uniqueName("subnet"))
                 .withChildrenAdded(parent, nodes);
         List<String> nodeNames = new ArrayList<String>();
