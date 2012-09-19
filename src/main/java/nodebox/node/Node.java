@@ -515,6 +515,17 @@ public final class Node {
 
         if (hasPublishedChildInputs(childName)) {
             // TODO Rename child node also renames reference.
+<<<<<<< HEAD
+=======
+//            ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+//            for (PublishedPort pp : publishedInputs) {
+//                if (pp.getChildNodeName().equals(childName)) {
+//                    b.add(new PublishedPort(newName, pp.getChildPortName(), pp.getPublishedName()));
+//                } else
+//                    b.add(pp);
+//            }
+//            newParent = newParent.newNodeWithAttribute(Attribute.INPUTS, b.build());
+>>>>>>> 6f5e16f6e23f2221ee0659879549c712d8526fc6
         } else {
             for (Connection c : getConnections()) {
                 if (c.getInputNode().equals(childName)) {
@@ -806,6 +817,13 @@ public final class Node {
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
         // TODO Implement
         return true;
+//        for (PublishedPort pp : publishedInputs) {
+//            if (pp.getChildNode().equals(childName)) {
+//                if (!newChild.hasInput(pp.getChildPort()))
+//                    return false;
+//            }
+//        }
+//        return true;
     }
 
     /**

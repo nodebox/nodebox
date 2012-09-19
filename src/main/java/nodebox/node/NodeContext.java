@@ -196,7 +196,6 @@ public final class NodeContext {
                 // The port expects a list but nothing is connected. Evaluate with an empty list.
                 arguments.add(ImmutableList.of());
             }
-
         }
         return invokeNode(node, arguments);
     }
