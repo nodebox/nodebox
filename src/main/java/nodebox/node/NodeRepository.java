@@ -64,11 +64,8 @@ public class NodeRepository {
 
     public List<Node> getNodes() {
         ImmutableList.Builder<Node> builder = ImmutableList.builder();
-        for (NodeLibrary library : libraryMap.values()) {
-            if (library.getName().equals("core"))
-                builder.add(Node.ROOT);
+        for (NodeLibrary library : libraryMap.values())
             builder.addAll(library.getRoot().getChildren());
-        }
         return builder.build();
     }
 
