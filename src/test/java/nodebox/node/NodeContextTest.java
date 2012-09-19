@@ -101,7 +101,7 @@ public class NodeContextTest {
         Node node = Node.ROOT
                 .withFunction("math/average")
                 .withInputAdded(Port.floatPort("values", 42).withRange(Port.Range.LIST));
-        assertResultsEqual(node);
+        assertResultsEqual(node, 0.0);
     }
 
     @Test

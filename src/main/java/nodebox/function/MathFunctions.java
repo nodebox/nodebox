@@ -102,8 +102,12 @@ public class MathFunctions {
         return Math.abs(n);
     }
 
+    private static boolean noValues(Iterable<?> values) {
+        return values == null || Iterables.isEmpty(values);
+    }
+
     public static double sum(Iterable<Double> numbers) {
-        if (numbers == null) return 0.0;
+        if (noValues(numbers)) return 0.0;
         double sum = 0;
         for (Double d : numbers) {
             sum += d;
@@ -112,7 +116,7 @@ public class MathFunctions {
     }
 
     public static double average(Iterable<Double> numbers) {
-        if (numbers == null) return 0.0;
+        if (noValues(numbers)) return 0.0;
         double sum = 0;
         double counter = 0;
         for (Double d : numbers) {
@@ -123,7 +127,7 @@ public class MathFunctions {
     }
 
     public static double max(Iterable<Double> numbers) {
-        if (numbers == null) return 0.0;
+        if (noValues(numbers)) return 0.0;
         double max = Iterables.getFirst(numbers, 0.0);
         for (Double d : numbers) {
             max = Math.max(max, d);
@@ -132,7 +136,7 @@ public class MathFunctions {
     }
 
     public static double min(Iterable<Double> numbers) {
-        if (numbers == null) return 0.0;
+        if (noValues(numbers)) return 0.0;
         double min = Iterables.getFirst(numbers, 0.0);
         for (Double d : numbers) {
             min = Math.min(min, d);
