@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 public final class NodeContext {
 
@@ -106,26 +107,19 @@ public final class NodeContext {
         checkNotNull(functionRepository);
 
         // If the node has children, forgo the operation of the current node and evaluate the child.
+        Object result;
         if (node.hasRenderedChild()) {
-            return renderChild(node, node.getRenderedChild(), argumentMap);
+            result = renderChild(node, node.getRenderedChild(), argumentMap);
+        } else {
+            result = invokeNode(node, argumentMap);
         }
-
-        List<Object> arguments = new ArrayList<Object>();
-        for (Port port : node.getAllInputs()) {
-            Object argument;
-            if (argumentMap.containsKey(port)) {
-                argument = argumentMap.get(port);
-            } else {
-                argument = getPortValue(port);
-            }
-            arguments.add(argument);
-        }
-        Object result = invokeNode(node, arguments);
         return postProcessResult(node, result);
     }
 
     private List<?> postProcessResult(Node node, Object result) {
         if (node.hasListOutputRange()) {
+            return (List<?>) result;
+        } else if (result instanceof List && ((List) result).isEmpty()) {
             return (List<?>) result;
         } else {
             return result == null ? ImmutableList.of() : ImmutableList.of(result);
@@ -141,20 +135,26 @@ public final class NodeContext {
         List<Object> resultsList = new ArrayList<Object>();
 
         // If the node has no input ports, execute the node once for its side effects.
-        if (child.getAllInputs().isEmpty()) {
+        if (child.getInputs().isEmpty()) {
             return renderNode(child);
         } else {
             // The list of values that need to be processed for this port.
             Map<Port, List<?>> portArguments = new LinkedHashMap<Port, List<?>>();
 
-            for (Port port : child.getAllInputs()) {
-                if (networkArgumentMap.containsKey(port)) {
-                    portArguments.put(port, (List<?>) networkArgumentMap.get(port));
-                } else {
-                    List<?> result = evaluatePort(network, child, port);
-                    List<?> convertedResult = convertResultsForPort(port, result);
-                    portArguments.put(port, convertedResult);
-                }
+            // Evaluate the port data.
+            for (Port port : child.getInputs()) {
+                List<?> result = evaluatePort(network, child, port, networkArgumentMap);
+                List<?> convertedResult = convertResultsForPort(port, result);
+                portArguments.put(port, convertedResult);
+            }
+
+            // Data from the network (through published ports) overrides the arguments.
+            for (Map.Entry<Port, ?> argumentEntry : networkArgumentMap.entrySet()) {
+                Port networkPort = argumentEntry.getKey();
+                checkState(networkPort.isPublishedPort(), "Given port %s is not a published port.", networkPort);
+                Port childPort = networkPort.getChildPort(network);
+                List<?> values = preprocessInput(networkPort, childPort, argumentEntry.getValue());
+                portArguments.put(childPort, values);
             }
 
             // A prepared list of argument lists, each for one invocation of the child node.
@@ -162,15 +162,43 @@ public final class NodeContext {
 
             for (Map<Port, ?> argumentMap : argumentMaps) {
                 List<?> results = renderNode(child, argumentMap);
-                if (child.hasListOutputRange()) {
-                    resultsList.addAll(results);
-                } else {
-                    resultsList.addAll(results);
-                }
+                resultsList.addAll(results);
             }
         }
 
-        return postProcessResult(network, resultsList);
+        return resultsList;
+    }
+
+    private List<?> preprocessInput(Port networkPort, Port childPort, Object value) {
+        if (networkPort.hasListRange()) {
+            if (childPort.hasListRange()) {
+                return (List<?>) value;
+            } else {
+                return (List<?>) value;
+            }
+        } else {
+            if (childPort.hasListRange()) {
+                return ImmutableList.of(value);
+            } else {
+                return (List<?>) value;
+            }
+        }
+    }
+
+    private Object invokeNode(Node node, Map<Port, ?> argumentMap) {
+        List<Object> arguments = new LinkedList<Object>();
+        for (Port port : node.getInputs()) {
+            if (argumentMap.containsKey(port)) {
+                arguments.add(argumentMap.get(port));
+            } else if (port.hasValueRange()) {
+                arguments.add(getPortValue(port));
+            } else {
+                // The port expects a list but nothing is connected. Evaluate with an empty list.
+                arguments.add(ImmutableList.of());
+            }
+
+        }
+        return invokeNode(node, arguments);
     }
 
     private Object invokeNode(Node node, List<?> arguments) {
@@ -217,10 +245,12 @@ public final class NodeContext {
         return null;
     }
 
-    private List<?> evaluatePort(Node network, Node child, Port childPort) {
+    private List<?> evaluatePort(Node network, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
         Node outputNode = findOutputNode(network, child, childPort);
         if (outputNode != null) {
-            return renderChild(network, outputNode);
+            return renderChild(network, outputNode, networkArgumentMap);
+        } else if (childPort.getValue() == null) {
+            return ImmutableList.of();
         } else {
             return ImmutableList.of(getPortValue(childPort));
         }

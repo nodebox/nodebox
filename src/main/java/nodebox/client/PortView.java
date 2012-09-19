@@ -3,7 +3,6 @@ package nodebox.client;
 import nodebox.client.port.*;
 import nodebox.node.Node;
 import nodebox.node.Port;
-import nodebox.node.PublishedPort;
 import nodebox.ui.Pane;
 import nodebox.ui.PaneView;
 import nodebox.ui.Theme;
@@ -130,8 +129,6 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
 
         ArrayList<String> portNames = new ArrayList<String>();
 
-        for (PublishedPort pp : node.getPublishedInputs())
-            portNames.add(pp.getPublishedName());
         for (Port p : node.getInputs())
             portNames.add(p.getName());
 

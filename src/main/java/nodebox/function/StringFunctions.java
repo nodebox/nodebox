@@ -3,6 +3,7 @@ package nodebox.function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import nodebox.util.StringUtils;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class StringFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate");
+        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate", "changeCase");
     }
 
     /**
@@ -61,6 +62,19 @@ public class StringFunctions {
         s3 = s3 != null ? s3 : "";
         s4 = s4 != null ? s4 : "";
         return s1 + s2 + s3 + s4;
+    }
+
+    public static String changeCase(String value, String caseMethod) {
+        caseMethod = caseMethod.toLowerCase();
+        if (caseMethod.equals("lowercase")) {
+            return value.toLowerCase();
+        } else if (caseMethod.equals("uppercase")) {
+            return value.toUpperCase();
+        } else if (caseMethod.equals("titlecase")) {
+            return StringUtils.toTitleCase(value);
+        } else {
+            return value;
+        }
     }
 
 }

@@ -352,6 +352,7 @@ public class NodeLibraryControllerTest {
         controller.publish("/subnet", "negate", "value", "n");
         assertTrue(controller.getNode("/subnet").hasPublishedInput("n"));
         controller.setPortValue("/subnet", "n", 42.0);
+        assertEquals(42, controller.getNode("/subnet").getPublishedPort("n").intValue());
         assertEquals(42, controller.getNode("/subnet/negate").getInput("value").intValue());
         Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 20));
         controller.addNode("/", numberNode);

@@ -25,19 +25,19 @@ public class PublishedPortTest {
     @Test
     public void testPublishInput() {
         Node n = net;
-        assertEquals(0, n.getPublishedInputs().size());
+        assertEquals(0, n.getPublishedPorts().size());
         n = n.publish("number42", "number", "pNumber");
-        assertEquals(1, n.getPublishedInputs().size());
-        assertTrue(n.hasPublishedChildInput("number42", "number"));
+        assertEquals(1, n.getPublishedPorts().size());
+        assertTrue(n.hasPublishedInput("number42", "number"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPublishFromUnexistingChild() {
+    public void testPublishFromNonexistentChild() {
         net.publish("number3", "number", "pNumber");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPublishFromUnexistingChildInput() {
+    public void testPublishFromNonexistentChildInput() {
         net.publish("number42", "myNumber", "pNumber");
     }
 
@@ -58,15 +58,15 @@ public class PublishedPortTest {
     public void testUnpublishInput() {
         Node n = net;
         n = n.publish("number42", "number", "pNumber");
-        assertEquals(1, n.getPublishedInputs().size());
+        assertEquals(1, n.getPublishedPorts().size());
         n = n.unpublish("number42", "number");
-        assertEquals(0, n.getPublishedInputs().size());
-        assertFalse(n.hasPublishedChildInput("number42", "number"));
+        assertEquals(0, n.getPublishedPorts().size());
+        assertFalse(n.hasPublishedInput("number42", "number"));
         n = n.publish("number42", "number", "aNumber");
-        assertEquals(1, n.getPublishedInputs().size());
+        assertEquals(1, n.getPublishedPorts().size());
         assertTrue(n.hasPublishedInput("aNumber"));
         n = n.unpublish("aNumber");
-        assertEquals(0, n.getPublishedInputs().size());
+        assertEquals(0, n.getPublishedPorts().size());
         assertFalse(n.hasPublishedInput("aNumber"));
     }
 }
