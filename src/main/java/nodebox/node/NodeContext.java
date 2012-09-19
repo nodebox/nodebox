@@ -152,9 +152,11 @@ public final class NodeContext {
             for (Map.Entry<Port, ?> argumentEntry : networkArgumentMap.entrySet()) {
                 Port networkPort = argumentEntry.getKey();
                 checkState(networkPort.isPublishedPort(), "Given port %s is not a published port.", networkPort);
-                Port childPort = networkPort.getChildPort(network);
-                List<?> values = preprocessInput(networkPort, childPort, argumentEntry.getValue());
-                portArguments.put(childPort, values);
+                if (networkPort.getChildNode(network) == child) {
+                    Port childPort = networkPort.getChildPort(network);
+                    List<?> values = preprocessInput(networkPort, childPort, argumentEntry.getValue());
+                    portArguments.put(childPort, values);
+                }
             }
 
             // A prepared list of argument lists, each for one invocation of the child node.
