@@ -30,7 +30,7 @@ public class ListFunctions {
         LIBRARY = JavaLibrary.ofClass("list", ListFunctions.class,
                 "count",
                 "first", "second", "rest", "last",
-                "combine", "slice", "shift",
+                "combine", "slice", "shift", "doSwitch",
                 "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "filter", "cull", "takeEvery");
     }
 
@@ -150,6 +150,32 @@ public class ListFunctions {
         Iterable<?> tail = Iterables.skip(iterable, a);
         Iterable<?> head = Iterables.limit(iterable, a);
         return ImmutableList.copyOf(Iterables.concat(tail, head));
+    }
+
+    /**
+     * Switch between multiple inputs.
+     *
+     * @param list1 The first input list.
+     * @param list2 The second input list.
+     * @param list3 The third input list.
+     * @param index The index of the input list to return.
+     * @return A list with the specified index.
+     */
+    public static List<?> doSwitch(Iterable list1, Iterable list2, Iterable list3, long index) {
+        Iterable returnList;
+        switch ((int) index % 3) {
+            case 0:
+                returnList = list1;
+                break;
+            case 1:
+                returnList = list2;
+                break;
+            default:
+                returnList = list3;
+                break;
+        }
+        if (returnList == null) return ImmutableList.of();
+        return ImmutableList.copyOf(returnList);
     }
 
     /**

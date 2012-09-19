@@ -14,11 +14,13 @@ import nodebox.ui.*;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -750,6 +752,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         editorDialog.setVisible(true);
     }
 
+    //// Screen shot ////
+
+    public void takeScreenshot(File outputFile) {
+        Container c = getContentPane();
+        BufferedImage img = new BufferedImage(c.getWidth(), c.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = img.createGraphics();
+        c.paint(g2);
+        try {
+            ImageIO.write(img, "png", outputFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     //// HandleDelegate implementation ////
 
     public void silentSet(String portName, Object value) {
@@ -1036,12 +1052,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         });
     }
 
-    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Exception e) {
+    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Throwable t) {
         finishCurrentRender();
         lastRenderResult = null;
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                networkPane.setError(e);
+                networkPane.setError(t);
             }
         });
     }
@@ -1085,7 +1101,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         currentRender = renderService.submit(new Runnable() {
             public void run() {
                 final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
-                Exception renderException = null;
+                Throwable renderException = null;
                 startRendering(context);
                 List<?> results = null;
                 try {
@@ -1514,6 +1530,18 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.deleteSelection();
     }
 
+    public void groupIntoNetwork(nodebox.graphics.Point pt) {
+        startEdits("Group Into Network Node");
+        Node subnet = controller.groupIntoNetwork(activeNetworkPath, networkView.getSelectedNodes());
+        controller.setNodePosition(Node.path(activeNetworkPath, subnet.getName()), pt);
+        controller.setRenderedChild(activeNetworkPath, subnet.getName());
+        stopEdits();
+
+        setActiveNode(subnet);
+        networkView.updateAll();
+        networkView.select(subnet);
+        requestRender();
+    }
     /**
      * Start the dialog that allows a user to create a new node.
      */

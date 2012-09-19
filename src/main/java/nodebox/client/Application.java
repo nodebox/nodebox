@@ -87,13 +87,8 @@ public class Application implements Host {
             protected Throwable doInBackground() throws Exception {
                 try {
                     publish("Starting NodeBox");
-                    setNodeBoxVersion();
-                    createNodeBoxDataDirectories();
-                    applyPreferences();
-                    registerForMacOSXEvents();
-                    updater = new Updater(Application.this);
-                    updater.checkForUpdatesInBackground();
-                    initPython();
+                    initApplication();
+                    checkForUpdates();
                 } catch (RuntimeException ex) {
                     return ex;
                 }
@@ -134,6 +129,19 @@ public class Application implements Host {
             }
         };
         startupWorker.execute();
+    }
+
+    private void initApplication() {
+        setNodeBoxVersion();
+        createNodeBoxDataDirectories();
+        applyPreferences();
+        registerForMacOSXEvents();
+        initPython();
+    }
+
+    private void checkForUpdates() {
+        updater = new Updater(Application.this);
+        updater.checkForUpdatesInBackground();
     }
 
     /**
@@ -397,6 +405,18 @@ public class Application implements Host {
         return systemRepository;
     }
 
+    public void takeScreenshotOfDocument(String documentFileName) {
+        File documentFile = new File(documentFileName);
+        File documentDirectory = documentFile.getParentFile();
+        String imageName = FileUtils.getBaseName(documentFile.getName()) + ".png";
+        File screenshotFile = new File(documentDirectory, imageName);
+        NodeBoxDocument doc = NodeBoxDocument.load(documentFile);
+        addDocument(doc);
+        doc.setVisible(true);
+        doc.takeScreenshot(screenshotFile);
+        doc.close();
+    }
+
     //// Host implementation ////
 
     public String getName() {
@@ -421,10 +441,18 @@ public class Application implements Host {
 
     public static void main(String[] args) {
         final Application app = new Application();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                app.run();
-            }
-        });
+        if (args.length == 2 && args[0].equals("--screenshot")) {
+            String fileName = args[1];
+            app.initApplication();
+            app.takeScreenshotOfDocument(fileName);
+            app.quit();
+        } else {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    app.run();
+                }
+            });
+        }
     }
+
 }

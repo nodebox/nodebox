@@ -123,41 +123,87 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
     }
 
     public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == categoryField)
+            setCategory();
+        else if (e.getSource() == descriptionField)
+            setDescription();
+        else if (e.getSource() == imageField)
+            setImage();
+        else if (e.getSource() == outputTypeField)
+            setOutputType();
+        else if (e.getSource() == outputRangeBox)
+            setOutputRange();
+        else if (e.getSource() == functionField)
+            setFunction();
+        else if (e.getSource() == handleField)
+            setHandle();
+    }
+
+    private void setCategory() {
         Node node = getNode();
-        if (e.getSource() == categoryField) {
-            String newValue = categoryField.getText();
-            if (node.getCategory() != null && node.getCategory().equals(newValue)) return;
-            nodeAttributesDialog.setNodeCategory(newValue);
-        } else if (e.getSource() == descriptionField) {
-            String newValue = descriptionField.getText();
-            if (node.getDescription() != null && node.getDescription().equals(newValue)) return;
-            nodeAttributesDialog.setNodeDescription(newValue);
-        } else if (e.getSource() == imageField) {
-            String newValue = imageField.getText();
-            if (node.getImage() != null && node.getImage().equals(newValue)) return;
-            nodeAttributesDialog.setNodeImage(newValue);
-        } else if (e.getSource() == outputTypeField) {
-            String newValue = outputTypeField.getText().toLowerCase(Locale.US);
-            if (node.getOutputType() != null && node.getOutputType().equals(newValue)) return;
-            nodeAttributesDialog.setNodeOutputType(newValue);
-        } else if (e.getSource() == outputRangeBox) {
-            HumanizedObject newRange = (HumanizedObject) outputRangeBox.getSelectedItem();
-            if (node.getOutputRange() == newRange.getObject()) return;
-            nodeAttributesDialog.setNodeOutputRange((Port.Range) newRange.getObject());
-        } else if (e.getSource() == functionField) {
-            String newValue = functionField.getText();
-            if (node.getFunction() != null && node.getFunction().equals(newValue)) return;
-            nodeAttributesDialog.setNodeFunction(newValue);
-        } else if (e.getSource() == handleField) {
-            String newValue = handleField.getText();
-            if (node.getHandle() != null && node.getHandle().equals(newValue)) return;
-            nodeAttributesDialog.setNodeHandle(newValue);
-        }
+        String newValue = categoryField.getText();
+        if (node.getCategory() != null && node.getCategory().equals(newValue)) return;
+        nodeAttributesDialog.setNodeCategory(newValue);
+    }
+
+    private void setDescription() {
+        Node node = getNode();
+        String newValue = descriptionField.getText();
+        if (node.getDescription() != null && node.getDescription().equals(newValue)) return;
+        nodeAttributesDialog.setNodeDescription(newValue);
+    }
+
+    private void setImage() {
+        Node node = getNode();
+        String newValue = imageField.getText();
+        if (node.getImage() != null && node.getImage().equals(newValue)) return;
+        nodeAttributesDialog.setNodeImage(newValue);
+    }
+
+    private void setOutputType() {
+        Node node = getNode();
+        String newValue = outputTypeField.getText().toLowerCase(Locale.US);
+        if (node.getOutputType() != null && node.getOutputType().equals(newValue)) return;
+        nodeAttributesDialog.setNodeOutputType(newValue);
+    }
+
+    private void setOutputRange() {
+        Node node = getNode();
+        HumanizedObject newRange = (HumanizedObject) outputRangeBox.getSelectedItem();
+        if (node.getOutputRange() == newRange.getObject()) return;
+        nodeAttributesDialog.setNodeOutputRange((Port.Range) newRange.getObject());
+    }
+
+    private void setFunction() {
+        Node node = getNode();
+        String newValue = functionField.getText();
+        if (node.getFunction() != null && node.getFunction().equals(newValue)) return;
+        nodeAttributesDialog.setNodeFunction(newValue);
+    }
+
+    private void setHandle() {
+        Node node = getNode();
+        String newValue = handleField.getText();
+        if (node.getHandle() != null && node.getHandle().equals(newValue)) return;
+        nodeAttributesDialog.setNodeHandle(newValue);
+    }
+
+    private void applyChanges() {
+        setCategory();
+        setDescription();
+        setImage();
+        setOutputType();
+        setOutputRange();
+        setFunction();
+        setHandle();
     }
 
     public void focusGained(FocusEvent e) {
     }
 
     public void focusLost(FocusEvent e) {
+        applyChanges();
     }
+
+
 }

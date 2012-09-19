@@ -5,6 +5,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
@@ -44,7 +45,7 @@ public class NodeLibrary {
     }
 
     private static NodeLibrary create(String libraryName, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
-        return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, uuid);
+        return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, ImmutableMap.<String, String>of(), uuid);
     }
 
     public static NodeLibrary load(String libraryName, String xml, NodeRepository nodeRepository) throws LoadException {
@@ -68,7 +69,6 @@ public class NodeLibrary {
     }
 
 
-
     public static NodeLibrary load(File f, NodeRepository nodeRepository) throws LoadException {
         checkNotNull(f, "File cannot be null.");
         String libraryName = FileUtils.stripExtension(f);
@@ -86,9 +86,10 @@ public class NodeLibrary {
     private final Node root;
     private final NodeRepository nodeRepository;
     private final FunctionRepository functionRepository;
+    private final ImmutableMap<String, String> properties;
     private final UUID uuid;
 
-    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
+    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, Map<String, String> properties, UUID uuid) {
         checkNotNull(name, "Name cannot be null.");
         checkNotNull(root, "Root node cannot be null.");
         checkNotNull(functionRepository, "Function repository cannot be null.");
@@ -97,6 +98,7 @@ public class NodeLibrary {
         this.nodeRepository = nodeRepository;
         this.functionRepository = functionRepository;
         this.file = file;
+        this.properties = ImmutableMap.copyOf(properties);
         this.uuid = uuid;
     }
 
@@ -136,6 +138,60 @@ public class NodeLibrary {
     public FunctionRepository getFunctionRepository() {
         return functionRepository;
     }
+
+
+    //// Properties ////
+
+    public boolean hasProperty(String name) {
+        return properties.containsKey(name);
+    }
+
+    public String getProperty(String name) {
+        return properties.get(name);
+    }
+
+    public Set<String> getPropertyNames() {
+        return properties.keySet();
+    }
+
+    public String getProperty(String name, String defaultValue) {
+        if (hasProperty(name)) {
+            return properties.get(name);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    public boolean isValidPropertyName(String name) {
+        checkNotNull(name);
+        // no whitespace, only lowercase, numbers + period.
+        return true;
+    }
+
+    public NodeLibrary withProperty(String name, String value) {
+        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+        checkArgument(isValidPropertyName(name), "Property name '%s' is not valid.", name);
+        b.putAll(properties);
+        b.put(name, value);
+        return withProperties(b.build());
+    }
+
+    public NodeLibrary withPropertyRemoved(String name) {
+        if (!hasProperty(name)) return this;
+        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+        for (Map.Entry<String, String> entry : this.properties.entrySet()) {
+            if (!entry.getKey().equals(name)) {
+                b.put(entry);
+            }
+        }
+        return withProperties(b.build());
+    }
+
+    private NodeLibrary withProperties(ImmutableMap<String, String> properties) {
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, properties, this.uuid);
+
+    }
+
 
     //// Upgrading ////
 
@@ -317,13 +373,16 @@ public class NodeLibrary {
 
     private static NodeLibrary parseNDBX(String libraryName, File file, XMLStreamReader reader, NodeRepository nodeRepository, UUID uuid) throws XMLStreamException {
         List<FunctionLibrary> functionLibraries = new LinkedList<FunctionLibrary>();
+        Map<String, String> propertyMap = new HashMap<String, String>();
         Node rootNode = Node.ROOT;
 
         while (true) {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 String tagName = reader.getLocalName();
-                if (tagName.equals("link")) {
+                if (tagName.equals("property")) {
+                    parseProperty(reader, propertyMap);
+                } else if (tagName.equals("link")) {
                     FunctionLibrary functionLibrary = parseLink(file, reader);
                     functionLibraries.add(functionLibrary);
                 } else if (tagName.equals("node")) {
@@ -338,7 +397,7 @@ public class NodeLibrary {
             }
         }
         FunctionLibrary[] fl = functionLibraries.toArray(new FunctionLibrary[functionLibraries.size()]);
-        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), uuid);
+        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, uuid);
     }
 
     private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
@@ -347,6 +406,16 @@ public class NodeLibrary {
         String ref = reader.getAttributeValue(null, "href");
         // loading should happen lazily?
         return FunctionLibrary.load(file, ref);
+    }
+
+    /**
+     * Parse the <property> tag and add the result to the propertyMap.
+     */
+    private static void parseProperty(XMLStreamReader reader, Map<String, String> propertyMap) throws XMLStreamException {
+        String name = reader.getAttributeValue(null, "name");
+        String value = reader.getAttributeValue(null, "value");
+        if (name == null || value == null) return;
+        propertyMap.put(name, value);
     }
 
     /**
@@ -521,11 +590,11 @@ public class NodeLibrary {
     ///// Mutation methods ////
 
     public NodeLibrary withRoot(Node newRoot) {
-        return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.uuid);
+        return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.properties, this.uuid);
     }
 
     public NodeLibrary withFunctionRepository(FunctionRepository newRepository) {
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.uuid);
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.properties, this.uuid);
     }
 
     //// Saving ////

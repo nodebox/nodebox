@@ -2,6 +2,9 @@
 <ndbx formatVersion="2" type="file" uuid="9eb894f5-3b8b-40e4-9b56-4aaf0242eba7">
     <link href="java:nodebox.function.StringFunctions" rel="functions"/>
     <node description="Create and manipulate text." name="root" renderedChild="length">
+        <node description="Create a string value that can be used as a variable." function="string/string" name="string" outputType="string" position="1.00,3.00" category="string">
+            <port name="value" type="string"/>
+        </node>
         <node description="Add strings together." function="string/concatenate" name="concatenate" outputType="string" position="1.00,3.00" category="string">
             <port name="string1" range="value" type="string" value="" widget="string"/>
             <port name="string2" range="value" type="string" value="" widget="string"/>

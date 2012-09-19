@@ -34,7 +34,7 @@
                 <menu key="open" label="Open"/>
             </port>
         </node>
-        <node description="Calculate the geometric center point of a shape." function="corevector/centroid" name="centroid" outputType="point" position="7.00,6.00" prototype="filter" image="centroid.png"/>
+        <node description="Calculate the geometric center point of a shape." function="corevector/centroid" image="centroid.png" name="centroid" outputType="point" position="7.00,6.00" prototype="filter"/>
         <node description="Change the color of a shape." function="corevector/colorize" image="colorize.png" name="colorize" position="4.00,11.00" prototype="filter">
             <port name="fill" range="value" type="color" value="#000000ff" widget="color"/>
             <port name="stroke" range="value" type="color" value="#000000ff" widget="color"/>
@@ -93,12 +93,12 @@
         <node description="Draw Bezier Paths." function="pyvector/draw_path" handle="pyvector/handle_draw_path" image="draw_path.png" name="draw_path" position="4.00,8.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string"/>
         </node>
-        <node description="Create ellipses and circles." function="corevector/ellipse" image="ellipse.png" handle="corevector/fourPointHandle" name="ellipse" position="4.00,2.00" prototype="generator">
+        <node description="Create ellipses and circles." function="corevector/ellipse" image="ellipse.png" name="ellipse" position="4.00,2.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Fit a shape within bounds." function="corevector/fit" image="fit.png" name="fit" handle="corevector/fourPointHandle" position="13.00,10.00" prototype="filter">
+        <node description="Fit a shape within bounds." function="corevector/fit" handle="corevector/fourPointHandle" image="fit.png" name="fit" position="13.00,10.00" prototype="filter">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="300.0" widget="float"/>
             <port name="height" range="value" type="float" value="300.0" widget="float"/>
@@ -111,8 +111,8 @@
         <node description="Freehand drawing." function="corevector/freehand" handle="corevector/freehandHandle" image="freehand.png" name="freehand" position="4.00,5.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string"/>
         </node>
-        <node description="A network of geometry nodes." image="geonet.png" name="geonet" outputType="geometry" position="14.00,1.00" category="geometry"/>
-        <node description="Create a grid of points." function="corevector/grid" image="grid.png" name="grid" handle="corevector/fourPointHandle" outputRange="list" outputType="point" position="7.00,5.00" prototype="generator">
+        <node category="geometry" description="A network of geometry nodes." image="geonet.png" name="geonet" outputType="geometry" position="14.00,1.00"/>
+        <node description="Create a grid of points." function="corevector/grid" handle="corevector/fourPointHandle" image="grid.png" name="grid" outputRange="list" outputType="point" position="7.00,5.00" prototype="generator">
             <port min="1.0" name="rows" range="value" type="int" value="10" widget="int"/>
             <port min="1.0" name="columns" range="value" type="int" value="10" widget="int"/>
             <port name="width" range="value" type="float" value="300.0" widget="float"/>
@@ -149,7 +149,10 @@
             <port name="y" range="value" type="float" value="0.0" widget="float"/>
         </node>
         <node description="Does nothing." function="corevector/doNothing" image="null.png" name="null" position="4.00,13.00" prototype="filter"/>
-        <node description="Calculate a point on a path." function="corevector/pointOnPath" name="point_on_path" position="13.00,11.00" prototype="generator" image="point_on_path.png">
+        <node category="geometry" description="Create a point value that can be used as a variable." function="corevector/point" image="make_point.png" name="point" outputType="point" position="10.00,3.00">
+            <port name="value" range="value" type="point" value="0.00,0.00" widget="point"/>
+        </node>
+        <node description="Calculate a point on a path." function="corevector/pointOnPath" image="point_on_path.png" name="point_on_path" position="13.00,11.00" prototype="generator">
             <port name="shape" range="value" type="geometry" widget="none"/>
             <port name="t" range="value" type="float" value="0.0" widget="float"/>
             <port name="range" range="value" type="float" value="100.0" widget="float"/>
@@ -166,7 +169,7 @@
             <port name="t" range="value" type="float" value="50.0" widget="float"/>
             <port name="distance" range="value" type="float" value="50.0" widget="float"/>
         </node>
-        <node description="Create a rectangle or rounded rectangle." function="corevector/rect" handle="corevector/fourPointHandle" image="rect.png" name="rect" position="4.00,1.00" prototype="generator">
+        <node description="Create a rectangle or rounded rectangle." function="corevector/rect" image="rect.png" name="rect" position="4.00,1.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
@@ -199,7 +202,7 @@
         <node description="Resize the shape by scaling it." function="pyvector/scale" handle="pyvector/handle_scale" image="scale.png" name="scale" position="13.00,16.00" prototype="filter">
             <port name="scale" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Generate points within the boundaries of a shape." function="corevector/scatter" image="scatter.png" name="scatter" outputRange="list" outputType="point" position="7.00,16.00" prototype="filter">
+        <node description="Generate points within the boundaries of a shape." function="pyvector/scatter" image="scatter.png" name="scatter" outputRange="list" outputType="point" position="7.00,16.00" prototype="filter">
             <port min="0.0" name="amount" range="value" type="int" value="20" widget="int"/>
             <port name="seed" range="value" type="int" value="0" widget="int"/>
         </node>
@@ -210,7 +213,7 @@
             <port max="100.0" min="0.0" name="start" range="value" type="float" value="0.0" widget="float"/>
             <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node description="Snap geometry to a grid." function="corevector/snap" handle="corector/snapHandle" image="snap.png" name="snap" position="10.00,11.00" prototype="filter">
+        <node description="Snap geometry to a grid." function="corevector/snap" handle="corevector/snapHandle" image="snap.png" name="snap" position="10.00,11.00" prototype="filter">
             <port min="1.0" name="distance" range="value" type="float" value="10.0" widget="float"/>
             <port max="100.0" min="0.0" name="strength" range="value" type="float" value="100.0" widget="float"/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
@@ -228,9 +231,6 @@
             <port name="outer" range="value" type="float" value="200.0" widget="float"/>
             <port name="inner" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Switches between multiple inputs." function="pyvector/switch" image="switch.png" name="switch" position="10.00,13.00" prototype="group">
-            <port name="index" range="value" type="int" value="0" widget="int"/>
-        </node>
         <node description="Text following a path" function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="filter">
             <port name="text" range="value" type="string" value="text following a path" widget="string"/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font"/>
@@ -239,7 +239,7 @@
             <port name="offset" range="value" type="float" value="0.0" widget="float"/>
             <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node description="Create a path out of text." function="pyvector/textpath" image="textpath.png" name="textpath" position="4.00,3.00" prototype="generator">
+        <node description="Create a path out of text." function="corevector/textpath" image="textpath.png" name="textpath" position="4.00,3.00" prototype="generator">
             <port name="text" range="value" type="string" value="hello" widget="string"/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font"/>
             <port name="font_size" range="value" type="float" value="24.0" widget="float"/>
@@ -273,10 +273,5 @@
         </node>
         <node description="Shift paths by a random amount." function="pyvector/wiggle_contours" name="wiggle_contours" position="13.00,15.00" prototype="wiggle_points"/>
         <node description="Shift paths by a random amount." function="pyvector/wiggle_paths" name="wiggle_paths" position="10.00,15.00" prototype="wiggle_points"/>
-        <node description="Create a points file with the given shape." function="pyvector/write_points" name="write_points" position="13.00,12.00" prototype="generator">
-            <port name="context" range="value" type="context" widget="none"/>
-            <port name="shape" range="value" type="geometry" widget="none"/>
-            <port name="prefix" range="value" type="string" value="" widget="string"/>
-        </node>
     </node>
 </ndbx>

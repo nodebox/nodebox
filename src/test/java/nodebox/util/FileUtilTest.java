@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.io.File;
 
 import static junit.framework.Assert.assertEquals;
+import static nodebox.client.FileUtils.getBaseName;
 
 public class FileUtilTest {
 
@@ -24,6 +25,13 @@ public class FileUtilTest {
         assertEquals("gif", FileUtils.getExtension("MixedCase.GIF")); // Always lower case
         assertEquals("dot", FileUtils.getExtension("a.lot.of.dots.dot")); // Extension = last dot
         assertEquals("", FileUtils.getExtension("noextension"));
+    }
+
+    @Test
+    public void testGetBaseName() {
+        assertEquals("helloworld", getBaseName("helloworld.png"));
+        assertEquals("a.lot.of.dots", getBaseName("a.lot.of.dots.dot"));
+        assertEquals("noextension", getBaseName("noextension"));
     }
 
     @Test

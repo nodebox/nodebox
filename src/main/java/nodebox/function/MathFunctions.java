@@ -29,18 +29,27 @@ public class MathFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
-                "number", "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "log",
-                "sum", "average", "compare", "min", "max",
+                "number", "integer", "makeBoolean",
+                "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
+                "log","sum", "average", "compare", "min", "max", "ceil", "floor",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
-                "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos",
+                "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos", "pi", "e",
                 "convertRange", "wave",
                 "slowNumber");
     }
 
     public static double number(double n) {
         return n;
+    }
+
+    public static long integer(long value) {
+        return value;
+    }
+
+    public static boolean makeBoolean(boolean value) {
+        return value;
     }
 
     public static double add(double n1, double n2) {
@@ -67,6 +76,10 @@ public class MathFunctions {
 
     public static double sqrt(double n) {
         return Math.sqrt(n);
+    }
+
+    public static double pow(double n1, double n2) {
+        return Math.pow(n1, n2);
     }
 
     public static double log(double n) {
@@ -142,6 +155,14 @@ public class MathFunctions {
             min = Math.min(min, d);
         }
         return min;
+    }
+
+    public static double ceil(double n) {
+        return Math.ceil(n);
+    }
+
+    public static double floor(double n) {
+        return Math.floor(n);
     }
 
     public static boolean compare(String comparator, double n1, double n2) {
@@ -305,6 +326,14 @@ public class MathFunctions {
 
     public static double cos(double n) {
         return Math.cos(n);
+    }
+
+    public static double pi() {
+        return Math.PI;
+    }
+
+    public static double e() {
+        return Math.E;
     }
 
     public static double slowNumber(double n) {

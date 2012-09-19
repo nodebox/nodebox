@@ -49,4 +49,6 @@ public class StringFunctionsTest {
         assertEquals("", StringFunctions.concatenate(null, null, null, null));
     }
 
+
+
 }

@@ -205,15 +205,15 @@ public class Viewer extends PCanvas implements OutputView, MouseListener, MouseM
             // lead to strange (and wrong) interactions with handles (big leaps in
             // current mouse locations).
             repaint();
-            return;  
-        } 
+            return;
+        }
         if (currentVisualizer != visualizer) {
             resetView();
             currentVisualizer = visualizer;
+            viewerLayer.setBounds(visualizer.getBounds(outputValues));
+            viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
         }
         checkNotNull(currentVisualizer);
-        viewerLayer.setBounds(visualizer.getBounds(outputValues));
-        viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
         repaint();
     }
 

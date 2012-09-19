@@ -301,7 +301,7 @@ public class NodeLibraryTest {
         assertPrototypeBeforeInstance("gamma", "alpha", "beta");
     }
 
-    private void assertPrototypeBeforeInstance(String prototypeName, String ... instanceNames) {
+    private void assertPrototypeBeforeInstance(String prototypeName, String... instanceNames) {
         Node originalPrototype = Node.ROOT.withName(prototypeName);
         Node network = Node.ROOT.withChildAdded(originalPrototype);
         for (String instanceName : instanceNames) {
@@ -388,6 +388,28 @@ public class NodeLibraryTest {
         } catch (LoadException e) {
             assertTrue(e.getMessage().contains("too new"));
         }
+    }
+
+    @Test
+    public void testDocumentProperties() {
+        NodeLibrary library = NodeLibrary.create("test", Node.ROOT);
+        assertFalse(library.hasProperty("alpha"));
+        library = library.withProperty("alpha", "42");
+        assertTrue(library.hasProperty("alpha"));
+        assertEquals("42", library.getProperty("alpha"));
+        library = library.withPropertyRemoved("alpha");
+        assertFalse(library.hasProperty("alpha"));
+        assertEquals("notFound", library.getProperty("alpha", "notFound"));
+    }
+
+    @Test
+    public void testDocumentPropertiesSerialization() {
+        NodeLibrary library = NodeLibrary.create("test", Node.ROOT.extend());
+        library = library.withProperty("alpha", "42");
+        String xml = library.toXml();
+        NodeLibrary newLibrary = NodeLibrary.load("test", xml, NodeRepository.of());
+        assertTrue(newLibrary.hasProperty("alpha"));
+        assertEquals("42", newLibrary.getProperty("alpha"));
     }
 
     public Node makeLetterMenuNode() {

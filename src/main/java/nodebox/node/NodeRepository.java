@@ -3,10 +3,8 @@ package nodebox.node;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import nodebox.client.PythonUtils;
 import nodebox.function.FunctionRepository;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -67,6 +65,8 @@ public class NodeRepository {
     public List<Node> getNodes() {
         ImmutableList.Builder<Node> builder = ImmutableList.builder();
         for (NodeLibrary library : libraryMap.values()) {
+            if (library.getName().equals("core"))
+                builder.add(Node.ROOT);
             builder.addAll(library.getRoot().getChildren());
         }
         return builder.build();

@@ -21,7 +21,7 @@ public class StringFunctions {
     /**
      * Return the input string, as-is.
      * <p/>
-     * This is the identity functions for strings.
+     * This function is used for using strings as variables in NodeBox.
      */
     public static String string(String s) {
         return s;

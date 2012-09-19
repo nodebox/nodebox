@@ -207,6 +207,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         nodeMenu.add(new SetRenderedAction());
         nodeMenu.add(new RenameAction());
         nodeMenu.add(new DeleteAction());
+        nodeMenu.add(new GroupIntoNetworkAction(null));
         nodeMenu.add(new GoInAction());
     }
 
@@ -266,6 +267,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private Iterable<Connection> getConnections() {
         return getDocument().getActiveNetwork().getConnections();
+    }
+
+    public static boolean isPublished(Node network, Node childNode, Port childPort) {
+        return network.hasPublishedInput(childNode.getName(), childPort.getName());
     }
 
     //// Painting the nodes ////
@@ -362,7 +367,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
-            paintNode(g, node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
+            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
@@ -371,7 +376,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
-    private static void paintNode(Graphics2D g, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -417,7 +422,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                     portHeight = 1;
                 }
             }
+
+            if (isPublished(network, node, input)) {
+                Point2D topLeft = inverseViewTransformPoint(new Point(4, 0));
+                g.setColor(portTypeColor(input.getType()));
+                g.setStroke(CONNECTION_STROKE);
+                paintConnectionLine(g, (int)topLeft.getX(), (int)topLeft.getY(), r.x + portX + 4, r.y-2);
+            }
+
             g.fillRect(r.x + portX, r.y - portHeight, PORT_WIDTH, portHeight);
+
+
             portX += PORT_WIDTH + PORT_SPACING;
         }
 
@@ -696,22 +711,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         getDocument().setActiveNetwork(path);
     }
 
-    private void goDown() {
-        JOptionPane.showMessageDialog(this, "Child nodes are not supported yet.");
-    }
-
     //// Input Events ////
 
     public void keyTyped(KeyEvent e) {
         switch (e.getKeyChar()) {
             case KeyEvent.VK_BACK_SPACE:
                 getDocument().deleteSelection();
-                break;
-            case KeyEvent.VK_U:
-                goUp();
-                break;
-            case KeyEvent.VK_ENTER:
-                goDown();
                 break;
         }
     }
@@ -787,6 +792,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             if (nodePort != null) {
                 JPopupMenu pMenu = new JPopupMenu();
                 pMenu.add(new PublishAction(nodePort));
+                pMenu.show(this, e.getX(), e.getY());
+            } else if (selectedNodes.size() > 1) {
+                JPopupMenu pMenu = new JPopupMenu();
+                pMenu.add(new GroupIntoNetworkAction(pointToGridPoint(e.getPoint())));
                 pMenu.show(this, e.getX(), e.getY());
             } else {
                 Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
@@ -985,7 +994,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private class GoUpAction extends AbstractAction {
         private GoUpAction() {
             super("Go Up");
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_U, 0));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -1064,13 +1072,30 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private class GoInAction extends AbstractAction {
         private GoInAction() {
             super("Edit Children");
-            putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0));
         }
 
         public void actionPerformed(ActionEvent e) {
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
             String childPath = Node.path(getDocument().getActiveNetworkPath(), node.getName());
             getDocument().setActiveNetwork(childPath);
+        }
+    }
+
+    private class GroupIntoNetworkAction extends AbstractAction {
+        private Point gridPoint;
+
+        private GroupIntoNetworkAction(Point gridPoint) {
+            super("Group Into Network Node");
+            this.gridPoint = gridPoint;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            nodebox.graphics.Point position;
+            if (gridPoint == null)
+                position = getNodeAt(inverseViewTransformPoint(nodeMenuLocation)).getPosition();
+            else
+                position = new nodebox.graphics.Point(gridPoint);
+            getDocument().groupIntoNetwork(position);
         }
     }
 }

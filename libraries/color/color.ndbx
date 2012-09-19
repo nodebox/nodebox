@@ -2,7 +2,7 @@
 <ndbx formatVersion="2" type="file" uuid="d81dc9ae-d9a4-4e9e-95f9-b9563a6af88c">
     <link href="java:nodebox.function.ColorFunctions" rel="functions"/>
     <node description="Create colors." name="root" renderedChild="color">
-        <node description="Create a color." function="color/color" name="color" outputType="color" position="1.00,4.00" category="color">
+        <node description="Create a color value that can be used as a variable." function="color/color" name="color" outputType="color" position="1.00,4.00" category="color">
             <port name="color" range="value" type="color" value="#000000ff" widget="color"/>
         </node>
         <node description="Create a gray color." function="color/gray" name="gray_color" outputType="color" position="1.00,3.00" category="color">
