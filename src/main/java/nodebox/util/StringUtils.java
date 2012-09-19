@@ -40,6 +40,24 @@ public class StringUtils {
         return humanizeName(constant.toLowerCase(Locale.US));
     }
 
+    public static String toTitleCase(String value) {
+        StringBuilder titleCase = new StringBuilder();
+        boolean nextTitleCase = true;
+
+        for (char c : value.toCharArray()) {
+            if (Character.isSpaceChar(c)) {
+                nextTitleCase = true;
+            } else if (nextTitleCase) {
+                c = Character.toTitleCase(c);
+                nextTitleCase = false;
+            }
+
+            titleCase.append(c);
+        }
+
+        return titleCase.toString();
+    }
+
     public static String join(List items, String separator) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < items.size(); i++) {

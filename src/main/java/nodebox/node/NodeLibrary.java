@@ -401,8 +401,6 @@ public class NodeLibrary {
                 String tagName = reader.getLocalName();
                 if (tagName.equals("node")) {
                     node = node.withChildAdded(parseNode(reader, node, nodeRepository));
-                } else if (tagName.equals("publishedPort")) {
-                    node = node.withPublishedPortAdded(parsePublishedPort(reader));
                 } else if (tagName.equals("port")) {
                     String portName = reader.getAttributeValue(null, "name");
                     // Remove the port if it is already on the prototype.
@@ -452,6 +450,7 @@ public class NodeLibrary {
         // Name and type are always required.
         String name = reader.getAttributeValue(null, "name");
         String type = reader.getAttributeValue(null, "type");
+        String childReference = reader.getAttributeValue(null, "childReference");
         String widget = reader.getAttributeValue(null, "widget");
         String range = reader.getAttributeValue(null, "range");
         String value = reader.getAttributeValue(null, "value");
@@ -466,6 +465,8 @@ public class NodeLibrary {
         }
 
         // Widget, value, min, max are optional and could come from the prototype.
+        if (childReference != null)
+            port = port.withParsedAttribute(Port.Attribute.CHILD_REFERENCE, childReference);
         if (widget != null)
             port = port.withParsedAttribute(Port.Attribute.WIDGET, widget);
         if (range != null)
@@ -498,15 +499,6 @@ public class NodeLibrary {
         if (!items.isEmpty())
             port = port.withMenuItems(items);
         return port;
-    }
-
-    private static PublishedPort parsePublishedPort(XMLStreamReader reader) throws XMLStreamException {
-        String child = reader.getAttributeValue(null, "ref");
-        Iterator<String> inputIterator = PORT_NAME_SPLITTER.split(child).iterator();
-        String childNode = inputIterator.next();
-        String childPort = inputIterator.next();
-        String publishedName = reader.getAttributeValue(null, "name");
-        return new PublishedPort(childNode, childPort, publishedName);
     }
 
     private static MenuItem parseMenuItem(XMLStreamReader reader) throws XMLStreamException {

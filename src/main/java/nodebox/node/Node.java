@@ -36,7 +36,7 @@ public final class Node {
         }
     }
 
-    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, PUBLISHED_INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
 
     /**
      * Check if data from the output node can be converted and used in the input port.
@@ -94,7 +94,6 @@ public final class Node {
     private final String function;
     private final Point position;
     private final ImmutableList<Port> inputs;
-    private final ImmutableList<PublishedPort> publishedInputs;
     private final String outputType;
     private final Port.Range outputRange;
     private final ImmutableList<Node> children;
@@ -117,7 +116,6 @@ public final class Node {
         function = "core/zero";
         position = Point.ZERO;
         inputs = ImmutableList.of();
-        publishedInputs = ImmutableList.of();
         outputType = Port.TYPE_FLOAT;
         outputRange = Port.DEFAULT_RANGE;
         children = ImmutableList.of();
@@ -133,7 +131,7 @@ public final class Node {
     }
 
     private Node(Node prototype, String name, String category, String description, String image, String function,
-                 Point position, ImmutableList<Port> inputs, ImmutableList<PublishedPort> publishedInputs,
+                 Point position, ImmutableList<Port> inputs,
                  String outputType, Port.Range outputRange, ImmutableList<Node> children,
                  String renderedChildName, ImmutableList<Connection> connections, String handle) {
         checkAllNotNull(prototype, name, description, image, function,
@@ -148,7 +146,6 @@ public final class Node {
         this.function = function;
         this.position = position;
         this.inputs = inputs;
-        this.publishedInputs = publishedInputs;
         this.outputType = outputType;
         this.outputRange = outputRange;
         this.children = children;
@@ -223,23 +220,12 @@ public final class Node {
         return inputs;
     }
 
-    public List<Port> getAllInputs() {
-        ImmutableList.Builder<Port> b = ImmutableList.builder();
-        b.addAll(getPublishedInputPorts());
-        b.addAll(inputs);
-        return b.build();
-    }
-
     public Port getInput(String name) {
         checkNotNull(name, "Port name cannot be null.");
         for (Port p : getInputs()) {
             if (p.getName().equals(name)) {
                 return p;
             }
-        }
-        for (PublishedPort p : publishedInputs) {
-            if (p.getPublishedName().equals(name))
-                return getChild(p.getChildNode()).getInput(p.getChildPort());
         }
         return null;
     }
@@ -275,7 +261,7 @@ public final class Node {
     }
 
     public boolean hasListInputs() {
-        for (Port port : getAllInputs()) {
+        for (Port port : getInputs()) {
             if (port.hasListRange())
                 return true;
         }
@@ -333,8 +319,6 @@ public final class Node {
             return getPosition();
         } else if (attribute == Attribute.INPUTS) {
             return getInputs();
-        } else if (attribute == Attribute.PUBLISHED_INPUTS) {
-            return getPublishedInputs();
         } else if (attribute == Attribute.OUTPUT_TYPE) {
             return getOutputType();
         } else if (attribute == Attribute.OUTPUT_RANGE) {
@@ -505,9 +489,6 @@ public final class Node {
         Port portToRemove = getInput(portName);
         checkArgument(portToRemove != null, "Input port %s does not exist on node %s.", portName, this);
 
-        if (hasPublishedInput(portName))
-            return unpublish(portName);
-
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         for (Port port : getInputs()) {
             if (portToRemove != port)
@@ -533,14 +514,15 @@ public final class Node {
             newParent = newParent.withRenderedChild(newNode);
 
         if (hasPublishedChildInputs(childName)) {
-            ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-            for (PublishedPort pp : publishedInputs) {
-                if (pp.getChildNode().equals(childName)) {
-                    b.add(new PublishedPort(newName, pp.getChildPort(), pp.getPublishedName()));
-                } else
-                    b.add(pp);
-            }
-            newParent = newParent.newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+            // TODO Rename child node also renames reference.
+//            ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+//            for (PublishedPort pp : publishedInputs) {
+//                if (pp.getChildNodeName().equals(childName)) {
+//                    b.add(new PublishedPort(newName, pp.getChildPortName(), pp.getPublishedName()));
+//                } else
+//                    b.add(pp);
+//            }
+//            newParent = newParent.newNodeWithAttribute(Attribute.INPUTS, b.build());
         } else {
             for (Connection c : getConnections()) {
                 if (c.getInputNode().equals(childName)) {
@@ -567,7 +549,7 @@ public final class Node {
         checkArgument(hasChild(childName), "Node %s does not have a child named %s.", this, childName);
         Node child = getChild(childName);
         checkArgument(child.hasInput(portName), "Node %s does not have an input port %s.", childName, portName);
-        if (hasPublishedChildInput(childName, portName))
+        if (hasPublishedInput(childName, portName))
             return unpublish(childName, portName).withChildInputRemoved(childName, portName);
         if (isConnected(childName, portName))
             return disconnect(childName, portName).withChildInputRemoved(childName, portName);
@@ -591,11 +573,6 @@ public final class Node {
     public Node withInputChanged(String portName, Port newPort) {
         Port oldPort = getInput(portName);
         checkNotNull(oldPort, "Input port %s does not exist on node %s.", portName, this);
-
-        if (hasPublishedInput(portName)) {
-            PublishedPort p = getPublishedInput(portName);
-            return withChildInputChanged(p.getChildNode(), p.getChildPort(), newPort);
-        }
 
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         // Add all ports back in the correct order.
@@ -623,7 +600,13 @@ public final class Node {
         Port p = getInput(portName);
         checkNotNull(p, "Input port %s does not exist on node %s.", portName, this);
         p = p.withValue(value);
-        return withInputChanged(portName, p);
+        Node n = this;
+        if (p.isPublishedPort()) {
+            String childNodeName = p.getChildNodeName();
+            Node newChildNode = p.getChildNode(this).withInputValue(p.getChildPortName(), value);
+            n = n.withChildReplaced(childNodeName, newChildNode);
+        }
+        return n.withInputChanged(portName, p);
     }
 
     /**
@@ -642,136 +625,111 @@ public final class Node {
         return withInputChanged(portName, p);
     }
 
-    public List<PublishedPort> getPublishedInputs() {
-        return publishedInputs;
-    }
-
-    public List<Port> getPublishedInputPorts() {
+    public List<Port> getPublishedPorts() {
         ImmutableList.Builder<Port> b = ImmutableList.builder();
-        for (PublishedPort p : publishedInputs) {
-            b.add(getChild(p.getChildNode()).getInput(p.getChildPort()));
+        for (Port p : inputs) {
+            if (p.isPublishedPort())
+                b.add(p);
         }
         return b.build();
     }
 
-    public boolean hasPublishedChildInput(String inputNode, String inputPort) {
-        for (PublishedPort p : publishedInputs) {
-            if (p.getChildNode().equals(inputNode) && p.getChildPort().equals(inputPort))
-                return true;
-        }
-        return false;
+    public Port getPublishedPort(Port port) {
+        checkArgument(port.isPublishedPort(), "Given port %s is not a published port.", port);
+        return port.getChildPort(this);
     }
 
-    public boolean hasPublishedChildInputs(String inputNode) {
-        for (PublishedPort p : publishedInputs) {
-            if (p.getChildNode().equals(inputNode))
-                return true;
-        }
-        return false;
+    public Port getPublishedPort(String publishedPortName) {
+        checkArgument(hasInput(publishedPortName), "Given port %s does not exist.", publishedPortName);
+        return getPublishedPort(getInput(publishedPortName));
     }
 
-    public PublishedPort getPublishedInput(String publishedName) {
-        for (PublishedPort p : publishedInputs) {
-            if (p.getPublishedName().equals(publishedName))
+    public Port getPortByChildReference(Node childNode, Port childPort) {
+        return getPortByChildReference(childNode.getName(), childPort.getName());
+    }
+
+    public Port getPortByChildReference(String childNodeName, String childPortName) {
+        for (Port p : inputs) {
+            if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName) && p.getChildPortName().equals(childPortName)) {
                 return p;
+            }
         }
         return null;
     }
 
+    public boolean hasPublishedInput(String childNodeName, String childPortName) {
+        for (Port p : inputs) {
+            if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName) && p.getChildPortName().equals(childPortName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasPublishedChildInputs(String childNodeName) {
+        for (Port p : inputs) {
+            if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean hasPublishedInput(String publishedName) {
-        return getPublishedInput(publishedName) != null;
+        return hasInput(publishedName) && getInput(publishedName).isPublishedPort();
     }
 
     /**
      * Create a new node with the given child input node/port published.
      *
-     * @param inputNode     The name of the child input Node.
-     * @param inputPort     The name of the child input Port.
+     * @param childNodeName The name of the child input Node.
+     * @param childPortName The name of the child input Port.
      * @param publishedName The name of by which the published port is known.
      * @return A new Node.
      */
-    public Node publish(String inputNode, String inputPort, String publishedName) {
+    public Node publish(String childNodeName, String childPortName, String publishedName) {
         checkNotNull(publishedName, "Published name cannot be null.");
-        checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
-        Node input = getChild(inputNode);
-        checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
-        checkArgument(!hasPublishedChildInput(inputNode, inputPort), "The port %s on node %s has already been published.", inputPort, inputNode);
-        checkArgument(!hasInput(publishedName), "Node %s already has an input named %s.", this, publishedName);
+        checkArgument(hasChild(childNodeName), "Node %s does not have a child named %s.", this, childNodeName);
+        Node childNode = getChild(childNodeName);
+        checkArgument(childNode.hasInput(childPortName), "Child node %s does not have an child node port %s.", childNodeName, childPortName);
+        Port childPort = childNode.getInput(childPortName);
+        checkArgument(!hasPublishedInput(childNodeName, childPortName), "The port %s on node %s has already been published.", childPortName, childNodeName);
+        checkArgument(!hasInput(publishedName), "Node %s already has an childNode named %s.", this, publishedName);
 
         for (Connection c : getConnections()) {
-            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
-                return disconnect(c).publish(inputNode, inputPort, publishedName);
+            if (c.getInputNode().equals(childNodeName) && c.getInputPort().equals(childPortName))
+                return disconnect(c).publish(childNodeName, childPortName, publishedName);
         }
 
-        PublishedPort newPublishedInput = new PublishedPort(inputNode, inputPort, publishedName);
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : getPublishedInputs())
-            b.add(pp);
-        b.add(newPublishedInput);
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+
+        Port newPort = Port.publishedPort(childNode, childPort, publishedName);
+        return withInputAdded(newPort);
     }
 
-    public Node withPublishedPortAdded(PublishedPort p) {
-        return publish(p.getChildNode(), p.getChildPort(), p.getPublishedName());
+    public Node unpublish(String childNodeName, String childPortName) {
+        checkArgument(hasChild(childNodeName), "Node %s does not have a child named %s.", this, childNodeName);
+        Node childNode = getChild(childNodeName);
+        checkArgument(childNode.hasInput(childPortName), "Child node %s does not have a port named %s.", childNodeName, childPortName);
+        Port childPort = childNode.getInput(childPortName);
+
+        Port p = getPortByChildReference(childNode, childPort);
+        return withInputRemoved(p.getName());
     }
 
-    /**
-     * Create a new node with the given published port removed.
-     *
-     * @param publishedInput The published port to remove.
-     * @return A new Node.
-     */
-    public Node unpublish(PublishedPort publishedInput) {
-        checkArgument(getPublishedInputs().contains(publishedInput), "Node %s does not have a published port %s", this, publishedInput);
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : getPublishedInputs()) {
-            if (pp != publishedInput)
-                b.add(pp);
-        }
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
-    }
+    public Node unpublishChildNode(Node childNode) {
+        checkArgument(hasChild(childNode), "Node %s does not have a child named %s.", this, childNode);
 
-    public Node unpublish(String inputNode, String inputPort) {
-        checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
-        Node input = getChild(inputNode);
-        checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
-
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : getPublishedInputs()) {
-            if (pp.getChildNode().equals(inputNode) && pp.getChildPort().equals(inputPort)) {
-
-            } else {
-                b.add(pp);
+        Node n = this;
+        for (Port p : getPublishedPorts()) {
+            if (p.getChildNodeName().equals(childNode.getName())) {
+                n = n.withInputRemoved(p.getName());
             }
         }
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
-    }
-
-    public Node unpublishChildInputs(String node) {
-        checkArgument(hasChild(node), "Node %s does not have a child named %s.", this, node);
-
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : getPublishedInputs()) {
-            if (pp.getChildNode().equals(node)) {
-
-            } else {
-                b.add(pp);
-            }
-        }
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+        return n;
     }
 
     public Node unpublish(String publishedName) {
-        checkArgument(hasPublishedInput(publishedName), "Node %s does not have a published input named %s.", this, publishedName);
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : getPublishedInputs()) {
-            if (pp.getPublishedName().equals(publishedName)) {
-
-            } else {
-                b.add(pp);
-            }
-        }
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+        return withInputRemoved(publishedName);
     }
 
     /**
@@ -830,7 +788,7 @@ public final class Node {
         Node childToRemove = getChild(childName);
         checkArgument(childToRemove != null, "Node %s is not a child of node %s.", childName, this);
         if (hasPublishedChildInputs(childName))
-            return unpublishChildInputs(childName).withChildRemoved(childName);
+            return unpublishChildNode(childToRemove).withChildRemoved(childName);
         if (isConnected(childName))
             return disconnect(childName).withChildRemoved(childName);
         if (renderedChildName.equals(childName))
@@ -854,13 +812,15 @@ public final class Node {
      * @return true if the resulting network would be internally consistent.
      */
     private boolean isConsistentWithPublishedInputs(String childName, Node newChild) {
-        for (PublishedPort pp : publishedInputs) {
-            if (pp.getChildNode().equals(childName)) {
-                if (!newChild.hasInput(pp.getChildPort()))
-                    return false;
-            }
-        }
+        // TODO Implement
         return true;
+//        for (PublishedPort pp : publishedInputs) {
+//            if (pp.getChildNode().equals(childName)) {
+//                if (!newChild.hasInput(pp.getChildPort()))
+//                    return false;
+//            }
+//        }
+//        return true;
     }
 
     /**
@@ -892,15 +852,17 @@ public final class Node {
      * @return A new node
      */
     private Node withConsistentPublishedInputs(String childName, Node newChild) {
-        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
-        for (PublishedPort pp : publishedInputs) {
-            if (pp.getChildNode().equals(childName)) {
-                if (newChild.hasInput(pp.getChildPort()))
-                    b.add(pp);
-            } else
-                b.add(pp);
-        }
-        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
+        // TODO Implement
+        return this;
+//        ImmutableList.Builder<PublishedPort> b = ImmutableList.builder();
+//        for (PublishedPort pp : publishedInputs) {
+//            if (pp.getChildNode().equals(childName)) {
+//                if (newChild.hasInput(pp.getChildPort()))
+//                    b.add(pp);
+//            } else
+//                b.add(pp);
+//        }
+//        return newNodeWithAttribute(Attribute.PUBLISHED_INPUTS, b.build());
     }
 
     /**
@@ -1003,7 +965,7 @@ public final class Node {
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
         Node input = getChild(inputNode);
         checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
-        checkArgument(!hasPublishedChildInput(inputNode, inputPort), "Node %s has a published input for port %s of child %s.", this, inputNode, inputPort);
+        checkArgument(!hasPublishedInput(inputNode, inputPort), "Node %s has a published input for port %s of child %s.", this, inputNode, inputPort);
         Connection newConnection = new Connection(outputNode, inputNode, inputPort);
         ImmutableList.Builder<Connection> b = ImmutableList.builder();
         for (Connection c : getConnections()) {
@@ -1191,7 +1153,6 @@ public final class Node {
         String function = this.function;
         Point position = this.position;
         ImmutableList<Port> inputs = this.inputs;
-        ImmutableList<PublishedPort> publishedInputs = this.publishedInputs;
         String outputType = this.outputType;
         Port.Range outputRange = this.outputRange;
         ImmutableList<Node> children = this.children;
@@ -1223,9 +1184,6 @@ public final class Node {
                 break;
             case INPUTS:
                 inputs = (ImmutableList<Port>) value;
-                break;
-            case PUBLISHED_INPUTS:
-                publishedInputs = (ImmutableList<PublishedPort>) value;
                 break;
             case OUTPUT_TYPE:
                 outputType = (String) value;
@@ -1260,7 +1218,7 @@ public final class Node {
         }
 
         return new Node(prototype, name, category, description, image, function, position,
-                inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
     //// Object overrides ////
@@ -1268,7 +1226,7 @@ public final class Node {
     @Override
     public int hashCode() {
         return Objects.hashCode(prototype, name, category, description, image, function, position,
-                inputs, publishedInputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
     }
 
     @Override
@@ -1283,7 +1241,6 @@ public final class Node {
                 && Objects.equal(function, other.function)
                 && Objects.equal(position, other.position)
                 && Objects.equal(inputs, other.inputs)
-                && Objects.equal(publishedInputs, other.publishedInputs)
                 && Objects.equal(outputType, other.outputType)
                 && Objects.equal(children, other.children)
                 && Objects.equal(renderedChildName, other.renderedChildName)

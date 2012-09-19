@@ -22,7 +22,7 @@ public final class Port {
     public static final String TYPE_POINT = "point";
     public static final String TYPE_COLOR = "color";
 
-    public enum Attribute {NAME, TYPE, WIDGET, RANGE, VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
+    public enum Attribute {NAME, TYPE, CHILD_REFERENCE, WIDGET, RANGE, VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
 
     /**
      * The UI control for this port. This defines how the port is represented in the user interface.
@@ -68,6 +68,7 @@ public final class Port {
 
     private final String name;
     private final String type;
+    private final String childReference;
     private final Widget widget;
     private final Range range;
     private final Object value;
@@ -123,6 +124,13 @@ public final class Port {
         return new Port(name, type, null);
     }
 
+    public static Port publishedPort(Node childNode, Port childPort, String publishedName) {
+        checkNotNull(childNode);
+        checkNotNull(childPort);
+        String childReference = buildChildReference(childNode, childPort);
+        return new Port(publishedName, childPort.getType(), childReference, childPort.getWidget(), Range.LIST, childPort.getValue(), childPort.getMinimumValue(), childPort.getMaximumValue(), childPort.getMenuItems());
+    }
+
     /**
      * Parse the type and create the appropriate Port. Use the default value appropriate for the port type.
      *
@@ -133,7 +141,7 @@ public final class Port {
     public static Port portForType(String name, String type) {
         checkNotNull(type, "Type cannot be null.");
         // If the type is not found in the default values, get() returns null, which is what we need for custom types.
-        return new Port(name, type, defaultWidgetForType(type), DEFAULT_RANGE, DEFAULT_VALUES.get(type), null, null, ImmutableList.<MenuItem>of());
+        return new Port(name, type, null, defaultWidgetForType(type), DEFAULT_RANGE, DEFAULT_VALUES.get(type), null, null, ImmutableList.<MenuItem>of());
     }
 
     /**
@@ -199,7 +207,7 @@ public final class Port {
                 minimumValue = Double.valueOf(minString);
             if (maxString != null)
                 maximumValue = Double.valueOf(maxString);
-            return new Port(name, type, widget, range, value, minimumValue, maximumValue, menuItems);
+            return new Port(name, type, null, widget, range, value, minimumValue, maximumValue, menuItems);
         } else {
             return Port.customPort(name, type);
         }
@@ -225,23 +233,24 @@ public final class Port {
     }
 
     private Port(String name, String type, Object value) {
-        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, ImmutableList.<MenuItem>of());
+        this(name, type, null, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, ImmutableList.<MenuItem>of());
     }
 
     private Port(String name, String type, Object value, Double minimumValue, Double maximumValue) {
-        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, minimumValue, maximumValue, ImmutableList.<MenuItem>of());
+        this(name, type, null, defaultWidgetForType(type), DEFAULT_RANGE, value, minimumValue, maximumValue, ImmutableList.<MenuItem>of());
     }
 
     private Port(String name, String type, Object value, Iterable<MenuItem> menuItems) {
-        this(name, type, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, menuItems);
+        this(name, type, null, defaultWidgetForType(type), DEFAULT_RANGE, value, null, null, menuItems);
     }
 
-    private Port(String name, String type, Widget widget, Range range, Object value, Double minimumValue, Double maximumValue, Iterable<MenuItem> menuItems) {
+    private Port(String name, String type, String childReference, Widget widget, Range range, Object value, Double minimumValue, Double maximumValue, Iterable<MenuItem> menuItems) {
         checkNotNull(name, "Name cannot be null.");
         checkNotNull(type, "Type cannot be null.");
         checkNotNull(menuItems, "Menu items cannot be null.");
         this.name = name;
         this.type = type;
+        this.childReference = childReference;
         this.widget = widget;
         this.range = range;
         this.minimumValue = minimumValue;
@@ -260,6 +269,31 @@ public final class Port {
 
     public String getType() {
         return type;
+    }
+
+    public boolean isPublishedPort() {
+        return childReference != null;
+    }
+
+    public String getChildReference() {
+        return childReference;
+    }
+
+    public String getChildNodeName() {
+        return childReference == null ? null : childReference.split("\\.")[0];
+    }
+
+    public String getChildPortName() {
+        return childReference == null ? null : childReference.split("\\.")[1];
+    }
+
+    public Node getChildNode(Node network) {
+        return network.getChild(getChildNodeName());
+    }
+
+    public Port getChildPort(Node network) {
+        Node child = network.getChild(getChildNodeName());
+        return child.getInput(getChildPortName());
     }
 
     public Range getRange() {
@@ -440,6 +474,19 @@ public final class Port {
 
     //// Mutation methods ////
 
+    public Port withChildReference(Node childNode, Port childPort) {
+        checkNotNull(childNode);
+        checkNotNull(childPort);
+        String childReference = buildChildReference(childNode, childPort);
+        return new Port(getName(), getType(), childReference, getWidget(), getRange(), getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
+    }
+
+    private static String buildChildReference(Node childNode, Port childPort) {
+        checkNotNull(childNode);
+        checkNotNull(childPort);
+        return String.format("%s.%s", childNode.getName(), childPort.getName());
+    }
+
     /**
      * Return a new Port with the value set to the given value.
      *
@@ -450,7 +497,7 @@ public final class Port {
     public Port withValue(Object value) {
         checkState(isStandardType(), "You can only change the value of a standard type.");
         checkArgument(correctValueForType(value), "Value '%s' is not correct for %s port.", value, getType());
-        return new Port(getName(), getType(), getWidget(), getRange(), clampValue(convertValue(getType(), value)), getMinimumValue(), getMaximumValue(), getMenuItems());
+        return new Port(getName(), getType(), getChildReference(), getWidget(), getRange(), clampValue(convertValue(getType(), value)), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
@@ -460,7 +507,7 @@ public final class Port {
      * @return The new Port.
      */
     public Port withWidget(Widget widget) {
-        return new Port(getName(), getType(), widget, getRange(), getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
+        return new Port(getName(), getType(), getChildReference(), widget, getRange(), getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
@@ -470,7 +517,7 @@ public final class Port {
      * @return The new Port.
      */
     public Port withRange(Range range) {
-        return new Port(getName(), getType(), getWidget(), range, getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
+        return new Port(getName(), getType(), getChildReference(), getWidget(), range, getValue(), getMinimumValue(), getMaximumValue(), getMenuItems());
     }
 
     /**
@@ -546,6 +593,8 @@ public final class Port {
             return getName();
         } else if (attribute == Attribute.TYPE) {
             return getType();
+        } else if (attribute == Attribute.CHILD_REFERENCE) {
+            return getChildReference();
         } else if (attribute == Attribute.WIDGET) {
             return getWidget();
         } else if (attribute == Attribute.RANGE) {
@@ -595,19 +644,19 @@ public final class Port {
     public Port withMinimumValue(Double minimumValue) {
         checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
                 "You can only set a minimum value on int or float ports, not %s", this);
-        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), minimumValue, getMaximumValue(), getMenuItems());
+        return new Port(getName(), getType(), getChildReference(), getWidget(), getRange(), getValue(), minimumValue, getMaximumValue(), getMenuItems());
     }
 
     public Port withMaximumValue(Double maximumValue) {
         checkArgument(type.equals(Port.TYPE_INT) || type.equals(Port.TYPE_FLOAT),
                 "You can only set a maximum value on int or float ports, not %s", this);
-        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), maximumValue, getMenuItems());
+        return new Port(getName(), getType(), getChildReference(), getWidget(), getRange(), getValue(), getMinimumValue(), maximumValue, getMenuItems());
     }
 
     public Port withMenuItems(Iterable<MenuItem> items) {
         checkNotNull(items);
         checkArgument(type.equals(Port.TYPE_STRING), "You can only use menu items on string ports, not %s", this);
-        return new Port(getName(), getType(), getWidget(), getRange(),  getValue(), getMinimumValue(), getMaximumValue(), items);
+        return new Port(getName(), getType(), getChildReference(), getWidget(), getRange(), getValue(), getMinimumValue(), getMaximumValue(), items);
     }
 
     public Port withMenuItemAdded(String key, String label) {
@@ -661,6 +710,7 @@ public final class Port {
 
         String name = this.name;
         String type = this.type;
+        String childReference = this.childReference;
         Widget widget = this.widget;
         Range range = this.range;
         Object value = this.value;
@@ -668,6 +718,9 @@ public final class Port {
         Double maximumValue = this.maximumValue;
 
         switch (attribute) {
+            case CHILD_REFERENCE:
+                childReference = valueString;
+                break;
             case VALUE:
                 checkArgument(STANDARD_TYPES.contains(type), "Port %s: you can only set the value for one of the standard types, not %s (value=%s)", name, type, valueString);
                 value = parseValue(type, valueString);
@@ -687,7 +740,7 @@ public final class Port {
             default:
                 throw new AssertionError("You cannot use withParsedAttribute with attribute " + attribute);
         }
-        return new Port(name, type, widget, range, value, minimumValue, maximumValue, getMenuItems());
+        return new Port(name, type, childReference, widget, range, value, minimumValue, maximumValue, getMenuItems());
     }
 
     //// Object overrides ////

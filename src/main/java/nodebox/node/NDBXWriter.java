@@ -195,13 +195,6 @@ public class NDBXWriter {
             }
         }
 
-        // Add the published ports
-        if (shouldWriteAttribute(node, Node.Attribute.PUBLISHED_INPUTS)) {
-            for (PublishedPort publishedInput : node.getPublishedInputs()) {
-                writePublishedInput(doc, el, publishedInput);
-            }
-        }
-
         // Add the input ports
         if (shouldWriteAttribute(node, Node.Attribute.INPUTS)) {
             for (Port port : node.getInputs()) {
@@ -289,6 +282,8 @@ public class NDBXWriter {
         Element el = doc.createElement("port");
         el.setAttribute("name", port.getName());
         el.setAttribute("type", port.getType());
+        if (shouldWriteAttribute(node, port, Port.Attribute.CHILD_REFERENCE))
+            el.setAttribute("childReference", port.getChildReference());
         if (shouldWriteAttribute(node, port, Port.Attribute.WIDGET))
             el.setAttribute("widget", port.getWidget().toString().toLowerCase());
         if (shouldWriteAttribute(node, port, Port.Attribute.RANGE))
@@ -320,13 +315,6 @@ public class NDBXWriter {
         connElement.setAttribute("output", String.format("%s", conn.getOutputNode()));
         connElement.setAttribute("input", String.format("%s.%s", conn.getInputNode(), conn.getInputPort()));
         parent.appendChild(connElement);
-    }
-
-    private static void writePublishedInput(Document doc, Element parent, PublishedPort publishedInput) {
-        Element publishedPortElement = doc.createElement("publishedPort");
-        publishedPortElement.setAttribute("ref", String.format("%s.%s", publishedInput.getChildNode(), publishedInput.getChildPort()));
-        publishedPortElement.setAttribute("name", String.format("%s", publishedInput.getPublishedName()));
-        parent.appendChild(publishedPortElement);
     }
 
     private static class NodeNameComparator implements Comparator<Node> {
