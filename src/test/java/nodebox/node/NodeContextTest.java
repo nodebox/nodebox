@@ -56,14 +56,6 @@ public class NodeContextTest {
             .withName("fiveNumbers")
             .withInputValue("string", "100 200 300 400 500");
 
-    public static final Node sampleNode = Node.ROOT
-            .withName("sample")
-            .withFunction("math/sample")
-            .withOutputRange(Port.Range.LIST)
-            .withInputAdded(Port.intPort("amount", 10))
-            .withInputAdded(Port.floatPort("start", 0))
-            .withInputAdded(Port.floatPort("end", 100));
-
     public static final Node makeStringsNode = Node.ROOT
             .withName("makeStrings")
             .withFunction("string/makeStrings")
@@ -260,47 +252,6 @@ public class NodeContextTest {
     }
 
     @Test
-    public void testNestedListAsSingleValue() {
-        Node sample1 = createSampleNode("sample1", 4, 3.0, 9.0);
-        Node sample2 = createSampleNode("sample2", 4, 9.0, 24.0);
-        Node sample3 = sampleNode.extend()
-                .withName("sample3")
-                .withInputValue("amount", 4);
-        Node net = Node.NETWORK
-                .withChildAdded(sample1)
-                .withChildAdded(sample2)
-                .withChildAdded(sample3)
-                .withRenderedChildName("sample3")
-                .connect("sample1", "sample3", "start")
-                .connect("sample2", "sample3", "end");
-        assertResultsEqual(context.renderNode(net),
-                ImmutableList.of(3.0, 5.0, 7.0, 9.0),
-                ImmutableList.of(5.0, 8.0, 11.0, 14.0),
-                ImmutableList.of(7.0, 11.0, 15.0, 19.0),
-                ImmutableList.of(9.0, 14.0, 19.0, 24.0));
-        Node sample4 = createSampleNode("sample4", 2, 2.0, 3.0);
-        Node slice = Node.ROOT
-                .withName("slice")
-                .withFunction("list/slice")
-                .withOutputRange(Port.Range.LIST)
-                .withInputAdded(Port.floatPort("list", 0))
-                .withInputRange("list", Port.Range.LIST)
-                .withInputAdded(Port.intPort("start_index", 1))
-                .withInputAdded(Port.intPort("size", 2));
-        net = net.withChildAdded(slice)
-                .withChildAdded(sample4)
-                .withRenderedChildName("slice")
-                .connect("sample3", "slice", "list")
-                .connect("sample4", "slice", "size");
-        Iterable<?> results = context.renderNode(net);
-        assertEquals(4, Iterables.size(results));
-        assertResultsEqual((Iterable<?>) Iterables.get(results, 0), 5.0, 7.0);
-        assertResultsEqual((Iterable<?>) Iterables.get(results, 1), 8.0, 11.0, 14.0);
-        assertResultsEqual((Iterable<?>) Iterables.get(results, 2), 11.0, 15.0);
-        assertResultsEqual((Iterable<?>) Iterables.get(results, 3), 14.0, 19.0, 24.0);
-    }
-
-    @Test
     public void testRenderSubnetwork() {
         Node subnet = createAddNetwork("subnet1", 1.0, 2.0);
         Node net = Node.NETWORK
@@ -457,14 +408,6 @@ public class NodeContextTest {
                 .withRenderedChild(addNode)
                 .connect("number1", "add", "v1")
                 .connect("number2", "add", "v2");
-    }
-
-    private Node createSampleNode(String name, int amount, double start, double end) {
-        return sampleNode.extend()
-                .withName(name)
-                .withInputValue("amount", amount)
-                .withInputValue("start", start)
-                .withInputValue("end", end);
     }
 
     @Test
