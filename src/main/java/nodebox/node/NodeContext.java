@@ -188,7 +188,7 @@ public final class NodeContext {
             if (childPort.hasListRange()) {
                 return ImmutableList.of(value);
             } else {
-                return (List<?>) value;
+                return ImmutableList.of(value);
             }
         }
     }

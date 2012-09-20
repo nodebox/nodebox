@@ -449,6 +449,13 @@ public class NodeContextTest {
 
     @Test
     public void testNestedGenerator() {
+        Node makeStrings = Node.ROOT
+                .withName("makeStrings")
+                .withFunction("string/makeStrings")
+                .withInputAdded(Port.stringPort("value", "A;B;C"))
+                .withInputAdded(Port.stringPort("separator", ";"))
+                .withOutputRange(Port.Range.LIST);
+
         Node repeat = Node.ROOT
                 .withName("repeat")
                 .withFunction("list/repeat")
@@ -466,13 +473,6 @@ public class NodeContextTest {
         repeatNet = repeatNet.withInputChanged("strings", publishedPort);
 
         assertResultsEqual(repeatNet);
-
-        Node makeStrings = Node.ROOT
-                .withName("makeStrings")
-                .withFunction("string/makeStrings")
-                .withInputAdded(Port.stringPort("value", "A;B;C"))
-                .withInputAdded(Port.stringPort("separator", ";"))
-                .withOutputRange(Port.Range.LIST);
 
         Node net = Node.NETWORK
                 .withChildAdded(makeStrings)
@@ -534,10 +534,10 @@ public class NodeContextTest {
                 .withRenderedChild(length)
                 .withOutputRange(Port.Range.VALUE);
 
-        Port publishedPort = lengthNet.getInput("text").withRange(Port.Range.VALUE);
-        lengthNet = lengthNet.withInputChanged("text", publishedPort);
+        Port textPort = lengthNet.getInput("text").withRange(Port.Range.LIST);
+        lengthNet = lengthNet.withInputChanged("text", textPort);
 
-        Node mainNetwork = Node.NETWORK
+            Node mainNetwork = Node.NETWORK
                 .withChildAdded(makeNestedWords)
                 .withChildAdded(lengthNet)
                 .connect("makeNestedWords", "lengthNet", "text")

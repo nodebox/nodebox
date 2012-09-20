@@ -139,7 +139,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private static NodeLibrary createNewLibrary() {
         NodeRepository nodeRepository = Application.getInstance().getSystemRepository();
-        Node root = Node.ROOT.withName("root");
+        Node root = Node.NETWORK.withName("root");
         Node rectPrototype = nodeRepository.getNode("corevector.rect");
         String name = root.uniqueName(rectPrototype.getName());
         Node rect1 = rectPrototype.extend().withName(name).withPosition(new nodebox.graphics.Point(1, 1));

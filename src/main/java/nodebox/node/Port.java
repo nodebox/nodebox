@@ -128,7 +128,7 @@ public final class Port {
         checkNotNull(childNode);
         checkNotNull(childPort);
         String childReference = buildChildReference(childNode, childPort);
-        return new Port(publishedName, childPort.getType(), childReference, childPort.getWidget(), Range.LIST, childPort.getValue(), childPort.getMinimumValue(), childPort.getMaximumValue(), childPort.getMenuItems());
+        return new Port(publishedName, childPort.getType(), childReference, childPort.getWidget(), childPort.getRange(), childPort.getValue(), childPort.getMinimumValue(), childPort.getMaximumValue(), childPort.getMenuItems());
     }
 
     /**
