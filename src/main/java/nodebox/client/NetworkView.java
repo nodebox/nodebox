@@ -1085,7 +1085,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         private Point gridPoint;
 
         private GroupIntoNetworkAction(Point gridPoint) {
-            super("Group Into Network");
+            super("Group into Network");
             this.gridPoint = gridPoint;
         }
 
