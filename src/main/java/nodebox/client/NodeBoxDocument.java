@@ -1531,7 +1531,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void groupIntoNetwork(nodebox.graphics.Point pt) {
-        startEdits("Group Into Network Node");
+        startEdits("Group into Network");
         String renderedChild = getActiveNetwork().getRenderedChildName();
         Node subnet = controller.groupIntoNetwork(activeNetworkPath, networkView.getSelectedNodes());
         controller.setNodePosition(Node.path(activeNetworkPath, subnet.getName()), pt);
@@ -1544,6 +1544,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.select(subnet);
         requestRender();
     }
+
     /**
      * Start the dialog that allows a user to create a new node.
      */

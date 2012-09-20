@@ -427,7 +427,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 Point2D topLeft = inverseViewTransformPoint(new Point(4, 0));
                 g.setColor(portTypeColor(input.getType()));
                 g.setStroke(CONNECTION_STROKE);
-                paintConnectionLine(g, (int)topLeft.getX(), (int)topLeft.getY(), r.x + portX + 4, r.y-2);
+                paintConnectionLine(g, (int) topLeft.getX(), (int) topLeft.getY(), r.x + portX + 4, r.y - 2);
             }
 
             g.fillRect(r.x + portX, r.y - portHeight, PORT_WIDTH, portHeight);
@@ -1085,7 +1085,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         private Point gridPoint;
 
         private GroupIntoNetworkAction(Point gridPoint) {
-            super("Group Into Network Node");
+            super("Group Into Network");
             this.gridPoint = gridPoint;
         }
 
