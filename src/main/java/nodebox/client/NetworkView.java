@@ -792,6 +792,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             if (nodePort != null) {
                 JPopupMenu pMenu = new JPopupMenu();
                 pMenu.add(new PublishAction(nodePort));
+
+                if (findNodeWithName(nodePort.getNode()).hasPublishedInput(nodePort.getPort()))
+                    pMenu.add(new GoToPortAction(nodePort));
+
                 pMenu.show(this, e.getX(), e.getY());
             } else if (selectedNodes.size() > 1) {
                 JPopupMenu pMenu = new JPopupMenu();
@@ -1026,6 +1030,25 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             if (s == null || s.length() == 0)
                 return;
             getDocument().publish(nodePort.getNode(), nodePort.getPort(), s);
+        }
+    }
+
+    private class GoToPortAction extends AbstractAction {
+        private NodePort nodePort;
+
+        private GoToPortAction(NodePort nodePort) {
+            super("Go to Port");
+            this.nodePort = nodePort;
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().setActiveNetwork(Node.path(getDocument().getActiveNetworkPath(), nodePort.getNode()));
+
+            // todo: visually indicate the origin port.
+            // Node node = findNodeWithName(nodePort.getNode());
+            // Port publishedPort = node.getInput(nodePort.getPort());
+            // publishedPort.getChildNodeName()
+            // publishedPort.getChildPortName()
         }
     }
 
