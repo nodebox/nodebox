@@ -633,15 +633,23 @@ def translate(shape, translate):
     if shape is None: return None
     return Transform.translated(translate).map(shape)
 
-def scale(shape, scale):
+def scale(shape, scale, origin=Point.ZERO):
     """Scale the given shape."""
     if shape is None: return None
-    return Transform.scaled(scale.x / 100.0, scale.y / 100.0).map(shape)
+    t = Transform()
+    t.translate(origin)
+    t.scale(scale.x / 100.0, scale.y / 100.0)
+    t.translate(Point(-origin.x, -origin.y))
+    return t.map(shape)
 
-def rotate(shape, angle):
+def rotate(shape, angle, origin=Point.ZERO):
     """Rotate the given shape."""
     if shape is None: return None
-    return Transform.rotated(angle).map(shape)
+    t = Transform()
+    t.translate(origin)
+    t.rotate(angle)
+    t.translate(Point(-origin.x, -origin.y))
+    return t.map(shape)
 
 def _with_seed(fn):
     def decorated_function(*args, **kwargs):
