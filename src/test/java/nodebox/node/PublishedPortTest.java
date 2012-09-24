@@ -69,4 +69,14 @@ public class PublishedPortTest {
         assertEquals(0, n.getPublishedPorts().size());
         assertFalse(n.hasPublishedInput("aNumber"));
     }
+
+    @Test
+    public void testChildRenaming() {
+        Node n = net;
+        n = n.publish("number42", "number", "pNumber");
+        n = n.withChildRenamed("number42", "myNumber42");
+        assertTrue(n.hasInput("pNumber"));
+        assertEquals("myNumber42", n.getInput("pNumber").getChildNodeName());
+        assertEquals("number", n.getInput("pNumber").getChildPortName());
+    }
 }
