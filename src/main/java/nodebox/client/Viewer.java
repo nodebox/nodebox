@@ -7,8 +7,7 @@ import edu.umd.cs.piccolo.event.*;
 import edu.umd.cs.piccolo.util.PAffineTransform;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.client.visualizer.*;
-import nodebox.graphics.CanvasContext;
-import nodebox.graphics.IGeometry;
+import nodebox.graphics.*;
 import nodebox.handle.Handle;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
@@ -16,6 +15,9 @@ import nodebox.ui.Theme;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.Color;
+import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -410,26 +412,31 @@ public class Viewer extends PCanvas implements OutputView, MouseListener, MouseM
         }
 
         private void drawPointNumbers(Graphics2D g) {
-            if (showPointNumbers && IGeometry.class.isAssignableFrom(valuesClass)) {
-                g.setFont(Theme.SMALL_MONO_FONT);
-                g.setColor(Color.BLUE);
-                // Create a canvas with a transparent background.
-                int index = 0;
+            if (! showPointNumbers) return;
+            g.setFont(Theme.SMALL_MONO_FONT);
+            g.setColor(Color.BLUE);
+            int index = 0;
+
+            if (IGeometry.class.isAssignableFrom(valuesClass)) {
                 for (Object o : outputValues) {
                     IGeometry geo = (IGeometry) o;
-                    for (nodebox.graphics.Point pt : geo.getPoints()) {
-                        if (pt.isOnCurve()) {
-                            g.setColor(Color.BLUE);
-                        } else {
-                            g.setColor(Color.RED);
-                        }
-                        g.drawString(index + "", (int) (pt.x + 3), (int) (pt.y - 2));
-                        index++;
-                    }
+                    for (nodebox.graphics.Point pt : geo.getPoints())
+                        drawPointNumber(g, pt, index++);
                 }
+            } else if (nodebox.graphics.Point.class.isAssignableFrom(valuesClass)) {
+                for (Object o : outputValues)
+                    drawPointNumber(g, (nodebox.graphics.Point) o, index++);
             }
         }
 
+        private void drawPointNumber(Graphics2D g, nodebox.graphics.Point pt, int number) {
+            if (pt.isOnCurve()) {
+                g.setColor(Color.BLUE);
+            } else {
+                g.setColor(Color.RED);
+            }
+            g.drawString(number + "", (int) (pt.x + 3), (int) (pt.y - 2));
+        }
     }
 
     private class PopupHandler extends PBasicInputEventHandler {
