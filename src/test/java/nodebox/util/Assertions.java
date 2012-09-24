@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 public final class Assertions {
 
     static private final FunctionRepository functionRepository =
-            FunctionRepository.of(TestFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY, SideEffects.LIBRARY);
+            FunctionRepository.of(TestFunctions.LIBRARY, MathFunctions.LIBRARY, ColorFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY, SideEffects.LIBRARY, CoreVectorFunctions.LIBRARY);
     static private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, NodeRepository.of(), functionRepository);
 
     public static void assertResultsEqual(Iterable<?> result, Object... args) {

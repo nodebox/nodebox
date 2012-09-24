@@ -1,8 +1,9 @@
 package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableMap;
 import nodebox.function.*;
+import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.util.SideEffects;
 import org.junit.Before;
@@ -62,6 +63,11 @@ public class NodeContextTest {
             .withOutputRange(Port.Range.LIST)
             .withInputAdded(Port.stringPort("string", "Alpha;Beta;Gamma"))
             .withInputAdded(Port.stringPort("separator", ";"));
+
+    public static final Node stringNode = Node.ROOT
+            .withName("string")
+            .withFunction("string/string")
+            .withInputAdded(Port.stringPort("value", ""));
 
     public static final FunctionRepository functions = FunctionRepository.of(CoreVectorFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY, SideEffects.LIBRARY, TestFunctions.LIBRARY);
     public static final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
@@ -218,6 +224,96 @@ public class NodeContextTest {
                 .withChildAdded(threeNumbers)
                 .connect("threeNumbers", sum.getName(), "numbers");
         assertResultsEqual(context.renderChild(net, sum), 6.0);
+    }
+
+    @Test
+    public void testTypeConversion() {
+        assertConversion(Port.TYPE_INT, Port.TYPE_INT, 42L, 42L);
+        assertConversion(Port.TYPE_INT, Port.TYPE_FLOAT, 42L, 42.0);
+        assertConversion(Port.TYPE_INT, Port.TYPE_STRING, 42L, "42");
+        assertConversion(Port.TYPE_INT, Port.TYPE_BOOLEAN, 42L, true);
+        assertConversion(Port.TYPE_INT, Port.TYPE_COLOR, 255L, Color.WHITE);
+        assertConversion(Port.TYPE_INT, Port.TYPE_POINT, 42L, new Point(42, 42));
+
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_INT, 42.0, 42L);
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_FLOAT, 42.0, 42.0);
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_STRING, 42.0, "42.0");
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_BOOLEAN, 0.0, false);
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_COLOR, 0.0, Color.BLACK);
+        assertConversion(Port.TYPE_FLOAT, Port.TYPE_POINT, 42.0, new Point(42, 42));
+
+        assertConversion(Port.TYPE_STRING, Port.TYPE_INT, "42", 42L);
+        assertConversion(Port.TYPE_STRING, Port.TYPE_FLOAT, "42", 42.0);
+        assertConversion(Port.TYPE_STRING, Port.TYPE_STRING, "hello", "hello");
+        assertConversion(Port.TYPE_STRING, Port.TYPE_BOOLEAN, "true", true);
+        assertConversion(Port.TYPE_STRING, Port.TYPE_BOOLEAN, "not-a-boolean", false);
+        assertConversion(Port.TYPE_STRING, Port.TYPE_COLOR, "#ff0000ff", new Color(1, 0, 0));
+        assertConversion(Port.TYPE_STRING, Port.TYPE_POINT, "4,2", new Point(4, 2));
+
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_INT, true, 1L);
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_INT, false, 0L);
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_FLOAT, true, 1.0);
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_STRING, true, "true");
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_STRING, false, "false");
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_BOOLEAN, false, false);
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_COLOR, true, Color.WHITE);
+        assertConversion(Port.TYPE_BOOLEAN, Port.TYPE_COLOR, false, Color.BLACK);
+
+        assertConversion(Port.TYPE_COLOR, Port.TYPE_STRING, new Color(0, 1, 0), "#00ff00ff");
+        assertConversion(Port.TYPE_COLOR, Port.TYPE_COLOR, Color.WHITE, Color.WHITE);
+
+        assertConversion(Port.TYPE_POINT, Port.TYPE_STRING, new Point(4, 2), "4.00,2.00");
+        assertConversion(Port.TYPE_POINT, Port.TYPE_POINT, new Point(4, 2), new Point(4, 2));
+    }
+
+    @Test
+    public void testGeometryToPointsConversion() {
+        Node line = Node.ROOT
+                .withName("line")
+                .withFunction("corevector/line")
+                .withInputAdded(Port.pointPort("point1", new Point(10, 20)))
+                .withInputAdded(Port.pointPort("point2", new Point(30, 40)));
+        Node point = Node.ROOT
+                .withName("point")
+                .withFunction("corevector/point")
+                .withInputAdded(Port.pointPort("value", Point.ZERO));
+        Node net = Node.NETWORK
+                .withChildAdded(line)
+                .withChildAdded(point)
+                .withRenderedChild(point)
+                .connect("line", "point", "value");
+        assertResultsEqual(net, new Point(10, 20), new Point(30, 40));
+    }
+
+    private void assertConversion(String sourceType, String targetType, Object sourceValue, Object targetValue) {
+        String generateFunction = identityFunction(sourceType);
+        Port generatePort = Port.parsedPort("value", sourceType, sourceValue.toString());
+        String convertFunction = identityFunction(targetType);
+        Port convertPort = Port.portForType("value", targetType);
+        Node net = buildTypeConversionNetwork(generateFunction, generatePort, convertFunction, convertPort);
+        assertResultsEqual(net, targetValue);
+    }
+
+    private String identityFunction(String portType) {
+        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+        b.put(Port.TYPE_INT, "math/integer");
+        b.put(Port.TYPE_FLOAT, "math/number");
+        b.put(Port.TYPE_STRING, "string/string");
+        b.put(Port.TYPE_BOOLEAN, "math/makeBoolean");
+        b.put(Port.TYPE_COLOR, "color/color");
+        b.put(Port.TYPE_POINT, "corevector/point");
+        ImmutableMap<String, String> functions = b.build();
+        return functions.get(portType);
+    }
+
+    private Node buildTypeConversionNetwork(String generateFunction, Port generatePort, String convertFunction, Port convertPort) {
+        Node generator = Node.ROOT.withName("generate").withFunction(generateFunction).withInputAdded(generatePort);
+        Node converter = Node.ROOT.withName("convert").withFunction(convertFunction).withInputAdded(convertPort);
+        return Node.NETWORK
+                .withChildAdded(generator)
+                .withChildAdded(converter)
+                .withRenderedChild(converter)
+                .connect("generate", "convert", "value");
     }
 
     /**
@@ -540,7 +636,7 @@ public class NodeContextTest {
         Port textPort = lengthNet.getInput("text").withRange(Port.Range.VALUE);
         lengthNet = lengthNet.withInputChanged("text", textPort);
 
-            Node mainNetwork = Node.NETWORK
+        Node mainNetwork = Node.NETWORK
                 .withChildAdded(makeNestedWords)
                 .withChildAdded(lengthNet)
                 .connect("makeNestedWords", "lengthNet", "text")

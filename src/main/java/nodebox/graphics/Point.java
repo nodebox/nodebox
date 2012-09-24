@@ -24,6 +24,10 @@ public final class Point extends AbstractRecord {
         return new Point(Float.valueOf(args[0]), Float.valueOf(args[1]));
     }
 
+    public static Point parsePoint(String s) {
+        return valueOf(s);
+    }
+
     public final double x, y;
     public final int type;
 

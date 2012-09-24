@@ -1,18 +1,13 @@
 package nodebox.node;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableTable;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
-import nodebox.graphics.Color;
-import nodebox.graphics.IGeometry;
-import nodebox.graphics.Point;
+import nodebox.graphics.*;
 import nodebox.util.ListUtils;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -20,40 +15,46 @@ import static com.google.common.base.Preconditions.checkState;
 
 public final class NodeContext {
 
-    private final static ImmutableMap<ConversionPair, String> conversionMap;
-    private final static ImmutableList<Class> ancestorTypes;
+    private final static ImmutableTable<Class, String, ListConverter> conversionTable;
 
     static {
-        ImmutableMap.Builder<ConversionPair, String> builder = ImmutableMap.builder();
-        builder.put(ConversionPair.of(Port.TYPE_STRING, Object.class), "toString");
-        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, String.class), "stringToBoolean");
-        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Long.class), "numberToBoolean");
-        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Double.class), "numberToBoolean");
-        builder.put(ConversionPair.of(Port.TYPE_BOOLEAN, Number.class), "numberToBoolean");
-        builder.put(ConversionPair.of(Port.TYPE_INT, Double.class), "doubleToInt");
-        builder.put(ConversionPair.of(Port.TYPE_INT, String.class), "stringToInt");
-        builder.put(ConversionPair.of(Port.TYPE_INT, Boolean.class), "booleanToInt");
-        builder.put(ConversionPair.of(Port.TYPE_FLOAT, String.class), "stringToDouble");
-        builder.put(ConversionPair.of(Port.TYPE_FLOAT, Boolean.class), "booleanToDouble");
-        builder.put(ConversionPair.of(Port.TYPE_POINT, IGeometry.class), "geometryToPoints");
-        builder.put(ConversionPair.of(Port.TYPE_POINT, Long.class), "numberToPoint");
-        builder.put(ConversionPair.of(Port.TYPE_POINT, Double.class), "numberToPoint");
-        builder.put(ConversionPair.of(Port.TYPE_POINT, Number.class), "numberToPoint");
-        builder.put(ConversionPair.of(Port.TYPE_POINT, String.class), "stringToPoint");
-        builder.put(ConversionPair.of(Port.TYPE_COLOR, Long.class), "intToColor");
-        builder.put(ConversionPair.of(Port.TYPE_COLOR, Double.class), "doubleToColor");
-        builder.put(ConversionPair.of(Port.TYPE_COLOR, String.class), "stringToColor");
-        builder.put(ConversionPair.of(Port.TYPE_COLOR, Boolean.class), "booleanToColor");
-        conversionMap = builder.build();
+        ImmutableTable.Builder<Class, String, ListConverter> builder = ImmutableTable.builder();
 
-        ImmutableList.Builder<Class> b = ImmutableList.builder();
-        b.add(IGeometry.class);
-        b.add(Boolean.class);
-        b.add(Long.class);
-        b.add(Double.class);
-        b.add(Number.class);
-        b.add(String.class);
-        ancestorTypes = b.build();
+        builder.put(Long.class, Port.TYPE_FLOAT, new IntToFloatConverter());
+        builder.put(Long.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Long.class, Port.TYPE_BOOLEAN, new IntToBooleanConverter());
+        builder.put(Long.class, Port.TYPE_COLOR, new IntToColorConverter());
+        builder.put(Long.class, Port.TYPE_POINT, new IntToPointConverter());
+
+        builder.put(Double.class, Port.TYPE_INT, new FloatToIntConverter());
+        builder.put(Double.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Double.class, Port.TYPE_BOOLEAN, new FloatToBooleanConverter());
+        builder.put(Double.class, Port.TYPE_COLOR, new FloatToColorConverter());
+        builder.put(Double.class, Port.TYPE_POINT, new FloatToPointConverter());
+
+        builder.put(String.class, Port.TYPE_INT, new StringToIntConverter());
+        builder.put(String.class, Port.TYPE_FLOAT, new StringToFloatConverter());
+        builder.put(String.class, Port.TYPE_BOOLEAN, new StringToBooleanConverter());
+        builder.put(String.class, Port.TYPE_COLOR, new StringToColorConverter());
+        builder.put(String.class, Port.TYPE_POINT, new StringToPointConverter());
+
+        builder.put(Boolean.class, Port.TYPE_INT, new BooleanToIntConverter());
+        builder.put(Boolean.class, Port.TYPE_FLOAT, new BooleanToFloatConverter());
+        builder.put(Boolean.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Boolean.class, Port.TYPE_COLOR, new BooleanToColorConverter());
+
+        builder.put(Color.class, Port.TYPE_STRING, new ObjectToStringConverter());
+
+        builder.put(Point.class, Port.TYPE_STRING, new ObjectToStringConverter());
+
+        builder.put(Geometry.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Geometry.class, Port.TYPE_POINT, new GeometryToPointsConverter());
+        builder.put(Path.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Path.class, Port.TYPE_POINT, new GeometryToPointsConverter());
+        builder.put(Contour.class, Port.TYPE_STRING, new ObjectToStringConverter());
+        builder.put(Contour.class, Port.TYPE_POINT, new GeometryToPointsConverter());
+
+        conversionTable = builder.build();
     }
 
     private final NodeLibrary nodeLibrary;
@@ -203,37 +204,14 @@ public final class NodeContext {
         return invokeFunction(node, function, arguments);
     }
 
-    private Class getAncestorType(Class type) {
-        for (Class klass : ancestorTypes) {
-            Class<?> c = klass;
-            if (c.isAssignableFrom(type))
-                return c;
-        }
-        return Object.class;
-    }
-
     private List<?> convertResultsForPort(Port port, List<?> values) {
         Class outputType = ListUtils.listClass(values);
-        Class ancestorType = getAncestorType(outputType);
-        String conversionMethod = conversionMap.get(ConversionPair.of(port.getType(), ancestorType));
-
-        if (conversionMethod == null && port.getType().equals(Port.TYPE_STRING))
-            conversionMethod = "toString";
-
-        if (conversionMethod != null) {
-            try {
-                for (Method method : Conversions.class.getDeclaredMethods()) {
-                    if (method.getName().equals(conversionMethod))
-                        return (List<?>) method.invoke(null, values);
-                }
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException("Error while accessing conversion method.", e);
-            } catch (InvocationTargetException e) {
-                throw new RuntimeException("Error while accessing conversion method.", e);
-            }
+        ListConverter converter = conversionTable.get(outputType, port.getType());
+        if (converter != null) {
+            return converter.convert(values);
+        } else {
+            return values;
         }
-
-        return values;
     }
 
     private Node findOutputNode(Node network, Node inputNode, Port inputPort) {
@@ -367,142 +345,140 @@ public final class NodeContext {
         }
     }
 
-    public static final class ConversionPair {
-        private final String type;
-        private final Class klass;
-
-        public static ConversionPair of(String type, Class klass) {
-            return new ConversionPair(type, klass);
-        }
-
-        private ConversionPair(String type, Class klass) {
-            checkNotNull(type);
-            checkNotNull(klass);
-            this.type = type;
-            this.klass = klass;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof ConversionPair)) return false;
-            final ConversionPair other = (ConversionPair) o;
-            return Objects.equal(type, other.type)
-                    && Objects.equal(klass, other.klass);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(type, klass);
-        }
+    private static interface ListConverter {
+        public List<?> convert(List<?> values);
     }
 
-    private static final class Conversions {
-        public static List<?> geometryToPoints(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.addAll((Iterable<?>) ((IGeometry) o).getPoints());
-            return b.build();
-        }
-
-        public static List<?> doubleToInt(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(((Long) (Math.round((Double) o))).intValue());
-            return b.build();
-        }
-
-        public static List<?> toString(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(o.toString());
-            return b.build();
-        }
-
-        public static List<?> stringToInt(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(Integer.parseInt((String) o));
-            return b.build();
-        }
-
-        public static List<?> stringToDouble(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(Double.parseDouble((String) o));
-            return b.build();
-        }
-
-        public static List<?> stringToBoolean(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(Boolean.parseBoolean(((String) o).toLowerCase()));
-            return b.build();
-        }
-
-        public static List<?> booleanToInt(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(((Boolean) o) ? 1 : 0);
-            return b.build();
-        }
-
-        public static List<?> booleanToDouble(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(((Boolean) o) ? 1.0 : 0.0);
-            return b.build();
-        }
-
-        public static List<?> numberToBoolean(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(((Integer) o) == 1);
-            return b.build();
-        }
-
-        public static List<?> stringToColor(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(Color.parseColor((String) o));
-            return b.build();
-        }
-
-        public static List<?> intToColor(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(new Color(((Long) o) / 255.0));
-            return b.build();
-        }
-
-        public static List<?> doubleToColor(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(new Color((Double) o));
-            return b.build();
-        }
-
-        public static List<?> booleanToColor(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values)
-                b.add(((Boolean) o) ? Color.WHITE : Color.BLACK);
-            return b.build();
-        }
-
-        public static List<?> numberToPoint(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values) {
-                double d = ((Number) o).doubleValue();
-                b.add(new Point(d, d));
+    private abstract static class ValueConverter implements ListConverter {
+        public List<?> convert(List<?> values) {
+            ImmutableList.Builder<Object> b = ImmutableList.builder();
+            for (Object v : values) {
+                b.add(convertValue(v));
             }
             return b.build();
         }
 
-        public static List<?> stringToPoint(Iterable<?> values) {
-            ImmutableList.Builder<Object> b = new ImmutableList.Builder<Object>();
-            for (Object o : values) {
-                b.add(Point.valueOf((String) o));
+        public abstract Object convertValue(Object value);
+    }
+
+    private static class IntToFloatConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return ((Long) value).doubleValue();
+        }
+    }
+
+    private static class ObjectToStringConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return value.toString();
+        }
+    }
+
+    private static class IntToBooleanConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            // TODO Which values are true vs false?
+            return ((Long) value) > 0;
+        }
+    }
+
+    private static class IntToColorConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            long v = (Long) value;
+            return new Color(v / 255.0, v / 255.0, v / 255.0);
+        }
+    }
+
+    private static class IntToPointConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            long v = (Long) value;
+            return new Point(v, v);
+        }
+    }
+
+    private static class FloatToIntConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Math.round((Double) value);
+        }
+    }
+
+
+    private static class FloatToBooleanConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return ((Double) value) > 0;
+        }
+    }
+
+
+    private static class FloatToColorConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            double v = (Double) value;
+            return new Color(v / 255.0, v / 255.0, v / 255.0);
+        }
+    }
+
+
+    private static class FloatToPointConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            double v = (Double) value;
+            return new Point(v, v);
+        }
+    }
+
+    private static class StringToIntConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Long.parseLong((String) value);
+        }
+    }
+
+    private static class StringToFloatConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Double.parseDouble((String) value);
+        }
+    }
+
+    private static class StringToBooleanConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Boolean.parseBoolean((String) value);
+        }
+    }
+
+    private static class StringToColorConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Color.parseColor((String) value);
+        }
+    }
+
+    private static class StringToPointConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return Point.parsePoint((String) value);
+        }
+    }
+
+    private static class BooleanToIntConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return ((Boolean) value) ? 1 : 0;
+        }
+    }
+
+    private static class BooleanToFloatConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return ((Boolean) value) ? 1.0 : 0.0;
+        }
+    }
+
+    private static class BooleanToColorConverter extends ValueConverter {
+        public Object convertValue(Object value) {
+            return ((Boolean) value) ? Color.WHITE : Color.BLACK;
+        }
+    }
+
+    private static class GeometryToPointsConverter implements ListConverter {
+        public List<?> convert(List<?> values) {
+            ImmutableList.Builder<Object> b = ImmutableList.builder();
+            for (Object v : values) {
+                b.addAll(((IGeometry) v).getPoints());
             }
             return b.build();
         }
     }
+
 }
