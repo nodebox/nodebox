@@ -160,7 +160,13 @@ public final class NodeContext {
                 checkState(networkPort.isPublishedPort(), "Given port %s is not a published port.", networkPort);
                 if (networkPort.getChildNode(network) == child) {
                     Port childPort = networkPort.getChildPort(network);
-                    List<?> values = preprocessInput(networkPort, childPort, argumentEntry.getValue());
+                    Object value = argumentEntry.getValue();
+                    List<?> values;
+                    if (value instanceof List) {
+                        values = (List<?>) value;
+                    } else {
+                        values = ImmutableList.of(value);
+                    }
                     portArguments.put(childPort, values);
                 }
             }
@@ -175,22 +181,6 @@ public final class NodeContext {
         }
 
         return resultsList;
-    }
-
-    private List<?> preprocessInput(Port networkPort, Port childPort, Object value) {
-        if (networkPort.hasListRange()) {
-            if (childPort.hasListRange()) {
-                return (List<?>) value;
-            } else {
-                return (List<?>) value;
-            }
-        } else {
-            if (childPort.hasListRange()) {
-                return ImmutableList.of(value);
-            } else {
-                return ImmutableList.of(value);
-            }
-        }
     }
 
     private Object invokeNode(Node node, Map<Port, ?> argumentMap) {
