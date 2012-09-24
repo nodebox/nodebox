@@ -305,7 +305,7 @@ public class MathFunctions {
     /**
      * The location of a point based on angle and distance.
      */
-    public static Point coordinates(Point p, double angle, double distance) {
+    public static Point coordinates(Point p, double distance, double angle) {
         double x = p.x + Math.cos(radians(angle)) * distance;
         double y = p.y + Math.sin(radians(angle)) * distance;
         return new Point(x, y);

@@ -49,8 +49,8 @@
         </node>
         <node category="geometry" description="Calculate a new point based on the angle and distance from an original point." function="math/coordinates" image="coordinates.png" name="coordinates" outputType="point" position="4.00,10.00">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
-            <port name="angle" range="value" type="float" value="0.0" widget="float"/>
             <port name="distance" range="value" type="float" value="100.0" widget="float"/>
+            <port name="angle" range="value" type="float" value="0.0" widget="float"/>
         </node>
         <node category="math" description="Calculate the trigonometric cosine of an angle" function="math/cos" image="generic.png" name="cos" position="10.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
