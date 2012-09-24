@@ -514,14 +514,21 @@ public final class Node {
             newParent = newParent.withRenderedChild(newNode);
 
         if (hasPublishedChildInputs(childName)) {
-            // TODO Rename child node also renames reference.
-        } else {
-            for (Connection c : getConnections()) {
-                if (c.getInputNode().equals(childName)) {
-                    newParent = newParent.connect(c.getOutputNode(), newName, c.getInputPort());
-                } else if (c.getOutputNode().equals(childName)) {
-                    newParent = newParent.connect(newName, c.getInputNode(), c.getInputPort());
-                }
+            ImmutableList.Builder<Port> b = ImmutableList.builder();
+            for (Port p : inputs) {
+                if (p.getChildNodeName().equals(childName)) {
+                    b.add(Port.publishedPort(newNode, newNode.getInput(p.getChildPortName()), p.getName()));
+                } else
+                    b.add(p);
+            }
+            newParent = newParent.newNodeWithAttribute(Attribute.INPUTS, b.build());
+        }
+
+        for (Connection c : getConnections()) {
+            if (c.getInputNode().equals(childName)) {
+                newParent = newParent.connect(c.getOutputNode(), newName, c.getInputPort());
+            } else if (c.getOutputNode().equals(childName)) {
+                newParent = newParent.connect(newName, c.getInputNode(), c.getInputPort());
             }
         }
 
