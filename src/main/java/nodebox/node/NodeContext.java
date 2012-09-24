@@ -217,6 +217,9 @@ public final class NodeContext {
         Class ancestorType = getAncestorType(outputType);
         String conversionMethod = conversionMap.get(ConversionPair.of(port.getType(), ancestorType));
 
+        if (conversionMethod == null && port.getType().equals(Port.TYPE_STRING))
+            conversionMethod = "toString";
+
         if (conversionMethod != null) {
             try {
                 for (Method method : Conversions.class.getDeclaredMethods()) {
