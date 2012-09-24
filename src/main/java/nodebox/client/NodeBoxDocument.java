@@ -66,7 +66,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private String activeNodeName = "";
     private boolean restoring = false;
     private boolean invalidateFunctionRepository = false;
-    private double frame;
+    private double frame = 1;
 
     // Rendering
     private final AtomicBoolean isRendering = new AtomicBoolean(false);
