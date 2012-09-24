@@ -68,17 +68,7 @@
             <port name="rotate" range="value" type="float" value="0.0" widget="float"/>
             <port name="scale" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
-        <node description="Delete points or paths that lie within the given bounds." function="pyvector/delete" handle="corevector/fourPointHandle" image="delete.png" name="delete" position="10.00,16.00" prototype="filter">
-            <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
-            <port name="width" range="value" type="float" value="100.0" widget="float"/>
-            <port name="height" range="value" type="float" value="100.0" widget="float"/>
-            <port name="scope" range="value" type="string" value="points" widget="menu">
-                <menu key="points" label="Points"/>
-                <menu key="paths" label="Paths"/>
-            </port>
-            <port name="delete_selected" range="value" type="boolean" value="true" widget="toggle"/>
-        </node>
-        <node description="Delete points or paths that lie within the bounding path." function="pyvector/delete_bounding" image="delete_bounding.png" name="delete_bounding" position="10.00,14.00" prototype="filter">
+        <node description="Delete points or paths that lie within the given bounds." function="pyvector/delete" image="delete.png" name="delete" position="10.00,14.00" prototype="filter">
             <port name="bounding" range="value" type="geometry" widget="none"/>
             <port name="scope" range="value" type="string" value="points" widget="menu">
                 <menu key="points" label="Points"/>

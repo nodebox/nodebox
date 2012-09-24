@@ -228,15 +228,11 @@ def delete_paths(geo, bounding, delete_selected=True):
             new_geo.add(old_path.clone())
     return new_geo
     
-def delete_bounding(shape, bounding, scope="points", delete_selected=True):
+def delete(shape, bounding, scope="points", delete_selected=True):
+    """Delete points or paths that lie within the given bounds."""
     if shape is None or bounding is None: return None
     if scope == "points": return delete_points(shape, bounding, delete_selected)
     if scope == "paths": return delete_paths(shape, bounding, delete_selected)
-
-def delete(shape, position, width, height, scope="points", delete_selected=True):
-    """Delete points or paths that lie within the given bounds."""
-    bounding = Rect.centeredRect(position.x, position.y, width, height)
-    return delete_bounding(shape, bounding, scope, delete_selected)
 
 def draw_path(path_data):
     if not path_data: return None
