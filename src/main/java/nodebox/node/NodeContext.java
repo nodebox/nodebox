@@ -256,10 +256,13 @@ public final class NodeContext {
         Node outputNode = findOutputNode(network, child, childPort);
         if (outputNode != null) {
             return renderChild(network, outputNode, networkArgumentMap);
-        } else if (childPort.getValue() == null) {
-            return ImmutableList.of();
         } else {
-            return ImmutableList.of(getPortValue(childPort));
+            Object value = getPortValue(childPort);
+            if (value == null) {
+                return ImmutableList.of();
+            } else {
+                return ImmutableList.of(value);
+            }
         }
     }
 

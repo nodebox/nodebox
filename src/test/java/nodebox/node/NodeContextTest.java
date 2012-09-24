@@ -387,7 +387,10 @@ public class NodeContextTest {
                 .withName("frame")
                 .withFunction("core/frame")
                 .withInputAdded(Port.customPort("context", "context"));
-        assertResultsEqual(frame, 1.0);
+        Node frameNet = Node.NETWORK.withChildAdded(frame).withRenderedChild(frame);
+        NodeContext c = new NodeContext(testLibrary, 42.0);
+        List<?> results = c.renderNode(frameNet);
+        assertResultsEqual(results, 42.0);
     }
 
     // TODO Check list-aware node with no inputs.
@@ -534,7 +537,7 @@ public class NodeContextTest {
                 .withRenderedChild(length)
                 .withOutputRange(Port.Range.VALUE);
 
-        Port textPort = lengthNet.getInput("text").withRange(Port.Range.LIST);
+        Port textPort = lengthNet.getInput("text").withRange(Port.Range.VALUE);
         lengthNet = lengthNet.withInputChanged("text", textPort);
 
             Node mainNetwork = Node.NETWORK
