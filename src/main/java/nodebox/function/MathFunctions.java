@@ -305,7 +305,7 @@ public class MathFunctions {
     /**
      * The location of a point based on angle and distance.
      */
-    public static Point coordinates(Point p, double distance, double angle) {
+    public static Point coordinates(Point p, double angle, double distance) {
         double x = p.x + Math.cos(radians(angle)) * distance;
         double y = p.y + Math.sin(radians(angle)) * distance;
         return new Point(x, y);
@@ -314,10 +314,10 @@ public class MathFunctions {
     /**
      * The reflection of a point through an origin point.
      */
-    public static Point reflect(Point p1, Point p2, double distance, double angle) {
+    public static Point reflect(Point p1, Point p2, double angle, double distance) {
         distance *= distance(p1, p2);
         angle += angle(p1, p2);
-        return coordinates(p1, distance, angle);
+        return coordinates(p1, angle, distance);
     }
 
     public static double sin(double n) {
