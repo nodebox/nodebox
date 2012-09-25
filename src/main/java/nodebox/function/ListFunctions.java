@@ -7,6 +7,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import nodebox.util.ListUtils;
+import nodebox.util.MathUtils;
 
 import java.util.*;
 
@@ -258,7 +259,7 @@ public class ListFunctions {
     public static List<?> shuffle(Iterable<?> iterable, long seed) {
         if (iterable == null) return ImmutableList.of();
         List<?> l = Lists.newArrayList(iterable);
-        Collections.shuffle(l, new Random(seed));
+        Collections.shuffle(l, MathUtils.randomFromSeed(seed));
         return ImmutableList.copyOf(l);
     }
 
@@ -275,7 +276,7 @@ public class ListFunctions {
     public static List<?> pick(Iterable<?> iterable, long amount, long seed) {
         if (iterable == null || amount <= 0) return ImmutableList.of();
         List<?> l = Lists.newArrayList(iterable);
-        Collections.shuffle(l, new Random(seed));
+        Collections.shuffle(l, MathUtils.randomFromSeed(seed));
         if (amount >= l.size()) return ImmutableList.copyOf(l);
         return ImmutableList.copyOf(l.subList(0, (int) amount));
     }

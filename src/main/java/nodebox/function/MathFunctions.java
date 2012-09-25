@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 import nodebox.util.Geometry;
+import nodebox.util.MathUtils;
 import nodebox.util.waves.*;
 
 import java.util.*;
@@ -201,7 +202,7 @@ public class MathFunctions {
     }
 
     public static List<Double> randomNumbers(long amount, double start, double end, long seed) {
-        Random r = new Random(seed);
+        Random r = MathUtils.randomFromSeed(seed);
         ImmutableList.Builder<Double> numbers = ImmutableList.builder();
         for (int i = 0; i < amount; i++) {
             double v = start + (r.nextDouble() * (end - start));

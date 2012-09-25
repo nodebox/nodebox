@@ -1,5 +1,7 @@
 package nodebox.client.movie;
 
+import nodebox.util.MathUtils;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -204,7 +206,7 @@ public class Movie {
             // Clear the canvas and draw some simple circles.
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, width, height);
-            Random r = new Random(0);
+            Random r = MathUtils.randomFromSeed(0);
             for (int j = 0; j < 100; j++) {
                 g.setColor(new Color(r.nextInt(255), 255, r.nextInt(255)));
                 g.fillOval(r.nextInt(width) + frame, r.nextInt(height) + frame, 30, 30);

@@ -1,5 +1,7 @@
 package nodebox.util;
 
+import java.util.Random;
+
 public class MathUtils {
 
     /**
@@ -75,4 +77,7 @@ public class MathUtils {
         return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
     }
 
+    public static Random randomFromSeed(long seed) {
+        return new Random(seed * 1000000000);
+    }
 }
