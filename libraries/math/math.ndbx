@@ -123,7 +123,7 @@
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
-            <port name="distance" range="value" type="float" value="100.0" widget="float"/>
+            <port name="distance" range="value" type="float" value="1.0" widget="float"/>
         </node>
         <node category="math" description="Generate a certain amount of numbers." function="math/sample" image="generic.png" name="sample" outputRange="list" position="10.00,3.00">
             <port min="0.0" name="amount" range="value" type="int" value="10" widget="int"/>
