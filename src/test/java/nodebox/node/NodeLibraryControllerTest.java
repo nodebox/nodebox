@@ -3,6 +3,9 @@ package nodebox.node;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
+
 import static nodebox.util.Assertions.assertResultsEqual;
 
 import static org.junit.Assert.*;
@@ -370,6 +373,92 @@ public class NodeLibraryControllerTest {
         controller.publish("/subnet", "negate", "value", "n");
         controller.unpublish("/subnet", "n");
         assertFalse(controller.getNode("/subnet").hasPublishedInput("n"));
+    }
+
+    @Test
+    public void testGroupIntoNetwork() {
+        Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 15));
+        controller.addNode("/", numberNode);
+        Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
+        controller.addNode("/", invertNode);
+        controller.setRenderedChild("/", "negate");
+        controller.connect("/", controller.getNode("/number"), invertNode, invertNode.getInput("value"));
+        Node subnet = controller.groupIntoNetwork("/", ImmutableList.of(numberNode, invertNode));
+        assertTrue(subnet.hasChild("number"));
+        assertTrue(subnet.hasChild("negate"));
+        assertEquals(1, subnet.getConnections().size());
+        assertEquals(1, controller.getRootNode().getChildren().size());
+        assertSame(subnet, controller.getRootNode().getChild("subnet1"));
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), -15.0);
+    }
+
+    @Test
+    public void testGroupAndPublish() {
+        Node piNode = Node.ROOT.withName("pi").withFunction("math/number").withInputAdded(Port.floatPort("value", 3.1415));
+        controller.addNode("/", piNode);
+        Node multiply1Node = Node.ROOT.withName("multiply1").withFunction("math/multiply")
+                .withInputAdded(Port.floatPort("value1", 0))
+                .withInputAdded(Port.floatPort("value2", 2));
+        controller.addNode("/", multiply1Node);
+        Node multiply2Node = Node.ROOT.withName("multiply2").withFunction("math/multiply")
+                .withInputAdded(Port.floatPort("value1", 0))
+                .withInputAdded(Port.floatPort("value2", 0));
+        controller.addNode("/", multiply2Node);
+        Node radiusNode = Node.ROOT.withName("radius").withFunction("math/number").withInputAdded(Port.floatPort("value", 2));
+        controller.addNode("/", radiusNode);
+        controller.connect("/", "pi", "multiply1", "value1");
+        controller.connect("/", "radius", "multiply2", "value1");
+        controller.connect("/", "multiply1", "multiply2", "value2");
+        controller.setRenderedChild("/", "multiply2");
+        Node subnet1 = controller.groupIntoNetwork("/", ImmutableList.of(piNode, multiply1Node, multiply2Node));
+        Node root = controller.getRootNode();
+        assertEquals(2, root.getChildren().size());
+        assertTrue(root.hasChild(radiusNode));
+        assertTrue(root.hasChild(subnet1));
+        assertEquals(1, subnet1.getInputs().size());
+        assertEquals("value1", subnet1.getInputs().get(0).getName());
+        assertEquals(1, root.getConnections().size());
+        assertEquals("radius", root.getConnection("subnet1", "value1").getOutputNode());
+    }
+
+    @Test
+    public void testGroupingAndPortNaming() {
+        Node number1Node = Node.ROOT.withName("number1").withFunction("math/number").withInputAdded(Port.floatPort("value", 2));
+        controller.addNode("/", number1Node);
+        Node multiply1Node = Node.ROOT.withName("multiply1").withFunction("math/multiply")
+                .withInputAdded(Port.floatPort("value1", 0))
+                .withInputAdded(Port.floatPort("value2", 3));
+        controller.addNode("/", multiply1Node);
+        Node add1Node = Node.ROOT.withName("add1").withFunction("math/add")
+                .withInputAdded(Port.floatPort("value1", 0))
+                .withInputAdded(Port.floatPort("value2", 3));
+        controller.addNode("/", add1Node);
+        Node divide1Node = Node.ROOT.withName("divide1").withFunction("math/divide")
+                .withInputAdded(Port.floatPort("value1", 0))
+                .withInputAdded(Port.floatPort("value2", 1));
+        controller.addNode("/", divide1Node);
+        controller.connect("/", "number1", "multiply1", "value1");
+        controller.connect("/", "number1", "add1", "value1");
+        controller.connect("/", "multiply1", "divide1", "value1");
+        controller.connect("/", "add1", "divide1", "value2");
+        controller.setRenderedChild("/", "divide1");
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/divide1"), 1.2);
+        Node subnet1 = controller.groupIntoNetwork("/", ImmutableList.of(multiply1Node, add1Node, divide1Node));
+        Node root = controller.getRootNode();
+
+        assertEquals(2, root.getChildren().size());
+        assertTrue(root.hasChild(number1Node));
+        assertTrue(root.hasChild(subnet1));
+
+        assertEquals(2, subnet1.getInputs().size());
+        List<Port> inputs = subnet1.getInputs();
+        assertEquals("value1_1", inputs.get(0).getName());
+        assertEquals("value1_2", inputs.get(1).getName());
+
+        assertEquals(2, root.getConnections().size());
+        assertEquals("number1", root.getConnection("subnet1", "value1_1").getOutputNode());
+        assertEquals("number1", root.getConnection("subnet1", "value1_2").getOutputNode());
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), 1.2);
     }
 
     private void createSimpleConnection() {
