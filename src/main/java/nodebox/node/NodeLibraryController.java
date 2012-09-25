@@ -10,6 +10,7 @@ import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -167,15 +168,28 @@ public class NodeLibraryController {
 
         newParent = newParent.withChildAdded(subnet);
 
+
+        Map<String, Integer> portNameOccurrences = new HashMap<String, Integer>();
+
+        for (Connection c : parent.getConnections()) {
+            if (! subnet.hasChild(c.getOutputNode()) && subnet.hasChild(c.getInputNode())) {
+                Integer times = portNameOccurrences.get(c.getInputPort());
+                portNameOccurrences.put(c.getInputPort(), times == null ? 1 : times + 1);
+            }
+        }
+
         // Input connections to the subnetwork.
         for (Connection c : parent.getConnections()) {
             String outputNodeName = c.getOutputNode();
             String inputNodeName = c.getInputNode();
             if (! subnet.hasChild(outputNodeName) && subnet.hasChild(inputNodeName)) {
-                subnet = subnet.publish(inputNodeName, c.getInputPort(), c.getInputPort());
+                String portName = c.getInputPort();
+                if (portNameOccurrences.get(portName) > 1)
+                    portName = subnet.uniqueInputName(portName);
+                subnet = subnet.publish(inputNodeName, c.getInputPort(), portName);
                 newParent = newParent
                         .withChildReplaced(subnet.getName(), subnet)
-                        .connect(outputNodeName, subnet.getName(), c.getInputPort());
+                        .connect(outputNodeName, subnet.getName(), portName);
             }
         }
 

@@ -85,6 +85,7 @@ public final class Node {
     private static final Pattern NODE_NAME_PATTERN = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]{0,29}$");
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
+    private static final Pattern UNDERSCORE_NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\_?(\\d*))$");
 
     private final Node prototype;
     private final String name;
@@ -352,6 +353,26 @@ public final class Node {
             if (!hasChild(suggestedName)) {
                 // We don't use rename here, since it assumes the node will be in
                 // this network.
+                return suggestedName;
+            }
+            ++counter;
+        }
+    }
+
+    public String uniqueInputName(String prefix) {
+        Matcher m = UNDERSCORE_NUMBER_AT_THE_END.matcher(prefix);
+        m.find();
+        String namePrefix = m.group(1);
+        String number = m.group(3);
+        int counter;
+        if (number.length() > 0) {
+            counter = Integer.parseInt(number);
+        } else {
+            counter = 1;
+        }
+        while (true) {
+            String suggestedName = namePrefix + "_" + counter;
+            if (!hasInput(suggestedName)) {
                 return suggestedName;
             }
             ++counter;
