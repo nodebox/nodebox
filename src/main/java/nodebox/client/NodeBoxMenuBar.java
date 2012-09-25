@@ -55,7 +55,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new SaveAsAction());
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
-        fileMenu.add(new DocumentPropertiesAction());
+        fileMenu.add(new CodeLibrariesAction());
         fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
@@ -279,13 +279,13 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
-    public class DocumentPropertiesAction extends AbstractDocumentAction {
-        public DocumentPropertiesAction() {
-            putValue(NAME, "Document Properties...");
+    public class CodeLibrariesAction extends AbstractDocumentAction {
+        public CodeLibrariesAction() {
+            putValue(NAME, "Code Libraries...");
         }
 
         public void actionPerformed(ActionEvent e) {
-            getDocument().showDocumentProperties();
+            getDocument().showCodeLibraries();
         }
     }
 

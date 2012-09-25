@@ -1567,8 +1567,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    public void showDocumentProperties() {
-        DocumentPropertiesDialog dialog = new DocumentPropertiesDialog(this, getNodeLibrary().getFunctionRepository());
+    public void showCodeLibraries() {
+        CodeLibrariesDialog dialog = new CodeLibrariesDialog(this, getNodeLibrary().getFunctionRepository());
         dialog.setVisible(true);
         FunctionRepository functionRepository = dialog.getFunctionRepository();
         if (functionRepository != null) {

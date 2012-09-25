@@ -21,7 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class DocumentPropertiesDialog extends JDialog {
+public class CodeLibrariesDialog extends JDialog {
 
     private static final ImageIcon pythonIcon = new ImageIcon("res/functions-python.png");
     private static final ImageIcon clojureIcon = new ImageIcon("res/functions-clojure.png");
@@ -91,8 +91,8 @@ public class DocumentPropertiesDialog extends JDialog {
     private FunctionLibraryListModel functionLibraryListModel;
     private boolean repositoryChanged = false;
 
-    public DocumentPropertiesDialog(NodeBoxDocument document, FunctionRepository functionRepository) {
-        super(document, "Document Properties", true);
+    public CodeLibrariesDialog(NodeBoxDocument document, FunctionRepository functionRepository) {
+        super(document, "Code Libraries", true);
         this.document = document;
         this.functionRepository = functionRepository;
         functionLibraryListModel = new FunctionLibraryListModel();
@@ -144,7 +144,7 @@ public class DocumentPropertiesDialog extends JDialog {
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                DocumentPropertiesDialog.this.setVisible(false);
+                CodeLibrariesDialog.this.setVisible(false);
             }
         });
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
