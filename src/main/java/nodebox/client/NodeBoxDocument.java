@@ -1579,6 +1579,16 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    public void showDocumentProperties() {
+        DocumentPropertiesDialog dialog  = new DocumentPropertiesDialog(this);
+        dialog.setVisible(true);
+        if (dialog.isCommitted()) {
+            addEdit("Change document properties");
+            controller.setProperties(dialog.getProperties());
+            requestRender();
+        }
+    }
+
     public void reload() {
         controller.reloadFunctionRepository();
         requestRender();

@@ -56,6 +56,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
         fileMenu.add(new CodeLibrariesAction());
+        fileMenu.add(new DocumentPropertiesAction());
         fileMenu.addSeparator();
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
@@ -94,7 +95,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         windowMenu.add(new MinimizeAction());
         windowMenu.add(new ZoomAction());
         showConsoleItem = windowMenu.add(new JCheckBoxMenuItem(new ShowConsoleAction()));
-        setShowConsoleChecked(Application.getInstance().isConsoleOpened());
+        setShowConsoleChecked(Application.getInstance() != null && Application.getInstance().isConsoleOpened());
         windowMenu.addSeparator();
         windowMenu.add(new BringAllToFrontAction());
         // TODO Add all active windows.
@@ -286,6 +287,16 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             getDocument().showCodeLibraries();
+        }
+    }
+
+    public class DocumentPropertiesAction extends AbstractDocumentAction {
+        public DocumentPropertiesAction() {
+            putValue(NAME, "Document Properties...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().showDocumentProperties();
         }
     }
 

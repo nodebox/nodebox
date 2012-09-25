@@ -11,6 +11,7 @@ import nodebox.graphics.Point;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -55,6 +56,10 @@ public class NodeLibraryController {
 
     public void setFunctionRepository(FunctionRepository functionRepository) {
         nodeLibrary = nodeLibrary.withFunctionRepository(functionRepository);
+    }
+
+    public void setProperties(Map<String,String> properties) {
+        nodeLibrary = nodeLibrary.withProperties(properties);
     }
     
     public Node getNode(String nodePath) {

@@ -162,6 +162,10 @@ public class NodeLibrary {
         }
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     public boolean isValidPropertyName(String name) {
         checkNotNull(name);
         // no whitespace, only lowercase, numbers + period.
@@ -187,8 +191,8 @@ public class NodeLibrary {
         return withProperties(b.build());
     }
 
-    private NodeLibrary withProperties(ImmutableMap<String, String> properties) {
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, properties, this.uuid);
+    public NodeLibrary withProperties(Map<String, String> properties) {
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, ImmutableMap.copyOf(properties), this.uuid);
 
     }
 
