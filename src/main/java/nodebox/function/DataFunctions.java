@@ -8,6 +8,7 @@ import nodebox.util.ReflectionUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,11 +71,27 @@ public class DataFunctions {
             CSVReader reader = new CSVReader(in, sep, quot);
             ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
             String[] headers = reader.readNext();
+
+            Map<String, Integer> headerDuplicates = new HashMap<String, Integer>();
+            List<String> tmp = new ArrayList<String>();
             for (int i = 0; i < headers.length; i++) {
                 headers[i] = headers[i].trim();
                 if (headers[i].isEmpty())
                     headers[i] = String.format("Column %s", i + 1);
+                if (tmp.contains(headers[i]))
+                    headerDuplicates.put(headers[i], 0);
+                tmp.add(headers[i]);
             }
+
+            for (int i = 0; i < headers.length; i++) {
+                String header = headers[i];
+                if (headerDuplicates.get(header) != null) {
+                    int number = headerDuplicates.get(header) + 1;
+                    headers[i] = header + " " + number;
+                    headerDuplicates.put(header, number);
+                }
+            }
+
             String[] row;
 
             while ((row = reader.readNext()) != null) {

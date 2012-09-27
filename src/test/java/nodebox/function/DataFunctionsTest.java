@@ -89,6 +89,15 @@ public class DataFunctionsTest {
         assertResultsEqual(row1.values(), 1.0, 2.0, 3.0);
     }
 
+    @Test
+    public void testImportCSVWithDuplicateHeaders() {
+        List<Map<String, Object>> l = importSimpleCSV("src/test/files/duplicate-headers.csv");
+        assertEquals(2, l.size());
+        Map<String, Object> row1 = l.get(0);
+        assertResultsEqual(row1.keySet(), "Strings" , "Numbers 1", "Integers", "Numbers 2", "Floats");
+        assertResultsEqual(row1.values(), 1.0, 2.0, 3.0, 4.0, 5.0);
+    }
+
     private List<Map<String, Object>> importSimpleCSV(String fileName) {
         return importCSV(fileName, "comma", "double");
     }
