@@ -36,9 +36,9 @@
     <key>CFBundleSignature</key>
     <string>ndbx</string>
     <key>CFBundleGetInfoString</key>
-    <string>3.0a22, Copyright NodeBox, (c) 2004-2012</string>
+    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2012</string>
     <key>CFBundleShortVersionString</key>
-    <string>3.0a22</string>
+    <string>@@VERSION@@</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>Java</key>
