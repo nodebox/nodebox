@@ -163,7 +163,7 @@ public class ListFunctions {
      * @return A list with the specified index.
      */
     public static List<?> doSwitch(Iterable list1, Iterable list2, Iterable list3, long index) {
-        Iterable returnList;
+        Iterable<?> returnList;
         switch ((int) index % 3) {
             case 0:
                 returnList = list1;
@@ -176,7 +176,7 @@ public class ListFunctions {
                 break;
         }
         if (returnList == null) return ImmutableList.of();
-        return ImmutableList.copyOf(returnList);
+        return ImmutableList.<Object>copyOf(returnList);
     }
 
     /**
@@ -359,9 +359,7 @@ public class ListFunctions {
     public static List<?> distinct(Iterable<?> iterable) {
         if (iterable == null) return ImmutableList.of();
         List<Object> newList = new ArrayList<Object>();
-        Iterator<?> iterator = iterable.iterator();
-        while (iterator.hasNext()) {
-            Object object = iterator.next();
+        for (Object object : iterable) {
             if (newList.contains(object)) continue;
             newList.add(object);
         }
