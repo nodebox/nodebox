@@ -104,8 +104,8 @@ public class ListFunctionsTest {
         // Shuffling is stable: the same seed always returns the same sort order.
         assertElements(ListFunctions.shuffle(ImmutableList.of(), 42));
         assertElements(ListFunctions.shuffle(ImmutableList.of(1), 42), 1);
-        assertElements(ListFunctions.shuffle(ImmutableList.of(1, 2, 3, 4, 5), 42), 2, 3, 4, 5, 1);
-        assertElements(ListFunctions.shuffle(ImmutableList.of(1, 2, 3, 4, 5), 33), 2, 1, 5, 3, 4);
+        assertElements(ListFunctions.shuffle(ImmutableList.of(1, 2, 3, 4, 5), 42), 1, 3, 2, 4, 5);
+        assertElements(ListFunctions.shuffle(ImmutableList.of(1, 2, 3, 4, 5), 33), 2, 1, 3, 4, 5);
     }
 
     @Test
@@ -174,7 +174,7 @@ public class ListFunctionsTest {
     }
 
     private void assertElements(Iterable<?> iterable, Object... items) {
-        assertEquals(ImmutableList.copyOf(iterable), ImmutableList.copyOf(items));
+        assertEquals(ImmutableList.copyOf(items), ImmutableList.copyOf(iterable));
     }
 
     private void assertFirstElements(Iterable<?> iterable, Object... items) {

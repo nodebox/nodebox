@@ -109,9 +109,9 @@ public class MathFunctionsTest {
     @Test
     public void testRandomNumbers() {
         List<Double> numbers = MathFunctions.randomNumbers(3, -10.0, 10.0, 42);
-        assertEquals(4.55127, numbers.get(0), 0.001);
-        assertEquals(3.66447, numbers.get(1), 0.001);
-        assertEquals(-3.82561, numbers.get(2), 0.001);
+        assertEquals(3.89263, numbers.get(0), 0.001);
+        assertEquals(4.95359, numbers.get(1), 0.001);
+        assertEquals(4.66839, numbers.get(2), 0.001);
     }
 
     @Test
