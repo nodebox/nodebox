@@ -4,6 +4,17 @@
     <node description="Import and manipulate all kinds of data." name="root" renderedChild="lookup">
         <node description="Import a CSV file." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00" category="data">
             <port name="file" range="value" type="string" value="" widget="file"/>
+            <port name="delimiter" range="value" type="string" value="comma" widget="menu">
+                <menu key="comma" label=","/>
+                <menu key="semicolon" label=";"/>
+                <menu key="colon" label=":"/>
+                <menu key="tab" label="Tab"/>
+                <menu key="space" label="Space"/>
+            </port>
+            <port name="quotes" range="value" type="string" value="double" widget="menu">
+                <menu key="double" label="&quot;"/>
+                <menu key="single" label="'"/>
+            </port>
         </node>
         <node description="Look up a value." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
             <port name="list" range="value" type="list" widget="none"/>

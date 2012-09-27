@@ -8,6 +8,7 @@ import nodebox.util.ReflectionUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,10 +16,19 @@ public class DataFunctions {
 
 
     public static final FunctionLibrary LIBRARY;
+    private static final Map<String, Character> separators;
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
                 "lookup", "importCSV");
+
+        separators = new HashMap<String, Character>();
+        separators.put("comma", ',');
+        separators.put("semicolon", ';');
+        separators.put("tab", '\t');
+        separators.put("space", ' ');
+        separators.put("double", '"');
+        separators.put("single", '\'');
     }
 
     /**
@@ -44,14 +54,20 @@ public class DataFunctions {
      * This method assumes the first row is the header row. It will not be returned: instead, it will serves as the
      * keys for the maps we return.
      *
-     * @param fileName The file to read in.
+     * @param fileName           The file to read in.
+     * @param delimiter          The name of the character delimiting column values.
+     * @param quotationCharacter The name of the character acting as the quotation separator.
      * @return A list of maps.
      */
-    public static List<Map<String, Object>> importCSV(String fileName) {
+    public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter) {
         if (fileName == null || fileName.trim().isEmpty()) return ImmutableList.of();
         try {
             InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
-            CSVReader reader = new CSVReader(in);
+            Character sep = separators.get(delimiter);
+            if (sep == null) sep = ',';
+            Character quot = separators.get(quotationCharacter);
+            if (quot == null) quot = '"';
+            CSVReader reader = new CSVReader(in, sep, quot);
             ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
             String[] headers = reader.readNext();
             for (int i = 0; i < headers.length; i++) {
