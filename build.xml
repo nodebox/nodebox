@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="install" basedir=".">
+<project name="NodeBox" default="run" basedir=".">
     <description>Builds and tests NodeBox.</description>
 
     <target name="properties">
@@ -99,7 +99,8 @@
     </target>
 
     <target name="compile-tests" depends="compile">
-        <javac srcdir="${test}" destdir="${build.test}" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
+        <javac srcdir="${test}" destdir="${build.test}" source="1.6" target="1.6" includeantruntime="false"
+               deprecation="yes">
             <classpath refid="project.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
         </javac>
@@ -120,7 +121,7 @@
         <mkdir dir="${reports}"/>
         <junitreport todir="${reports}">
             <fileset dir="${reports}">
-                <include  name="TEST-*.xml"/>
+                <include name="TEST-*.xml"/>
             </fileset>
             <report format="frames" todir="${reports}"/>
         </junitreport>
@@ -131,11 +132,11 @@
         <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
     </target>
 
-    <target  name="nodeboxlibs" depends="init">
+    <target name="nodeboxlibs" depends="init">
         <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src/main/python"/>
     </target>
 
-    <target  name="archives" depends="jar,nodeboxlibs"/>
+    <target name="archives" depends="jar,nodeboxlibs"/>
 
     <target name="dist-win" depends="archives">
         <!-- Check JRE -->
@@ -164,8 +165,8 @@
                 <include name="*.zip"/>
             </fileset>
             <fileset dir="${dist}/lib">
-                <include  name="*.jar"/>
-                <include  name="*.zip"/>
+                <include name="*.jar"/>
+                <include name="*.zip"/>
             </fileset>
         </copy>
         <copy todir="${dist.windows.nodebox.res}">
@@ -207,8 +208,8 @@
                 <include name="*.zip"/>
             </fileset>
             <fileset dir="${dist}/lib">
-                <include  name="*.jar"/>
-                <include  name="*.zip"/>
+                <include name="*.jar"/>
+                <include name="*.zip"/>
             </fileset>
         </copy>
         <!-- Copy resources-->
@@ -235,9 +236,9 @@
         <!-- Replace version number -->
         <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
         <!-- Copy version number -->
-        <copy file="version.properties" todir="${mac.application.resources.java}" />
+        <copy file="version.properties" todir="${mac.application.resources.java}"/>
     </target>
-    
+
     <target name="dist-mac-signed" depends="dist-mac" description="Make a signed OS X application">
         <!-- We get the current user.name (the full name) from Git -->
         <exec executable="git" outputproperty="apple.developer.name">
