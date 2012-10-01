@@ -214,9 +214,10 @@ public class NodeLibraryController {
                     break;
                 }
             }
+
             // Subnetwork output connection(s).
             for (Connection c : parent.getConnections()) {
-                if (renderedChild.equals(c.getOutputNode()))
+                if (renderedChild.equals(c.getOutputNode()) && newParent.hasChild(c.getInputNode()))
                     newParent = newParent.connect(subnet.getName(), c.getInputNode(), c.getInputPort());
             }
         }
