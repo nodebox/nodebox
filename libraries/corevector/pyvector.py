@@ -199,18 +199,27 @@ def _map_paths_to_geo(fn):
         return None
     return _function
 
-@_map_geo_to_paths
-def delete_points(path, bounding, delete_selected=True):
-    if path is None or bounding is None: return None
-    new_path = Path(path, False) # cloneContours = False
-    for old_contour in path.contours:
-        new_contour = Contour()
-        for point in old_contour.points:
-            if bounding.contains(point) is not delete_selected:
-                new_contour.addPoint(Point(point.x, point.y, point.type))
-        new_contour.closed = old_contour.closed
-        new_path.add(new_contour)
-    return new_path
+def _map_geo_to_points(fn):
+    def _function(shape, *args, **kwargs):
+        from java.util import List
+        if isinstance(shape, (list, tuple, List)):
+            return fn(shape, *args, **kwargs)
+        elif isinstance(shape, Path):
+            new_path = Path(shape, False)
+            for c in shape.contours:
+                new_path.add(Contour(fn(c.points, *args, **kwargs), c.closed))
+            return new_path
+        elif isinstance(shape, Geometry):
+            new_geo = Geometry()
+            for path in shape.paths:
+                new_geo.add(_map_geo_to_points(fn)(path, *args, **kwargs))
+            return new_geo
+        return None
+    return _function
+
+@_map_geo_to_points
+def delete_points(points, bounding, delete_selected=True):
+    return [point for point in points if bounding.contains(point) is not delete_selected]
 
 @_map_paths_to_geo
 def delete_paths(geo, bounding, delete_selected=True):
@@ -224,6 +233,7 @@ def delete_paths(geo, bounding, delete_selected=True):
         for point in old_path.points:
             if bounding.contains(point):
                 selected = True
+                break
         if selected is not delete_selected:
             new_geo.add(old_path.clone())
     return new_geo
