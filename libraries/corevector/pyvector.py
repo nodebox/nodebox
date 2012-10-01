@@ -206,7 +206,7 @@ def delete_points(path, bounding, delete_selected=True):
     for old_contour in path.contours:
         new_contour = Contour()
         for point in old_contour.points:
-            if bounding.contains(point) == delete_selected:
+            if bounding.contains(point) is not delete_selected:
                 new_contour.addPoint(Point(point.x, point.y, point.type))
         new_contour.closed = old_contour.closed
         new_path.add(new_contour)
@@ -224,7 +224,7 @@ def delete_paths(geo, bounding, delete_selected=True):
         for point in old_path.points:
             if bounding.contains(point):
                 selected = True
-        if selected is delete_selected:
+        if selected is not delete_selected:
             new_geo.add(old_path.clone())
     return new_geo
     
