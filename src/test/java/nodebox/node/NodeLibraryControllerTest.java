@@ -461,6 +461,25 @@ public class NodeLibraryControllerTest {
         assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), 1.2);
     }
 
+    /**
+     * Test if a valid subnetwork can be formed where the rendered node is not an
+     * end point in the network.
+     */
+    @Test
+    public void testGroupingRenderedBeforeEnd() {
+        Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 20));
+        Node invert1Node = Node.ROOT.withName("negate1").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
+        Node invert2Node = Node.ROOT.withName("negate2").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
+        controller.addNode("/", numberNode);
+        controller.addNode("/", invert1Node);
+        controller.addNode("/", invert2Node);
+        controller.connect("/", numberNode, invert1Node, invert1Node.getInput("value"));
+        controller.connect("/", numberNode, invert2Node, invert2Node.getInput("value"));
+        controller.setRenderedChild("/", "number");
+        controller.groupIntoNetwork("/", ImmutableList.of(numberNode, invert1Node, invert2Node));
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), 20.0);
+    }
+
     private void createSimpleConnection() {
         Node numberNode = Node.ROOT.withName("number").withFunction("math/number").withInputAdded(Port.floatPort("value", 20));
         Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
