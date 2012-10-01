@@ -671,7 +671,8 @@ def _with_seed(fn):
 
 def _map_points(fn):
     def _function(shape, *args, **kwargs):
-        if isinstance(shape, list):
+        from java.util import List
+        if isinstance(shape, (list, tuple, List)):
             return fn(shape, *args, **kwargs)
         elif isinstance(shape, Point):
             return fn([shape], *args, **kwargs)[0]
