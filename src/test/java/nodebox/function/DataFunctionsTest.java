@@ -98,8 +98,19 @@ public class DataFunctionsTest {
         assertResultsEqual(row1.values(), 1.0, 2.0, 3.0, 4.0, 5.0);
     }
 
+    @Test
+    public void testImportCSVWithDifferentFloatingPoint() {
+        List<Map<String, Object>> l = importCSV("src/test/files/floats.csv", "semicolon", "double", "period");
+        assertEquals(2, l.size());
+        assertResultsEqual(l.get(0).values(), 2.5, 10.99, 40000.6);
+        assertResultsEqual(l.get(1).values(), 25.0, 1099.0, 40.0);
+        l = importCSV("src/test/files/floats.csv", "semicolon", "double", "comma");
+        assertResultsEqual(l.get(0).values(), 25.0, 1099.0, 40.0);
+        assertResultsEqual(l.get(1).values(), 2.5, 10.99, 40000.6);
+    }
+
     private List<Map<String, Object>> importSimpleCSV(String fileName) {
-        return importCSV(fileName, "comma", "double");
+        return importCSV(fileName, "comma", "double", "period");
     }
 
 }

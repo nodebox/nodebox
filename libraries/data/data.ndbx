@@ -15,6 +15,10 @@
                 <menu key="double" label="&quot;"/>
                 <menu key="single" label="'"/>
             </port>
+            <port name="floats" range="value" type="string" value="period" widget="menu">
+                <menu key="period" label="."/>
+                <menu key="comma" label=","/>
+            </port>
         </node>
         <node description="Look up a value." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
             <port name="list" range="value" type="list" widget="none"/>

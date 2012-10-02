@@ -8,10 +8,9 @@ import nodebox.util.ReflectionUtils;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.*;
 
 public class DataFunctions {
 
@@ -24,6 +23,7 @@ public class DataFunctions {
                 "lookup", "importCSV");
 
         separators = new HashMap<String, Character>();
+        separators.put("period", '.');
         separators.put("comma", ',');
         separators.put("semicolon", ';');
         separators.put("tab", '\t');
@@ -60,7 +60,7 @@ public class DataFunctions {
      * @param quotationCharacter The name of the character acting as the quotation separator.
      * @return A list of maps.
      */
-    public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter) {
+    public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter, String floatSeparator) {
         if (fileName == null || fileName.trim().isEmpty()) return ImmutableList.of();
         try {
             InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
@@ -101,8 +101,9 @@ public class DataFunctions {
                     String v = row[i].trim();
                     Object value;
                     try {
-                        value = Double.valueOf(v);
-                    } catch (NumberFormatException e) {
+                        NumberFormat nf = NumberFormat.getInstance(floatSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
+                        value = nf.parse(v).doubleValue();
+                    } catch (ParseException e) {
                         value = v;
                     }
                     mb.put(header, value);
