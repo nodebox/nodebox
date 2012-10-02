@@ -1022,7 +1022,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
 
         private void unpublish() {
-            getDocument().unpublish(nodePort.getPort());
+            Port port = getActiveNetwork().getPortByChildReference(nodePort.getNode(), nodePort.getPort());
+            getDocument().unpublish(port.getName());
         }
 
         private void publish() {
