@@ -206,6 +206,13 @@ public final class NodeContext {
 
     private List<?> convertResultsForPort(Port port, List<?> values) {
         Class outputType = ListUtils.listClass(values);
+
+        // This is a special case: when working with geometry nodes, we may want to work with either
+        // single IGeometry objects or a list of Point's.
+        // In the latter case, we have to wrap these values in a list.
+        if (outputType.equals(Point.class) && port.getType().equals("geometry") && port.hasValueRange())
+            return ImmutableList.of(values);
+
         ListConverter converter = conversionTable.get(outputType, port.getType());
         if (converter != null) {
             return converter.convert(values);
@@ -333,7 +340,6 @@ public final class NodeContext {
         }
         return maxSize;
     }
-
 
     private static int argumentListSize(Port port, List<?> arguments) {
         // If the port takes in a list, he will always take the entire argument list as an argument.
