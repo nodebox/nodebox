@@ -447,6 +447,8 @@ public class Application implements Host {
             app.takeScreenshotOfDocument(fileName);
             app.quit();
         } else {
+            if (args.length == 1)
+                app.filesToLoad.add(new File(args[0]));
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
                     app.run();
@@ -454,5 +456,4 @@ public class Application implements Host {
             });
         }
     }
-
 }

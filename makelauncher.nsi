@@ -13,12 +13,15 @@ ShowInstDetails nevershow
 !define CLASSPATH "lib\nodebox.jar;lib\asm.jar;lib\clojure-1.4.0.jar;lib\guava-13.0.1.jar;lib\itextpdf-5.3.2.jar;lib\jna-3.4.1.jar;lib\jython-2.5.3.jar;lib\opencsv-2.3.jar;lib\piccolo2d-core-1.3.1.jar;lib\xom-1.2.8.jar"
 !define CLASS "nodebox.client.Application"
 
+!include "FileFunc.nsh"
+
 Section ""
   Call GetJRE
   Pop $R0
 
   ; change for your purpose (-jar etc.)
-  StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS}'
+  ${GetParameters} $0
+  StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS} $0'
 
   SetOutPath $EXEDIR
   Exec $0

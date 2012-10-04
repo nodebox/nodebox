@@ -3,6 +3,7 @@
 ;--------------------------------
 ; Includes
 !include "MUI2.nsh"
+!include "FileAssociation.nsh"
 
 ;--------------------------------
 ; Application metadata
@@ -78,9 +79,13 @@ Section ""
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "Publisher" "Experimental Media Research Group"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$INSTDIR\Uninstall.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$INSTDIR"
+  ;Register file extension.
+  ${registerExtension} "$INSTDIR\NodeBox.exe" ".ndbx" "NDBX_File"
 SectionEnd
 
 Section "Uninstall"
+  ; Unregister file extension.
+  ${unregisterExtension} ".ndbx" "NDBX File"
   ; Remove installation directory.
   RMDir /r "$INSTDIR"
   ; Remove application data.
