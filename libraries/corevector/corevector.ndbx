@@ -126,7 +126,7 @@
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
             <port name="distance" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Generates a visual link between two shapes." function="corevector/link" image="link.png" name="link" position="7.00,1.00" prototype="generator">
+        <node description="Generate a visual link between two shapes." function="corevector/link" image="link.png" name="link" position="7.00,1.00" prototype="generator">
             <port name="shape1" range="value" type="geometry" widget="none"/>
             <port name="shape2" range="value" type="geometry" widget="none"/>
             <port name="orientation" range="value" type="string" value="horizontal" widget="menu">
@@ -134,7 +134,7 @@
                 <menu key="vertical" label="Vertical"/>
             </port>
         </node>
-        <node description="Creates a point based on two numbers." function="corevector/makePoint" image="make_point.png" name="make_point" outputType="point" position="16.00,12.00" prototype="generator">
+        <node description="Create a point from X/Y coordinates." function="corevector/makePoint" image="make_point.png" name="make_point" outputType="point" position="16.00,12.00" prototype="generator">
             <port name="x" range="value" type="float" value="0.0" widget="float"/>
             <port name="y" range="value" type="float" value="0.0" widget="float"/>
         </node>
@@ -210,7 +210,7 @@
             <port max="100.0" min="0.0" name="strength" range="value" type="float" value="100.0" widget="float"/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
-        <node description="Sort points or shapes using different sorting methods" function="pyvector/sort" image="sort.png" name="sort" position="7.00,14.00" prototype="filter">
+        <node description="Sort points or shapes using different sorting methods." function="pyvector/sort" image="sort.png" name="sort" position="7.00,14.00" prototype="filter">
             <port name="scope" range="value" type="string" value="p_g" widget="string"/>
             <port name="order" range="value" type="string" value="unchanged" widget="string"/>
             <port name="seed" range="value" type="int" value="0" widget="int"/>
@@ -245,7 +245,7 @@
             <port min="0.0" name="width" range="value" type="float" value="0.0" widget="float"/>
             <port min="0.0" name="height" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Get the points of a given shape." function="corevector/toPoints" image="to_points.png" name="to_points" outputRange="list" outputType="point" position="13.00,14.00" prototype="filter"/>
+        <node description="Extract the points from a given shape." function="corevector/toPoints" image="to_points.png" name="to_points" outputRange="list" outputType="point" position="13.00,14.00" prototype="filter"/>
         <node description="Move the shape, changing its position." function="pyvector/translate" handle="corevector/translateHandle" image="translate.png" name="translate" position="7.00,12.00" prototype="filter">
             <port name="translate" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
