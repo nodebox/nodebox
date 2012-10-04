@@ -50,7 +50,7 @@
             </port>
             <port name="invert_difference" range="value" type="boolean" value="false" widget="toggle"/>
         </node>
-        <node description="Connects all points in a path." function="corevector/connect" image="connect.png" name="connect" position="7.00,8.00" prototype="generator">
+        <node description="Connect all points in a path." function="corevector/connect" image="connect.png" name="connect" position="7.00,8.00" prototype="generator">
             <port name="points" range="list" type="list" widget="none"/>
             <port name="closed" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
@@ -68,7 +68,7 @@
             <port name="rotate" range="value" type="float" value="0.0" widget="float"/>
             <port name="scale" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
-        <node description="Delete points or paths that lie within the given bounds." function="pyvector/delete" image="delete.png" name="delete" position="10.00,14.00" prototype="filter">
+        <node description="Delete points or paths that lie within the given bounding shape." function="pyvector/delete" image="delete.png" name="delete" position="10.00,14.00" prototype="filter">
             <port name="bounding" range="value" type="geometry" widget="none"/>
             <port name="scope" range="value" type="string" value="points" widget="menu">
                 <menu key="points" label="Points"/>
@@ -76,14 +76,14 @@
             </port>
             <port name="delete_selected" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node description="Distributes shapes on a horizontal and/or vertical axis." function="pyvector/distribute" image="distribute.png" name="distribute" position="10.00,12.00" prototype="filter">
+        <node description="Distribute shapes on a horizontal or vertical axis." function="pyvector/distribute" image="distribute.png" name="distribute" position="10.00,12.00" prototype="filter">
             <port name="horizontal" range="value" type="string" value="none" widget="string"/>
             <port name="vertical" range="value" type="string" value="none" widget="string"/>
         </node>
         <node description="Draw Bezier Paths." function="pyvector/draw_path" handle="pyvector/handle_draw_path" image="draw_path.png" name="draw_path" position="4.00,8.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string"/>
         </node>
-        <node description="Create ellipses and circles." function="corevector/ellipse" image="ellipse.png" name="ellipse" position="4.00,2.00" prototype="generator" handle="corevector/fourPointHandle">
+        <node description="Create an ellipse or circle." function="corevector/ellipse" image="ellipse.png" name="ellipse" position="4.00,2.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
@@ -98,7 +98,7 @@
             <port name="bounding" range="value" type="geometry" widget="none"/>
             <port name="keep_proportions" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node description="Freehand drawing." function="corevector/freehand" handle="corevector/freehandHandle" image="freehand.png" name="freehand" position="4.00,5.00" prototype="generator">
+        <node description="Draw directly on the canvas using the mouse." function="corevector/freehand" handle="corevector/freehandHandle" image="freehand.png" name="freehand" position="4.00,5.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string"/>
         </node>
         <node category="geometry" description="A network of geometry nodes." image="geonet.png" name="geonet" outputType="geometry" position="14.00,1.00"/>
@@ -117,11 +117,11 @@
             <port name="centered" range="value" type="boolean" value="true" widget="toggle"/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
-        <node description="Draw a line between two points." function="corevector/line" handle="corevector/lineHandle" image="line.png" name="line" position="7.00,7.00" prototype="generator">
+        <node description="Create a line between two points." function="corevector/line" handle="corevector/lineHandle" image="line.png" name="line" position="7.00,7.00" prototype="generator">
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Draw a line between a point and angle and distance." function="corevector/lineAngle" handle="corevector/lineAngleHandle" image="line_angle.png" name="line_angle" position="4.00,7.00" prototype="generator">
+        <node description="Draw a line between one point and an angle + distance." function="corevector/lineAngle" handle="corevector/lineAngleHandle" image="line_angle.png" name="line_angle" position="4.00,7.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
             <port name="distance" range="value" type="float" value="100.0" widget="float"/>
@@ -147,7 +147,7 @@
             <port name="t" range="value" type="float" value="0.0" widget="float"/>
             <port name="range" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Draw a polygon." function="pyvector/polygon" handle="pyvector/handle_polygon" image="polygon.png" name="polygon" position="4.00,4.00" prototype="generator">
+        <node description="Create a multi-sided polygon." function="pyvector/polygon" handle="pyvector/handle_polygon" image="polygon.png" name="polygon" position="4.00,4.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port min="0.0" name="radius" range="value" type="float" value="100.0" widget="float"/>
             <port min="3.0" name="sides" range="value" type="int" value="3" widget="int"/>
@@ -159,13 +159,13 @@
             <port name="t" range="value" type="float" value="50.0" widget="float"/>
             <port name="distance" range="value" type="float" value="50.0" widget="float"/>
         </node>
-        <node description="Create a rectangle or rounded rectangle." function="corevector/rect" image="rect.png" name="rect" position="4.00,1.00" prototype="generator" handle="corevector/fourPointHandle">
+        <node description="Create a rectangle, square or rounded rectangle." function="corevector/rect" image="rect.png" name="rect" position="4.00,1.00" prototype="generator" handle="corevector/fourPointHandle">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="width" range="value" type="float" value="100.0" widget="float"/>
             <port name="height" range="value" type="float" value="100.0" widget="float"/>
             <port name="roundness" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
-        <node description="Mirrors and copies the geometry across an invisible axis." function="pyvector/reflect" handle="pyvector/handle_reflect" image="reflect.png" name="reflect" position="7.00,15.00" prototype="filter">
+        <node description="Mirror the geometry around an invisible axis." function="pyvector/reflect" handle="pyvector/handle_reflect" image="reflect.png" name="reflect" position="7.00,15.00" prototype="filter">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="angle" range="value" type="float" value="120.0" widget="float"/>
             <port name="keep_original" range="value" type="boolean" value="true" widget="toggle"/>
@@ -223,7 +223,7 @@
             <port name="outer" range="value" type="float" value="200.0" widget="float"/>
             <port name="inner" range="value" type="float" value="100.0" widget="float"/>
         </node>
-        <node description="Text following a path" function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="filter">
+        <node description="Create a text path that follows a shape." function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="filter">
             <port name="text" range="value" type="string" value="text following a path" widget="string"/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font"/>
             <port name="font_size" range="value" type="float" value="24.0" widget="float"/>
