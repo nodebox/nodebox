@@ -58,9 +58,10 @@ public class DataFunctions {
      * @param fileName           The file to read in.
      * @param delimiter          The name of the character delimiting column values.
      * @param quotationCharacter The name of the character acting as the quotation separator.
+     * @param numberSeparator    The character used to separate the fractional part.
      * @return A list of maps.
      */
-    public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter, String floatSeparator) {
+    public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter, String numberSeparator) {
         if (fileName == null || fileName.trim().isEmpty()) return ImmutableList.of();
         try {
             InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
@@ -101,7 +102,7 @@ public class DataFunctions {
                     String v = row[i].trim();
                     Object value;
                     try {
-                        NumberFormat nf = NumberFormat.getInstance(floatSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
+                        NumberFormat nf = NumberFormat.getInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
                         value = nf.parse(v).doubleValue();
                     } catch (ParseException e) {
                         value = v;

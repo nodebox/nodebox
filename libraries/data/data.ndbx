@@ -15,7 +15,7 @@
                 <menu key="double" label="&quot;"/>
                 <menu key="single" label="'"/>
             </port>
-            <port name="floats" range="value" type="string" value="period" widget="menu" description="The character used to separate the fractional part.">
+            <port name="number_separator" range="value" type="string" value="period" widget="menu" description="The character used to separate the fractional part.">
                 <menu key="period" label="."/>
                 <menu key="comma" label=","/>
             </port>
