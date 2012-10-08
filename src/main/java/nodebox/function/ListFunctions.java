@@ -146,6 +146,7 @@ public class ListFunctions {
         if (iterable == null) return ImmutableList.of();
         int listSize = Iterables.size(iterable);
         if (listSize == 0) return ImmutableList.of();
+        while (amount < 0) amount += listSize;
         int a = (int) amount % listSize;
         if (a == 0) return ImmutableList.copyOf(iterable);
         Iterable<?> tail = Iterables.skip(iterable, a);
