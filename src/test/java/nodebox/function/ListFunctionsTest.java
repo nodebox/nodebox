@@ -142,13 +142,14 @@ public class ListFunctionsTest {
 
     @Test
     public void testRepeat() {
-        assertElements(ListFunctions.repeat(ImmutableList.of(), 0));
-        assertElements(ListFunctions.repeat(ImmutableList.of(), 10));
-        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), -1));
-        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 0));
-        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 1), 1, 2, 3);
-        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 2), 1, 2, 3, 1, 2, 3);
-        assertElements(ListFunctions.repeat(ImmutableList.of(1), 5), 1, 1, 1, 1, 1);
+        assertElements(ListFunctions.repeat(ImmutableList.of(), 0, false));
+        assertElements(ListFunctions.repeat(ImmutableList.of(), 10, false));
+        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), -1, false));
+        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 0, false));
+        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 1, false), 1, 2, 3);
+        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 2, false), 1, 2, 3, 1, 2, 3);
+        assertElements(ListFunctions.repeat(ImmutableList.of(1, 2, 3), 2, true), 1, 1, 2, 2, 3, 3);
+        assertElements(ListFunctions.repeat(ImmutableList.of(1), 5, false), 1, 1, 1, 1, 1);
     }
 
     @Test(expected = IllegalArgumentException.class)

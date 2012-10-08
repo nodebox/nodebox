@@ -35,6 +35,7 @@
         <node description="Repeat the list a number of times." function="list/repeat" image="repeat.png" name="repeat" outputRange="list" outputType="list" position="4.00,7.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="amount" range="value" type="int" value="1" widget="int" description="The amount of times to repeat the list."/>
+            <port name="per_item" range="value" type="boolean" value="false" widget="toggle" description="Repeat items one after another."/>
         </node>
         <node description="Take all but the first item of the list." function="list/rest" image="rest.png" name="rest" outputRange="list" outputType="list" position="1.00,6.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>

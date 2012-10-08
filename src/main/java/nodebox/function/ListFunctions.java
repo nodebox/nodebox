@@ -185,16 +185,29 @@ public class ListFunctions {
      *
      * @param iterable The list items.
      * @param amount   The amount of repetitions.
+     * @param perItem  Repeats the items one after another, e.g. aabbcc instead of ababab (the default).
      * @return A new list with the items repeated.
      */
-    public static List<?> repeat(Iterable<?> iterable, long amount) {
+    public static List<?> repeat(Iterable<?> iterable, long amount, boolean perItem) {
         if (iterable == null) return ImmutableList.of();
         if (amount < 1) return ImmutableList.of();
-        Iterable<?>[] iterables = new Iterable<?>[(int) amount];
-        for (int i = 0; i < amount; i++) {
-            iterables[i] = iterable;
+        if (amount == 1) return ImmutableList.copyOf(iterable);
+        if (perItem) {
+            Iterator iterator = iterable.iterator();
+            ImmutableList.Builder<Object> builder = ImmutableList.builder();
+            while (iterator.hasNext()) {
+                Object o = iterator.next();
+                for (int i = 0; i < amount; i++)
+                    builder.add(o);
+            }
+            return builder.build();
+        } else {
+            Iterable<?>[] iterables = new Iterable<?>[(int) amount];
+            for (int i = 0; i < amount; i++) {
+                iterables[i] = iterable;
+            }
+            return ImmutableList.copyOf(Iterables.concat(iterables));
         }
-        return ImmutableList.copyOf(Iterables.concat(iterables));
     }
 
     /**
