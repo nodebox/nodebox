@@ -37,8 +37,7 @@ public class MathFunctions {
                 "makeNumbers", "randomNumbers", "toInteger",
                 "sample", "range",
                 "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos", "pi", "e",
-                "convertRange", "wave",
-                "slowNumber");
+                "convertRange", "wave");
     }
 
     public static double number(double n) {
@@ -335,15 +334,6 @@ public class MathFunctions {
 
     public static double e() {
         return Math.E;
-    }
-
-    public static double slowNumber(double n) {
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ignored) {
-            return -999;
-        }
-        return n;
     }
 
     public static double convertRange(double value, double srcMin, double srcMax, double targetMin, double targetMax, String overflowMethod) {

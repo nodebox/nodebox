@@ -133,9 +133,6 @@
         <node category="math" description="Calculate the trigonometric sine of an angle." function="math/sin" image="generic.png" name="sin" position="4.00,8.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node category="math" description="Test node that takes 1 second to calculate a number." function="math/slowNumber" image="generic.png" name="slow_number" position="13.00,8.00">
-            <port name="value" range="value" type="float" value="0.0" widget="float"/>
-        </node>
         <node category="math" description="Calculate the square root of a number." function="math/sqrt" image="sqrt.png" name="sqrt" position="7.00,7.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
