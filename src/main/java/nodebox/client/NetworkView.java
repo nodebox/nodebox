@@ -945,10 +945,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
                 pMenu.add(new GoToPortAction(nodePort));
 
             pMenu.show(this, e.getX(), e.getY());
-        } else if (selectedNodes.size() > 1) {
-            JPopupMenu pMenu = new JPopupMenu();
-            pMenu.add(new GroupIntoNetworkAction(pointToGridPoint(e.getPoint())));
-            pMenu.show(this, e.getX(), e.getY());
         } else {
             Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
             if (pressedNode != null) {
