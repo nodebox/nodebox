@@ -3,23 +3,23 @@
     <link href="java:nodebox.function.StringFunctions" rel="functions"/>
     <node description="Create and manipulate text." name="root" renderedChild="length">
         <node description="Create a string value that can be used as a variable." function="string/string" name="string" outputType="string" position="1.00,3.00" category="string">
-            <port name="value" type="string"/>
+            <port name="value" type="string" description="The input string."/>
         </node>
         <node description="Add strings together." function="string/concatenate" name="concatenate" outputType="string" position="1.00,3.00" category="string">
-            <port name="string1" range="value" type="string" value="" widget="string"/>
-            <port name="string2" range="value" type="string" value="" widget="string"/>
-            <port name="string3" range="value" type="string" value="" widget="string"/>
-            <port name="string4" range="value" type="string" value="" widget="string"/>
+            <port name="string1" range="value" type="string" value="" widget="string" description="The first string."/>
+            <port name="string2" range="value" type="string" value="" widget="string" description="The second string."/>
+            <port name="string3" range="value" type="string" value="" widget="string" description="The third string."/>
+            <port name="string4" range="value" type="string" value="" widget="string" description="The fourth string."/>
         </node>
         <node description="Count the number of characters in a string." function="string/length" name="length" outputType="int" position="1.00,2.00" category="string">
-            <port name="string" range="value" type="string" value="" widget="string"/>
+            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
         </node>
         <node description="Create a list of strings." function="string/makeStrings" name="make_strings" outputRange="list" outputType="string" position="1.00,1.00" category="string">
-            <port name="string" range="value" type="string" value="Alpha;Beta;Gamma" widget="string"/>
-            <port name="separator" range="value" type="string" value=";" widget="string"/>
+            <port name="string" range="value" type="string" value="Alpha;Beta;Gamma" widget="string" description="The input string."/>
+            <port name="separator" range="value" type="string" value=";" widget="string" description="The character that separates the numbers."/>
         </node>
         <node description="Count the number of words in a string." function="string/wordCount" name="word_count" outputType="int" position="1.00,4.00" category="string">
-            <port name="string" range="value" type="string" value="" widget="string"/>
+            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
         </node>
     </node>
 </ndbx>
