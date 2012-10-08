@@ -12,7 +12,7 @@
   !define APPVERSION "snapshot"
 !endif
 !define APPNAMEANDVERSION "${APPNAME} ${APPVERSION}"
-!define APPWEBSITE "http://beta.nodebox.net/"
+!define APPWEBSITE "http://nodebox.net/"
 
 ;--------------------------------
 ; General
@@ -45,7 +45,7 @@ SetDatablockOptimize On
 !insertmacro MUI_PAGE_INSTFILES
 
 !define MUI_FINISHPAGE_LINK "Visit the NodeBox site for documentation and support"
-!define MUI_FINISHPAGE_LINK_LOCATION "http://beta.nodebox.net/"
+!define MUI_FINISHPAGE_LINK_LOCATION "http://nodebox.net/"
 
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_TEXT "Run ${APPNAME}"
@@ -58,7 +58,7 @@ SetDatablockOptimize On
 ;--------------------------------
 ; Language and Branding
 !insertmacro MUI_LANGUAGE "English"
-BrandingText "http://beta.nodebox.net/"
+BrandingText "${APPNAMEANDVERSION}"
 
 ;--------------------------------
 ; Sections
