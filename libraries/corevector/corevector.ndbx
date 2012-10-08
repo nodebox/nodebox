@@ -121,7 +121,7 @@
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
         </node>
-        <node description="Draw a line between one point and an angle + distance." function="corevector/lineAngle" handle="corevector/lineAngleHandle" image="line_angle.png" name="line_angle" position="4.00,7.00" prototype="generator">
+        <node description="Create a line between one point and an angle + distance." function="corevector/lineAngle" handle="corevector/lineAngleHandle" image="line_angle.png" name="line_angle" position="4.00,7.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
             <port name="distance" range="value" type="float" value="100.0" widget="float"/>
@@ -138,7 +138,7 @@
             <port name="x" range="value" type="float" value="0.0" widget="float"/>
             <port name="y" range="value" type="float" value="0.0" widget="float"/>
         </node>
-        <node description="Does nothing." function="corevector/doNothing" image="null.png" name="null" position="4.00,13.00" prototype="filter"/>
+        <node description="Do nothing." function="corevector/doNothing" image="null.png" name="null" position="4.00,13.00" prototype="filter"/>
         <node category="geometry" description="Create a point value that can be used as a variable." function="corevector/point" image="make_point.png" name="point" outputType="point" position="10.00,3.00">
             <port name="value" range="value" type="point" value="0.00,0.00" widget="point"/>
         </node>
