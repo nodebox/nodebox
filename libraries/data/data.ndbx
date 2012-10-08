@@ -3,26 +3,26 @@
     <link href="java:nodebox.function.DataFunctions" rel="functions"/>
     <node description="Import and manipulate all kinds of data." name="root" renderedChild="lookup">
         <node description="Import a comma-separated value file containing tabular data." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00" category="data">
-            <port name="file" range="value" type="string" value="" widget="file"/>
-            <port name="delimiter" range="value" type="string" value="comma" widget="menu">
+            <port name="file" range="value" type="string" value="" widget="file" description="The CSV file."/>
+            <port name="delimiter" range="value" type="string" value="comma" widget="menu" description="The character used to separate columns.">
                 <menu key="comma" label=","/>
                 <menu key="semicolon" label=";"/>
                 <menu key="colon" label=":"/>
                 <menu key="tab" label="Tab"/>
                 <menu key="space" label="Space"/>
             </port>
-            <port name="quotes" range="value" type="string" value="double" widget="menu">
+            <port name="quotes" range="value" type="string" value="double" widget="menu" description="The type of quotes used in the file.">
                 <menu key="double" label="&quot;"/>
                 <menu key="single" label="'"/>
             </port>
-            <port name="floats" range="value" type="string" value="period" widget="menu">
+            <port name="floats" range="value" type="string" value="period" widget="menu" description="The character used to separate the fractional part.">
                 <menu key="period" label="."/>
                 <menu key="comma" label=","/>
             </port>
         </node>
-        <node description="Look up a value." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
-            <port name="list" range="value" type="list" widget="none"/>
-            <port name="key" range="value" type="string" value="x" widget="string"/>
+        <node description="Look up a value in a table or object." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
+            <port name="list" range="value" type="list" widget="none" description="The input value."/>
+            <port name="key" range="value" type="string" value="x" widget="string" description="The key to lookup."/>
         </node>
     </node>
 </ndbx>
