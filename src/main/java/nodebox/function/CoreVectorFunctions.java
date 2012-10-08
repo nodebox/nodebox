@@ -25,7 +25,7 @@ public class CoreVectorFunctions {
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
                 "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "point", "pointOnPath", "rect",
-                "snap", "toPoints", "ungroup", "textpath",
+                "snap", "skew", "toPoints", "ungroup", "textpath",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "snapHandle",
                 "translateHandle");
     }
@@ -456,6 +456,23 @@ public class CoreVectorFunctions {
         if (shape == null) return null;
         t = Math.abs(t % range);
         return shape.pointAt(t / range);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object skew(Object shape, Point skew, Point origin) {
+        if (shape == null) return null;
+        Transform t = new Transform();
+        t.translate(origin);
+        t.skew(skew.x, skew.y);
+        t.translate(-origin.x, -origin.y);
+
+        if (shape instanceof IGeometry) {
+            return t.map((IGeometry) shape);
+        } else if (shape instanceof List) {
+            return t.map((List<Point>) shape);
+        } else {
+            throw new UnsupportedOperationException("I cannot work with " + shape.getClass().getSimpleName() + " objects.");
+        }
     }
 
     /**

@@ -205,6 +205,10 @@
             <port max="100.0" min="0.0" name="start" range="value" type="float" value="0.0" widget="float"/>
             <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
+        <node description="Skew the shape." function="corevector/skew" image="skew.png" name="skew" prototype="filter">
+            <port name="skew" range="value" type="point" value="0.0,0.0" widget="point"/>
+            <port name="origin" range="value" type="point" value="0.0,0.0" widget="point"/>
+        </node>
         <node description="Snap geometry to a grid." function="corevector/snap" handle="corevector/snapHandle" image="snap.png" name="snap" position="10.00,11.00" prototype="filter">
             <port min="1.0" name="distance" range="value" type="float" value="10.0" widget="float"/>
             <port max="100.0" min="0.0" name="strength" range="value" type="float" value="100.0" widget="float"/>
