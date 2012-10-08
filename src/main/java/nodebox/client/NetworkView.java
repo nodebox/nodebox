@@ -787,30 +787,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
-            Point pt = e.getPoint();
-            NodePort nodePort = getInputPortAt(inverseViewTransformPoint(pt));
-            if (nodePort != null) {
-                JPopupMenu pMenu = new JPopupMenu();
-                pMenu.add(new PublishAction(nodePort));
-
-                if (findNodeWithName(nodePort.getNode()).hasPublishedInput(nodePort.getPort()))
-                    pMenu.add(new GoToPortAction(nodePort));
-
-                pMenu.show(this, e.getX(), e.getY());
-            } else if (selectedNodes.size() > 1) {
-                JPopupMenu pMenu = new JPopupMenu();
-                pMenu.add(new GroupIntoNetworkAction(pointToGridPoint(e.getPoint())));
-                pMenu.show(this, e.getX(), e.getY());
-            } else {
-                Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
-                if (pressedNode != null) {
-                    nodeMenuLocation = pt;
-                    nodeMenu.show(this, e.getX(), e.getY());
-                } else {
-                    networkMenuLocation = pt;
-                    networkMenu.show(this, e.getX(), e.getY());
-                }
-            }
+            showPopup(e);
         } else {
             // If the space bar and mouse is pressed, we're getting ready to pan the view.
             if (isSpacePressed) {
@@ -862,7 +839,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         }
         connectionOutput = null;
         if (e.isPopupTrigger()) {
-            networkMenu.show(this, e.getX(), e.getY());
+            showPopup(e);
         }
         repaint();
     }
@@ -955,6 +932,33 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         double vy = viewY - (e.getY() - viewY) * (scaleDelta - 1);
         setViewTransform(vx, vy, viewScale * scaleDelta);
         repaint();
+    }
+
+    private void showPopup(MouseEvent e) {
+        Point pt = e.getPoint();
+        NodePort nodePort = getInputPortAt(inverseViewTransformPoint(pt));
+        if (nodePort != null) {
+            JPopupMenu pMenu = new JPopupMenu();
+            pMenu.add(new PublishAction(nodePort));
+
+            if (findNodeWithName(nodePort.getNode()).hasPublishedInput(nodePort.getPort()))
+                pMenu.add(new GoToPortAction(nodePort));
+
+            pMenu.show(this, e.getX(), e.getY());
+        } else if (selectedNodes.size() > 1) {
+            JPopupMenu pMenu = new JPopupMenu();
+            pMenu.add(new GroupIntoNetworkAction(pointToGridPoint(e.getPoint())));
+            pMenu.show(this, e.getX(), e.getY());
+        } else {
+            Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
+            if (pressedNode != null) {
+                nodeMenuLocation = pt;
+                nodeMenu.show(this, e.getX(), e.getY());
+            } else {
+                networkMenuLocation = pt;
+                networkMenu.show(this, e.getX(), e.getY());
+            }
+        }
     }
 
     private ImmutableMap<String, nodebox.graphics.Point> selectedNodePositions() {
