@@ -16,8 +16,8 @@
 
 ;--------------------------------
 ; General
-Name "${APPNAMEANDVERSION}"
-OutFile "dist\nodebox-${APPVERSION}-setup.exe"
+Name "${APPNAME}"
+OutFile "dist\NodeBoxSetup.exe"
 InstallDir "$PROGRAMFILES\${APPNAME}"
 InstallDirRegKey HKCU "Software\${APPNAME}" ""
 RequestExecutionLevel admin
