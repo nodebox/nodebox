@@ -10,7 +10,7 @@
             <port name="alpha" range="value" type="float" value="255.0" widget="float" description="The alpha transparency of the color."/>
             <port name="range" range="value" type="float" value="255.0" widget="float" description="The upper limit of the input values."/>
         </node>
-        <node description="Create an HSB color." function="color/hsb" name="hsb_color" outputType="color" position="1.00,1.00" category="color">
+        <node description="Create a HSB color." function="color/hsb" name="hsb_color" outputType="color" position="1.00,1.00" category="color">
             <port name="hue" range="value" type="float" value="0.0" widget="float" description="The hue or tint of the color."/>
             <port name="saturation" range="value" type="float" value="0.0" widget="float" description="The saturation or intensity of the color."/>
             <port name="brightness" range="value" type="float" value="0.0" widget="float" description="The brightness or vividness of the color."/>
