@@ -72,6 +72,7 @@ public class Theme {
     public static Font SMALL_FONT;
     public static Font SMALL_BOLD_FONT;
     public static Font SMALL_MONO_FONT;
+    public static Font NETWORK_FONT;
 
     public static final int LABEL_WIDTH = 114;
 
@@ -100,6 +101,7 @@ public class Theme {
         if (Platform.onMac()) {
             EDITOR_FONT = new Font("Monaco", Font.PLAIN, 11);
             MESSAGE_FONT = new Font("Lucida Grande", Font.BOLD, 13);
+            NETWORK_FONT = new Font("Lucida Grande", Font.PLAIN, 13);
             INFO_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
             SMALL_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
             SMALL_BOLD_FONT = new Font("Lucida Grande", Font.BOLD, 11);
@@ -107,6 +109,7 @@ public class Theme {
         } else {
             EDITOR_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 11);
             MESSAGE_FONT = new Font("Verdana", Font.BOLD, 11);
+            NETWORK_FONT = new Font("Verdana", Font.PLAIN, 11);
             INFO_FONT = new Font("Verdana", Font.PLAIN, 10);
             SMALL_FONT = new Font("Verdana", Font.PLAIN, 10);
             SMALL_BOLD_FONT = new Font("Verdana", Font.BOLD, 10);

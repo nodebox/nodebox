@@ -41,7 +41,6 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
     public static final int PORT_SPACING = 10;
-    public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
     public static final String HIGHLIGHT_PROPERTY = "highlight";
@@ -376,31 +375,45 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
+    private static int getNodeWidth(Node node) {
+        nodebox.graphics.Text text = new nodebox.graphics.Text(node.getName(), nodebox.graphics.Point.ZERO);
+        text.setFontName(Theme.NETWORK_FONT.getFontName());
+        text.setFontSize(Theme.NETWORK_FONT.getSize());
+        int cells = Math.min(Math.max(3, 1 + (int) Math.ceil(text.getMetrics().getWidth() / (GRID_CELL_SIZE - 6))), 6);
+        return GRID_CELL_SIZE * cells - NODE_MARGIN * 2;
+    }
+
+    private static Dimension getNodeDimension(Node node) {
+        return new Dimension(getNodeWidth(node), NODE_HEIGHT);
+    }
+
     private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
+        int nodeWidth = getNodeWidth(node);
+
         // Draw selection ring
         if (selected) {
             g.setColor(Color.WHITE);
-            g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
+            g.fillRect(r.x, r.y, nodeWidth, NODE_HEIGHT);
         }
 
         // Draw node
         g.setColor(portTypeColor(outputType));
         if (selected) {
-            g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
+            g.fillRect(r.x + 2, r.y + 2, nodeWidth - 4, NODE_HEIGHT - 4);
         } else {
-            g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
+            g.fillRect(r.x, r.y, nodeWidth, NODE_HEIGHT);
         }
 
         // Draw render flag
         if (rendered) {
             g.setColor(Color.WHITE);
             GeneralPath gp = new GeneralPath();
-            gp.moveTo(r.x + NODE_WIDTH - 2, r.y + NODE_HEIGHT - 20);
-            gp.lineTo(r.x + NODE_WIDTH - 2, r.y + NODE_HEIGHT - 2);
-            gp.lineTo(r.x + NODE_WIDTH - 20, r.y + NODE_HEIGHT - 2);
+            gp.moveTo(r.x + nodeWidth - 2, r.y + NODE_HEIGHT - 20);
+            gp.lineTo(r.x + nodeWidth - 2, r.y + NODE_HEIGHT - 2);
+            gp.lineTo(r.x + nodeWidth - 20, r.y + NODE_HEIGHT - 2);
             g.fill(gp);
         }
 
@@ -447,6 +460,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         // Draw icon
         g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING, NODE_ICON_SIZE, NODE_ICON_SIZE, null);
         g.setColor(Color.WHITE);
+        g.setFont(Theme.NETWORK_FONT);
         g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
     }
 
@@ -506,7 +520,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     private static Rectangle nodeRect(Node node) {
-        return new Rectangle(nodePoint(node), NODE_DIMENSION);
+        return new Rectangle(nodePoint(node), getNodeDimension(node));
     }
 
     private static Rectangle inputPortRect(Node node, Port port) {
