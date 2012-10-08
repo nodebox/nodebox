@@ -6,8 +6,8 @@
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
         <node category="math" description="Add two numbers." function="math/add" image="add.png" name="add" position="4.00,2.00">
-            <port name="value1" range="value" type="float" value="0.0" widget="float" description="Input value 1."/>
-            <port name="value2" range="value" type="float" value="0.0" widget="float" description="Input value 2."/>
+            <port name="value1" range="value" type="float" value="0.0" widget="float" description="The first value."/>
+            <port name="value2" range="value" type="float" value="0.0" widget="float" description="The second value."/>
         </node>
         <node category="math" description="Calculate the angle between two points." function="math/angle" image="angle.png" name="angle" position="10.00,4.00">
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point" description="The first point."/>
