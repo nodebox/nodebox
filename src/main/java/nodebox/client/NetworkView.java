@@ -376,6 +376,16 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
+    private static String getShortenedName(String name, int startChars) {
+        nodebox.graphics.Text text = new nodebox.graphics.Text(name, nodebox.graphics.Point.ZERO);
+        text.setFontName(Theme.NETWORK_FONT.getFontName());
+        text.setFontSize(Theme.NETWORK_FONT.getSize());
+        int cells = Math.min(Math.max(3, 1 + (int) Math.ceil(text.getMetrics().getWidth() / (GRID_CELL_SIZE - 6))), 6);
+        if (cells > 3)
+            return getShortenedName(name.substring(0, startChars) + "…" +  name.substring(name.length() - 3, name.length()), startChars - 1);
+        return name;
+    }
+
     private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
@@ -447,7 +457,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         // Draw icon
         g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING, NODE_ICON_SIZE, NODE_ICON_SIZE, null);
         g.setColor(Color.WHITE);
-        g.drawString(node.getName(), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
+        g.setFont(Theme.NETWORK_FONT);
+        g.drawString(getShortenedName(node.getName(), 7), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
     }
 
     private void paintPortTooltip(Graphics2D g) {
