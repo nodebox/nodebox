@@ -26,9 +26,9 @@
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the arc."/>
             <port name="width" range="value" type="float" value="100.0" widget="float" description="The width of the arc."/>
             <port name="height" range="value" type="float" value="100.0" widget="float" description="The height of the arc."/>
-            <port name="start_angle" range="value" type="float" value="0.0" widget="float" description="The starting angle of the arc."/>
-            <port name="degrees" range="value" type="float" value="45.0" widget="float" description="The amount of degrees."/>
-            <port name="type" range="value" type="string" value="pie" widget="menu" description="The arc type.">
+            <port name="start_angle" range="value" type="float" value="0.0" widget="float" description="The starting angle of the arc. 0 degrees is at 3 o'clock."/>
+            <port name="degrees" range="value" type="float" value="45.0" widget="float" description="The amount of degrees of the arc."/>
+            <port name="type" range="value" type="string" value="pie" widget="menu" description="The type of arc: pie, chord or open.">
                 <menu key="pie" label="Pie"/>
                 <menu key="chord" label="Chord"/>
                 <menu key="open" label="Open"/>
