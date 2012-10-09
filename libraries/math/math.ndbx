@@ -16,7 +16,7 @@
         <node category="math" description="Calculate the average of a list of numbers." function="math/average" image="average.png" name="average" position="7.00,3.00">
             <port name="values" range="list" type="float" value="0.0" widget="float" description="The list of numbers."/>
         </node>
-        <node category="math" description="Create a boolean value that can be used as a variable." function="math/makeBoolean" image="generic.png" name="boolean" outputType="boolean" position="4.00,7.00">
+        <node category="math" description="Create a boolean value that can be used as a variable." function="math/makeBoolean" image="boolean.png" name="boolean" outputType="boolean" position="4.00,7.00">
             <port name="value" range="value" type="boolean" value="false" widget="toggle" description="The input value."/>
         </node>
         <node category="math" description="Round up the value of a number." function="math/ceil" image="generic.png" name="ceil" position="7.00,3.00">
@@ -83,7 +83,7 @@
         <node category="math" description="Select the largest value from a list of numbers." function="math/max" image="max.png" name="max" position="7.00,2.00">
             <port name="values" range="list" type="float" value="0.0" widget="float" description="The list of numbers."/>
         </node>
-        <node category="math" description="Select the smallest value from a list of numbers." function="math/min" image="generic.png" name="min" position="7.00,1.00">
+        <node category="math" description="Select the smallest value from a list of numbers." function="math/min" image="min.png" name="min" position="7.00,1.00">
             <port name="values" range="list" type="float" value="0.0" widget="float" description="The list of numbers."/>
         </node>
         <node category="math" description="Calculate the modulo by dividing two numbers and keeping the remainder." function="math/mod" image="mod.png" name="mod" position="4.00,6.00">
