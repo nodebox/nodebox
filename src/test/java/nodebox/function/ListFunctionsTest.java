@@ -73,6 +73,10 @@ public class ListFunctionsTest {
         assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), 2), 3, 1, 2);
         assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), 3), 1, 2, 3);
         assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), 4), 2, 3, 1);
+        assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), -1), 3, 1, 2);
+        assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), -2), 2, 3, 1);
+        assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), -3), 1, 2, 3);
+        assertElements(ListFunctions.shift(ImmutableList.of(1, 2, 3), -4), 3, 1, 2);
     }
 
     @Test
