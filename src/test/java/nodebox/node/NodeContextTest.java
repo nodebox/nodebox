@@ -560,6 +560,7 @@ public class NodeContextTest {
                 .withFunction("list/repeat")
                 .withInputAdded(Port.customPort("value", "list").withRange(Port.Range.LIST))
                 .withInputAdded(Port.intPort("amount", 3))
+                .withInputAdded(Port.booleanPort("per_item", false))
                 .withOutputRange(Port.Range.LIST);
 
         Node repeatNet = Node.NETWORK
