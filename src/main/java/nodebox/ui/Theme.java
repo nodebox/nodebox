@@ -101,7 +101,7 @@ public class Theme {
         if (Platform.onMac()) {
             EDITOR_FONT = new Font("Monaco", Font.PLAIN, 11);
             MESSAGE_FONT = new Font("Lucida Grande", Font.BOLD, 13);
-            NETWORK_FONT = new Font("Lucida Grande", Font.PLAIN, 13);
+            NETWORK_FONT = new Font("Lucida Grande", Font.PLAIN, 12);
             INFO_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
             SMALL_FONT = new Font("Lucida Grande", Font.PLAIN, 11);
             SMALL_BOLD_FONT = new Font("Lucida Grande", Font.BOLD, 11);
