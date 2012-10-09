@@ -253,7 +253,96 @@ def draw_path(path_data):
     p.strokeColor = Color()
     return p
 
-# TODO distribute
+def left(shape):
+    return shape.bounds.x
+
+def center(shape):
+    x, y, width, height = shape.bounds
+    return x + width / 2
+
+def right(shape):
+    x, y, width, height = shape.bounds
+    return x + width
+
+def top(shape):
+    return shape.bounds.y
+
+def middle(shape):
+    x, y, width, height = shape.bounds
+    return y + height / 2
+
+def bottom(shape):
+    x, y, width, height = shape.bounds
+    return y + height
+
+def cmpfactory(fn):
+    def _cmp(shape1, shape2):
+        return cmp(fn(shape1), fn(shape2))
+    return _cmp
+
+def find_extrema(shapes, fn):
+    l = list(shapes)
+    l.sort(cmpfactory(fn))
+    return l[0], l[-1]
+
+def translateX(shape, x):
+    t = Transform()
+    t.translate(x, 0)
+    return t.map(shape)
+
+def translateY(shape, y):
+    t = Transform()
+    t.translate(0, y)
+    return t.map(shape)
+
+def _distribute(shapes, main_fn):
+    if main_fn in [left, right, center]:
+        ext1_fn, ext2_fn, translate = left, right, translateX
+    elif main_fn in [top, bottom, middle]:
+        ext1_fn, ext2_fn, translate = top, bottom, translateY
+
+    sorted_shapes = list(shapes)
+    sorted_shapes.sort(cmpfactory(main_fn))
+    extremum1 = find_extrema(shapes, ext1_fn)[0]
+    extremum2 = find_extrema(shapes, ext2_fn)[1]
+    extrema = [extremum1, extremum2]
+    outer1 = main_fn(extremum1)
+    outer2 = main_fn(extremum2)
+    skip = (outer2 - outer1) / (len(shapes) - 1)
+    d = dict([(shape, i) for (i, shape) in enumerate(sorted_shapes)])
+    i_e1 = d[extremum1]
+    i_e2 = d[extremum2]
+
+    new_shapes = []
+    for shape in shapes:
+        if shape in extrema:
+            new_shapes.append(shape.clone())
+        else:
+            i = d[shape]
+            if i < i_e1: i += 1
+            if i > i_e2: i -= 1
+            new_shape = translate(shape, outer1 + (i * skip) - main_fn(shape))
+            new_shapes.append(new_shape)
+    return new_shapes
+
+def distribute(shapes, horizontal, vertical):
+    if shapes is None: return None
+    if len(shapes) < 3 or \
+        (horizontal == "none" and vertical == "none"):
+            return [shape.clone() for shape in shapes]
+
+    d = { "left": left, "right": right, "center": center,
+          "top": top, "bottom": bottom, "middle": middle }
+
+    if horizontal == "none":
+        new_shapes = [shape.clone() for shape in shapes]
+    else:
+        new_shapes = _distribute(shapes, d[horizontal])
+
+    if vertical != "none":
+        new_shapes = _distribute(new_shapes, d[vertical])
+
+    return new_shapes
 
 def edit(shape, point_deltas):
     """Edit points non-destructively."""
