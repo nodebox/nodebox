@@ -3,7 +3,6 @@ package nodebox.client;
 import nodebox.client.port.*;
 import nodebox.node.Node;
 import nodebox.node.Port;
-import nodebox.ui.Pane;
 import nodebox.ui.PaneView;
 import nodebox.ui.Theme;
 
@@ -44,11 +43,11 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     }
 
     private final NodeBoxDocument document;
-    private final Pane pane;
+    private final PortPane pane;
     private JPanel controlPanel;
     private Map<String, PortControl> controlMap = new HashMap<String, PortControl>();
 
-    public PortView(Pane pane, NodeBoxDocument document) {
+    public PortView(PortPane pane, NodeBoxDocument document) {
         this.pane = pane;
         this.document = document;
         setLayout(new BorderLayout());
@@ -74,6 +73,12 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
      * Fully rebuild the port view.
      */
     public void updateAll() {
+        Node activeNode = getActiveNode();
+        if (activeNode == null) {
+            pane.setHeaderTitle("Ports");
+        } else {
+            pane.setHeaderTitle(activeNode.getName());
+        }
         rebuildInterface();
         validate();
         repaint();

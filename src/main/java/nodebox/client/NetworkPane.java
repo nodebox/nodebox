@@ -23,7 +23,7 @@ public class NetworkPane extends Pane {
     public NetworkPane(NodeBoxDocument document) {
         this.document = document;
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        paneHeader = new PaneHeader(this);
+        paneHeader = new PaneHeader("Network");
         paneHeader.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         NButton newNodeButton = new NButton("New Node", "res/network-new-node.png");
         newNodeButton.setToolTipText("New Node (TAB)");
@@ -57,10 +57,6 @@ public class NetworkPane extends Pane {
 
     public PaneHeader getPaneHeader() {
         return paneHeader;
-    }
-
-    public String getPaneName() {
-        return "Network";
     }
 
     public PaneView getPaneView() {

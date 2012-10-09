@@ -16,8 +16,6 @@ public abstract class Pane extends JPanel implements FocusListener {
 
     public abstract Pane duplicate();
 
-    public abstract String getPaneName();
-
     public abstract PaneHeader getPaneHeader();
 
     public abstract PaneView getPaneView();

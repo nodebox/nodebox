@@ -9,7 +9,6 @@ import nodebox.ui.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.List;
 
 public class ViewerPane extends Pane {
 
@@ -39,7 +38,7 @@ public class ViewerPane extends Pane {
         contentPanel.add(dataSheet, DATA_SHEET_CARD);
         add(contentPanel, BorderLayout.CENTER);
 
-        paneHeader = PaneHeader.withoutName(this);
+        paneHeader = PaneHeader.withoutTitle();
 
         viewerToggle = new PaneTab(new SwitchCardAction("Viewer", VIEWER_CARD, viewer));
         viewerToggle.setFont(Theme.SMALL_FONT);
@@ -95,10 +94,6 @@ public class ViewerPane extends Pane {
 
     public Pane duplicate() {
         return new ViewerPane(document);
-    }
-
-    public String getPaneName() {
-        return "Viewer";
     }
 
     public PaneHeader getPaneHeader() {

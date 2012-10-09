@@ -16,7 +16,7 @@ public class PortPane extends Pane {
     public PortPane(NodeBoxDocument document) {
         this.document = document;
         setLayout(new BorderLayout());
-        paneHeader = new PaneHeader(this);
+        paneHeader = new PaneHeader("Ports");
         NButton metadataButton = new NButton("Metadata", "res/port-metadata.png");
         metadataButton.setActionMethod(this, "editMetadata");
         paneHeader.add(metadataButton);
@@ -33,10 +33,6 @@ public class PortPane extends Pane {
         return new PortPane(document);
     }
 
-    public String getPaneName() {
-        return "Ports";
-    }
-
     public PaneHeader getPaneHeader() {
         return paneHeader;
     }
@@ -47,6 +43,10 @@ public class PortPane extends Pane {
 
     public void editMetadata() {
         document.editMetadata();
+    }
+
+    public void setHeaderTitle(String title) {
+        paneHeader.setTitle(title);
     }
 
 }

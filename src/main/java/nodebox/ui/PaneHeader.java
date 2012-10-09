@@ -19,27 +19,32 @@ public class PaneHeader extends JPanel {
         }
     }
 
-    public static PaneHeader withName(Pane pane) {
-        return new PaneHeader(pane, true);
+    public static PaneHeader withTitle(String title) {
+        return new PaneHeader(title);
     }
 
-    public static PaneHeader withoutName(Pane pane) {
-        return new PaneHeader(pane, false);
+    public static PaneHeader withoutTitle() {
+        return new PaneHeader(null);
     }
 
-    public PaneHeader(Pane pane) {
-        this(pane, true);
-    }
+    private ShadowLabel titleLabel = null;
 
-    public PaneHeader(Pane pane, boolean addNameLabel) {
+    public PaneHeader(String title) {
         super(new FlowLayout(FlowLayout.LEADING, 5, 2));
         setPreferredSize(new Dimension(9999, 25));
         setMinimumSize(new Dimension(10, 25));
         setMaximumSize(new Dimension(9999, 25));
-        if (addNameLabel) {
-            add(new PaneNameLabel(pane.getPaneName()));
+        if (title != null) {
+            titleLabel = new ShadowLabel(title);
+            add(titleLabel);
             add(new Divider());
         }
+    }
+
+    public void setTitle(String title) {
+        if (titleLabel == null)
+            throw new IllegalStateException("This pane has no title.");
+        titleLabel.setText(title);
     }
 
     @Override
@@ -47,9 +52,9 @@ public class PaneHeader extends JPanel {
         g.drawImage(paneHeaderBackground, 0, 0, getWidth(), 25, null);
     }
 
-    private final class PaneNameLabel extends JLabel {
+    private final class ShadowLabel extends JLabel {
 
-        private PaneNameLabel(String label) {
+        private ShadowLabel(String label) {
             super(label);
             Dimension d = new Dimension(103, 21);
             setMinimumSize(d);
