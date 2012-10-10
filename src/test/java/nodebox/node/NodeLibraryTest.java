@@ -354,12 +354,28 @@ public class NodeLibraryTest {
     @Test
     public void testUpgrade1to2() {
         File version1File = new File("src/test/files/upgrade-v1.ndbx");
-        UpgradeResult result = NodeLibrary.upgradeTo(version1File, "2");
+        UpgradeResult result = NodeLibrary.upgrade(version1File);
         assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"12.00,2.00\""));
         NodeLibrary upgradedLibrary = result.getLibrary(version1File, NodeRepository.of());
         Node root = upgradedLibrary.getRoot();
         Node alpha = root.getChild("alpha");
         assertEquals(new Point(12, 2), alpha.getPosition());
+    }
+
+    @Test
+    public void testUpgrade2to3() {
+        File version2File = new File("src/test/files/upgrade-v2.ndbx");
+        UpgradeResult result = NodeLibrary.upgradeTo(version2File, "3");
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version2File, NodeRepository.of(mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertTrue(root.hasChild("round2"));
+        Node round2 = root.getChild("round2");
+        assertEquals("round", round2.getPrototype().getName());
+        Node subnet1 = root.getChild("subnet1");
+        assertTrue(subnet1.hasChild("round1"));
+        Port value = subnet1.getInput("value");
+        assertEquals("round1.value", value.getChildReference());
     }
 
     /**

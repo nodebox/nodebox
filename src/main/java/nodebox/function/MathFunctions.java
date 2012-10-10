@@ -34,7 +34,7 @@ public class MathFunctions {
                 "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
                 "log","sum", "average", "compare", "min", "max", "ceil", "floor",
                 "even", "odd",
-                "makeNumbers", "randomNumbers", "toInteger",
+                "makeNumbers", "randomNumbers", "round",
                 "sample", "range",
                 "radians", "degrees", "angle", "distance", "coordinates", "reflect", "sin", "cos", "pi", "e",
                 "convertRange", "wave");
@@ -210,7 +210,7 @@ public class MathFunctions {
         return numbers.build();
     }
 
-    public static long toInteger(double a) {
+    public static long round(double a) {
         return (long) a;
     }
 

@@ -28,7 +28,7 @@ import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
 
-    public static final String CURRENT_FORMAT_VERSION = "2";
+    public static final String CURRENT_FORMAT_VERSION = "3";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
@@ -219,6 +219,7 @@ public class NodeLibrary {
 
     static {
         upgradeMap.put("1.0", upgradeMethod("upgrade1to2"));
+        upgradeMap.put("2", upgradeMethod("upgrade2to3"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -271,7 +272,7 @@ public class NodeLibrary {
                 throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too old or too new.");
             }
             try {
-                UpgradeStringResult result = (UpgradeStringResult) upgradeMethod.invoke(null, readFile(file));
+                UpgradeStringResult result = (UpgradeStringResult) upgradeMethod.invoke(null, currentXml);
                 warnings.addAll(result.warnings);
                 currentXml = result.xml;
             } catch (Exception e) {
@@ -308,12 +309,160 @@ public class NodeLibrary {
         return result;
     }
 
+    private static Set<String> getChildNodeNames(ParentNode parent) {
+        HashSet<String> names = new HashSet<String>();
+        Nodes children = parent.query("node");
+        for (int i = 0; i < children.size(); i++) {
+            nu.xom.Node childNode = children.get(i);
+            if (childNode instanceof Element) {
+                Element e = (Element) children.get(i);
+                names.add(e.getAttribute("name").getValue());
+            }
+        }
+        return names;
+    }
+
+    private static String uniqueName(String prefix, Set<String> existingNames) {
+        int counter = 1;
+        while (true) {
+            String suggestedName = prefix + counter;
+            if (!existingNames.contains(suggestedName)) {
+                return suggestedName;
+            }
+            counter++;
+        }
+    }
+
+    private static void renamePortReference(Elements elements, String attributeName, String oldNodeName, String newNodeName) {
+        for (int i = 0; i < elements.size(); i++) {
+            Element c = elements.get(i);
+            Attribute portReference = c.getAttribute(attributeName);
+            if (portReference == null) continue;
+            Iterator<String> portRefIterator = PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
+            String nodeName = portRefIterator.next();
+            String portName = portRefIterator.next();
+            if (oldNodeName.equals(nodeName)) {
+                portReference.setValue(String.format("%s.%s", newNodeName, portName));
+            }
+        }
+    }
+
+    private static void renameNodeReference(Elements elements, String attributeName, String oldNodeName, String newNodeName) {
+        for (int i = 0; i < elements.size(); i++) {
+            Element c = elements.get(i);
+            Attribute nodeRef = c.getAttribute(attributeName);
+            String nodeName = nodeRef.getValue();
+            if (oldNodeName.equals(nodeName)) {
+                nodeRef.setValue(newNodeName);
+            }
+        }
+    }
+
+    private static abstract class UpgradeOp {
+        private List<String> warnings = new ArrayList<String>();
+
+        public abstract void apply(Element e);
+
+        public void addWarning(String warning) {
+            warnings.add(warning);
+        }
+
+        public List<String> getWarnings() {
+            return warnings;
+        }
+    }
+
+    private static class ChangePrototypeOp extends UpgradeOp {
+        private String oldPrototype;
+        private String newPrototype;
+
+        private ChangePrototypeOp(String oldPrototype, String newPrototype) {
+            this.oldPrototype = oldPrototype;
+            this.newPrototype = newPrototype;
+        }
+
+        public void apply(Element e) {
+            if (e.getLocalName().equals("node")) {
+                Attribute prototype = e.getAttribute("prototype");
+                if (prototype != null && prototype.getValue().equals(oldPrototype)) {
+                    prototype.setValue(newPrototype);
+                }
+            }
+        }
+    }
+
+    private static class RenameNodeOp extends UpgradeOp {
+        private String oldPrefix;
+        private String newPrefix;
+
+        private RenameNodeOp(String oldPrefix, String newPrefix) {
+            this.oldPrefix = oldPrefix;
+            this.newPrefix = newPrefix;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (e.getLocalName().equals("node")) {
+                Attribute name = e.getAttribute("name");
+                if (name != null && name.getValue().startsWith(oldPrefix)) {
+                    String oldNodeName = name.getValue();
+                    Set<String> childNames = getChildNodeNames(e.getParent());
+                    String newNodeName = uniqueName(newPrefix, childNames);
+                    name.setValue(newNodeName);
+
+                    Element parent = (Element) e.getParent();
+                    Elements connections = parent.getChildElements("conn");
+                    renamePortReference(connections, "input", oldNodeName, newNodeName);
+                    renameNodeReference(connections, "output", oldNodeName, newNodeName);
+
+                    Elements ports = parent.getChildElements("port");
+                    renamePortReference(ports, "childReference", oldNodeName, newNodeName);
+                }
+            }
+        }
+    }
+
+    public static UpgradeStringResult upgrade2to3(String inputXml) throws LoadException {
+        UpgradeOp op1 = new ChangePrototypeOp("math.to_integer", "math.round");
+        UpgradeOp op2 = new RenameNodeOp("to_integer", "round");
+        return transformXml(inputXml, "3", op1, op2);
+    }
+
     private static UpgradeStringResult transformXml(String xml, String newFormatVersion, Function<Element, String> function) {
         try {
             Document document = new Builder().build(xml, null);
             return transformDocument(document, newFormatVersion, function);
         } catch (Exception e) {
             throw new RuntimeException("Error while upgrading to " + newFormatVersion + ".", e);
+        }
+    }
+
+    private static UpgradeStringResult transformXml(String xml, String newFormatVersion, UpgradeOp... ops) {
+        try {
+            Document document = new Builder().build(xml, null);
+
+            // Check that this is a NodeBox document and set the new formatVersion.
+            Element root = document.getRootElement();
+            checkArgument(root.getLocalName().equals("ndbx"), "This is not a valid NodeBox document.");
+            root.addAttribute(new Attribute("formatVersion", newFormatVersion));
+
+            ArrayList<String> warnings = new ArrayList<String>();
+            for (UpgradeOp op : ops) {
+                transformXmlRecursive(document.getRootElement(), op);
+                warnings.addAll(op.getWarnings());
+            }
+            return new UpgradeStringResult(document.toXML(), warnings);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while upgrading to " + newFormatVersion + ".", e);
+        }
+    }
+
+    private static void transformXmlRecursive(Element e, UpgradeOp op) {
+        op.apply(e);
+        Elements children = e.getChildElements();
+        for (int i = 0; i < children.size(); i++) {
+            Element child = children.get(i);
+            transformXmlRecursive(child, op);
         }
     }
 
@@ -325,16 +474,16 @@ public class NodeLibrary {
 
         // Recursively transform all nodes.
         ArrayList<String> warnings = new ArrayList<String>();
-        transformNodesRecursive(root, function, warnings);
+        transformElementsRecursive(root, "node", function, warnings);
         return new UpgradeStringResult(document.toXML(), warnings);
     }
 
-    private static void transformNodesRecursive(Element parent, Function<Element, String> function, List<String> warnings) {
-        Elements nodes = parent.getChildElements("node");
+    private static void transformElementsRecursive(Element parent, String elementName, Function<Element, String> function, List<String> warnings) {
+        Elements nodes = parent.getChildElements(elementName);
         for (int i = 0; i < nodes.size(); i++) {
             Element node = nodes.get(i);
             function.apply(node);
-            transformNodesRecursive(node, function, warnings);
+            transformElementsRecursive(node, elementName, function, warnings);
         }
     }
 
@@ -346,7 +495,6 @@ public class NodeLibrary {
             this.xml = xml;
             this.warnings = warnings;
         }
-
     }
 
     //// Loading ////
