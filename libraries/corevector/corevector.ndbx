@@ -76,9 +76,20 @@
             </port>
             <port name="delete_selected" range="value" type="boolean" value="true" widget="toggle" description="Invert the operation of the node."/>
         </node>
-        <node description="Distribute shapes on a horizontal or vertical axis." function="pyvector/distribute" image="distribute.png" name="distribute" position="10.00,12.00" prototype="filter">
-            <port name="horizontal" range="value" type="string" value="none" widget="string" description="The method of horizontal distribution."/>
-            <port name="vertical" range="value" type="string" value="none" widget="string" description="The method of vertical distribution."/>
+        <node description="Distribute shapes on a horizontal or vertical axis." function="pyvector/distribute" image="distribute.png" name="distribute" position="10.00,12.00" prototype="generator" outputRange="list">
+            <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to distribute."/>
+            <port name="horizontal" range="value" type="string" value="none" widget="menu" description="The method of horizontal distribution.">
+                <menu key="none" label="No Change"/>
+                <menu key="left" label="Left"/>
+                <menu key="center" label="Center"/>
+                <menu key="right" label="Right"/>
+            </port>
+            <port name="vertical" range="value" type="string" value="none" widget="menu" description="The method of vertical distribution.">
+                <menu key="none" label="No Change"/>
+                <menu key="top" label="Top"/>
+                <menu key="middle" label="Middle"/>
+                <menu key="bottom" label="Bottom"/>
+            </port>
         </node>
         <node description="Draw Bezier Paths." function="pyvector/draw_path" handle="pyvector/handle_draw_path" image="draw_path.png" name="draw_path" position="4.00,8.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="string" description="The internal path data."/>
