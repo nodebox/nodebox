@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="2">
+    <node name="root">
+        <node name="to_integer1" prototype="math.to_integer"/>
+        <node name="custom_name" prototype="math.to_integer"/>
+        <node name="round1" prototype="math.number"/>
+        <node name="number1" prototype="math.number"/>
+
+        <node name="subnet1" outputRange="list">
+            <node name="to_integer42" prototype="math.to_integer"/>
+            <port name="value" childReference="to_integer42.value" type="float"/>
+        </node>
+
+        <conn output="number1" input="to_integer1.value"/>
+        <conn output="number1" input="custom_name.value"/>
+        <conn output="number1" input="subnet1.value"/>
+    </node>
+</ndbx>

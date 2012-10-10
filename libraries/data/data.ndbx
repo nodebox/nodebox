@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="2" type="file" uuid="16d37cb2-e85b-4e00-a6a2-92340bd2c5b1">
+<ndbx type="file" uuid="16d37cb2-e85b-4e00-a6a2-92340bd2c5b1">
     <link href="java:nodebox.function.DataFunctions" rel="functions"/>
     <node description="Import and manipulate all kinds of data." name="root" renderedChild="lookup">
         <node description="Import a comma-separated value file containing tabular data." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00" category="data">

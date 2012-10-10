@@ -361,7 +361,7 @@ public class NodeLibrary {
                 String tagName = reader.getLocalName();
                 if (tagName.equals("ndbx")) {
                     String formatVersion = reader.getAttributeValue(null, "formatVersion");
-                    if (!CURRENT_FORMAT_VERSION.equals(formatVersion)) {
+                    if (formatVersion != null && !CURRENT_FORMAT_VERSION.equals(formatVersion)) {
                         throw new OutdatedLibraryException(file, "File uses version " + formatVersion + ", current version is " + CURRENT_FORMAT_VERSION + ".");
                     }
                     String uuidString = reader.getAttributeValue(null, "uuid");

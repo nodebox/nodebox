@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="2" type="file" uuid="a2c19b18-d4c6-400f-9f6d-381a108da473">
+<ndbx type="file" uuid="a2c19b18-d4c6-400f-9f6d-381a108da473">
     <link href="java:nodebox.function.ListFunctions" rel="functions"/>
     <node description="Process all kinds of lists." name="root" renderedChild="reverse">
         <node description="Combine multiple lists into one." function="list/combine" image="generic.png" name="combine" outputRange="list" outputType="list" position="4.00,3.00" category="list">

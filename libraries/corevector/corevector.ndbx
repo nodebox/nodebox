@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="2" type="file" uuid="f97e8c1e-b3a3-4174-8c3e-f01dd23d550b">
+<ndbx type="file" uuid="f97e8c1e-b3a3-4174-8c3e-f01dd23d550b">
     <link href="python:pyvector.py" rel="functions"/>
     <link href="java:nodebox.function.CoreVectorFunctions" rel="functions"/>
     <node description="Generate and manipulate vector graphics." name="root" renderedChild="align">

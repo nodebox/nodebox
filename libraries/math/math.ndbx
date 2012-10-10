@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ndbx formatVersion="2" type="file" uuid="b299e4dc-c763-4008-b8cb-d631e03c5c0a">
+<ndbx type="file" uuid="b299e4dc-c763-4008-b8cb-d631e03c5c0a">
     <link href="java:nodebox.function.MathFunctions" rel="functions"/>
     <node description="Calculate using numbers." name="root" renderedChild="e">
         <node category="math" description="Convert every number to a positive number." function="math/abs" image="generic.png" name="abs" position="4.00,1.00">
@@ -143,7 +143,7 @@
         <node category="math" description="Add up all numbers in the list." function="math/sum" image="sum.png" name="sum" position="4.00,3.00">
             <port name="values" range="list" type="float" value="0.0" widget="float" description="The list of values."/>
         </node>
-        <node category="math" description="Convert a floating-point number to an integer." function="math/toInteger" image="generic.png" name="to_integer" outputType="int" position="4.00,7.00">
+        <node category="math" description="Convert a floating-point number to an integer." function="math/round" image="generic.png" name="round" outputType="int" position="4.00,7.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
         <node category="math" description="Calculate a value based on wave equations." function="math/wave" image="generic.png" name="wave" position="10.00,6.00">
