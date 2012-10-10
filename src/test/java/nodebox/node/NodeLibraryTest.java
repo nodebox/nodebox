@@ -344,8 +344,8 @@ public class NodeLibraryTest {
 
     @Test
     public void testParseFormatVersion() {
-        assertEquals("1.0", NodeLibrary.parseFormatVersion("<ndbx formatVersion='1.0'>"));
-        assertEquals("2", NodeLibrary.parseFormatVersion("<ndbx type=\"file\" formatVersion=\"2\">"));
+        assertEquals("1.0", NodeLibraryUpgrades.parseFormatVersion("<ndbx formatVersion='1.0'>"));
+        assertEquals("2", NodeLibraryUpgrades.parseFormatVersion("<ndbx type=\"file\" formatVersion=\"2\">"));
     }
 
     /**
@@ -354,7 +354,7 @@ public class NodeLibraryTest {
     @Test
     public void testUpgrade1to2() {
         File version1File = new File("src/test/files/upgrade-v1.ndbx");
-        UpgradeResult result = NodeLibrary.upgrade(version1File);
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version1File);
         assertTrue("Result should contain updated position: " + result.getXml(), result.getXml().contains("position=\"12.00,2.00\""));
         NodeLibrary upgradedLibrary = result.getLibrary(version1File, NodeRepository.of());
         Node root = upgradedLibrary.getRoot();
@@ -365,7 +365,7 @@ public class NodeLibraryTest {
     @Test
     public void testUpgrade2to3() {
         File version2File = new File("src/test/files/upgrade-v2.ndbx");
-        UpgradeResult result = NodeLibrary.upgradeTo(version2File, "3");
+        UpgradeResult result = NodeLibraryUpgrades.upgradeTo(version2File, "3");
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
         NodeLibrary upgradedLibrary = result.getLibrary(version2File, NodeRepository.of(mathLibrary));
         Node root = upgradedLibrary.getRoot();
@@ -385,7 +385,7 @@ public class NodeLibraryTest {
     public void testTooOldToUpgrade() {
         File version09File = new File("src/test/files/upgrade-v0.9.ndbx");
         try {
-            NodeLibrary.upgrade(version09File);
+            NodeLibraryUpgrades.upgrade(version09File);
             fail("Should have thrown a LoadException.");
         } catch (LoadException e) {
             assertTrue(e.getMessage().contains("too old"));
@@ -399,7 +399,7 @@ public class NodeLibraryTest {
     public void testTooNewToUpgrade() {
         File version999Files = new File("src/test/files/upgrade-v999.ndbx");
         try {
-            NodeLibrary.upgrade(version999Files);
+            NodeLibraryUpgrades.upgrade(version999Files);
             fail("Should have thrown a LoadException.");
         } catch (LoadException e) {
             assertTrue(e.getMessage().contains("too new"));

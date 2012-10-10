@@ -108,7 +108,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             document = new NodeBoxDocument(library);
             document.setDocumentFile(file);
         } catch (OutdatedLibraryException e) {
-            UpgradeResult result = NodeLibrary.upgrade(file);
+            UpgradeResult result = NodeLibraryUpgrades.upgrade(file);
             // The file is used here as the base name for finding relative libraries.
             library = result.getLibrary(file, Application.getInstance().getSystemRepository());
             document = new NodeBoxDocument(library);
@@ -1580,7 +1580,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void showDocumentProperties() {
-        DocumentPropertiesDialog dialog  = new DocumentPropertiesDialog(this);
+        DocumentPropertiesDialog dialog = new DocumentPropertiesDialog(this);
         dialog.setVisible(true);
         if (dialog.isCommitted()) {
             addEdit("Change document properties");
