@@ -379,6 +379,25 @@ public class NodeLibraryTest {
         assertEquals("round1.value", value.getChildReference());
     }
 
+    @Test
+    public void testUpgrade3to4() {
+        File version3File = new File("src/test/files/upgrade-v3.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version3File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version3File, NodeRepository.of(corevectorLibrary, listLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertEquals("make_point", root.getChild("point1").getPrototype().getName());
+        assertTrue(root.hasChild("point2"));
+        assertEquals("point", root.getChild("point2").getPrototype().getName());
+        assertTrue(root.getConnections().contains(new Connection("point2", "count1", "list")));
+        Node subnet1 = root.getChild("subnet1");
+        assertTrue(subnet1.hasChild("point1"));
+        assertEquals("point1", subnet1.getRenderedChildName());
+        Port value = subnet1.getInput("shape");
+        assertEquals("point1.shape", value.getChildReference());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

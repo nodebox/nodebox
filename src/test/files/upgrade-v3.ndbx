@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="3">
+    <node name="root">
+        <node name="to_points1" prototype="corevector.to_points"/>
+        <node name="count1" prototype="list.count"/>
+        <node name="point1" prototype="corevector.make_point"/>
+        <node name="rect1" prototype="corevector.rect"/>
+        <node name="subnet1" renderedChild="to_points2">
+            <node name="to_points2" prototype="corevector.to_points"/>
+            <port childReference="to_points2.shape" name="shape" range="value" type="geometry"/>
+        </node>
+        <conn input="count1.list" output="to_points1"/>
+        <conn input="subnet1.shape" output="rect1"/>
+    </node>
+</ndbx>
