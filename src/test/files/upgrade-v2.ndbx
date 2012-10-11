@@ -6,7 +6,7 @@
         <node name="round1" prototype="math.number"/>
         <node name="number1" prototype="math.number"/>
 
-        <node name="subnet1" outputRange="list">
+        <node name="subnet1" outputRange="list" renderedChild="to_integer42">
             <node name="to_integer42" prototype="math.to_integer"/>
             <port name="value" childReference="to_integer42.value" type="float"/>
         </node>

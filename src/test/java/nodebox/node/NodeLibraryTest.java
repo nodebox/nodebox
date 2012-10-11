@@ -365,7 +365,7 @@ public class NodeLibraryTest {
     @Test
     public void testUpgrade2to3() {
         File version2File = new File("src/test/files/upgrade-v2.ndbx");
-        UpgradeResult result = NodeLibraryUpgrades.upgradeTo(version2File, "3");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version2File);
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
         NodeLibrary upgradedLibrary = result.getLibrary(version2File, NodeRepository.of(mathLibrary));
         Node root = upgradedLibrary.getRoot();
@@ -374,6 +374,7 @@ public class NodeLibraryTest {
         assertEquals("round", round2.getPrototype().getName());
         Node subnet1 = root.getChild("subnet1");
         assertTrue(subnet1.hasChild("round1"));
+        assertEquals("round1", subnet1.getRenderedChildName());
         Port value = subnet1.getInput("value");
         assertEquals("round1.value", value.getChildReference());
     }
