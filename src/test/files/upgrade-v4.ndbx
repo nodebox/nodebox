@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="4">
+    <node name="root">
+        <node name="number1" prototype="math.number">
+            <port name="value" type="float" value="35.0"/>
+        </node>
+        <node name="subnet1" renderedChild="textpath3">
+            <node name="textpath3" prototype="corevector.textpath"/>
+            <port childReference="textpath3.height" min="0.0" name="height" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node name="subnet2" renderedChild="subnet1">
+            <node name="subnet1" renderedChild="textpath3">
+                <node name="textpath3" prototype="corevector.textpath"/>
+                <port childReference="textpath3.height" min="0.0" name="height" range="value" type="float" value="0.0" widget="float"/>
+            </node>
+            <port childReference="subnet1.height" min="0.0" name="height" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node name="textpath1" prototype="corevector.textpath">
+            <port name="height" type="float" value="35.0"/>
+        </node>
+        <node name="textpath2" prototype="corevector.textpath"/>
+        <conn input="textpath2.height" output="number1"/>
+        <conn input="subnet2.height" output="number1"/>
+    </node>
+</ndbx>

@@ -398,6 +398,22 @@ public class NodeLibraryTest {
         assertEquals("point1.shape", value.getChildReference());
     }
 
+    @Test
+    public void testUpgrade4to5() {
+        File version4File = new File("src/test/files/upgrade-v4.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version4File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version4File, NodeRepository.of(corevectorLibrary, mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertFalse(root.getChild("textpath1").hasInput("height"));
+        assertNull(root.getConnection("textpath2", "height"));
+        Node subnet1 = root.getChild("subnet1");
+        assertFalse(subnet1.hasInput("height"));
+        Node subnet2 = root.getChild("subnet2");
+        assertFalse(subnet2.hasInput("height"));
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

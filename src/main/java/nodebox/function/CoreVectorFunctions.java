@@ -549,7 +549,7 @@ public class CoreVectorFunctions {
      *
      * @return A new Path.
      */
-    public static Path textpath(String text, String fontName, double fontSize, String alignment, Point position, double width, double height) {
+    public static Path textpath(String text, String fontName, double fontSize, String alignment, Point position, double width) {
         Text.Align align;
         try {
             align = Text.Align.valueOf(alignment);
@@ -564,7 +564,7 @@ public class CoreVectorFunctions {
             position = position.moved(-width, 0);
         }
 
-        Text t = new Text(text, position.x, position.y, width, height);
+        Text t = new Text(text, position.x, position.y, width, 0);
         t.setFontName(fontName);
         t.setFontSize(fontSize);
         t.setAlign(align);
