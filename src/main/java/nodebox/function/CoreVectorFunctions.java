@@ -448,14 +448,13 @@ public class CoreVectorFunctions {
      * Calculate a point on the given shape.
      *
      * @param shape The shape.
-     * @param t     The position of the point, going from 0.0-range
-     * @param range The range of the path. If you use 100.0, t=50.0 will be the middle of the path.
+     * @param t     The position of the point, going from 0.0-100.0
      * @return The point on the given location of the path.
      */
-    public static Point pointOnPath(AbstractGeometry shape, double t, double range) {
+    public static Point pointOnPath(AbstractGeometry shape, double t) {
         if (shape == null) return null;
-        t = Math.abs(t % range);
-        return shape.pointAt(t / range);
+        t = Math.abs(t % 100);
+        return shape.pointAt(t / 100);
     }
 
     @SuppressWarnings("unchecked")

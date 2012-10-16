@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="4">
+    <node name="root">
+        <node name="number1" prototype="math.number">
+            <port name="value" type="float" value="50.0"/>
+        </node>
+        <node name="subnet1" renderedChild="point_on_path3">
+            <node name="point_on_path3" prototype="corevector.point_on_path"/>
+            <port childReference="point_on_path3.range" min="0.0" name="range" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <node name="point_on_path1" prototype="corevector.point_on_path">
+            <port name="range" type="float" value="50.0"/>
+        </node>
+        <node name="point_on_path2" prototype="corevector.point_on_path"/>
+        <conn input="point_on_path2.range" output="number1"/>
+    </node>
+</ndbx>

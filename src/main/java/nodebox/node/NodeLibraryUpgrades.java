@@ -47,6 +47,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("4", upgradeMethod("upgrade4to5"));
         upgradeMap.put("5", upgradeMethod("upgrade5to6"));
         upgradeMap.put("6", upgradeMethod("upgrade6to7"));
+        upgradeMap.put("7", upgradeMethod("upgrade7to8"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -172,6 +173,12 @@ public class NodeLibraryUpgrades {
         UpgradeOp changePrototypeOp = new ChangePrototypeOp("list.filter", "list.cull");
         UpgradeOp renameOp = new RenameNodeOp("filter", "cull");
         return transformXml(inputXml, "7", changePrototypeOp, renameOp);
+    }
+
+    public static UpgradeStringResult upgrade7to8(String inputXml) throws LoadException {
+        // Version 8: The corevector.point_on_path node loses the range port.
+        UpgradeOp removeInputOp = new RemoveInputOp("corevector.point_on_path", "range");
+        return transformXml(inputXml, "8", removeInputOp);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {

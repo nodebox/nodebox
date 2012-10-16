@@ -443,6 +443,20 @@ public class NodeLibraryTest {
         assertResultsEqual(root, 0.0, 2.0, 4.0, 6.0, 8.0);
     }
 
+    @Test
+    public void testUpgrade7to8() {
+        File version7File = new File("src/test/files/upgrade-v7.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version7File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version7File, NodeRepository.of(corevectorLibrary, mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertFalse(root.getChild("point_on_path1").hasInput("range"));
+        assertNull(root.getConnection("point_on_path2", "range"));
+        Node subnet1 = root.getChild("subnet1");
+        assertFalse(subnet1.hasInput("range"));
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

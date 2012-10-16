@@ -158,8 +158,7 @@
         </node>
         <node description="Calculate a point on a path." function="corevector/pointOnPath" image="point_on_path.png" name="point_on_path" position="13.00,11.00" prototype="generator">
             <port name="shape" range="value" type="geometry" widget="none" description="The input shape."/>
-            <port name="t" range="value" type="float" value="0.0" widget="float" description="The relative position on the shape (0 - range)."/>
-            <port name="range" range="value" type="float" value="100.0" widget="float" description="The upper limit of t."/>
+            <port name="t" range="value" type="float" value="0.0" widget="float" description="The relative position on the shape (0 - 100)."/>
         </node>
         <node description="Create a multi-sided polygon." function="pyvector/polygon" handle="pyvector/handle_polygon" image="polygon.png" name="polygon" position="4.00,4.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the polygon."/>
