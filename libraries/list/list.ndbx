@@ -21,10 +21,10 @@
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="booleans" range="list" type="list" widget="none" description="A list of boolean values. If the corresponding value is true, the item will be retained."/>
         </node>
-        <node description="Take the first item of the list." function="list/first" image="first.png" name="first" outputType="list" position="1.00,4.00" category="list">
+        <node description="Take the first item of the list." function="list/first" image="first.png" name="first" outputType="data" position="1.00,4.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Take the last item of the list." function="list/last" image="last.png" name="last" outputType="list" position="1.00,7.00" category="list">
+        <node description="Take the last item of the list." function="list/last" image="last.png" name="last" outputType="data" position="1.00,7.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
         <node description="Pick items from the list in random order." function="list/pick" image="generic.png" name="pick" outputRange="list" outputType="list" position="7.00,3.00" category="list">
@@ -43,7 +43,7 @@
         <node description="Reverse the list." function="list/reverse" image="generic.png" name="reverse" outputRange="list" outputType="list" position="4.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Take the second item of the list." function="list/second" image="second.png" name="second" outputType="list" position="1.00,5.00" category="list">
+        <node description="Take the second item of the list." function="list/second" image="second.png" name="second" outputType="data" position="1.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
         <node description="Move items at the beginning of the list to the end." function="list/shift" image="generic.png" name="shift" outputRange="list" outputType="list" position="7.00,4.00" category="list">

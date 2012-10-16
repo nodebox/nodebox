@@ -52,33 +52,33 @@ public class ListFunctions {
      * Take the first item of the list.
      *
      * @param iterable The list items.
-     * @return A new list with only the first item.
+     * @return The first item of the list.
      */
-    public static List<?> first(Iterable<?> iterable) {
-        if (iterable == null) return ImmutableList.of();
+    public static Object first(Iterable<?> iterable) {
+        if (iterable == null) return null;
         Iterator iterator = iterable.iterator();
         if (iterator.hasNext()) {
-            return ImmutableList.of(iterator.next());
+            return iterator.next();
         }
-        return ImmutableList.of();
+        return null;
     }
 
     /**
      * Take the second item of the list.
      *
      * @param iterable The list items.
-     * @return A new list with only the second item.
+     * @return The second item of the list.
      */
-    public static List<?> second(Iterable<?> iterable) {
-        if (iterable == null) return ImmutableList.of();
+    public static Object second(Iterable<?> iterable) {
+        if (iterable == null) return null;
         Iterator iterator = iterable.iterator();
         if (iterator.hasNext()) {
             iterator.next();
             if (iterator.hasNext()) {
-                return ImmutableList.of(iterator.next());
+                return iterator.next();
             }
         }
-        return ImmutableList.of();
+        return null;
     }
 
     /**
@@ -97,14 +97,14 @@ public class ListFunctions {
      * Take the last item of the list.
      *
      * @param iterable The list items.
-     * @return A new list with only the last item.
+     * @return The last item of the list.
      */
-    public static List<?> last(Iterable<?> iterable) {
-        if (iterable == null) return ImmutableList.of();
+    public static Object last(Iterable<?> iterable) {
+        if (iterable == null) return null;
         try {
-            return ImmutableList.of(Iterables.getLast(iterable));
+            return Iterables.getLast(iterable);
         } catch (NoSuchElementException e) {
-            return ImmutableList.of();
+            return null;
         }
     }
 

@@ -6,6 +6,7 @@ import nodebox.node.polygraph.Point;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
 
 public class ListFunctionsTest {
 
@@ -18,18 +19,18 @@ public class ListFunctionsTest {
 
     @Test
     public void testFirst() {
-        assertElements(ListFunctions.first(ImmutableList.of()));
-        assertElements(ListFunctions.first(ImmutableList.of(1)), 1);
-        assertElements(ListFunctions.first(ImmutableList.of(1, 2)), 1);
-        assertElements(ListFunctions.first(ImmutableList.of(1, 2, 3)), 1);
+        assertNull(ListFunctions.first(ImmutableList.of()));
+        assertEquals(ListFunctions.first(ImmutableList.of(1)), 1);
+        assertEquals(ListFunctions.first(ImmutableList.of(1, 2)), 1);
+        assertEquals(ListFunctions.first(ImmutableList.of(1, 2, 3)), 1);
     }
 
     @Test
     public void testSecond() {
-        assertElements(ListFunctions.second(ImmutableList.of()));
-        assertElements(ListFunctions.second(ImmutableList.of(1)));
-        assertElements(ListFunctions.second(ImmutableList.of(1, 2)), 2);
-        assertElements(ListFunctions.second(ImmutableList.of(1, 2, 3)), 2);
+        assertNull(ListFunctions.second(ImmutableList.of()));
+        assertNull(ListFunctions.second(ImmutableList.of(1)));
+        assertEquals(ListFunctions.second(ImmutableList.of(1, 2)), 2);
+        assertEquals(ListFunctions.second(ImmutableList.of(1, 2, 3)), 2);
     }
 
     @Test
@@ -42,10 +43,10 @@ public class ListFunctionsTest {
 
     @Test
     public void testLast() {
-        assertElements(ListFunctions.last(ImmutableList.of()));
-        assertElements(ListFunctions.last(ImmutableList.of(1)), 1);
-        assertElements(ListFunctions.last(ImmutableList.of(1, 2)), 2);
-        assertElements(ListFunctions.last(ImmutableList.of(1, 2, 3)), 3);
+        assertNull(ListFunctions.last(ImmutableList.of()));
+        assertEquals(ListFunctions.last(ImmutableList.of(1)), 1);
+        assertEquals(ListFunctions.last(ImmutableList.of(1, 2)), 2);
+        assertEquals(ListFunctions.last(ImmutableList.of(1, 2, 3)), 3);
     }
 
     @Test
