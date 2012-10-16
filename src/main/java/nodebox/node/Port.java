@@ -21,7 +21,7 @@ public final class Port {
     public static final String TYPE_BOOLEAN = "boolean";
     public static final String TYPE_POINT = "point";
     public static final String TYPE_COLOR = "color";
-
+    public static final String TYPE_LIST = "list";
     public static final String TYPE_GEOMETRY = "geometry";
 
     public enum Attribute {NAME, TYPE, CHILD_REFERENCE, WIDGET, RANGE, VALUE, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
