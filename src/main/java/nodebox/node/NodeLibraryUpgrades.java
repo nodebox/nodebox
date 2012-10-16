@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import nodebox.graphics.Point;
 import nodebox.util.LoadException;
@@ -14,6 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Helper class that contains all NodeLibrary upgrade migrations.
@@ -43,6 +45,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("2", upgradeMethod("upgrade2to3"));
         upgradeMap.put("3", upgradeMethod("upgrade3to4"));
         upgradeMap.put("4", upgradeMethod("upgrade4to5"));
+        upgradeMap.put("5", upgradeMethod("upgrade5to6"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -155,6 +158,14 @@ public class NodeLibraryUpgrades {
         return transformXml(inputXml, "5", removeInputOp);
     }
 
+    public static UpgradeStringResult upgrade5to6(String inputXml) throws LoadException {
+        // Version 6: change delete.delete_selected boolean to menu options.
+        Map<String, String> mappings = ImmutableMap.of("true", "selected", "false", "non-selected");
+        UpgradeOp renamePortOp = new RenamePortOp("corevector.delete", "delete_selected", "operation");
+        UpgradeOp changePortTypeOp = new ChangePortTypeOp("corevector.delete", "operation", "string", mappings);
+        return transformXml(inputXml, "6", renamePortOp, changePortTypeOp);
+    }
+
     private static Set<String> getChildNodeNames(ParentNode parent) {
         HashSet<String> names = new HashSet<String>();
         Nodes children = parent.query("node");
@@ -198,6 +209,20 @@ public class NodeLibraryUpgrades {
             String portName = portRefIterator.next();
             if (oldNodeName.equals(nodeName)) {
                 portReference.setValue(String.format("%s.%s", newNodeName, portName));
+            }
+        }
+    }
+
+    private static void renamePortInElements(Elements elements, String attributeName, String nodeName, String oldPortName, String newPortName) {
+        for (int i = 0; i < elements.size(); i++) {
+            Element c = elements.get(i);
+            Attribute portReference = c.getAttribute(attributeName);
+            if (portReference == null) continue;
+            Iterator<String> portRefIterator = NodeLibrary.PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
+            String nodeRef = portRefIterator.next();
+            String portRef = portRefIterator.next();
+            if (nodeRef.equals(nodeName) && portRef.equals(oldPortName)) {
+                portReference.setValue(String.format("%s.%s", nodeName, newPortName));
             }
         }
     }
@@ -258,6 +283,28 @@ public class NodeLibraryUpgrades {
         return null;
     }
 
+    private static boolean isNodeWithPrototype(Element e, String nodePrototype) {
+        if (e.getLocalName().equals("node")) {
+            Attribute prototype = e.getAttribute("prototype");
+            if (prototype != null && prototype.getValue().equals(nodePrototype)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Element portWithName(Element nodeElement, String portName) {
+        Elements ports = nodeElement.getChildElements("port");
+        for (int i = 0; i < ports.size(); i++) {
+            Element port = ports.get(i);
+            Attribute name = port.getAttribute("name");
+            if (name != null && name.getValue().equals(portName)) {
+                return port;
+            }
+        }
+        return null;
+    }
+
     private static abstract class UpgradeOp {
         private List<String> warnings = new ArrayList<String>();
 
@@ -288,11 +335,9 @@ public class NodeLibraryUpgrades {
         }
 
         public void apply(Element e) {
-            if (e.getLocalName().equals("node")) {
+            if (isNodeWithPrototype(e, oldPrototype)) {
                 Attribute prototype = e.getAttribute("prototype");
-                if (prototype != null && prototype.getValue().equals(oldPrototype)) {
-                    prototype.setValue(newPrototype);
-                }
+                prototype.setValue(newPrototype);
             }
         }
     }
@@ -340,14 +385,75 @@ public class NodeLibraryUpgrades {
 
         @Override
         public void apply(Element e) {
-            if (e.getLocalName().equals("node")) {
-                Attribute prototype = e.getAttribute("prototype");
-                if (prototype != null && prototype.getValue().equals(nodePrototype)) {
-                    removeNodeInput(e, inputToRemove);
+            if (isNodeWithPrototype(e, nodePrototype)) {
+                removeNodeInput(e, inputToRemove);
+            }
+        }
+    }
+
+    private static class RenamePortOp extends UpgradeOp {
+        private String nodePrototype;
+        private String oldPortName;
+        private String newPortName;
+
+        private RenamePortOp(String nodePrototype, String oldPortName, String newPortName) {
+            this.nodePrototype = nodePrototype;
+            this.oldPortName = oldPortName;
+            this.newPortName = newPortName;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, nodePrototype)) {
+                String nodeName = e.getAttributeValue("name");
+                Element port = portWithName(e, oldPortName);
+                if (port != null) {
+                    port.getAttribute("name").setValue(newPortName);
+                    Element parent = (Element) e.getParent();
+                    Elements connections = parent.getChildElements("conn");
+                    renamePortInElements(connections, "input", nodeName, oldPortName, newPortName);
+                    Elements ports = parent.getChildElements("port");
+                    renamePortInElements(ports, "childReference", nodeName, oldPortName, newPortName);
                 }
             }
         }
     }
+
+    private static class ChangePortTypeOp extends UpgradeOp {
+        private String nodePrototype;
+        private String portName;
+        private String newType;
+        // The value mappings are strings, since that's what's stored in the XML file.
+        private Map<String, String> valueMappings;
+
+
+        public ChangePortTypeOp(String nodePrototype, String portName, String newType, Map<String, String> valueMappings) {
+            this.nodePrototype = nodePrototype;
+            this.portName = portName;
+            this.newType = newType;
+            this.valueMappings = valueMappings;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, nodePrototype)) {
+                Element port = portWithName(e, portName);
+                if (port != null) {
+                    Attribute type = port.getAttribute("type");
+                    type.setValue(newType);
+                    Attribute value = port.getAttribute("value");
+                    if (value != null) {
+                        String newValue = valueMappings.get(value.getValue());
+                        checkState(newValue != null,
+                                "Change port type (%s.%s -> %s): value %s not found in value mappings.",
+                                nodePrototype, portName, newType, value.getValue());
+                        value.setValue(newValue);
+                    }
+                }
+            }
+        }
+    }
+
 
     private static UpgradeStringResult transformXml(String xml, String newFormatVersion, UpgradeOp... ops) {
         try {

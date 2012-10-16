@@ -238,9 +238,10 @@ def delete_paths(geo, bounding, delete_selected=True):
             new_geo.add(old_path.clone())
     return new_geo
     
-def delete(shape, bounding, scope="points", delete_selected=True):
+def delete(shape, bounding, scope="points", operation="selected"):
     """Delete points or paths that lie within the given bounds."""
     if shape is None or bounding is None: return None
+    delete_selected = operation == "selected"
     if scope == "points": return delete_points(shape, bounding, delete_selected)
     if scope == "paths": return delete_paths(shape, bounding, delete_selected)
 

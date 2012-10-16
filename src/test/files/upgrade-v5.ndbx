@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="5">
+    <node name="root" renderedChild="delete1">
+        <node name="delete1" prototype="corevector.delete"/>
+        <node name="delete2" prototype="corevector.delete">
+            <port name="delete_selected" type="boolean" value="false"/>
+        </node>
+    </node>
+</ndbx>

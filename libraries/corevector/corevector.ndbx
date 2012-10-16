@@ -74,7 +74,10 @@
                 <menu key="points" label="Points"/>
                 <menu key="paths" label="Paths"/>
             </port>
-            <port name="delete_selected" range="value" type="boolean" value="true" widget="toggle" description="Invert the operation of the node."/>
+            <port name="operation" range="value" type="string" widget="menu" value="selected" description="Whether to delete the selected or non-selected points or paths.">
+                <menu key="selected" label="Delete Selected"/>
+                <menu key="non-selected" label="Delete Non-selected"/>
+            </port>
         </node>
         <node description="Distribute shapes on a horizontal or vertical axis." function="pyvector/distribute" image="distribute.png" name="distribute" position="10.00,12.00" prototype="generator" outputRange="list">
             <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to distribute."/>

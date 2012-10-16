@@ -414,6 +414,21 @@ public class NodeLibraryTest {
         assertFalse(subnet2.hasInput("height"));
     }
 
+    @Test
+    public void testUpgrade5to6() {
+        File version5File = new File("src/test/files/upgrade-v5.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version5File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version5File, NodeRepository.of(corevectorLibrary));
+        Node root = upgradedLibrary.getRoot();
+        Node delete1 = root.getChild("delete1");
+        assertTrue(delete1.hasInput("operation"));
+        assertFalse(delete1.hasInput("delete_selected"));
+        assertEquals("selected", delete1.getInput("operation").stringValue());
+        Node delete2 = root.getChild("delete2");
+        assertEquals("non-selected", delete2.getInput("operation").stringValue());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
