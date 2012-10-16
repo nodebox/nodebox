@@ -32,7 +32,7 @@ public class MathFunctions {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
                 "number", "integer", "makeBoolean",
                 "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
-                "log","sum", "average", "compare", "min", "max", "ceil", "floor",
+                "log", "sum", "average", "compare", "min", "max", "ceil", "floor",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "round",
                 "sample", "range",
@@ -165,19 +165,21 @@ public class MathFunctions {
         return Math.floor(n);
     }
 
-    public static boolean compare(String comparator, double n1, double n2) {
+    @SuppressWarnings("unchecked")
+    public static boolean compare(Comparable o1, Comparable o2, String comparator) {
+        int comparison = o1.compareTo(o2);
         if (comparator.equals("<")) {
-            return n1 < n2;
+            return comparison < 0;
         } else if (comparator.equals(">")) {
-            return n1 > n2;
+            return comparison > 0;
         } else if (comparator.equals("<=")) {
-            return n1 <= n2;
+            return comparison <= 0;
         } else if (comparator.equals(">=")) {
-            return n1 >= n2;
+            return comparison >= 0;
         } else if (comparator.equals("==")) {
-            return n1 == n2;
+            return comparison == 0;
         } else if (comparator.equals("!=")) {
-            return n1 != n2;
+            return comparison != 0;
         } else {
             throw new IllegalArgumentException("unknown comparison operation " + comparator);
         }
@@ -237,7 +239,7 @@ public class MathFunctions {
                 public Iterator<Double> iterator() {
                     return new RangeIterator(start, end, step);
                 }
-            } );
+            });
         }
     }
 
