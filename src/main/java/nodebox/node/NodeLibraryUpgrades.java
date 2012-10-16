@@ -46,6 +46,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("3", upgradeMethod("upgrade3to4"));
         upgradeMap.put("4", upgradeMethod("upgrade4to5"));
         upgradeMap.put("5", upgradeMethod("upgrade5to6"));
+        upgradeMap.put("6", upgradeMethod("upgrade6to7"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -159,11 +160,18 @@ public class NodeLibraryUpgrades {
     }
 
     public static UpgradeStringResult upgrade5to6(String inputXml) throws LoadException {
-        // Version 6: change delete.delete_selected boolean to menu options.
+        // Version 6: Change delete.delete_selected boolean to menu options.
         Map<String, String> mappings = ImmutableMap.of("true", "selected", "false", "non-selected");
         UpgradeOp renamePortOp = new RenamePortOp("corevector.delete", "delete_selected", "operation");
         UpgradeOp changePortTypeOp = new ChangePortTypeOp("corevector.delete", "operation", "string", mappings);
         return transformXml(inputXml, "6", renamePortOp, changePortTypeOp);
+    }
+
+    public static UpgradeStringResult upgrade6to7(String inputXml) throws LoadException {
+        // Version 7: Replace instances of list.filter with list.cull.
+        UpgradeOp changePrototypeOp = new ChangePrototypeOp("list.filter", "list.cull");
+        UpgradeOp renameOp = new RenameNodeOp("filter", "cull");
+        return transformXml(inputXml, "7", changePrototypeOp, renameOp);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {

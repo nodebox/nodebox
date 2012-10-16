@@ -70,6 +70,9 @@
         <node category="math" description="Round down the value of a number." function="math/floor" image="generic.png" name="floor" position="7.00,3.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
+        <node category="math" description="Determine if a number is even." function="math/even" image="generic.png" name="even" position="7.00,3.00">
+            <port name="value" range="value" type="int" value="0" widget="int" description="The input value."/>
+        </node>
         <node category="math" description="Create an integer value that can be used as a variable." function="math/integer" image="generic.png" name="integer" outputType="int" position="4.00,7.00">
             <port name="value" range="value" type="int" value="0" widget="int" description="The input value."/>
         </node>
@@ -99,6 +102,9 @@
         </node>
         <node category="math" description="Create a floating-point value that can be used as a variable." function="math/number" image="generic.png" name="number" position="1.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
+        </node>
+        <node category="math" description="Determine if a number is odd." function="math/odd" image="generic.png" name="odd" position="7.00,3.00">
+            <port name="value" range="value" type="int" value="0" widget="int" description="The input value."/>
         </node>
         <node category="math" description="The value of the mathematical constant pi." function="math/pi" name="pi" image="generic.png" position="13.00,6.00"/>
         <node category="math" description="Calculate the power of a number." function="math/pow" image="generic.png" name="pow" position="7.00,7.00">

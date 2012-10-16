@@ -32,7 +32,7 @@ public class ListFunctions {
                 "count",
                 "first", "second", "rest", "last",
                 "combine", "slice", "shift", "doSwitch",
-                "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "filter", "cull", "takeEvery");
+                "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "cull", "takeEvery");
     }
 
     /**
@@ -306,36 +306,6 @@ public class ListFunctions {
     public static Iterable<?> cycle(Iterable<?> iterable) {
         if (iterable == null) return ImmutableList.of();
         return Iterables.cycle(iterable);
-    }
-
-    /**
-     * Filter a list of elements using a true/false pattern.
-     *
-     * @param iterable The list to filter.
-     * @param booleans The pattern that determines which elements are retained and which are not.
-     * @return The filtered list.
-     */
-    public static List<?> filter(Iterable<?> iterable, Iterable<Boolean> booleans) {
-        if (iterable == null) return ImmutableList.of();
-        if (booleans == null) return ImmutableList.copyOf(iterable);
-        if (Iterables.size(booleans) == 1) {
-            if (Iterables.getFirst(booleans, false))
-                return ImmutableList.copyOf(iterable);
-            else
-                return ImmutableList.of();
-        }
-        List<?> l = Lists.newArrayList(iterable);
-        List<Boolean> b = Lists.newArrayList(booleans);
-        List<Object> newList = new ArrayList<Object>();
-        int min = Math.min(l.size(), b.size());
-        for (int i = 0; i < min; i++) {
-            boolean keep = b.get(i);
-            if (keep)
-                newList.add(l.get(i));
-        }
-        if (b.size() < l.size())
-            newList.addAll(l.subList(b.size(), l.size()));
-        return ImmutableList.copyOf(newList);
     }
 
     /**

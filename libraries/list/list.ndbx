@@ -17,10 +17,6 @@
         <node description="Remove all duplicate items from the list." function="list/distinct" image="generic.png" name="distinct" outputRange="list" outputType="list" position="7.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Filter the list." function="list/filter" image="generic.png" name="filter" outputRange="list" outputType="list" position="1.00,2.00" category="list">
-            <port name="list" range="list" type="list" widget="none" description="The input list."/>
-            <port name="booleans" range="list" type="list" widget="none" description="A list of boolean values. If the corresponding value is true, the item will be retained."/>
-        </node>
         <node description="Take the first item of the list." function="list/first" image="first.png" name="first" outputType="list" position="1.00,4.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>

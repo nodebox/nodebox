@@ -113,16 +113,6 @@ public class ListFunctionsTest {
     }
 
     @Test
-    public void testFilter() {
-        assertElements(ListFunctions.filter(ImmutableList.of(), ImmutableList.<Boolean>of()));
-        assertElements(ListFunctions.filter(ImmutableList.of(1, 2, 3, 4, 5), ImmutableList.of(true, false, false, true, true)), 1, 4, 5);
-        assertElements(ListFunctions.filter(ImmutableList.of(1, 2, 3, 4, 5), ImmutableList.of(true, false, true, false, true, false, true)), 1, 3, 5);
-        assertElements(ListFunctions.filter(ImmutableList.of(1, 2, 3), ImmutableList.<Boolean>of()), 1, 2, 3);
-        assertElements(ListFunctions.filter(ImmutableList.of(1, 2, 3), ImmutableList.of(true)), 1, 2, 3);
-        assertElements(ListFunctions.filter(ImmutableList.of(1, 2, 3), ImmutableList.of(false)));
-    }
-
-    @Test
     public void testCull() {
         assertElements(ListFunctions.cull(ImmutableList.of(), ImmutableList.<Boolean>of()));
         assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.<Boolean>of()), 1, 2, 3);
