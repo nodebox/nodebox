@@ -317,23 +317,14 @@ public class ListFunctions {
      */
     public static List<?> cull(Iterable<?> iterable, Iterable<Boolean> booleans) {
         if (iterable == null) return ImmutableList.of();
-        if (booleans == null) return ImmutableList.copyOf(iterable);
-        if (Iterables.size(booleans) == 1) {
-            if (Iterables.getFirst(booleans, false))
-                return ImmutableList.copyOf(iterable);
-            else
-                return ImmutableList.of();
-        }
-        Iterator<?> it = iterable.iterator();
-        ImmutableList.Builder<Object> builder = ImmutableList.builder();
+        if (booleans == null || Iterables.isEmpty(booleans)) return ImmutableList.copyOf(iterable);
+        ImmutableList.Builder<Object> results = ImmutableList.builder();
         Iterator<?> booleanIterator = ((Iterable<?>) cycle(booleans)).iterator();
-        if (!booleanIterator.hasNext()) return ImmutableList.copyOf(iterable);
-        while (it.hasNext()) {
-            Object object = it.next();
+        for (Object object : iterable) {
             boolean keep = (Boolean) booleanIterator.next();
-            if (keep) builder.add(object);
+            if (keep) results.add(object);
         }
-        return builder.build();
+        return results.build();
     }
 
     /**
