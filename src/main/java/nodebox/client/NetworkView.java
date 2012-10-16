@@ -426,8 +426,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             // Highlight ports that match the dragged connection type
             int portHeight = PORT_HEIGHT;
             if (connectionOutput != null) {
-                if (connectionOutput.getOutputType().equals(input.getType())) {
+                String connectionOutputType = connectionOutput.getOutputType();
+                String inputType = input.getType();
+                if (connectionOutputType.equals(inputType) || inputType.equals(Port.TYPE_LIST)) {
                     portHeight = PORT_HEIGHT * 2;
+                } else if (TypeConversions.canBeConverted(connectionOutputType, inputType)) {
+                    portHeight = PORT_HEIGHT - 1;
                 } else {
                     portHeight = 1;
                 }
