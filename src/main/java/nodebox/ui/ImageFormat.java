@@ -42,7 +42,7 @@ public final class ImageFormat {
     }
 
     public String ensureFileExtension(String file) {
-        if (file.endsWith("." + getExtension()))
+        if (file.toLowerCase().endsWith("." + getExtension()))
             return file;
         return file + "." + getExtension();
     }

@@ -18,7 +18,7 @@ public class ObjectsRenderer {
     public static void render(Iterable<?> objects, File file) {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
-        if (file.getName().endsWith(".pdf")) {
+        if (file.getName().toLowerCase().endsWith(".pdf")) {
             PDFRenderer.render(file, v, objects);
         } else {
             try {
