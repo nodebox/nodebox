@@ -485,6 +485,31 @@ public class NodeLibraryTest {
         assertEquals("resample1.shape", subnet2.getInput("shape").getChildReference());
     }
 
+    @Test
+    public void testUpgrade9to10() {
+        File version9File = new File("src/test/files/upgrade-v9.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version9File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version9File, NodeRepository.of(corevectorLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertTrue(root.hasChild("wiggle2"));
+        assertTrue(root.hasChild("wiggle3"));
+        assertTrue(root.hasChild("wiggle4"));
+        assertEquals("wiggle", root.getChild("wiggle2").getPrototype().getName());
+        assertEquals("contours", root.getChild("wiggle2").getInput("scope").getValue());
+        assertEquals("paths", root.getChild("wiggle3").getInput("scope").getValue());
+        assertEquals("points", root.getChild("wiggle4").getInput("scope").getValue());
+        assertEquals(7, root.getConnections().size());
+        assertEquals("textpath1", root.getConnection("wiggle2", "shape").getOutputNode());
+        assertTrue(root.hasChild("subnet1"));
+        assertEquals("wiggle1", root.getChild("subnet1").getRenderedChildName());
+        assertEquals("wiggle", root.getChild("subnet2").getChild("wiggle1").getPrototype().getName());
+        assertEquals("contours", root.getChild("subnet1").getChild("wiggle1").getInput("scope").getValue());
+        assertEquals("paths", root.getChild("subnet2").getChild("wiggle1").getInput("scope").getValue());
+        assertEquals("points", root.getChild("subnet3").getChild("wiggle1").getInput("scope").getValue());
+        assertEquals("wiggle1.shape", root.getChild("subnet3").getInput("shape").getChildReference());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

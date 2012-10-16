@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="9">
+    <node name="root">
+        <node name="subnet1" outputRange="list" renderedChild="wiggle_contours2">
+            <node name="wiggle_contours2" prototype="corevector.wiggle_contours"/>
+            <port childReference="wiggle_contours2.shape" name="shape" range="value" type="geometry" widget="none"/>
+        </node>
+        <node name="subnet2" outputRange="list" renderedChild="wiggle_paths2">
+            <node name="wiggle_paths2" prototype="corevector.wiggle_paths"/>
+            <port childReference="wiggle_paths2.shape" name="shape" range="value" type="geometry" widget="none"/>
+        </node>
+        <node name="subnet3" outputRange="list" renderedChild="wiggle_points2">
+            <node name="wiggle_points2" prototype="corevector.wiggle_points"/>
+            <port childReference="wiggle_points2.shape" name="shape" range="value" type="geometry" widget="none"/>
+        </node>
+        <node name="textpath1" prototype="corevector.textpath">
+            <port name="text" type="string" value="ae"/>
+            <port name="font_size" type="float" value="100.0"/>
+        </node>
+        <node name="wiggle1" prototype="corevector.wiggle"/>
+        <node name="wiggle_contours1" prototype="corevector.wiggle_contours"/>
+        <node name="wiggle_paths1" prototype="corevector.wiggle_paths"/>
+        <node name="wiggle_points1" prototype="corevector.wiggle_points"/>
+        <conn input="wiggle1.shape" output="textpath1"/>
+        <conn input="wiggle_contours1.shape" output="textpath1"/>
+        <conn input="wiggle_paths1.shape" output="textpath1"/>
+        <conn input="wiggle_points1.shape" output="textpath1"/>
+        <conn input="subnet1.shape" output="textpath1"/>
+        <conn input="subnet2.shape" output="textpath1"/>
+        <conn input="subnet3.shape" output="textpath1"/>
+    </node>
+</ndbx>

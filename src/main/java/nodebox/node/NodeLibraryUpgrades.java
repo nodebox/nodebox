@@ -49,6 +49,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("6", upgradeMethod("upgrade6to7"));
         upgradeMap.put("7", upgradeMethod("upgrade7to8"));
         upgradeMap.put("8", upgradeMethod("upgrade8to9"));
+        upgradeMap.put("9", upgradeMethod("upgrade9to10"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -196,6 +197,27 @@ public class NodeLibraryUpgrades {
         return transformXml(inputXml, "9",
                 addInputOp1, changePrototypeOp1, renameOp1,
                 addInputOp2, changePrototypeOp2, renameOp2);
+    }
+
+    public static UpgradeStringResult upgrade9to10(String inputXml) throws LoadException {
+        // Version 10: corevector's wiggle_contours, wiggle_paths and wiggle_points nodes
+        // are replaced by the more generic wiggle node.
+        UpgradeOp addInputOp1 = new AddInputOp("corevector.wiggle_contours", "scope", "string", "contours");
+        UpgradeOp changePrototypeOp1 = new ChangePrototypeOp("corevector.wiggle_contours", "corevector.wiggle");
+        UpgradeOp renameOp1 = new RenameNodeOp("wiggle_contours", "wiggle");
+
+        UpgradeOp addInputOp2 = new AddInputOp("corevector.wiggle_paths", "scope", "string", "paths");
+        UpgradeOp changePrototypeOp2 = new ChangePrototypeOp("corevector.wiggle_paths", "corevector.wiggle");
+        UpgradeOp renameOp2 = new RenameNodeOp("wiggle_paths", "wiggle");
+
+        UpgradeOp addInputOp3 = new AddInputOp("corevector.wiggle_points", "scope", "string", "points");
+        UpgradeOp changePrototypeOp3 = new ChangePrototypeOp("corevector.wiggle_points", "corevector.wiggle");
+        UpgradeOp renameOp3 = new RenameNodeOp("wiggle_points", "wiggle");
+
+        return transformXml(inputXml, "10",
+                addInputOp1, changePrototypeOp1, renameOp1,
+                addInputOp2, changePrototypeOp2, renameOp2,
+                addInputOp3, changePrototypeOp3, renameOp3);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {

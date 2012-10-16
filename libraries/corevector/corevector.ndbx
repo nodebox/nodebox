@@ -267,11 +267,5 @@
             <port name="offset" range="value" type="point" value="10.00,10.00" widget="point" description="The maximum amount of translation."/>
             <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
         </node>
-        <node description="Shift points by a random amount." function="pyvector/wiggle_points" handle="pyvector/handle_wiggle" image="wiggle.png" name="wiggle_points" position="16.00,10.00" prototype="filter">
-            <port name="offset" range="value" type="point" value="10.00,10.00" widget="point" description="The maximum amount of translation."/>
-            <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
-        </node>
-        <node description="Shift paths by a random amount." function="pyvector/wiggle_contours" name="wiggle_contours" position="13.00,15.00" prototype="wiggle_points"/>
-        <node description="Shift paths by a random amount." function="pyvector/wiggle_paths" name="wiggle_paths" position="10.00,15.00" prototype="wiggle_points"/>
     </node>
 </ndbx>
