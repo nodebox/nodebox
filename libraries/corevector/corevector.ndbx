@@ -192,13 +192,6 @@
             <port min="1.0" name="points" range="value" type="int" value="10" widget="int" description="The amount of output points."/>
             <port name="per_contour" range="value" type="boolean" value="false" widget="toggle" description="If true, the given amount is per contour, not for the whole path."/>
         </node>
-        <node description="Distribute a number of points along a shape." function="pyvector/resample_by_amount" image="resample.png" name="resample_by_amount" position="4.00,15.00" prototype="filter">
-            <port min="1.0" name="points" range="value" type="int" value="10" widget="int" description="The amount of output points."/>
-            <port name="per_contour" range="value" type="boolean" value="false" widget="toggle" description="If true, the given amount is per contour, not for the whole path."/>
-        </node>
-        <node description="Distribute points evenly along a shape." function="pyvector/resample_by_length" image="resample.png" name="resample_by_length" position="4.00,14.00" prototype="filter">
-            <port min="1.0" name="length" range="value" type="float" value="10.0" widget="float" description="The maximum length of each segment."/>
-        </node>
         <node description="Rotate the shape according to the given angle." function="pyvector/rotate" handle="pyvector/handle_rotate" image="rotate.png" name="rotate" position="16.00,11.00" prototype="filter">
             <port name="angle" range="value" type="float" value="0.0" widget="float" description="The rotation angle (in degrees)."/>
             <port name="origin" range="value" type="point" value="0.0,0.0" widget="point" description="The point around which to rotate."/>

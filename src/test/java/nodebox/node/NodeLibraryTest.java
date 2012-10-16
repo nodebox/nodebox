@@ -457,6 +457,34 @@ public class NodeLibraryTest {
         assertFalse(subnet1.hasInput("range"));
     }
 
+    @Test
+    public void testUpgrade8to9() {
+        File version8File = new File("src/test/files/upgrade-v8.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version8File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version8File, NodeRepository.of(corevectorLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertTrue(root.hasChild("resample2"));
+        assertTrue(root.hasChild("resample3"));
+        assertEquals("resample", root.getChild("resample2").getPrototype().getName());
+        assertEquals("amount", root.getChild("resample2").getInput("method").getValue());
+        assertEquals("resample", root.getChild("resample3").getPrototype().getName());
+        assertEquals("length", root.getChild("resample3").getInput("method").getValue());
+        assertEquals("rect1", root.getConnection("resample2", "shape").getOutputNode());
+        assertEquals("rect1", root.getConnection("resample3", "shape").getOutputNode());
+        assertTrue(root.hasChild("subnet1"));
+        Node subnet1 = root.getChild("subnet1");
+        assertEquals("resample1", subnet1.getRenderedChildName());
+        assertEquals("resample", subnet1.getChild("resample1").getPrototype().getName());
+        assertEquals("amount", subnet1.getChild("resample1").getInput("method").getValue());
+        assertEquals("resample1.shape", subnet1.getInput("shape").getChildReference());
+        Node subnet2 = root.getChild("subnet2");
+        assertEquals("resample1", subnet2.getRenderedChildName());
+        assertEquals("resample", subnet2.getChild("resample1").getPrototype().getName());
+        assertEquals("length", subnet2.getChild("resample1").getInput("method").getValue());
+        assertEquals("resample1.shape", subnet2.getInput("shape").getChildReference());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

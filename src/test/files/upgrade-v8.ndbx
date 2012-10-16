@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="8">
+    <node name="root">
+        <node name="rect1" prototype="corevector.rect"/>
+        <node name="resample1" prototype="corevector.resample"/>
+        <node name="resample_by_amount1" prototype="corevector.resample_by_amount"/>
+        <node name="resample_by_length1" prototype="corevector.resample_by_length"/>
+        <node name="subnet1" outputRange="list" renderedChild="resample_by_amount2">
+            <node name="resample_by_amount2" prototype="corevector.resample_by_amount"/>
+            <port childReference="resample_by_amount2.shape" name="shape" range="value" type="geometry" widget="none"/>
+        </node>
+        <node name="subnet2" outputRange="list" renderedChild="resample_by_length2">
+            <node name="resample_by_length2" prototype="corevector.resample_by_length"/>
+            <port childReference="resample_by_length2.shape" name="shape" range="value" type="geometry" widget="none"/>
+        </node>
+        <conn input="resample1.shape" output="rect1"/>
+        <conn input="resample_by_amount1.shape" output="rect1"/>
+        <conn input="resample_by_length1.shape" output="rect1"/>
+        <conn input="subnet1.shape" output="rect1"/>
+        <conn input="subnet2.shape" output="rect1"/>
+    </node>
+</ndbx>

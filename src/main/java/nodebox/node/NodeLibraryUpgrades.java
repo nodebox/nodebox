@@ -48,6 +48,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("5", upgradeMethod("upgrade5to6"));
         upgradeMap.put("6", upgradeMethod("upgrade6to7"));
         upgradeMap.put("7", upgradeMethod("upgrade7to8"));
+        upgradeMap.put("8", upgradeMethod("upgrade8to9"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -179,6 +180,22 @@ public class NodeLibraryUpgrades {
         // Version 8: The corevector.point_on_path node loses the range port.
         UpgradeOp removeInputOp = new RemoveInputOp("corevector.point_on_path", "range");
         return transformXml(inputXml, "8", removeInputOp);
+    }
+
+    public static UpgradeStringResult upgrade8to9(String inputXml) throws LoadException {
+        // Version 9: corevector's resample_by_amount and resample_by_length nodes
+        // are replaced by the more generic resample node.
+        UpgradeOp addInputOp1 = new AddInputOp("corevector.resample_by_amount", "method", "string", "amount");
+        UpgradeOp changePrototypeOp1 = new ChangePrototypeOp("corevector.resample_by_amount", "corevector.resample");
+        UpgradeOp renameOp1 = new RenameNodeOp("resample_by_amount", "resample");
+
+        UpgradeOp addInputOp2 = new AddInputOp("corevector.resample_by_length", "method", "string", "length");
+        UpgradeOp changePrototypeOp2 = new ChangePrototypeOp("corevector.resample_by_length", "corevector.resample");
+        UpgradeOp renameOp2 = new RenameNodeOp("resample_by_length", "resample");
+
+        return transformXml(inputXml, "9",
+                addInputOp1, changePrototypeOp1, renameOp1,
+                addInputOp2, changePrototypeOp2, renameOp2);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {
@@ -469,6 +486,30 @@ public class NodeLibraryUpgrades {
         }
     }
 
+    private static class AddInputOp extends UpgradeOp {
+        private String nodePrototype;
+        private String name;
+        private String type;
+        private String value;
+
+        private AddInputOp(String nodePrototype, String name, String type, String value) {
+            this.nodePrototype = nodePrototype;
+            this.name = name;
+            this.type = type;
+            this.value = value;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, nodePrototype)) {
+                Element port = new Element("port");
+                port.addAttribute(new Attribute("name", this.name));
+                port.addAttribute(new Attribute("type", this.type));
+                port.addAttribute(new Attribute("value", this.value));
+                e.insertChild(port, 0);
+            }
+        }
+    }
 
     private static UpgradeStringResult transformXml(String xml, String newFormatVersion, UpgradeOp... ops) {
         try {
