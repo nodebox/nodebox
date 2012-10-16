@@ -429,6 +429,20 @@ public class NodeLibraryTest {
         assertEquals("non-selected", delete2.getInput("operation").stringValue());
     }
 
+    @Test
+    public void testUpgrade6to7() {
+        File version6File = new File("src/test/files/upgrade-v6.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version6File);
+        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version6File, NodeRepository.of(listLibrary, mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertFalse(root.hasChild("filter1"));
+        assertTrue(root.hasChild("cull1"));
+        assertEquals("cull1", root.getRenderedChildName());
+        assertResultsEqual(root, 0.0, 2.0, 4.0, 6.0, 8.0);
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
