@@ -327,14 +327,14 @@ public class CoreVectorFunctions {
      * The total width and height of the grid are given, and the
      * spacing between rows and columns is calculated.
      *
-     * @param rows     The number of rows.
      * @param columns  The number of columns.
+     * @param rows     The number of rows.
      * @param width    The total width of the grid.
      * @param height   The total height of the grid.
      * @param position The center position of the grid.
      * @return A list of Points.
      */
-    public static List<Point> grid(long rows, long columns, double width, double height, Point position) {
+    public static List<Point> grid(long columns, long rows, double width, double height, Point position) {
         double columnSize, left, rowSize, top;
         if (columns > 1) {
             columnSize = width / (columns - 1);
