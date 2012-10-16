@@ -23,16 +23,19 @@
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
         <node category="math" description="Select between two values by comparing them." function="math/compare" image="compare.png" name="compare" position="7.00,4.00">
-            <port name="comparator" range="value" type="string" value="&lt;" widget="menu"  description="The comparison operator.">
-                <menu key="&lt;" label="smaller than"/>
-                <menu key="&gt;" label="greater than"/>
-                <menu key="&lt;=" label="smaller or even than"/>
-                <menu key="&gt;=" label="greater or even than"/>
-                <menu key="==" label="equals"/>
-                <menu key="!=" label="not equals"/>
-            </port>
+
             <port name="value1" range="value" type="float" value="0.0" widget="float" description="The first value."/>
             <port name="value2" range="value" type="float" value="0.0" widget="float" description="The second value."/>
+
+
+            <port name="comparator" range="value" type="string" value="&lt;" widget="menu"  description="The comparison operator.">
+                <menu key="&lt;" label="&lt; smaller than"/>
+                <menu key="&gt;" label="&gt; greater than"/>
+                <menu key="&lt;=" label="&lt;= smaller or even than"/>
+                <menu key="&gt;=" label="&gt;= greater or even than"/>
+                <menu key="==" label="== equals"/>
+                <menu key="!=" label="!= not equals"/>
+            </port>
         </node>
         <node category="math" description="Convert a value from one range to another." function="math/convertRange" image="generic.png" name="convert_range" position="7.00,6.00">
             <port name="value" range="value" type="float" value="50.0" widget="float" description="The input value."/>
