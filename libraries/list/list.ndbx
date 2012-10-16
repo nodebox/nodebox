@@ -10,7 +10,7 @@
         <node description="Count the number of items in the list." function="list/count" image="count.png" name="count" outputType="int" position="1.00,1.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Cull the list." function="list/cull" image="generic.png" name="cull" outputRange="list" outputType="list" position="1.00,3.00" category="list">
+        <node description="Remove all items from the list where the corresponding boolean is false." function="list/cull" image="generic.png" name="cull" outputRange="list" outputType="list" position="1.00,3.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="booleans" range="list" type="list" widget="none" description="A list of matching boolean values. All list items where the booleans are true will be retained."/>
         </node>
