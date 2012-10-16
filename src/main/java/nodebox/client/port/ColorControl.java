@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -36,6 +37,7 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
     }
 
     public void setValueForControl(Object v) {
+        colorButton.color = ((nodebox.graphics.Color) v).getAwtColor();
         colorButton.repaint();
     }
 
@@ -80,6 +82,8 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
     }
 
     private class ColorButton extends JButton {
+        Color color = Color.BLACK;
+
         private ColorButton() {
             addActionListener(ColorControl.this);
         }
@@ -98,7 +102,7 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
             } else {
                 r.grow(-5, -5);
             }
-            g.setColor(port.colorValue().getAwtColor());
+            g.setColor(color);
             g.fillRect(r.x, r.y, r.width - 1, r.height - 1);
         }
     }
