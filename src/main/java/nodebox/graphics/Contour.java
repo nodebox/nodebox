@@ -345,7 +345,7 @@ public class Contour extends AbstractGeometry {
     public Contour resampleByAmount(int amount) {
         Contour c = new Contour();
         c.extend(makePoints(amount));
-        c.closed = closed;
+        c.setClosed(closed);
         return c;
     }
 

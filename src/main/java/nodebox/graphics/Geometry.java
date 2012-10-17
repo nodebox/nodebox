@@ -372,6 +372,10 @@ public class Geometry extends AbstractGeometry implements Colorizable {
             for (int i = 0; i < amount; i++) {
                 g.addPoint(pointAt(delta * i));
             }
+            if (isClosed() && g.paths.size() == 1) {
+                g.paths.get(0).close();
+                g.invalidate();
+            }
             return g;
         }
     }

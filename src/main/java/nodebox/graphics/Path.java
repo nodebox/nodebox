@@ -755,6 +755,7 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
             for (int i = 0; i < amount; i++) {
                 p.addPoint(pointAt(delta * i));
             }
+            if (isClosed()) p.close();
             return p;
         }
     }
