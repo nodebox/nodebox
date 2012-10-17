@@ -624,7 +624,46 @@ def snap(shape, distance, strength, position=Point.ZERO):
         new_shape.add(c)
     return new_shape
 
-# TODO sort
+def _x(shape):
+    try:
+        return shape.x
+    except AttributeError:
+        return shape.bounds.x
+
+def _y(shape):
+    try:
+        return shape.y
+    except AttributeError:
+        return shape.bounds.y
+
+def angle_to_point(point):
+    def _angle_to_point(shape):
+        try:
+            return angle(shape.x, shape.y, point.x, point.y)
+        except AttributeError:
+            centroid = shape.bounds.centroid
+            return angle(centroid.x, centroid.y, point.x, point.y)
+    return _angle_to_point
+
+def distance_to_point(point):
+    def _distance_to_point(shape):
+        try:
+            return distance(shape.x, shape.y, point.x, point.y)
+        except AttributeError:
+            centroid = shape.bounds.centroid
+            return distance(centroid.x, centroid.y, point.x, point.y)
+    return _distance_to_point
+
+def sort(shapes, order_by, point):
+    if shapes is None: return None
+    methods = {"x": _x, "y": _y, "angle": angle_to_point(point), "distance": distance_to_point(point)}
+    sort_method = methods.get(order_by)
+    if sort_method is None: 
+        return shapes
+    else:
+        new_shapes = list(shapes)
+        new_shapes.sort(cmpfactory(sort_method))
+    return new_shapes
 
 def star(position, points, outer, inner):
     p = Path()
