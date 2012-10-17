@@ -127,12 +127,19 @@ public class ListFunctions {
      * @param iterable   The list items.
      * @param startIndex The starting index, zero-based.
      * @param size       The amount of items.
+     * @param invert     Omit the given list items instead of retaining them.
      * @return A new list containing a slice of the original.
      */
-    public static List<?> slice(Iterable<?> iterable, long startIndex, long size) {
+    public static List<?> slice(Iterable<?> iterable, long startIndex, long size, boolean invert) {
         if (iterable == null) return ImmutableList.of();
-        Iterable<?> skipped = Iterables.skip(iterable, (int) startIndex);
-        return ImmutableList.copyOf(Iterables.limit(skipped, (int) size));
+        if (! invert) {
+            Iterable<?> skipped = Iterables.skip(iterable, (int) startIndex);
+            return ImmutableList.copyOf(Iterables.limit(skipped, (int) size));
+        } else {
+            Iterable<?> firstList = Iterables.limit(iterable, (int) startIndex);
+            Iterable<?> secondList = Iterables.skip(iterable, (int) (startIndex + size));
+            return ImmutableList.copyOf(Iterables.concat(firstList, secondList));
+        }
     }
 
     /**

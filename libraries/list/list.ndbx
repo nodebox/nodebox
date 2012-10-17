@@ -54,6 +54,7 @@
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port min="0.0" name="start_index" range="value" type="int" value="0" widget="int" description="The starting index in the list."/>
             <port min="0.0" name="size" range="value" type="int" value="10" widget="int" description="The amount of items to take from the list."/>
+            <port name="invert" range="value" type="boolean" description="Omit the items instead of retaining them."/>
         </node>
         <node description="Sort items in the list." function="list/sort" image="sort.png" name="sort" outputRange="list" outputType="list" position="4.00,6.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>

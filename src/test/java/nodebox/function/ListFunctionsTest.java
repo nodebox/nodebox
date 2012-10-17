@@ -59,10 +59,15 @@ public class ListFunctionsTest {
 
     @Test
     public void testSubList() {
-        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 0, 100), 1, 2, 3, 4);
-        assertElements(ListFunctions.slice(ImmutableList.of(), 100, 100));
-        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 1, 2), 2, 3);
-        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 100, 2));
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 0, 100, false), 1, 2, 3, 4);
+        assertElements(ListFunctions.slice(ImmutableList.of(), 100, 100, false));
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 1, 2, false), 2, 3);
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 100, 2, false));
+
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 0, 100, true));
+        assertElements(ListFunctions.slice(ImmutableList.of(), 100, 100, true));
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 1, 2, true), 1, 4);
+        assertElements(ListFunctions.slice(ImmutableList.of(1, 2, 3, 4), 100, 2, true), 1, 2, 3, 4);
     }
 
     @Test

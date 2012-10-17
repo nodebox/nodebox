@@ -523,6 +523,7 @@ public class NodeContextTest {
                 .withInputAdded(Port.stringPort("list", "").withRange(Port.Range.LIST))
                 .withInputAdded(Port.intPort("start", 0))
                 .withInputAdded(Port.intPort("size", 1000))
+                .withInputAdded(Port.booleanPort("invert", false))
                 .withOutputRange(Port.Range.LIST);
         Node makeStrings = Node.ROOT
                 .withName("makeStrings")
