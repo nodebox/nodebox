@@ -510,6 +510,23 @@ public class NodeLibraryTest {
         assertEquals("wiggle1.shape", root.getChild("subnet3").getInput("shape").getChildReference());
     }
 
+    @Test
+    public void testUpgrade10to11() {
+        File version10File = new File("src/test/files/upgrade-v10.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version10File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version10File, NodeRepository.of(corevectorLibrary, stringLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertFalse(root.hasChild("draw_path1"));
+        assertFalse(root.hasChild("draw_path2"));
+        Node subnet1 = root.getChild("subnet1");
+        assertFalse(subnet1.hasRenderedChild());
+        assertFalse(subnet1.hasInput("path"));
+        assertEquals(1, subnet1.getChildren().size());
+        assertEquals(0, root.getConnections().size());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

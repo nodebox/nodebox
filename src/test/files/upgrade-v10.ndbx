@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="10">
+    <node name="root" renderedChild="subnet1">
+        <node name="draw_path1" prototype="corevector.draw_path">
+            <port name="path" type="string" value="M 82.14 -33.5 C 121.19 -17.3 126.9 147.45 50.71 84.59 C -25.47 21.73 -92.51 34.99 -51.46 128.56 "/>
+        </node>
+        <node name="draw_path2" prototype="corevector.draw_path"/>
+        <node name="path_string" prototype="string.string">
+            <port name="value" type="string" value="M 82.14 -33.5 C 121.19 -17.3 126.9 147.45 50.71 84.59 C -25.47 21.73 -92.51 34.99 -51.46 128.56 "/>
+        </node>
+        <node name="subnet1" outputRange="list" renderedChild="draw_path2">
+            <node name="draw_path2" prototype="corevector.draw_path"/>
+            <node name="rect1" prototype="corevector.rect"/>
+            <port childReference="draw_path2.path" name="path" range="value" type="string" value="" widget="string"/>
+        </node>
+        <conn input="draw_path2.path" output="path_string"/>
+        <conn input="subnet1.path" output="path_string"/>
+    </node>
+</ndbx>

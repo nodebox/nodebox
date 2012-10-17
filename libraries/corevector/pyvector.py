@@ -245,15 +245,6 @@ def delete(shape, bounding, scope="points", operation="selected"):
     if scope == "points": return delete_points(shape, bounding, delete_selected)
     if scope == "paths": return delete_paths(shape, bounding, delete_selected)
 
-def draw_path(path_data):
-    if not path_data: return None
-    import svg
-    p = svg.path_from_string(path_data)
-    p.fillColor = None
-    p.strokeWidth = 1
-    p.strokeColor = Color()
-    return p
-
 def left(shape):
     return shape.bounds.x
 
@@ -970,9 +961,6 @@ def handle_polygon():
 
 def handle_freehand():
     return handles.FreehandHandle()
-
-def handle_draw_path():
-    return handles.BezierPathEditor()
 
 def handle_snap():
     return handles.SnapHandle()

@@ -1,5 +1,4 @@
 from nodebox.handle import CombinedHandle, PointHandle, FourPointHandle, TranslateHandle, RotateHandle, ScaleHandle, CircleScaleHandle, FreehandHandle
-from bezierpatheditor import BezierPathEditor
 from nodebox.util.Geometry import coordinates, angle, distance
 
 class LineHandle(CombinedHandle):

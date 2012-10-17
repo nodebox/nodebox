@@ -6,6 +6,7 @@ import com.google.common.io.Files;
 import nodebox.graphics.Point;
 import nodebox.util.LoadException;
 import nu.xom.*;
+import org.python.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("7", upgradeMethod("upgrade7to8"));
         upgradeMap.put("8", upgradeMethod("upgrade8to9"));
         upgradeMap.put("9", upgradeMethod("upgrade9to10"));
+        upgradeMap.put("10", upgradeMethod("upgrade10to11"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -220,6 +222,11 @@ public class NodeLibraryUpgrades {
                 addInputOp3, changePrototypeOp3, renameOp3);
     }
 
+    public static UpgradeStringResult upgrade10to11(String inputXml) throws LoadException {
+        UpgradeOp removeNodeOp = new RemoveNodeOp("corevector.draw_path");
+        return transformXml(inputXml, "11", removeNodeOp);
+    }
+
     private static Set<String> getChildNodeNames(ParentNode parent) {
         HashSet<String> names = new HashSet<String>();
         Nodes children = parent.query("node");
@@ -248,9 +255,12 @@ public class NodeLibraryUpgrades {
         Attribute renderedChildReference = element.getAttribute("renderedChild");
         if (renderedChildReference == null) return;
         String oldRenderedChild = renderedChildReference.getValue();
-        if (oldRenderedChild.equals(oldNodeName))
-            renderedChildReference.setValue(newNodeName);
-
+        if (oldRenderedChild.equals(oldNodeName)) {
+            if (newNodeName == null || newNodeName.length() == 0)
+                element.removeAttribute(renderedChildReference);
+            else
+                renderedChildReference.setValue(newNodeName);
+        }
     }
 
     private static void renamePortReference(Elements elements, String attributeName, String oldNodeName, String newNodeName) {
@@ -325,6 +335,23 @@ public class NodeLibraryUpgrades {
         }
     }
 
+    private static void removeConnections(Element parent, String child) {
+        Elements connections = parent.getChildElements("conn");
+        for (int i = 0; i < connections.size(); i++) {
+            Element conn = connections.get(i);
+
+            Attribute inputAttr = conn.getAttribute("input");
+            String inputPort = inputAttr.getValue();
+            String inputNode = inputPort.split("\\.")[0];
+
+            Attribute outputAttr = conn.getAttribute("output");
+            String outputNode = outputAttr.getValue();
+
+            if (inputNode.equals(child) || outputNode.equals(child))
+                parent.removeChild(conn);
+        }
+    }
+
     private static String getParentPublishedInput(Element parent, String child, String input) {
         Elements ports = parent.getChildElements("port");
         for (int i = 0; i < ports.size(); i++) {
@@ -335,6 +362,19 @@ public class NodeLibraryUpgrades {
             }
         }
         return null;
+    }
+
+    private static List<String> getParentPublishedInputs(Element parent, String child) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        Elements ports = parent.getChildElements("port");
+        for (int i = 0; i < ports.size(); i++) {
+            Element port = ports.get(i);
+            Attribute childRef = port.getAttribute("childReference");
+            if (childRef != null && childRef.getValue().split("\\.")[0].equals(child)) {
+                builder.add(port.getAttribute("name").getValue());
+            }
+        }
+        return builder.build();
     }
 
     private static boolean isNodeWithPrototype(Element e, String nodePrototype) {
@@ -530,6 +570,40 @@ public class NodeLibraryUpgrades {
                 port.addAttribute(new Attribute("value", this.value));
                 e.insertChild(port, 0);
             }
+        }
+    }
+
+    private static class RemoveNodeOp extends UpgradeOp {
+        private String nodePrototype;
+        private List<String> removedNodes;
+
+        private RemoveNodeOp(String nodePrototype) {
+            this.nodePrototype = nodePrototype;
+            removedNodes = new ArrayList<String>();
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, nodePrototype)) {
+                Element parent = (Element) e.getParent();
+                String child = e.getAttribute("name").getValue();
+                removedNodes.add(child);
+
+                List<String> publishedInputs = getParentPublishedInputs(parent, child);
+                for (String publishedInput : publishedInputs)
+                    removeNodeInput(parent, publishedInput);
+
+
+                removeConnections(parent, child);
+                renameRenderedChildReference(parent, child, null);
+                e.getParent().removeChild(e);
+            }
+        }
+
+        @Override
+        public void end(Element root) {
+            if (removedNodes.size() > 0)
+                addWarning(String.format("The '%s' node became obsolete, the following nodes in your network got removed: %s", nodePrototype, removedNodes));
         }
     }
 
