@@ -157,7 +157,7 @@ public class NodeLibraryController {
             newParent = newParent.withChildRemoved(node.getName());
         }
         Node subnet = Node.NETWORK
-                .withName(newParent.uniqueName("subnet"))
+                .withName(newParent.uniqueName("network"))
                 .withChildrenAdded(parent, nodes);
         List<String> nodeNames = new ArrayList<String>();
 

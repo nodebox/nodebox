@@ -388,8 +388,8 @@ public class NodeLibraryControllerTest {
         assertTrue(subnet.hasChild("negate"));
         assertEquals(1, subnet.getConnections().size());
         assertEquals(1, controller.getRootNode().getChildren().size());
-        assertSame(subnet, controller.getRootNode().getChild("subnet1"));
-        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), -15.0);
+        assertSame(subnet, controller.getRootNode().getChild("network1"));
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/network1"), -15.0);
     }
 
     @Test
@@ -418,7 +418,7 @@ public class NodeLibraryControllerTest {
         assertEquals(1, subnet1.getInputs().size());
         assertEquals("value1", subnet1.getInputs().get(0).getName());
         assertEquals(1, root.getConnections().size());
-        assertEquals("radius", root.getConnection("subnet1", "value1").getOutputNode());
+        assertEquals("radius", root.getConnection("network1", "value1").getOutputNode());
     }
 
     @Test
@@ -456,9 +456,9 @@ public class NodeLibraryControllerTest {
         assertEquals("value1_2", inputs.get(1).getName());
 
         assertEquals(2, root.getConnections().size());
-        assertEquals("number1", root.getConnection("subnet1", "value1_1").getOutputNode());
-        assertEquals("number1", root.getConnection("subnet1", "value1_2").getOutputNode());
-        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), 1.2);
+        assertEquals("number1", root.getConnection("network1", "value1_1").getOutputNode());
+        assertEquals("number1", root.getConnection("network1", "value1_2").getOutputNode());
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/network1"), 1.2);
     }
 
     /**
@@ -477,7 +477,7 @@ public class NodeLibraryControllerTest {
         controller.connect("/", numberNode, invert2Node, invert2Node.getInput("value"));
         controller.setRenderedChild("/", "number");
         controller.groupIntoNetwork("/", ImmutableList.of(numberNode, invert1Node, invert2Node));
-        assertResultsEqual(controller.getRootNode(), controller.getNode("/subnet1"), 20.0);
+        assertResultsEqual(controller.getRootNode(), controller.getNode("/network1"), 20.0);
     }
 
     private void createSimpleConnection() {
