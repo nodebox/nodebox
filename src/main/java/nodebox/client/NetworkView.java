@@ -1,6 +1,9 @@
 package nodebox.client;
 
 import com.google.common.base.Splitter;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -26,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -48,7 +52,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public static final String RENDER_PROPERTY = "render";
     public static final String NETWORK_PROPERTY = "network";
 
-    private static Map<String, BufferedImage> nodeImageCache = new HashMap<String, BufferedImage>();
+    private static Map<String, BufferedImage> fileImageCache = new HashMap<String, BufferedImage>();
     private static BufferedImage nodeGeneric;
 
     public static final float MIN_ZOOM = 0.05f;
@@ -74,6 +78,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private JPopupMenu nodeMenu;
     private Point nodeMenuLocation;
+
+    private LoadingCache<Node, BufferedImage> nodeImageCache;
 
     // View state
     private double viewX, viewY, viewScale = 1;
@@ -167,12 +173,12 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     public static BufferedImage readNodeImage(File nodeImageFile) {
         String imagePath = nodeImageFile.getAbsolutePath();
-        if (nodeImageCache.containsKey(imagePath)) {
-            return nodeImageCache.get(imagePath);
+        if (fileImageCache.containsKey(imagePath)) {
+            return fileImageCache.get(imagePath);
         } else {
             try {
                 BufferedImage image = ImageIO.read(nodeImageFile);
-                nodeImageCache.put(imagePath, image);
+                fileImageCache.put(imagePath, image);
                 return image;
             } catch (IOException e) {
                 return null;
@@ -185,6 +191,9 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
         initEventHandlers();
         initMenus();
+        nodeImageCache = CacheBuilder.newBuilder()
+                .maximumSize(1000)
+                .build(new NodeImageCacheLoader(document.getNodeRepository()));
     }
 
     private void initEventHandlers() {
@@ -365,8 +374,16 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         Node renderedNode = getActiveNetwork().getRenderedChild();
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
-            BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
-            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), renderedNode == node , connectionOutput, hoverInputPort, overOutput == node);
+            BufferedImage icon = getCachedImageForNode(node);
+            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), renderedNode == node, connectionOutput, hoverInputPort, overOutput == node);
+        }
+    }
+
+    private BufferedImage getCachedImageForNode(Node node) {
+        try {
+            return nodeImageCache.get(node);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -381,7 +398,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         text.setFontSize(Theme.NETWORK_FONT.getSize());
         int cells = Math.min(Math.max(3, 1 + (int) Math.ceil(text.getMetrics().getWidth() / (GRID_CELL_SIZE - 6))), 6);
         if (cells > 3)
-            return getShortenedName(name.substring(0, startChars) + "…" +  name.substring(name.length() - 3, name.length()), startChars - 1);
+            return getShortenedName(name.substring(0, startChars) + "…" + name.substring(name.length() - 3, name.length()), startChars - 1);
         return name;
     }
 
@@ -986,6 +1003,29 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private Point2D minPoint(Point2D a, Point2D b) {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
+    }
+
+    private static class NodeImageCacheLoader extends CacheLoader<Node, BufferedImage> {
+        private NodeRepository nodeRepository;
+
+        private NodeImageCacheLoader(NodeRepository nodeRepository) {
+            this.nodeRepository = nodeRepository;
+        }
+
+        @Override
+        public BufferedImage load(Node node) throws Exception {
+            for (NodeLibrary library : nodeRepository.getLibraries()) {
+                BufferedImage img = findNodeImage(library, node);
+                if (img != null) {
+                    return img;
+                }
+            }
+            if (node.getPrototype() != null) {
+                return load(node.getPrototype());
+            } else {
+                return nodeGeneric;
+            }
+        }
     }
 
     private class NewNodeAction extends AbstractAction {
