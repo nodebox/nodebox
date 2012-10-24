@@ -362,10 +362,11 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private void paintNodes(Graphics2D g) {
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
+        Node renderedNode = getActiveNetwork().getRenderedChild();
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getImageForNode(node, getDocument().getNodeRepository());
-            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), isRendered(node), connectionOutput, hoverInputPort, overOutput == node);
+            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), renderedNode == node , connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
