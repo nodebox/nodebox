@@ -242,9 +242,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     }
 
     public void checkErrorAndRepaint() {
-        //if (!networkError && !activeNetwork.hasError()) return;
-        //networkError = activeNetwork.hasError();
-        repaint();
+        // TODO Check for errors in an efficient way.
     }
 
     public void codeChanged(Node node, boolean changed) {
