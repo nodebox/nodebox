@@ -30,6 +30,7 @@ public final class Point extends AbstractRecord {
 
     public final double x, y;
     public final int type;
+    public transient int hashCode;
 
     public Point() {
         this(0, 0, LINE_TO);
@@ -97,7 +98,10 @@ public final class Point extends AbstractRecord {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(x, y, type);
+        if (hashCode == 0) {
+            hashCode = Objects.hashCode(x, y, type);
+        }
+        return hashCode;
     }
 
     @Override

@@ -78,6 +78,8 @@ public final class Port {
     private final Double maximumValue;
     private final ImmutableList<MenuItem> menuItems;
 
+    private final transient int hashCode;
+
     public static Port intPort(String name, long value) {
         return intPort(name, value, null, null);
     }
@@ -259,6 +261,7 @@ public final class Port {
         this.maximumValue = maximumValue;
         this.value = clampValue(value);
         this.menuItems = ImmutableList.copyOf(menuItems);
+        this.hashCode  = Objects.hashCode(name, type, value);
     }
 
     public String getName() {
@@ -749,7 +752,7 @@ public final class Port {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, type, value);
+        return hashCode;
     }
 
     @Override
