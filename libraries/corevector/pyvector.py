@@ -565,36 +565,45 @@ def scatter(shape, amount, seed):
             tries -= 1
     return points
 
-def shape_on_path(shape, template, amount, dist, start, keep_geometry):
-    if shape is None: return None
-    if template is None: return None
-    
-    if isinstance(shape, Path):
-        shape = shape.asGeometry()
-    if isinstance(template, Path):
-        template = template.asGeometry()
-        
-    g = Geometry()
+def shape_on_path(shapes, path, amount, alignment, spacing, margin, baseline_offset):
+    if not shapes: return []
+    if path is None: return []
 
-    if keep_geometry:
-        g.extend(template.clone())
-           
-    first = True  
-    for i in range(amount):
-        if first:
-            t = start / 100
-            first = False
-        else:
-            t += dist / 500.0
-        pt1 = template.pointAt(t)
-        pt2 = template.pointAt(t + 0.00001)
-        a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
-        tp = Transform()
-        tp.translate(pt1.x, pt1.y)
-        tp.rotate(a - 180)
-        new_shape = tp.map(shape)
-        g.extend(new_shape)
-    return g
+    if alignment == "trailing":
+        shapes = list(shapes)
+        shapes.reverse()
+
+    length = path.length - margin
+    m = margin / path.length
+    c = 0
+
+    new_shapes = []
+    for i in xrange(amount):
+        for shape in shapes:
+            if alignment == "distributed":
+                p = length / ((amount * len(shapes)) - 1)
+                pos = c * p / length
+                pos = m + (pos * (1 - 2 * m))
+            else:
+                pos = ((c * spacing) % length) / length
+                pos = m + (pos * (1 - m))
+
+                if alignment == "trailing":
+                    pos = 1 - pos
+
+            p1 = path.pointAt(pos)
+            p2 = path.pointAt(pos + 0.0000001)
+            a = angle(p1.x, p1.y, p2.x, p2.y)
+            if baseline_offset:
+                coords = coordinates(p1.x, p1.y, baseline_offset, a - 90)
+                p1 = Point(*coords)
+            t = Transform()
+            t.translate(p1)
+            t.rotate(a)
+            new_shapes.append(t.map(shape))
+            c += 1
+
+    return new_shapes
 
 @_map_geo_to_paths
 def snap(shape, distance, strength, position=Point.ZERO):

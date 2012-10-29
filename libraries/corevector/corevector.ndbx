@@ -201,12 +201,18 @@
             <port min="0.0" name="amount" range="value" type="int" value="20" widget="int" description="The amount of output points to generate."/>
             <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
         </node>
-        <node description="Copies shapes on a path." function="pyvector/shape_on_path" image="shape_on_path.png" name="shape_on_path" position="10.00,1.00" prototype="filter">
-            <port name="template" range="value" type="geometry" widget="none" description="The underlying shape."/>
-            <port name="amount" range="value" type="int" value="20" widget="int" description="The amount of copies."/>
-            <port name="dist" range="value" type="float" value="20.0" widget="float" description="The distance between each shape."/>
-            <port max="100.0" min="0.0" name="start" range="value" type="float" value="0.0" widget="float" description="The starting offset of the shape."/>
-            <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle" description="If true, also retains the template geometry."/>
+        <node description="Copies shapes on a path." function="pyvector/shape_on_path" image="shape_on_path.png" name="shape_on_path" outputRange="list" position="10.00,1.00" prototype="generator">
+            <port name="shape" range="list" type="geometry" widget="none" description="The shape(s) to copy."/>
+            <port name="path" range="value" type="geometry" widget="none" description="The path on which to copy the shape(s)."/>
+            <port min="0.0" name="amount" range="value" type="int" value="1" widget="int" description="The amount of copies."/>
+            <port name="alignment" range="value" type="string" value="leading" widget="menu" description="The way to lay out the shapes horizontally.">
+                <menu key="leading" label="Leading"/>
+                <menu key="trailing" label="Trailing"/>
+                <menu key="distributed" label="Distributed"/>
+            </port>
+            <port min="0.0" name="spacing" range="value" type="float" value="20.0" widget="float" description="The spacing between the shapes."/>
+            <port min="0.0" name="margin" range="value" type="float" value="0.0" widget="float" description="Empty space before and/or after the shapes."/>
+            <port name="baseline_offset" range="value" type="float" value="0.0" widget="float" description="The vertical offset of the shapes from the baseline."/>
         </node>
         <node description="Skew the shape." function="corevector/skew" image="skew.png" name="skew" prototype="filter">
             <port name="skew" range="value" type="point" value="0.0,0.0" widget="point" description="The skew factor."/>

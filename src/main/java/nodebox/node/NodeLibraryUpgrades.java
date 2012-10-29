@@ -52,6 +52,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("8", upgradeMethod("upgrade8to9"));
         upgradeMap.put("9", upgradeMethod("upgrade9to10"));
         upgradeMap.put("10", upgradeMethod("upgrade10to11"));
+        upgradeMap.put("11", upgradeMethod("upgrade11to12"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -225,6 +226,13 @@ public class NodeLibraryUpgrades {
     public static UpgradeStringResult upgrade10to11(String inputXml) throws LoadException {
         UpgradeOp removeNodeOp = new RemoveNodeOp("corevector.draw_path");
         return transformXml(inputXml, "11", removeNodeOp);
+    }
+
+    public static UpgradeStringResult upgrade11to12(String inputXml) throws LoadException {
+        UpgradeOp renamePortOp1 = new RenamePortOp("corevector.shape_on_path", "template", "path");
+        UpgradeOp renamePortOp2 = new RenamePortOp("corevector.shape_on_path", "dist", "spacing");
+        UpgradeOp renamePortOp3 = new RenamePortOp("corevector.shape_on_path", "start", "margin");
+        return transformXml(inputXml, "12", renamePortOp1, renamePortOp2, renamePortOp3);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {
@@ -501,14 +509,13 @@ public class NodeLibraryUpgrades {
             if (isNodeWithPrototype(e, nodePrototype)) {
                 String nodeName = e.getAttributeValue("name");
                 Element port = portWithName(e, oldPortName);
-                if (port != null) {
+                if (port != null)
                     port.getAttribute("name").setValue(newPortName);
-                    Element parent = (Element) e.getParent();
-                    Elements connections = parent.getChildElements("conn");
-                    renamePortInElements(connections, "input", nodeName, oldPortName, newPortName);
-                    Elements ports = parent.getChildElements("port");
-                    renamePortInElements(ports, "childReference", nodeName, oldPortName, newPortName);
-                }
+                Element parent = (Element) e.getParent();
+                Elements connections = parent.getChildElements("conn");
+                renamePortInElements(connections, "input", nodeName, oldPortName, newPortName);
+                Elements ports = parent.getChildElements("port");
+                renamePortInElements(ports, "childReference", nodeName, oldPortName, newPortName);
             }
         }
     }

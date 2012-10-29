@@ -527,6 +527,11 @@ public class NodeLibraryTest {
         assertEquals(0, root.getConnections().size());
     }
 
+    @Test
+    public void testUpgrade11to12() {
+        // todo: implement
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
