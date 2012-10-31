@@ -6,6 +6,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.event.*;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -31,6 +32,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     private Color color;
     private Color newColor;
     private ColorField colorField;
+    private JTextField hexField;
     private ColorPanel[] panels;
     private ColorRange colorRange;
     private DraggableNumber hueDraggable, saturationDraggable, brightnessDraggable;
@@ -67,6 +69,39 @@ public class ColorDialog extends JDialog implements ChangeListener {
         topPanel.setMaximumSize(d);
         topPanel.setSize(d);
         topPanel.add(colorField, BorderLayout.WEST);
+
+        JPanel hexPanel = new JPanel(null);
+        hexPanel.setMinimumSize(d);
+        hexPanel.setPreferredSize(d);
+        hexPanel.setMaximumSize(d);
+        hexPanel.setSize(d);
+        hexField = new JTextField();
+        hexField.setFont(Theme.SMALL_BOLD_FONT);
+        hexField.setForeground(Theme.TEXT_NORMAL_COLOR);
+        hexField.setHorizontalAlignment(JTextField.CENTER);
+        hexField.setBackground(null);
+        hexPanel.add(hexField);
+        hexField.setBounds(0, 10, 110, 22);
+        hexField.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String s = hexField.getText().toLowerCase();
+                if (! s.startsWith("#"))
+                    s = "#" + s;
+                if (s.length() == 7)
+                    s = s + "ff";
+                try {
+                    nodebox.graphics.Color c = new nodebox.graphics.Color(s);
+                    red = (float) c.getRed();
+                    green = (float) c.getGreen();
+                    blue = (float) c.getBlue();
+                    alpha = (float) c.getAlpha();
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(ColorDialog.this, ex.getMessage());
+                }
+                updateColor();
+            }
+        });
+        topPanel.add(hexPanel, BorderLayout.CENTER);
         topPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 7));
 
         ColorPanel red = new ColorPanel("red");
@@ -325,6 +360,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
             panel.updateDraggableNumber();
             panel.repaint();
         }
+        hexField.setText(new nodebox.graphics.Color(newColor).toString());
     }
 
     public ColorRange getColorRange() {
@@ -398,7 +434,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
     public class ColorField extends JButton {
 
         public ColorField() {
-            Dimension d = new Dimension(270, 75);
+            Dimension d = new Dimension(75, 75);
             setMinimumSize(d);
             setPreferredSize(d);
             addMouseListener(new MouseAdapter() {
