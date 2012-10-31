@@ -606,7 +606,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         return inverseViewTransform;
     }
 
-    private void resetViewTransform() {
+    public void resetViewTransform() {
         setViewTransform(0, 0, 1);
         repaint();
     }
