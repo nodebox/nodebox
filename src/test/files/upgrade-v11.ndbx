@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="11">
+    <node name="root" outputRange="list" renderedChild="subnet1">
+        <node name="number1" prototype="math.number"/>
+        <node name="rect1" prototype="corevector.rect"/>
+        <node name="shape_on_path1" prototype="corevector.shape_on_path">
+            <port name="amount" type="int" value="10"/>
+            <port name="dist" type="float" value="15.0"/>
+            <port name="start" type="float" value="10.0"/>
+        </node>
+        <node name="shape_on_path2" prototype="corevector.shape_on_path"/>
+        <node name="subnet1" outputRange="list" renderedChild="shape_on_path1">
+            <node name="shape_on_path1" prototype="corevector.shape_on_path"/>
+            <port childReference="shape_on_path1.template" name="template" range="value" type="geometry" widget="none"/>
+            <port childReference="shape_on_path1.dist" name="dist" range="value" type="float" value="20.0" widget="float"/>
+            <port childReference="shape_on_path1.start" max="100.0" min="0.0" name="start" range="value" type="float" value="0.0" widget="float"/>
+        </node>
+        <conn input="shape_on_path2.template" output="rect1"/>
+        <conn input="shape_on_path2.dist" output="number1"/>
+        <conn input="shape_on_path2.start" output="number1"/>
+        <conn input="subnet1.template" output="rect1"/>
+        <conn input="subnet1.dist" output="number1"/>
+        <conn input="subnet1.start" output="number1"/>
+    </node>
+</ndbx>

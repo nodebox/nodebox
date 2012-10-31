@@ -529,7 +529,28 @@ public class NodeLibraryTest {
 
     @Test
     public void testUpgrade11to12() {
-        // todo: implement
+        File version11File = new File("src/test/files/upgrade-v11.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version11File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version11File, NodeRepository.of(corevectorLibrary, mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        Node shapeOnPath1Node = root.getChild("shape_on_path1");
+        assertNotNull(shapeOnPath1Node);
+        assertTrue(shapeOnPath1Node.hasInput("path"));
+        assertEquals(10L, shapeOnPath1Node.getInput("amount").getValue());
+        assertEquals(15.0, shapeOnPath1Node.getInput("spacing").getValue());
+        assertEquals(10.0, shapeOnPath1Node.getInput("margin").getValue());
+        assertEquals("rect1", root.getConnection("shape_on_path2", "path").getOutputNode());
+        assertEquals("number1", root.getConnection("shape_on_path2", "spacing").getOutputNode());
+        assertEquals("number1", root.getConnection("shape_on_path2", "margin").getOutputNode());
+        Node subnet = root.getChild("subnet1");
+        assertEquals("shape_on_path1.path", subnet.getInput("template").getChildReference());
+        assertEquals("shape_on_path1.spacing", subnet.getInput("dist").getChildReference());
+        assertEquals("shape_on_path1.margin", subnet.getInput("start").getChildReference());
+        assertEquals("rect1", root.getConnection("subnet1", "template").getOutputNode());
+        assertEquals("number1", root.getConnection("subnet1", "dist").getOutputNode());
+        assertEquals("number1", root.getConnection("subnet1", "start").getOutputNode());
     }
 
     /**
