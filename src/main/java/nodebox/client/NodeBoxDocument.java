@@ -112,6 +112,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             // The file is used here as the base name for finding relative libraries.
             library = result.getLibrary(file, Application.getInstance().getSystemRepository());
             document = new NodeBoxDocument(library);
+            document.setDocumentFile(file);
             document.showUpgradeResult(result);
         } catch (LoadException e) {
             throw new RuntimeException("Could not load " + file, e);
