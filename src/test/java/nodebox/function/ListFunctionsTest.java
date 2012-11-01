@@ -1,6 +1,7 @@
 package nodebox.function;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import nodebox.node.polygraph.Point;
 import org.junit.Test;
@@ -172,6 +173,17 @@ public class ListFunctionsTest {
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 1), 1, 2, 3, 4, 5);
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 2), 1, 3, 5);
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 3), 1, 4);
+    }
+
+    @Test
+    public void testZipMap() {
+        assertEquals(ImmutableMap.of(), ListFunctions.zipMap(null, null));
+        assertEquals(ImmutableMap.of(), ListFunctions.zipMap(ImmutableList.of("a"), null));
+        assertEquals(ImmutableMap.of(), ListFunctions.zipMap(null, ImmutableList.of(1)));
+        assertEquals(ImmutableMap.of("a", 1), ListFunctions.zipMap(ImmutableList.of("a"), ImmutableList.of(1)));
+        assertEquals(ImmutableMap.of("a", 1), ListFunctions.zipMap(ImmutableList.of("a"), ImmutableList.of(1, 2)));
+        assertEquals(ImmutableMap.of("a", 1), ListFunctions.zipMap(ImmutableList.of("a", "b"), ImmutableList.of(1)));
+        assertEquals(ImmutableMap.of("a", 1, "b", 2), ListFunctions.zipMap(ImmutableList.of("a", "b"), ImmutableList.of(1, 2)));
     }
 
     private void assertElements(Iterable<?> iterable, Object... items) {

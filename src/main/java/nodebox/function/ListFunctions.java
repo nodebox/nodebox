@@ -2,10 +2,7 @@ package nodebox.function;
 
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
+import com.google.common.collect.*;
 import nodebox.util.ListUtils;
 import nodebox.util.MathUtils;
 
@@ -32,7 +29,8 @@ public class ListFunctions {
                 "count",
                 "first", "second", "rest", "last",
                 "combine", "slice", "shift", "doSwitch",
-                "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "cull", "takeEvery");
+                "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "cull", "takeEvery",
+                "zipMap");
     }
 
     /**
@@ -361,6 +359,19 @@ public class ListFunctions {
                 b.add(o);
             }
             i++;
+        }
+        return b.build();
+    }
+
+    public static <K,V> Map<K,V> zipMap(Iterable<K> keys, Iterable<V> values) {
+        if (keys == null || values == null) return ImmutableMap.of();
+        ImmutableMap.Builder<K,V> b = ImmutableMap.builder();
+        Iterator<K> keyIterator = keys.iterator();
+        Iterator<V> valueIterator = values.iterator();
+        while (keyIterator.hasNext() && valueIterator.hasNext()) {
+            K key = keyIterator.next();
+            V value = valueIterator.next();
+            b.put(key, value);
         }
         return b.build();
     }
