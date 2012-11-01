@@ -109,8 +109,9 @@ public final class NodeContext {
             // Evaluate the port data.
             for (Port port : child.getInputs()) {
                 List<?> result = evaluatePort(network, child, port, networkArgumentMap);
-                List<?> convertedResult = convertResultsForPort(port, result);
-                portArguments.put(port, convertedResult);
+                result = convertResultsForPort(port, result);
+                result = clampResultsForPort(port, result);
+                portArguments.put(port, result);
             }
 
             // Data from the network (through published ports) overrides the arguments.
@@ -172,6 +173,15 @@ public final class NodeContext {
             return ImmutableList.of(values);
 
         return TypeConversions.convert(outputType, port.getType(), values);
+    }
+
+    private List<?> clampResultsForPort(Port port, List<?> values) {
+        if (port.getMinimumValue() == null && port.getMaximumValue() == null) return values;
+        ImmutableList.Builder<Object> b = ImmutableList.builder();
+        for (Object v : values) {
+            b.add(port.clampValue(v));
+        }
+        return b.build();
     }
 
     private Node findOutputNode(Node network, Node inputNode, Port inputPort) {

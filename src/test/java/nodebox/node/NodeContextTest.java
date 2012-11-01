@@ -650,4 +650,20 @@ public class NodeContextTest {
         assertResultsEqual(mainNetwork, aCounts, bCounts, cCounts);
     }
 
+    @Test
+    public void testClamping() {
+        Port value = invertNode.getInput("value");
+        value = value.withMaximumValue(10.0);
+        Node clampedInvertNode = invertNode.withInputChanged("value", value);
+        clampedInvertNode = clampedInvertNode.withInputValue("value", 25.0);
+        assertResultsEqual(clampedInvertNode, -10.0);
+
+        Node number1 = numberNode.withInputValue("number", 25.0);
+        Node net = Node.NETWORK
+                .withChildAdded(clampedInvertNode)
+                .withChildAdded(number1)
+                .connect("number", "negate", "value");
+        assertResultsEqual(net, clampedInvertNode, -10.0);
+    }
+
 }

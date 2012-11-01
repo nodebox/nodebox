@@ -550,7 +550,7 @@ public final class Port {
      * @param value The original value.
      * @return The converted value.
      */
-    private Object clampValue(Object value) {
+    public Object clampValue(Object value) {
         if (getType().equals(TYPE_FLOAT)) {
             return clamp((Double) value);
         } else if (getType().equals(TYPE_INT)) {
