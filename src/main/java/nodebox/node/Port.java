@@ -30,7 +30,7 @@ public final class Port {
      * The UI control for this port. This defines how the port is represented in the user interface.
      */
     public enum Widget {
-        NONE, ANGLE, COLOR, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, POINT
+        NONE, ANGLE, COLOR, DATA, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, POINT
     }
 
     public enum Direction {
@@ -62,7 +62,7 @@ public final class Port {
         w.put(TYPE_INT, ImmutableList.of(Widget.INT, Widget.SEED));
         w.put(TYPE_FLOAT, ImmutableList.of(Widget.ANGLE, Widget.FLOAT));
         w.put(TYPE_BOOLEAN, ImmutableList.of(Widget.TOGGLE));
-        w.put(TYPE_STRING, ImmutableList.of(Widget.FILE, Widget.FONT, Widget.IMAGE, Widget.MENU, Widget.STRING, Widget.TEXT));
+        w.put(TYPE_STRING, ImmutableList.of(Widget.DATA, Widget.FILE, Widget.FONT, Widget.IMAGE, Widget.MENU, Widget.STRING, Widget.TEXT));
         w.put(TYPE_POINT, ImmutableList.of(Widget.POINT));
         w.put(TYPE_COLOR, ImmutableList.of(Widget.COLOR));
         WIDGET_MAPPING = w.build();

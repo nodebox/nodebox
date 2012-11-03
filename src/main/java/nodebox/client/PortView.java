@@ -36,6 +36,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
         CONTROL_MAP.put(Port.Widget.INT, IntControl.class);
         CONTROL_MAP.put(Port.Widget.MENU, MenuControl.class);
         CONTROL_MAP.put(Port.Widget.SEED, IntControl.class);
+        CONTROL_MAP.put(Port.Widget.DATA, DataControl.class);
         CONTROL_MAP.put(Port.Widget.STRING, StringControl.class);
         CONTROL_MAP.put(Port.Widget.TEXT, StringControl.class); // TODO TextControl
         CONTROL_MAP.put(Port.Widget.TOGGLE, ToggleControl.class);
