@@ -398,7 +398,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         text.setFontSize(Theme.NETWORK_FONT.getSize());
         int cells = Math.min(Math.max(3, 1 + (int) Math.ceil(text.getMetrics().getWidth() / (GRID_CELL_SIZE - 6))), 6);
         if (cells > 3)
-            return getShortenedName(name.substring(0, startChars) + "…" + name.substring(name.length() - 3, name.length()), startChars - 1);
+            return getShortenedName(name.substring(0, startChars) + "\u2026" + name.substring(name.length() - 3, name.length()), startChars - 1);
         return name;
     }
 
