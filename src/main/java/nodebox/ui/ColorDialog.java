@@ -98,6 +98,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
                 } catch (IllegalArgumentException ex) {
                     JOptionPane.showMessageDialog(ColorDialog.this, ex.getMessage());
                 }
+                updateHSB();
                 updateColor();
             }
         });
