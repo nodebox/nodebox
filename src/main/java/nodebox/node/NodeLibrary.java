@@ -441,6 +441,10 @@ public class NodeLibrary {
         return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.properties, this.uuid);
     }
 
+    public NodeLibrary withFile(File newFile) {
+        return new NodeLibrary(this.name, newFile, this.root, this.nodeRepository, this.functionRepository, this.properties, this.uuid);
+    }
+
     //// Saving ////
 
     public String toXml() {
