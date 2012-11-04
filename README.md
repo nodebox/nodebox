@@ -10,7 +10,7 @@ Highlights:
 
 For downloads, documentation and the forum, visit the website:
 
-<http://alpha.nodebox.net/>
+<http://nodebox.net/>
 
 [![Build Status](https://secure.travis-ci.org/nodebox/nodebox.png)](http://travis-ci.org/nodebox/nodebox)
 
