@@ -24,8 +24,13 @@ public class CanvasVisualizer implements Visualizer {
     }
 
     public Rectangle2D getBounds(Iterable<?> objects) {
-        // HACK only gets the bounds of the first canvas.
-        return getFirstCanvas(objects).getBounds().getRectangle2D();
+        Rectangle2D r = new Rectangle2D.Double();
+        for (Object o : objects) {
+            if (o instanceof Grob) {
+                r.add(((Grob) o).getBounds().getRectangle2D());
+            }
+        }
+        return r;
     }
 
     public Point2D getOffset(Iterable<?> objects, Dimension2D size) {
