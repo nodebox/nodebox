@@ -564,7 +564,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            Platform.openURL("http://beta.nodebox.net/");
+            Platform.openURL("http://nodebox.net/");
         }
     }
 
@@ -575,7 +575,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            Platform.openURL("http://beta.nodebox.net/documentation/getting-started/");
+            Platform.openURL("http://nodebox.net/node/documentation/tutorial/getting-started.html");
         }
     }
 
@@ -585,7 +585,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            Platform.openURL("http://beta.nodebox.net/documentation/");
+            Platform.openURL("http://nodebox.net/node/documentation/");
         }
     }
 
