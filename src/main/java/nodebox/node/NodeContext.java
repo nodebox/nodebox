@@ -219,7 +219,7 @@ public final class NodeContext {
     private Object getPortValue(Port port) {
         if (port.getType().equals("context")) {
             return this;
-        } else if (port.isFileWidget()) {
+        } else if (port.isFileWidget()  && !port.stringValue().isEmpty()) {
             String path = port.stringValue();
             if (!path.startsWith("/")) {
                 // Convert relative to absolute path.

@@ -9,6 +9,7 @@ import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,14 +56,18 @@ public class NodeLibraryController {
         return nodeLibrary.getRoot();
     }
 
+    public void setNodeLibraryFile(File file) {
+        nodeLibrary = nodeLibrary.withFile(file);
+    }
+
     public void setFunctionRepository(FunctionRepository functionRepository) {
         nodeLibrary = nodeLibrary.withFunctionRepository(functionRepository);
     }
 
-    public void setProperties(Map<String,String> properties) {
+    public void setProperties(Map<String, String> properties) {
         nodeLibrary = nodeLibrary.withProperties(properties);
     }
-    
+
     public Node getNode(String nodePath) {
         return nodeLibrary.getNodeForPath(nodePath);
     }
@@ -73,7 +78,7 @@ public class NodeLibraryController {
         functionRepository = nodeLibrary.getFunctionRepository().withLibraryAdded(newLibrary);
         nodeLibrary = nodeLibrary.withFunctionRepository(functionRepository);
     } */
-    
+
     public void reloadFunctionRepository() {
         FunctionRepository functionRepository = nodeLibrary.getFunctionRepository();
         for (FunctionLibrary library : functionRepository.getLibraries()) {
@@ -172,7 +177,7 @@ public class NodeLibraryController {
         Map<String, Integer> portNameOccurrences = new HashMap<String, Integer>();
 
         for (Connection c : parent.getConnections()) {
-            if (! subnet.hasChild(c.getOutputNode()) && subnet.hasChild(c.getInputNode())) {
+            if (!subnet.hasChild(c.getOutputNode()) && subnet.hasChild(c.getInputNode())) {
                 Integer times = portNameOccurrences.get(c.getInputPort());
                 portNameOccurrences.put(c.getInputPort(), times == null ? 1 : times + 1);
             }
@@ -182,7 +187,7 @@ public class NodeLibraryController {
         for (Connection c : parent.getConnections()) {
             String outputNodeName = c.getOutputNode();
             String inputNodeName = c.getInputNode();
-            if (! subnet.hasChild(outputNodeName) && subnet.hasChild(inputNodeName)) {
+            if (!subnet.hasChild(outputNodeName) && subnet.hasChild(inputNodeName)) {
                 String portName = c.getInputPort();
                 if (portNameOccurrences.get(portName) > 1)
                     portName = subnet.uniqueInputName(portName);

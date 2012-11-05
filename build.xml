@@ -44,10 +44,7 @@
 
         <!-- Determine the platform family: windows, mac or linux. -->
         <condition property="platform.windows" value="true">
-            <or>
-                <equals arg1="${os.name}" arg2="Windows XP"/>
-                <equals arg1="${os.name}" arg2="Windows 7"/>
-            </or>
+		    <os family="windows"/>
         </condition>
         <condition property="platform.mac" value="true">
             <equals arg1="${os.name}" arg2="Mac OS X"/>

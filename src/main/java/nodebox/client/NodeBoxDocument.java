@@ -1238,6 +1238,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void setDocumentFile(File documentFile) {
         this.documentFile = documentFile;
+        controller.setNodeLibraryFile(documentFile);
         updateTitle();
     }
 
