@@ -395,7 +395,7 @@ public class NodeLibraryTest {
         assertTrue(subnet1.hasChild("point1"));
         assertEquals("point1", subnet1.getRenderedChildName());
         Port value = subnet1.getInput("shape");
-        assertEquals("point1.shape", value.getChildReference());
+        assertEquals("point1.value", value.getChildReference());
     }
 
     @Test
