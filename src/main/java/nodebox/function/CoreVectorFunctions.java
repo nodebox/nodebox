@@ -180,7 +180,8 @@ public class CoreVectorFunctions {
     }
 
 
-    public static Geometry copy(IGeometry shape, long copies, String order, Point translate, double rotate, Point scale) {
+    public static List<IGeometry> copy(IGeometry shape, long copies, String order, Point translate, double rotate, Point scale) {
+        ImmutableList.Builder<IGeometry> builder = ImmutableList.builder();
         Geometry geo = new Geometry();
         double tx = 0;
         double ty = 0;
@@ -203,13 +204,7 @@ public class CoreVectorFunctions {
                 }
             }
 
-            if (shape instanceof Path) {
-                Path newPath = t.map((Path) shape);
-                geo.add(newPath);
-            } else if (shape instanceof Geometry) {
-                Geometry newGeo = t.map((Geometry) shape);
-                geo.extend(newGeo);
-            }
+            builder.add(t.map(shape));
 
             tx += translate.x;
             ty += translate.y;
@@ -217,7 +212,7 @@ public class CoreVectorFunctions {
             sx += scale.x;
             sy += scale.y;
         }
-        return geo;
+        return builder.build();
     }
 
     /**

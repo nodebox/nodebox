@@ -54,7 +54,7 @@
             <port name="points" range="list" type="list" widget="none" description="The list of points to connect."/>
             <port name="closed" range="value" type="boolean" value="true" widget="toggle" description="If true, closes the shape. This has an effect on the path stroke."/>
         </node>
-        <node description="Create multiple copies of a shape." function="corevector/copy" handle="corevector/translateHandle" image="copy.png" name="copy" position="7.00,10.00" prototype="filter">
+        <node description="Create multiple copies of a shape." function="corevector/copy" handle="corevector/translateHandle" image="copy.png" name="copy" position="7.00,10.00" prototype="filter" outputRange="list">
             <port min="1.0" name="copies" range="value" type="int" value="1" widget="int" description="The amount of copies."/>
             <port name="order" range="value" type="string" value="tsr" widget="menu" description="The order in which to perform translation, rotation and scale.">
                 <menu key="srt" label="Scale Rot Trans"/>
