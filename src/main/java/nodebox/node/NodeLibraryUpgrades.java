@@ -156,7 +156,9 @@ public class NodeLibraryUpgrades {
         // Version 4: Convert corevector.to_points nodes to corevector.point nodes.
         UpgradeOp changePrototypeOp = new ChangePrototypeOp("corevector.to_points", "corevector.point");
         UpgradeOp renameOp = new RenameNodeOp("to_points", "point");
-        return transformXml(inputXml, "4", changePrototypeOp, renameOp);
+        // todo: write test code for renamePortOp addition.
+        UpgradeOp renamePortOp = new RenamePortOp("corevector.to_points", "shape", "value");
+        return transformXml(inputXml, "4", renamePortOp, changePrototypeOp, renameOp);
     }
 
     public static UpgradeStringResult upgrade4to5(String inputXml) throws LoadException {
