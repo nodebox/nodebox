@@ -7,9 +7,7 @@ import com.google.common.collect.ImmutableSet;
 import nodebox.node.Node;
 import nodebox.node.Port;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,7 +29,7 @@ public class FunctionRepository {
         }
         return new FunctionRepository(builder.build());
     }
-    
+
     public static FunctionRepository combine(FunctionRepository... repositories) {
         ImmutableSet.Builder<FunctionLibrary> librarySet = ImmutableSet.builder();
         // The core library is always included.
@@ -47,21 +45,28 @@ public class FunctionRepository {
     }
 
     private final ImmutableMap<String, FunctionLibrary> libraryMap;
+    private final transient Map<String, Function> functionCache = new HashMap<String, Function>();
 
     private FunctionRepository(ImmutableMap<String, FunctionLibrary> libraryMap) {
         this.libraryMap = libraryMap;
     }
 
     public Function getFunction(String identifier) {
-        String[] functionParts = identifier.split("/");
-        checkArgument(functionParts.length == 2, "The function identifier should be in the form 'namespace/function'.");
-        String namespace = functionParts[0];
-        String functionName = functionParts[1];
-        FunctionLibrary library = libraryMap.get(namespace);
-        checkArgument(library != null, "Could not find function %s: unknown namespace.", identifier);
-        assert library != null; // To avoid a compiler warning.
-        checkArgument(library.hasFunction(functionName), "Could not find function %s: unknown function.", identifier);
-        return library.getFunction(functionName);
+        if (functionCache.containsKey(identifier)) {
+            return functionCache.get(identifier);
+        } else {
+            String[] functionParts = identifier.split("/");
+            checkArgument(functionParts.length == 2, "The function identifier should be in the form 'namespace/function'.");
+            String namespace = functionParts[0];
+            String functionName = functionParts[1];
+            FunctionLibrary library = libraryMap.get(namespace);
+            checkArgument(library != null, "Could not find function %s: unknown namespace.", identifier);
+            assert library != null; // To avoid a compiler warning.
+            checkArgument(library.hasFunction(functionName), "Could not find function %s: unknown function.", identifier);
+            Function function = library.getFunction(functionName);
+            functionCache.put(identifier, function);
+            return function;
+        }
     }
 
     public boolean hasFunction(String identifier) {
@@ -94,7 +99,7 @@ public class FunctionRepository {
         checkArgument(libraryMap.containsKey(namespace), "Could not find library %s: unknown namespace.", namespace);
         return libraryMap.get(namespace);
     }
-    
+
     public FunctionRepository withLibraryAdded(FunctionLibrary newLibrary) {
         List<FunctionLibrary> newLibraries = new ArrayList<FunctionLibrary>();
 
@@ -114,7 +119,7 @@ public class FunctionRepository {
         FunctionLibrary[] fl = newLibraries.toArray(new FunctionLibrary[newLibraries.size()]);
         return FunctionRepository.of(fl);
     }
-    
+
     public FunctionRepository withLibraryRemoved(FunctionLibrary library) {
         checkNotNull(library);
         checkArgument(hasLibrary(library.getNamespace()), "Could not find library %s: unknown namespace.", library.getNamespace());
@@ -124,7 +129,7 @@ public class FunctionRepository {
         FunctionLibrary[] fl = newLibraries.toArray(new FunctionLibrary[newLibraries.size()]);
         return FunctionRepository.of(fl);
     }
-    
+
     //// Object overrides ////
 
     @Override
