@@ -212,7 +212,7 @@ public class Viewer extends PCanvas implements OutputView, MouseListener, MouseM
         if (currentVisualizer != visualizer) {
             resetView();
             currentVisualizer = visualizer;
-            viewerLayer.setBounds(visualizer.getBounds(outputValues));
+            viewerLayer.setBounds(-1000000, -1000000, 2000000, 2000000);
             viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
         }
         checkNotNull(currentVisualizer);
