@@ -8,6 +8,7 @@ import nodebox.util.ListUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -32,6 +33,21 @@ public class ObjectsRenderer {
     public static BufferedImage createImage(Iterable<?> objects) {
         Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
         return createImage(v, objects);
+    }
+
+    public static BufferedImage createMovieImage(Iterable<?> objects, int width, int height) {
+        Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
+        BufferedImage tempImage = createImage(v, objects);
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, width, height);
+        g.translate(-(tempImage.getWidth() - width) / 2, -(tempImage.getHeight() - height) / 2);
+        Composite composite = AlphaComposite.getInstance(AlphaComposite.SRC_OVER);
+        g.setComposite(composite);
+        g.drawRenderedImage(tempImage, null);
+        img.flush();
+        return img;
     }
 
     private static BufferedImage createImage(Visualizer visualizer, Iterable<?> objects) {

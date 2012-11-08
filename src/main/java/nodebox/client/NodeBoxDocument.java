@@ -162,6 +162,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 return t;
             }
         });
+        if (! nodeLibrary.hasProperty("canvasWidth"))
+            nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
+        if (! nodeLibrary.hasProperty("canvasHeight"))
+            nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -1420,13 +1424,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
         file = videoFormat.ensureFileExtension(file);
-        final long width = getNodeLibrary().getRoot().getInput("width").intValue();
-        final long height = getNodeLibrary().getRoot().getInput("height").intValue();
+        long width = 1000, height = 1000;
+        try {
+            width = Long.parseLong(getNodeLibrary().getProperty("canvasWidth", "1000"));
+        } catch (Exception e) { }
+        try {
+            height = Long.parseLong(getNodeLibrary().getProperty("canvasHeight", "1000"));
+        } catch (Exception e) { }
         final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, (int) width, (int) height, false);
+        final int movieWidth = (int) width;
+        final int movieHeight = (int) height;
         exportThreadedRange(controller.getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             @Override
             public void frameDone(double frame, Iterable<?> results) {
-                movie.addFrame(ObjectsRenderer.createImage(results));
+                movie.addFrame(ObjectsRenderer.createMovieImage(results, movieWidth, movieHeight));
             }
 
             @Override
