@@ -80,11 +80,7 @@ public class NodeLibraryController {
     } */
 
     public void reloadFunctionRepository() {
-        FunctionRepository functionRepository = nodeLibrary.getFunctionRepository();
-        for (FunctionLibrary library : functionRepository.getLibraries()) {
-            if (library == CoreFunctions.LIBRARY) continue;
-            library.reload();
-        }
+        nodeLibrary.getFunctionRepository().reload();
     }
 
     public Node createNode(String parentPath, Node prototype) {

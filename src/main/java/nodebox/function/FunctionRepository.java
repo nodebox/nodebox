@@ -51,6 +51,18 @@ public class FunctionRepository {
         this.libraryMap = libraryMap;
     }
 
+    public void reload() {
+        invalidateFunctionCache();
+        for (FunctionLibrary library : getLibraries()) {
+            if (library == CoreFunctions.LIBRARY) continue;
+            library.reload();
+        }
+    }
+
+    public void invalidateFunctionCache() {
+        functionCache.clear();
+    }
+
     public Function getFunction(String identifier) {
         if (functionCache.containsKey(identifier)) {
             return functionCache.get(identifier);

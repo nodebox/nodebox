@@ -11,6 +11,7 @@ import org.python.util.PythonInterpreter;
 import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.regex.Pattern;
@@ -174,6 +175,12 @@ public class PythonLibrary extends FunctionLibrary {
     @Override
     public void reload() {
         this.functionMap = loadScript(this.file);
+        // Because we don't want this to happen asynchronously, get the results of the functionMap immediately.
+        try {
+            this.functionMap.get();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static final class PythonFunction implements Function {

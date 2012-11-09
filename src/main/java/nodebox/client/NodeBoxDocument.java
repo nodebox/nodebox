@@ -1614,8 +1614,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void reload() {
         controller.reloadFunctionRepository();
+        functionRepository.invalidateFunctionCache();
         requestRender();
-        //editorPane.reload();
     }
 
     //// Window events ////
