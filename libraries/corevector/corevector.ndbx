@@ -265,7 +265,7 @@
             <port name="translate" range="value" type="point" value="0.00,0.00" widget="point" description="The amount of translation."/>
         </node>
         <node description="Decompose the input geometry into its paths." function="corevector/ungroup" image="ungroup.png" name="ungroup" outputRange="list" position="7.00,11.00" prototype="filter"/>
-        <node description="Shift points by a random amount." function="pyvector/wiggle" handle="pyvector/handle_wiggle" image="wiggle.png" name="wiggle" position="7.00,13.00" prototype="filter">
+        <node description="Shift points by a random amount." function="pyvector/wiggle" handle="pyvector/handle_wiggle" image="wiggle.png" name="wiggle" position="7.00,13.00" prototype="filter" outputRange="list">
             <port name="scope" range="value" type="string" value="points" widget="menu" description="The type of objects to wiggle: points, contour or paths.">
                 <menu key="points" label="Points"/>
                 <menu key="contours" label="Contours"/>
