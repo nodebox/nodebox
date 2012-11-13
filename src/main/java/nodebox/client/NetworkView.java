@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener {
+public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener {
 
     public static final int GRID_CELL_SIZE = 48;
     public static final int NODE_MARGIN = 6;
@@ -204,6 +204,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         addMouseListener(this);
         addMouseMotionListener(this);
         addMouseWheelListener(this);
+        addFocusListener(this);
     }
 
     private void initMenus() {
@@ -1003,6 +1004,17 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
 
     private Point2D minPoint(Point2D a, Point2D b) {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
+    }
+
+    @Override
+    public void focusGained(FocusEvent focusEvent) {
+    }
+
+    @Override
+    public void focusLost(FocusEvent focusEvent) {
+        isSpacePressed = false;
+        isShiftPressed = false;
+        setCursor(defaultCursor);
     }
 
     private static class NodeImageCacheLoader extends CacheLoader<Node, BufferedImage> {
