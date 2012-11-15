@@ -112,7 +112,7 @@ public final class Node {
         prototype = null;
         name = "_root";
         category = "";
-        description = "";
+        description = "Base node to be extended for custom nodes.";
         image = "";
         function = "core/zero";
         position = Point.ZERO;
