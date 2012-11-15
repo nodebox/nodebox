@@ -9,12 +9,12 @@ import java.util.List;
 /**
  * A function library containing special functions for testing.
  */
-public class TestFunctions {
+public class TestFunctions extends AbstractTestFunctions {
 
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "makeNull", "fileExists", "makeNestedWords");
+        LIBRARY = JavaLibrary.ofClass("test", TestFunctions.class, "allTypes", "baseReverse", "makeNull", "fileExists", "makeNestedWords");
     }
 
     public static String allTypes(int i, float f, String s, Point pt) {

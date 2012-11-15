@@ -40,7 +40,7 @@ public final class Functions {
     }
 
     public static Method findMethod(Class c, String methodName, boolean allowMultiple) {
-        Method[] methods = c.getDeclaredMethods();
+        Method[] methods = c.getMethods();
         Method foundMethod = null;
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
