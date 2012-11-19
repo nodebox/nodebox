@@ -12,6 +12,7 @@ import nodebox.node.*;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
+import nodebox.ui.Zoom;
 import org.python.google.common.base.Joiner;
 
 import javax.imageio.ImageIO;
@@ -33,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class NetworkView extends JComponent implements PaneView, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener {
+public class NetworkView extends JComponent implements PaneView, Zoom, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener {
 
     public static final int GRID_CELL_SIZE = 48;
     public static final int NODE_MARGIN = 6;
@@ -975,6 +976,15 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         double vy = viewY - (e.getY() - viewY) * (scaleDelta - 1);
         setViewTransform(vx, vy, viewScale * scaleDelta);
         repaint();
+    }
+
+    public void zoom(double scaleDelta) {
+        // todo: implement
+    }
+
+    public boolean containsPoint(Point point) {
+        if (! isVisible()) return false;
+        return getBounds().contains(point);
     }
 
     private void showPopup(MouseEvent e) {

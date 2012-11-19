@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -87,6 +88,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private JSplitPane parameterNetworkSplit;
     private JSplitPane topSplit;
     private final ProgressPanel progressPanel;
+
+    private List<Zoom> zoomListeners = new ArrayList<Zoom>();
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -1630,6 +1633,23 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         controller.reloadFunctionRepository();
         functionRepository.invalidateFunctionCache();
         requestRender();
+    }
+
+    public void zoomView(double scaleDelta)  {
+        PointerInfo a = MouseInfo.getPointerInfo();
+        Point point = new Point(a.getLocation());
+        for (Zoom zoomListener : zoomListeners) {
+            if (zoomListener.containsPoint(point))
+                zoomListener.zoom(scaleDelta);
+        }
+    }
+
+    public void addZoomListener(Zoom listener) {
+        zoomListeners.add(listener);
+    }
+
+    public void removeZoomListener(Zoom listener) {
+        zoomListeners.remove(listener);
     }
 
     //// Window events ////

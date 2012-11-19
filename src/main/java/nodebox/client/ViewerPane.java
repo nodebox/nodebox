@@ -32,6 +32,7 @@ public class ViewerPane extends Pane {
 
         contentPanel = new JPanel(new CardLayout());
         viewer = new Viewer(document);
+        document.addZoomListener(viewer);
         currentView = viewer;
         dataSheet = new DataSheet(document);
         contentPanel.add(viewer, VIEWER_CARD);

@@ -11,6 +11,7 @@ import nodebox.graphics.*;
 import nodebox.handle.Handle;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
+import nodebox.ui.Zoom;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -28,7 +29,7 @@ import java.util.LinkedList;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static nodebox.util.ListUtils.listClass;
 
-public class Viewer extends PCanvas implements OutputView, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
 
     public static final float MIN_ZOOM = 0.01f;
     public static final float MAX_ZOOM = 64.0f;
@@ -120,6 +121,23 @@ public class Viewer extends PCanvas implements OutputView, MouseListener, MouseM
         viewerMenu.add(new ResetViewAction());
         PopupHandler popupHandler = new PopupHandler();
         addInputEventListener(popupHandler);
+    }
+
+    public void zoom(double scaleDelta) {
+        if (! isVisible()) return;
+        double currentScale = getCamera().getViewScale();
+        double newScale = currentScale * scaleDelta;
+        if (newScale < MIN_ZOOM) {
+            scaleDelta = MIN_ZOOM / currentScale;
+        } else if (newScale > MAX_ZOOM) {
+            scaleDelta = MAX_ZOOM / currentScale;
+        }
+        getCamera().scaleViewAboutPoint(scaleDelta, getCamera().getWidth() / 2, getCamera().getHeight() / 2);
+    }
+
+    public boolean containsPoint(Point point) {
+        if (! isVisible()) return false;
+        return getBounds().contains(point);
     }
 
     public boolean isShowHandle() {

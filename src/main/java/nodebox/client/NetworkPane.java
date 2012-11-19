@@ -43,6 +43,7 @@ public class NetworkPane extends Pane {
         add(errorLabel);
 
         networkView = new NetworkView(document);
+        document.addZoomListener(networkView);
         networkView.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         add(networkView);
     }
