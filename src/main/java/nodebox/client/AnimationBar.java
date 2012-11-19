@@ -72,6 +72,13 @@ public class AnimationBar extends JPanel implements ChangeListener {
         document.setFrame(frame);
     }
 
+    public void toggleAnimation() {
+        if (playButton.isChecked())
+            stopAnimation();
+        else
+            playAnimation();
+    }
+
     public void playAnimation() {
         if (!playButton.isChecked()) playButton.setChecked(true);
         document.playAnimation();

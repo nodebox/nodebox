@@ -84,11 +84,13 @@ public class NodeBoxMenuBar extends JMenuBar {
         add(editMenu);
 
         // Node menu
-        JMenu pythonMenu = new JMenu("Node");
-        pythonMenu.add(new NewNodeAction());
-        pythonMenu.add(new ReloadAction());
-        //pythonMenu.add(newLibraryAction);
-        add(pythonMenu);
+        JMenu nodeMenu = new JMenu("Node");
+        nodeMenu.add(new NewNodeAction());
+        nodeMenu.add(new ReloadAction());
+        nodeMenu.add(new PlayPauseAction());
+        nodeMenu.add(new RewindAction());
+        //nodeMenu.add(newLibraryAction);
+        add(nodeMenu);
 
         // Window menu
         JMenu windowMenu = new JMenu("Window");
@@ -487,6 +489,32 @@ public class NodeBoxMenuBar extends JMenuBar {
             getDocument().reload();
         }
     }
+
+    public class PlayPauseAction extends AbstractDocumentAction {
+        public PlayPauseAction() {
+            putValue(NAME, "Play/Pause");
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            getDocument().toggleAnimation();
+        }
+    }
+
+    public class RewindAction extends  AbstractDocumentAction {
+        public RewindAction() {
+            putValue(NAME, "Rewind");
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK | Event.SHIFT_MASK));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            getDocument().doRewind();
+        }
+    }
+
+
 
 //    public class NewLibraryAction extends AbstractAction {
 //        public NewLibraryAction() {

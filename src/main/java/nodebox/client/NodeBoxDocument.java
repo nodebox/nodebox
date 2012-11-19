@@ -980,6 +980,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setFrame(getFrame() + 1);
     }
 
+    public void toggleAnimation() {
+        animationBar.toggleAnimation();
+    }
+
+    public void doRewind() {
+        animationBar.rewindAnimation();
+    }
+
     public void playAnimation() {
         animationTimer.start();
     }
