@@ -145,8 +145,14 @@ public class NodeLibraryController {
     }
 
     public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes) {
+        return pasteNodes(parentPath, nodesParent, nodes, 4, 2);
+    }
+
+    public List<Node> pasteNodes(String parentPath, Node nodesParent, Iterable<Node> nodes, double xOffset, double yOffset) {
         Node parent = getNode(parentPath);
         Node newParent = parent.withChildrenAdded(nodesParent, nodes);
+        for (Node node : Iterables.skip(newParent.getChildren(), parent.getChildren().size()))
+            newParent = newParent.withChildPositionChanged(node.getName(), xOffset, yOffset);
         replaceNodeInPath(parentPath, newParent);
         return ImmutableList.copyOf(Iterables.skip(newParent.getChildren(), parent.getChildren().size()));
     }

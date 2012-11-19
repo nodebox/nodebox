@@ -92,6 +92,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     private boolean isDraggingNodes = false;
     private boolean isSpacePressed = false;
     private boolean isShiftPressed = false;
+    private boolean isAltPressed = false;
     private boolean isDragSelecting = false;
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
@@ -757,6 +758,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
         int keyCode = e.getKeyCode();
         if (keyCode == KeyEvent.VK_SHIFT) {
             isShiftPressed = true;
+        } else if (keyCode == KeyEvent.VK_ALT) {
+            isAltPressed = true;
         } else if (keyCode == KeyEvent.VK_SPACE) {
             isSpacePressed = true;
             setCursor(panCursor);
@@ -780,6 +783,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void keyReleased(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
             isShiftPressed = false;
+        } else if (e.getKeyCode() == KeyEvent.VK_ALT) {
+            isAltPressed = false;
         } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             isSpacePressed = false;
             setCursor(defaultCursor);
@@ -866,6 +871,8 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void mouseReleased(MouseEvent e) {
         isDraggingNodes = false;
         isDragSelecting = false;
+        if (isAltPressed)
+            getDocument().stopEditing();
         if (connectionOutput != null && connectionInput != null) {
             getDocument().connect(connectionOutput.getName(), connectionInput.node, connectionInput.port);
         }
@@ -909,6 +916,10 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
             if (pressedNode != null) {
                 if (selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
                     singleSelect(pressedNode);
+                }
+                if (isAltPressed) {
+                    getDocument().startEdits("Copy Node");
+                    getDocument().dragCopy();
                 }
                 isDraggingNodes = true;
                 dragPositions = selectedNodePositions();
@@ -1014,6 +1025,7 @@ public class NetworkView extends JComponent implements PaneView, KeyListener, Mo
     public void focusLost(FocusEvent focusEvent) {
         isSpacePressed = false;
         isShiftPressed = false;
+        isAltPressed = false;
         setCursor(defaultCursor);
     }
 

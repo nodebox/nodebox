@@ -581,6 +581,12 @@ public final class Node {
         return withChildReplaced(childName, getChild(childName).withInputChanged(portName, newPort));
     }
 
+    public Node withChildPositionChanged(String childName, double xOffset, double yOffset) {
+        checkArgument(hasChild(childName), "Node %s does not have a child named %s.", this, childName);
+        Node child = getChild(childName);
+        return withChildReplaced(childName, child.withPosition(child.getPosition().moved(xOffset, yOffset)));
+    }
+
     /**
      * Create a new node with the given input port replaced.
      * <p/>
@@ -1083,9 +1089,8 @@ public final class Node {
         Node newParent = this;
 
         for (Node node : nodes) {
-            Node newNode = node.withPosition(node.getPosition().moved(4, 2));
-            newParent = newParent.withChildAdded(newNode);
-            newNode = Iterables.getLast(newParent.getChildren());
+            newParent = newParent.withChildAdded(node);
+            Node newNode = Iterables.getLast(newParent.getChildren());
             newNames.put(node.getName(), newNode.getName());
         }
 
