@@ -29,7 +29,6 @@ public class PointControl extends AbstractPortControl implements ChangeListener,
         add(Box.createHorizontalStrut(5));
         add(yNumber);
         setValueForControl(port.getValue());
-        setPreferredSize(xNumber.getPreferredSize());
     }
 
     @Override
