@@ -1380,10 +1380,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void doExport() {
-        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png", "PNG file");
+        ExportDialog d = new ExportDialog(this);
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+        if (!d.isDialogSuccessful()) return;
+        nodebox.ui.ImageFormat chosenFormat = d.getFormat();
+        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf", "Image file");
         if (chosenFile == null) return;
         lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-        exportToFile(chosenFile, imageFormatForFile(chosenFile));
+        exportToFile(chosenFile, chosenFormat);
     }
 
     private void exportToFile(File file, ImageFormat format) {
