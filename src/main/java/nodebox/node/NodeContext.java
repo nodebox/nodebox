@@ -84,11 +84,15 @@ public final class NodeContext {
             } else {
                 return ImmutableList.of(result);
             }
-        } else if (result instanceof List && ((List) result).isEmpty()) {
-            return (List<?>) result;
-        } else {
-            return result == null ? ImmutableList.of() : ImmutableList.of(result);
+        } else if (result instanceof List) {
+            List<?> results = (List<?>) result;
+            if (results.isEmpty())
+                return results;
+            Class outputType = ListUtils.listClass(results);
+            if (outputType.equals(Point.class) && node.getOutputType().equals("geometry"))
+                return results;
         }
+        return result == null ? ImmutableList.of() : ImmutableList.of(result);
     }
 
     public List<?> renderChild(Node network, Node child) throws NodeRenderException {
@@ -98,7 +102,6 @@ public final class NodeContext {
     public List<?> renderChild(Node network, Node child, Map<Port, ?> networkArgumentMap) {
         // A list of all result objects.
         List<Object> resultsList = new ArrayList<Object>();
-
         // If the node has no input ports, execute the node once for its side effects.
         if (child.getInputs().isEmpty()) {
             return renderNode(child);
