@@ -499,14 +499,14 @@ public class ColorDialog extends JDialog implements ChangeListener {
 
         public void setColorRange(ColorRange colorRange) {
             if (colorRange == ColorRange.ABSOLUTE) {
-                NumberFormat intFormat = NumberFormat.getNumberInstance();
+                NumberFormat intFormat = NumberFormat.getNumberInstance(Locale.US);
                 intFormat.setMinimumFractionDigits(0);
                 intFormat.setMaximumFractionDigits(0);
                 draggableNumber.setNumberFormat(intFormat);
                 draggableNumber.setMinimumValue(0.0);
                 draggableNumber.setMaximumValue(255.0);
             } else if (colorRange == ColorRange.PERCENTAGE) {
-                NumberFormat floatFormat = NumberFormat.getNumberInstance();
+                NumberFormat floatFormat = NumberFormat.getNumberInstance(Locale.US);
                 floatFormat.setMinimumFractionDigits(2);
                 floatFormat.setMaximumFractionDigits(2);
                 draggableNumber.setNumberFormat(floatFormat);

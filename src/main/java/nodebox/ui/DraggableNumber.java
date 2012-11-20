@@ -9,6 +9,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 /**
  * DraggableNumber represents a number that can be edited in a variety of interesting ways:
@@ -86,7 +87,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         });
         add(numberField);
 
-        numberFormat = NumberFormat.getNumberInstance();
+        numberFormat = NumberFormat.getNumberInstance(Locale.US);
         numberFormat.setMinimumFractionDigits(2);
         numberFormat.setMaximumFractionDigits(2);
 

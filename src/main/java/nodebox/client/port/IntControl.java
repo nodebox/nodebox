@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.Locale;
 
 public class IntControl extends AbstractPortControl implements ChangeListener, ActionListener {
 
@@ -19,7 +20,7 @@ public class IntControl extends AbstractPortControl implements ChangeListener, A
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);
-        NumberFormat intFormat = NumberFormat.getNumberInstance();
+        NumberFormat intFormat = NumberFormat.getNumberInstance(Locale.US);
         intFormat.setMinimumFractionDigits(0);
         intFormat.setMaximumFractionDigits(0);
         draggable.setNumberFormat(intFormat);
