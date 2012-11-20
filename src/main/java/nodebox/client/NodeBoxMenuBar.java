@@ -99,9 +99,6 @@ public class NodeBoxMenuBar extends JMenuBar {
         showConsoleItem = windowMenu.add(new JCheckBoxMenuItem(new ShowConsoleAction()));
         setShowConsoleChecked(Application.getInstance() != null && Application.getInstance().isConsoleOpened());
         windowMenu.addSeparator();
-        windowMenu.add(new ZoomInAction());
-        windowMenu.add(new ZoomOutAction());
-        windowMenu.addSeparator();
         windowMenu.add(new BringAllToFrontAction());
         // TODO Add all active windows.
         add(windowMenu);
@@ -550,28 +547,6 @@ public class NodeBoxMenuBar extends JMenuBar {
         public void actionPerformed(ActionEvent e) {
             // TODO: Implement
             Toolkit.getDefaultToolkit().beep();
-        }
-    }
-
-    public class ZoomInAction extends AbstractDocumentAction {
-        public ZoomInAction() {
-            putValue(NAME, "Zoom In");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_EQUALS, KeyEvent.META_MASK));
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            getDocument().zoomView(1.05);
-        }
-    }
-
-    public class ZoomOutAction extends AbstractDocumentAction {
-        public ZoomOutAction() {
-            putValue(NAME, "Zoom Out");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.META_MASK));
-        }
-
-        public void actionPerformed(ActionEvent e) {
-            getDocument().zoomView(0.95);
         }
     }
 

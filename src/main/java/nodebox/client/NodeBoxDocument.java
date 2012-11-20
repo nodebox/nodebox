@@ -18,8 +18,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -199,6 +198,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         animationTimer = new AnimationTimer(this);
         animationBar = new AnimationBar(this);
         rootPanel.add(animationBar, BorderLayout.SOUTH);
+
+        // Zoom in / out shortcuts.
+        KeyStroke zoomInStroke1 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() + Event.SHIFT_MASK);
+        KeyStroke zoomInStroke2 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        KeyStroke zoomInStroke3 = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        ActionListener zoomInHandler = new ZoomInHandler();
+        getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke1, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke2, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke3, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        KeyStroke zoomOutStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask());
+        getRootPane().registerKeyboardAction(new ZoomOutHandler(), zoomOutStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         setContentPane(rootPanel);
         setLocationByPlatform(true);
@@ -1678,6 +1688,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void windowDeactivated(WindowEvent e) {
+    }
+
+    private class ZoomInHandler implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            zoomView(1.05);
+        }
+    }
+
+    private class ZoomOutHandler implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            zoomView(0.95);
+        }
     }
 
     private class FramesWriter extends StringWriter {
