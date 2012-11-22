@@ -1317,6 +1317,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (chosenFile != null) {
             if (!chosenFile.getAbsolutePath().endsWith(".ndbx")) {
                 chosenFile = new File(chosenFile.getAbsolutePath() + ".ndbx");
+                if (chosenFile.exists()) {
+                    ReplaceDialog rd = new ReplaceDialog(chosenFile);
+                    int retVal = rd.show(this);
+                    if (retVal == JOptionPane.CANCEL_OPTION)
+                        return saveAs();
+                }
             }
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
             setDocumentFile(chosenFile);
