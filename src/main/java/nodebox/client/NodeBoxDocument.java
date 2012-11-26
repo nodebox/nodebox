@@ -1610,8 +1610,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * Start the dialog that allows a user to create a new node.
      */
     public void showNodeSelectionDialog() {
-        Point pt = new Point((int) (Math.random() * 10), (int) (Math.random() * 10));
-        showNodeSelectionDialog(pt);
+        showNodeSelectionDialog(networkView.centerGridPoint());
     }
 
     /**

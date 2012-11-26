@@ -574,6 +574,11 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
                 (int) Math.floor(pt.getY() / GRID_CELL_SIZE));
     }
 
+    public Point centerGridPoint() {
+        Point pt = pointToGridPoint(new Point((int) (getBounds().getWidth() / 2), (int) (getBounds().getHeight() /2)));
+        return new Point((int) pt.getX() - 1, (int) pt.getY());
+    }
+
     private static int portOffset(Node node, Port port) {
         int portIndex = node.getInputs().indexOf(port);
         return (PORT_WIDTH + PORT_SPACING) * portIndex;
