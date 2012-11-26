@@ -134,6 +134,9 @@
             <port name="angle" range="value" type="float" value="0.0" widget="float" description="The target angle."/>
             <port name="distance" range="value" type="float" value="1.0" widget="float" description="The distance from the first point."/>
         </node>
+        <node category="math" description="Generate in between totals of a list of numbers." function="math/runningTotal" image="generic.png" name="running_total" outputRange="list" position="10.00,11.0">
+            <port name="values" range="list" type="float" value="0.0" widget="float" description="The list of values."/>
+        </node>
         <node category="math" description="Generate numbers within the given bounds." function="math/sample" image="generic.png" name="sample" outputRange="list" position="10.00,3.00">
             <port min="0.0" name="amount" range="value" type="int" value="10" widget="int" description="The amount of numbers to generate."/>
             <port name="start" range="value" type="float" value="0.0" widget="float" description="The minimum value of the numbers."/>

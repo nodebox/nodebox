@@ -32,7 +32,7 @@ public class MathFunctions {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
                 "number", "integer", "makeBoolean",
                 "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
-                "log", "sum", "average", "compare", "min", "max", "ceil", "floor",
+                "log", "sum", "average", "compare", "min", "max", "ceil", "floor", "runningTotal",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "round",
                 "sample", "range",
@@ -241,6 +241,17 @@ public class MathFunctions {
                 }
             });
         }
+    }
+
+    public static List<Double> runningTotal(Iterable<Double> numbers) {
+        if (noValues(numbers)) return ImmutableList.of(0.0);
+        double currentTotal = 0;
+        ImmutableList.Builder<Double> b = ImmutableList.builder();
+        for (Double d : numbers) {
+            b.add(currentTotal);
+            currentTotal += d;
+        }
+        return b.build();
     }
 
     private static final class RangeIterator implements Iterator<Double> {
