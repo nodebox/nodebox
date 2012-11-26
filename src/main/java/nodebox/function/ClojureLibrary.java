@@ -59,23 +59,26 @@ final class ClojureLibrary extends FunctionLibrary {
         // We need a Var as the last statement, because we need to retrieve the current namespace.
         if (!(returnValue instanceof Var)) {
             throw new LoadException(file,
-                    String.format("The last statement does not define a var, but %s.\n" +
-                            "Make sure the last line of your script looks like this:\n" +
-                            "(def nodes [{:name \"foo\" :fn inc}])",
+                    String.format("The last statement does not define a var, but %s.\n",
+                            //"Make sure the last line of your script looks like this:\n" +
+                            //"(def nodes [{:name \"foo\" :fn inc}])",
                             returnValue));
         }
         Var nodesVar = (Var) returnValue;
         Namespace ns = nodesVar.ns;
         String namespace = ns.name.getName();
-        Object functionMap = nodesVar.deref();
-        checkStructure(functionMap);
+
         ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
-        for (Object item : (Iterable) functionMap) {
-            Map m = (Map) item;
-            String name = (String) m.get(NAME);
-            IFn fn = (IFn) m.get(FN);
-            Function f = new ClojureFunction(name, fn);
-            builder.put(name, f);
+        for (Object item : ns.getMappings()) {
+            MapEntry entry = (MapEntry) item;
+            if (entry.getValue() instanceof Var) {
+                Var var = (Var) entry.getValue();
+                if (var.ns.toString().equals(namespace) && var instanceof IFn) {
+                    String name = (String) entry.getKey().toString();
+                    Function f = new ClojureFunction(name, var.fn());
+                    builder.put(name, f);
+                }
+            }
         }
         return new ClojureLibrary(namespace, file, builder.build());
     }
@@ -129,23 +132,6 @@ final class ClojureLibrary extends FunctionLibrary {
         if (!reloadedLibrary.namespace.equals(namespace))
             throw new RuntimeException("The namespace of a function library should not be changed.");
         this.functionMap = reloadedLibrary.functionMap;
-    }
-
-    /**
-     * We expect a list of maps, each containing name and fn.
-     *
-     * @param v The Clojure data structure contained in all-nodes.
-     */
-    private static void checkStructure(Object v) {
-        checkArgument(v instanceof Iterable, "The function map is not a list of maps but a %s", v);
-        Iterable iterable = (Iterable) v;
-        for (Object item : iterable) {
-            checkArgument(item instanceof Map, "The function map is not a list of maps but a %s", v);
-            Map m = (Map) item;
-            checkArgument(m.containsKey(NAME), "The function map item %s does not contain a name.", m);
-            checkArgument(m.containsKey(FN), "The function map item %s does not contain a fn.", m);
-            checkArgument(m.get(FN) instanceof IFn, "The function map item %s does not point to a Clojure function.", m.get("name"));
-        }
     }
 
     private static final class ClojureFunction implements Function {
