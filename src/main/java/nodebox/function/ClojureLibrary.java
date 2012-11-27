@@ -10,9 +10,6 @@ import nodebox.util.LoadException;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 final class ClojureLibrary extends FunctionLibrary {
 
@@ -59,10 +56,7 @@ final class ClojureLibrary extends FunctionLibrary {
         // We need a Var as the last statement, because we need to retrieve the current namespace.
         if (!(returnValue instanceof Var)) {
             throw new LoadException(file,
-                    String.format("The last statement does not define a var, but %s.\n",
-                            //"Make sure the last line of your script looks like this:\n" +
-                            //"(def nodes [{:name \"foo\" :fn inc}])",
-                            returnValue));
+                    String.format("The last statement does not define a var, but %s.\n", returnValue));
         }
         Var nodesVar = (Var) returnValue;
         Namespace ns = nodesVar.ns;
@@ -73,8 +67,8 @@ final class ClojureLibrary extends FunctionLibrary {
             MapEntry entry = (MapEntry) item;
             if (entry.getValue() instanceof Var) {
                 Var var = (Var) entry.getValue();
-                if (var.ns.toString().equals(namespace) && var instanceof IFn) {
-                    String name = (String) entry.getKey().toString();
+                if (var.ns.toString().equals(namespace)) {
+                    String name = entry.getKey().toString();
                     Function f = new ClojureFunction(name, var.fn());
                     builder.put(name, f);
                 }
