@@ -699,7 +699,7 @@ def get_font_metrics(font_name, font_size):
     g = tmp_img.createGraphics()
     return g.getFontMetrics((Font(font_name, Font.PLAIN, int(font_size))))
 
-def text_on_path(shape, text, font_name="Verdana", font_size=20, position=0, offset=2.0, keep_geometry=True):
+def text_on_path(text, shape, font_name, font_size, alignment, margin, baseline_offset):
     if shape is None or shape.length <= 0: return None
     if text is None: return None
 
@@ -708,21 +708,33 @@ def text_on_path(shape, text, font_name="Verdana", font_size=20, position=0, off
     if isinstance(shape, Path):
         shape = shape.asGeometry()
     
-    g = Geometry()
+    p = Path()
 
-    if keep_geometry:
-        g.extend(shape.clone())
-    
     fm = get_font_metrics(font_name, font_size)
     string_width = textwidth(text, fm)
     dw = string_width / shape.length
     
+    if alignment == "trailing":
+        first = True
+        
+        for char in text:
+            char_width = textwidth(char, fm)
+            if first:
+                t = (99.9 - margin) / 100.0
+                first = False
+            else:
+                t -= char_width / string_width * dw
+            t = t % 1.0
+        
+        margin = t * 100
+
     first = True
-    for i, char in enumerate(text):
+    
+    for char in text:
         char_width = textwidth(char, fm)
         
         if first:
-            t = position / 100.0
+            t = margin / 100.0
             first = False
         else:
             t += char_width / string_width * dw
@@ -731,19 +743,20 @@ def text_on_path(shape, text, font_name="Verdana", font_size=20, position=0, off
         t = t % 1.0
 
         pt1 = shape.pointAt(t)
-        pt2 = shape.pointAt(t + 0.001)
+        pt2 = shape.pointAt(t + 0.0000001)
         a = angle(pt2.x, pt2.y, pt1.x, pt1.y)
         
-        tp = Text(char, -char_width, -offset)
+        tp = Text(char, -char_width, -baseline_offset)
         tp.align = Text.Align.LEFT
         tp.fontName = font_name
         tp.fontSize = font_size
         tp.translate(pt1.x, pt1.y)
         tp.rotate(a - 180)
         
-        g.add(tp.path)
+        for contour in tp.path.contours:
+            p.add(contour)
     
-    return g
+    return p
     
 def textpath(text, font_name="Verdana", font_size=24, align="CENTER", position=Point.ZERO, width=0, height=0):
     """Create a path out of text."""

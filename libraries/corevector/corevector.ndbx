@@ -240,13 +240,17 @@
             <port name="outer" range="value" type="float" value="200.0" widget="float" description="The outer diameter of the star."/>
             <port name="inner" range="value" type="float" value="100.0" widget="float" description="The inner diameter of the star."/>
         </node>
-        <node description="Create a text path that follows a shape." function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="filter">
+        <node description="Create a text path that follows a shape." function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="generator">
             <port name="text" range="value" type="string" value="text following a path" widget="string" description="The input text."/>
+            <port name="path" range="value" type="geometry" widget="none" description="The path on which to put the text."/>
             <port name="font_name" range="value" type="string" value="Verdana" widget="font" description="The name of the font."/>
             <port name="font_size" range="value" type="float" value="24.0" widget="float" description="The size of the font."/>
-            <port name="position" range="value" type="float" value="0.0" widget="float" description="The relative position of the text on the path (0 - 100)."/>
-            <port name="offset" range="value" type="float" value="0.0" widget="float" description="The vertical offset from the path."/>
-            <port name="keep_geometry" range="value" type="boolean" value="true" widget="toggle" description="If true, also retains the shape geometry."/>
+            <port name="alignment" range="value" type="string" value="leading" widget="menu" description="The way to lay out the text horizontally.">
+                <menu key="leading" label="Leading"/>
+                <menu key="trailing" label="Trailing"/>
+            </port>
+            <port name="margin" range="value" type="float" value="0.0" widget="float" description="The relative position of the text on the path (0 - 100)."/>
+            <port name="baseline_offset" range="value" type="float" value="0.0" widget="float" description="The vertical offset of the text from the path."/>
         </node>
         <node description="Create a path out of text." function="corevector/textpath" image="textpath.png" name="textpath" position="4.00,3.00" prototype="generator">
             <port name="text" range="value" type="string" value="hello" widget="string" description="The input text."/>
