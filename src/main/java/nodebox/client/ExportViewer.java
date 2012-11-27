@@ -1,6 +1,8 @@
 package nodebox.client;
 
+import nodebox.client.visualizer.Visualizer;
 import nodebox.graphics.Grob;
+import nodebox.util.ListUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -27,12 +29,9 @@ public class ExportViewer extends JFrame {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.translate(getWidth() / 2, getHeight() / 2);
-            for (Object outputValue : outputValues) {
-                if (outputValue instanceof Grob) {
-                    // todo: handle canvas clipping
-                    ((Grob) outputValue).draw(g2);
-                }
-            }
+            Visualizer v = nodebox.client.Viewer.getVisualizer(outputValues, ListUtils.listClass(outputValues));
+            // todo: handle canvas clipping
+            v.draw(g2, outputValues);
         }
     }
 }
