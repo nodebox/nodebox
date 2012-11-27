@@ -1454,22 +1454,31 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return false;
     }
 
+    private int getCanvasWidth() {
+        try {
+            return Integer.parseInt(getNodeLibrary().getProperty("canvasWidth", "1000"));
+        } catch (NumberFormatException e) {
+            return 1000;
+        }
+    }
+
+    private int getCanvasHeight() {
+        try {
+            return Integer.parseInt(getNodeLibrary().getProperty("canvasHeight", "1000"));
+        } catch (NumberFormatException e) {
+            return 1000;
+        }
+    }
+
     private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
         file = videoFormat.ensureFileExtension(file);
-        long width = 1000, height = 1000;
-        try {
-            width = Long.parseLong(getNodeLibrary().getProperty("canvasWidth", "1000"));
-        } catch (Exception e) { }
-        try {
-            height = Long.parseLong(getNodeLibrary().getProperty("canvasHeight", "1000"));
-        } catch (Exception e) { }
-        final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, (int) width, (int) height, false);
-        final int movieWidth = (int) width;
-        final int movieHeight = (int) height;
+        final int width = getCanvasWidth();
+        final int height = getCanvasHeight();
+        final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, width, height, false);
         exportThreadedRange(controller.getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             @Override
             public void frameDone(double frame, Iterable<?> results) {
-                movie.addFrame(ObjectsRenderer.createMovieImage(results, movieWidth, movieHeight));
+                movie.addFrame(ObjectsRenderer.createMovieImage(results, width, height));
             }
 
             @Override
