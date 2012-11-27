@@ -8,7 +8,7 @@ import java.awt.*;
 public class ExportViewer extends JFrame {
 
     private Viewer viewer;
-    private Object outputValue = null;
+    private java.util.List<Object> outputValues = null;
 
     public ExportViewer() {
         super("Exporting...");
@@ -17,8 +17,8 @@ public class ExportViewer extends JFrame {
         setSize(600, 600);
     }
 
-    public void setOutputValue(Object outputValue) {
-        this.outputValue = outputValue;
+    public void setOutputValues(java.util.List<Object> outputValues) {
+        this.outputValues = outputValues;
         viewer.repaint();
     }
 
@@ -27,10 +27,11 @@ public class ExportViewer extends JFrame {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.translate(getWidth() / 2, getHeight() / 2);
-            if (outputValue instanceof Grob) {
-                if (outputValue instanceof nodebox.graphics.Canvas)
-                    g2.clip(((Grob) outputValue).getBounds().getRectangle2D());
-                ((Grob) outputValue).draw(g2);
+            for (Object outputValue : outputValues) {
+                if (outputValue instanceof Grob) {
+                    // todo: handle canvas clipping
+                    ((Grob) outputValue).draw(g2);
+                }
             }
         }
     }

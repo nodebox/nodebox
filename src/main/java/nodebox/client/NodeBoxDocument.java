@@ -1523,7 +1523,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame);
                         List<?> results = context.renderNode(exportNetwork);
                         Node renderedChild = exportNetwork.getRenderedChild();
-                        viewer.setOutputValue(results);
+                        viewer.setOutputValues((List<Object>) results);
                         exportDelegate.frameDone(frame, results);
 
                         SwingUtilities.invokeLater(new Runnable() {
