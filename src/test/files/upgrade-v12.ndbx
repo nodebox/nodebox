@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="12">
+    <node name="root" outputRange="list" renderedChild="subnet1">
+        <node name="number1" prototype="math.number">
+            <port name="value" type="float" value="10.0"/>
+        </node>
+        <node name="number2" prototype="math.number">
+            <port name="value" type="float" value="5.0"/>
+        </node>
+        <node name="boolean1" prototype="math.boolean">
+            <port name="value" type="boolean" value="false"/>
+        </node>
+        <node name="rect1" prototype="corevector.rect"/>
+        <node name="text_on_path1" prototype="corevector.text_on_path">
+            <port name="position" type="float" value="10.0"/>
+            <port name="offset" type="float" value="5.0"/>
+            <port name="keep_geometry" type="boolean" value="false"/>
+        </node>
+        <node name="text_on_path2" prototype="corevector.text_on_path"/>
+        <node name="subnet1" renderedChild="text_on_path1">
+            <node name="text_on_path1" prototype="corevector.text_on_path"/>
+            <port childReference="text_on_path1.shape" name="shape" range="value" type="geometry" widget="none"/>
+            <port childReference="text_on_path1.position" name="position" range="value" type="float" value="0.0" widget="float"/>
+            <port childReference="text_on_path1.offset" name="offset" range="value" type="float" value="0.0" widget="float"/>
+            <port childReference="text_on_path1.keep_geometry" name="keep_geometry" range="value" type="boolean" value="true"/>
+        </node>
+        <conn input="text_on_path2.shape" output="rect1"/>
+        <conn input="text_on_path2.position" output="number1"/>
+        <conn input="text_on_path2.offset" output="number2"/>
+        <conn input="subnet1.shape" output="rect1"/>
+        <conn input="subnet1.position" output="number1"/>
+        <conn input="subnet1.offset" output="number2"/>
+        <conn input="subnet1.keep_geometry" output="boolean1"/>
+    </node>
+</ndbx>

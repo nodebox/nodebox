@@ -21,7 +21,7 @@ import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
 
-    public static final String CURRENT_FORMAT_VERSION = "12";
+    public static final String CURRENT_FORMAT_VERSION = "13";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 

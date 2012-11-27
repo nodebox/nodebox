@@ -553,6 +553,34 @@ public class NodeLibraryTest {
         assertEquals("number1", root.getConnection("subnet1", "start").getOutputNode());
     }
 
+    @Test
+    public void testUpgrade12to13() {
+        File version12File = new File("src/test/files/upgrade-v12.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version12File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version12File, NodeRepository.of(corevectorLibrary, mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        Node textOnPath1Node = root.getChild("text_on_path1");
+        assertNotNull(textOnPath1Node);
+        assertTrue(textOnPath1Node.hasInput("path"));
+        assertEquals(10.0, textOnPath1Node.getInput("margin").getValue());
+        assertEquals(5.0, textOnPath1Node.getInput("baseline_offset").getValue());
+        assertFalse(textOnPath1Node.hasInput("keep_geometry"));
+        assertEquals("rect1", root.getConnection("text_on_path2", "path").getOutputNode());
+        assertEquals("number1", root.getConnection("text_on_path2", "margin").getOutputNode());
+        assertEquals("number2", root.getConnection("text_on_path2", "baseline_offset").getOutputNode());
+        Node subnet = root.getChild("subnet1");
+        assertEquals("text_on_path1.path", subnet.getInput("shape").getChildReference());
+        assertEquals("text_on_path1.margin", subnet.getInput("position").getChildReference());
+        assertEquals("text_on_path1.baseline_offset", subnet.getInput("offset").getChildReference());
+        assertFalse(subnet.hasInput("keep_geometry"));
+        assertEquals("rect1", root.getConnection("subnet1", "shape").getOutputNode());
+        assertEquals("number1", root.getConnection("subnet1", "position").getOutputNode());
+        assertEquals("number2", root.getConnection("subnet1", "offset").getOutputNode());
+        assertNull(root.getConnection("subnet1", "keep_geometry"));
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
