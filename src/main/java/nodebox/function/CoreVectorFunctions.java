@@ -3,6 +3,7 @@ package nodebox.function;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import nodebox.graphics.*;
 import nodebox.handle.*;
 import nodebox.util.MathUtils;
@@ -129,12 +130,22 @@ public class CoreVectorFunctions {
     /**
      * Calculate the geometric center of a shape.
      *
-     * @param grob The input shape.
+     * @param shape The input shape.
      * @return a Point at the center of the input shape.
      */
-    public static Point centroid(Grob grob) {
-        if (grob == null) return Point.ZERO;
-        return grob.getBounds().getCentroid();
+    public static Point centroid(IGeometry shape) {
+        if (shape == null) return Point.ZERO;
+        List<Point> points = shape.getPoints();
+        if (points.isEmpty()) return Point.ZERO;
+        Point firstPoint = points.get(0);
+        double xs = firstPoint.x;
+        double ys = firstPoint.y;
+
+        for (Point pt : Iterables.skip(points, 1)) {
+            xs += pt.x;
+            ys += pt.y;
+        }
+        return new Point(xs / points.size(), ys / points.size());
     }
 
     /**
