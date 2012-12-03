@@ -615,10 +615,24 @@ public class CoreVectorFunctions {
     }
 
     public static Contour parseContour(String s) {
+        s = s.replace(",", " ");
         Contour contour = new Contour();
+        boolean parseX = true;
+        Double x = null;
+        String lastString = null;
         for (String pointString : CONTOUR_SPLITTER.split(s)) {
-            contour.addPoint(parsePoint(pointString));
+            lastString = pointString;
+            Double d = Double.parseDouble(pointString);
+            if (parseX) {
+                x = d;
+                parseX = false;
+            } else {
+                contour.addPoint(new Point(x, d));
+                parseX = true;
+            }
         }
+        if (! parseX)
+            throw new IllegalArgumentException("Could not parse point " + lastString);
         return contour;
     }
 
