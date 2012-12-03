@@ -391,15 +391,17 @@ public class CoreVectorFunctions {
     /**
      * Create a line from point 1 to point 2.
      *
-     * @param p1 The first point.
-     * @param p2 The second point.
+     * @param p1     The first point.
+     * @param p2     The second point.
+     * @param points The amount of points to generate along the line.
      * @return A line between two points.
      */
-    public static Path line(Point p1, Point p2) {
+    public static Path line(Point p1, Point p2, long points) {
         Path p = new Path();
         p.line(p1.x, p1.y, p2.x, p2.y);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p = p.resampleByAmount((int) points, true);
         return p;
     }
 
@@ -409,14 +411,16 @@ public class CoreVectorFunctions {
      * @param point    The starting point of the line.
      * @param angle    The angle of the line.
      * @param distance The distance of the line.
+     * @param points   The amount of points to generate along the line.
      * @return A new line.
      */
-    public static Path lineAngle(Point point, double angle, double distance) {
+    public static Path lineAngle(Point point, double angle, double distance, long points) {
         Point p2 = coordinates(point, angle, distance);
         Path p = new Path();
         p.line(point.x, point.y, p2.x, p2.y);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p = p.resampleByAmount((int) points, true);
         return p;
     }
 
