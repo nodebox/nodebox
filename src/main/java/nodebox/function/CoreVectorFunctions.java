@@ -497,7 +497,7 @@ public class CoreVectorFunctions {
                 if (point == null) return Point.ZERO;
                 double x = MathUtils.snap(point.x + position.x, distance, dStrength) - position.x;
                 double y = MathUtils.snap(point.y + position.y, distance, dStrength) - position.y;
-                return new Point(x, y);
+                return new Point(x, y, point.type);
             }
         });
     }
