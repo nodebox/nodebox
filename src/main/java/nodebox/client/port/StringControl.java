@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 
 public class StringControl extends AbstractPortControl implements ActionListener {
 
@@ -19,6 +21,11 @@ public class StringControl extends AbstractPortControl implements ActionListener
         textField.putClientProperty("JComponent.sizeVariant", "small");
         textField.setFont(Theme.SMALL_BOLD_FONT);
         textField.addActionListener(this);
+        textField.addFocusListener(new FocusAdapter() {
+            public void focusLost(FocusEvent e) {
+                commitTextFieldValue();
+            }
+        });
         add(textField, BorderLayout.CENTER);
         setValueForControl(port.getValue());
     }
@@ -35,7 +42,11 @@ public class StringControl extends AbstractPortControl implements ActionListener
     }
 
     public void actionPerformed(ActionEvent e) {
-        setPortValue(textField.getText());
+        commitTextFieldValue();
     }
 
+    private void commitTextFieldValue() {
+        setPortValue(textField.getText());
+
+    }
 }
