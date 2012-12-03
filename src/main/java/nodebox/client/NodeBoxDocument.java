@@ -1432,10 +1432,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ImageFormat format) {
         exportThreadedRange(getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
+            int count = 1;
+
             @Override
             public void frameDone(double frame, Iterable<?> results) {
-                File exportFile = new File(directory, exportPrefix + "-" + frame);
+                File exportFile = new File(directory, exportPrefix + "-" + String.format("%05d", count));
                 exportToFile(exportFile, results, format);
+                count += 1;
             }
         });
     }
