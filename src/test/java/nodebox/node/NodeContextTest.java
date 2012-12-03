@@ -272,7 +272,8 @@ public class NodeContextTest {
                 .withName("line")
                 .withFunction("corevector/line")
                 .withInputAdded(Port.pointPort("point1", new Point(10, 20)))
-                .withInputAdded(Port.pointPort("point2", new Point(30, 40)));
+                .withInputAdded(Port.pointPort("point2", new Point(30, 40)))
+                .withInputAdded(Port.intPort("points", 2));
         Node point = Node.ROOT
                 .withName("point")
                 .withFunction("corevector/point")
