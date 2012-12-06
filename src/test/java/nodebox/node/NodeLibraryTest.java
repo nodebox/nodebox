@@ -581,6 +581,20 @@ public class NodeLibraryTest {
         assertNull(root.getConnection("subnet1", "keep_geometry"));
     }
 
+    @Test
+    public void testUpgrade13to14() {
+        File version13File = new File("src/test/files/upgrade-v13.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version13File);
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version13File, NodeRepository.of(mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        Node waveNode = root.getChild("wave1");
+        assertFalse(waveNode.hasInput("speed"));
+        assertFalse(waveNode.hasInput("frame"));
+        assertEquals(100.0, waveNode.getInput("period").getValue());
+        assertEquals(20.0, waveNode.getInput("offset").getValue());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

@@ -161,8 +161,8 @@
         <node category="math" description="Calculate a value based on wave equations." function="math/wave" image="generic.png" name="wave" position="10.00,6.00">
             <port name="min" range="value" type="float" value="0.0" widget="float" description="The minimum value of the output."/>
             <port name="max" range="value" type="float" value="100.0" widget="float" description="The maximum value of the output."/>
-            <port name="speed" range="value" type="float" value="60.0" widget="float" description="The speed of the wave."/>
-            <port name="frame" range="value" type="float" value="0.0" widget="float" description="The time offset of the wave."/>
+            <port name="period" range="value" type="float" value="60.0" widget="float" description="The length (period) of one wave cycle."/>
+            <port name="offset" range="value" type="float" value="0.0" widget="float" description="The temporal offset of the wave."/>
             <port name="type" range="value" type="string" value="sine" widget="menu" description="The type of wave.">
                 <menu key="sine" label="Sine"/>
                 <menu key="square" label="Square"/>

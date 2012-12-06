@@ -374,21 +374,21 @@ public class MathFunctions {
         return targetMin + value * (targetMax - targetMin);
     }
 
-    public static double wave(double min, double max, double speed, double frame, String waveType) {
+    public static double wave(double min, double max, double period, double offset, String waveType) {
         float fmin = (float) min;
         float fmax = (float) max;
-        float fspeed = (float) speed;
+        float fperiod = (float) period;
 
         AbstractWave wave;
         if (waveType.equals(WAVE_TRIANGLE))
-            wave = TriangleWave.from(fmin, fmax, fspeed);
+            wave = TriangleWave.from(fmin, fmax, fperiod);
         else if (waveType.equals(WAVE_SQUARE))
-            wave = SquareWave.from(fmin, fmax, fspeed);
+            wave = SquareWave.from(fmin, fmax, fperiod);
         else if (waveType.equals(WAVE_SAWTOOTH))
-            wave = SawtoothWave.from(fmin, fmax, fspeed);
+            wave = SawtoothWave.from(fmin, fmax, fperiod);
         else
-            wave = SineWave.from(fmin, fmax, fspeed);
-        return wave.getValueAt((float) frame);
+            wave = SineWave.from(fmin, fmax, fperiod);
+        return wave.getValueAt((float) offset);
     }
 
 }

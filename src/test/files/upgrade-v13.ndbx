@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="11">
+    <node name="root" outputRange="list" renderedChild="wave1">
+        <node name="wave1" prototype="math.wave">
+            <port name="speed" type="float" value="100.0"/>
+            <port name="frame" type="float" value="20.0"/>
+        </node>
+    </node>
+</ndbx>
