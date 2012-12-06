@@ -41,7 +41,7 @@ public class StringFunctionsTest {
     }
 
     @Test
-    public void testConcatenate(){
+    public void testConcatenate() {
         assertEquals("a", StringFunctions.concatenate("a", null, null, null));
         assertEquals("ab", StringFunctions.concatenate("a", "b", null, null));
         assertEquals("ad", StringFunctions.concatenate("a", null, null, "d"));
@@ -49,6 +49,14 @@ public class StringFunctionsTest {
         assertEquals("", StringFunctions.concatenate(null, null, null, null));
     }
 
-
+    @Test
+    public void testFormatNumber() {
+        assertEquals("16.13", StringFunctions.formatNumber(16.127, "%.2f"));
+        assertEquals("12", StringFunctions.formatNumber(12, "%.0f"));
+        assertEquals("012", StringFunctions.formatNumber(12, "%03.0f"));
+        assertEquals("012", StringFunctions.formatNumber(12.25, "%03.0f"));
+        assertEquals("012", StringFunctions.formatNumber(11.55, "%03.0f"));
+        assertEquals("012.00", StringFunctions.formatNumber(12.0, "%06.2f"));
+    }
 
 }

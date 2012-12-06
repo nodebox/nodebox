@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 import nodebox.util.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Library with functions for String manipulation.
@@ -15,7 +16,7 @@ public class StringFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate", "changeCase");
+        LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class, "string", "makeStrings", "length", "wordCount", "concatenate", "changeCase", "formatNumber");
     }
 
     /**
@@ -75,6 +76,10 @@ public class StringFunctions {
         } else {
             return value;
         }
+    }
+
+    public static String formatNumber(double value, String format) {
+        return String.format(Locale.US, format, value);
     }
 
 }
