@@ -55,6 +55,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("11", upgradeMethod("upgrade11to12"));
         upgradeMap.put("12", upgradeMethod("upgrade12to13"));
         upgradeMap.put("13", upgradeMethod("upgrade13to14"));
+        upgradeMap.put("14", upgradeMethod("upgrade14to15"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -251,6 +252,11 @@ public class NodeLibraryUpgrades {
         UpgradeOp renamePortOp1 = new RenamePortOp("math.wave", "speed", "period");
         UpgradeOp renamePortOp2 = new RenamePortOp("math.wave", "frame", "offset");
         return transformXml(inputXml, "14", renamePortOp1, renamePortOp2);
+    }
+
+    public static UpgradeStringResult upgrade14to15(String inputXml) throws LoadException {
+        UpgradeOp renameNodeOp = new RenameNodeOp("make_strings", "split");
+        return transformXml(inputXml, "15", renameNodeOp);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {

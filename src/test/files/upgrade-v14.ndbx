@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="14">
+    <node name="root" outputRange="list" renderedChild="length2">
+        <node name="length1" prototype="string.length"/>
+        <node name="length2" prototype="string.length"/>
+        <node name="make_strings1" prototype="string.make_strings"/>
+        <node name="subnet1" renderedChild="make_strings1">
+            <node name="make_strings1" prototype="string.make_strings"/>
+            <port childReference="make_strings1.string" name="string" range="value" type="string" widget="string"/>
+        </node>
+        <node name="string1" prototype="string.string">
+            <port name="value" type="string" value="Kappa;Eta;Theta"/>
+        </node>
+        <conn input="length1.string" output="make_strings1"/>
+        <conn input="subnet1.string" output="string1"/>
+        <conn input="length2.string" output="subnet1"/>
+    </node>
+</ndbx>

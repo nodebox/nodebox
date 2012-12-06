@@ -595,6 +595,22 @@ public class NodeLibraryTest {
         assertEquals(20.0, waveNode.getInput("offset").getValue());
     }
 
+    @Test
+    public void testUpgrade14to15() {
+        File version14File = new File("src/test/files/upgrade-v14.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version14File);
+        NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version14File, NodeRepository.of(stringLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertTrue(root.hasChild("split1"));
+        assertEquals("split1", root.getConnection("length1", "string").getOutputNode());
+        Node subnet = root.getChild("subnet1");
+        assertEquals("split1", subnet.getRenderedChildName());
+        assertEquals("split1.string", subnet.getInput("string").getChildReference());
+        assertEquals("string1", root.getConnection("subnet1", "string").getOutputNode());
+        assertEquals("subnet1", root.getConnection("length2", "string").getOutputNode());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
