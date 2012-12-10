@@ -221,6 +221,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         nodeMenu.add(new DeleteAction());
         nodeMenu.add(new GroupIntoNetworkAction(null));
         nodeMenu.add(new GoInAction());
+        nodeMenu.add(new HelpAction());
     }
 
     public NodeBoxDocument getDocument() {
@@ -1213,6 +1214,27 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
             else
                 position = new nodebox.graphics.Point(gridPoint);
             getDocument().groupIntoNetwork(position);
+        }
+    }
+
+    private class HelpAction extends AbstractAction {
+        private HelpAction() {
+            super("Help");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+            Node prototype = node.getPrototype();
+            for (NodeLibrary library : document.getNodeRepository().getLibraries()) {
+                if (library.getRoot().hasChild(prototype)) {
+                    String libraryName = library.getName();
+                    String nodeName = prototype.getName();
+                    String nodeRef = String.format("http://nodebox.net/node/reference/%s/%s", libraryName, nodeName);
+                    Platform.openURL(nodeRef);
+                    return;
+                }
+            }
+            JOptionPane.showMessageDialog(NetworkView.this, "There is no reference documentation for node " + prototype, Application.NAME, JOptionPane.WARNING_MESSAGE);
         }
     }
 }
