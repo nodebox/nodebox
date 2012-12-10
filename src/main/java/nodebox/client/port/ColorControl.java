@@ -3,6 +3,7 @@ package nodebox.client.port;
 import nodebox.client.NodeBoxDocument;
 import nodebox.node.Port;
 import nodebox.ui.ColorDialog;
+import nodebox.ui.NButton;
 import nodebox.ui.Theme;
 
 import javax.swing.*;
@@ -17,10 +18,14 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
 
     private ColorButton colorButton;
     private ColorDialog colorDialog;
+    private NButton alphaCheck;
 
     public ColorControl(Port port) {
         super(port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
+        alphaCheck = new NButton(NButton.Mode.CHECK, "");
+        alphaCheck.setActionMethod(this, "setTransparent");
+        add(alphaCheck);
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));
         add(colorButton);
@@ -39,6 +44,25 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
     public void setValueForControl(Object v) {
         colorButton.color = ((nodebox.graphics.Color) v).getAwtColor();
         colorButton.repaint();
+        if (! ((nodebox.graphics.Color) v).isVisible() && ! alphaCheck.isChecked()) {
+            alphaCheck.setChecked(true);
+            alphaCheck.setEnabled(false);
+        }
+        else if (((nodebox.graphics.Color) v).isVisible() && alphaCheck.isChecked()) {
+            alphaCheck.setChecked(false);
+            alphaCheck.setEnabled(true);
+        }
+    }
+
+    public void setTransparent() {
+        if (alphaCheck.isEnabled()) {
+            nodebox.graphics.Color transparent = new nodebox.graphics.Color(0, 0, 0, 0);
+            setValueForControl(transparent);
+            setPortValue(transparent);
+            alphaCheck.setEnabled(false);
+            if (colorDialog != null)
+                colorDialog.setColor(transparent.getAwtColor());
+        }
     }
 
     @Override
@@ -64,7 +88,6 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
 
         if (colorDialog == null) {
             colorDialog = new ColorDialog((Frame) SwingUtilities.getWindowAncestor(this));
-            colorDialog.setColor(port.colorValue().getAwtColor());
             int height = colorDialog.getHeight();
             colorDialog.setMinimumSize(new Dimension(400, height));
             colorDialog.setPreferredSize(new Dimension(540, height));
@@ -79,6 +102,7 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
             colorDialog.setVisible(true);
             colorDialog.requestFocus();
         }
+        colorDialog.setColor(colorButton.color);
     }
 
     private class ColorButton extends JButton {
