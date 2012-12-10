@@ -36,7 +36,9 @@
         </node>
         <node description="Calculate the geometric center point of a shape." function="corevector/centroid" image="centroid.png" name="centroid" outputType="point" position="7.00,6.00" prototype="filter"/>
         <node description="Change the color of a shape." function="corevector/colorize" image="colorize.png" name="colorize" position="4.00,11.00" prototype="filter">
+            <port name="change_fill" range="value" type="boolean" value="true" widget="toggle" description="If true, changes the fill color."/>
             <port name="fill" range="value" type="color" value="#000000ff" widget="color" description="The new fill color. Set alpha to 0 for no fill."/>
+            <port name="change_stroke" range="value" type="boolean" value="true" widget="toggle" description="If true, changes the stroke properties."/>
             <port name="stroke" range="value" type="color" value="#000000ff" widget="color" description="The new stroke color."/>
             <port min="0.0" name="strokeWidth" range="value" type="float" value="0.0" widget="float" description="The new stroke width. Set to 0 for no stroke."/>/>
         </node>
