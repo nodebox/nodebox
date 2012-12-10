@@ -74,6 +74,7 @@ public class DataFunctions {
             String[] headers = reader.readNext();
 
             Map<String, Integer> headerDuplicates = new HashMap<String, Integer>();
+            Map<String, Boolean> columnNumerics = new HashMap<String, Boolean>();
             List<String> tmp = new ArrayList<String>();
             for (int i = 0; i < headers.length; i++) {
                 headers[i] = headers[i].trim();
@@ -91,27 +92,57 @@ public class DataFunctions {
                     headers[i] = header + " " + number;
                     headerDuplicates.put(header, number);
                 }
+                columnNumerics.put(headers[i], null);
             }
 
             String[] row;
 
+            NumberFormat nf = NumberFormat.getNumberInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
             while ((row = reader.readNext()) != null) {
                 ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
                 for (int i = 0; i < row.length; i++) {
                     String header = i < headers.length ? headers[i] : String.format("Column %s", i + 1);
+                    if (! columnNumerics.containsKey(header))
+                        columnNumerics.put(header, null);
+
                     String v = row[i].trim();
-                    Object value;
                     try {
-                        NumberFormat nf = NumberFormat.getInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
-                        value = nf.parse(v).doubleValue();
+                        nf.parse(v).doubleValue();
+                        if (columnNumerics.get(header) == null)
+                            columnNumerics.put(header, true);
                     } catch (ParseException e) {
-                        value = v;
+                        columnNumerics.put(header, false);
                     }
-                    mb.put(header, value);
+                    mb.put(header, v);
                 }
                 b.add(mb.build());
             }
+            List<Map<String, Object>> tempRows = b.build();
 
+            List<String> headersNumericCols = new ArrayList<String>();
+            for (String header : columnNumerics.keySet()) {
+                if (columnNumerics.get(header) == true)
+                    headersNumericCols.add(header);
+            }
+
+            if (headersNumericCols.isEmpty()) return tempRows;
+
+            b = ImmutableList.builder();
+            for (Map<String, Object> r : tempRows) {
+                ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                for (String header : r.keySet()) {
+                    if (headersNumericCols.contains(header)) {
+                        try {
+                            double d = nf.parse(((String) r.get(header))).doubleValue();
+                            mb.put(header, d);
+                        } catch (ParseException e) {
+                        }
+                    } else {
+                        mb.put(header, r.get(header));
+                    }
+                }
+                b.add(mb.build());
+            }
             return b.build();
         } catch (IOException e) {
             throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);

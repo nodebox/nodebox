@@ -109,6 +109,14 @@ public class DataFunctionsTest {
         assertResultsEqual(l.get(1).values(), 2.5, 10.99, 40000.6);
     }
 
+    @Test
+    public void testImportCSVWithMixedInput() {
+        List<Map<String, Object>> l = importSimpleCSV("src/test/files/mixed-input.csv");
+        assertEquals(2, l.size());
+        assertResultsEqual(l.get(0).values(), 100.0, 0.0, "zero", 0.0);
+        assertResultsEqual(l.get(1).values(), 255.0, 100.0, "0", 255.0);
+    }
+
     private List<Map<String, Object>> importSimpleCSV(String fileName) {
         return importCSV(fileName, "comma", "double", "period");
     }
