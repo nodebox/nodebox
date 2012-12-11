@@ -102,11 +102,11 @@ public class DataFunctionsTest {
     public void testImportCSVWithDifferentFloatingPoint() {
         List<Map<String, Object>> l = importCSV("src/test/files/floats.csv", "semicolon", "double", "period");
         assertEquals(2, l.size());
-        assertResultsEqual(l.get(0).values(), 2.5, 10.99, 40000.6);
-        assertResultsEqual(l.get(1).values(), 25.0, 1099.0, 40.0);
+        assertResultsEqual(l.get(0).values(), 2.5, 10.99, "40,000.60", 10000.10, "10.000,10");
+        assertResultsEqual(l.get(1).values(), 25.0, 1099.0, "40.000,60", 20200.20, "20.200,20");
         l = importCSV("src/test/files/floats.csv", "semicolon", "double", "comma");
-        assertResultsEqual(l.get(0).values(), 25.0, 1099.0, 40.0);
-        assertResultsEqual(l.get(1).values(), 2.5, 10.99, 40000.6);
+        assertResultsEqual(l.get(0).values(), 25.0, 1099.0, "40,000.60", "10,000.10", 10000.10);
+        assertResultsEqual(l.get(1).values(), 2.5, 10.99, "40.000,60", "20,200.20", 20200.20);
     }
 
     @Test

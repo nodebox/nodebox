@@ -98,7 +98,7 @@ public class DataFunctions {
 
             String[] row;
 
-            NumberFormat nf = NumberFormat.getInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
+            NumberFormat nf = NumberFormat.getNumberInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
             while ((row = reader.readNext()) != null) {
                 ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
                 for (int i = 0; i < row.length; i++) {
