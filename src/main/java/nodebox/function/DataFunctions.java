@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.util.*;
 
 public class DataFunctions {
@@ -97,7 +98,7 @@ public class DataFunctions {
 
             String[] row;
 
-            NumberFormat nf = NumberFormat.getNumberInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
+            NumberFormat nf = NumberFormat.getInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
             while ((row = reader.readNext()) != null) {
                 ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
                 for (int i = 0; i < row.length; i++) {
@@ -107,10 +108,16 @@ public class DataFunctions {
 
                     String v = row[i].trim();
                     try {
-                        nf.parse(v).doubleValue();
+                        ParsePosition position = new ParsePosition(0);
+                        nf.parse(v, position).doubleValue();
                         if (columnNumerics.get(header) == null)
                             columnNumerics.put(header, true);
+                        if (position.getIndex() != v.length()) {
+                            throw new ParseException("Failed to parse entire string: " + v, position.getIndex());
+                        }
                     } catch (ParseException e) {
+                        columnNumerics.put(header, false);
+                    } catch (NullPointerException e) {
                         columnNumerics.put(header, false);
                     }
                     mb.put(header, v);
