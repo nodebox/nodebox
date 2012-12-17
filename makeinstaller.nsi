@@ -17,7 +17,7 @@
 ;--------------------------------
 ; General
 Name "${APPNAME}"
-OutFile "dist\NodeBoxSetup.exe"
+OutFile "dist\nodebox-${APPVERSION}-setup.exe"
 InstallDir "$PROGRAMFILES\${APPNAME}"
 InstallDirRegKey HKCU "Software\${APPNAME}" ""
 RequestExecutionLevel admin
@@ -67,7 +67,7 @@ Section ""
   ; Copy all application resources.
   File /r dist\windows\NodeBox\*.*
   ; Store installation folder.
-  WriteRegStr HKCU "Software\$APPNAME" "" $INSTDIR
+  WriteRegStr HKCU "Software\${APPNAME}" "" $INSTDIR
   ; Create shortcuts in start menu and desktop.
   CreateShortCut $SMPROGRAMS\${APPNAME}.lnk $INSTDIR\NodeBox.exe
   CreateShortCut $DESKTOP\${APPNAME}.lnk "$INSTDIR\NodeBox.exe"

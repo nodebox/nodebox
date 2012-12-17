@@ -247,7 +247,7 @@
     </target>
 
     <target name="zip-mac" depends="dist-mac-signed" description="Make ZIP file of the application.">
-        <zip destfile="${dist}/NodeBox.zip" level="9">
+        <zip destfile="${dist}/NodeBox-${nodebox.version}.zip" level="9">
             <zipfileset filemode="755" dir="${dist.mac}" includes="${ant.project.name}.app/**/*"/>
         </zip>
     </target>
