@@ -102,7 +102,7 @@ public class NodeLibraryTest {
     @Test
     public void testRenderedNode() {
         Node child1 = Node.ROOT.withName("child1");
-        Node originalRoot = Node.ROOT.withChildAdded(child1).withRenderedChild(child1);
+        Node originalRoot = Node.NETWORK.withChildAdded(child1).withRenderedChild(child1);
         NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot, FunctionRepository.of());
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         assertEquals("child1", library.getRoot().getRenderedChildName());
@@ -271,7 +271,7 @@ public class NodeLibraryTest {
     public void testMenuPrototypeSerialization() {
         Node letterPrototype = makeLetterMenuNode();
         Node letterNode = letterPrototype.extend().withName("my_letter").withInputValue("letter", "b");
-        Node originalRoot = Node.ROOT
+        Node originalRoot = Node.NETWORK
                 .withChildAdded(letterPrototype)
                 .withChildAdded(letterNode);
         NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
@@ -303,7 +303,7 @@ public class NodeLibraryTest {
 
     private void assertPrototypeBeforeInstance(String prototypeName, String... instanceNames) {
         Node originalPrototype = Node.ROOT.withName(prototypeName);
-        Node network = Node.ROOT.withChildAdded(originalPrototype);
+        Node network = Node.NETWORK.withChildAdded(originalPrototype);
         for (String instanceName : instanceNames) {
             Node originalInstance = originalPrototype.extend().withName(instanceName);
             network = network.withChildAdded(originalInstance);
@@ -331,7 +331,7 @@ public class NodeLibraryTest {
         Node inner = Node.ROOT.withName("inner")
                 .withInputAdded(Port.floatPort("value", 0.0))
                 .withFunction("math/number");
-        Node outer = Node.ROOT.withName("outer")
+        Node outer = Node.NETWORK.withName("outer")
                 .withChildAdded(inner)
                 .publish("inner", "value", "v")
                 .withInputValue("v", 11.0);
@@ -702,7 +702,7 @@ public class NodeLibraryTest {
     }
 
     private NodeLibrary libraryWithChildren(String libraryName, Node... children) {
-        Node root = Node.ROOT.withName("root");
+        Node root = Node.NETWORK.withName("root");
         for (Node child : children) {
             root = root.withChildAdded(child);
         }

@@ -47,6 +47,7 @@ public class NodeRepository {
     public Node getNode(String identifier) {
         checkNotNull(identifier);
         if (identifier.equals("_root")) return Node.ROOT;
+        if (identifier.equals("_network")) return Node.NETWORK;
         String[] names = identifier.split("\\.");
         checkArgument(names.length == 2, "The node identifier should look like libraryname.nodename, not %s", identifier);
         String libraryName = names[0];
@@ -65,6 +66,7 @@ public class NodeRepository {
     public List<Node> getNodes() {
         ImmutableList.Builder<Node> builder = ImmutableList.builder();
         builder.add(Node.ROOT);
+        builder.add(Node.NETWORK);
         for (NodeLibrary library : libraryMap.values())
             builder.addAll(library.getRoot().getChildren());
         return builder.build();

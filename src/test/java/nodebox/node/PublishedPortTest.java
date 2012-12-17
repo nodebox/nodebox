@@ -18,7 +18,7 @@ public class PublishedPortTest {
             .withFunction("math/number")
             .withInputAdded(Port.floatPort("number", 23));
 
-    public static final Node net = Node.ROOT
+    public static final Node net = Node.NETWORK
             .withChildAdded(number42Node)
             .withRenderedChildName("number42");
 

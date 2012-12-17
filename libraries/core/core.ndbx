@@ -6,6 +6,5 @@
               image="frame.png">
             <port name="context" type="context" description="The internal execution context from which to extract the frame number."/>
         </node>
-        <node name="network" description="Create an empty subnetwork." outputRange="list" function="core/zero"/>
     </node>
 </ndbx>

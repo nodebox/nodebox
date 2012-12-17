@@ -16,10 +16,6 @@ import static com.google.common.base.Preconditions.*;
 
 public final class Node {
 
-    public static final Node ROOT = new Node();
-
-    public static final Node NETWORK = ROOT.withOutputRange(Port.Range.LIST);
-
     public static String path(String parentPath, Node node) {
         checkNotNull(node);
         return path(parentPath, node.getName());
@@ -36,7 +32,8 @@ public final class Node {
         }
     }
 
-    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+    private enum CoreNodes {ROOT_NODE, NETWORK_NODE}
+    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
 
     /**
      * Check if data from the output node can be converted and used in the input port.
@@ -87,6 +84,9 @@ public final class Node {
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
     private static final Pattern UNDERSCORE_NUMBER_AT_THE_END = Pattern.compile("^(.*?)((\\_(\\d*))?)$");
 
+    public static final Node ROOT = new Node(CoreNodes.ROOT_NODE);
+    public static final Node NETWORK = new Node(CoreNodes.NETWORK_NODE);
+
     private final Node prototype;
     private final String name;
     private final String category;
@@ -97,6 +97,7 @@ public final class Node {
     private final ImmutableList<Port> inputs;
     private final String outputType;
     private final Port.Range outputRange;
+    private final boolean isNetwork;
     private final ImmutableList<Node> children;
     private final String renderedChildName;
     private final ImmutableList<Connection> connections;
@@ -105,20 +106,35 @@ public final class Node {
     //// Constructors ////
 
     /**
-     * Constructor for the root node. This can only be called once.
+     * Constructor for the root and network nodes. This can only be called once for each of them.
      */
-    private Node() {
-        checkState(ROOT == null, "You cannot create more than one root node.");
-        prototype = null;
-        name = "_root";
+    private Node(CoreNodes coreNode) {
+        switch (coreNode) {
+            case ROOT_NODE:
+            default:
+                checkState(ROOT == null, "You cannot create more than one root node.");
+                prototype = null;
+                name = "_root";
+                description = "Base node to be extended for custom nodes.";
+                outputRange = Port.DEFAULT_RANGE;
+                isNetwork = false;
+                break;
+            case NETWORK_NODE:
+                checkState(ROOT != null, "The root node has not been created yet.");
+                checkState(NETWORK == null, "You cannot create more than one network node.");
+                prototype = ROOT;
+                name = "_network";
+                description = "Create an empty subnetwork.";
+                outputRange = Port.Range.LIST;
+                isNetwork = true;
+                break;
+        }
         category = "";
-        description = "Base node to be extended for custom nodes.";
         image = "";
         function = "core/zero";
         position = Point.ZERO;
         inputs = ImmutableList.of();
         outputType = Port.TYPE_FLOAT;
-        outputRange = Port.DEFAULT_RANGE;
         children = ImmutableList.of();
         renderedChildName = "";
         connections = ImmutableList.of();
@@ -133,12 +149,13 @@ public final class Node {
 
     private Node(Node prototype, String name, String category, String description, String image, String function,
                  Point position, ImmutableList<Port> inputs,
-                 String outputType, Port.Range outputRange, ImmutableList<Node> children,
+                 String outputType, Port.Range outputRange, boolean isNetwork, ImmutableList<Node> children,
                  String renderedChildName, ImmutableList<Connection> connections, String handle) {
         checkAllNotNull(prototype, name, description, image, function,
                 position, inputs, outputType, children,
                 renderedChildName, connections);
         checkArgument(!name.equals("_root"), "The name _root is a reserved internal name.");
+        checkArgument(!name.equals("_network"), "The name _network is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
         this.category = category;
@@ -149,6 +166,7 @@ public final class Node {
         this.inputs = inputs;
         this.outputType = outputType;
         this.outputRange = outputRange;
+        this.isNetwork = isNetwork;
         this.children = children;
         this.renderedChildName = renderedChildName;
         this.connections = connections;
@@ -183,6 +201,10 @@ public final class Node {
 
     public Point getPosition() {
         return position;
+    }
+
+    public boolean isNetwork() {
+        return isNetwork;
     }
 
     public boolean hasChildren() {
@@ -324,6 +346,8 @@ public final class Node {
             return getOutputType();
         } else if (attribute == Attribute.OUTPUT_RANGE) {
             return getOutputRange();
+        } else if (attribute == Attribute.IS_NETWORK) {
+            return isNetwork();
         } else if (attribute == Attribute.CHILDREN) {
             return getChildren();
         } else if (attribute == Attribute.RENDERED_CHILD_NAME) {
@@ -528,6 +552,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildRenamed(String childName, String newName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         if (childName.equals(newName)) return this;
         Node newNode = getChild(childName).withName(newName);
         Node newParent = withChildRemoved(childName).withChildAdded(newNode);
@@ -566,6 +591,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildInputRemoved(String childName, String portName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(childName), "Node %s does not have a child named %s.", this, childName);
         Node child = getChild(childName);
         checkArgument(child.hasInput(portName), "Node %s does not have an input port %s.", childName, portName);
@@ -578,10 +604,12 @@ public final class Node {
 
     private Node withChildInputChanged(String childName, String portName, Port newPort) {
         // todo: checks
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         return withChildReplaced(childName, getChild(childName).withInputChanged(portName, newPort));
     }
 
     public Node withChildPositionChanged(String childName, double xOffset, double yOffset) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(childName), "Node %s does not have a child named %s.", this, childName);
         Node child = getChild(childName);
         return withChildReplaced(childName, child.withPosition(child.getPosition().moved(xOffset, yOffset)));
@@ -627,7 +655,7 @@ public final class Node {
         checkNotNull(p, "Input port %s does not exist on node %s.", portName, this);
         p = p.withValue(value);
         Node n = this;
-        if (p.isPublishedPort()) {
+        if (isNetwork && p.isPublishedPort()) {
             String childNodeName = p.getChildNodeName();
             Node newChildNode = p.getChildNode(this).withInputValue(p.getChildPortName(), value);
             n = n.withChildReplaced(childNodeName, newChildNode);
@@ -652,6 +680,7 @@ public final class Node {
     }
 
     public List<Port> getPublishedPorts() {
+        if (! isNetwork) return ImmutableList.of();
         ImmutableList.Builder<Port> b = ImmutableList.builder();
         for (Port p : inputs) {
             if (p.isPublishedPort())
@@ -661,11 +690,13 @@ public final class Node {
     }
 
     public Port getPublishedPort(Port port) {
+        if (! isNetwork) return null;
         checkArgument(port.isPublishedPort(), "Given port %s is not a published port.", port);
         return port.getChildPort(this);
     }
 
     public Port getPublishedPort(String publishedPortName) {
+        if (! isNetwork) return null;
         checkArgument(hasInput(publishedPortName), "Given port %s does not exist.", publishedPortName);
         return getPublishedPort(getInput(publishedPortName));
     }
@@ -675,6 +706,7 @@ public final class Node {
     }
 
     public Port getPortByChildReference(String childNodeName, String childPortName) {
+        if (! isNetwork) return null;
         for (Port p : inputs) {
             if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName) && p.getChildPortName().equals(childPortName)) {
                 return p;
@@ -684,6 +716,7 @@ public final class Node {
     }
 
     public boolean hasPublishedInput(String childNodeName, String childPortName) {
+        if (! isNetwork) return false;
         for (Port p : inputs) {
             if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName) && p.getChildPortName().equals(childPortName)) {
                 return true;
@@ -693,6 +726,7 @@ public final class Node {
     }
 
     public boolean hasPublishedChildInputs(String childNodeName) {
+        if (! isNetwork) return false;
         for (Port p : inputs) {
             if (p.isPublishedPort() && p.getChildNodeName().equals(childNodeName)) {
                 return true;
@@ -702,6 +736,7 @@ public final class Node {
     }
 
     public boolean hasPublishedInput(String publishedName) {
+        if (! isNetwork) return false;
         return hasInput(publishedName) && getInput(publishedName).isPublishedPort();
     }
 
@@ -714,6 +749,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node publish(String childNodeName, String childPortName, String publishedName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkNotNull(publishedName, "Published name cannot be null.");
         checkArgument(hasChild(childNodeName), "Node %s does not have a child named %s.", this, childNodeName);
         Node childNode = getChild(childNodeName);
@@ -733,6 +769,7 @@ public final class Node {
     }
 
     public Node unpublish(String childNodeName, String childPortName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(childNodeName), "Node %s does not have a child named %s.", this, childNodeName);
         Node childNode = getChild(childNodeName);
         checkArgument(childNode.hasInput(childPortName), "Child node %s does not have a port named %s.", childNodeName, childPortName);
@@ -743,6 +780,7 @@ public final class Node {
     }
 
     public Node unpublishChildNode(Node childNode) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(childNode), "Node %s does not have a child named %s.", this, childNode);
 
         Node n = this;
@@ -755,6 +793,7 @@ public final class Node {
     }
 
     public Node unpublish(String publishedName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         return withInputRemoved(publishedName);
     }
 
@@ -792,6 +831,7 @@ public final class Node {
      */
     public Node withChildAdded(Node node) {
         checkNotNull(node, "Node cannot be null.");
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         if (hasChild(node.getName())) {
             String uniqueName = uniqueName(node.getName());
             node = node.withName(uniqueName);
@@ -811,6 +851,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildRemoved(String childName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         Node childToRemove = getChild(childName);
         checkArgument(childToRemove != null, "Node %s is not a child of node %s.", childName, this);
         if (hasPublishedChildInputs(childName))
@@ -913,6 +954,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildReplaced(String childName, Node newChild) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         Node childToReplace = getChild(childName);
         checkNotNull(newChild);
         checkArgument(newChild.getName().equals(childName), "New child %s does not have the same name as old child %s.", newChild, childName);
@@ -949,6 +991,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withRenderedChildName(String name) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkNotNull(name, "Rendered child name cannot be null.");
         checkArgument(name.isEmpty() || hasChild(name), "Node does not have a child named %s.", name);
         return newNodeWithAttribute(Attribute.RENDERED_CHILD_NAME, name);
@@ -978,6 +1021,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node connect(String outputNode, String inputNode, String inputPort) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(outputNode), "Node %s does not have a child named %s.", this, outputNode);
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
         Node input = getChild(inputNode);
@@ -1004,6 +1048,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node disconnect(Connection connection) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(getConnections().contains(connection), "Node %s does not have a connection %s", this, connection);
         ImmutableList.Builder<Connection> b = ImmutableList.builder();
         for (Connection c : getConnections()) {
@@ -1020,6 +1065,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node disconnect(String node) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(node), "Node %s does not have a child named %s.", this, node);
         ImmutableList.Builder<Connection> b = ImmutableList.builder();
         for (Connection c : getConnections()) {
@@ -1041,6 +1087,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node disconnect(String node, String portName) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         checkArgument(hasChild(node), "Node %s does not have a child named %s.", this, node);
         Node child = getChild(node);
         checkArgument(child.hasInput(portName), "Node %s does not have an input port %s.", node, portName);
@@ -1060,6 +1107,7 @@ public final class Node {
     }
 
     public boolean isConnected(String node) {
+        if (! isNetwork) return false;
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(node) || c.getOutputNode().equals(node))
                 return true;
@@ -1068,6 +1116,7 @@ public final class Node {
     }
 
     public boolean isConnected(String node, String port) {
+        if (! isNetwork) return false;
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(node) && c.getInputPort().equals(port))
                 return true;
@@ -1085,6 +1134,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildrenAdded(Node nodesParent, Iterable<Node> nodes) {
+        checkArgument(isNetwork, "Node %s is not a network node.", this);
         Map<String, String> newNames = new HashMap<String, String>();
         Node newParent = this;
 
@@ -1126,6 +1176,7 @@ public final class Node {
      * @return the Connection object, or null if the connection could not be found.
      */
     public Connection getConnection(String inputNode, String inputPort) {
+        if (! isNetwork) return null;
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
                 return c;
@@ -1171,6 +1222,7 @@ public final class Node {
         ImmutableList<Port> inputs = this.inputs;
         String outputType = this.outputType;
         Port.Range outputRange = this.outputRange;
+        boolean isNetwork = this.isNetwork;
         ImmutableList<Node> children = this.children;
         String renderedChildName = this.renderedChildName;
         ImmutableList<Connection> connections = this.connections;
@@ -1207,6 +1259,9 @@ public final class Node {
             case OUTPUT_RANGE:
                 outputRange = (Port.Range) value;
                 break;
+            case IS_NETWORK:
+                isNetwork = (Boolean) value;
+                break;
             case CHILDREN:
                 children = (ImmutableList<Node>) value;
                 break;
@@ -1222,19 +1277,20 @@ public final class Node {
             default:
                 throw new AssertionError("Unknown attribute " + attribute);
         }
-        // If we're "changing" an attribute on ROOT, make the ROOT the prototype.
-        if (prototype == null) {
-            prototype = ROOT;
+        // If we're "changing" an attribute on ROOT or NETWORK, make it the prototype.
+        if (this == ROOT || this == NETWORK) {
+            prototype = this;
 
         }
 
-        // The name of a node can never be "_root".
-        if (name.equals("_root")) {
+        // The name of a node can never be "_root" or "_network.
+        if (name.equals("_root"))
             name = "node";
-        }
+        else if (name.equals("_network"))
+            name = "network";
 
         return new Node(prototype, name, category, description, image, function, position,
-                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle);
     }
 
     //// Object overrides ////
@@ -1242,7 +1298,7 @@ public final class Node {
     @Override
     public int hashCode() {
         return Objects.hashCode(prototype, name, category, description, image, function, position,
-                inputs, outputType, outputRange, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle);
     }
 
     @Override
@@ -1258,6 +1314,7 @@ public final class Node {
                 && Objects.equal(position, other.position)
                 && Objects.equal(inputs, other.inputs)
                 && Objects.equal(outputType, other.outputType)
+                && Objects.equal(isNetwork, other.isNetwork)
                 && Objects.equal(children, other.children)
                 && Objects.equal(renderedChildName, other.renderedChildName)
                 && Objects.equal(connections, other.connections)
