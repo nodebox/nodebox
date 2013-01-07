@@ -141,15 +141,8 @@ public class NDBXWriter {
 
         // Write prototype
         if (shouldWriteAttribute(node, Node.Attribute.PROTOTYPE)) {
-            if (node.getPrototype() != Node.ROOT && node.getPrototype() != Node.NETWORK)
+            if (node.getPrototype() != Node.ROOT)
                 el.setAttribute("prototype", findNodeId(node.getPrototype(), nodeRepository));
-            else if (node.getPrototype() == Node.NETWORK && ! node.hasChildren()) {
-                // The special prototype id "_network" is normally not written to the ndbx file as
-                // it can be inferred from the ndbx input if the node contains children.
-                // When it doesn't have children however we still need to be able to distinguish between
-                // nodes that inherit the network or root node, that's why we write it here.
-                el.setAttribute("prototype", "_network");
-            }
         }
 
         // Write name

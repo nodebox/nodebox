@@ -160,14 +160,17 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     public static BufferedImage findNodeImage(NodeLibrary library, Node node) {
         if (node == null || node.getImage() == null || node.getImage().isEmpty()) return null;
         if (!library.getRoot().hasChild(node)) return null;
-        File libraryFile = library.getFile();
-        if (libraryFile != null) {
-            File libraryDirectory = libraryFile.getParentFile();
-            if (libraryDirectory != null) {
-                File nodeImageFile = new File(libraryDirectory, node.getImage());
-                if (nodeImageFile.exists()) {
-                    return readNodeImage(nodeImageFile);
-                }
+
+        File libraryDirectory = null;
+        if (library.getFile() != null)
+            libraryDirectory = library.getFile().getParentFile();
+        else if (library.equals(NodeLibrary.coreLibrary))
+            libraryDirectory = new File("libraries/core");
+
+        if (libraryDirectory != null) {
+            File nodeImageFile = new File(libraryDirectory, node.getImage());
+            if (nodeImageFile.exists()) {
+                return readNodeImage(nodeImageFile);
             }
         }
         return null;

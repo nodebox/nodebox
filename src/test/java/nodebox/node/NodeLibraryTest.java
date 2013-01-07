@@ -68,14 +68,6 @@ public class NodeLibraryTest {
     }
 
     @Test
-    public void testDoNotWriteRootPrototype() {
-        Node myNode = Node.ROOT.withName("myNode");
-        NodeLibrary library = libraryWithChildren("test", myNode);
-        // Because myNode uses the _root prototype, it shouldn't write the prototype attribute.
-        assertFalse(library.toXml().contains("prototype"));
-    }
-
-    @Test
     public void testPrototypeInSameLibrary() {
         // You can refer to a prototype in the same library as the current node.
         Node invert = Node.ROOT

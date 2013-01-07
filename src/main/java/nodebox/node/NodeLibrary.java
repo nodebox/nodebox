@@ -22,6 +22,27 @@ public class NodeLibrary {
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
+    public static final NodeLibrary coreLibrary;
+
+    static {
+        Node frameNode = Node.ROOT
+                .withName("frame")
+                .withOutputType("float")
+                .withDescription("Output the value of the current frame. Used for animating ports.")
+                .withFunction("core/frame")
+                .withImage("frame.png")
+                .withInputAdded(Port.customPort("context", "context"));
+        // todo: add description of context port:
+        // "The internal execution context from which to extract the frame number."
+        Node root = Node.NETWORK
+                .withDescription("Provide essential nodes.")
+                .withChildAdded(Node.ROOT)
+                .withChildAdded(Node.NETWORK)
+                .withChildAdded(frameNode);
+        coreLibrary = NodeLibrary.create("core", root, NodeRepository.empty(), FunctionRepository.of());
+    }
+
+
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
     }
@@ -57,7 +78,6 @@ public class NodeLibrary {
             throw new LoadException(null, "Could not read NDBX string", e);
         }
     }
-
 
     public static NodeLibrary load(File f, NodeRepository nodeRepository) throws LoadException {
         checkNotNull(f, "File cannot be null.");
@@ -128,7 +148,6 @@ public class NodeLibrary {
     public FunctionRepository getFunctionRepository() {
         return functionRepository;
     }
-
 
     //// Properties ////
 
@@ -389,7 +408,6 @@ public class NodeLibrary {
      */
     private static Node lookupNode(String nodeId, Node parent, NodeRepository nodeRepository) {
         if (nodeId.equals("_root")) return Node.ROOT;
-        if (nodeId.equals("_network")) return Node.NETWORK;
         if (nodeId.contains(".")) {
             return nodeRepository.getNode(nodeId);
         } else {

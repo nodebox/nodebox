@@ -16,16 +16,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NodeRepository {
 
-    public static NodeRepository of() {
+    public static NodeRepository empty() {
         return new NodeRepository(ImmutableMap.<String, NodeLibrary>of());
+    }
+
+    public static NodeRepository of() {
+        return new NodeRepository(ImmutableMap.<String, NodeLibrary>of("core", NodeLibrary.coreLibrary));
     }
 
     public static NodeRepository of(NodeLibrary... libraries) {
         ImmutableMap.Builder<String, NodeLibrary> builder = ImmutableMap.builder();
         for (NodeLibrary library : libraries) {
+            if (library.getName().equals("core")) continue;
             builder.put(library.getName(), library);
         }
-        // TODO  The core library is always included.
+        builder.put("core", NodeLibrary.coreLibrary);
         return new NodeRepository(builder.build());
     }
 
@@ -47,7 +52,6 @@ public class NodeRepository {
     public Node getNode(String identifier) {
         checkNotNull(identifier);
         if (identifier.equals("_root")) return Node.ROOT;
-        if (identifier.equals("_network")) return Node.NETWORK;
         String[] names = identifier.split("\\.");
         checkArgument(names.length == 2, "The node identifier should look like libraryname.nodename, not %s", identifier);
         String libraryName = names[0];
@@ -65,8 +69,6 @@ public class NodeRepository {
 
     public List<Node> getNodes() {
         ImmutableList.Builder<Node> builder = ImmutableList.builder();
-        builder.add(Node.ROOT);
-        builder.add(Node.NETWORK);
         for (NodeLibrary library : libraryMap.values())
             builder.addAll(library.getRoot().getChildren());
         return builder.build();

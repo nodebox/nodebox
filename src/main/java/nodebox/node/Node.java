@@ -117,6 +117,7 @@ public final class Node {
                 prototype = null;
                 name = "_root";
                 description = "Base node to be extended for custom nodes.";
+                image = "";
                 outputRange = Port.DEFAULT_RANGE;
                 isNetwork = false;
                 break;
@@ -124,14 +125,14 @@ public final class Node {
                 checkState(ROOT != null, "The root node has not been created yet.");
                 checkState(NETWORK == null, "You cannot create more than one network node.");
                 prototype = ROOT;
-                name = "_network";
+                name = "network";
+                image = "network.png";
                 description = "Create an empty subnetwork.";
                 outputRange = Port.Range.LIST;
                 isNetwork = true;
                 break;
         }
         category = "";
-        image = "";
         function = "core/zero";
         position = Point.ZERO;
         inputs = ImmutableList.of();
@@ -156,7 +157,7 @@ public final class Node {
                 position, inputs, outputType, children,
                 renderedChildName, connections);
         checkArgument(!name.equals("_root"), "The name _root is a reserved internal name.");
-        checkArgument(!name.equals("_network"), "The name _network is a reserved internal name.");
+        checkArgument(!name.equals("network"), "The name network is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
         this.category = category;
@@ -1284,11 +1285,11 @@ public final class Node {
 
         }
 
-        // The name of a node can never be "_root" or "_network.
+        // The name of a node can never be "_root" or "network.
         if (name.equals("_root"))
             name = "node";
-        else if (name.equals("_network"))
-            name = "network";
+        else if (name.equals("network"))
+            name = "network1";
 
         return new Node(prototype, name, category, description, image, function, position,
                 inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle);
