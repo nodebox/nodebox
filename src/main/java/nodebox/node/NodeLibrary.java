@@ -399,7 +399,6 @@ public class NodeLibrary {
      * @return The existing node.
      */
     private static Node lookupNode(String nodeId, Node parent, NodeRepository nodeRepository) {
-        if (nodeId.equals("_root")) return Node.ROOT;
         if (nodeId.contains(".")) {
             return nodeRepository.getNode(nodeId);
         } else {

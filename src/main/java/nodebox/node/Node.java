@@ -85,6 +85,7 @@ public final class Node {
     private static final Pattern DOUBLE_UNDERSCORE_PATTERN = Pattern.compile("^__.*$");
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
     private static final Pattern UNDERSCORE_NUMBER_AT_THE_END = Pattern.compile("^(.*?)((\\_(\\d*))?)$");
+    private static final Pattern RESERVED_WORD_PATTERN = Pattern.compile("^(node|network)$");
 
     public static final Node ROOT = new Node(Nodes.ROOT_NODE);
     public static final Node NETWORK = new Node(Nodes.NETWORK_NODE);
@@ -124,7 +125,7 @@ public final class Node {
             default:
                 checkState(ROOT == null, "You cannot create more than one root node.");
                 prototype = null;
-                name = "_root";
+                name = "node";
                 description = "Base node to be extended for custom nodes.";
                 image = "";
                 outputRange = Port.DEFAULT_RANGE;
@@ -165,7 +166,7 @@ public final class Node {
         checkAllNotNull(prototype, name, description, image, function,
                 position, inputs, outputType, children,
                 renderedChildName, connections);
-        checkArgument(!name.equals("_root"), "The name _root is a reserved internal name.");
+        checkArgument(!name.equals("node"), "The name node is a reserved internal name.");
         checkArgument(!name.equals("network"), "The name network is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
@@ -434,12 +435,15 @@ public final class Node {
     public static void validateName(String name) throws InvalidNameException {
         Matcher m1 = NODE_NAME_PATTERN.matcher(name);
         Matcher m2 = DOUBLE_UNDERSCORE_PATTERN.matcher(name);
-        //Matcher m3 = RESERVED_WORD_PATTERN.matcher(name);
+        Matcher m3 = RESERVED_WORD_PATTERN.matcher(name);
         if (!m1.matches()) {
             throw new InvalidNameException(null, name, "Names can only contain lowercase letters, numbers, and the underscore. Names cannot be longer than 29 characters.");
         }
         if (m2.matches()) {
             throw new InvalidNameException(null, name, "Names starting with double underscore are reserved for internal use.");
+        }
+        if (m3.matches()) {
+            throw new InvalidNameException(null, name, "Names cannot be a reserved word (network, node).");
         }
     }
 
@@ -564,6 +568,7 @@ public final class Node {
      */
     public Node withChildRenamed(String childName, String newName) {
         checkArgument(isNetwork(), "Node %s is not a network node.", this);
+        checkArgument(!newName.equals("root"), "A child node cannot have the name 'root'.");
         if (childName.equals(newName)) return this;
         Node newNode = getChild(childName).withName(newName);
         Node newParent = withChildRemoved(childName).withChildAdded(newNode);
@@ -843,6 +848,7 @@ public final class Node {
     public Node withChildAdded(Node node) {
         checkNotNull(node, "Node cannot be null.");
         checkArgument(isNetwork(), "Node %s is not a network node.", this);
+        checkArgument(!node.getName().equals("root"), "A child node cannot have the name 'root'.");
         if (hasChild(node.getName())) {
             String uniqueName = uniqueName(node.getName());
             node = node.withName(uniqueName);
@@ -1294,9 +1300,9 @@ public final class Node {
 
         }
 
-        // The name of a node can never be "_root" or "network.
-        if (name.equals("_root"))
-            name = "node";
+        // The name of a node can never be "node" or "network".
+        if (name.equals("node"))
+            name = "node1";
         else if (name.equals("network"))
             name = "network1";
 

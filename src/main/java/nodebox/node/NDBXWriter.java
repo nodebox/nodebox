@@ -228,7 +228,7 @@ public class NDBXWriter {
      * @return true if the attribute should be written.
      */
     private static boolean shouldWriteAttribute(Node node, Node.Attribute attribute) {
-        checkArgument(node != Node.ROOT, "You cannot write out the _root node.");
+        checkArgument(node != Node.ROOT, "You cannot write out the ROOT node.");
         Object prototypeValue = node.getPrototype().getAttributeValue(attribute);
         Object nodeValue = node.getAttributeValue(attribute);
         if (attribute != Node.Attribute.PROTOTYPE) {
@@ -269,7 +269,7 @@ public class NDBXWriter {
      * @return true if the attribute should be written.
      */
     private static boolean shouldWriteAttribute(Node node, Port port, Port.Attribute attribute) {
-        checkArgument(node != Node.ROOT, "You cannot write out the _root node.");
+        checkArgument(node != Node.ROOT, "You cannot write out the ROOT node.");
         Port prototypePort = node.getPrototype().getInput(port.getName());
         // If there is no prototype port, we should always write the attribute.
         if (prototypePort == null) return true;

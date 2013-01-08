@@ -698,9 +698,8 @@ public class NodeLibraryTest {
         Node originalNode;
         originalNode = Node.ROOT.withInputAdded(originalPort);
         NodeLibrary originalLibrary = libraryWithChildren("test", originalNode);
-
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
-        Node node = library.getRoot().getChild("node");
+        Node node = library.getRoot().getChild("node1");
         assertNotNull(node);
         Port port;
         port = node.getInput(originalPort.getName());

@@ -40,11 +40,28 @@ public class NodeTest {
 
     @Test
     public void testRootName() {
-        assertEquals("_root", Node.ROOT.getName());
+        assertEquals("node", Node.ROOT.getName());
         // The moment we extend from root, the name changes.
-        assertEquals("node", Node.ROOT.withFunction("test").getName());
-        // Trying to change the name back to _root fails.
-        assertEquals("node", Node.ROOT.withName("_root").getName());
+        assertEquals("node1", Node.ROOT.withFunction("test").getName());
+    }
+
+    @Test(expected = InvalidNameException.class)
+    public void testReservedRootName() {
+        Node.ROOT.withName("node").getName();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testChildWithInvalidName() {
+        Node root = Node.ROOT.withName("root");
+        assertEquals("root", root.getName());
+        Node.NETWORK.withChildAdded(root);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testChildInvalidRenaming() {
+        Node.NETWORK
+                .withChildAdded(Node.ROOT.withName("child"))
+                .withChildRenamed("child", "root");
     }
 
     @Test
