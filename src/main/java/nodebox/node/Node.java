@@ -3,6 +3,7 @@ package nodebox.node;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 
@@ -32,7 +33,7 @@ public final class Node {
         }
     }
 
-    private enum CoreNodes {ROOT_NODE, NETWORK_NODE}
+    private enum Nodes {ROOT_NODE, NETWORK_NODE}
 
     public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
 
@@ -85,8 +86,16 @@ public final class Node {
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
     private static final Pattern UNDERSCORE_NUMBER_AT_THE_END = Pattern.compile("^(.*?)((\\_(\\d*))?)$");
 
-    public static final Node ROOT = new Node(CoreNodes.ROOT_NODE);
-    public static final Node NETWORK = new Node(CoreNodes.NETWORK_NODE);
+    public static final Node ROOT = new Node(Nodes.ROOT_NODE);
+    public static final Node NETWORK = new Node(Nodes.NETWORK_NODE);
+
+    public static final Map<String, Node> coreNodes;
+    static {
+        ImmutableMap.Builder<String, Node> builder = new ImmutableMap.Builder<String, Node>();
+        builder.put("ROOT", ROOT);
+        builder.put("NETWORK", NETWORK);
+        coreNodes = builder.build();
+    }
 
     private final Node prototype;
     private final String name;
@@ -109,7 +118,7 @@ public final class Node {
     /**
      * Constructor for the root and network nodes. This can only be called once for each of them.
      */
-    private Node(CoreNodes coreNode) {
+    private Node(Nodes coreNode) {
         switch (coreNode) {
             case ROOT_NODE:
             default:

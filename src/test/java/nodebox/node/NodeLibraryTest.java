@@ -40,6 +40,22 @@ public class NodeLibraryTest {
         functions = FunctionRepository.of(MathFunctions.LIBRARY, ListFunctions.LIBRARY);
     }
 
+    @Test()
+    public void testCoreNodes() {
+        assertTrue(NodeLibrary.coreLibrary.getRoot().hasChild(Node.ROOT));
+        assertTrue(NodeLibrary.coreLibrary.getRoot().hasChild(Node.NETWORK));
+    }
+
+    @Test
+    public void testNonExistingCoreNode() {
+        try {
+            File f = new File("src/test/files/bad-corenode.ndbx");
+            NodeLibrary library = NodeLibrary.load(f, NodeRepository.of());
+            fail("Should have thrown a LoadException.");
+        } catch (LoadException e) {
+        }
+    }
+
     @Test
     public void testNodeForPath() {
         assertEquals(root, library.getNodeForPath("/"));

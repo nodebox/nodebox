@@ -22,26 +22,7 @@ public class NodeLibrary {
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
-    public static final NodeLibrary coreLibrary;
-
-    static {
-        Node frameNode = Node.ROOT
-                .withName("frame")
-                .withOutputType("float")
-                .withDescription("Output the value of the current frame. Used for animating ports.")
-                .withFunction("core/frame")
-                .withImage("frame.png")
-                .withInputAdded(Port.customPort("context", "context"));
-        // todo: add description of context port:
-        // "The internal execution context from which to extract the frame number."
-        Node root = Node.NETWORK
-                .withDescription("Provide essential nodes.")
-                .withChildAdded(Node.ROOT)
-                .withChildAdded(Node.NETWORK)
-                .withChildAdded(frameNode);
-        coreLibrary = NodeLibrary.create("core", root, NodeRepository.empty(), FunctionRepository.of());
-    }
-
+    public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
@@ -364,10 +345,21 @@ public class NodeLibrary {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 String tagName = reader.getLocalName();
-                if (tagName.equals("node")) {
+
+                if (tagName.equals("node") || tagName.equals("importCoreNode")) {
                     if (prototypeId == null && ! node.isNetwork())
                         node = createNode(attributeMap, Node.NETWORK, parent, nodeRepository);
+                }
+
+                if (tagName.equals("node")) {
                     node = node.withChildAdded(parseNode(reader, node, nodeRepository));
+                } else if (tagName.equals("importCoreNode")) {
+                    String s = reader.getAttributeValue(null, "ref");
+                    Node coreNode = Node.coreNodes.get(s);
+                    if (coreNode == null) {
+                        throw new XMLStreamException("Core node '" + s + "' does not exist.", reader.getLocation());
+                    }
+                    node = node.withChildAdded(coreNode);
                 } else if (tagName.equals("port")) {
                     String portName = reader.getAttributeValue(null, "name");
                     // Remove the port if it is already on the prototype.
