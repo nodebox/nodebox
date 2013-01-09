@@ -568,7 +568,7 @@ public final class Node {
      */
     public Node withChildRenamed(String childName, String newName) {
         checkArgument(isNetwork(), "Node %s is not a network node.", this);
-        checkArgument(!newName.equals("root"), "A child node cannot have the name 'root'.");
+        checkArgument(!newName.equals("root"), "A child node of a network cannot have the name 'root'.");
         if (childName.equals(newName)) return this;
         Node newNode = getChild(childName).withName(newName);
         Node newParent = withChildRemoved(childName).withChildAdded(newNode);
@@ -848,7 +848,7 @@ public final class Node {
     public Node withChildAdded(Node node) {
         checkNotNull(node, "Node cannot be null.");
         checkArgument(isNetwork(), "Node %s is not a network node.", this);
-        checkArgument(!node.getName().equals("root"), "A child node cannot have the name 'root'.");
+        checkArgument(!node.getName().equals("root"), "A child node of a network cannot have the name 'root'.");
         if (hasChild(node.getName())) {
             String uniqueName = uniqueName(node.getName());
             node = node.withName(uniqueName);

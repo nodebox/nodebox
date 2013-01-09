@@ -1177,6 +1177,8 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
                 getDocument().setNodeName(node, s);
             } catch (InvalidNameException ex) {
                 JOptionPane.showMessageDialog(NetworkView.this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(NetworkView.this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
             }
         }
     }
