@@ -104,6 +104,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
+    private Component goInSubnetworkMenuItem;
 
     static {
         Image panCursorImage;
@@ -223,7 +224,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         nodeMenu.add(new RenameAction());
         nodeMenu.add(new DeleteAction());
         nodeMenu.add(new GroupIntoNetworkAction(null));
-        nodeMenu.add(new GoInAction());
+        goInSubnetworkMenuItem = nodeMenu.add(new GoInAction());
         nodeMenu.add(new HelpAction());
     }
 
@@ -1010,6 +1011,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         } else {
             Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
             if (pressedNode != null) {
+                goInSubnetworkMenuItem.setVisible(pressedNode.isNetwork());
                 nodeMenuLocation = pt;
                 nodeMenu.show(this, e.getX(), e.getY());
             } else {
