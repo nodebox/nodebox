@@ -104,6 +104,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
+    private Component goInSubnetworkMenuItem;
 
     static {
         Image panCursorImage;
@@ -160,14 +161,17 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     public static BufferedImage findNodeImage(NodeLibrary library, Node node) {
         if (node == null || node.getImage() == null || node.getImage().isEmpty()) return null;
         if (!library.getRoot().hasChild(node)) return null;
-        File libraryFile = library.getFile();
-        if (libraryFile != null) {
-            File libraryDirectory = libraryFile.getParentFile();
-            if (libraryDirectory != null) {
-                File nodeImageFile = new File(libraryDirectory, node.getImage());
-                if (nodeImageFile.exists()) {
-                    return readNodeImage(nodeImageFile);
-                }
+
+        File libraryDirectory = null;
+        if (library.getFile() != null)
+            libraryDirectory = library.getFile().getParentFile();
+        else if (library.equals(NodeLibrary.coreLibrary))
+            libraryDirectory = new File("libraries/core");
+
+        if (libraryDirectory != null) {
+            File nodeImageFile = new File(libraryDirectory, node.getImage());
+            if (nodeImageFile.exists()) {
+                return readNodeImage(nodeImageFile);
             }
         }
         return null;
@@ -220,7 +224,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         nodeMenu.add(new RenameAction());
         nodeMenu.add(new DeleteAction());
         nodeMenu.add(new GroupIntoNetworkAction(null));
-        nodeMenu.add(new GoInAction());
+        goInSubnetworkMenuItem = nodeMenu.add(new GoInAction());
         nodeMenu.add(new HelpAction());
     }
 
@@ -1007,6 +1011,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         } else {
             Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
             if (pressedNode != null) {
+                goInSubnetworkMenuItem.setVisible(pressedNode.isNetwork());
                 nodeMenuLocation = pt;
                 nodeMenu.show(this, e.getX(), e.getY());
             } else {
@@ -1172,6 +1177,8 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
                 getDocument().setNodeName(node, s);
             } catch (InvalidNameException ex) {
                 JOptionPane.showMessageDialog(NetworkView.this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(NetworkView.this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
             }
         }
     }

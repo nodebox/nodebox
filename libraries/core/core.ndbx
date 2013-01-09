@@ -2,10 +2,11 @@
 <ndbx type="file">
     <!-- We do not link to CoreFunctions since it is always included. -->
     <node name="root" renderedChild="frame" description="Provide essential nodes.">
+        <importCoreNode ref="ROOT"/>
+        <importCoreNode ref="NETWORK"/>
         <node description="Output the value of the current frame. Used for animating ports." outputType="float" function="core/frame" name="frame" position="1,1"
               image="frame.png">
             <port name="context" type="context" description="The internal execution context from which to extract the frame number."/>
         </node>
-        <node name="network" description="Create an empty subnetwork." outputRange="list" function="core/zero"/>
     </node>
 </ndbx>

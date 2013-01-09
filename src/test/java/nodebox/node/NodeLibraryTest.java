@@ -40,6 +40,22 @@ public class NodeLibraryTest {
         functions = FunctionRepository.of(MathFunctions.LIBRARY, ListFunctions.LIBRARY);
     }
 
+    @Test()
+    public void testCoreNodes() {
+        assertTrue(NodeLibrary.coreLibrary.getRoot().hasChild(Node.ROOT));
+        assertTrue(NodeLibrary.coreLibrary.getRoot().hasChild(Node.NETWORK));
+    }
+
+    @Test
+    public void testNonExistingCoreNode() {
+        try {
+            File f = new File("src/test/files/bad-corenode.ndbx");
+            NodeLibrary library = NodeLibrary.load(f, NodeRepository.of());
+            fail("Should have thrown a LoadException.");
+        } catch (LoadException e) {
+        }
+    }
+
     @Test
     public void testNodeForPath() {
         assertEquals(root, library.getNodeForPath("/"));
@@ -65,14 +81,6 @@ public class NodeLibraryTest {
     @Test
     public void testNestedReadWrite() {
         assertReadWriteEquals(library, NodeRepository.of());
-    }
-
-    @Test
-    public void testDoNotWriteRootPrototype() {
-        Node myNode = Node.ROOT.withName("myNode");
-        NodeLibrary library = libraryWithChildren("test", myNode);
-        // Because myNode uses the _root prototype, it shouldn't write the prototype attribute.
-        assertFalse(library.toXml().contains("prototype"));
     }
 
     @Test
@@ -102,7 +110,7 @@ public class NodeLibraryTest {
     @Test
     public void testRenderedNode() {
         Node child1 = Node.ROOT.withName("child1");
-        Node originalRoot = Node.ROOT.withChildAdded(child1).withRenderedChild(child1);
+        Node originalRoot = Node.NETWORK.withChildAdded(child1).withRenderedChild(child1);
         NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot, FunctionRepository.of());
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         assertEquals("child1", library.getRoot().getRenderedChildName());
@@ -271,7 +279,7 @@ public class NodeLibraryTest {
     public void testMenuPrototypeSerialization() {
         Node letterPrototype = makeLetterMenuNode();
         Node letterNode = letterPrototype.extend().withName("my_letter").withInputValue("letter", "b");
-        Node originalRoot = Node.ROOT
+        Node originalRoot = Node.NETWORK
                 .withChildAdded(letterPrototype)
                 .withChildAdded(letterNode);
         NodeLibrary originalLibrary = NodeLibrary.create("test", originalRoot);
@@ -303,7 +311,7 @@ public class NodeLibraryTest {
 
     private void assertPrototypeBeforeInstance(String prototypeName, String... instanceNames) {
         Node originalPrototype = Node.ROOT.withName(prototypeName);
-        Node network = Node.ROOT.withChildAdded(originalPrototype);
+        Node network = Node.NETWORK.withChildAdded(originalPrototype);
         for (String instanceName : instanceNames) {
             Node originalInstance = originalPrototype.extend().withName(instanceName);
             network = network.withChildAdded(originalInstance);
@@ -331,7 +339,7 @@ public class NodeLibraryTest {
         Node inner = Node.ROOT.withName("inner")
                 .withInputAdded(Port.floatPort("value", 0.0))
                 .withFunction("math/number");
-        Node outer = Node.ROOT.withName("outer")
+        Node outer = Node.NETWORK.withName("outer")
                 .withChildAdded(inner)
                 .publish("inner", "value", "v")
                 .withInputValue("v", 11.0);
@@ -611,6 +619,26 @@ public class NodeLibraryTest {
         assertEquals("subnet1", root.getConnection("length2", "string").getOutputNode());
     }
 
+    @Test
+    public void testUpgrade15to16() {
+        File version15File = new File("src/test/files/upgrade-v15.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version15File);
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version15File, NodeRepository.of(mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertEquals("root", root.getName());
+        assertEquals("network2", root.getRenderedChildName());
+        assertEquals("number", root.getChild("node3").getPrototype().getName());
+        assertEquals("node3", root.getConnection("add1", "value1").getOutputNode());
+        assertEquals(5.0, root.getChild("node2").getInput("value").getValue());
+        assertEquals("abs", root.getChild("root123").getPrototype().getName());
+        assertEquals(11.0, root.getChild("network1").getChild("node1").getInput("value").getValue());
+        assertEquals("node1", root.getChild("network1").getRenderedChildName());
+        assertEquals("node1", root.getChild("network2").getRenderedChildName());
+        assertEquals("node2", root.getChild("network2").getChild("node1").getRenderedChildName());
+        assertEquals(17.0, root.getChild("network2").getChild("node1").getChild("node2").getInput("value").getValue());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */
@@ -690,9 +718,8 @@ public class NodeLibraryTest {
         Node originalNode;
         originalNode = Node.ROOT.withInputAdded(originalPort);
         NodeLibrary originalLibrary = libraryWithChildren("test", originalNode);
-
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
-        Node node = library.getRoot().getChild("node");
+        Node node = library.getRoot().getChild("node1");
         assertNotNull(node);
         Port port;
         port = node.getInput(originalPort.getName());
@@ -702,7 +729,7 @@ public class NodeLibraryTest {
     }
 
     private NodeLibrary libraryWithChildren(String libraryName, Node... children) {
-        Node root = Node.ROOT.withName("root");
+        Node root = Node.NETWORK.withName("root");
         for (Node child : children) {
             root = root.withChildAdded(child);
         }

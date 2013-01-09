@@ -73,7 +73,7 @@ public class NodeLibraryControllerTest {
     public void testAddNode() {
         NodeLibrary library;
 
-        Node parent = Node.ROOT.withName("parent");
+        Node parent = Node.NETWORK.withName("parent");
         controller.addNode("/", parent);
         library = controller.getNodeLibrary();
         assertTrue(library.getRoot().hasChild("parent"));
@@ -141,7 +141,7 @@ public class NodeLibraryControllerTest {
     @Test
     public void testPasteIntoSubnetwork() {
         createTestNetwork();
-        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.addNode("/", Node.NETWORK.withName("subnet"));
         controller.pasteNodes("/subnet", controller.getRootNode(), ImmutableList.of(controller.getNode("/alpha"), controller.getNode("/beta")));
         Node subnet = controller.getNode("/subnet");
         assertTrue(subnet.hasChild("alpha"));
@@ -368,7 +368,7 @@ public class NodeLibraryControllerTest {
     @Test
     public void testSimpleUnpublish() {
         Node invertNode = Node.ROOT.withName("negate").withFunction("math/negate").withInputAdded(Port.floatPort("value", 0));
-        controller.addNode("/", Node.ROOT.withName("subnet"));
+        controller.addNode("/", Node.NETWORK.withName("subnet"));
         controller.addNode("/subnet", invertNode);
         controller.publish("/subnet", "negate", "value", "n");
         controller.unpublish("/subnet", "n");

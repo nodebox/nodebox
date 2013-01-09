@@ -10,10 +10,7 @@ import nodebox.graphics.Point;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
 
@@ -21,9 +18,11 @@ import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
 
-    public static final String CURRENT_FORMAT_VERSION = "15";
+    public static final String CURRENT_FORMAT_VERSION = "16";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
+
+    public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
@@ -60,7 +59,6 @@ public class NodeLibrary {
             throw new LoadException(null, "Could not read NDBX string", e);
         }
     }
-
 
     public static NodeLibrary load(File f, NodeRepository nodeRepository) throws LoadException {
         checkNotNull(f, "File cannot be null.");
@@ -131,7 +129,6 @@ public class NodeLibrary {
     public FunctionRepository getFunctionRepository() {
         return functionRepository;
     }
-
 
     //// Properties ////
 
@@ -263,30 +260,47 @@ public class NodeLibrary {
     }
 
     /**
-     * Parse the <node> tag.
+     * Parse a specific node attribute value and add it to the attributeMap.
+     */
+    private static void parseNodeAttribute(XMLStreamReader reader, Map<String, String> attributeMap, String attribute) throws XMLStreamException {
+        attributeMap.put(attribute, reader.getAttributeValue(null, attribute));
+    }
+
+    /**
+     * Parse the <node> tag's attribute values.
+     */
+    private static Map parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
+        Map<String, String> attributeMap = new HashMap<String, String>();
+        String[] attributes = {"prototype", "name", "category", "description", "image", "function",
+                               "outputType", "outputRange", "position", "renderedChild", "handle"};
+        for (String attribute : attributes)
+            parseNodeAttribute(reader, attributeMap, attribute);
+        return attributeMap;
+    }
+
+    /**
      *
-     * @param reader         The XML stream.
+     * @param attributeMap   The map containing node attributes.
+     * @param extendFromNode The node from which to extend when there is no specified prototype.
      * @param parent         The parent node.
      * @param nodeRepository The node library dependencies.
-     * @return The new node.
-     * @throws XMLStreamException if a parse error occurs.
+     * @return  A new node.
      */
-    private static Node parseNode(XMLStreamReader reader, Node parent, NodeRepository nodeRepository) throws XMLStreamException {
-        String prototypeId = reader.getAttributeValue(null, "prototype");
-        String name = reader.getAttributeValue(null, "name");
-        String category = reader.getAttributeValue(null, "category");
-        String description = reader.getAttributeValue(null, "description");
-        String image = reader.getAttributeValue(null, "image");
-        String function = reader.getAttributeValue(null, "function");
-        String outputType = reader.getAttributeValue(null, "outputType");
-        String outputRange = reader.getAttributeValue(null, "outputRange");
-        String position = reader.getAttributeValue(null, "position");
-        String renderedChildName = reader.getAttributeValue(null, "renderedChild");
-        String handle = reader.getAttributeValue(null, "handle");
-        Node prototype = prototypeId == null ? Node.ROOT : lookupNode(prototypeId, parent, nodeRepository);
-        if (prototype == null) {
-            throw new XMLStreamException("Prototype " + prototypeId + " could not be found.", reader.getLocation());
-        }
+
+    private static Node createNode(Map<String, String> attributeMap, Node extendFromNode, Node parent, NodeRepository nodeRepository) {
+        String prototypeId = attributeMap.get("prototype");
+        String name = attributeMap.get("name");
+        String category = attributeMap.get("category");
+        String description = attributeMap.get("description");
+        String image = attributeMap.get("image");
+        String function = attributeMap.get("function");
+        String outputType = attributeMap.get("outputType");
+        String outputRange = attributeMap.get("outputRange");
+        String position = attributeMap.get("position");
+        String handle = attributeMap.get("handle");
+
+        Node prototype = prototypeId == null ? extendFromNode : lookupNode(prototypeId, parent, nodeRepository);
+        if (prototype == null) return null;
         Node node = prototype.extend();
 
         if (name != null)
@@ -307,13 +321,45 @@ public class NodeLibrary {
             node = node.withPosition(Point.valueOf(position));
         if (handle != null)
             node = node.withHandle(handle);
+        return node;
+    }
+
+    /**
+     * Parse the <node> tag.
+     *
+     * @param reader         The XML stream.
+     * @param parent         The parent node.
+     * @param nodeRepository The node library dependencies.
+     * @return The new node.
+     * @throws XMLStreamException if a parse error occurs.
+     */
+    private static Node parseNode(XMLStreamReader reader, Node parent, NodeRepository nodeRepository) throws XMLStreamException {
+        Map<String, String> attributeMap = parseNodeAttributes(reader);
+        Node node = createNode(attributeMap, Node.ROOT, parent, nodeRepository);
+        String prototypeId = attributeMap.get("prototype");
+        if (node == null) {
+            throw new XMLStreamException("Prototype " + prototypeId + " could not be found.", reader.getLocation());
+        }
 
         while (true) {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 String tagName = reader.getLocalName();
+
+                if (tagName.equals("node") || tagName.equals("importCoreNode")) {
+                    if (prototypeId == null && ! node.isNetwork())
+                        node = createNode(attributeMap, Node.NETWORK, parent, nodeRepository);
+                }
+
                 if (tagName.equals("node")) {
                     node = node.withChildAdded(parseNode(reader, node, nodeRepository));
+                } else if (tagName.equals("importCoreNode")) {
+                    String s = reader.getAttributeValue(null, "ref");
+                    Node coreNode = Node.coreNodes.get(s);
+                    if (coreNode == null) {
+                        throw new XMLStreamException("Core node '" + s + "' does not exist.", reader.getLocation());
+                    }
+                    node = node.withChildAdded(coreNode);
                 } else if (tagName.equals("port")) {
                     String portName = reader.getAttributeValue(null, "name");
                     // Remove the port if it is already on the prototype.
@@ -335,6 +381,7 @@ public class NodeLibrary {
         }
 
         // This has to come at the end, since the child first needs to exist.
+        String renderedChildName = attributeMap.get("renderedChild");
         if (renderedChildName != null)
             node = node.withRenderedChildName(renderedChildName);
 

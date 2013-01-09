@@ -16,16 +16,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NodeRepository {
 
-    public static NodeRepository of() {
+    public static NodeRepository empty() {
         return new NodeRepository(ImmutableMap.<String, NodeLibrary>of());
+    }
+
+    public static NodeRepository of() {
+        return new NodeRepository(ImmutableMap.<String, NodeLibrary>of("core", NodeLibrary.coreLibrary));
     }
 
     public static NodeRepository of(NodeLibrary... libraries) {
         ImmutableMap.Builder<String, NodeLibrary> builder = ImmutableMap.builder();
         for (NodeLibrary library : libraries) {
+            if (library.getName().equals("core")) continue;
             builder.put(library.getName(), library);
         }
-        // TODO  The core library is always included.
+        builder.put("core", NodeLibrary.coreLibrary);
         return new NodeRepository(builder.build());
     }
 
@@ -64,7 +69,6 @@ public class NodeRepository {
 
     public List<Node> getNodes() {
         ImmutableList.Builder<Node> builder = ImmutableList.builder();
-        builder.add(Node.ROOT);
         for (NodeLibrary library : libraryMap.values())
             builder.addAll(library.getRoot().getChildren());
         return builder.build();

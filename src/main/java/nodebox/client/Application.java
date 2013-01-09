@@ -246,7 +246,6 @@ public class Application implements Host {
 
     private void lookForLibraries() {
 
-        NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.of());
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
         NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
         NodeLibrary colorLibrary = NodeLibrary.load(new File("libraries/color/color.ndbx"), NodeRepository.of());
@@ -254,7 +253,7 @@ public class Application implements Host {
         NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
         NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
 
-        systemRepository = NodeRepository.of(coreLibrary, mathLibrary, stringLibrary, colorLibrary, listLibrary,
+        systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
                 dataLibrary, corevectorLibrary);
     }
 
