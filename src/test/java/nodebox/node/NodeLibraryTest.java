@@ -619,6 +619,26 @@ public class NodeLibraryTest {
         assertEquals("subnet1", root.getConnection("length2", "string").getOutputNode());
     }
 
+    @Test
+    public void testUpgrade15to16() {
+        File version15File = new File("src/test/files/upgrade-v15.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version15File);
+        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version15File, NodeRepository.of(mathLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertEquals("root", root.getName());
+        assertEquals("network2", root.getRenderedChildName());
+        assertEquals("number", root.getChild("node3").getPrototype().getName());
+        assertEquals("node3", root.getConnection("add1", "value1").getOutputNode());
+        assertEquals(5.0, root.getChild("node2").getInput("value").getValue());
+        assertEquals("abs", root.getChild("root123").getPrototype().getName());
+        assertEquals(11.0, root.getChild("network1").getChild("node1").getInput("value").getValue());
+        assertEquals("node1", root.getChild("network1").getRenderedChildName());
+        assertEquals("node1", root.getChild("network2").getRenderedChildName());
+        assertEquals("node2", root.getChild("network2").getChild("node1").getRenderedChildName());
+        assertEquals(17.0, root.getChild("network2").getChild("node1").getChild("node2").getInput("value").getValue());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

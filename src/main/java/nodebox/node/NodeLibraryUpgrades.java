@@ -56,6 +56,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("12", upgradeMethod("upgrade12to13"));
         upgradeMap.put("13", upgradeMethod("upgrade13to14"));
         upgradeMap.put("14", upgradeMethod("upgrade14to15"));
+        upgradeMap.put("15", upgradeMethod("upgrade15to16"));
     }
 
     private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
@@ -257,6 +258,16 @@ public class NodeLibraryUpgrades {
     public static UpgradeStringResult upgrade14to15(String inputXml) throws LoadException {
         UpgradeOp renameNodeOp = new RenameNodeOp("make_strings", "split");
         return transformXml(inputXml, "15", renameNodeOp);
+    }
+
+    public static UpgradeStringResult upgrade15to16(String inputXml) throws LoadException {
+        // Version 16: 'network' and 'node' are reserved names. Nodes with those names have to be renamed.
+        // Besides this, only the top level node in any network is allowed to have the name 'root'.
+        UpgradeOp renameNodeOp1 = new ExactRenameNodeOp("network", "network");
+        UpgradeOp renameNodeOp2 = new ExactRenameNodeOp("node", "node");
+        ExactRenameNodeOp renameNodeOp3 = new ExactRenameNodeOp("root", "node");
+        renameNodeOp3.skipRootNode();
+        return transformXml(inputXml, "16", renameNodeOp1, renameNodeOp2, renameNodeOp3);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {
@@ -483,6 +494,47 @@ public class NodeLibraryUpgrades {
                 Attribute name = e.getAttribute("name");
                 if (name != null && name.getValue().startsWith(oldPrefix)) {
                     String oldNodeName = name.getValue();
+                    Set<String> childNames = getChildNodeNames(e.getParent());
+                    String newNodeName = uniqueName(newPrefix, childNames);
+                    name.setValue(newNodeName);
+
+                    Element parent = (Element) e.getParent();
+                    renameRenderedChildReference(parent, oldNodeName, newNodeName);
+                    Elements connections = parent.getChildElements("conn");
+                    renamePortReference(connections, "input", oldNodeName, newNodeName);
+                    renameNodeReference(connections, "output", oldNodeName, newNodeName);
+
+                    Elements ports = parent.getChildElements("port");
+                    renamePortReference(ports, "childReference", oldNodeName, newNodeName);
+                }
+            }
+        }
+    }
+
+    private static class ExactRenameNodeOp extends UpgradeOp {
+        private String oldNodeName;
+        private String newPrefix;
+        private boolean shouldSkipRoot = false;
+
+        private ExactRenameNodeOp(String oldNodeName, String newPrefix) {
+            this.oldNodeName = oldNodeName;
+            this.newPrefix = newPrefix;
+        }
+
+        private void skipRootNode() {
+            this.shouldSkipRoot = true;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (e.getLocalName().equals("node")) {
+                if (shouldSkipRoot) {
+                    Element parent = (Element) e.getParent();
+                    if (parent != null && !parent.getLocalName().equals("node"))
+                        return;
+                }
+                Attribute name = e.getAttribute("name");
+                if (name != null && name.getValue().equals(oldNodeName)) {
                     Set<String> childNames = getChildNodeNames(e.getParent());
                     String newNodeName = uniqueName(newPrefix, childNames);
                     name.setValue(newNodeName);

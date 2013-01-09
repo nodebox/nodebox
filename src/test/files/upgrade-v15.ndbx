@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="15">
+    <node name="root" outputRange="list" renderedChild="network">
+        <node name="node1"/>
+        <node name="node" prototype="math.number">
+            <port name="value" type="float" value="5.0"/>
+        </node>
+        <node name="root" prototype="math.number"/>
+        <node name="root123" prototype="math.abs"/>
+        <node name="add1" prototype="math.add"/>
+        <conn input="add1.value1" output="root"/>
+        <node name="network1" renderedChild="node">
+            <node name="node" prototype="math.number">
+                <port name="value" type="float" value="11.0"/>
+            </node>
+        </node>
+        <node name="network" renderedChild="root">
+            <node name="root" renderedChild="root">
+                <node name="node1" prototype="math.number"/>
+                <node name="root" prototype="math.number">
+                    <port name="value" type="float" value="17.0"/>
+                </node>
+            </node>
+        </node>
+    </node>
+</ndbx>
