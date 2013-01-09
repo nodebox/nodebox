@@ -45,9 +45,21 @@ public class NodeTest {
         assertEquals("node1", Node.ROOT.withFunction("test").getName());
     }
 
+    @Test
+    public void testNetworkName() {
+        assertEquals("network", Node.NETWORK.getName());
+        // The moment we extend from network, the name changes.
+        assertEquals("network1", Node.NETWORK.withOutputType("int").getName());
+    }
+
     @Test(expected = InvalidNameException.class)
     public void testReservedRootName() {
         Node.ROOT.withName("node").getName();
+    }
+
+    @Test(expected = InvalidNameException.class)
+    public void testReservedNetworkName() {
+        Node.NETWORK.withName("network").getName();
     }
 
     @Test(expected = IllegalArgumentException.class)
