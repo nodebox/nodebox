@@ -107,6 +107,8 @@ public class NodeBoxMenuBar extends JMenuBar {
         JMenu helpMenu = new JMenu("Help");
         helpMenu.add(new GettingStartedAction());
         helpMenu.add(new HelpAndSupportAction());
+        helpMenu.add(new ReportAnIssueAction());
+
         helpMenu.addSeparator();
         if (!Platform.onMac()) {
             helpMenu.add(new AboutAction());
@@ -614,6 +616,16 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             Platform.openURL("http://nodebox.net/node/documentation/");
+        }
+    }
+
+    public static class ReportAnIssueAction extends AbstractAction {
+        public ReportAnIssueAction() {
+            super("Report an Issue...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Platform.openURL("https://github.com/nodebox/nodebox/issues");
         }
     }
 
