@@ -267,7 +267,9 @@ public class NodeLibraryUpgrades {
         UpgradeOp renameNodeOp2 = new ExactRenameNodeOp("node", "node");
         ExactRenameNodeOp renameNodeOp3 = new ExactRenameNodeOp("root", "node");
         renameNodeOp3.skipRootNode();
-        return transformXml(inputXml, "16", renameNodeOp1, renameNodeOp2, renameNodeOp3);
+        UpgradeOp addAttributeOp = new AddAttributeOp("corevector.geonet", "outputType", "geometry");
+        UpgradeOp changePrototypeOp = new ChangePrototypeOp("corevector.geonet", "core.network");
+        return transformXml(inputXml, "16", renameNodeOp1, renameNodeOp2, renameNodeOp3, addAttributeOp, changePrototypeOp);
     }
 
     private static Set<String> getChildNodeNames(ParentNode parent) {
@@ -475,6 +477,24 @@ public class NodeLibraryUpgrades {
             if (isNodeWithPrototype(e, oldPrototype)) {
                 Attribute prototype = e.getAttribute("prototype");
                 prototype.setValue(newPrototype);
+            }
+        }
+    }
+
+    private static class AddAttributeOp extends UpgradeOp {
+        private String prototype;
+        private String attributeName;
+        private String attributeValue;
+
+        private AddAttributeOp(String prototype, String attributeName, String attributeValue) {
+            this.prototype = prototype;
+            this.attributeName = attributeName;
+            this.attributeValue = attributeValue;
+        }
+
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, prototype)) {
+                e.addAttribute(new Attribute(attributeName, attributeValue));
             }
         }
     }

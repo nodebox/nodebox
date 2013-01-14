@@ -624,7 +624,8 @@ public class NodeLibraryTest {
         File version15File = new File("src/test/files/upgrade-v15.ndbx");
         UpgradeResult result = NodeLibraryUpgrades.upgrade(version15File);
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
-        NodeLibrary upgradedLibrary = result.getLibrary(version15File, NodeRepository.of(mathLibrary));
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version15File, NodeRepository.of(mathLibrary, corevectorLibrary));
         Node root = upgradedLibrary.getRoot();
         assertEquals("root", root.getName());
         assertEquals("network2", root.getRenderedChildName());
@@ -637,6 +638,8 @@ public class NodeLibraryTest {
         assertEquals("node1", root.getChild("network2").getRenderedChildName());
         assertEquals("node2", root.getChild("network2").getChild("node1").getRenderedChildName());
         assertEquals(17.0, root.getChild("network2").getChild("node1").getChild("node2").getInput("value").getValue());
+        assertEquals(Node.NETWORK, root.getChild("geonet1").getPrototype());
+        assertEquals("geometry", root.getChild("geonet1").getOutputType());
     }
 
     /**
