@@ -14,7 +14,7 @@
 #
 # Then install the dependencies like this:
 #
-#     brew install png2svg imagemagick libtool
+#     brew install svg2png imagemagick libtool
 
 from glob import glob
 from os import system
