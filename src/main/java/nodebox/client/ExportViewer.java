@@ -10,7 +10,7 @@ import java.awt.*;
 public class ExportViewer extends JFrame {
 
     private Viewer viewer;
-    private java.util.List<Object> outputValues = null;
+    private java.util.List<?> outputValues = null;
 
     public ExportViewer() {
         super("Exporting...");
@@ -19,7 +19,7 @@ public class ExportViewer extends JFrame {
         setSize(600, 600);
     }
 
-    public void setOutputValues(java.util.List<Object> outputValues) {
+    public void setOutputValues(java.util.List<?> outputValues) {
         this.outputValues = outputValues;
         viewer.repaint();
     }

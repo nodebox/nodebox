@@ -269,7 +269,7 @@ public class NodeLibrary {
     /**
      * Parse the <node> tag's attribute values.
      */
-    private static Map parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
+    private static Map<String,String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
         Map<String, String> attributeMap = new HashMap<String, String>();
         String[] attributes = {"prototype", "name", "category", "description", "image", "function",
                                "outputType", "outputRange", "position", "renderedChild", "handle"};
