@@ -111,13 +111,13 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
 
         try {
             if (Platform.onWindows())
-                panCursorImage = ImageIO.read(new File("res/view-cursor-pan-32.png"));
+                panCursorImage = ImageIO.read(NetworkView.class.getResourceAsStream("/view-cursor-pan-32.png"));
             else
-                panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
+                panCursorImage = ImageIO.read(NetworkView.class.getResourceAsStream("/view-cursor-pan.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
             defaultCursor = Cursor.getDefaultCursor();
-            nodeGeneric = ImageIO.read(new File("res/node-generic.png"));
+            nodeGeneric = ImageIO.read(NetworkView.class.getResourceAsStream("/node-generic.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

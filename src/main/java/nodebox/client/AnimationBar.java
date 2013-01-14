@@ -9,22 +9,22 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class AnimationBar extends JPanel implements ChangeListener {
 
-    public static Image animationBackground;
     private static final int ANIMATION_BAR_HEIGHT = 27;
 
     static {
         try {
-            animationBackground = ImageIO.read(new File("res/animation-background.png"));
+            animationBackground = ImageIO.read(AnimationBar.class.getResourceAsStream("/animation-background.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public static Image animationBackground;
     private final NodeBoxDocument document;
     private final DraggableNumber frameNumber;
     private final NButton playButton;
@@ -50,16 +50,20 @@ public class AnimationBar extends JPanel implements ChangeListener {
         frameNumber.addChangeListener(this);
         frameNumberPanel.add(frameNumber);
         add(frameNumberPanel);
-        playButton = new NButton("Play", "res/animation-play.png", "res/animation-stop.png");
+        playButton = new NButton("Play", getImageStream("/animation-play.png"), getImageStream("/animation-stop.png"));
         playButton.setToolTipText("Play Animation");
         playButton.setActionMethod(this, "playAnimation");
         forcePlayButtonWidth(45);
-        NButton rewindButton = new NButton("Rewind", "res/animation-rewind.png");
+        NButton rewindButton = new NButton("Rewind", getImageStream("/animation-rewind.png"));
         rewindButton.setToolTipText("Rewind Animation");
         rewindButton.setActionMethod(this, "rewindAnimation");
         add(playButton);
         add(rewindButton);
         setFrame(1);
+    }
+
+    private InputStream getImageStream(String name) {
+        return getClass().getResourceAsStream(name);
     }
 
     public void setFrame(double frame) {

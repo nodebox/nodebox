@@ -8,6 +8,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 
 /**
@@ -18,24 +19,7 @@ public class NButton extends JComponent implements MouseListener {
     public static final int BUTTON_HEIGHT = 21;
     public static final int IMAGE_TEXT_MARGIN = 3;
     public static final int TEXT_BASELINE = 14;
-
     public static Image checkOn, checkOff, checkDisabledOn, checkDisabledOff;
-
-    static {
-        try {
-            checkOn = ImageIO.read(new File("res/check-on.png"));
-            checkOff = ImageIO.read(new File("res/check-off.png"));
-            checkDisabledOn = ImageIO.read(new File("res/check-disabled-on.png"));
-            checkDisabledOff = ImageIO.read(new File("res/check-disabled-off.png"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static enum Mode {
-        PUSH, CHECK
-    }
-
     private String text;
     private Image normalImage, checkedImage;
     private Object actionObject;
@@ -46,6 +30,17 @@ public class NButton extends JComponent implements MouseListener {
     private boolean checked = false;
     private boolean warn = false;
 
+    static {
+        try {
+            checkOn = ImageIO.read(NButton.class.getResourceAsStream("/check-on.png"));
+            checkOff = ImageIO.read(NButton.class.getResourceAsStream("/check-off.png"));
+            checkDisabledOn = ImageIO.read(NButton.class.getResourceAsStream("/check-disabled-on.png"));
+            checkDisabledOff = ImageIO.read(NButton.class.getResourceAsStream("/check-disabled-off.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Create a push button.
      *
@@ -54,6 +49,10 @@ public class NButton extends JComponent implements MouseListener {
      */
     public NButton(String text, String imageFile) {
         this(Mode.PUSH, text, imageFile, null);
+    }
+
+    public NButton(String text, InputStream imageStream) {
+        this(Mode.PUSH, text, imageStream, null);
     }
 
     public NButton(String text, Image image) {
@@ -71,10 +70,26 @@ public class NButton extends JComponent implements MouseListener {
         this(Mode.CHECK, text, normalImage, checkedImage);
     }
 
+    public NButton(String text, InputStream normalImage, InputStream checkedImage) {
+        this(Mode.CHECK, text, normalImage, checkedImage);
+    }
+
     public NButton(Mode mode, String text) {
         if (mode != Mode.CHECK)
             throw new AssertionError("Only use Mode.CHECK.");
         init(mode, text, checkOff, checkOn);
+    }
+
+    private NButton(Mode mode, String text, InputStream normalImage, InputStream checkedImage) {
+        Image normal, checked = null;
+        try {
+            normal = ImageIO.read(normalImage);
+            if (checkedImage != null)
+                checked = ImageIO.read(checkedImage);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Cannot load image.", e);
+        }
+        init(mode, text, normal, checked);
     }
 
     private NButton(Mode mode, String text, String normalImage, String checkedImage) {
@@ -111,7 +126,7 @@ public class NButton extends JComponent implements MouseListener {
         int width = normalImage.getWidth(null);
         width += IMAGE_TEXT_MARGIN;
         width += (int) g2.getFontMetrics().stringWidth(text);
-        width += 1; // Anti-aliasing can take up an extra pixel. 
+        width += 1; // Anti-aliasing can take up an extra pixel.
         return width;
     }
 
@@ -249,6 +264,10 @@ public class NButton extends JComponent implements MouseListener {
         if (!isEnabled()) return;
         armed = false;
         repaint();
+    }
+
+    public static enum Mode {
+        PUSH, CHECK
     }
 }
 

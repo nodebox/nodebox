@@ -22,7 +22,6 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 
@@ -59,9 +58,9 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
         Image panCursorImage;
         try {
             if (Platform.onWindows())
-                panCursorImage = ImageIO.read(new File("res/view-cursor-pan-32.png"));
+                panCursorImage = ImageIO.read(Viewer.class.getResourceAsStream("/view-cursor-pan-32.png"));
             else
-                panCursorImage = ImageIO.read(new File("res/view-cursor-pan.png"));
+                panCursorImage = ImageIO.read(Viewer.class.getResourceAsStream("/view-cursor-pan.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
             defaultCursor = Cursor.getDefaultCursor();

@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.io.IOException;
 
 public class PortRow extends JComponent implements MouseListener, ActionListener {
@@ -22,7 +21,7 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
 
     static {
         try {
-            popupButtonImage = ImageIO.read(new File("res/options-button.png"));
+            popupButtonImage = ImageIO.read(PortRow.class.getResourceAsStream("/options-button.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

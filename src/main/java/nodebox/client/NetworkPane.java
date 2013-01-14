@@ -25,7 +25,7 @@ public class NetworkPane extends Pane {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         paneHeader = new PaneHeader("Network");
         paneHeader.setAlignmentX(JComponent.LEFT_ALIGNMENT);
-        NButton newNodeButton = new NButton("New Node", "res/network-new-node.png");
+        NButton newNodeButton = new NButton("New Node", getClass().getResourceAsStream("/network-new-node.png"));
         newNodeButton.setToolTipText("New Node (TAB)");
         newNodeButton.setActionMethod(this, "showNodeSelectionDialog");
         paneHeader.add(newNodeButton);

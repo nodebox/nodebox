@@ -10,7 +10,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.io.IOException;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -25,8 +24,8 @@ public class AddressBar extends JPanel implements MouseListener {
 
     static {
         try {
-            addressGradient = ImageIO.read(new File("res/address-gradient.png"));
-            addressArrow = ImageIO.read(new File("res/address-arrow.png"));
+            addressGradient = ImageIO.read(AddressBar.class.getResourceAsStream("/address-gradient.png"));
+            addressArrow = ImageIO.read(AddressBar.class.getResourceAsStream("/address-arrow.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

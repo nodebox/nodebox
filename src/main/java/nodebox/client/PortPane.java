@@ -17,7 +17,7 @@ public class PortPane extends Pane {
         this.document = document;
         setLayout(new BorderLayout());
         paneHeader = new PaneHeader("Ports");
-        NButton metadataButton = new NButton("Metadata", "res/port-metadata.png");
+        NButton metadataButton = new NButton("Metadata", getClass().getResourceAsStream("/port-metadata.png"));
         metadataButton.setActionMethod(this, "editMetadata");
         paneHeader.add(metadataButton);
         portView = new PortView(this, document);

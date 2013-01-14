@@ -8,7 +8,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import java.io.IOException;
 
 
@@ -18,9 +17,9 @@ public class PaneMenu extends JComponent implements MouseListener {
 
     static {
         try {
-            paneMenuLeft = ImageIO.read(new File("res/pane-menu-left.png"));
-            paneMenuBackground = ImageIO.read(new File("res/pane-menu-background.png"));
-            paneMenuRight = ImageIO.read(new File("res/pane-menu-right.png"));
+            paneMenuLeft = ImageIO.read(PaneMenu.class.getResourceAsStream("/pane-menu-left.png"));
+            paneMenuBackground = ImageIO.read(PaneMenu.class.getResourceAsStream("/pane-menu-background.png"));
+            paneMenuRight = ImageIO.read(PaneMenu.class.getResourceAsStream("/pane-menu-right.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

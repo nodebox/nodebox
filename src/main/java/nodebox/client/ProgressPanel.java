@@ -7,7 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -22,9 +21,9 @@ public class ProgressPanel extends JComponent {
 
     static {
         try {
-            backgroundImage = ImageIO.read(new File("res/progress-background.png"));
-            stopOnIcon = new ImageIcon("res/progress-stop-on.png");
-            stopOffIcon = new ImageIcon("res/progress-stop-off.png");
+            backgroundImage = ImageIO.read(ProgressPanel.class.getResourceAsStream("/progress-background.png"));
+            stopOnIcon = new ImageIcon(ProgressPanel.class.getResource("/progress-stop-on.png"));
+            stopOffIcon = new ImageIcon(ProgressPanel.class.getResource("/progress-stop-off.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

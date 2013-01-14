@@ -8,6 +8,7 @@
         <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
         <property name="src" value="src/main/java"/>
         <property name="res" value="res"/>
+        <property name="resources" value="src/main/resources"/>
         <property name="test" value="src/test/java"/>
         <property name="lib" value="lib"/>
         <property name="libraries" value="libraries"/>
@@ -93,6 +94,9 @@
             <classpath refid="project.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
         </javac>
+        <copy todir="${build.prod}">
+            <fileset dir="${resources}"/>
+        </copy>
     </target>
 
     <target name="compile-tests" depends="compile">

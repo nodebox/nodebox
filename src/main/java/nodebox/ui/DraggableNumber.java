@@ -6,7 +6,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -24,13 +23,13 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     static {
         Image dragCursorImage;
         try {
-            draggerLeft = ImageIO.read(new File("res/dragger-left.png"));
-            draggerRight = ImageIO.read(new File("res/dragger-right.png"));
-            draggerBackground = ImageIO.read(new File("res/dragger-background.png"));
+            draggerLeft = ImageIO.read(DraggableNumber.class.getResourceAsStream("/dragger-left.png"));
+            draggerRight = ImageIO.read(DraggableNumber.class.getResourceAsStream("/dragger-right.png"));
+            draggerBackground = ImageIO.read(DraggableNumber.class.getResourceAsStream("/dragger-background.png"));
             draggerLeftWidth = draggerLeft.getWidth(null);
             draggerRightWidth = draggerRight.getWidth(null);
             draggerHeight = draggerBackground.getHeight(null);
-            dragCursorImage = ImageIO.read(new File("res/dragger-cursor.png"));
+            dragCursorImage = ImageIO.read(DraggableNumber.class.getResourceAsStream("/dragger-cursor.png"));
             Toolkit toolkit = Toolkit.getDefaultToolkit();
             dragCursor = toolkit.createCustomCursor(dragCursorImage, new Point(16, 17), "DragCursor");
         } catch (IOException e) {

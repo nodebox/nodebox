@@ -3,7 +3,6 @@ package nodebox.ui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 
 public class PaneHeader extends JPanel {
@@ -12,8 +11,8 @@ public class PaneHeader extends JPanel {
 
     static {
         try {
-            paneHeaderBackground = ImageIO.read(new File("res/pane-header-background.png"));
-            paneHeaderOptions = ImageIO.read(new File("res/pane-header-options.png"));
+            paneHeaderBackground = ImageIO.read(PaneHeader.class.getResourceAsStream("/pane-header-background.png"));
+            paneHeaderOptions = ImageIO.read(PaneHeader.class.getResourceAsStream("/pane-header-options.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

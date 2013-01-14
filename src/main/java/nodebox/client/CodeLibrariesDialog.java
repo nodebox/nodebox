@@ -23,11 +23,10 @@ import java.util.Map;
 
 public class CodeLibrariesDialog extends JDialog {
 
-    private static final ImageIcon pythonIcon = new ImageIcon("res/functions-python.png");
-    private static final ImageIcon clojureIcon = new ImageIcon("res/functions-clojure.png");
-    private static final ImageIcon minusIcon = new ImageIcon("res/action-minus.png");
-    private static final ImageIcon plusIcon = new ImageIcon("res/action-plus-arrow.png");
-
+    private static final ImageIcon clojureIcon = new ImageIcon(CodeLibrariesDialog.class.getResource("/functions-clojure.png"));
+    private static final ImageIcon pythonIcon = new ImageIcon(CodeLibrariesDialog.class.getResource("/functions-python.png"));
+    private static final ImageIcon minusIcon = new ImageIcon(CodeLibrariesDialog.class.getResource("/action-minus.png"));
+    private static final ImageIcon plusIcon = new ImageIcon(CodeLibrariesDialog.class.getResource("/action-plus-arrow.png"));
     private static Map<String, ImageIcon> ICON_LANGUAGE_MAP = ImmutableMap.of(
             "python", pythonIcon,
             "clojure", clojureIcon);

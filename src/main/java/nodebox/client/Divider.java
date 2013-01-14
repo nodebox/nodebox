@@ -3,7 +3,6 @@ package nodebox.client;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 
 public class Divider extends JComponent {
@@ -12,7 +11,7 @@ public class Divider extends JComponent {
 
     static {
         try {
-            paneHeaderDivider = ImageIO.read(new File("res/pane-header-divider.png"));
+            paneHeaderDivider = ImageIO.read(Divider.class.getResourceAsStream("/pane-header-divider.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

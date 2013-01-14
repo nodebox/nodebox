@@ -5,6 +5,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * This dialog is displayed when the system is checking for updates.
@@ -104,8 +106,12 @@ public class UpdateCheckDialog extends JDialog implements ActionListener {
             return new Version("1.0");
         }
 
-        public String getIconFile() {
-            return "src/test/files/mockboxlogo.png";
+        public URL getIconFile() {
+            try {
+                return new URL("file:src/test/files/mockboxlogo.png");
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public String getAppcastURL() {

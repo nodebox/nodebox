@@ -3,7 +3,6 @@ package nodebox.ui;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 
 public class ActionHeader extends JPanel {
@@ -13,8 +12,8 @@ public class ActionHeader extends JPanel {
 
     static {
         try {
-            backgroundImage = ImageIO.read(new File("res/action-gradient.png"));
-            dividerImage = ImageIO.read(new File("res/action-divider.png"));
+            backgroundImage = ImageIO.read(ActionHeader.class.getResourceAsStream("/action-gradient.png"));
+            dividerImage = ImageIO.read(ActionHeader.class.getResourceAsStream("/action-divider.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

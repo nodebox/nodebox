@@ -33,6 +33,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -422,8 +423,8 @@ public class Application implements Host {
         return "NodeBox";
     }
 
-    public String getIconFile() {
-        return "res/applogo.png";
+    public URL getIconFile() {
+        return Application.class.getResource("/application-logo.png");
     }
 
     public Version getVersion() {

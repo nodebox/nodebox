@@ -1,5 +1,7 @@
 package nodebox.versioncheck;
 
+import java.net.URL;
+
 /**
  * The host is the application or library that wants to allow updates.
  */
@@ -9,7 +11,7 @@ public interface Host {
 
     public Version getVersion();
 
-    public String getIconFile();
+    public URL getIconFile();
 
     public String getAppcastURL();
 

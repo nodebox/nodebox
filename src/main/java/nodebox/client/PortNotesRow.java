@@ -5,7 +5,6 @@ import nodebox.ui.Theme;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
 
 public class PortNotesRow extends JComponent {
@@ -19,7 +18,7 @@ public class PortNotesRow extends JComponent {
 
     static {
         try {
-            notesBackgroundImage = ImageIO.read(new File("res/notes-background.png"));
+            notesBackgroundImage = ImageIO.read(PortNotesRow.class.getResourceAsStream("/notes-background.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
