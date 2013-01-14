@@ -112,7 +112,6 @@
         <node description="Draw directly on the canvas using the mouse." function="corevector/freehand" handle="corevector/freehandHandle" image="freehand.png" name="freehand" position="4.00,5.00" prototype="generator">
             <port name="path" range="value" type="string" value="" widget="data" description="The internal path data."/>
         </node>
-        <node category="geometry" description="A network of geometry nodes." image="geonet.png" name="geonet" outputType="geometry" position="14.00,1.00"/>
         <node description="Create a grid of points." function="corevector/grid" handle="corevector/fourPointHandle" image="grid.png" name="grid" outputRange="list" outputType="point" position="7.00,5.00" prototype="generator">
             <port min="1.0" name="columns" range="value" type="int" value="10" widget="int" description="The amount of columns in the grid."/>
             <port min="1.0" name="rows" range="value" type="int" value="10" widget="int" description="The amount of rows in the grid."/>

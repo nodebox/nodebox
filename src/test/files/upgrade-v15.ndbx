@@ -22,5 +22,8 @@
                 </node>
             </node>
         </node>
+        <node name="geonet1" prototype="corevector.geonet" renderedChild="ellipse1">
+            <node name="ellipse1" prototype="corevector.ellipse"/>
+        </node>
     </node>
 </ndbx>
