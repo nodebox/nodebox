@@ -2,7 +2,7 @@
 <ndbx type="file" uuid="a2c19b18-d4c6-400f-9f6d-381a108da473">
     <link href="java:nodebox.function.ListFunctions" rel="functions"/>
     <node description="Process all kinds of lists." name="root" renderedChild="reverse">
-        <node description="Combine multiple lists into one." function="list/combine" image="generic.png" name="combine" outputRange="list" outputType="list" position="4.00,3.00" category="list">
+        <node description="Combine multiple lists into one." function="list/combine" image="combine.png" name="combine" outputRange="list" outputType="list" position="4.00,3.00" category="list">
             <port name="list1" range="list" type="list" widget="none" description="The first list."/>
             <port name="list2" range="list" type="list" widget="none" description="The second list."/>
             <port name="list3" range="list" type="list" widget="none" description="The third list."/>
@@ -10,11 +10,11 @@
         <node description="Count the number of items in the list." function="list/count" image="count.png" name="count" outputType="int" position="1.00,1.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Remove all items from the list where the corresponding boolean is false." function="list/cull" image="generic.png" name="cull" outputRange="list" outputType="list" position="1.00,3.00" category="list">
+        <node description="Remove all items from the list where the corresponding boolean is false." function="list/cull" image="cull.png" name="cull" outputRange="list" outputType="list" position="1.00,3.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="booleans" range="list" type="list" widget="none" description="A list of matching boolean values. All list items where the booleans are true will be retained."/>
         </node>
-        <node description="Remove all duplicate items from the list." function="list/distinct" image="generic.png" name="distinct" outputRange="list" outputType="list" position="7.00,5.00" category="list">
+        <node description="Remove all duplicate items from the list." function="list/distinct" image="distinct.png" name="distinct" outputRange="list" outputType="list" position="7.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
         <node description="Take the first item of the list." function="list/first" image="first.png" name="first" outputType="data" position="1.00,4.00" category="list">
@@ -36,13 +36,13 @@
         <node description="Take all but the first item of the list." function="list/rest" image="rest.png" name="rest" outputRange="list" outputType="list" position="1.00,6.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Reverse the list." function="list/reverse" image="generic.png" name="reverse" outputRange="list" outputType="list" position="4.00,5.00" category="list">
+        <node description="Reverse the list." function="list/reverse" image="reverse.png" name="reverse" outputRange="list" outputType="list" position="4.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
         <node description="Take the second item of the list." function="list/second" image="second.png" name="second" outputType="data" position="1.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
         </node>
-        <node description="Move items at the beginning of the list to the end." function="list/shift" image="generic.png" name="shift" outputRange="list" outputType="list" position="7.00,4.00" category="list">
+        <node description="Move items at the beginning of the list to the end." function="list/shift" image="shift.png" name="shift" outputRange="list" outputType="list" position="7.00,4.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="amount" range="value" type="int" value="1" widget="int" description="The number of items to shift."/>
         </node>
@@ -66,11 +66,11 @@
             <port name="input3" range="list" type="list" widget="none" description="The third list."/>
             <port name="index" range="value" type="int" value="0" widget="int" description="The index of the input list to select. If the index is greater than the number of inputs, it wraps around."/>
         </node>
-        <node description="Take every nth element of the list." function="list/takeEvery" image="generic.png" name="take_every" outputRange="list" outputType="list" position="4.00,2.00" category="list">
+        <node description="Take every nth element of the list." function="list/takeEvery" image="take_every.png" name="take_every" outputRange="list" outputType="list" position="4.00,2.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port min="1.0" name="n" range="value" type="int" value="1" widget="int" description="The amount of items to skip."/>
         </node>
-        <node description="Combine a list of keys and values together into a map." function="list/zipMap" image="generic.png" name="zip_map" outputRange="value" outputType="data" category="list">
+        <node description="Combine a list of keys and values together into a map." function="list/zipMap" image="zip_map.png" name="zip_map" outputRange="value" outputType="data" category="list">
             <port name="keys" range="list" type="list" description="A list of keys."/>
             <port name="values" range="list" type="list" description="A list of values."/>
         </node>
