@@ -127,7 +127,7 @@ public final class Node {
                 prototype = null;
                 name = "node";
                 description = "Base node to be extended for custom nodes.";
-                image = "";
+                image = "node.png";
                 outputRange = Port.DEFAULT_RANGE;
                 isNetwork = false;
                 break;
