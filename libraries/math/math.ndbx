@@ -58,7 +58,7 @@
         <node category="math" description="Calculate the trigonometric cosine of an angle." function="math/cos" image="generic.png" name="cos" position="10.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
-        <node category="math" description="Convert radians to degrees." function="math/degrees" image="generic.png" name="degrees" position="13.00,4.00">
+        <node category="math" description="Convert radians to degrees." function="math/degrees" image="degrees.png" name="degrees" position="13.00,4.00">
             <port name="radians" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
         <node category="math" description="Calculate the distance between two points." function="math/distance" image="distance.png" name="distance" position="10.00,5.00">
@@ -69,7 +69,7 @@
             <port name="value1" range="value" type="float" value="0.0" widget="float" description="The first value."/>
             <port name="value2" range="value" type="float" value="1.0" widget="float" description="The second value."/>
         </node>
-        <node category="math" description="The value of the mathematical constant e, the base of the natural logarithm." function="math/e" name="e" image="generic.png" position="13.00,7.00"/>
+        <node category="math" description="The value of the mathematical constant e, the base of the natural logarithm." function="math/e" name="e" image="e.png" position="13.00,7.00"/>
         <node category="math" description="Round down the value of a number." function="math/floor" image="generic.png" name="floor" position="7.00,3.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
@@ -106,18 +106,18 @@
         <node category="math" description="Create a floating-point value that can be used as a variable." function="math/number" image="generic.png" name="number" position="1.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
-        <node category="math" description="Determine if a number is odd." function="math/odd" image="generic.png" name="odd" position="7.00,3.00">
+        <node category="math" description="Determine if a number is odd." function="math/odd" image="odd.png" name="odd" position="7.00,3.00">
             <port name="value" range="value" type="int" value="0" widget="int" description="The input value."/>
         </node>
-        <node category="math" description="The value of the mathematical constant pi." function="math/pi" name="pi" image="generic.png" position="13.00,6.00"/>
+        <node category="math" description="The value of the mathematical constant pi." function="math/pi" name="pi" image="pi.png" position="13.00,6.00"/>
         <node category="math" description="Calculate the power of a number." function="math/pow" image="generic.png" name="pow" position="7.00,7.00">
             <port name="value1" range="value" type="float" value="0.0" widget="float" description="The first value."/>
             <port name="value2" range="value" type="float" value="0.0" widget="float" description="The second value."/>
         </node>
-        <node category="math" description="Convert degrees to radians." function="math/radians" image="generic.png" name="radians" position="13.00,3.00">
+        <node category="math" description="Convert degrees to radians." function="math/radians" image="radians.png" name="radians" position="13.00,3.00">
             <port name="degrees" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
-        <node category="math" description="Create a list of random numbers." function="math/randomNumbers" image="generic.png" name="random_numbers" outputRange="list" position="13.00,1.00">
+        <node category="math" description="Create a list of random numbers." function="math/randomNumbers" image="random_numbers.png" name="random_numbers" outputRange="list" position="13.00,1.00">
             <port min="0.0" name="amount" range="value" type="int" value="10" widget="int" description="The amount of random numbers to create."/>
             <port name="start" range="value" type="float" value="0.0" widget="float" description="The minimum value of the random numbers."/>
             <port name="end" range="value" type="float" value="100.0" widget="float" description="The maximum value of the random numbers."/>
@@ -142,7 +142,7 @@
             <port name="start" range="value" type="float" value="0.0" widget="float" description="The minimum value of the numbers."/>
             <port name="end" range="value" type="float" value="100.0" widget="float" description="The maximum value of the numbers."/>
         </node>
-        <node category="math" description="Calculate the trigonometric sine of an angle." function="math/sin" image="generic.png" name="sin" position="4.00,8.00">
+        <node category="math" description="Calculate the trigonometric sine of an angle." function="math/sin" image="sin.png" name="sin" position="4.00,8.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
         <node category="math" description="Calculate the square root of a number." function="math/sqrt" image="sqrt.png" name="sqrt" position="7.00,7.00">
@@ -158,7 +158,7 @@
         <node category="math" description="Convert a floating-point number to an integer." function="math/round" image="generic.png" name="round" outputType="int" position="4.00,7.00">
             <port name="value" range="value" type="float" value="0.0" widget="float" description="The input value."/>
         </node>
-        <node category="math" description="Calculate a value based on wave equations." function="math/wave" image="generic.png" name="wave" position="10.00,6.00">
+        <node category="math" description="Calculate a value based on wave equations." function="math/wave" image="wave.png" name="wave" position="10.00,6.00">
             <port name="min" range="value" type="float" value="0.0" widget="float" description="The minimum value of the output."/>
             <port name="max" range="value" type="float" value="100.0" widget="float" description="The maximum value of the output."/>
             <port name="period" range="value" type="float" value="60.0" widget="float" description="The length (period) of one wave cycle."/>
