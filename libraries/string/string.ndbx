@@ -2,28 +2,86 @@
 <ndbx type="file" uuid="9eb894f5-3b8b-40e4-9b56-4aaf0242eba7">
     <link href="java:nodebox.function.StringFunctions" rel="functions"/>
     <node description="Create and manipulate text." name="root" renderedChild="length">
-        <node description="Create a string value that can be used as a variable." function="string/string" name="string" outputType="string" position="1.00,3.00" category="string">
+        <node description="Create a string value that can be used as a variable." function="string/string" name="string" outputType="string" position="1.00,1.00" category="string">
             <port name="value" type="string" description="The input string."/>
         </node>
-        <node description="Add strings together." function="string/concatenate" name="concatenate" outputType="string" position="1.00,3.00" category="string">
+        <node description="Create a list of strings." function="string/makeStrings" name="make_strings" outputRange="list" outputType="string" position="1.00,2.00" category="string">
+            <port name="string" range="value" type="string" value="Alpha;Beta;Gamma" widget="string" description="The input string."/>
+            <port name="separator" range="value" type="string" value=";" widget="string" description="The character that separates the numbers."/>
+        </node>
+        <node description="Count the number of characters in a string." function="string/length" name="length" outputType="int" position="1.00,3.00" category="string">
+            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
+        </node>
+        <node description="Count the number of words in a string." function="string/wordCount" name="word_count" outputType="int" position="1.00,4.00" category="string">
+            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
+        </node>
+        <node description="Add strings together." function="string/concatenate" name="concatenate" outputType="string" position="1.00,5.00" category="string">
             <port name="string1" range="value" type="string" value="" widget="string" description="The first string."/>
             <port name="string2" range="value" type="string" value="" widget="string" description="The second string."/>
             <port name="string3" range="value" type="string" value="" widget="string" description="The third string."/>
             <port name="string4" range="value" type="string" value="" widget="string" description="The fourth string."/>
         </node>
-        <node description="Count the number of characters in a string." function="string/length" name="length" outputType="int" position="1.00,2.00" category="string">
-            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
-        </node>
-        <node description="Create a list of strings." function="string/makeStrings" name="make_strings" outputRange="list" outputType="string" position="1.00,1.00" category="string">
-            <port name="string" range="value" type="string" value="Alpha;Beta;Gamma" widget="string" description="The input string."/>
-            <port name="separator" range="value" type="string" value=";" widget="string" description="The character that separates the numbers."/>
-        </node>
-        <node description="Count the number of words in a string." function="string/wordCount" name="word_count" outputType="int" position="1.00,4.00" category="string">
-            <port name="string" range="value" type="string" value="" widget="string" description="The input string."/>
-        </node>
         <node description="Represent a numeric value as a string in a specific way." function="string/formatNumber" name="format_number" outputType="string" position="1.00,6.00" category="string">
             <port name="value" range="value" type="float" description="The input value"/>
             <port name="format" range="value" type="string" value="%.2f" widget="string" description="The format template"/>
+        </node>
+
+        <node description="Create a list of glyphs from a string" function="string/glyphs" name="glyphs" outputRange="list" outputType="string" position="4.00,1.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+        </node>
+        <node description="Create a list of random glyphs taken from a set" function="string/randomGlyph" name="random_Glyph" outputRange="list" outputType="string" position="4.00,2.00" category="string">
+            <port name="glyphs" range="value" type="string" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" widget="string" description="The set of glyphs."/>
+            <port name="amount" min="0.0" range="value" type="int" value="10" widget="int" description="The amount of random glyphs to create."/>
+            <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
+        </node>
+        <node description="Convert a string into its binary representation" function="string/asBinaryString" name="as_binary_string" outputType="string" position="4.00,3.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="digit_separator" range="value" type="string" value="" widget="string" description="Digit separator."/>
+            <port name="byte_separator" range="value" type="string" value=" " widget="string" description="Byte separator."/>
+        </node>
+        <node description="Convert a string into its binary representation" function="string/asBinaryList" name="as_binary_list" outputRange="list" outputType="string" position="4.00,4.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+        </node>
+        <node description="Convert a string into a numeric encoding" function="string/asNumberList" name="as_number_list" outputRange="list" outputType="string" position="4.00,5.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="radix" min="2" max="21" range="value" type="int" value="10" widget="int" description="Radix."/>
+            <port name="padding" range="value" type="boolean" value="true" widget="toggle" description="Zero pad the string."/>
+        </node>
+
+        <node description="Output the glyph at a given index" function="string/glyphAt" name="glyph_at" outputRange="list" outputType="string" position="7.00,1.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="index" min="1" range="value" type="int" value="1" widget="int" description="Index."/>
+        </node>
+        <node description="Determine if the string contains a given string" function="string/contains" name="contains" outputType="boolean" position="7.00,2.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="contains" range="value" type="string" value="efa" widget="string" description="Check for this string."/>
+        </node>
+        <node description="Determine if the string ends with a given string" function="string/endsWith" name="ends_with" outputType="boolean" position="7.00,3.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="ends_with" range="value" type="string" value="lt" widget="string" description="Check for this string."/>
+        </node>
+        <node description="Determine if the string equals a given string" function="string/equal" name="equals" outputType="boolean" position="7.00,4.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="equals" range="value" type="string" value="default" widget="string" description="Check against this string."/>
+            <port name="case_sensitive" range="value" type="boolean" value="false" widget="toggle" description="Case sensitivity."/>
+        </node>
+        <node description="Replace part of a string" function="string/replace" name="replace" outputType="string" position="7.00,5.00" category="string">
+            <port name="string" range="value" type="string" value="defAULt" widget="string" description="The input string."/>
+            <port name="old" range="value" type="string" value="AUL" widget="string" description="Old string."/>
+            <port name="new" range="value" type="string" value="aul" widget="string" description="New string."/>
+        </node>
+        <node description="Determine if the string starts with a given string" function="string/startsWith" name="starts_with" outputType="boolean" position="7.00,6.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="starts_with" range="value" type="string" value="def" widget="string" description="Check for this string."/>
+        </node>
+        <node description="Take a portion of a string" function="string/subString" name="sub_string" outputType="string" position="7.00,7.00" category="string">
+            <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
+            <port name="start" min="1" range="value" type="int" value="1" widget="int" description="Index."/>
+            <port name="end" min="1" range="value" type="int" value="2" widget="int" description="Index."/>
+            <port name="end_offset" range="value" type="boolean" value="false" widget="toggle" description="Shift the end to allow for blank values."/>
+        </node>
+        <node description="Remove white space from the start and end" function="string/trim" name="trim" outputType="string" position="7.00,8.00" category="string">
+            <port name="string" range="value" type="string" value="  def  au lt  " widget="string" description="The input string."/>
         </node>
     </node>
 </ndbx>
