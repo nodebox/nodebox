@@ -2,10 +2,9 @@ package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableTable;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
-import nodebox.graphics.*;
+import nodebox.graphics.Point;
 import nodebox.util.ListUtils;
 
 import java.io.File;
@@ -19,23 +18,26 @@ public final class NodeContext {
     private final NodeLibrary nodeLibrary;
     private final FunctionRepository functionRepository;
     private final double frame;
-    private final ImmutableMap<String,?> data;
+    private final ImmutableMap<String, ?> data;
+    private final ImmutableMap<Node, List<?>> previousRenderResults;
+    private final Map<Node, List<?>> renderResults;
 
 
     public NodeContext(NodeLibrary nodeLibrary) {
-        this(nodeLibrary, null, 1, ImmutableMap.<String,Object>of());
+        this(nodeLibrary, null, 1, ImmutableMap.<String, Object>of(), ImmutableMap.<Node, List<?>>of());
     }
-
 
     public NodeContext(NodeLibrary nodeLibrary, double frame) {
-        this(nodeLibrary, null, frame, ImmutableMap.<String,Object>of());
+        this(nodeLibrary, null, frame, ImmutableMap.<String, Object>of(), ImmutableMap.<Node, List<?>>of());
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame, Map<String,?> data) {
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame, Map<String, ?> data, Map<Node, List<?>> previousRenderResults) {
         this.nodeLibrary = nodeLibrary;
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.frame = frame;
         this.data = ImmutableMap.copyOf(data);
+        this.renderResults = new HashMap<Node, List<?>>();
+        this.previousRenderResults = ImmutableMap.copyOf(previousRenderResults);
     }
 
 
@@ -51,8 +53,12 @@ public final class NodeContext {
         return frame;
     }
 
-    public Map<String,?> getData() {
+    public Map<String, ?> getData() {
         return data;
+    }
+
+    public Map<Node, List<?>> getRenderResults() {
+        return renderResults;
     }
 
     /**
@@ -79,7 +85,9 @@ public final class NodeContext {
         } else {
             result = invokeNode(node, argumentMap);
         }
-        return postProcessResult(node, result);
+        List<?> results = postProcessResult(node, result);
+        renderResults.put(node, results);
+        return results;
     }
 
     private List<?> postProcessResult(Node node, Object result) {
@@ -159,7 +167,7 @@ public final class NodeContext {
             if (argumentMap.containsKey(port)) {
                 arguments.add(argumentMap.get(port));
             } else if (port.hasValueRange()) {
-                arguments.add(getPortValue(port));
+                arguments.add(getPortValue(node, port));
             } else {
                 // The port expects a list but nothing is connected. Evaluate with an empty list.
                 arguments.add(ImmutableList.of());
@@ -208,7 +216,7 @@ public final class NodeContext {
         if (outputNode != null) {
             return renderChild(network, outputNode, networkArgumentMap);
         } else {
-            Object value = getPortValue(childPort);
+            Object value = getPortValue(child, childPort);
             if (value == null) {
                 return ImmutableList.of();
             } else {
@@ -226,10 +234,18 @@ public final class NodeContext {
      * <li>If the port is a file widget, convert relative to absolute paths.</li>
      * </ul>
      */
-    private Object getPortValue(Port port) {
+    private Object getPortValue(Node node, Port port) {
         if (port.getType().equals("context")) {
             return this;
-        } else if (port.isFileWidget()  && !port.stringValue().isEmpty()) {
+        } else if (port.getType().equals(Port.TYPE_STATE)) {
+            // The state of the node is the output value of the previous render of that node.
+            Object previousState = previousRenderResults.get(node);
+            if (previousState != null) {
+                return previousState;
+            } else {
+                return ImmutableList.of();
+            }
+        } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
             String path = port.stringValue();
             if (!path.startsWith("/")) {
                 // Convert relative to absolute path.

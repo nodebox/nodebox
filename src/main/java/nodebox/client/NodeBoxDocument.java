@@ -75,6 +75,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private final ExecutorService renderService;
     private Future currentRender = null;
     private Iterable<?> lastRenderResult = null;
+    private Map<Node,List<?>> renderResults = ImmutableMap.of();
 
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -1012,6 +1013,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void rewindAnimation() {
         stopAnimation();
+        resetRenderResults();
         setFrame(1);
     }
 
@@ -1111,6 +1113,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return outputValues.values().iterator().next();
     }
 
+    private synchronized void resetRenderResults() {
+        renderResults = ImmutableMap.of();
+    }
+
     private synchronized void render() {
         // If we're already rendering, return.
         if (isRendering.get()) return;
@@ -1128,19 +1134,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkState(currentRender == null, "Another render is still in progress.");
         currentRender = renderService.submit(new Runnable() {
             public void run() {
-
-
-
                 ImmutableMap<String,?> data = ImmutableMap.of(
                         "mouse.position",viewerPane.getViewer().getLastMousePosition());
-
-
-                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data);
+                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
                 Throwable renderException = null;
                 startRendering(context);
                 List<?> results = null;
                 try {
                     results = context.renderNode(renderNetwork);
+                    renderResults = context.getRenderResults();
                 } catch (NodeRenderException e) {
                     LOG.log(Level.WARNING, "Error while processing", e);
                     renderException = e;
@@ -1527,13 +1529,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
+                    Map<Node,List<?>> renderResults = ImmutableMap.of();
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         if (Thread.currentThread().isInterrupted())
                             break;
 
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String,Object>of());
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String,Object>of(), renderResults);
                         List<?> results = context.renderNode(exportNetwork);
-                        Node renderedChild = exportNetwork.getRenderedChild();
+                        renderResults = context.getRenderResults();
                         viewer.setOutputValues(results);
                         exportDelegate.frameDone(frame, results);
 

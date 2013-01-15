@@ -11,6 +11,7 @@
               image="generic.png" name="bufferPoints" position="1.00,1.00" outputType="point" outputRange="list">
             <port name="point" type="point" description="The latest point."/>
             <port name="size" type="int" value="100" description="The amount of points to buffer."/>
+            <port name="state" type="state" description="The previous state of the node."/>
         </node>
     </node>
 </ndbx>
