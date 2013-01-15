@@ -35,6 +35,7 @@ public class AddressBar extends JPanel implements MouseListener {
     private int[] positions;
     private int armed = -1;
     private OnSegmentClickListener onSegmentClickListener;
+    private String message = "";
 
     public AddressBar() {
         addMouseListener(this);
@@ -60,6 +61,15 @@ public class AddressBar extends JPanel implements MouseListener {
         } else {
             setSegments(Iterables.concat(ROOT_LIST, Splitter.on("/").split(path.substring(1))));
         }
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+        repaint();
     }
 
     /**
@@ -106,6 +116,11 @@ public class AddressBar extends JPanel implements MouseListener {
             g2.drawImage(addressArrow, x, 1, null);
             x += 15;
             i++;
+        }
+        if (! message.isEmpty()) {
+            g2.setColor(Theme.TEXT_NORMAL_COLOR);
+            int w = g2.getFontMetrics().stringWidth(message);
+            g2.drawString(message, getWidth() - w - 10, 15);
         }
     }
 
