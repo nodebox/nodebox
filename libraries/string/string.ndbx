@@ -26,12 +26,12 @@
             <port name="format" range="value" type="string" value="%.2f" widget="string" description="The format template"/>
         </node>
 
-        <node description="Create a list of glyphs from a string" function="string/glyphs" name="glyphs" outputRange="list" outputType="string" position="4.00,1.00" category="string">
+        <node description="Create a list of characters from a string" function="string/characters" name="characters" outputRange="list" outputType="string" position="4.00,1.00" category="string">
             <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
         </node>
-        <node description="Create a list of random glyphs taken from a set" function="string/randomGlyph" name="random_Glyph" outputRange="list" outputType="string" position="4.00,2.00" category="string">
-            <port name="glyphs" range="value" type="string" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" widget="string" description="The set of glyphs."/>
-            <port name="amount" min="0.0" range="value" type="int" value="10" widget="int" description="The amount of random glyphs to create."/>
+        <node description="Create a list of random characters taken from a set" function="string/randomCharacter" name="random_character" outputRange="list" outputType="string" position="4.00,2.00" category="string">
+            <port name="characters" range="value" type="string" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" widget="string" description="The set of characters."/>
+            <port name="amount" min="0.0" range="value" type="int" value="10" widget="int" description="The amount of random characters to create."/>
             <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
         </node>
         <node description="Convert a string into its binary representation" function="string/asBinaryString" name="as_binary_string" outputType="string" position="4.00,3.00" category="string">
@@ -48,7 +48,7 @@
             <port name="padding" range="value" type="boolean" value="true" widget="toggle" description="Zero pad the string."/>
         </node>
 
-        <node description="Output the glyph at a given index" function="string/glyphAt" name="glyph_at" outputRange="list" outputType="string" position="7.00,1.00" category="string">
+        <node description="Output the character at a given index" function="string/characterAt" name="character_at" outputRange="list" outputType="string" position="7.00,1.00" category="string">
             <port name="string" range="value" type="string" value="default" widget="string" description="The input string."/>
             <port name="index" min="1" range="value" type="int" value="1" widget="int" description="Index."/>
         </node>

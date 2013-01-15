@@ -20,8 +20,8 @@ public class StringFunctions {
     static {
         LIBRARY = JavaLibrary.ofClass("string", StringFunctions.class,
         "string", "makeStrings", "length", "wordCount", "concatenate", "changeCase", "formatNumber", 
-        "glyphs", "randomGlyph", "asBinaryString", "asBinaryList", "asNumberList", "countGlyphs", 
-        "glyphAt", "contains", "endsWith", "equal", "replace", "startsWith", "subString", "trim" );
+        "characters", "randomCharacter", "asBinaryString", "asBinaryList", "asNumberList", "countCharacters", 
+        "characterAt", "contains", "endsWith", "equal", "replace", "startsWith", "subString", "trim" );
     }
 
     /**
@@ -93,7 +93,7 @@ public class StringFunctions {
      * added because it wasn't obvious that makeString would give
      * you characters when no seperator was present
      */
-    public static List<String> glyphs(String s) {
+    public static List<String> characters(String s) {
         if (s == null) {
             return ImmutableList.of();
         }
@@ -101,16 +101,16 @@ public class StringFunctions {
     }
     
     /**
-     * generates a list of random glyphs 
-     * characters pulled from glyphSet
+     * generates a list of random characters 
+     * characters pulled from characterSet
      */
-    public static List<String> randomGlyph(String glyphSet, long amount, long seed) {
+    public static List<String> randomCharacter(String characterSet, long amount, long seed) {
         List<String> result = new ArrayList<String>();
         Random r = new Random(seed * 1000000000);
         
         for (long i = 0; i < amount; i++) {
-            int index = (int)(r.nextDouble() * glyphSet.length());
-            result.add( String.valueOf(glyphSet.charAt(index)) );
+            int index = (int)(r.nextDouble() * characterSet.length());
+            result.add( String.valueOf(characterSet.charAt(index)) );
         }
         return result;
     }
@@ -247,7 +247,7 @@ public class StringFunctions {
      * output the character at a given index
      * value will wrap to the beginning
      */
-    public static String glyphAt(String s, long index) {
+    public static String characterAt(String s, long index) {
         if (s==null) {
             return s;
         }
@@ -258,9 +258,9 @@ public class StringFunctions {
     }
 
     /**
-     * output a list of glyphs:count pairs 
+     * output a list of characters:count pairs 
      */
-    public static String countGlyphs(String s) {
+    public static String countCharacters(String s) {
         // TODO
         return s;
     }
