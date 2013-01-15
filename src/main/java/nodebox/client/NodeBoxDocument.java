@@ -1,6 +1,7 @@
 package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.ObjectsRenderer;
@@ -1127,7 +1128,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkState(currentRender == null, "Another render is still in progress.");
         currentRender = renderService.submit(new Runnable() {
             public void run() {
-                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
+
+
+
+                ImmutableMap<String,?> data = ImmutableMap.of(
+                        "mouse.position",viewerPane.getViewer().getLastMousePosition());
+
+
+                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data);
                 Throwable renderException = null;
                 startRendering(context);
                 List<?> results = null;
@@ -1523,7 +1531,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         if (Thread.currentThread().isInterrupted())
                             break;
 
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame);
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String,Object>of());
                         List<?> results = context.renderNode(exportNetwork);
                         Node renderedChild = exportNetwork.getRenderedChild();
                         viewer.setOutputValues(results);

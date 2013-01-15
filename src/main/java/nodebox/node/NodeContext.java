@@ -1,6 +1,7 @@
 package nodebox.node;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableTable;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
@@ -18,21 +19,23 @@ public final class NodeContext {
     private final NodeLibrary nodeLibrary;
     private final FunctionRepository functionRepository;
     private final double frame;
+    private final ImmutableMap<String,?> data;
 
 
     public NodeContext(NodeLibrary nodeLibrary) {
-        this(nodeLibrary, null, 1);
+        this(nodeLibrary, null, 1, ImmutableMap.<String,Object>of());
     }
 
 
     public NodeContext(NodeLibrary nodeLibrary, double frame) {
-        this(nodeLibrary, null, frame);
+        this(nodeLibrary, null, frame, ImmutableMap.<String,Object>of());
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame) {
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame, Map<String,?> data) {
         this.nodeLibrary = nodeLibrary;
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.frame = frame;
+        this.data = ImmutableMap.copyOf(data);
     }
 
 
@@ -46,6 +49,10 @@ public final class NodeContext {
 
     public double getFrame() {
         return frame;
+    }
+
+    public Map<String,?> getData() {
+        return data;
     }
 
     /**

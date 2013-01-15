@@ -42,6 +42,8 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     private final PLayer viewerLayer;
     private final JPopupMenu viewerMenu;
 
+    private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
+
     private Handle handle;
     private boolean showHandle = true;
     private boolean handleEnabled = true;
@@ -282,6 +284,10 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
         return new nodebox.graphics.Point((float) cx, (float) cy);
     }
 
+    public nodebox.graphics.Point getLastMousePosition() {
+        return lastMousePosition;
+    }
+
     public void mouseClicked(MouseEvent e) {
         // We register the mouse click as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
@@ -332,6 +338,7 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
             //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseDragged(pointForEvent(e));
         }
+        lastMousePosition = pointForEvent(e);
     }
 
     public void mouseMoved(MouseEvent e) {
@@ -340,6 +347,7 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
         if (hasVisibleHandle()) {
             handle.mouseMoved(pointForEvent(e));
         }
+        lastMousePosition = pointForEvent(e);
     }
 
     public void keyTyped(KeyEvent e) {

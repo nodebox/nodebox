@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx type="file" uuid="a779a96c-efec-4fbd-a804-7c12072bcb74">
+    <link href="java:nodebox.function.RealTimeFunctions" rel="functions"/>
+    <node description="Real time nodes." name="root" renderedChild="mousePosition">
+        <node category="real time" description="Get the most recent mouse position" function="realTime/mousePosition"
+              image="generic.png" name="mousePosition" position="1.00,1.00" outputType="point">
+            <port name="context" type="context"
+                  description="The internal execution context from which to extract the frame number."/>
+        </node>
+        <node category="real time" description="Buffer incoming points" function="realTime/bufferPoints"
+              image="generic.png" name="bufferPoints" position="1.00,1.00" outputType="point" outputRange="list">
+            <port name="point" type="point" description="The latest point."/>
+            <port name="size" type="int" value="100" description="The amount of points to buffer."/>
+        </node>
+    </node>
+</ndbx>
