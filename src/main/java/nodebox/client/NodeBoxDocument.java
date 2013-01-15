@@ -14,6 +14,10 @@ import nodebox.node.MenuItem;
 import nodebox.ui.*;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
+import oscP5.OscEventListener;
+import oscP5.OscMessage;
+import oscP5.OscP5;
+import oscP5.OscStatus;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -76,6 +81,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private Future currentRender = null;
     private Iterable<?> lastRenderResult = null;
     private Map<Node,List<?>> renderResults = ImmutableMap.of();
+
+    // OSC
+    private OscP5 oscP5;
+    private Map<String,List<Object>> oscMessages = new HashMap<String,List<Object>>();
 
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -170,6 +179,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
         if (! nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
+        if (! nodeLibrary.hasProperty("oscPort"))
+            nodeLibrary = nodeLibrary.withProperty("oscPort", String.valueOf(randomOSCPort()));
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -221,6 +232,26 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
         loaded = true;
+
+        oscP5 = new OscP5(new Object(), getOSCPort());
+        oscP5.addListener(new OscEventListener() {
+            @Override
+            public void oscEvent(OscMessage m) {
+                ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
+                oscMessages.put(m.addrPattern(),arguments );
+                System.out.println("OSC " + m.addrPattern() + " " + arguments);
+            }
+
+            @Override
+            public void oscStatus(OscStatus oscStatus) {
+                System.out.println("oscStatus = " + oscStatus);
+            }
+        });
+        addressBar.setMessage("OSC Port " + getOSCPort());
+    }
+
+    private static int randomOSCPort() {
+        return 1024 +  (int) Math.round(Math.random()* 10000);
     }
 
     //// Node Library management ////
@@ -1135,7 +1166,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         currentRender = renderService.submit(new Runnable() {
             public void run() {
                 ImmutableMap<String,?> data = ImmutableMap.of(
-                        "mouse.position",viewerPane.getViewer().getLastMousePosition());
+                        "mouse.position",viewerPane.getViewer().getLastMousePosition(),
+                        "osc.messages", oscMessages);
                 final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
                 Throwable renderException = null;
                 startRendering(context);
@@ -1480,6 +1512,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             return Integer.parseInt(getNodeLibrary().getProperty("canvasHeight", "1000"));
         } catch (NumberFormatException e) {
             return 1000;
+        }
+    }
+
+    private int getOSCPort() {
+        try {
+            return Integer.parseInt(getNodeLibrary().getProperty("oscPort", "5555"));
+        } catch (NumberFormatException e) {
+            return 5555;
         }
     }
 

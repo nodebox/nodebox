@@ -56,9 +56,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.illposed.osc</groupId>
-            <artifactId>javaosc-core</artifactId>
-            <version>0.1</version>
+            <groupId>oscP5</groupId>
+            <artifactId>oscP5</artifactId>
+            <version>0.9.9</version>
         </dependency>
 
         <dependency>
