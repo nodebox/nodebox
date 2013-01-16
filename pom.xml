@@ -75,6 +75,13 @@
 
     </dependencies>
 
+    <repositories>
+        <repository>
+          <id>emrg</id>
+          <url>http://repo.emrg.be</url>
+        </repository>
+    </repositories>    
+
     <build>
         <plugins>
             <plugin>
