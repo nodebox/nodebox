@@ -60,6 +60,7 @@ public class ViewerPane extends Pane {
         originCheck.setActionMethod(this, "toggleOrigin");
         renderRootCheck = new NButton(NButton.Mode.CHECK, "Render Root");
         renderRootCheck.setActionMethod(this, "toggleRenderRoot");
+        renderRootCheck.setChecked(true);
         paneHeader.add(handlesCheck);
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
