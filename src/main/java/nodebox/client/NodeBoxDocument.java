@@ -852,8 +852,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     private Node getRenderedNode() {
-        if (viewerPane.shouldAlwaysRenderRoot()) return getNodeLibrary().getRoot();
-        return getActiveNetwork();
+        return getNodeLibrary().getRoot();
+        // if (viewerPane.shouldAlwaysRenderRoot()) return getNodeLibrary().getRoot();
+        // return getActiveNetwork();
     }
 
     /**
