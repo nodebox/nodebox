@@ -147,21 +147,26 @@ public final class NodeContext {
     }
 
     private Object invokeNode(Node node, Map<Port, ?> argumentMap) {
-        List<Object> arguments = new LinkedList<Object>();
-        for (Port port : node.getInputs()) {
+        List<Port> inputs = node.getInputs();
+        Object[] arguments = new Object[inputs.size()];
+        int i = 0;
+        for (Port port : inputs) {
+            Object argument;
             if (argumentMap.containsKey(port)) {
-                arguments.add(argumentMap.get(port));
+                argument = argumentMap.get(port);
             } else if (port.hasValueRange()) {
-                arguments.add(getPortValue(port));
+                argument = getPortValue(port);
             } else {
                 // The port expects a list but nothing is connected. Evaluate with an empty list.
-                arguments.add(ImmutableList.of());
+                argument = ImmutableList.of();
             }
+            arguments[i] = argument;
+            i++;
         }
         return invokeNode(node, arguments);
     }
 
-    private Object invokeNode(Node node, List<?> arguments) {
+    private Object invokeNode(Node node, Object[] arguments) {
         Function function = functionRepository.getFunction(node.getFunction());
         return invokeFunction(node, function, arguments);
     }
@@ -237,9 +242,9 @@ public final class NodeContext {
         return port.getValue();
     }
 
-    private Object invokeFunction(Node node, Function function, List<?> arguments) throws NodeRenderException {
+    private Object invokeFunction(Node node, Function function, Object[] arguments) throws NodeRenderException {
         try {
-            return function.invoke(arguments.toArray());
+            return function.invoke(arguments);
         } catch (Exception e) {
             throw new NodeRenderException(node, e);
         }
