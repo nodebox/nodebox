@@ -21,7 +21,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
-import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -34,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class NetworkView extends JComponent implements PaneView, Zoom, KeyListener, MouseListener, MouseWheelListener, MouseMotionListener, FocusListener {
+public class NetworkView extends ZoomableView implements PaneView, Zoom, KeyListener, MouseListener, MouseMotionListener, FocusListener {
 
     public static final int GRID_CELL_SIZE = 48;
     public static final int NODE_MARGIN = 6;
@@ -82,16 +81,10 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
 
     private LoadingCache<Node, BufferedImage> nodeImageCache;
 
-    // View state
-    private double viewX, viewY, viewScale = 1;
-    private transient AffineTransform viewTransform = null;
-    private transient AffineTransform inverseViewTransform = null;
-
     private Set<String> selectedNodes = new HashSet<String>();
 
     // Interaction state
     private boolean isDraggingNodes = false;
-    private boolean isSpacePressed = false;
     private boolean isShiftPressed = false;
     private boolean isAltPressed = false;
     private boolean isDragSelecting = false;
@@ -193,6 +186,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     }
 
     public NetworkView(NodeBoxDocument document) {
+        super(MIN_ZOOM, MAX_ZOOM);
         this.document = document;
         setBackground(Theme.NETWORK_BACKGROUND_COLOR);
         initEventHandlers();
@@ -209,7 +203,6 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
-        addMouseWheelListener(this);
         addFocusListener(this);
     }
 
@@ -321,12 +314,12 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     private void paintGrid(Graphics2D g) {
         g.setColor(Theme.NETWORK_GRID_COLOR);
 
-        int gridCellSize = (int) Math.round(GRID_CELL_SIZE * viewScale);
-        int gridOffset = (int) Math.round(GRID_OFFSET * viewScale);
+        int gridCellSize = (int) Math.round(GRID_CELL_SIZE * getViewScale());
+        int gridOffset = (int) Math.round(GRID_OFFSET * getViewScale());
         if (gridCellSize < 10) return;
 
-        int transformOffsetX = (int) (viewX % gridCellSize);
-        int transformOffsetY = (int) (viewY % gridCellSize);
+        int transformOffsetX = (int) (getViewX() % gridCellSize);
+        int transformOffsetY = (int) (getViewY() % gridCellSize);
 
         for (int y = -gridCellSize; y < getHeight() + gridCellSize; y += gridCellSize) {
             g.drawLine(0, y - gridOffset + transformOffsetY, getWidth(), y - gridOffset + transformOffsetY);
@@ -589,41 +582,6 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         return (PORT_WIDTH + PORT_SPACING) * portIndex;
     }
 
-    //// View Transform ////
-
-    private void setViewTransform(double viewX, double viewY, double viewScale) {
-        this.viewX = viewX;
-        this.viewY = viewY;
-        this.viewScale = viewScale;
-        this.viewTransform = null;
-        this.inverseViewTransform = null;
-    }
-
-    private AffineTransform getViewTransform() {
-        if (viewTransform == null) {
-            viewTransform = new AffineTransform();
-            viewTransform.translate(viewX, viewY);
-            viewTransform.scale(viewScale, viewScale);
-        }
-        return viewTransform;
-    }
-
-    private AffineTransform getInverseViewTransform() {
-        if (inverseViewTransform == null) {
-            try {
-                inverseViewTransform = getViewTransform().createInverse();
-            } catch (NoninvertibleTransformException e) {
-                inverseViewTransform = new AffineTransform();
-            }
-        }
-        return inverseViewTransform;
-    }
-
-    public void resetViewTransform() {
-        setViewTransform(0, 0, 1);
-        repaint();
-    }
-
     //// View queries ////
 
     private Node findNodeWithName(String name) {
@@ -771,9 +729,6 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
             isShiftPressed = true;
         } else if (keyCode == KeyEvent.VK_ALT) {
             isAltPressed = true;
-        } else if (keyCode == KeyEvent.VK_SPACE) {
-            isSpacePressed = true;
-            setCursor(panCursor);
         } else if (keyCode == KeyEvent.VK_UP) {
             moveSelectedNodes(0, -1);
         } else if (keyCode == KeyEvent.VK_RIGHT) {
@@ -796,16 +751,10 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
             isShiftPressed = false;
         } else if (e.getKeyCode() == KeyEvent.VK_ALT) {
             isAltPressed = false;
-        } else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            isSpacePressed = false;
-            setCursor(defaultCursor);
         }
     }
 
 
-    public boolean isSpacePressed() {
-        return isSpacePressed;
-    }
 
     public void mouseClicked(MouseEvent e) {
         Point2D pt = inverseViewTransformPoint(e.getPoint());
@@ -836,14 +785,8 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
             showPopup(e);
+        } else if (isDragTrigger(e)) {
         } else {
-            // If the space bar and mouse is pressed, we're getting ready to pan the view.
-            if (isSpacePressed) {
-                // When panning the view use the original mouse point, not the one affected by the view transform.
-                dragStartPoint = e.getPoint();
-                return;
-            }
-
             Point2D pt = inverseViewTransformPoint(e.getPoint());
 
             // Check if we're over an output port.
@@ -904,14 +847,7 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
     public void mouseDragged(MouseEvent e) {
         Point2D pt = inverseViewTransformPoint(e.getPoint());
         // Panning the view has the first priority.
-        if (isSpacePressed) {
-            // When panning the view use the original mouse point, not the one affected by the view transform.
-            Point2D offset = minPoint(e.getPoint(), dragStartPoint);
-            setViewTransform(viewX + offset.getX(), viewY + offset.getY(), viewScale);
-            dragStartPoint = e.getPoint();
-            repaint();
-            return;
-        }
+        if (isPanning()) return;
 
         if (connectionOutput != null) {
             repaint();
@@ -972,21 +908,6 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         repaint();
     }
 
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        double scaleDelta = 1F - e.getWheelRotation() / 10F;
-        double newViewScale = viewScale * scaleDelta;
-
-        if (newViewScale < MIN_ZOOM) {
-            scaleDelta = MIN_ZOOM / viewScale;
-        } else if (newViewScale > MAX_ZOOM) {
-            scaleDelta = MAX_ZOOM / viewScale;
-        }
-
-        double vx = viewX - (e.getX() - viewX) * (scaleDelta - 1);
-        double vy = viewY - (e.getY() - viewY) * (scaleDelta - 1);
-        setViewTransform(vx, vy, viewScale * scaleDelta);
-        repaint();
-    }
 
     public void zoom(double scaleDelta) {
         // todo: implement
@@ -1029,11 +950,6 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
         return b.build();
     }
 
-    private Point2D inverseViewTransformPoint(Point p) {
-        Point2D pt = new Point2D.Double(p.getX(), p.getY());
-        return getInverseViewTransform().transform(pt, null);
-    }
-
     private Point2D minPoint(Point2D a, Point2D b) {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
     }
@@ -1044,10 +960,8 @@ public class NetworkView extends JComponent implements PaneView, Zoom, KeyListen
 
     @Override
     public void focusLost(FocusEvent focusEvent) {
-        isSpacePressed = false;
         isShiftPressed = false;
         isAltPressed = false;
-        setCursor(defaultCursor);
     }
 
     private static class NodeImageCacheLoader extends CacheLoader<Node, BufferedImage> {
