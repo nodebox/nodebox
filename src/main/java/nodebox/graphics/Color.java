@@ -19,6 +19,7 @@
 
 package nodebox.graphics;
 
+import java.awt.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +38,7 @@ public final class Color implements Cloneable {
 
     private final double r, g, b, a;
     private final double h, s, v;
+    private transient java.awt.Color awtColor = null;
 
     public static double clamp(double v) {
         return Math.max(0.0, Math.min(1.0, v));
@@ -326,7 +328,15 @@ public final class Color implements Cloneable {
     }
 
     public java.awt.Color getAwtColor() {
+        // We don't return the cached awtColor here, since java.awt.Color is mutable.
         return new java.awt.Color((float) getRed(), (float) getGreen(), (float) getBlue(), (float) getAlpha());
+    }
+
+    public void set(Graphics2D g) {
+        if (awtColor == null) {
+            awtColor = new java.awt.Color((float) getRed(), (float) getGreen(), (float) getBlue(), (float) getAlpha());
+        }
+        g.setColor(awtColor);
     }
 
     @Override

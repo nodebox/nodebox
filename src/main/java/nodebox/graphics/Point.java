@@ -2,13 +2,19 @@ package nodebox.graphics;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import nodebox.util.IOrderedFields;
 
 import java.awt.geom.Point2D;
+import java.util.Collection;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-public final class Point extends AbstractRecord {
+public final class Point implements Map<String, Number>, IOrderedFields {
 
     public final static Point ZERO = new Point(0, 0);
 
@@ -41,7 +47,6 @@ public final class Point extends AbstractRecord {
     }
 
     public Point(double x, double y, int type) {
-        super(POINT_FIELDS);
         this.x = x;
         this.y = y;
         this.type = type;
@@ -87,6 +92,78 @@ public final class Point extends AbstractRecord {
 
     public Point moved(double dx, double dy) {
         return new Point(x + dx, y + dy);
+    }
+
+    //// Map interface ////
+
+
+    @Override
+    public Iterable<String> getOrderedFields() {
+        return POINT_FIELDS;
+    }
+
+    @Override
+    public int size() {
+        return 3;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @Override
+    public boolean containsKey(Object o) {
+        return POINT_FIELDS.contains(o);
+    }
+
+    @Override
+    public boolean containsValue(Object o) {
+        return o != null && (o.equals(x) || o.equals(y) || o.equals(type));
+    }
+
+    @Override
+    public Number get(Object o) {
+        if (o == null) return null;
+        if (o.equals("x")) return x;
+        if (o.equals("y")) return y;
+        if (o.equals("type")) return type;
+        return null;
+    }
+
+    @Override
+    public Number put(String s, Number o) {
+        throw new UnsupportedOperationException("Points are immutable.");
+    }
+
+    @Override
+    public Number remove(Object o) {
+        throw new UnsupportedOperationException("Points are immutable.");
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ? extends Number> map) {
+        throw new UnsupportedOperationException("Points are immutable.");
+    }
+
+    @Override
+    public void clear() {
+        throw new UnsupportedOperationException("Points are immutable.");
+    }
+
+    @Override
+    public Set<String> keySet() {
+        return ImmutableSet.copyOf(POINT_FIELDS);
+    }
+
+    @Override
+    public Collection<Number> values() {
+        return ImmutableList.<Number>of(x, y, type);
+    }
+
+    @Override
+    public Set<Entry<String, Number>> entrySet() {
+        return ImmutableMap.<String,Number>of("x", x, "y", y, "type", type).entrySet();
     }
 
     @Override

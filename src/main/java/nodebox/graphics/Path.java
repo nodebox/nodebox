@@ -29,7 +29,7 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
     private transient double pathLength = -1;
 
     public Path() {
-        fillColor = new Color();
+        fillColor = Color.BLACK;
         strokeColor = null;
         strokeWidth = 1;
         contours = new ArrayList<Contour>();
@@ -914,7 +914,7 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
 
     public java.awt.geom.GeneralPath getGeneralPath() {
         if (!pathDirty) return awtPath;
-        GeneralPath gp = new GeneralPath(GeneralPath.WIND_NON_ZERO, getPointCount());
+        GeneralPath gp = new GeneralPath(GeneralPath.WIND_NON_ZERO);
         for (Contour c : contours) {
             c._extendPath(gp);
         }
@@ -992,15 +992,13 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
         // If we can't fill or stroke the path, there's nothing to draw.
         if (fillColor == null && strokeColor == null) return;
         GeneralPath gp = getGeneralPath();
-        // If there are no points, there's nothing to draw.
-        if (getPointCount() == 0) return;
         if (fillColor != null) {
-            g.setColor(fillColor.getAwtColor());
+            fillColor.set(g);
             g.fill(gp);
         }
         if (strokeWidth > 0 && strokeColor != null) {
             try {
-                g.setColor(strokeColor.getAwtColor());
+                strokeColor.set(g);
                 g.setStroke(new BasicStroke((float) strokeWidth));
                 g.draw(gp);
             } catch (Exception e) {
