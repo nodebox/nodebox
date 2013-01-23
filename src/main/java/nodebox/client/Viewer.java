@@ -490,7 +490,7 @@ public class Viewer extends Canvas implements OutputView, Zoom, MouseListener, M
             GL11.glLoadIdentity();
             GL11.glOrtho(0, getWidth(), 0, getHeight(), 1, -1);
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
-
+            GL11.glTranslated(getWidth()/2, getHeight()/2, 0);
 
             while (!Display.isCloseRequested()) {
                 if (previousOutputValues == outputValues) continue;
