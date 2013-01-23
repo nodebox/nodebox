@@ -4,16 +4,19 @@ import com.google.common.collect.ImmutableList;
 import nodebox.client.visualizer.*;
 import nodebox.graphics.CanvasContext;
 import nodebox.graphics.IGeometry;
+import nodebox.graphics.Path;
 import nodebox.handle.Handle;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
 import nodebox.ui.Zoom;
+import org.lwjgl.LWJGLException;
+import org.lwjgl.opengl.*;
+import org.lwjgl.opengl.DisplayMode;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -21,7 +24,7 @@ import java.util.LinkedList;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static nodebox.util.ListUtils.listClass;
 
-public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends Canvas implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
 
     public static final double MIN_ZOOM = 0.01;
     public static final double MAX_ZOOM = 64.0;
@@ -41,7 +44,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
     private boolean panEnabled = false;
+    private boolean isPanning = false;
     private boolean viewPositioned = false;
+    private boolean displayInitialized = false;
+
+    private Display display;
 
     private java.util.List<Object> outputValues;
     private Class valuesClass;
@@ -65,11 +72,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public Viewer(final NodeBoxDocument document) {
-        super(MIN_ZOOM, MAX_ZOOM);
         this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
+        setFocusTraversalKeysEnabled(false);
         addKeyListener(this);
         setBackground(Theme.VIEWER_BACKGROUND_COLOR);
 
@@ -80,7 +87,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void zoom(double scaleDelta) {
-        super.zoom(scaleDelta, getWidth() / 2, getHeight() / 2);
+        //super.zoom(scaleDelta, getWidth() / 2, getHeight() / 2);
+    }
+
+    public boolean isPanning() {
+        return isPanning;
     }
 
     public boolean containsPoint(Point point) {
@@ -163,6 +174,9 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void setOutputValues(java.util.List<Object> outputValues) {
+        if (!displayInitialized) {
+            initializeDisplay();
+        }
         this.outputValues = outputValues;
         valuesClass = listClass(outputValues);
         Visualizer visualizer = getVisualizer(outputValues, valuesClass);
@@ -183,6 +197,13 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         }
         checkNotNull(currentVisualizer);
         repaint();
+    }
+
+    private void initializeDisplay() {
+        displayInitialized = true;
+        DisplayUpdater updater = new DisplayUpdater();
+        Thread t = new Thread(updater);
+        t.start();
     }
 
     public static Visualizer getVisualizer(Iterable<?> objects, Class listClass) {
@@ -220,6 +241,10 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private nodebox.graphics.Point pointForEvent(MouseEvent e) {
         Point2D pt = inverseViewTransformPoint(e.getPoint());
         return new nodebox.graphics.Point(pt);
+    }
+
+    private Point2D inverseViewTransformPoint(Point point) {
+        return point;
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -311,34 +336,34 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         return true;
     }
 
-    @Override
+    //    @Override
     public void paintComponent(Graphics g) {
-        if (!viewPositioned) {
-            setViewPosition(getWidth() / 2, getHeight() / 2);
-            viewPositioned = true;
-        }
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-
-        // Draw background
-        g2.setColor(getBackground());
-        g2.fill(g.getClipBounds());
-
-        // Set the view transform
-        AffineTransform originalTransform = g2.getTransform();
-        g2.transform(getViewTransform());
-
-        paintObjects(g2);
-        paintHandle(g2);
-        paintPoints(g2);
-        paintPointNumbers(g2);
-
-        // Restore original transform
-        g2.setClip(null);
-        g2.setTransform(originalTransform);
-
-        paintOrigin(g2);
+//        if (!viewPositioned) {
+//            setViewPosition(getWidth() / 2, getHeight() / 2);
+//            viewPositioned = true;
+//        }
+//        Graphics2D g2 = (Graphics2D) g;
+//        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+//
+//        // Draw background
+//        g2.setColor(getBackground());
+//        g2.fill(g.getClipBounds());
+//
+//        // Set the view transform
+//        AffineTransform originalTransform = g2.getTransform();
+//        g2.transform(getViewTransform());
+//
+//        paintObjects(g2);
+//        paintHandle(g2);
+//        paintPoints(g2);
+//        paintPointNumbers(g2);
+//
+//        // Restore original transform
+//        g2.setClip(null);
+//        g2.setTransform(originalTransform);
+//
+//        paintOrigin(g2);
     }
 
 
@@ -388,13 +413,13 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void paintOrigin(Graphics2D g) {
-        if (showOrigin) {
-            int x = (int) Math.round(getViewX());
-            int y = (int) Math.round(getViewY());
-            g.setColor(Color.DARK_GRAY);
-            g.drawLine(x, 0, x, getHeight());
-            g.drawLine(0, y, getWidth(), y);
-        }
+//        if (showOrigin) {
+//            int x = (int) Math.round(getViewX());
+//            int y = (int) Math.round(getViewY());
+//            g.setColor(Color.DARK_GRAY);
+//            g.drawLine(x, 0, x, getHeight());
+//            g.drawLine(0, y, getWidth(), y);
+//        }
     }
 
     public void paintHandle(Graphics2D g) {
@@ -444,5 +469,71 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             resetView();
         }
     }
+
+    private class DisplayUpdater implements Runnable {
+
+        private java.util.List<Object> previousOutputValues;
+        @Override
+        public void run() {
+            try {
+                Display.setDisplayMode(new DisplayMode(getWidth(), getHeight()));
+                Display.setParent(Viewer.this);
+                Display.create();
+            } catch (LWJGLException e) {
+                throw new RuntimeException(e);
+            }
+            Display.setVSyncEnabled(true);
+
+            GL11.glMatrixMode(GL11.GL_PROJECTION);
+            GL11.glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+
+            GL11.glLoadIdentity();
+            GL11.glOrtho(0, getWidth(), 0, getHeight(), 1, -1);
+            GL11.glMatrixMode(GL11.GL_MODELVIEW);
+
+
+            while (!Display.isCloseRequested()) {
+                if (previousOutputValues == outputValues) continue;
+                previousOutputValues = outputValues;
+                // Clear the screen and depth buffer
+                GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+                // set the color of the quad (R,G,B,A)
+                GL11.glColor3f(0.5f, 0.5f, 1.0f);
+
+                // draw quad
+                if (outputValues != null) {
+                    for (Object o : outputValues) {
+                        if (o instanceof Path) {
+                            renderPath((Path) o);
+                        }
+                    }
+                }
+
+                Display.update();
+//                try {
+//                    Thread.sleep(500);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+            }
+        }
+
+
+    }
+
+    public static void renderPath(Path path) {
+        nodebox.graphics.Color fill = path.getFill();
+
+        GL11.glColor4d(fill.getRed(), fill.getGreen(), fill.getBlue(), fill.getAlpha());
+
+        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
+        for (nodebox.graphics.Point p : path.getPoints()) {
+            GL11.glVertex2d(p.x, p.y);
+        }
+
+        GL11.glEnd();
+    }
+
 
 }
