@@ -1,13 +1,9 @@
 package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
-import edu.umd.cs.piccolo.PCanvas;
-import edu.umd.cs.piccolo.PLayer;
-import edu.umd.cs.piccolo.event.*;
-import edu.umd.cs.piccolo.util.PAffineTransform;
-import edu.umd.cs.piccolo.util.PPaintContext;
 import nodebox.client.visualizer.*;
-import nodebox.graphics.*;
+import nodebox.graphics.CanvasContext;
+import nodebox.graphics.IGeometry;
 import nodebox.handle.Handle;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
@@ -16,9 +12,6 @@ import nodebox.ui.Zoom;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -28,10 +21,10 @@ import java.util.LinkedList;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static nodebox.util.ListUtils.listClass;
 
-public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
 
-    public static final float MIN_ZOOM = 0.01f;
-    public static final float MAX_ZOOM = 64.0f;
+    public static final double MIN_ZOOM = 0.01;
+    public static final double MAX_ZOOM = 64.0;
 
     private static final ImmutableList<Visualizer> visualizers;
     private static final Visualizer DEFAULT_VISUALIZER = LastResortVisualizer.INSTANCE;
@@ -39,7 +32,6 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     private static final Cursor defaultCursor, panCursor;
 
     private final NodeBoxDocument document;
-    private final PLayer viewerLayer;
     private final JPopupMenu viewerMenu;
 
     private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
@@ -51,6 +43,7 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
     private boolean panEnabled = false;
+    private boolean viewPositioned = false;
 
     private java.util.List<Object> outputValues;
     private Class valuesClass;
@@ -74,70 +67,26 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     }
 
     public Viewer(final NodeBoxDocument document) {
+        super(MIN_ZOOM, MAX_ZOOM);
         this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
         addKeyListener(this);
-        // Setup Piccolo canvas
         setBackground(Theme.VIEWER_BACKGROUND_COLOR);
-        setAnimatingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
-        setInteractingRenderQuality(PPaintContext.HIGH_QUALITY_RENDERING);
-        // Remove default panning and zooming behaviour
-        removeInputEventListener(getPanEventHandler());
-        removeInputEventListener(getZoomEventHandler());
-        // Install custom panning and zooming
-        PInputEventFilter panFilter = new PInputEventFilter();
-        panFilter.setNotMask(InputEvent.CTRL_MASK);
-        PPanEventHandler panHandler = new PPanEventHandler() {
-            public void processEvent(final PInputEvent evt, final int i) {
-                if (evt.isMouseEvent() && evt.isLeftMouseButton() && panEnabled)
-                    super.processEvent(evt, i);
-            }
-        };
-        panHandler.setAutopan(false);
-        panHandler.setEventFilter(panFilter);
-        addInputEventListener(panHandler);
-        setZoomEventHandler(new PZoomEventHandler() {
-            public void processEvent(final PInputEvent evt, final int i) {
-                if (evt.isMouseWheelEvent()) {
-                    double currentScale = evt.getCamera().getViewScale();
-                    double scaleDelta = 1D - 0.05 * evt.getWheelRotation();
-                    double newScale = currentScale * scaleDelta;
-                    if (newScale < MIN_ZOOM) {
-                        scaleDelta = MIN_ZOOM / currentScale;
-                    } else if (newScale > MAX_ZOOM) {
-                        scaleDelta = MAX_ZOOM / currentScale;
-                    }
-                    final Point2D p = evt.getPosition();
-                    evt.getCamera().scaleViewAboutPoint(scaleDelta, p.getX(), p.getY());
-                }
-            }
-        });
-        // Add the zoomable view layer
-        viewerLayer = new ViewerLayer();
-        getCamera().addLayer(0, viewerLayer);
 
         viewerMenu = new JPopupMenu();
         viewerMenu.add(new ResetViewAction());
         PopupHandler popupHandler = new PopupHandler();
-        addInputEventListener(popupHandler);
+        addMouseListener(popupHandler);
     }
 
     public void zoom(double scaleDelta) {
-        if (! isVisible()) return;
-        double currentScale = getCamera().getViewScale();
-        double newScale = currentScale * scaleDelta;
-        if (newScale < MIN_ZOOM) {
-            scaleDelta = MIN_ZOOM / currentScale;
-        } else if (newScale > MAX_ZOOM) {
-            scaleDelta = MAX_ZOOM / currentScale;
-        }
-        getCamera().scaleViewAboutPoint(scaleDelta, getCamera().getWidth() / 2, getCamera().getHeight() / 2);
+        super.zoom(scaleDelta, getWidth() / 2, getHeight() / 2);
     }
 
     public boolean containsPoint(Point point) {
-        if (! isVisible()) return false;
+        if (!isVisible()) return false;
         return getBounds().contains(point);
     }
 
@@ -231,8 +180,8 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
         if (currentVisualizer != visualizer) {
             resetView();
             currentVisualizer = visualizer;
-            viewerLayer.setBounds(-1000000, -1000000, 2000000, 2000000);
-            viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
+            //viewerLayer.setBounds(-1000000, -1000000, 2000000, 2000000);
+            //viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
         }
         checkNotNull(currentVisualizer);
         repaint();
@@ -266,22 +215,13 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     }
 
     public void resetView() {
-        getCamera().setViewTransform(new AffineTransform());
     }
 
     //// Mouse events ////
 
     private nodebox.graphics.Point pointForEvent(MouseEvent e) {
-        Point2D originalPoint = new Point2D.Float(e.getX(), e.getY());
-        PAffineTransform transform = getCamera().getViewTransform();
-        Point2D transformedPoint;
-        transformedPoint = transform.inverseTransform(originalPoint, null);
-        Point2D offset = viewerLayer.getOffset();
-        double cx = -offset.getX() + transformedPoint.getX();
-        double cy = -offset.getY() + transformedPoint.getY();
-//        double cx = -getWidth() / 2.0 + transformedPoint.getX();
-//        double cy = -getHeight() / 2.0 + transformedPoint.getY();
-        return new nodebox.graphics.Point((float) cx, (float) cy);
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        return new nodebox.graphics.Point(pt);
     }
 
     public nodebox.graphics.Point getLastMousePosition() {
@@ -334,6 +274,7 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
     public void mouseDragged(MouseEvent e) {
         // We register the mouse drag as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
+        if (isPanning()) return;
         if (hasVisibleHandle()) {
             //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseDragged(pointForEvent(e));
@@ -380,96 +321,124 @@ public class Viewer extends PCanvas implements OutputView, Zoom, MouseListener, 
 
     @Override
     public void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        // Draw the origin.
-        Point2D origin = getCamera().getViewTransform().transform(viewerLayer.getOffset(), null);
-        int x = (int) Math.round(origin.getX());
-        int y = (int) Math.round(origin.getY());
+        if (!viewPositioned) {
+            setViewPosition(getWidth() / 2, getHeight() / 2);
+            viewPositioned = true;
+        }
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+
+        // Draw background
+        g2.setColor(getBackground());
+        g2.fill(g.getClipBounds());
+
+        // Set the view transform
+        AffineTransform originalTransform = g2.getTransform();
+        g2.transform(getViewTransform());
+
+        paintObjects(g2);
+        paintHandle(g2);
+        paintPoints(g2);
+        paintPointNumbers(g2);
+
+        // Restore original transform
+        g2.setClip(null);
+        g2.setTransform(originalTransform);
+
+        paintOrigin(g2);
+    }
+
+
+    public void paintObjects(Graphics2D g) {
+        if (currentVisualizer != null)
+            currentVisualizer.draw(g, outputValues);
+    }
+
+    private void paintPoints(Graphics2D g) {
+        if (showPoints && IGeometry.class.isAssignableFrom(valuesClass)) {
+            // TODO Create a dynamic iterator that combines all output values into one flat sequence.
+            LinkedList<nodebox.graphics.Point> points = new LinkedList<nodebox.graphics.Point>();
+            for (Object o : outputValues) {
+                IGeometry geo = (IGeometry) o;
+                points.addAll(geo.getPoints());
+            }
+            PointVisualizer.drawPoints(g, points);
+        }
+    }
+
+
+    private void paintPointNumbers(Graphics2D g) {
+        if (!showPointNumbers) return;
+        g.setFont(Theme.SMALL_MONO_FONT);
+        g.setColor(Color.BLUE);
+        int index = 0;
+
+        if (IGeometry.class.isAssignableFrom(valuesClass)) {
+            for (Object o : outputValues) {
+                IGeometry geo = (IGeometry) o;
+                for (nodebox.graphics.Point pt : geo.getPoints())
+                    paintPointNumber(g, pt, index++);
+            }
+        } else if (nodebox.graphics.Point.class.isAssignableFrom(valuesClass)) {
+            for (Object o : outputValues)
+                paintPointNumber(g, (nodebox.graphics.Point) o, index++);
+        }
+    }
+
+    private void paintPointNumber(Graphics2D g, nodebox.graphics.Point pt, int number) {
+        if (pt.isOnCurve()) {
+            g.setColor(Color.BLUE);
+        } else {
+            g.setColor(Color.RED);
+        }
+        g.drawString(number + "", (int) (pt.x + 3), (int) (pt.y - 2));
+    }
+
+    public void paintOrigin(Graphics2D g) {
         if (showOrigin) {
+            int x = (int) Math.round(getViewX());
+            int y = (int) Math.round(getViewY());
             g.setColor(Color.DARK_GRAY);
             g.drawLine(x, 0, x, getHeight());
             g.drawLine(0, y, getWidth(), y);
         }
     }
 
-    public class ViewerLayer extends PLayer {
-
-        @Override
-        protected void paint(PPaintContext paintContext) {
-            Graphics2D g = paintContext.getGraphics();
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            drawObjects(g);
-            drawHandle(g);
-            drawPoints(g);
-            drawPointNumbers(g);
-        }
-
-        public void drawObjects(Graphics2D g) {
-            if (currentVisualizer != null)
-                currentVisualizer.draw(g, outputValues);
-        }
-
-        public void drawHandle(Graphics2D g) {
-            if (hasVisibleHandle()) {
-                // Create a canvas with a transparent background.
-                nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
-                canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
-                CanvasContext ctx = new CanvasContext(canvas);
-                try {
-                    handle.draw(ctx);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                ctx.getCanvas().draw(g);
+    public void paintHandle(Graphics2D g) {
+        if (hasVisibleHandle()) {
+            // Create a canvas with a transparent background.
+            nodebox.graphics.Canvas canvas = new nodebox.graphics.Canvas();
+            canvas.setBackground(new nodebox.graphics.Color(0, 0, 0, 0));
+            CanvasContext ctx = new CanvasContext(canvas);
+            try {
+                handle.draw(ctx);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
-
-        private void drawPoints(Graphics2D g) {
-            if (showPoints && IGeometry.class.isAssignableFrom(valuesClass)) {
-                // TODO Create a dynamic iterator that combines all output values into one flat sequence.
-                LinkedList<nodebox.graphics.Point> points = new LinkedList<nodebox.graphics.Point>();
-                for (Object o : outputValues) {
-                    IGeometry geo = (IGeometry) o;
-                    points.addAll(geo.getPoints());
-                }
-                PointVisualizer.drawPoints(g, points);
-            }
-        }
-
-        private void drawPointNumbers(Graphics2D g) {
-            if (! showPointNumbers) return;
-            g.setFont(Theme.SMALL_MONO_FONT);
-            g.setColor(Color.BLUE);
-            int index = 0;
-
-            if (IGeometry.class.isAssignableFrom(valuesClass)) {
-                for (Object o : outputValues) {
-                    IGeometry geo = (IGeometry) o;
-                    for (nodebox.graphics.Point pt : geo.getPoints())
-                        drawPointNumber(g, pt, index++);
-                }
-            } else if (nodebox.graphics.Point.class.isAssignableFrom(valuesClass)) {
-                for (Object o : outputValues)
-                    drawPointNumber(g, (nodebox.graphics.Point) o, index++);
-            }
-        }
-
-        private void drawPointNumber(Graphics2D g, nodebox.graphics.Point pt, int number) {
-            if (pt.isOnCurve()) {
-                g.setColor(Color.BLUE);
-            } else {
-                g.setColor(Color.RED);
-            }
-            g.drawString(number + "", (int) (pt.x + 3), (int) (pt.y - 2));
+            ctx.getCanvas().draw(g);
         }
     }
 
-    private class PopupHandler extends PBasicInputEventHandler {
-        public void processEvent(PInputEvent e, int i) {
+
+    private class PopupHandler extends MouseAdapter {
+        @Override
+        public void mousePressed(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                showPopup(e);
+            }
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                showPopup(e);
+            }
+        }
+
+        public void showPopup(MouseEvent e) {
             if (!e.isPopupTrigger()) return;
-            if (e.isHandled()) return;
-            Point2D p = e.getCanvasPosition();
-            viewerMenu.show(Viewer.this, (int) p.getX(), (int) p.getY());
+            viewerMenu.show(Viewer.this, e.getX(), e.getY());
         }
     }
 
