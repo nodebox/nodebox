@@ -15,17 +15,16 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.LinkedList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static nodebox.util.ListUtils.listClass;
 
-public class Viewer extends JComponent implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
+public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListener, MouseMotionListener, KeyListener {
 
-    public static final float MIN_ZOOM = 0.01f;
-    public static final float MAX_ZOOM = 64.0f;
+    public static final double MIN_ZOOM = 0.01;
+    public static final double MAX_ZOOM = 64.0;
 
     private static final ImmutableList<Visualizer> visualizers;
     private static final Visualizer DEFAULT_VISUALIZER = LastResortVisualizer.INSTANCE;
@@ -42,6 +41,7 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
     private boolean panEnabled = false;
+    private boolean viewPositioned = false;
 
     private java.util.List<Object> outputValues;
     private Class valuesClass;
@@ -65,6 +65,7 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     }
 
     public Viewer(final NodeBoxDocument document) {
+        super(MIN_ZOOM, MAX_ZOOM);
         this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
@@ -79,15 +80,7 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     }
 
     public void zoom(double scaleDelta) {
-//        if (! isVisible()) return;
-//        double currentScale = getCamera().getViewScale();
-//        double newScale = currentScale * scaleDelta;
-//        if (newScale < MIN_ZOOM) {
-//            scaleDelta = MIN_ZOOM / currentScale;
-//        } else if (newScale > MAX_ZOOM) {
-//            scaleDelta = MAX_ZOOM / currentScale;
-//        }
-//        getCamera().scaleViewAboutPoint(scaleDelta, getCamera().getWidth() / 2, getCamera().getHeight() / 2);
+        super.zoom(scaleDelta, getWidth() / 2, getHeight() / 2);
     }
 
     public boolean containsPoint(Point point) {
@@ -225,7 +218,8 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     //// Mouse events ////
 
     private nodebox.graphics.Point pointForEvent(MouseEvent e) {
-        return new nodebox.graphics.Point(e.getX(), e.getY());
+        Point2D pt = inverseViewTransformPoint(e.getPoint());
+        return new nodebox.graphics.Point(pt);
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -274,6 +268,7 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     public void mouseDragged(MouseEvent e) {
         // We register the mouse drag as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
+        if (isPanning()) return;
         if (hasVisibleHandle()) {
             //getDocument().addEdit(HANDLE_UNDO_TEXT, HANDLE_UNDO_TYPE, activeNode);
             handle.mouseDragged(pointForEvent(e));
@@ -318,6 +313,10 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
 
     @Override
     public void paintComponent(Graphics g) {
+        if (!viewPositioned) {
+            setViewPosition(getWidth() / 2, getHeight() / 2);
+            viewPositioned = true;
+        }
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
@@ -326,10 +325,19 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
         g2.setColor(getBackground());
         g2.fill(g.getClipBounds());
 
+        // Set the view transform
+        AffineTransform originalTransform = g2.getTransform();
+        g2.transform(getViewTransform());
+
         paintObjects(g2);
         paintHandle(g2);
         paintPoints(g2);
         paintPointNumbers(g2);
+
+        // Restore original transform
+        g2.setClip(null);
+        g2.setTransform(originalTransform);
+
         paintOrigin(g2);
     }
 
@@ -380,11 +388,9 @@ public class Viewer extends JComponent implements OutputView, Zoom, MouseListene
     }
 
     public void paintOrigin(Graphics2D g) {
-        // Draw the origin.
-        Point2D origin = new Point2D.Double(0, 0);
-        int x = (int) Math.round(origin.getX());
-        int y = (int) Math.round(origin.getY());
         if (showOrigin) {
+            int x = (int) Math.round(getViewX());
+            int y = (int) Math.round(getViewY());
             g.setColor(Color.DARK_GRAY);
             g.drawLine(x, 0, x, getHeight());
             g.drawLine(0, y, getWidth(), y);
