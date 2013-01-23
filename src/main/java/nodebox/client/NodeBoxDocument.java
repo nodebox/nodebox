@@ -884,6 +884,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    private Node getRenderedNode() {
+        return getNodeLibrary().getRoot();
+        // if (viewerPane.shouldAlwaysRenderRoot()) return getNodeLibrary().getRoot();
+        // return getActiveNetwork();
+    }
+
     /**
      * Set the active network to the parent network.
      */
@@ -1161,7 +1167,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
 
         final NodeLibrary renderLibrary = getNodeLibrary();
-        final Node renderNetwork = getActiveNetwork();
+        final Node renderNetwork = getRenderedNode();
         checkState(currentRender == null, "Another render is still in progress.");
         currentRender = renderService.submit(new Runnable() {
             public void run() {

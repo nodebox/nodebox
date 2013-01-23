@@ -150,7 +150,7 @@ public final class NodeContext {
             }
 
             // A prepared list of argument lists, each for one invocation of the child node.
-            List<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
+            Iterable<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
 
             for (Map<Port, ?> argumentMap : argumentMaps) {
                 List<?> results = renderNode(child, argumentMap);
@@ -293,25 +293,42 @@ public final class NodeContext {
      * {alpha: 4 beta:"b" gamma:true}
      * {alpha: 5 beta:"a" gamma:true}]
      */
-    private static List<Map<Port, ?>> buildArgumentMaps(Map<Port, List<?>> argumentsPerPort) {
-        List<Map<Port, ?>> argumentMaps = new ArrayList<Map<Port, ?>>();
-
-        int minSize = smallestArgumentList(argumentsPerPort);
+    private static Iterable<Map<Port, ?>> buildArgumentMaps(final Map<Port, List<?>> argumentsPerPort) {
+        final int minSize = smallestArgumentList(argumentsPerPort);
         if (minSize == 0) return Collections.emptyList();
 
-        int maxSize = biggestArgumentList(argumentsPerPort);
-        for (int i = 0; i < maxSize; i++) {
-            Map<Port, Object> argumentMap = new HashMap<Port, Object>(argumentsPerPort.size());
-            for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
-                if (entry.getKey().hasListRange()) {
-                    argumentMap.put(entry.getKey(), entry.getValue());
-                } else {
-                    argumentMap.put(entry.getKey(), wrappingGet(entry.getValue(), i));
-                }
+        final int maxSize = biggestArgumentList(argumentsPerPort);
+        return new Iterable<Map<Port, ?>>() {
+            int i = 0 ;
+            @Override
+            public Iterator<Map<Port, ?>> iterator() {
+                return new Iterator<Map<Port, ?>>() {
+                    @Override
+                    public boolean hasNext() {
+                        return i < maxSize;
+                    }
+
+                    @Override
+                    public Map<Port, ?> next() {
+                        Map<Port, Object> argumentMap = new HashMap<Port, Object>(argumentsPerPort.size());
+                        for (Map.Entry<Port, List<?>> entry : argumentsPerPort.entrySet()) {
+                            if (entry.getKey().hasListRange()) {
+                                argumentMap.put(entry.getKey(), entry.getValue());
+                            } else {
+                                argumentMap.put(entry.getKey(), wrappingGet(entry.getValue(), i));
+                            }
+                        }
+                        i++;
+                        return argumentMap;
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
             }
-            argumentMaps.add(argumentMap);
-        }
-        return argumentMaps;
+        };
     }
 
     private static int smallestArgumentList(Map<Port, List<?>> argumentsPerPort) {
