@@ -1529,6 +1529,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+
     private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
         file = videoFormat.ensureFileExtension(file);
         final int width = getCanvasWidth();

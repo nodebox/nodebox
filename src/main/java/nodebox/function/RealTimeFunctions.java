@@ -2,18 +2,23 @@ package nodebox.function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import netP5.UdpClient;
 import nodebox.graphics.Point;
 import nodebox.node.NodeContext;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import netP5.NetAddress;
+import oscP5.OscMessage;
+
 
 public class RealTimeFunctions {
 
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realTime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC");
+        LIBRARY = JavaLibrary.ofClass("realTime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -48,6 +53,20 @@ public class RealTimeFunctions {
         } else {
             return ImmutableList.of();
         }
+    }
+
+    public static void sendOSC(String address, long port, String route, Iterable<Double> iterable) {
+
+        OscMessage message = new OscMessage(route);
+
+        Iterator iterator = iterable.iterator();
+        while (iterator.hasNext()) {
+            message.add(((Double) iterator.next()).floatValue());
+        }
+
+        UdpClient c = new UdpClient(address,(int) port);
+        c.send(message.getBytes());
+
     }
 
 }
