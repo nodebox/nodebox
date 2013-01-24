@@ -17,6 +17,7 @@
               image="generic.png" name="receiveOSC" position="1.00,1.00" outputType="string" outputRange="list">
             <port name="address" type="string"
                   description="The address to receive the messages on."/>
+            <port name="default_value" range="value" type="list" widget="none" description="The default Value."/>
             <port name="context" type="context"
                   description="The internal execution context from which to extract the frame number."/>
         </node>

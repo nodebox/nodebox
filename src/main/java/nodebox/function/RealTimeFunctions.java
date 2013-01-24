@@ -36,7 +36,7 @@ public class RealTimeFunctions {
         return newPoints.build();
     }
 
-    public static List<Object> receiveOSC(String address, NodeContext context) {
+    public static List<Object> receiveOSC(String address, Object defaultValue, NodeContext context) {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages != null) {
             for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
@@ -44,10 +44,10 @@ public class RealTimeFunctions {
                     return e.getValue();
                 }
             }
-            return ImmutableList.of();
-        } else {
-            return ImmutableList.of();
         }
+        if (defaultValue != null)
+            return ImmutableList.of(defaultValue);
+        return ImmutableList.of();
     }
 
 }
