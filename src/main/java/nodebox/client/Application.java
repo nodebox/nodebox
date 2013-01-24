@@ -253,7 +253,7 @@ public class Application implements Host {
         NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
         NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
         NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
-        NodeLibrary realTimeLibrary = NodeLibrary.load(new File("libraries/realTime/realTime.ndbx"), NodeRepository.of());
+        NodeLibrary realTimeLibrary = NodeLibrary.load(new File("libraries/realtime/realtime.ndbx"), NodeRepository.of());
 
         systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
                 dataLibrary, corevectorLibrary, realTimeLibrary);

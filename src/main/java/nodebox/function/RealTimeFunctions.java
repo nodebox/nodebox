@@ -18,7 +18,7 @@ public class RealTimeFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realTime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
