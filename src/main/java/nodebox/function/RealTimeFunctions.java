@@ -1,6 +1,7 @@
 package nodebox.function;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import netP5.UdpClient;
 import nodebox.graphics.Point;
@@ -18,7 +19,7 @@ public class RealTimeFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -53,6 +54,26 @@ public class RealTimeFunctions {
         if (defaultValue != null)
             return ImmutableList.of(defaultValue);
         return ImmutableList.of();
+    }
+
+    public static List<Map<String, Object>> receiveMultiOSC(String oscAddressPrefix, NodeContext context) {
+        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
+        if (oscMessages == null) return ImmutableList.of();
+        if (oscAddressPrefix.isEmpty()) return ImmutableList.of();
+        ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
+        for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
+            if (e.getKey().startsWith(oscAddressPrefix)) {
+                ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                mb.put("address", e.getKey());
+                List<Object> values = e.getValue();
+                int i = 1;
+                for (Object o : e.getValue()) {
+                    mb.put("col " + i++, o);
+                }
+                b.add(mb.build());
+            }
+        }
+        return b.build();
     }
 
     public static void sendOSC(String ipAddress, long port, String oscAddress, Iterable<Double> oscArguments) {

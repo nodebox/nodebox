@@ -238,7 +238,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             @Override
             public void oscEvent(OscMessage m) {
                 ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
-                oscMessages.put(m.addrPattern(),arguments );
+                oscMessages.put(m.addrPattern(), arguments );
                 System.out.println("OSC " + m.addrPattern() + " " + arguments);
             }
 

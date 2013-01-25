@@ -21,6 +21,13 @@
             <port name="context" type="context"
                   description="The internal execution context from which to extract the frame number."/>
         </node>
+        <node category="real time" description="Receive multiple messages from OSC" function="realtime/receiveMultiOSC"
+              image="generic.png" name="receive_multi_osc" position="1.00,1.00" outputType="string" outputRange="list">
+            <port name="address_prefix" type="string"
+                  description="The prefix of the addresses to receive the messages on." value="/"/>
+            <port name="context" type="context"
+                  description="The internal execution context from which to extract the frame number."/>
+        </node>
          <node category="real time" description="Send messages over OSC" function="realtime/sendOSC"
               image="generic.png" name="send_osc" position="1.00,1.00">
                <port name="address" type="string"
