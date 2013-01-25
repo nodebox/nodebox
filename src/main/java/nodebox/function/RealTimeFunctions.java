@@ -41,11 +41,11 @@ public class RealTimeFunctions {
         return newPoints.build();
     }
 
-    public static List<Object> receiveOSC(String address, Object defaultValue, NodeContext context) {
+    public static List<Object> receiveOSC(String oscAddress, Object defaultValue, NodeContext context) {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages != null) {
             for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
-                if (e.getKey().equals(address)) {
+                if (e.getKey().equals(oscAddress)) {
                     return e.getValue();
                 }
             }
@@ -55,18 +55,16 @@ public class RealTimeFunctions {
         return ImmutableList.of();
     }
 
-    public static void sendOSC(String address, long port, String route, Iterable<Double> iterable) {
+    public static void sendOSC(String ipAddress, long port, String oscAddress, Iterable<Double> oscArguments) {
+        OscMessage message = new OscMessage(oscAddress);
 
-        OscMessage message = new OscMessage(route);
-
-        Iterator iterator = iterable.iterator();
+        Iterator iterator = oscArguments.iterator();
         while (iterator.hasNext()) {
             message.add(((Double) iterator.next()).floatValue());
         }
 
-        UdpClient c = new UdpClient(address,(int) port);
+        UdpClient c = new UdpClient(ipAddress, (int) port);
         c.send(message.getBytes());
-
     }
 
 }
