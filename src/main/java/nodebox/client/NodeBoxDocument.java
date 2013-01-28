@@ -28,10 +28,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -1173,7 +1171,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             public void run() {
                 ImmutableMap<String,?> data = ImmutableMap.of(
                         "mouse.position",viewerPane.getViewer().getLastMousePosition(),
-                        "osc.messages", oscMessages);
+                        "osc.messages", oscMessages,
+                        "osc.cache", new HashSet<String>());
                 final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
                 Throwable renderException = null;
                 startRendering(context);
@@ -1192,9 +1191,16 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 // We finished rendering so set the renderNetwork flag off.
                 isRendering.set(false);
 
+                Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
+                Map<String,List<Object>> oscCachedMessages = new HashMap<String,List<Object>>();
+                for (String key : oscCache) {
+                    if (oscMessages.containsKey(key))
+                        oscCachedMessages.put(key, oscMessages.get(key));
+                }
+                oscMessages = oscCachedMessages;
+
                 if (renderException == null) {
                     finishedRendering(renderNetwork, results);
-
                     // If, in the meantime, we got a new renderNetwork request, call the renderNetwork method again.
                     if (shouldRender.get()) {
                         SwingUtilities.invokeLater(new Runnable() {

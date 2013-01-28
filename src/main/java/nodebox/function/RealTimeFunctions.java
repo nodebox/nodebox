@@ -10,7 +10,8 @@ import nodebox.node.NodeContext;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import netP5.NetAddress;
+import java.util.Set;
+
 import oscP5.OscMessage;
 
 
@@ -19,7 +20,7 @@ public class RealTimeFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC", "cacheOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -88,5 +89,16 @@ public class RealTimeFunctions {
         c.send(message.getBytes());
     }
 
+    public static void cacheOSC(String oscAddressPrefix, NodeContext context) {
+        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
+        Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
+        if (oscMessages == null || oscCache == null) return;
+        if (oscAddressPrefix.isEmpty()) return;
+        for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
+            if (e.getKey().startsWith(oscAddressPrefix)) {
+                oscCache.add(e.getKey());
+            }
+        }
+    }
 }
 

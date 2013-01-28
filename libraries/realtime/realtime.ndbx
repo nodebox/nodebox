@@ -19,14 +19,14 @@
                   description="The address to receive the messages on."/>
             <port name="default_value" range="value" type="list" widget="none" description="The default Value."/>
             <port name="context" type="context"
-                  description="The internal execution context from which to extract the frame number."/>
+                  description="The internal execution context."/>
         </node>
         <node category="real time" description="Receive multiple messages from OSC" function="realtime/receiveMultiOSC"
               image="generic.png" name="receive_multi_osc" position="1.00,1.00" outputType="string" outputRange="list">
             <port name="address_prefix" type="string"
                   description="The prefix of the addresses to receive the messages on." value="/"/>
             <port name="context" type="context"
-                  description="The internal execution context from which to extract the frame number."/>
+                  description="The internal execution context."/>
         </node>
          <node category="real time" description="Send messages over OSC" function="realtime/sendOSC"
               image="generic.png" name="send_osc" position="1.00,1.00">
@@ -36,6 +36,13 @@
                <port name="route" type="string"
                                  description="The routing for the message."/>
                <port name="arguments" range="list" type="list" widget="none" description="The arguments to send over osc."/>
-                </node>
+        </node>
+        <node category="real time" description="Cache messages from OSC" function="realtime/cacheOSC"
+              image="generic.png" name="cache_osc" position="1.00,1.00">
+            <port name="address_prefix" type="string"
+                  description="The prefix of the addresses to cache the messages of." value="/"/>
+            <port name="context" type="context"
+                  description="The internal execution context."/>
+        </node>
     </node>
 </ndbx>
