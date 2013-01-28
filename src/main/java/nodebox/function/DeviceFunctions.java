@@ -15,12 +15,12 @@ import java.util.Set;
 import oscP5.OscMessage;
 
 
-public class RealTimeFunctions {
+public class DeviceFunctions {
 
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", RealTimeFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC", "cacheOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC", "cacheOSC");
     }
 
     public static Point mousePosition(NodeContext context) {

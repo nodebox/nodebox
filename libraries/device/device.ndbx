@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ndbx type="file" uuid="a779a96c-efec-4fbd-a804-7c12072bcb74">
-    <link href="java:nodebox.function.RealTimeFunctions" rel="functions"/>
+    <link href="java:nodebox.function.DeviceFunctions" rel="functions"/>
     <node description="Real time nodes." name="root" renderedChild="mouse_position">
         <node category="real time" description="Get the most recent mouse position" function="realtime/mousePosition"
               image="generic.png" name="mouse_position" position="1.00,1.00" outputType="point">
