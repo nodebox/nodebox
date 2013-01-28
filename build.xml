@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="run" basedir=".">
+<project name="NodeBox" default="run" basedir="."  xmlns:artifact="antlib:org.apache.maven.artifact.ant">
     <description>Builds and tests NodeBox.</description>
+
+    <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar" />
+    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+             uri="antlib:org.apache.maven.artifact.ant"
+             classpathref="maven-ant-tasks.classpath" />
 
     <target name="properties">
         <property file="build.properties"/>
@@ -69,14 +74,14 @@
         <property name="platform.res" location="${platform.dir}/res"/>
         <property name="platform.bin" location="${platform.dir}/bin"/>
 
+        <artifact:pom id="maven.project" file="pom.xml" />
+        <artifact:dependencies filesetId="maven.fileset" pathId="maven.classpath" pomRefId="maven.project" />
 
         <path id="project.classpath">
             <pathelement location="${build.prod}"/>
             <pathelement location="${build.test}"/>
+            <path refid="maven.classpath"/>
             <!-- <pathelement location="${platform.lib}"/> -->
-            <fileset dir="${lib}">
-                <include name="*.jar"/>
-            </fileset>
         </path>
     </target>
 
@@ -91,7 +96,7 @@
         <javac destdir="${build.prod}" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
             <src path="${src}"/>
             <!--<src path="${platform.src}"/> -->
-            <classpath refid="project.classpath"/>
+            <classpath refid="maven.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
         </javac>
         <copy todir="${build.prod}">
@@ -204,10 +209,8 @@
         <mkdir dir="${mac.application.res}"/>
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
-            <fileset dir="${lib}">
-                <include name="*.jar"/>
-                <include name="*.zip"/>
-            </fileset>
+            <fileset refid="maven.fileset"/>
+            <mapper type="flatten" />
             <fileset dir="${dist}/lib">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
