@@ -29,7 +29,7 @@
                   description="The internal execution context."/>
         </node>
          <node category="real time" description="Send messages over OSC" function="realtime/sendOSC"
-              image="generic.png" name="send_osc" position="1.00,1.00">
+              image="generic.png" name="send_osc" position="1.00,1.00" alwaysRendered="true">
                <port name="address" type="string"
                   description="The address to send the messages to."/>
                <port name="port" range="value" type="int" value="9999" widget="int" description="The osc output port."/>
@@ -38,7 +38,7 @@
                <port name="arguments" range="list" type="list" widget="none" description="The arguments to send over osc."/>
         </node>
         <node category="real time" description="Cache messages from OSC" function="realtime/cacheOSC"
-              image="generic.png" name="cache_osc" position="1.00,1.00">
+              image="generic.png" name="cache_osc" position="1.00,1.00" alwaysRendered="true">
             <port name="address_prefix" type="string"
                   description="The prefix of the addresses to cache the messages of." value="/"/>
             <port name="context" type="context"

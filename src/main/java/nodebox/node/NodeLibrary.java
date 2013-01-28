@@ -272,7 +272,7 @@ public class NodeLibrary {
     private static Map<String,String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
         Map<String, String> attributeMap = new HashMap<String, String>();
         String[] attributes = {"prototype", "name", "category", "description", "image", "function",
-                               "outputType", "outputRange", "position", "renderedChild", "handle"};
+                               "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
         for (String attribute : attributes)
             parseNodeAttribute(reader, attributeMap, attribute);
         return attributeMap;
@@ -298,6 +298,7 @@ public class NodeLibrary {
         String outputRange = attributeMap.get("outputRange");
         String position = attributeMap.get("position");
         String handle = attributeMap.get("handle");
+        String alwaysRendered = attributeMap.get("alwaysRendered");
 
         Node prototype = prototypeId == null ? extendFromNode : lookupNode(prototypeId, parent, nodeRepository);
         if (prototype == null) return null;
@@ -321,6 +322,8 @@ public class NodeLibrary {
             node = node.withPosition(Point.valueOf(position));
         if (handle != null)
             node = node.withHandle(handle);
+        if (alwaysRendered != null)
+            node = node.withAlwaysRenderedSet(Boolean.parseBoolean(alwaysRendered));
         return node;
     }
 

@@ -35,7 +35,7 @@ public final class Node {
 
     private enum Nodes {ROOT_NODE, NETWORK_NODE}
 
-    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE}
+    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE, ALWAYS_RENDERED}
 
     /**
      * Check if data from the output node can be converted and used in the input port.
@@ -113,6 +113,7 @@ public final class Node {
     private final String renderedChildName;
     private final ImmutableList<Connection> connections;
     private final String handle;
+    private final boolean isAlwaysRendered;
 
     //// Constructors ////
 
@@ -151,6 +152,7 @@ public final class Node {
         renderedChildName = "";
         connections = ImmutableList.of();
         handle = "";
+        isAlwaysRendered = false;
     }
 
     private void checkAllNotNull(Object... args) {
@@ -162,7 +164,7 @@ public final class Node {
     private Node(Node prototype, String name, String category, String description, String image, String function,
                  Point position, ImmutableList<Port> inputs,
                  String outputType, Port.Range outputRange, boolean isNetwork, ImmutableList<Node> children,
-                 String renderedChildName, ImmutableList<Connection> connections, String handle) {
+                 String renderedChildName, ImmutableList<Connection> connections, String handle, boolean isAlwaysRendered) {
         checkAllNotNull(prototype, name, description, image, function,
                 position, inputs, outputType, children,
                 renderedChildName, connections);
@@ -183,6 +185,7 @@ public final class Node {
         this.renderedChildName = renderedChildName;
         this.connections = connections;
         this.handle = handle;
+        this.isAlwaysRendered = isAlwaysRendered;
     }
 
     //// Getters ////
@@ -217,6 +220,10 @@ public final class Node {
 
     public boolean isNetwork() {
         return isNetwork;
+    }
+
+    public boolean isAlwaysRendered() {
+        return isAlwaysRendered;
     }
 
     public boolean hasChildren() {
@@ -1216,6 +1223,10 @@ public final class Node {
         return handle != null;
     }
 
+    public Node withAlwaysRenderedSet(boolean alwaysRendered) {
+        return newNodeWithAttribute(Attribute.ALWAYS_RENDERED, alwaysRendered);
+    }
+
     /**
      * Change an attribute on the node and return a new copy.
      * The prototype remains the same.
@@ -1244,6 +1255,7 @@ public final class Node {
         String renderedChildName = this.renderedChildName;
         ImmutableList<Connection> connections = this.connections;
         String handle = this.handle;
+        boolean alwaysRendered = this.isAlwaysRendered;
 
         switch (attribute) {
             case PROTOTYPE:
@@ -1291,6 +1303,9 @@ public final class Node {
             case HANDLE:
                 handle = (String) value;
                 break;
+            case ALWAYS_RENDERED:
+                alwaysRendered = (Boolean) value;
+                break;
             default:
                 throw new AssertionError("Unknown attribute " + attribute);
         }
@@ -1307,7 +1322,7 @@ public final class Node {
             name = "network1";
 
         return new Node(prototype, name, category, description, image, function, position,
-                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle, alwaysRendered);
     }
 
     //// Object overrides ////
@@ -1315,7 +1330,7 @@ public final class Node {
     @Override
     public int hashCode() {
         return Objects.hashCode(prototype, name, category, description, image, function, position,
-                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle);
+                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle, isAlwaysRendered);
     }
 
     @Override
@@ -1335,7 +1350,8 @@ public final class Node {
                 && Objects.equal(children, other.children)
                 && Objects.equal(renderedChildName, other.renderedChildName)
                 && Objects.equal(connections, other.connections)
-                && Objects.equal(handle, other.handle);
+                && Objects.equal(handle, other.handle)
+                && Objects.equal(isAlwaysRendered, other.isAlwaysRendered);
     }
 
     @Override

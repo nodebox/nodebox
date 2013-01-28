@@ -74,6 +74,16 @@ public final class NodeContext {
         return renderNode(node, Collections.<Port, Object>emptyMap());
     }
 
+    public void renderAlwaysRenderedNodes(Node node) throws NodeRenderException {
+        if (! node.isNetwork()) return;
+        for (Node child : node.getChildren()) {
+            if (child.isAlwaysRendered()) {
+                if (! renderResults.containsKey(child))
+                    renderNode(child);
+            }
+        }
+    }
+
     public List<?> renderNode(Node node, Map<Port, ?> argumentMap) {
         checkNotNull(node);
         checkNotNull(functionRepository);

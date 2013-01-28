@@ -1179,6 +1179,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 List<?> results = null;
                 try {
                     results = context.renderNode(renderNetwork);
+                    context.renderAlwaysRenderedNodes(renderNetwork);
                     renderResults = context.getRenderResults();
                 } catch (NodeRenderException e) {
                     LOG.log(Level.WARNING, "Error while processing", e);
