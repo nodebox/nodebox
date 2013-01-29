@@ -26,15 +26,14 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A NodeBoxDocument manages a NodeLibrary.
@@ -71,8 +70,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     // Rendering
     private final AtomicBoolean isRendering = new AtomicBoolean(false);
     private final AtomicBoolean shouldRender = new AtomicBoolean(false);
-    private final ExecutorService renderService;
-    private Future currentRender = null;
+    private SwingWorker<List<?>, Node> currentRender = null;
     private Iterable<?> lastRenderResult = null;
 
     // GUI components
@@ -157,13 +155,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public NodeBoxDocument(NodeLibrary nodeLibrary) {
-        renderService = Executors.newFixedThreadPool(1, new ThreadFactory() {
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "node-renderer");
-                t.setPriority(Thread.MIN_PRIORITY);
-                return t;
-            }
-        });
         if (! nodeLibrary.hasProperty("canvasWidth"))
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
         if (! nodeLibrary.hasProperty("canvasHeight"))
@@ -1031,29 +1022,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * <p/>
      * If all checks pass, a renderNetwork request is made.
      */
-    public synchronized void requestRender() {
+    public void requestRender() {
         // If we're already rendering, request the next renderNetwork.
-        if (isRendering.get()) {
-            shouldRender.set(true);
-        } else {
+        if (isRendering.compareAndSet(false, true)) {
             // If we're not rendering, start rendering.
             render();
+        } else {
+            shouldRender.set(true);
         }
-    }
-
-
-    /**
-     * Called when the active network will start rendering.
-     * Called on the Swing EDT so you can update the GUI.
-     *
-     * @param context The node context.
-     */
-    public synchronized void startRendering(final NodeContext context) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                progressPanel.setInProgress(true);
-            }
-        });
     }
 
     /**
@@ -1065,45 +1041,48 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    /**
-     * Called when the active network has finished rendering.
-     * Called on the Swing EDT so you can update the GUI.
-     *
-     * @param renderedNetwork The network that was rendered.
-     * @param results         The results of the render.
-     */
-    public synchronized void finishedRendering(final Node renderedNetwork, final List<?> results) {
-        finishCurrentRender();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                Node renderedChild = renderedNetwork.getRenderedChild();
-                lastRenderResult = results;
-                viewerPane.setOutputValues(results);
-                networkPane.clearError();
-                networkView.checkErrorAndRepaint();
+    private void render() {
+        checkState(SwingUtilities.isEventDispatchThread());
+        checkState(currentRender == null);
+        progressPanel.setInProgress(true);
+        final NodeLibrary renderLibrary = getNodeLibrary();
+        final Node renderNetwork = getRenderedNode();
+        currentRender = new SwingWorker<List<?>, Node>() {
+            @Override
+            protected List<?> doInBackground() throws Exception {
+                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
+                return context.renderNode(renderNetwork);
             }
-        });
-    }
 
-    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Throwable t) {
-        finishCurrentRender();
-        lastRenderResult = null;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                networkPane.setError(t);
+            @Override
+            protected void done() {
+                isRendering.set(false);
+                currentRender = null;
+                try {
+                    List<?> results = get();
+                    lastRenderResult = results;
+                    viewerPane.setOutputValues(results);
+                } catch (InterruptedException e) {
+                    LOG.log(Level.INFO, "Interrupted the render.", e);
+                } catch (ExecutionException e) {
+                    networkPane.setError(e);
+                } finally {
+                    networkPane.clearError();
+                    networkView.checkErrorAndRepaint();
+                    progressPanel.setInProgress(false);
+                }
+                if (shouldRender.getAndSet(false)) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            requestRender();
+                        }
+                    });
+                }
             }
-        });
+        };
+        currentRender.execute();
     }
-
-    private synchronized void finishCurrentRender() {
-        currentRender = null;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                progressPanel.setInProgress(false);
-            }
-        });
-    }
-
 
     /**
      * Returns the first output value, or null if the map of output values is empty.
@@ -1114,58 +1093,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private Object firstOutputValue(final Map<String, Object> outputValues) {
         if (outputValues.isEmpty()) return null;
         return outputValues.values().iterator().next();
-    }
-
-    private synchronized void render() {
-        // If we're already rendering, return.
-        if (isRendering.get()) return;
-
-        // Before starting the renderNetwork, turn the "should render" flag off and the "is rendering" flag on.
-        synchronized (shouldRender) {
-            synchronized (isRendering) {
-                shouldRender.set(false);
-                isRendering.set(true);
-            }
-        }
-
-        final NodeLibrary renderLibrary = getNodeLibrary();
-        final Node renderNetwork = getRenderedNode();
-        checkState(currentRender == null, "Another render is still in progress.");
-        currentRender = renderService.submit(new Runnable() {
-            public void run() {
-                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame);
-                Throwable renderException = null;
-                startRendering(context);
-                List<?> results = null;
-                try {
-                    results = context.renderNode(renderNetwork);
-                } catch (NodeRenderException e) {
-                    LOG.log(Level.WARNING, "Error while processing", e);
-                    renderException = e;
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Other error while processing", e);
-                    renderException = e;
-                }
-
-                // We finished rendering so set the renderNetwork flag off.
-                isRendering.set(false);
-
-                if (renderException == null) {
-                    finishedRendering(renderNetwork, results);
-
-                    // If, in the meantime, we got a new renderNetwork request, call the renderNetwork method again.
-                    if (shouldRender.get()) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                render();
-                            }
-                        });
-                    }
-                } else {
-                    finishedRenderingWithError(context, renderNetwork, renderException);
-                }
-            }
-        });
     }
 
     //// Undo ////
