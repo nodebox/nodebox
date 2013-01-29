@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -1090,21 +1091,27 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
             @Override
             protected void done() {
+                networkPane.clearError();
                 isRendering.set(false);
                 currentRender = null;
+                List<?> results;
                 try {
-                    List<?> results = get();
-                    lastRenderResult = results;
-                    viewerPane.setOutputValues(results);
+                    results = get();
+                } catch (CancellationException e) {
+                    results = ImmutableList.of();
                 } catch (InterruptedException e) {
-                    LOG.log(Level.INFO, "Interrupted the render.", e);
+                    results = ImmutableList.of();
                 } catch (ExecutionException e) {
                     networkPane.setError(e);
-                } finally {
-                    networkPane.clearError();
-                    networkView.checkErrorAndRepaint();
-                    progressPanel.setInProgress(false);
+                    results = ImmutableList.of();
                 }
+
+                lastRenderResult = results;
+
+                networkView.checkErrorAndRepaint();
+                progressPanel.setInProgress(false);
+                viewerPane.setOutputValues(results);
+
                 if (shouldRender.getAndSet(false)) {
                     SwingUtilities.invokeLater(new Runnable() {
                         @Override
