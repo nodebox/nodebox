@@ -10,7 +10,10 @@ SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
 
-!define CLASSPATH "lib\nodebox.jar;lib\asm.jar;lib\clojure-1.4.0.jar;lib\guava-13.0.1.jar;lib\itextpdf-5.3.2.jar;lib\jna-3.4.1.jar;lib\jython-2.5.3.jar;lib\opencsv-2.3.jar;lib\xom-1.2.8.jar"
+!ifndef CLASSPATH
+  !error "CLASSPATH needs to be defined. Run this script from Ant."
+!endif
+
 !define CLASS "nodebox.client.Application"
 
 !include "FileFunc.nsh"

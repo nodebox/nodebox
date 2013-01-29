@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="run" basedir="."  xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
     <description>Builds and tests NodeBox.</description>
 
-    <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar" />
+    <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar"/>
     <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
              uri="antlib:org.apache.maven.artifact.ant"
-             classpathref="maven-ant-tasks.classpath" />
+             classpathref="maven-ant-tasks.classpath"/>
 
     <target name="properties">
         <property file="build.properties"/>
@@ -50,7 +50,7 @@
 
         <!-- Determine the platform family: windows, mac or linux. -->
         <condition property="platform.windows" value="true">
-		    <os family="windows"/>
+            <os family="windows"/>
         </condition>
         <condition property="platform.mac" value="true">
             <equals arg1="${os.name}" arg2="Mac OS X"/>
@@ -74,8 +74,8 @@
         <property name="platform.res" location="${platform.dir}/res"/>
         <property name="platform.bin" location="${platform.dir}/bin"/>
 
-        <artifact:pom id="maven.project" file="pom.xml" />
-        <artifact:dependencies filesetId="maven.fileset" pathId="maven.classpath" pomRefId="maven.project" />
+        <artifact:pom id="maven.project" file="pom.xml"/>
+        <artifact:dependencies filesetId="maven.fileset" pathId="maven.classpath" pomRefId="maven.project"/>
 
         <path id="project.classpath">
             <pathelement location="${build.prod}"/>
@@ -166,10 +166,9 @@
         <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <!-- Copy library and program archives-->
         <copy todir="${dist.windows.nodebox.lib}">
-            <fileset dir="${lib}">
-                <include name="*.jar"/>
-                <include name="*.zip"/>
-            </fileset>
+            <fileset refid="maven.fileset"/>
+            <mapper type="flatten"/>
+            <file file="${lib}/python.zip"/>
             <fileset dir="${dist}/lib">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
@@ -190,10 +189,21 @@
         <copy todir="${dist.windows.nodebox.jre}">
             <fileset dir="${windows.jre}"/>
         </copy>
+        <pathconvert property="dist.windows.classpath">
+            <path refid="project.classpath"/>
+            <path path="${dist}/lib/nodebox.jar"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*.jar" to="lib\\*.jar"/>
+            </chainedmapper>
+        </pathconvert>
+        <replace file="makelauncher.nsi" token="@@CLASSPATH@@" value="${dist.windows.classpath}"/>
         <taskdef name="nsis" classname="net.sf.nsisant.Task">
             <classpath location="${lib}/nsisant-1.2.jar"/>
         </taskdef>
-        <nsis script="makelauncher.nsi" path="${windows.nsis}"/>
+        <nsis script="makelauncher.nsi" path="${windows.nsis}">
+            <define name="CLASSPATH" value="${dist.windows.classpath}"/>
+        </nsis>
         <nsis script="makeinstaller.nsi" path="${windows.nsis}">
             <define name="APPVERSION" value="${nodebox.version}"/>
         </nsis>
@@ -210,7 +220,7 @@
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
             <fileset refid="maven.fileset"/>
-            <mapper type="flatten" />
+            <mapper type="flatten"/>
             <fileset dir="${dist}/lib">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
@@ -248,7 +258,8 @@
                 <globmapper from="*.jar" to="$APP_PACKAGE/Contents/Resources/Java/lib/*.jar"/>
             </chainedmapper>
         </pathconvert>
-        <replace file="${mac.application.contents}/Info.plist" token="@@CLASSPATH@@" value="${mac.application.classpath}"/>
+        <replace file="${mac.application.contents}/Info.plist" token="@@CLASSPATH@@"
+                 value="${mac.application.classpath}"/>
         <!-- Copy version number -->
         <copy file="version.properties" todir="${mac.application.resources.java}"/>
     </target>
