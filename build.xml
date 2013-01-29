@@ -221,6 +221,7 @@
         <copy todir="${mac.application.lib}">
             <fileset refid="maven.fileset"/>
             <mapper type="flatten"/>
+            <file file="${lib}/python.zip"/>
             <fileset dir="${dist}/lib">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
