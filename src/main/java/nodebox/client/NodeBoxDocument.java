@@ -1077,8 +1077,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final Node renderNetwork = getRenderedNode();
         final ImmutableMap<String, ?> data = ImmutableMap.of(
                 "mouse.position", viewerPane.getViewer().getLastMousePosition(),
-                "osc.messages", oscMessages,
-                "osc.cache", new HashSet<String>());
+                "osc.messages", oscMessages);
         final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
@@ -1097,14 +1096,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     List<?> results = get();
                     lastRenderResult = results;
                     viewerPane.setOutputValues(results);
-
-                    Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
-                    Map<String, List<Object>> oscCachedMessages = new HashMap<String, List<Object>>();
-                    for (String key : oscCache) {
-                        if (oscMessages.containsKey(key))
-                            oscCachedMessages.put(key, oscMessages.get(key));
-                    }
-                    oscMessages = oscCachedMessages;
                 } catch (InterruptedException e) {
                     LOG.log(Level.INFO, "Interrupted the render.", e);
                 } catch (ExecutionException e) {

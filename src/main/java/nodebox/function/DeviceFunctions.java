@@ -20,7 +20,7 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC", "cacheOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -87,18 +87,6 @@ public class DeviceFunctions {
 
         UdpClient c = new UdpClient(ipAddress, (int) port);
         c.send(message.getBytes());
-    }
-
-    public static void cacheOSC(String oscAddressPrefix, NodeContext context) {
-        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
-        Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
-        if (oscMessages == null || oscCache == null) return;
-        if (oscAddressPrefix.isEmpty()) return;
-        for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
-            if (e.getKey().startsWith(oscAddressPrefix)) {
-                oscCache.add(e.getKey());
-            }
-        }
     }
 }
 

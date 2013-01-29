@@ -37,12 +37,5 @@
                                  description="The routing for the message."/>
                <port name="arguments" range="list" type="list" widget="none" description="The arguments to send over osc."/>
         </node>
-        <node category="real time" description="Cache messages from OSC" function="realtime/cacheOSC"
-              image="generic.png" name="cache_osc" position="1.00,1.00" alwaysRendered="true">
-            <port name="address_prefix" type="string"
-                  description="The prefix of the addresses to cache the messages of." value="/"/>
-            <port name="context" type="context"
-                  description="The internal execution context."/>
-        </node>
     </node>
 </ndbx>
