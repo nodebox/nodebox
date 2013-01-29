@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx type="file" uuid="7c219277-1abf-4430-a0eb-4ace66451d59">
+    <link href="java:nodebox.function.NetworkFunctions" rel="functions"/>
+    <node name="root" prototype="core.network" renderedChild="http_get" description="Provide HTTP operations.">
+        <node category="network" description="Get the contents of an URL." function="network/httpGet" name="http_get"
+              position="1.00,1.00">
+            <port name="url" range="value" type="string" value="http://nodebox.net/" description="The URL to fetch."/>
+        </node>
+    </node>
+</ndbx>
