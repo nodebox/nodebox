@@ -30,10 +30,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,14 +72,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     // Rendering
     private final AtomicBoolean isRendering = new AtomicBoolean(false);
     private final AtomicBoolean shouldRender = new AtomicBoolean(false);
-    private final ExecutorService renderService;
-    private Future currentRender = null;
+    private SwingWorker<List<?>, Node> currentRender = null;
     private Iterable<?> lastRenderResult = null;
-    private Map<Node,List<?>> renderResults = ImmutableMap.of();
+    private Map<Node, List<?>> renderResults = ImmutableMap.of();
 
     // OSC
     private OscP5 oscP5;
-    private Map<String,List<Object>> oscMessages = new HashMap<String,List<Object>>();
+    private Map<String, List<Object>> oscMessages = new HashMap<String, List<Object>>();
 
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -166,18 +162,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public NodeBoxDocument(NodeLibrary nodeLibrary) {
-        renderService = Executors.newFixedThreadPool(1, new ThreadFactory() {
-            public Thread newThread(Runnable r) {
-                Thread t = new Thread(r, "node-renderer");
-                t.setPriority(Thread.MIN_PRIORITY);
-                return t;
-            }
-        });
-        if (! nodeLibrary.hasProperty("canvasWidth"))
+        if (!nodeLibrary.hasProperty("canvasWidth"))
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
-        if (! nodeLibrary.hasProperty("canvasHeight"))
+        if (!nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
-        if (! nodeLibrary.hasProperty("oscPort"))
+        if (!nodeLibrary.hasProperty("oscPort"))
             nodeLibrary = nodeLibrary.withProperty("oscPort", String.valueOf(randomOSCPort()));
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
@@ -247,7 +236,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     private static int randomOSCPort() {
-        return 1024 +  (int) Math.round(Math.random()* 10000);
+        return 1024 + (int) Math.round(Math.random() * 10000);
     }
 
     //// Node Library management ////
@@ -1061,29 +1050,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * <p/>
      * If all checks pass, a renderNetwork request is made.
      */
-    public synchronized void requestRender() {
+    public void requestRender() {
         // If we're already rendering, request the next renderNetwork.
-        if (isRendering.get()) {
-            shouldRender.set(true);
-        } else {
+        if (isRendering.compareAndSet(false, true)) {
             // If we're not rendering, start rendering.
             render();
+        } else {
+            shouldRender.set(true);
         }
-    }
-
-
-    /**
-     * Called when the active network will start rendering.
-     * Called on the Swing EDT so you can update the GUI.
-     *
-     * @param context The node context.
-     */
-    public synchronized void startRendering(final NodeContext context) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                progressPanel.setInProgress(true);
-            }
-        });
     }
 
     /**
@@ -1095,45 +1069,63 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    /**
-     * Called when the active network has finished rendering.
-     * Called on the Swing EDT so you can update the GUI.
-     *
-     * @param renderedNetwork The network that was rendered.
-     * @param results         The results of the render.
-     */
-    public synchronized void finishedRendering(final Node renderedNetwork, final List<?> results) {
-        finishCurrentRender();
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                Node renderedChild = renderedNetwork.getRenderedChild();
-                lastRenderResult = results;
-                viewerPane.setOutputValues(results);
-                networkPane.clearError();
-                networkView.checkErrorAndRepaint();
+    private void render() {
+        checkState(SwingUtilities.isEventDispatchThread());
+        checkState(currentRender == null);
+        progressPanel.setInProgress(true);
+        final NodeLibrary renderLibrary = getNodeLibrary();
+        final Node renderNetwork = getRenderedNode();
+        final ImmutableMap<String, ?> data = ImmutableMap.of(
+                "mouse.position", viewerPane.getViewer().getLastMousePosition(),
+                "osc.messages", oscMessages,
+                "osc.cache", new HashSet<String>());
+        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
+        currentRender = new SwingWorker<List<?>, Node>() {
+            @Override
+            protected List<?> doInBackground() throws Exception {
+                List<?> results = context.renderNode(renderNetwork);
+                context.renderAlwaysRenderedNodes(renderNetwork);
+                renderResults = context.getRenderResults();
+                return results;
             }
-        });
-    }
 
-    private synchronized void finishedRenderingWithError(NodeContext context, Node network, final Throwable t) {
-        finishCurrentRender();
-        lastRenderResult = null;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                networkPane.setError(t);
+            @Override
+            protected void done() {
+                isRendering.set(false);
+                currentRender = null;
+                try {
+                    List<?> results = get();
+                    lastRenderResult = results;
+                    viewerPane.setOutputValues(results);
+
+                    Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
+                    Map<String, List<Object>> oscCachedMessages = new HashMap<String, List<Object>>();
+                    for (String key : oscCache) {
+                        if (oscMessages.containsKey(key))
+                            oscCachedMessages.put(key, oscMessages.get(key));
+                    }
+                    oscMessages = oscCachedMessages;
+                } catch (InterruptedException e) {
+                    LOG.log(Level.INFO, "Interrupted the render.", e);
+                } catch (ExecutionException e) {
+                    networkPane.setError(e);
+                } finally {
+                    networkPane.clearError();
+                    networkView.checkErrorAndRepaint();
+                    progressPanel.setInProgress(false);
+                }
+                if (shouldRender.getAndSet(false)) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            requestRender();
+                        }
+                    });
+                }
             }
-        });
+        };
+        currentRender.execute();
     }
-
-    private synchronized void finishCurrentRender() {
-        currentRender = null;
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                progressPanel.setInProgress(false);
-            }
-        });
-    }
-
 
     /**
      * Returns the first output value, or null if the map of output values is empty.
@@ -1148,71 +1140,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private synchronized void resetRenderResults() {
         renderResults = ImmutableMap.of();
-    }
-
-    private synchronized void render() {
-        // If we're already rendering, return.
-        if (isRendering.get()) return;
-
-        // Before starting the renderNetwork, turn the "should render" flag off and the "is rendering" flag on.
-        synchronized (shouldRender) {
-            synchronized (isRendering) {
-                shouldRender.set(false);
-                isRendering.set(true);
-            }
-        }
-
-        final NodeLibrary renderLibrary = getNodeLibrary();
-        final Node renderNetwork = getRenderedNode();
-        checkState(currentRender == null, "Another render is still in progress.");
-        currentRender = renderService.submit(new Runnable() {
-            public void run() {
-                ImmutableMap<String,?> data = ImmutableMap.of(
-                        "mouse.position",viewerPane.getViewer().getLastMousePosition(),
-                        "osc.messages", oscMessages,
-                        "osc.cache", new HashSet<String>());
-                final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
-                Throwable renderException = null;
-                startRendering(context);
-                List<?> results = null;
-                try {
-                    results = context.renderNode(renderNetwork);
-                    context.renderAlwaysRenderedNodes(renderNetwork);
-                    renderResults = context.getRenderResults();
-                } catch (NodeRenderException e) {
-                    LOG.log(Level.WARNING, "Error while processing", e);
-                    renderException = e;
-                } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Other error while processing", e);
-                    renderException = e;
-                }
-
-                // We finished rendering so set the renderNetwork flag off.
-                isRendering.set(false);
-
-                Set<String> oscCache = (Set<String>) context.getData().get("osc.cache");
-                Map<String,List<Object>> oscCachedMessages = new HashMap<String,List<Object>>();
-                for (String key : oscCache) {
-                    if (oscMessages.containsKey(key))
-                        oscCachedMessages.put(key, oscMessages.get(key));
-                }
-                oscMessages = oscCachedMessages;
-
-                if (renderException == null) {
-                    finishedRendering(renderNetwork, results);
-                    // If, in the meantime, we got a new renderNetwork request, call the renderNetwork method again.
-                    if (shouldRender.get()) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                                render();
-                            }
-                        });
-                    }
-                } else {
-                    finishedRenderingWithError(context, renderNetwork, renderException);
-                }
-            }
-        });
     }
 
     //// Undo ////
@@ -1581,12 +1508,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
-                    Map<Node,List<?>> renderResults = ImmutableMap.of();
+                    Map<Node, List<?>> renderResults = ImmutableMap.of();
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         if (Thread.currentThread().isInterrupted())
                             break;
 
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String,Object>of(), renderResults);
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String, Object>of(), renderResults);
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
                         viewer.setOutputValues(results);
@@ -1668,7 +1595,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             controller.setRenderedChild(activeNetworkPath, subnet.getName());
 
         String name = JOptionPane.showInputDialog(this, "Network name:", subnet.getName());
-        if (! name.equals(subnet.getName())) {
+        if (!name.equals(subnet.getName())) {
             controller.renameNode(activeNetworkPath, subnet.getName(), name);
             subnet = getActiveNetwork().getChild(name);
         }
@@ -1730,7 +1657,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
-    public void zoomView(double scaleDelta)  {
+    public void zoomView(double scaleDelta) {
         PointerInfo a = MouseInfo.getPointerInfo();
         Point point = new Point(a.getLocation());
         for (Zoom zoomListener : zoomListeners) {
