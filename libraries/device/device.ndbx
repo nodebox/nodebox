@@ -15,14 +15,6 @@
         </node>
         <node category="real time" description="Receive messages from OSC" function="realtime/receiveOSC"
               image="generic.png" name="receive_osc" position="1.00,1.00" outputType="string" outputRange="list">
-            <port name="address" type="string"
-                  description="The address to receive the messages on."/>
-            <port name="default_value" range="value" type="list" widget="none" description="The default Value."/>
-            <port name="context" type="context"
-                  description="The internal execution context."/>
-        </node>
-        <node category="real time" description="Receive multiple messages from OSC" function="realtime/receiveMultiOSC"
-              image="generic.png" name="receive_multi_osc" position="1.00,1.00" outputType="string" outputRange="list">
             <port name="address_prefix" type="string"
                   description="The prefix of the addresses to receive the messages on." value="/"/>
             <port name="context" type="context"

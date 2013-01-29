@@ -20,7 +20,7 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "receiveMultiOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -43,21 +43,7 @@ public class DeviceFunctions {
         return newPoints.build();
     }
 
-    public static List<Object> receiveOSC(String oscAddress, Object defaultValue, NodeContext context) {
-        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
-        if (oscMessages != null) {
-            for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
-                if (e.getKey().equals(oscAddress)) {
-                    return e.getValue();
-                }
-            }
-        }
-        if (defaultValue != null)
-            return ImmutableList.of(defaultValue);
-        return ImmutableList.of();
-    }
-
-    public static List<Map<String, Object>> receiveMultiOSC(String oscAddressPrefix, NodeContext context) {
+    public static List<Map<String, Object>> receiveOSC(String oscAddressPrefix, NodeContext context) {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages == null) return ImmutableList.of();
         if (oscAddressPrefix.isEmpty()) return ImmutableList.of();
