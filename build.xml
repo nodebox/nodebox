@@ -239,6 +239,16 @@
         </copy>
         <!-- Replace version number -->
         <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
+        <!-- Replace class path -->
+        <pathconvert property="mac.application.classpath">
+            <path refid="project.classpath"/>
+            <path path="${dist}/lib/nodebox.jar"/>
+            <chainedmapper>
+                <flattenmapper/>
+                <globmapper from="*.jar" to="$APP_PACKAGE/Contents/Resources/Java/lib/*.jar"/>
+            </chainedmapper>
+        </pathconvert>
+        <replace file="${mac.application.contents}/Info.plist" token="@@CLASSPATH@@" value="${mac.application.classpath}"/>
         <!-- Copy version number -->
         <copy file="version.properties" todir="${mac.application.resources.java}"/>
     </target>
