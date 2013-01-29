@@ -85,12 +85,13 @@ public class ZoomableView extends JComponent {
         return new Point2D.Double(a.getX() - b.getX(), a.getY() - b.getY());
     }
 
-    private void setViewTransform(double viewX, double viewY, double viewScale) {
+    public void setViewTransform(double viewX, double viewY, double viewScale) {
         this.viewX = viewX;
         this.viewY = viewY;
         this.viewScale = viewScale;
         this.viewTransform = null;
         this.inverseViewTransform = null;
+        repaint();
     }
 
     public AffineTransform getViewTransform() {
@@ -117,7 +118,6 @@ public class ZoomableView extends JComponent {
 
     public void resetViewTransform() {
         setViewTransform(0, 0, 1);
-        repaint();
     }
 
     public Point2D inverseViewTransformPoint(Point p) {
@@ -137,7 +137,6 @@ public class ZoomableView extends JComponent {
         double vx = viewX - (x - viewX) * (scaleDelta - 1);
         double vy = viewY - (y - viewY) * (scaleDelta - 1);
         setViewTransform(vx, vy, viewScale * scaleDelta);
-        repaint();
     }
 
     private class KeyHandler extends KeyAdapter {
@@ -191,7 +190,6 @@ public class ZoomableView extends JComponent {
                 Point2D offset = minPoint(e.getPoint(), dragStartPoint);
                 setViewTransform(viewX + offset.getX(), viewY + offset.getY(), viewScale);
                 dragStartPoint = e.getPoint();
-                repaint();
             }
         }
     }
