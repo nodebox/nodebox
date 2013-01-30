@@ -42,6 +42,7 @@ public class DeviceFunctions {
         return newPoints.build();
     }
 
+    @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> receiveOSC(String oscAddressPrefix, String arguments, NodeContext context) {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages == null) return ImmutableList.of();
