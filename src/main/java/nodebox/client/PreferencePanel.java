@@ -17,16 +17,22 @@ public class PreferencePanel extends JDialog implements ActionListener {
         super(owner, "Preferences");
         this.application = application;
         preferences = Preferences.userNodeForPackage(Application.class);
-        JPanel rootPanel = new JPanel();
-        rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
-        rootPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel rootPanel = new JPanel(new BorderLayout(10, 10));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        rootPanel.add(Box.createVerticalStrut(10));
+        JLabel experimental = new JLabel("Experimental Features");
+        experimental.setFont(new Font(Font.DIALOG, Font.BOLD, 13));
+        experimental.setMinimumSize(new Dimension(300, 20));
+        experimental.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        contentPanel.add(experimental);
 
-        enableDeviceSupportCheck = new JCheckBox("Enable Device Support");
-        rootPanel.add(enableDeviceSupportCheck);
+        enableDeviceSupportCheck = new JCheckBox("Device Support");
+        enableDeviceSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(enableDeviceSupportCheck);
 
-        rootPanel.add(Box.createVerticalStrut(90));
+        rootPanel.add(contentPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 10));
         JButton cancelButton = new JButton("Cancel");
@@ -36,15 +42,17 @@ public class PreferencePanel extends JDialog implements ActionListener {
             }
         });
         buttonPanel.add(cancelButton);
-        rootPanel.add(buttonPanel);
         JButton saveButton = new JButton("Save");
         saveButton.addActionListener(this);
         buttonPanel.add(saveButton);
+        rootPanel.add(buttonPanel, BorderLayout.SOUTH);
+
         getRootPane().setDefaultButton(saveButton);
 
         readPreferences();
 
         setContentPane(rootPanel);
+        setMinimumSize(new Dimension(300, 100));
         setResizable(false);
         pack();
     }
@@ -59,7 +67,7 @@ public class PreferencePanel extends JDialog implements ActionListener {
     }
 
     private void readPreferences() {
-       enableDeviceSupportCheck.setSelected(isDeviceSupportEnabled());
+        enableDeviceSupportCheck.setSelected(isDeviceSupportEnabled());
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
