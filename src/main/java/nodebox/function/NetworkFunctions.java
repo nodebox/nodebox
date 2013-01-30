@@ -27,14 +27,14 @@ public class NetworkFunctions {
                 "httpGet");
     }
 
-    public static Map<String, Object> httpGet(final String url, final String username, final String password, final long timeoutSeconds) {
+    public static Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
         Integer cacheKey = Objects.hashCode(url, username, password);
         synchronized (cacheKey) {
             if (responseCache.containsKey(cacheKey)) {
                 Response r = responseCache.get(cacheKey);
                 long timeNow = nowSeconds();
                 long timeFetched = r.timeFetched;
-                if ((timeNow - timeFetched) <= timeoutSeconds) {
+                if ((timeNow - timeFetched) <= refreshTimeSeconds) {
                     return r.response;
                 }
             }

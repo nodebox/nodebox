@@ -7,7 +7,7 @@
             <port name="url" range="value" type="string" value="http://nodebox.net/" description="The URL to fetch. Should start with 'http://' or 'https://.'"/>
             <port name="username" range="value" type="string" value="" description="Username for authenticated requests (optional)."/>
             <port name="password" range="value" type="string" widget="password" value="" description="Password for authenticated requests (optional)."/>
-            <port name="timeout" range="value" type="int" value="300" description="Timeout in seconds."/>
+            <port name="refreshTime" range="value" type="int" value="300" description="Amount of seconds before the resource is fetched again (time-to-live)."/>
         </node>
     </node>
 </ndbx>
