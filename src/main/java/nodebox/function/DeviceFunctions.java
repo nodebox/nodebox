@@ -7,6 +7,7 @@ import netP5.UdpClient;
 import nodebox.graphics.Point;
 import nodebox.node.NodeContext;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,15 +49,21 @@ public class DeviceFunctions {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages == null) return ImmutableList.of();
         if (oscAddressPrefix.isEmpty()) return ImmutableList.of();
-
-        Pattern userPattern = Pattern.compile("(<[a-z0-9-_]+>)+");
+        Pattern userPattern = Pattern.compile("(<[a-z0-9-_]+?(?::[ifs]|:string|:int|:float)?>)+");
         Matcher upMatcher = userPattern.matcher(oscAddressPrefix);
 
+        Map<String, String> itemTypeMap = new HashMap<String, String>();
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         while (upMatcher.find()) {
             String s = upMatcher.group(0);
             if (s.startsWith("<") && s.endsWith(">"))
                 s = s.substring(1, s.length() - 1);
+            String[] tokens = s.split(":");
+            if (tokens.length == 2) {
+                s = tokens[0];
+                itemTypeMap.put(s, tokens[1].substring(0, 1));
+            } else
+                itemTypeMap.put(s, "s");
             builder.add(s);
         }
         ImmutableList<String> messageData = builder.build();
@@ -76,8 +83,25 @@ public class DeviceFunctions {
             if (lpMatcher.find()) {
                 ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
                 mb.put("address", e.getKey());
-                for (int i = 0; i < lpMatcher.groupCount(); i++)
-                    mb.put(messageData.get(i), lpMatcher.group(i + 1));
+                for (int i = 0; i < lpMatcher.groupCount(); i++) {
+                    String msg = messageData.get(i);
+                    String msgData = lpMatcher.group(i + 1);
+                    if (itemTypeMap.get(msg).equals("s")) {
+                        mb.put(msg, msgData);
+                    } else if (itemTypeMap.get(msg).equals("i")) {
+                        try {
+                            mb.put(msg, Integer.parseInt(msgData));
+                        } catch (NumberFormatException nfe) {
+                            mb.put(msg, 0);
+                        }
+                    } else if (itemTypeMap.get(msg).equals("f")) {
+                        try {
+                            mb.put(msg, Double.parseDouble(msgData));
+                        } catch (NumberFormatException nfe) {
+                            mb.put(msg, 0.0d);
+                        }
+                    }
+                }
                 int i = 1;
                 for (Object o : e.getValue())
                     mb.put("col " + i++, o);
