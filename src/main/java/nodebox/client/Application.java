@@ -250,22 +250,23 @@ public class Application implements Host {
     }
 
     private void lookForLibraries() {
-
-        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
-        NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
-        NodeLibrary colorLibrary = NodeLibrary.load(new File("libraries/color/color.ndbx"), NodeRepository.of());
-        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
-        NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
-        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        List<NodeLibrary> libraries = new ArrayList<NodeLibrary>();
+        libraries.add(systemLibrary("math"));
+        libraries.add(systemLibrary("string"));
+        libraries.add(systemLibrary("color"));
+        libraries.add(systemLibrary("list"));
+        libraries.add(systemLibrary("data"));
+        libraries.add(systemLibrary("corevector"));
 
         if (Application.ENABLE_DEVICE_SUPPORT) {
-            NodeLibrary deviceLibrary = NodeLibrary.load(new File("libraries/device/device.ndbx"), NodeRepository.of());
-            systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
-                    dataLibrary, corevectorLibrary, deviceLibrary);
-        } else {
-            systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
-                    dataLibrary, corevectorLibrary);
+            libraries.add(systemLibrary("device"));
         }
+        systemRepository  = NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
+    }
+
+    private NodeLibrary systemLibrary(String name) {
+        String fileName = String.format("libraries/%s/%s.ndbx", name, name);
+        return NodeLibrary.load(new File(fileName), NodeRepository.of());
     }
 
     //// Application events ////
