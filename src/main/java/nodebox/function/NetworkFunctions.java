@@ -1,12 +1,16 @@
 package nodebox.function;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -15,7 +19,7 @@ import java.util.Map;
 
 public class NetworkFunctions {
 
-    public static final Map<String, Response> responseCache = new HashMap<String, Response>();
+    public static final Map<Integer, Response> responseCache = new HashMap<Integer, Response>();
     public static final FunctionLibrary LIBRARY;
 
     static {
@@ -23,27 +27,41 @@ public class NetworkFunctions {
                 "httpGet");
     }
 
-    public static Map<String, Object> httpGet(final String url, final long timeoutSeconds) {
-        synchronized (url) {
-            if (responseCache.containsKey(url)) {
-                Response r = responseCache.get(url);
+    public static Map<String, Object> httpGet(final String url, final String username, final String password, final long timeoutSeconds) {
+        Integer cacheKey = Objects.hashCode(url, username, password);
+        synchronized (cacheKey) {
+            if (responseCache.containsKey(cacheKey)) {
+                Response r = responseCache.get(cacheKey);
                 long timeNow = nowSeconds();
                 long timeFetched = r.timeFetched;
                 if ((timeNow - timeFetched) <= timeoutSeconds) {
                     return r.response;
                 }
             }
-            Map<String, Object> r = _httpGet(url);
+            Map<String, Object> r = _httpGet(url, username, password);
             Response res = new Response(nowSeconds(), r);
-            responseCache.put(url, res);
+            responseCache.put(cacheKey, res);
             return r;
         }
     }
 
-    private static Map<String, Object> _httpGet(String url) {
-        HttpClient client = new DefaultHttpClient();
+    private static Map<String, Object> _httpGet(final String url, final String username, final String password) {
         HttpGet request = new HttpGet(url);
+
+        if (username != null && !username.trim().isEmpty()) {
+            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+            BasicScheme scheme = new BasicScheme();
+            Header authorizationHeader;
+            try {
+                authorizationHeader = scheme.authenticate(credentials, request, new BasicHttpContext());
+            } catch (AuthenticationException e) {
+                throw new RuntimeException(e);
+            }
+            request.addHeader(authorizationHeader);
+        }
+
         try {
+            DefaultHttpClient client = new DefaultHttpClient();
             HttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             if (entity != null) {

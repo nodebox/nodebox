@@ -5,6 +5,8 @@
         <node category="network" description="Get the contents of an URL." function="network/httpGet" name="http_get"
               position="1.00,1.00">
             <port name="url" range="value" type="string" value="http://nodebox.net/" description="The URL to fetch."/>
+            <port name="username" range="value" type="string" value="" description="Username for authenticated requests (optional)."/>
+            <port name="password" range="value" type="string" widget="password" value="" description="Password for authenticated requests (optional)."/>
             <port name="timeout" range="value" type="int" value="300" description="Timeout in seconds."/>
         </node>
     </node>
