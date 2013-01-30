@@ -7,10 +7,7 @@ import netP5.UdpClient;
 import nodebox.graphics.Point;
 import nodebox.node.NodeContext;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,7 +42,7 @@ public class DeviceFunctions {
         return newPoints.build();
     }
 
-    public static List<Map<String, Object>> receiveOSC(String oscAddressPrefix, NodeContext context) {
+    public static List<Map<String, Object>> receiveOSC(String oscAddressPrefix, String arguments, NodeContext context) {
         Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
         if (oscMessages == null) return ImmutableList.of();
         if (oscAddressPrefix.isEmpty()) return ImmutableList.of();
@@ -68,6 +65,12 @@ public class DeviceFunctions {
         }
         ImmutableList<String> messageData = builder.build();
 
+        ArrayList<String> argumentNames = new ArrayList<String>();
+        if (! arguments.isEmpty()) {
+            for (String arg : arguments.split(","))
+                argumentNames.add(arg);
+        }
+
         String convertedAddressPrefix = upMatcher.replaceAll("(XXXPLHXXX)");
         if (! convertedAddressPrefix.endsWith("*"))
             convertedAddressPrefix = convertedAddressPrefix + "*";
@@ -76,6 +79,35 @@ public class DeviceFunctions {
 
         Pattern lookupPattern = Pattern.compile(convertedAddressPrefix);
         ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
+
+        int maxArgs = 0;
+
+        for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
+            Matcher lpMatcher = lookupPattern.matcher(e.getKey());
+            if (lpMatcher.find())
+                maxArgs = Math.max(maxArgs, e.getValue().size());
+        }
+
+        int argNamesSize = argumentNames.size();
+        for (int i = 0 ; i < maxArgs - argNamesSize ; i++)
+            argumentNames.add("Column");
+
+        Map<String, Integer> argumentDuplicates = new HashMap<String, Integer>();
+        for (String arg : argumentNames) {
+            if (argumentDuplicates.containsKey(arg))
+                argumentDuplicates.put(arg, 1);
+            else
+                argumentDuplicates.put(arg, 0);
+        }
+
+        ArrayList<String> newArgumentNames = new ArrayList<String>();
+        for (String arg : argumentNames) {
+            if (argumentDuplicates.get(arg) > 0) {
+                newArgumentNames.add(arg + argumentDuplicates.get(arg));
+                argumentDuplicates.put(arg, argumentDuplicates.get(arg) + 1);
+            } else
+                newArgumentNames.add(arg);
+        }
 
         for (Map.Entry<String, List<Object>> e : oscMessages.entrySet()) {
             Matcher lpMatcher = lookupPattern.matcher(e.getKey());
@@ -102,9 +134,15 @@ public class DeviceFunctions {
                         }
                     }
                 }
-                int i = 1;
-                for (Object o : e.getValue())
-                    mb.put("col " + i++, o);
+                int i = 0;
+                for (Object o : e.getValue())  {
+                    String arg = newArgumentNames.get(i);
+                    mb.put(arg, o);
+                    i++;
+                }
+                for ( ; i < newArgumentNames.size(); i++) {
+                    mb.put(newArgumentNames.get(i), 0);
+                }
                 b.add(mb.build());
             }
         }

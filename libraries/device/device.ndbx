@@ -17,6 +17,8 @@
               image="generic.png" name="receive_osc" position="1.00,1.00" outputType="string" outputRange="list">
             <port name="address_prefix" type="string"
                   description="The prefix of the addresses to receive the messages on." value="/"/>
+            <port name="arguments" type="string"
+                  description="The names of the OSC messages' arguments, delimited by ','"/>
             <port name="context" type="context"
                   description="The internal execution context."/>
         </node>
