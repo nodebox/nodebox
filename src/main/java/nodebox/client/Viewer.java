@@ -178,10 +178,8 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             return;
         }
         if (currentVisualizer != visualizer) {
-            resetView();
             currentVisualizer = visualizer;
-            //viewerLayer.setBounds(-1000000, -1000000, 2000000, 2000000);
-            //viewerLayer.setOffset(visualizer.getOffset(outputValues, getSize()));
+            resetViewTransform();
         }
         checkNotNull(currentVisualizer);
         repaint();
@@ -214,7 +212,10 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         // TODO Implement
     }
 
-    public void resetView() {
+    @Override
+    public void resetViewTransform() {
+        Point2D position = currentVisualizer.getOffset(outputValues, getSize());
+            setViewTransform(position.getX(),position.getY(), 1);
     }
 
     //// Mouse events ////
@@ -449,7 +450,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         }
 
         public void actionPerformed(ActionEvent e) {
-            resetView();
+            resetViewTransform();
         }
     }
 
