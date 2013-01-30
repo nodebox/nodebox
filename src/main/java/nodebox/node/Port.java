@@ -30,7 +30,7 @@ public final class Port {
      * The UI control for this port. This defines how the port is represented in the user interface.
      */
     public enum Widget {
-        NONE, ANGLE, COLOR, DATA, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, TOGGLE, POINT
+        NONE, ANGLE, COLOR, DATA, FILE, FLOAT, FONT, GRADIENT, IMAGE, INT, MENU, SEED, STRING, TEXT, PASSWORD, TOGGLE, POINT
     }
 
     public enum Direction {

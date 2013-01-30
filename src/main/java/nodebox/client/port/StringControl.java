@@ -4,6 +4,7 @@ import nodebox.node.Port;
 import nodebox.ui.Theme;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,12 +13,37 @@ import java.awt.event.FocusEvent;
 
 public class StringControl extends AbstractPortControl implements ActionListener {
 
-    private JTextField textField;
+    private JTextComponent field;
 
     public StringControl(Port port) {
         super(port);
         setLayout(new BorderLayout());
-        textField = new JTextField();
+        field = createField();
+        add(field, BorderLayout.CENTER);
+        setValueForControl(port.getValue());
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        field.setEnabled(enabled);
+    }
+
+    public void setValueForControl(Object v) {
+        if (v == null) return;
+        field.setText(v.toString());
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        commitTextFieldValue();
+    }
+
+    protected void commitTextFieldValue() {
+        setPortValue(field.getText());
+    }
+
+    protected JTextComponent createField() {
+        JTextField textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");
         textField.setFont(Theme.SMALL_BOLD_FONT);
         textField.addActionListener(this);
@@ -26,27 +52,7 @@ public class StringControl extends AbstractPortControl implements ActionListener
                 commitTextFieldValue();
             }
         });
-        add(textField, BorderLayout.CENTER);
-        setValueForControl(port.getValue());
+        return textField;
     }
 
-    @Override
-    public void setEnabled(boolean enabled) {
-        super.setEnabled(enabled);
-        textField.setEnabled(enabled);
-    }
-
-    public void setValueForControl(Object v) {
-        if (v == null) return;
-        textField.setText(v.toString());
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        commitTextFieldValue();
-    }
-
-    private void commitTextFieldValue() {
-        setPortValue(textField.getText());
-
-    }
 }
