@@ -9,5 +9,9 @@
             <port name="password" range="value" type="string" widget="password" value="" description="Password for authenticated requests (optional)."/>
             <port name="refreshTime" range="value" type="int" value="300" description="Amount of seconds before the resource is fetched again (time-to-live)."/>
         </node>
+        <node name="query_json" category="network" description="Query the JSON string using JSONPath." function="network/queryJSON" position="2.00,1.00" outputRange="list">
+            <port name="json" range="value" type="string" value="{&quot;name&quot;: {&quot;firstName&quot;: &quot;Lois&quot;, &quot;lastName&quot;: &quot;Lane&quot;}}" description="The JSON data, as a string."/>
+            <port name="query" range="value" type="string" value="$.name.firstName" description="The JSON path query."/>
+        </node>
     </node>
 </ndbx>

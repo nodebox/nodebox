@@ -1,7 +1,9 @@
 package nodebox.function;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.jayway.jsonpath.JsonPath;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,6 +17,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NetworkFunctions {
@@ -24,7 +27,7 @@ public class NetworkFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("network", NetworkFunctions.class,
-                "httpGet");
+                "httpGet", "queryJSON");
     }
 
     public static Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
@@ -42,6 +45,26 @@ public class NetworkFunctions {
             Response res = new Response(nowSeconds(), r);
             responseCache.put(cacheKey, res);
             return r;
+        }
+    }
+
+    public static Iterable<Object> queryJSON(final Object json, final String query) {
+        if (json instanceof Map) {
+            Map<?,?> requestMap = (Map<?, ?>) json;
+            if (requestMap.containsKey("text")) {
+                return queryJSON(requestMap.get("text"), query);
+            } else {
+                throw new IllegalArgumentException("Cannot parse JSON input.");
+            }
+        }else if (json instanceof String) {
+            Object results = JsonPath.read((String)json, query);
+            if (!(results instanceof Iterable)) {
+                return ImmutableList.of(results);
+            } else {
+                return (Iterable<Object>) results;
+            }
+        } else {
+            throw new IllegalArgumentException("Cannot parse JSON input.");
         }
     }
 
