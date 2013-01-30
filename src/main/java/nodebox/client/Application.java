@@ -45,6 +45,9 @@ import java.util.prefs.Preferences;
 
 public class Application implements Host {
 
+    public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
+    public static boolean ENABLE_DEVICE_SUPPORT = false;
+
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -209,6 +212,7 @@ public class Application implements Host {
      */
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
+        ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
     }
 
     /**
@@ -253,10 +257,15 @@ public class Application implements Host {
         NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
         NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
         NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
-        NodeLibrary deviceLibrary = NodeLibrary.load(new File("libraries/device/device.ndbx"), NodeRepository.of());
 
-        systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
-                dataLibrary, corevectorLibrary, deviceLibrary);
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            NodeLibrary deviceLibrary = NodeLibrary.load(new File("libraries/device/device.ndbx"), NodeRepository.of());
+            systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
+                    dataLibrary, corevectorLibrary, deviceLibrary);
+        } else {
+            systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
+                    dataLibrary, corevectorLibrary);
+        }
     }
 
     //// Application events ////

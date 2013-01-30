@@ -167,8 +167,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
         if (!nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
-        if (!nodeLibrary.hasProperty("oscPort"))
-            nodeLibrary = nodeLibrary.withProperty("oscPort", String.valueOf(randomOSCPort()));
+
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            if (!nodeLibrary.hasProperty("oscPort"))
+                nodeLibrary = nodeLibrary.withProperty("oscPort", String.valueOf(randomOSCPort()));
+        }
+
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -221,19 +225,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setJMenuBar(menuBar);
         loaded = true;
 
-        oscP5 = new OscP5(new Object(), getOSCPort());
-        oscP5.addListener(new OscEventListener() {
-            @Override
-            public void oscEvent(OscMessage m) {
-                ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
-                oscMessages.put(m.addrPattern(), arguments);
-            }
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            oscP5 = new OscP5(new Object(), getOSCPort());
+            oscP5.addListener(new OscEventListener() {
+                @Override
+                public void oscEvent(OscMessage m) {
+                    ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
+                    oscMessages.put(m.addrPattern(), arguments);
+                }
 
-            @Override
-            public void oscStatus(OscStatus ignored) {
-            }
-        });
-        addressBar.setMessage("OSC Port " + getOSCPort());
+                @Override
+                public void oscStatus(OscStatus ignored) {
+                }
+            });
+            addressBar.setMessage("OSC Port " + getOSCPort());
+        }
     }
 
     private static int randomOSCPort() {
