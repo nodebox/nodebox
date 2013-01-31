@@ -1516,8 +1516,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         if (Thread.currentThread().isInterrupted())
                             break;
+                        final ImmutableMap<String, ?> data = ImmutableMap.of(
+                                "osc.messages", oscMessages);
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, data, renderResults);
 
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, ImmutableMap.<String, Object>of(), renderResults);
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
                         viewer.setOutputValues(results);
