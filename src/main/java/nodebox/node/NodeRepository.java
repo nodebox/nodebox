@@ -81,6 +81,10 @@ public class NodeRepository {
             if (node.getCategory().equals(category))
                 builder.add(node);
         }
+        if (category.equals("core")) {
+            builder.add(Node.ROOT);
+            builder.add(Node.NETWORK);
+        }
         return builder.build();
     }
 

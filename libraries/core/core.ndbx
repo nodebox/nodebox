@@ -5,7 +5,7 @@
         <importCoreNode ref="ROOT"/>
         <importCoreNode ref="NETWORK"/>
         <node description="Output the value of the current frame. Used for animating ports." outputType="float" function="core/frame" name="frame" position="1,1"
-              image="frame.png">
+              image="frame.png" category="core">
             <port name="context" type="context" description="The internal execution context from which to extract the frame number."/>
         </node>
     </node>
