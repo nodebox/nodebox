@@ -2,18 +2,18 @@
 <ndbx type="file" uuid="a779a96c-efec-4fbd-a804-7c12072bcb74">
     <link href="java:nodebox.function.DeviceFunctions" rel="functions"/>
     <node description="Real time nodes." name="root" renderedChild="mouse_position">
-        <node category="real time" description="Get the most recent mouse position" function="realtime/mousePosition"
+        <node category="device" description="Get the most recent mouse position" function="realtime/mousePosition"
               image="generic.png" name="mouse_position" position="1.00,1.00" outputType="point">
             <port name="context" type="context"
                   description="The internal execution context from which to extract the frame number."/>
         </node>
-        <node category="real time" description="Buffer incoming points" function="realtime/bufferPoints"
+        <node category="device" description="Buffer incoming points" function="realtime/bufferPoints"
               image="generic.png" name="buffer_points" position="1.00,1.00" outputType="point" outputRange="list">
             <port name="point" type="point" description="The latest point."/>
             <port name="size" type="int" value="100" description="The amount of points to buffer."/>
             <port name="state" type="state" description="The previous state of the node."/>
         </node>
-        <node category="real time" description="Receive messages from OSC" function="realtime/receiveOSC"
+        <node category="device" description="Receive messages from OSC" function="realtime/receiveOSC"
               image="generic.png" name="receive_osc" position="1.00,1.00" outputType="string" outputRange="list">
             <port name="address_prefix" type="string"
                   description="The prefix of the addresses to receive the messages on." value="/"/>
@@ -22,7 +22,7 @@
             <port name="context" type="context"
                   description="The internal execution context."/>
         </node>
-         <node category="real time" description="Send messages over OSC" function="realtime/sendOSC"
+         <node category="device" description="Send messages over OSC" function="realtime/sendOSC"
               image="generic.png" name="send_osc" position="1.00,1.00" alwaysRendered="true">
                <port name="address" type="string"
                   description="The address to send the messages to."/>
