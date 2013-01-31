@@ -69,7 +69,7 @@ public class DeviceFunctions {
         ArrayList<String> argumentNames = new ArrayList<String>();
         if (! arguments.isEmpty()) {
             for (String arg : arguments.split(","))
-                argumentNames.add(arg);
+                argumentNames.add(arg.trim());
         }
 
         String convertedAddressPrefix = upMatcher.replaceAll("(XXXPLHXXX)");
