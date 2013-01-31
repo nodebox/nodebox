@@ -435,6 +435,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom, KeyList
         g.setColor(Color.WHITE);
         int portX = 0;
         for (Port input : node.getInputs()) {
+            if (isHiddenPort(input)) {
+                continue;
+            }
             if (hoverInputPort == input) {
                 g.setColor(PORT_HOVER_COLOR);
             } else {
@@ -542,6 +545,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom, KeyList
     }
 
     private static Rectangle inputPortRect(Node node, Port port) {
+        if (isHiddenPort(port)) return new Rectangle();
         Point pt = nodePoint(node);
         Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
         growHitRectangle(portRect);
@@ -622,6 +626,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom, KeyList
             }
         }
         return null;
+    }
+
+    private static boolean isHiddenPort(Port port) {
+        return port.getType().equals(Port.TYPE_STATE) || port.getType().equals(Port.TYPE_CONTEXT);
     }
 
     //// Selections ////

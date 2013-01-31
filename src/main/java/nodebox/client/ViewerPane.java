@@ -109,6 +109,10 @@ public class ViewerPane extends Pane {
         return dataSheet;
     }
 
+    public Viewer getViewer() {
+        return viewer;
+    }
+
     public Handle getHandle() {
         return viewer.getHandle();
     }

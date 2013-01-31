@@ -68,12 +68,25 @@
         </dependency>
 
         <dependency>
+            <groupId>oscP5</groupId>
+            <artifactId>oscP5</artifactId>
+            <version>0.9.9</version>
+        </dependency>
+
+        <dependency>
             <groupId>xom</groupId>
             <artifactId>xom</artifactId>
             <version>1.2.5</version>
         </dependency>
 
     </dependencies>
+
+    <repositories>
+        <repository>
+          <id>emrg</id>
+          <url>http://repo.emrg.be</url>
+        </repository>
+    </repositories>    
 
     <build>
         <plugins>

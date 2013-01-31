@@ -45,6 +45,11 @@ import java.util.prefs.Preferences;
 
 public class Application implements Host {
 
+    public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
+    public static final String PREFERENCE_ENABLE_NETWORK_SUPPORT = "NBEnableNetworkSupport";
+    public static boolean ENABLE_DEVICE_SUPPORT = false;
+    public static boolean ENABLE_NETWORK_SUPPORT = false;
+
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -209,6 +214,8 @@ public class Application implements Host {
      */
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
+        ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
+        ENABLE_NETWORK_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_NETWORK_SUPPORT, "false"));
     }
 
     /**
@@ -246,17 +253,25 @@ public class Application implements Host {
     }
 
     private void lookForLibraries() {
+        List<NodeLibrary> libraries = new ArrayList<NodeLibrary>();
+        libraries.add(systemLibrary("math"));
+        libraries.add(systemLibrary("string"));
+        libraries.add(systemLibrary("color"));
+        libraries.add(systemLibrary("list"));
+        libraries.add(systemLibrary("data"));
+        libraries.add(systemLibrary("corevector"));
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            libraries.add(systemLibrary("device"));
+        }
+        if (Application.ENABLE_NETWORK_SUPPORT) {
+            libraries.add(systemLibrary("network"));
+        }
+        systemRepository = NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
+    }
 
-        NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
-        NodeLibrary stringLibrary = NodeLibrary.load(new File("libraries/string/string.ndbx"), NodeRepository.of());
-        NodeLibrary colorLibrary = NodeLibrary.load(new File("libraries/color/color.ndbx"), NodeRepository.of());
-        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
-        NodeLibrary dataLibrary = NodeLibrary.load(new File("libraries/data/data.ndbx"), NodeRepository.of());
-        NodeLibrary networkLibrary = NodeLibrary.load(new File("libraries/network/network.ndbx"), NodeRepository.of());
-        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
-
-        systemRepository = NodeRepository.of(mathLibrary, stringLibrary, colorLibrary, listLibrary,
-                dataLibrary, networkLibrary, corevectorLibrary);
+    private NodeLibrary systemLibrary(String name) {
+        String fileName = String.format("libraries/%s/%s.ndbx", name, name);
+        return NodeLibrary.load(new File(fileName), NodeRepository.of());
     }
 
     //// Application events ////
