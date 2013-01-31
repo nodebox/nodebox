@@ -138,11 +138,26 @@ public class Application implements Host {
     }
 
     private void initApplication() {
+        installDefaultExceptionHandler();
         setNodeBoxVersion();
         createNodeBoxDataDirectories();
         applyPreferences();
         registerForMacOSXEvents();
         initPython();
+    }
+
+    private void installDefaultExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            public void uncaughtException(Thread t, final Throwable e) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        ExceptionDialog d = new ExceptionDialog(null, e);
+                        d.setVisible(true);
+                    }
+                });
+            }
+        });
     }
 
     private void checkForUpdates() {
