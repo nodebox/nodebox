@@ -1108,7 +1108,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 } catch (InterruptedException e) {
                     results = ImmutableList.of();
                 } catch (ExecutionException e) {
-                    networkPane.setError(e);
+                    networkPane.setError(e.getCause());
                     results = ImmutableList.of();
                 }
 
