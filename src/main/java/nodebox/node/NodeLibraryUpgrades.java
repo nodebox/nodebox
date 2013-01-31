@@ -5,11 +5,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import nodebox.graphics.Point;
 import nodebox.util.LoadException;
-import nu.xom.*;
 import org.python.google.common.collect.ImmutableList;
+import org.w3c.dom.*;
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -23,6 +33,7 @@ import static com.google.common.base.Preconditions.checkState;
  */
 public class NodeLibraryUpgrades {
 
+    private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
     private static Map<String, Method> upgradeMap = new HashMap<String, Method>();
 
     /**
@@ -58,8 +69,6 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("14", upgradeMethod("upgrade14to15"));
         upgradeMap.put("15", upgradeMethod("upgrade15to16"));
     }
-
-    private static final Pattern formatVersionPattern = Pattern.compile("formatVersion=['\"]([\\d\\.]+)['\"]");
 
     public static String parseFormatVersion(String xml) {
         Matcher m = formatVersionPattern.matcher(xml);
@@ -132,8 +141,8 @@ public class NodeLibraryUpgrades {
         UpgradeOp verticalNodesOp = new UpgradeOp() {
             @Override
             public void apply(Element e) {
-                if (!e.getLocalName().equals("node")) return;
-                Attribute position = e.getAttribute("position");
+                if (!e.getTagName().equals("node")) return;
+                Attr position = e.getAttributeNode("position");
                 if (position == null) return;
                 Point pt = Point.valueOf(position.getValue());
                 Point reversedPoint = new Point(pt.y, pt.x);
@@ -272,15 +281,46 @@ public class NodeLibraryUpgrades {
         return transformXml(inputXml, "16", renameNodeOp1, renameNodeOp2, renameNodeOp3, addAttributeOp, changePrototypeOp);
     }
 
-    private static Set<String> getChildNodeNames(ParentNode parent) {
-        HashSet<String> names = new HashSet<String>();
-        Nodes children = parent.query("node");
-        for (int i = 0; i < children.size(); i++) {
-            nu.xom.Node childNode = children.get(i);
-            if (childNode instanceof Element) {
-                Element e = (Element) children.get(i);
-                names.add(e.getAttribute("name").getValue());
+    private static List<Node> childNodes(Node parent) {
+        ArrayList<Node> childNodes = new ArrayList<Node>();
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            childNodes.add(children.item(i));
+        }
+        return childNodes;
+    }
+
+    private static List<Element> childElements(Node parent) {
+        ArrayList<Element> childElements = new ArrayList<Element>();
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+            if (node instanceof Element) {
+                childElements.add((Element) node);
             }
+        }
+        return childElements;
+    }
+
+    /**
+     * Return direct descendant elements of parent node with the given childName.
+     */
+    private static List<Element> childElementsWithName(Node parent, String childName) {
+        ArrayList<Element> childElements = new ArrayList<Element>();
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node node = children.item(i);
+            if (node instanceof Element && ((Element) node).getTagName().equals(childName)) {
+                childElements.add((Element) node);
+            }
+        }
+        return childElements;
+    }
+
+    private static Set<String> getChildNodeNames(Element parent) {
+        HashSet<String> names = new HashSet<String>();
+        for (Element e : childElementsWithName(parent, "node")) {
+            names.add(e.getAttribute("name"));
         }
         return names;
     }
@@ -297,21 +337,20 @@ public class NodeLibraryUpgrades {
     }
 
     private static void renameRenderedChildReference(Element element, String oldNodeName, String newNodeName) {
-        Attribute renderedChildReference = element.getAttribute("renderedChild");
+        Attr renderedChildReference = element.getAttributeNode("renderedChild");
         if (renderedChildReference == null) return;
         String oldRenderedChild = renderedChildReference.getValue();
         if (oldRenderedChild.equals(oldNodeName)) {
             if (newNodeName == null || newNodeName.length() == 0)
-                element.removeAttribute(renderedChildReference);
+                element.removeAttributeNode(renderedChildReference);
             else
                 renderedChildReference.setValue(newNodeName);
         }
     }
 
-    private static void renamePortReference(Elements elements, String attributeName, String oldNodeName, String newNodeName) {
-        for (int i = 0; i < elements.size(); i++) {
-            Element c = elements.get(i);
-            Attribute portReference = c.getAttribute(attributeName);
+    private static void renamePortReference(List<Element> elements, String attributeName, String oldNodeName, String newNodeName) {
+        for (Element c:elements) {
+            Attr portReference = c.getAttributeNode(attributeName);
             if (portReference == null) continue;
             Iterator<String> portRefIterator = NodeLibrary.PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
             String nodeName = portRefIterator.next();
@@ -322,10 +361,9 @@ public class NodeLibraryUpgrades {
         }
     }
 
-    private static void renamePortInElements(Elements elements, String attributeName, String nodeName, String oldPortName, String newPortName) {
-        for (int i = 0; i < elements.size(); i++) {
-            Element c = elements.get(i);
-            Attribute portReference = c.getAttribute(attributeName);
+    private static void renamePortInNodeList(List<Element> elements, String attributeName, String nodeName, String oldPortName, String newPortName) {
+        for (Element c:elements) {
+            Attr portReference = c.getAttributeNode(attributeName);
             if (portReference == null) continue;
             Iterator<String> portRefIterator = NodeLibrary.PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
             String nodeRef = portRefIterator.next();
@@ -336,10 +374,9 @@ public class NodeLibraryUpgrades {
         }
     }
 
-    private static void renameNodeReference(Elements elements, String attributeName, String oldNodeName, String newNodeName) {
-        for (int i = 0; i < elements.size(); i++) {
-            Element c = elements.get(i);
-            Attribute nodeRef = c.getAttribute(attributeName);
+    private static void renameNodeReference(List<Element> elements, String attributeName, String oldNodeName, String newNodeName) {
+        for (Element c:elements) {
+            Attr nodeRef = c.getAttributeNode(attributeName);
             String nodeName = nodeRef.getValue();
             if (oldNodeName.equals(nodeName)) {
                 nodeRef.setValue(newNodeName);
@@ -348,18 +385,16 @@ public class NodeLibraryUpgrades {
     }
 
     private static void removeNodeInput(Element node, String input) {
-        Elements ports = node.getChildElements("port");
-        for (int i = 0; i < ports.size(); i++) {
-            Element port = ports.get(i);
-            Attribute nameAttr = port.getAttribute("name");
+        for (Element port : childElementsWithName(node, "port")) {
+            Attr nameAttr = port.getAttributeNode("name");
             String portName = nameAttr.getValue();
             if (portName.equals(input)) {
                 node.removeChild(port);
             }
         }
-        if (node.getAttribute("name") != null) {
-            Element parent = (Element) node.getParent();
-            String child = node.getAttribute("name").getValue();
+        if (node.getAttributeNode("name") != null) {
+            Element parent = (Element) node.getParentNode();
+            String child = node.getAttributeNode("name").getValue();
             removeConnection(parent, child, input);
             String publishedInput = getParentPublishedInput(parent, child, input);
             if (publishedInput != null)
@@ -369,11 +404,8 @@ public class NodeLibraryUpgrades {
     }
 
     private static void removeConnection(Element parent, String child, String input) {
-        Elements connections = parent.getChildElements("conn");
-        for (int i = 0; i < connections.size(); i++) {
-            Element conn = connections.get(i);
-            Attribute inputAttr = conn.getAttribute("input");
-            String inputPort = inputAttr.getValue();
+        for (Element conn : childElementsWithName(parent, "conn")) {
+            String inputPort = conn.getAttribute("input");
             if (inputPort.equals(String.format("%s.%s", child, input))) {
                 parent.removeChild(conn);
             }
@@ -381,16 +413,11 @@ public class NodeLibraryUpgrades {
     }
 
     private static void removeConnections(Element parent, String child) {
-        Elements connections = parent.getChildElements("conn");
-        for (int i = 0; i < connections.size(); i++) {
-            Element conn = connections.get(i);
-
-            Attribute inputAttr = conn.getAttribute("input");
-            String inputPort = inputAttr.getValue();
+        for (Element conn : childElementsWithName(parent, "conn")) {
+            String inputPort = conn.getAttribute("input");
             String inputNode = inputPort.split("\\.")[0];
 
-            Attribute outputAttr = conn.getAttribute("output");
-            String outputNode = outputAttr.getValue();
+            String outputNode = conn.getAttribute("output");
 
             if (inputNode.equals(child) || outputNode.equals(child))
                 parent.removeChild(conn);
@@ -398,12 +425,10 @@ public class NodeLibraryUpgrades {
     }
 
     private static String getParentPublishedInput(Element parent, String child, String input) {
-        Elements ports = parent.getChildElements("port");
-        for (int i = 0; i < ports.size(); i++) {
-            Element port = ports.get(i);
-            Attribute childRef = port.getAttribute("childReference");
+        for (Element port : childElementsWithName(parent, "port")) {
+            Attr childRef = port.getAttributeNode("childReference");
             if (childRef != null && childRef.getValue().equals(String.format("%s.%s", child, input))) {
-                return port.getAttribute("name").getValue();
+                return port.getAttribute("name");
             }
         }
         return null;
@@ -411,20 +436,18 @@ public class NodeLibraryUpgrades {
 
     private static List<String> getParentPublishedInputs(Element parent, String child) {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        Elements ports = parent.getChildElements("port");
-        for (int i = 0; i < ports.size(); i++) {
-            Element port = ports.get(i);
-            Attribute childRef = port.getAttribute("childReference");
+        for (Element port : childElementsWithName(parent, "port")) {
+            Attr childRef = port.getAttributeNode("childReference");
             if (childRef != null && childRef.getValue().split("\\.")[0].equals(child)) {
-                builder.add(port.getAttribute("name").getValue());
+                builder.add(port.getAttribute("name"));
             }
         }
         return builder.build();
     }
 
     private static boolean isNodeWithPrototype(Element e, String nodePrototype) {
-        if (e.getLocalName().equals("node")) {
-            Attribute prototype = e.getAttribute("prototype");
+        if (e.getTagName().equals("node")) {
+            Attr prototype = e.getAttributeNode("prototype");
             if (prototype != null && prototype.getValue().equals(nodePrototype)) {
                 return true;
             }
@@ -433,15 +456,55 @@ public class NodeLibraryUpgrades {
     }
 
     private static Element portWithName(Element nodeElement, String portName) {
-        Elements ports = nodeElement.getChildElements("port");
-        for (int i = 0; i < ports.size(); i++) {
-            Element port = ports.get(i);
-            Attribute name = port.getAttribute("name");
-            if (name != null && name.getValue().equals(portName)) {
+        for (Element port : childElementsWithName(nodeElement, "port")) {
+            if (port.getAttribute("name").equals(portName)) {
                 return port;
             }
         }
         return null;
+    }
+
+    private static UpgradeStringResult transformXml(String xml, String newFormatVersion, UpgradeOp... ops) {
+        try {
+
+            DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder;
+            builder = builderFactory.newDocumentBuilder();
+            Document document = builder.parse(new InputSource(new StringReader(xml)));
+
+
+            // Check that this is a NodeBox document and set the new formatVersion.
+            Element root = document.getDocumentElement();
+            checkArgument(root.getTagName().equals("ndbx"), "This is not a valid NodeBox document.");
+            root.setAttribute("formatVersion", newFormatVersion);
+
+            // Loop through all upgrade operations.
+            ArrayList<String> warnings = new ArrayList<String>();
+            for (UpgradeOp op : ops) {
+                op.start(root);
+                transformXmlRecursive(document.getDocumentElement(), op);
+                op.end(root);
+                warnings.addAll(op.getWarnings());
+            }
+
+
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            DOMSource source = new DOMSource(document);
+            StringWriter sw = new StringWriter();
+            StreamResult result = new StreamResult(sw);
+            transformer.transform(source, result);
+            return new UpgradeStringResult(sw.toString(), warnings);
+        } catch (Exception e) {
+            throw new RuntimeException("Error while upgrading to " + newFormatVersion + ".", e);
+        }
+    }
+
+    private static void transformXmlRecursive(Element e, UpgradeOp op) {
+        op.apply(e);
+        for (Element child: childElements(e)) {
+            transformXmlRecursive(child, op);
+        }
     }
 
     private static abstract class UpgradeOp {
@@ -475,7 +538,7 @@ public class NodeLibraryUpgrades {
 
         public void apply(Element e) {
             if (isNodeWithPrototype(e, oldPrototype)) {
-                Attribute prototype = e.getAttribute("prototype");
+                Attr prototype = e.getAttributeNode("prototype");
                 prototype.setValue(newPrototype);
             }
         }
@@ -494,7 +557,7 @@ public class NodeLibraryUpgrades {
 
         public void apply(Element e) {
             if (isNodeWithPrototype(e, prototype)) {
-                e.addAttribute(new Attribute(attributeName, attributeValue));
+                e.setAttribute(attributeName, attributeValue);
             }
         }
     }
@@ -510,21 +573,21 @@ public class NodeLibraryUpgrades {
 
         @Override
         public void apply(Element e) {
-            if (e.getLocalName().equals("node")) {
-                Attribute name = e.getAttribute("name");
+            if (e.getTagName().equals("node")) {
+                Attr name = e.getAttributeNode("name");
                 if (name != null && name.getValue().startsWith(oldPrefix)) {
                     String oldNodeName = name.getValue();
-                    Set<String> childNames = getChildNodeNames(e.getParent());
+                    Set<String> childNames = getChildNodeNames((Element)e.getParentNode());
                     String newNodeName = uniqueName(newPrefix, childNames);
                     name.setValue(newNodeName);
 
-                    Element parent = (Element) e.getParent();
+                    Element parent = (Element) e.getParentNode();
                     renameRenderedChildReference(parent, oldNodeName, newNodeName);
-                    Elements connections = parent.getChildElements("conn");
+                    List<Element> connections = childElementsWithName(parent, "conn");
                     renamePortReference(connections, "input", oldNodeName, newNodeName);
                     renameNodeReference(connections, "output", oldNodeName, newNodeName);
 
-                    Elements ports = parent.getChildElements("port");
+                    List<Element> ports = childElementsWithName(parent, "port");
                     renamePortReference(ports, "childReference", oldNodeName, newNodeName);
                 }
             }
@@ -547,25 +610,25 @@ public class NodeLibraryUpgrades {
 
         @Override
         public void apply(Element e) {
-            if (e.getLocalName().equals("node")) {
+            if (e.getTagName().equals("node")) {
                 if (shouldSkipRoot) {
-                    Element parent = (Element) e.getParent();
-                    if (parent != null && !parent.getLocalName().equals("node"))
+                    Element parent = (Element) e.getParentNode();
+                    if (parent != null && !parent.getTagName().equals("node"))
                         return;
                 }
-                Attribute name = e.getAttribute("name");
+                Attr name = e.getAttributeNode("name");
                 if (name != null && name.getValue().equals(oldNodeName)) {
-                    Set<String> childNames = getChildNodeNames(e.getParent());
+                    Set<String> childNames = getChildNodeNames((Element)e.getParentNode());
                     String newNodeName = uniqueName(newPrefix, childNames);
                     name.setValue(newNodeName);
 
-                    Element parent = (Element) e.getParent();
+                    Element parent = (Element) e.getParentNode();
                     renameRenderedChildReference(parent, oldNodeName, newNodeName);
-                    Elements connections = parent.getChildElements("conn");
+                    List<Element> connections = childElementsWithName(parent, "conn");
                     renamePortReference(connections, "input", oldNodeName, newNodeName);
                     renameNodeReference(connections, "output", oldNodeName, newNodeName);
 
-                    Elements ports = parent.getChildElements("port");
+                    List<Element> ports = childElementsWithName(parent, "port");
                     renamePortReference(ports, "childReference", oldNodeName, newNodeName);
                 }
             }
@@ -603,15 +666,15 @@ public class NodeLibraryUpgrades {
         @Override
         public void apply(Element e) {
             if (isNodeWithPrototype(e, nodePrototype)) {
-                String nodeName = e.getAttributeValue("name");
+                String nodeName = e.getAttribute("name");
                 Element port = portWithName(e, oldPortName);
                 if (port != null)
-                    port.getAttribute("name").setValue(newPortName);
-                Element parent = (Element) e.getParent();
-                Elements connections = parent.getChildElements("conn");
-                renamePortInElements(connections, "input", nodeName, oldPortName, newPortName);
-                Elements ports = parent.getChildElements("port");
-                renamePortInElements(ports, "childReference", nodeName, oldPortName, newPortName);
+                    port.setAttribute("name", newPortName);
+                Element parent = (Element) e.getParentNode();
+                List<Element> connections = childElementsWithName(parent, "conn");
+                renamePortInNodeList(connections, "input", nodeName, oldPortName, newPortName);
+                List<Element> ports = childElementsWithName(parent, "port");
+                renamePortInNodeList(ports, "childReference", nodeName, oldPortName, newPortName);
             }
         }
     }
@@ -636,9 +699,9 @@ public class NodeLibraryUpgrades {
             if (isNodeWithPrototype(e, nodePrototype)) {
                 Element port = portWithName(e, portName);
                 if (port != null) {
-                    Attribute type = port.getAttribute("type");
+                    Attr type = port.getAttributeNode("type");
                     type.setValue(newType);
-                    Attribute value = port.getAttribute("value");
+                    Attr value = port.getAttributeNode("value");
                     if (value != null) {
                         String newValue = valueMappings.get(value.getValue());
                         checkState(newValue != null,
@@ -667,11 +730,11 @@ public class NodeLibraryUpgrades {
         @Override
         public void apply(Element e) {
             if (isNodeWithPrototype(e, nodePrototype)) {
-                Element port = new Element("port");
-                port.addAttribute(new Attribute("name", this.name));
-                port.addAttribute(new Attribute("type", this.type));
-                port.addAttribute(new Attribute("value", this.value));
-                e.insertChild(port, 0);
+                Element port = e.getOwnerDocument().createElement("port");
+                port.setAttribute("name", this.name);
+                port.setAttribute("type", this.type);
+                port.setAttribute("value", this.value);
+                e.appendChild(port);
             }
         }
     }
@@ -688,8 +751,8 @@ public class NodeLibraryUpgrades {
         @Override
         public void apply(Element e) {
             if (isNodeWithPrototype(e, nodePrototype)) {
-                Element parent = (Element) e.getParent();
-                String child = e.getAttribute("name").getValue();
+                Element parent = (Element) e.getParentNode();
+                String child = e.getAttributeNode("name").getValue();
                 removedNodes.add(child);
 
                 List<String> publishedInputs = getParentPublishedInputs(parent, child);
@@ -699,7 +762,7 @@ public class NodeLibraryUpgrades {
 
                 removeConnections(parent, child);
                 renameRenderedChildReference(parent, child, null);
-                e.getParent().removeChild(e);
+                e.getParentNode().removeChild(e);
             }
         }
 
@@ -707,38 +770,6 @@ public class NodeLibraryUpgrades {
         public void end(Element root) {
             if (removedNodes.size() > 0)
                 addWarning(String.format("The '%s' node became obsolete, the following nodes in your network got removed: %s", nodePrototype, removedNodes));
-        }
-    }
-
-    private static UpgradeStringResult transformXml(String xml, String newFormatVersion, UpgradeOp... ops) {
-        try {
-            Document document = new Builder().build(xml, null);
-
-            // Check that this is a NodeBox document and set the new formatVersion.
-            Element root = document.getRootElement();
-            checkArgument(root.getLocalName().equals("ndbx"), "This is not a valid NodeBox document.");
-            root.addAttribute(new Attribute("formatVersion", newFormatVersion));
-
-            // Loop through all upgrade operations.
-            ArrayList<String> warnings = new ArrayList<String>();
-            for (UpgradeOp op : ops) {
-                op.start(root);
-                transformXmlRecursive(document.getRootElement(), op);
-                op.end(root);
-                warnings.addAll(op.getWarnings());
-            }
-            return new UpgradeStringResult(document.toXML(), warnings);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while upgrading to " + newFormatVersion + ".", e);
-        }
-    }
-
-    private static void transformXmlRecursive(Element e, UpgradeOp op) {
-        op.apply(e);
-        Elements children = e.getChildElements();
-        for (int i = 0; i < children.size(); i++) {
-            Element child = children.get(i);
-            transformXmlRecursive(child, op);
         }
     }
 
