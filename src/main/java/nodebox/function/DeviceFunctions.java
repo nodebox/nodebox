@@ -19,7 +19,7 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("realtime", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
     }
 
     public static Point mousePosition(NodeContext context) {
