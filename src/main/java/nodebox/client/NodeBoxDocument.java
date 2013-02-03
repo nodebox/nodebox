@@ -168,11 +168,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (!nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
 
-        if (Application.ENABLE_DEVICE_SUPPORT) {
-            if (!nodeLibrary.hasProperty("oscPort"))
-                nodeLibrary = nodeLibrary.withProperty("oscPort", String.valueOf(randomOSCPort()));
-        }
-
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -225,7 +220,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setJMenuBar(menuBar);
         loaded = true;
 
-        if (Application.ENABLE_DEVICE_SUPPORT) {
+        if (Application.ENABLE_DEVICE_SUPPORT && getOSCPort() > 0) {
             oscP5 = new OscP5(new Object(), getOSCPort());
             oscP5.addListener(new OscEventListener() {
                 @Override
@@ -1459,9 +1454,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private int getOSCPort() {
         try {
-            return Integer.parseInt(getNodeLibrary().getProperty("oscPort", "5555"));
+            return Integer.parseInt(getNodeLibrary().getProperty("oscPort", "-1"));
         } catch (NumberFormatException e) {
-            return 5555;
+            return -1;
         }
     }
 
