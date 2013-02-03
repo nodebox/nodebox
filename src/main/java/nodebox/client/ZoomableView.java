@@ -48,7 +48,14 @@ public class ZoomableView extends JComponent {
         addMouseListener(new MouseHandler());
         addMouseMotionListener(new MouseMotionHandler());
         addMouseWheelListener(new MouseWheelHandler());
-        addFocusListener(new FocusHandler());
+        final FocusHandler fh = new FocusHandler();
+        addFocusListener(fh);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                SwingUtilities.getWindowAncestor(ZoomableView.this).addWindowFocusListener(fh);
+            }
+        });
     }
 
     public double getViewX() {
@@ -203,11 +210,25 @@ public class ZoomableView extends JComponent {
         }
     }
 
-    private class FocusHandler extends FocusAdapter {
+    private class FocusHandler implements WindowFocusListener, FocusListener {
+        @Override
+        public void windowLostFocus(WindowEvent e) {
+            isSpacePressed = false;
+            isPanning = false;
+            setCursor(defaultCursor);
+        }
+
+        @Override
+        public void windowGainedFocus(WindowEvent e) {
+        }
+
+        @Override
+        public void focusGained(FocusEvent e) {
+        }
+
         @Override
         public void focusLost(FocusEvent e) {
             isSpacePressed = false;
-            isPanning = false;
             setCursor(defaultCursor);
         }
     }
