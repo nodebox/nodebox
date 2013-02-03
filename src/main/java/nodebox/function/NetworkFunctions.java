@@ -17,7 +17,6 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class NetworkFunctions {
@@ -48,20 +47,20 @@ public class NetworkFunctions {
         }
     }
 
-    public static Iterable<Object> queryJSON(final Object json, final String query) {
+    public static Iterable<?> queryJSON(final Object json, final String query) {
         if (json instanceof Map) {
-            Map<?,?> requestMap = (Map<?, ?>) json;
+            Map<?, ?> requestMap = (Map<?, ?>) json;
             if (requestMap.containsKey("text")) {
                 return queryJSON(requestMap.get("text"), query);
             } else {
                 throw new IllegalArgumentException("Cannot parse JSON input.");
             }
-        }else if (json instanceof String) {
-            Object results = JsonPath.read((String)json, query);
+        } else if (json instanceof String) {
+            Object results = JsonPath.read((String) json, query);
             if (!(results instanceof Iterable)) {
                 return ImmutableList.of(results);
             } else {
-                return (Iterable<Object>) results;
+                return (Iterable<?>) results;
             }
         } else {
             throw new IllegalArgumentException("Cannot parse JSON input.");
