@@ -1596,6 +1596,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             controller.setRenderedChild(activeNetworkPath, subnet.getName());
 
         String name = JOptionPane.showInputDialog(this, "Network name:", subnet.getName());
+        if (name == null) return;
         if (!name.equals(subnet.getName())) {
             controller.renameNode(activeNetworkPath, subnet.getName(), name);
             subnet = getActiveNetwork().getChild(name);
