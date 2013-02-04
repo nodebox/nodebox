@@ -93,6 +93,7 @@ public class DataSheet extends JPanel implements OutputView {
 
     private final class DataTableModel extends AbstractTableModel {
 
+        public static final int MAX_VALUE_LENGTH = 100;
         private List<Object> outputValues = ImmutableList.of();
         private List<String> keys = ImmutableList.of();
 
@@ -165,8 +166,18 @@ public class DataSheet extends JPanel implements OutputView {
                 return rowIndex;
             } else {
                 String key = keys.get(columnIndex - 1);
-                return o.get(key);
+                return objectToString(o.get(key));
             }
+        }
+
+        public String objectToString(Object o) {
+            String s = o == null ? "<null>" : o.toString();
+            if (s.length() <= MAX_VALUE_LENGTH) {
+                return s;
+            } else {
+                return s.substring(0, MAX_VALUE_LENGTH) + "...";
+            }
+
         }
 
         @Override
