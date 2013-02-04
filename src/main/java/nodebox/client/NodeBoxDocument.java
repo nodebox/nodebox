@@ -1502,7 +1502,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final NodeLibrary exportLibrary = getNodeLibrary();
         final FunctionRepository exportFunctionRepository = getFunctionRepository();
         final Node exportNetwork = library.getRoot();
-        final ExportViewer viewer = new ExportViewer();
+        final Viewer viewer = new Viewer(this);
+
+        final JFrame frame = new JFrame();
+        frame.setLayout(new BorderLayout());
+        frame.setSize(600, 600);
+        frame.setTitle("Exporting...");
+        frame.add(viewer, BorderLayout.CENTER);
+        frame.setLocationRelativeTo(null);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
@@ -1512,12 +1519,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         if (Thread.currentThread().isInterrupted())
                             break;
                         final ImmutableMap<String, ?> data = ImmutableMap.of(
+                                "mouse.position", viewer.getLastMousePosition(),
                                 "osc.messages", oscMessages);
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, data, renderResults);
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
-                        viewer.setOutputValues(results);
+                        viewer.setOutputValues((List<Object>) results);
                         exportDelegate.frameDone(frame, results);
 
                         SwingUtilities.invokeLater(new Runnable() {
@@ -1533,7 +1541,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
                             d.setVisible(false);
-                            viewer.setVisible(false);
+                            frame.setVisible(false);
                         }
                     });
                 }
@@ -1541,7 +1549,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         });
         d.setThread(t);
         t.start();
-        viewer.setVisible(true);
+        frame.setVisible(true);
     }
 
     //// Copy / Paste ////
