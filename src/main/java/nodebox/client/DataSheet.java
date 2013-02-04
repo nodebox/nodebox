@@ -24,7 +24,7 @@ public class DataSheet extends JPanel implements OutputView {
     private final DataTableModel tableModel;
     private final JTable table;
 
-    public DataSheet(NodeBoxDocument document) {
+    public DataSheet() {
         super(new BorderLayout());
         table = new DataTable();
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);

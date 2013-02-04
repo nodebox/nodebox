@@ -34,7 +34,7 @@ public class ViewerPane extends Pane {
         viewer = new Viewer();
         document.addZoomListener(viewer);
         currentView = viewer;
-        dataSheet = new DataSheet(document);
+        dataSheet = new DataSheet();
         contentPanel.add(viewer, VIEWER_CARD);
         contentPanel.add(dataSheet, DATA_SHEET_CARD);
         add(contentPanel, BorderLayout.CENTER);
