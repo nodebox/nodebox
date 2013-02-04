@@ -31,7 +31,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     private static final Cursor defaultCursor, panCursor;
 
-    private final NodeBoxDocument document;
     private final JPopupMenu viewerMenu;
 
     private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
@@ -66,9 +65,8 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         visualizers = ImmutableList.of(CanvasVisualizer.INSTANCE, GrobVisualizer.INSTANCE, PointVisualizer.INSTANCE, ColorVisualizer.INSTANCE);
     }
 
-    public Viewer(final NodeBoxDocument document) {
+    public Viewer() {
         super(MIN_ZOOM, MAX_ZOOM);
-        this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);

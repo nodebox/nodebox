@@ -1502,7 +1502,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final NodeLibrary exportLibrary = getNodeLibrary();
         final FunctionRepository exportFunctionRepository = getFunctionRepository();
         final Node exportNetwork = library.getRoot();
-        final Viewer viewer = new Viewer(this);
+        final Viewer viewer = new Viewer();
 
         final JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
