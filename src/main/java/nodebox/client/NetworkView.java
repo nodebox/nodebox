@@ -519,6 +519,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     private Rectangle dragSelectRect() {
+        if (dragStartPoint == null || dragCurrentPoint == null) return new Rectangle();
         int x0 = (int) dragStartPoint.getX();
         int y0 = (int) dragStartPoint.getY();
         int x1 = (int) dragCurrentPoint.getX();
