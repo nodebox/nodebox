@@ -9,6 +9,6 @@ import java.util.List;
  */
 public interface OutputView extends PaneView {
 
-    public void setOutputValues(List<Object> objects);
+    public void setOutputValues(List<?> objects);
 
 }

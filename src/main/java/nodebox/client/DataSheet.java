@@ -36,7 +36,7 @@ public class DataSheet extends JPanel implements OutputView {
         add(tableScroll, BorderLayout.CENTER);
     }
 
-    public void setOutputValues(List<Object> objects) {
+    public void setOutputValues(List<?> objects) {
         tableModel.setOutputValues(objects);
         table.setModel(tableModel);
     }
@@ -94,14 +94,14 @@ public class DataSheet extends JPanel implements OutputView {
     private final class DataTableModel extends AbstractTableModel {
 
         public static final int MAX_VALUE_LENGTH = 100;
-        private List<Object> outputValues = ImmutableList.of();
+        private List<?> outputValues = ImmutableList.of();
         private List<String> keys = ImmutableList.of();
 
-        public List<Object> getOutputValues() {
+        public List<?> getOutputValues() {
             return outputValues;
         }
 
-        public void setOutputValues(List<Object> outputValues) {
+        public void setOutputValues(List<?> outputValues) {
             if (outputValues == null) {
                 this.outputValues = ImmutableList.of();
             } else {

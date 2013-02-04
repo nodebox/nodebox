@@ -45,7 +45,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private boolean panEnabled = false;
     private boolean viewPositioned = false;
 
-    private java.util.List<Object> outputValues;
+    private java.util.List<?> outputValues;
     private Class valuesClass;
     private Visualizer currentVisualizer;
 
@@ -164,7 +164,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         return outputValues;
     }
 
-    public void setOutputValues(java.util.List<Object> outputValues) {
+    public void setOutputValues(java.util.List<?> outputValues) {
         this.outputValues = outputValues;
         valuesClass = listClass(outputValues);
         Visualizer visualizer = getVisualizer(outputValues, valuesClass);

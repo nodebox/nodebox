@@ -1525,7 +1525,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
-                        viewer.setOutputValues((List<Object>) results);
+                        viewer.setOutputValues((List<?>) results);
                         exportDelegate.frameDone(frame, results);
 
                         SwingUtilities.invokeLater(new Runnable() {
