@@ -102,6 +102,12 @@ public class NetworkFunctions {
                 // 204 No Content
                 return emptyResponse(204);
             }
+        } catch (IllegalStateException e) {
+            if (e.getMessage().startsWith("Target host must not be null")) {
+                throw new RuntimeException("URL should start with \"http://\" or \"https://\".");
+            } else {
+                throw e;
+            }
         } catch (IOException e) {
             // We return status code 408 (Request Timeout) here since we always want to return a valid response.
             // However, the exception signifies an IO error, so maybe the network connection is down.
