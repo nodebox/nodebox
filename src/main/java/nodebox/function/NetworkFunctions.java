@@ -88,12 +88,12 @@ public class NetworkFunctions {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String text = EntityUtils.toString(entity);
-                ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+                HashMap<String,String> m = new HashMap<String, String>();
                 for (Header h : response.getAllHeaders()) {
-                    b.put(h.getName(), h.getValue());
+                    m.put(h.getName(), h.getValue());
                 }
 
-                Map<String, String> headers = b.build();
+                Map<String, String> headers = ImmutableMap.copyOf(m);
                 return ImmutableMap.of(
                         "text", text,
                         "statusCode", response.getStatusLine().getStatusCode(),
