@@ -690,6 +690,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     public Iterable<Node> getSelectedNodes() {
+        if (selectedNodes.isEmpty()) return ImmutableList.of();
         ImmutableList.Builder<Node> b = new ImmutableList.Builder<nodebox.node.Node>();
         for (String name : getSelectedNodeNames()) {
             b.add(findNodeWithName(name));
