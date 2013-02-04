@@ -48,9 +48,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
-    public static final String HIGHLIGHT_PROPERTY = "highlight";
-    public static final String RENDER_PROPERTY = "render";
-    public static final String NETWORK_PROPERTY = "network";
 
     private static Map<String, BufferedImage> fileImageCache = new HashMap<String, BufferedImage>();
     private static BufferedImage nodeGeneric;
@@ -60,7 +57,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
     public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
-    public static final Color NODE_BACKGROUND_COLOR = new Color(123, 154, 152);
     public static final Color PORT_HOVER_COLOR = Color.YELLOW;
     public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
     public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
@@ -251,10 +247,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
     //// Model queries ////
 
-    public Node getActiveNode() {
-        return document.getActiveNode();
-    }
-
     private ImmutableList<Node> getNodes() {
         return getDocument().getActiveNetwork().getChildren();
     }
@@ -364,7 +356,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
         Node renderedNode = getActiveNetwork().getRenderedChild();
         for (Node node : getNodes()) {
-            Port hoverInputPort = overInput != null && overInput.node == node.getName() ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
+            Port hoverInputPort = overInput != null && overInput.node.equals(node.getName()) ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getCachedImageForNode(node);
             paintNode(g, getActiveNetwork(), node, icon, isSelected(node), renderedNode == node, connectionOutput, hoverInputPort, overOutput == node);
         }
@@ -593,10 +585,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         return null;
     }
 
-    public Node getNodeAt(MouseEvent e) {
-        return getNodeAt(e.getPoint());
-    }
-
     public Node getNodeWithOutputPortAt(Point2D point) {
         for (Node node : getNodesReversed()) {
             Rectangle r = outputPortRect(node);
@@ -624,10 +612,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     //// Selections ////
-
-    public boolean isRendered(Node node) {
-        return getActiveNetwork().getRenderedChild() == node;
-    }
 
     public boolean isSelected(Node node) {
         return (selectedNodes.contains(node.getName()));
@@ -921,8 +905,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     public boolean containsPoint(Point point) {
-        if (!isVisible()) return false;
-        return getBounds().contains(point);
+        return isVisible() && getBounds().contains(point);
     }
 
     private void showPopup(MouseEvent e) {
