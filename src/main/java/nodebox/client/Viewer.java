@@ -32,7 +32,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     private Handle handle;
     private boolean showHandle = true;
-    private boolean handleEnabled = true;
     private boolean showPoints = false;
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
@@ -65,12 +64,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public boolean containsPoint(Point point) {
-        if (!isVisible()) return false;
-        return getBounds().contains(point);
-    }
-
-    public boolean isShowHandle() {
-        return showHandle;
+        return isVisible() && getBounds().contains(point);
     }
 
     public void setShowHandle(boolean showHandle) {
@@ -78,26 +72,14 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         repaint();
     }
 
-    public boolean isShowPoints() {
-        return showPoints;
-    }
-
     public void setShowPoints(boolean showPoints) {
         this.showPoints = showPoints;
         repaint();
     }
 
-    public boolean isShowPointNumbers() {
-        return showPointNumbers;
-    }
-
     public void setShowPointNumbers(boolean showPointNumbers) {
         this.showPointNumbers = showPointNumbers;
         repaint();
-    }
-
-    public boolean isShowOrigin() {
-        return showOrigin;
     }
 
     public void setShowOrigin(boolean showOrigin) {
@@ -124,12 +106,8 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     public boolean hasVisibleHandle() {
         if (handle == null) return false;
         if (!showHandle) return false;
-        if (!handleEnabled) return false;
 
-        // Don't show handles when the window offset of LastResortVisualizer and ColorVisualizer
-        // doesn't match the visualizer for Grob, Canvas or Point, resulting in the handle showing up at
-        // a weird location.
-        // Todo: Find a better solution, because this feels a bit hacky.
+        // Don't show handles for LastResortVisualizer and ColorVisualizer.
         if (currentVisualizer instanceof LastResortVisualizer) return false;
         if (currentVisualizer instanceof ColorVisualizer) return false;
 
@@ -137,11 +115,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     //// Network data events ////
-
-
-    public java.util.List getOutputValues() {
-        return outputValues;
-    }
 
     public void setOutputValues(java.util.List<?> outputValues) {
         this.outputValues = outputValues;
@@ -170,25 +143,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
                 return visualizer;
         }
         return DEFAULT_VISUALIZER;
-    }
-
-    //// Node attribute listener ////
-
-
-    public boolean isHandleEnabled() {
-        return handleEnabled;
-    }
-
-    public void setHandleEnabled(boolean handleEnabled) {
-        if (this.handleEnabled != handleEnabled) {
-            this.handleEnabled = handleEnabled;
-            // We could just repaint the handle.
-            repaint();
-        }
-    }
-
-    public void reloadHandle() {
-        // TODO Implement
     }
 
     @Override
