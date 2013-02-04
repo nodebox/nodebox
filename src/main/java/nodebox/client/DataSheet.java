@@ -97,10 +97,6 @@ public class DataSheet extends JPanel implements OutputView {
         private List<?> outputValues = ImmutableList.of();
         private List<String> keys = ImmutableList.of();
 
-        public List<?> getOutputValues() {
-            return outputValues;
-        }
-
         public void setOutputValues(List<?> outputValues) {
             if (outputValues == null) {
                 this.outputValues = ImmutableList.of();
