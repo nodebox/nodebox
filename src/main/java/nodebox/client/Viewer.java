@@ -5,17 +5,14 @@ import nodebox.client.visualizer.*;
 import nodebox.graphics.CanvasContext;
 import nodebox.graphics.IGeometry;
 import nodebox.handle.Handle;
-import nodebox.ui.Platform;
 import nodebox.ui.Theme;
 import nodebox.ui.Zoom;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.io.IOException;
 import java.util.LinkedList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -29,8 +26,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private static final ImmutableList<Visualizer> visualizers;
     private static final Visualizer DEFAULT_VISUALIZER = LastResortVisualizer.INSTANCE;
 
-    private static final Cursor defaultCursor, panCursor;
-
     private final JPopupMenu viewerMenu;
 
     private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
@@ -41,7 +36,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private boolean showPoints = false;
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
-    private boolean panEnabled = false;
     private boolean viewPositioned = false;
 
     private java.util.List<?> outputValues;
@@ -49,19 +43,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private Visualizer currentVisualizer;
 
     static {
-        Image panCursorImage;
-        try {
-            if (Platform.onWindows())
-                panCursorImage = ImageIO.read(Viewer.class.getResourceAsStream("/view-cursor-pan-32.png"));
-            else
-                panCursorImage = ImageIO.read(Viewer.class.getResourceAsStream("/view-cursor-pan.png"));
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
-            panCursor = toolkit.createCustomCursor(panCursorImage, new Point(0, 0), "PanCursor");
-            defaultCursor = Cursor.getDefaultCursor();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
         visualizers = ImmutableList.of(CanvasVisualizer.INSTANCE, GrobVisualizer.INSTANCE, PointVisualizer.INSTANCE, ColorVisualizer.INSTANCE);
     }
 
@@ -213,7 +194,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     @Override
     public void resetViewTransform() {
         Point2D position = currentVisualizer.getOffset(outputValues, getSize());
-            setViewTransform(position.getX(),position.getY(), 1);
+        setViewTransform(position.getX(), position.getY(), 1);
     }
 
     //// Mouse events ////
@@ -296,19 +277,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            panEnabled = true;
-            if (!getCursor().equals(panCursor))
-                setCursor(panCursor);
-        }
         if (hasVisibleHandle())
             handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyReleased(KeyEvent e) {
-        panEnabled = false;
-        if (!getCursor().equals(defaultCursor))
-            setCursor(defaultCursor);
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
