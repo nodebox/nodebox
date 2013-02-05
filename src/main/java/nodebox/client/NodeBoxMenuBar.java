@@ -1,6 +1,5 @@
 package nodebox.client;
 
-import nodebox.ui.CodeArea;
 import nodebox.ui.Platform;
 import nodebox.util.FileUtils;
 
@@ -357,19 +356,12 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             Component c = getDocument().getFocusOwner();
-            if (c instanceof CodeArea) {
-                ((CodeArea) c).undo();
-            } else {
                 getDocument().undo();
-            }
             updateUndoRedoState();
         }
 
         public void update() {
             Component c = getDocument().getFocusOwner();
-            if (c instanceof CodeArea) {
-                setEnabled(true);
-            } else {
                 if (undoManager != null && undoManager.canUndo()) {
                     setEnabled(true);
                     putValue(Action.NAME, undoManager.getUndoPresentationName());
@@ -377,7 +369,6 @@ public class NodeBoxMenuBar extends JMenuBar {
                     setEnabled(false);
                     putValue(Action.NAME, undoText);
                 }
-            }
         }
     }
 
@@ -392,19 +383,12 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             Component c = getDocument().getFocusOwner();
-            if (c instanceof CodeArea) {
-                ((CodeArea) c).redo();
-            } else {
                 getDocument().redo();
-            }
             updateUndoRedoState();
         }
 
         public void update() {
             Component c = getDocument().getFocusOwner();
-            if (c instanceof CodeArea) {
-                setEnabled(true);
-            } else {
                 if (undoManager != null && undoManager.canRedo()) {
                     setEnabled(true);
                     putValue(Action.NAME, undoManager.getRedoPresentationName());
@@ -412,7 +396,6 @@ public class NodeBoxMenuBar extends JMenuBar {
                     setEnabled(false);
                     putValue(Action.NAME, redoText);
                 }
-            }
         }
     }
 
