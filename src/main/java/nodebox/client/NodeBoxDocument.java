@@ -1254,6 +1254,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         stopAnimation();
         if (shouldClose()) {
             Application.getInstance().removeDocument(this);
+            if (oscP5 != null) {
+                oscP5.stop();
+            }
             dispose();
             // On Mac the application does not close if the last window is closed.
             if (!Platform.onMac()) {
