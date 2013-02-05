@@ -236,6 +236,12 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            Component c = SwingUtilities.getWindowAncestor(Viewer.this);
+            if (c instanceof FullScreenFrame)
+                ((FullScreenFrame) c).close();
+        }
+
         if (hasVisibleHandle())
             handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
