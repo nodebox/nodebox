@@ -271,6 +271,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         // Restore original transform
         g2.setClip(null);
         g2.setTransform(originalTransform);
+        g2.setStroke(new BasicStroke(1));
 
         paintOrigin(g2);
     }
