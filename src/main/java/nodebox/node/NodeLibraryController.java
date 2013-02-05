@@ -158,13 +158,17 @@ public class NodeLibraryController {
     }
 
     public Node groupIntoNetwork(String parentPath, Iterable<Node> nodes) {
+        return groupIntoNetwork(parentPath, nodes, "network");
+    }
+
+    public Node groupIntoNetwork(String parentPath, Iterable<Node> nodes, String networkName) {
         Node parent = getNode(parentPath);
         Node newParent = parent;
         for (Node node : nodes) {
             newParent = newParent.withChildRemoved(node.getName());
         }
         Node subnet = Node.NETWORK
-                .withName(newParent.uniqueName("network"))
+                .withName(newParent.uniqueName(networkName))
                 .withChildrenAdded(parent, nodes);
         List<String> nodeNames = new ArrayList<String>();
 
