@@ -503,7 +503,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class FullScreenAction extends  AbstractDocumentAction {
         public FullScreenAction() {
             putValue(NAME, "Full Screen");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, Event.META_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, Event.META_MASK | Event.SHIFT_MASK));
         }
 
         @Override
