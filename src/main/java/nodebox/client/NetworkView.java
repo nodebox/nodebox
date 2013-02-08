@@ -693,6 +693,18 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         }
     }
 
+    private void renameNode(Node node) {
+        String s = JOptionPane.showInputDialog(this, "New name:", node.getName());
+        if (s == null || s.length() == 0)
+            return;
+        try {
+            getDocument().setNodeName(node, s);
+        } catch (InvalidNameException ex) {
+            JOptionPane.showMessageDialog(this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     //// Network navigation ////
 
@@ -713,6 +725,11 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 case KeyEvent.VK_BACK_SPACE:
                     getDocument().deleteSelection();
                     break;
+                case KeyEvent.VK_ENTER:
+                    if (selectedNodes.size() == 1) {
+                        Node node = findNodeWithName(selectedNodes.iterator().next());
+                        renameNode(node);
+                    }
             }
         }
 
@@ -1074,15 +1091,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
         public void actionPerformed(ActionEvent e) {
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
-            String s = JOptionPane.showInputDialog(NetworkView.this, "New name:", node.getName());
-            if (s == null || s.length() == 0)
-                return;
-            try {
-                getDocument().setNodeName(node, s);
-            } catch (InvalidNameException ex) {
-                JOptionPane.showMessageDialog(NetworkView.this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(NetworkView.this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+            if (node != null) {
+                renameNode(node);
             }
         }
     }
