@@ -15,6 +15,7 @@ import java.io.*;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NodeLibrary {
 
@@ -37,7 +38,7 @@ public class NodeLibrary {
     }
 
     private static NodeLibrary create(String libraryName, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
-        return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, ImmutableMap.<String, String>of(), uuid);
+        return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, ImmutableMap.<String, String>of(), ImmutableList.<Device>of(), uuid);
     }
 
     public static NodeLibrary load(String libraryName, String xml, NodeRepository nodeRepository) throws LoadException {
@@ -78,9 +79,10 @@ public class NodeLibrary {
     private final NodeRepository nodeRepository;
     private final FunctionRepository functionRepository;
     private final ImmutableMap<String, String> properties;
+    private final ImmutableList<Device> devices;
     private final UUID uuid;
 
-    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, Map<String, String> properties, UUID uuid) {
+    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, Map<String, String> properties, List<Device> devices, UUID uuid) {
         checkNotNull(name, "Name cannot be null.");
         checkNotNull(root, "Root node cannot be null.");
         checkNotNull(functionRepository, "Function repository cannot be null.");
@@ -90,6 +92,7 @@ public class NodeLibrary {
         this.functionRepository = functionRepository;
         this.file = file;
         this.properties = ImmutableMap.copyOf(properties);
+        this.devices = ImmutableList.copyOf(devices);
         this.uuid = uuid;
     }
 
@@ -182,8 +185,42 @@ public class NodeLibrary {
     }
 
     public NodeLibrary withProperties(Map<String, String> properties) {
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, ImmutableMap.copyOf(properties), this.uuid);
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, ImmutableMap.copyOf(properties), this.devices, this.uuid);
+    }
 
+
+    public ImmutableList<Device> getDevices() {
+        return devices;
+    }
+
+    public boolean hasDevice(String name) {
+        for (Device device : devices) {
+            if (device.getName().equals(name))
+                return true;
+        }
+        return false;
+    }
+
+    public NodeLibrary withDeviceAdded(Device device) {
+        checkNotNull(device, "Device cannot be null.");
+        checkArgument(! hasDevice(device.getName()), "There is already a device named %s", device.getName());
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        b.addAll(getDevices());
+        b.add(device);
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
+    }
+
+    public NodeLibrary withDeviceRemoved(Device device) {
+        return withDeviceRemoved(device.getName());
+    }
+
+    public NodeLibrary withDeviceRemoved(String name) {
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        for (Device device : getDevices()) {
+            if (! device.getName().equals(name))
+                b.add(device);
+        }
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
     }
 
     //// Loading ////
@@ -238,7 +275,7 @@ public class NodeLibrary {
             }
         }
         FunctionLibrary[] fl = functionLibraries.toArray(new FunctionLibrary[functionLibraries.size()]);
-        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, uuid);
+        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, ImmutableList.<Device>of(), uuid);
     }
 
     private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
@@ -484,15 +521,15 @@ public class NodeLibrary {
     ///// Mutation methods ////
 
     public NodeLibrary withRoot(Node newRoot) {
-        return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.properties, this.uuid);
+        return new NodeLibrary(this.name, this.file, newRoot, this.nodeRepository, this.functionRepository, this.properties, this.devices, this.uuid);
     }
 
     public NodeLibrary withFunctionRepository(FunctionRepository newRepository) {
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.properties, this.uuid);
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, newRepository, this.properties, this.devices, this.uuid);
     }
 
     public NodeLibrary withFile(File newFile) {
-        return new NodeLibrary(this.name, newFile, this.root, this.nodeRepository, this.functionRepository, this.properties, this.uuid);
+        return new NodeLibrary(this.name, newFile, this.root, this.nodeRepository, this.functionRepository, this.properties, this.devices, this.uuid);
     }
 
     //// Saving ////
