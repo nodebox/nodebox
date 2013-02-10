@@ -3,7 +3,7 @@ package nodebox.client;
 import javax.swing.*;
 import java.awt.*;
 
-public class DevicesDialog extends JDialog {
+public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyChangeListener {
     private JPanel controlPanel;
 
     private NodeBoxDocument document;
@@ -32,6 +32,8 @@ public class DevicesDialog extends JDialog {
 
         for (DeviceHandler deviceHandler : document.getDeviceHandlers()) {
             JComponent control = deviceHandler.createControl();
+            ((DeviceControl) control).setPropertyChangeListener(this);
+
             GridBagConstraints rowConstraints = new GridBagConstraints();
             rowConstraints.gridx = 0;
             rowConstraints.gridy = rowIndex;
@@ -53,4 +55,9 @@ public class DevicesDialog extends JDialog {
         controlPanel.add(filler, fillerConstraints);
         validate();
     }
+
+    public void onPropertyChange(String deviceName, String key, String newValue) {
+        document.setDeviceProperty(deviceName, key, newValue);
+    }
+
 }

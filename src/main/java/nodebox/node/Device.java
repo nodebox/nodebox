@@ -62,8 +62,8 @@ public class Device {
     }
 
     public Device withProperty(String name, String value) {
-        Map<String, String> b = new HashMap<String, String>();
         checkArgument(isValidProperty(name), "Property name '%s' is not valid.", name);
+        Map<String, String> b = new HashMap<String, String>();
         b.putAll(properties);
         b.put(name, value);
         return new Device(this.name, this.type, ImmutableMap.copyOf(b));
