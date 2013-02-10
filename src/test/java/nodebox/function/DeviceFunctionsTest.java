@@ -25,6 +25,7 @@ public class DeviceFunctionsTest {
     private final Node oscReceiveNode = Node.ROOT
             .withOutputRange(Port.Range.LIST)
             .withFunction("device/receiveOSC")
+            .withInputAdded(Port.stringPort("device_name", "osc"))
             .withInputAdded(Port.stringPort("prefix", "/"))
             .withInputAdded(Port.stringPort("args", ""))
             .withInputAdded(Port.customPort("context", "context"));

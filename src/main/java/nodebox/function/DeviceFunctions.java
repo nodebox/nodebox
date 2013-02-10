@@ -43,8 +43,8 @@ public class DeviceFunctions {
     }
 
     @SuppressWarnings("unchecked")
-    public static List<Map<String, Object>> receiveOSC(String oscAddressPrefix, String arguments, NodeContext context) {
-        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get("osc.messages");
+    public static List<Map<String, Object>> receiveOSC(String deviceName, String oscAddressPrefix, String arguments, NodeContext context) {
+        Map<String, List<Object>> oscMessages = (Map<String, List<Object>>) context.getData().get(deviceName + ".messages");
         if (oscMessages == null) return ImmutableList.of();
         if (oscAddressPrefix.isEmpty()) return ImmutableList.of();
         Pattern userPattern = Pattern.compile("(<[a-z0-9-_]+?(?::[ifs]|:string|:int|:float)?>)+");

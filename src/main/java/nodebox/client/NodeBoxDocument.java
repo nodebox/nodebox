@@ -14,10 +14,6 @@ import nodebox.node.MenuItem;
 import nodebox.ui.*;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
-import oscP5.OscEventListener;
-import oscP5.OscMessage;
-import oscP5.OscP5;
-import oscP5.OscStatus;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -77,9 +73,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private Iterable<?> lastRenderResult = null;
     private Map<Node, List<?>> renderResults = ImmutableMap.of();
 
-    // OSC
-    private OscP5 oscP5;
-    private Map<String, List<Object>> oscMessages = new HashMap<String, List<Object>>();
 
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -95,6 +88,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private final ProgressPanel progressPanel;
 
     private List<Zoom> zoomListeners = new ArrayList<Zoom>();
+
+    private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -220,25 +215,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setJMenuBar(menuBar);
         loaded = true;
 
-        if (Application.ENABLE_DEVICE_SUPPORT && getOSCPort() > 0) {
-            oscP5 = new OscP5(new Object(), getOSCPort());
-            oscP5.addListener(new OscEventListener() {
-                @Override
-                public void oscEvent(OscMessage m) {
-                    ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
-                    oscMessages.put(m.addrPattern(), arguments);
-                }
-
-                @Override
-                public void oscStatus(OscStatus ignored) {
-                }
-            });
-            addressBar.setMessage("OSC Port " + getOSCPort());
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            for (Device device : getNodeLibrary().getDevices()) {
+                DeviceHandler handler = DeviceHandlerFactory.createDeviceHandler(device);
+                if (handler != null)
+                    deviceHandlers.add(handler);
+            }
+//            addressBar.setMessage("OSC Port " + getOSCPort());
         }
-    }
-
-    private static int randomOSCPort() {
-        return 1024 + (int) Math.round(Math.random() * 10000);
     }
 
     //// Node Library management ////
@@ -1078,9 +1062,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         progressPanel.setInProgress(true);
         final NodeLibrary renderLibrary = getNodeLibrary();
         final Node renderNetwork = getRenderedNode();
-        final ImmutableMap<String, ?> data = ImmutableMap.of(
-                "mouse.position", viewerPane.getViewer().getLastMousePosition(),
-                "osc.messages", oscMessages);
+
+        ImmutableMap.Builder<String, Object> dataBuilder = new ImmutableMap.Builder<String, Object>();
+        dataBuilder.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
+        for (DeviceHandler handler : deviceHandlers) {
+            if (handler instanceof OSCDeviceHandler) {
+                OSCDeviceHandler h = (OSCDeviceHandler) handler;
+                dataBuilder.put(h.getName() + ".messages", h.getOscMessages());
+            }
+        }
+        final ImmutableMap<String, ?> data = dataBuilder.build();
+
         final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
@@ -1255,9 +1247,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         stopAnimation();
         if (shouldClose()) {
             Application.getInstance().removeDocument(this);
-            if (oscP5 != null) {
-                oscP5.stop();
-            }
+            for (DeviceHandler handler : deviceHandlers)
+                handler.stop();
             dispose();
             // On Mac the application does not close if the last window is closed.
             if (!Platform.onMac()) {
@@ -1456,13 +1447,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    private int getOSCPort() {
+    /*private int getOSCPort() {
         try {
             return Integer.parseInt(getNodeLibrary().getProperty("oscPort", "-1"));
         } catch (NumberFormatException e) {
             return -1;
         }
-    }
+    }*/
 
 
     private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
@@ -1523,8 +1514,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         if (Thread.currentThread().isInterrupted())
                             break;
                         final ImmutableMap<String, ?> data = ImmutableMap.of(
-                                "mouse.position", viewer.getLastMousePosition(),
-                                "osc.messages", oscMessages);
+                                "mouse.position", viewer.getLastMousePosition() );//,
+                                //"osc.messages", oscMessages);
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, data, renderResults);
 
                         List<?> results = context.renderNode(exportNetwork);

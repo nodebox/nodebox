@@ -19,7 +19,7 @@ public class Device {
     private final String type;
     private final ImmutableMap<String, String> properties;
 
-    private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port)$");
+    private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|autostart)$");
 
     private final transient int hashCode;
 
@@ -31,8 +31,8 @@ public class Device {
         validPropertyNames = builder.build();
     }
 
-    public static Device oscDevice(String name, long port) {
-        return new Device(name, TYPE_OSC, ImmutableMap.<String, String>of("port", String.valueOf(port)));
+    public static Device oscDevice(String name, long port, boolean autostart) {
+        return new Device(name, TYPE_OSC, ImmutableMap.<String, String>of("port", String.valueOf(port), "autostart", String.valueOf(autostart)));
     }
 
     public static Device deviceForType(String name, String type) {
