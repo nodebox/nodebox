@@ -58,16 +58,4 @@ public class DevicesDialog extends JDialog {
         controlPanel.add(filler, fillerConstraints);
         validate();
     }
-
-    @SuppressWarnings("unchecked")
-    private DeviceControl constructControl(Class controlClass, DeviceHandler d) {
-        try {
-            Constructor constructor = controlClass.getConstructor(DeviceHandler.class);
-            return (DeviceControl) constructor.newInstance(d);
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Cannot construct control", e);
-            throw new AssertionError("Cannot construct control:" + e);
-        }
-    }
-
 }
