@@ -11,6 +11,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +130,13 @@ public class OSCDeviceHandler implements DeviceHandler {
             portNumberField.setText(String.valueOf(getPort()));
             autoStartCheck = new JCheckBox("autostart");
             autoStartCheck.setSelected(isAutoStart());
+            autoStartCheck.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent itemEvent) {
+                    autostart = autoStartCheck.isSelected();
+                    setPropertyValue("autostart", String.valueOf(autostart));
+                }
+            });
             startButton = new JButton();
             if (isRunning()) {
                 startButton.setText(isPaused() ? "Start" : "Pause");

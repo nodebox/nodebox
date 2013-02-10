@@ -376,6 +376,10 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
 
+    public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
+        nodeLibrary = nodeLibrary.withDevicePropertyChanged(deviceName, propertyName, propertyValue);
+    }
+
     /**
      * Replace the node at the given path with the new node.
      * Afterwards, the nodeLibrary field is set to the new NodeLibrary.

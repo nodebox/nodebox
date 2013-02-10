@@ -201,6 +201,14 @@ public class NodeLibrary {
         return false;
     }
 
+    public Device getDevice(String name) {
+        for (Device device : devices) {
+            if (device.getName().equals(name))
+                return device;
+        }
+        return null;
+    }
+
     public NodeLibrary withDeviceAdded(Device device) {
         checkNotNull(device, "Device cannot be null.");
         checkArgument(! hasDevice(device.getName()), "There is already a device named %s", device.getName());
@@ -218,6 +226,19 @@ public class NodeLibrary {
         ImmutableList.Builder<Device> b = ImmutableList.builder();
         for (Device device : getDevices()) {
             if (! device.getName().equals(name))
+                b.add(device);
+        }
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
+    }
+
+    public NodeLibrary withDevicePropertyChanged(String deviceName, String propertyName, String propertyValue) {
+        checkArgument(hasDevice(deviceName), "No device %s present.");
+        Device newDevice = getDevice(deviceName).withProperty(propertyName, propertyValue);
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        for (Device device : getDevices()) {
+            if (device.getName().equals(deviceName))
+                b.add(newDevice);
+            else
                 b.add(device);
         }
         return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);

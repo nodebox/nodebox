@@ -756,6 +756,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
+        checkNotNull(deviceName, "Device name cannot be null.");
+        checkArgument(getNodeLibrary().hasDevice(deviceName));
+        addEdit("Change Device Property");
+        controller.setDeviceProperty(deviceName, propertyName, propertyValue);
+    }
+
     public void setPortMetadata(Port port, String key, String value) {
         addEdit("Change Port Metadata");
         throw new UnsupportedOperationException("Not implemented yet.");
