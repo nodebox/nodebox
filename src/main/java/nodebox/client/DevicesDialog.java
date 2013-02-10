@@ -2,13 +2,8 @@ package nodebox.client;
 
 import javax.swing.*;
 import java.awt.*;
-import java.lang.reflect.Constructor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DevicesDialog extends JDialog {
-    private static Logger logger = Logger.getLogger("nodebox.client.DevicesDialog");
-
     private JPanel controlPanel;
 
     private NodeBoxDocument document;
