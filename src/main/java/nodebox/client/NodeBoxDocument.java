@@ -225,6 +225,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    public List<DeviceHandler> getDeviceHandlers() {
+        return ImmutableList.copyOf(deviceHandlers);
+    }
+
     //// Node Library management ////
 
     public NodeLibrary getNodeLibrary() {
@@ -1655,6 +1659,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             controller.setProperties(dialog.getProperties());
             requestRender();
         }
+    }
+
+    public void showDevices() {
+        DevicesDialog dialog = new DevicesDialog(this);
+        dialog.setVisible(true);
     }
 
     public void reload() {
