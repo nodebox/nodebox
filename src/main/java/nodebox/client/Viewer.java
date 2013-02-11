@@ -60,7 +60,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     }
 
     public void zoom(double scaleDelta) {
-        super.zoom(scaleDelta, getWidth() / 2, getHeight() / 2);
+        super.zoom(scaleDelta, getWidth() / 2.0, getHeight() / 2.0);
     }
 
     public boolean containsPoint(Point point) {
@@ -248,7 +248,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     @Override
     public void paintComponent(Graphics g) {
         if (!viewPositioned) {
-            setViewPosition(getWidth() / 2, getHeight() / 2);
+            setViewPosition(getWidth() / 2.0, getHeight() / 2.0);
             viewPositioned = true;
         }
         Graphics2D g2 = (Graphics2D) g;
