@@ -29,22 +29,20 @@ public class NetworkFunctions {
                 "httpGet", "queryJSON");
     }
 
-    public static Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
+    public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
         Integer cacheKey = Objects.hashCode(url, username, password);
-        synchronized (cacheKey) {
-            if (responseCache.containsKey(cacheKey)) {
-                Response r = responseCache.get(cacheKey);
-                long timeNow = nowSeconds();
-                long timeFetched = r.timeFetched;
-                if ((timeNow - timeFetched) <= refreshTimeSeconds) {
-                    return r.response;
-                }
+        if (responseCache.containsKey(cacheKey)) {
+            Response r = responseCache.get(cacheKey);
+            long timeNow = nowSeconds();
+            long timeFetched = r.timeFetched;
+            if ((timeNow - timeFetched) <= refreshTimeSeconds) {
+                return r.response;
             }
-            Map<String, Object> r = _httpGet(url, username, password);
-            Response res = new Response(nowSeconds(), r);
-            responseCache.put(cacheKey, res);
-            return r;
         }
+        Map<String, Object> r = _httpGet(url, username, password);
+        Response res = new Response(nowSeconds(), r);
+        responseCache.put(cacheKey, res);
+        return r;
     }
 
     public static Iterable<?> queryJSON(final Object json, final String query) {
@@ -88,7 +86,7 @@ public class NetworkFunctions {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 String text = EntityUtils.toString(entity);
-                HashMap<String,String> m = new HashMap<String, String>();
+                HashMap<String, String> m = new HashMap<String, String>();
                 for (Header h : response.getAllHeaders()) {
                     m.put(h.getName(), h.getValue());
                 }
