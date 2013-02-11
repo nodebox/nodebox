@@ -16,8 +16,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class AddressBar extends JPanel implements MouseListener {
 
-    public static Image addressGradient;
-    public static Image addressArrow;
+    public static final Image addressGradient;
+    public static final Image addressArrow;
 
     private static ImmutableList<String> ROOT_LIST = ImmutableList.of("root");
     public static final int ADDRESS_BAR_HEIGHT = 25;

@@ -13,12 +13,12 @@ import java.util.Locale;
 import java.util.Map;
 
 public class PlatformUtils {
-    public static int WIN = 1;
-    public static int MAC = 2;
-    public static int OTHER = 3;
+    public static final int WIN = 1;
+    public static final int MAC = 2;
+    public static final int OTHER = 3;
 
-    public static int current_platform = -1;
-    public static int platformSpecificModifier;
+    public static final int current_platform;
+    public static final int platformSpecificModifier;
 
     public static final String SEP = System.getProperty("file.separator");
 
@@ -26,9 +26,9 @@ public class PlatformUtils {
     private static Map<String, Object> JNA_OPTIONS = new HashMap<String, Object>();
 
     static {
-        try {
+        if (!GraphicsEnvironment.isHeadless()) {
             platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        } catch (HeadlessException e) {
+        } else {
             platformSpecificModifier = Event.CTRL_MASK;
         }
         if (Platform.isWindows()) {

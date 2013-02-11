@@ -7,14 +7,14 @@ import java.io.IOException;
 
 public class PaneHeader extends JPanel {
 
-    public static Image paneHeaderBackground, paneHeaderOptions;
+    public static final Image paneHeaderBackground, paneHeaderOptions;
 
     static {
         try {
             paneHeaderBackground = ImageIO.read(PaneHeader.class.getResourceAsStream("/pane-header-background.png"));
             paneHeaderOptions = ImageIO.read(PaneHeader.class.getResourceAsStream("/pane-header-options.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

@@ -14,8 +14,8 @@ import java.io.IOException;
  */
 public class ProgressPanel extends JComponent {
 
-    public static Image backgroundImage;
-    public static Icon stopOnIcon, stopOffIcon;
+    public static final Image backgroundImage;
+    public static final Icon stopOnIcon, stopOffIcon;
     private static final int PROGRESS_PANEL_HEIGHT = AddressBar.ADDRESS_BAR_HEIGHT;
     private static final int PROGRESS_PANEL_WIDTH = 45;
 
@@ -25,7 +25,7 @@ public class ProgressPanel extends JComponent {
             stopOnIcon = new ImageIcon(ProgressPanel.class.getResource("/progress-stop-on.png"));
             stopOffIcon = new ImageIcon(ProgressPanel.class.getResource("/progress-stop-off.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 

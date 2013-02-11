@@ -7,13 +7,13 @@ import java.io.IOException;
 
 public class Divider extends JComponent {
 
-    public static Image paneHeaderDivider;
+    public static final Image paneHeaderDivider;
 
     static {
         try {
             paneHeaderDivider = ImageIO.read(Divider.class.getResourceAsStream("/pane-header-divider.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
