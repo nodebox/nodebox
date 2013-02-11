@@ -667,4 +667,23 @@ public class NodeContextTest {
         assertResultsEqual(net, clampedInvertNode, -10.0);
     }
 
+    @Test
+    public void testStoreIntermediateResults() {
+        Node increase = Node.ROOT
+                .withName("increase")
+                .withFunction("side-effects/increaseAndCount")
+                .withInputAdded(Port.floatPort("counter", 42.0));
+
+        Node network = Node.NETWORK
+                .withChildAdded(addNode)
+                .withChildAdded(increase)
+                .connect("increase", "add", "v1")
+                .connect("increase", "add", "v2");
+
+        SideEffects.reset();
+
+        assertResultsEqual(network, addNode, 86.0);
+        assertEquals(1L, SideEffects.theCounter);
+    }
+
 }
