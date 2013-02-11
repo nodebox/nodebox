@@ -1,20 +1,14 @@
 package nodebox.node;
 
-import java.util.logging.Logger;
+import com.google.common.base.Objects;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Version {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^([0-9]+\\.){0,2}[0-9]+$");
-
-    private static Logger logger = Logger.getLogger("nodebox.node.Version");
-
-    private int major, minor, revision;
-
-    public static Version parseVersionString(String s) throws IllegalArgumentException {
-        return new Version(s);
-    }
+    private final int major, minor, revision;
 
     public Version() {
         major = 1;
@@ -35,15 +29,30 @@ public class Version {
     public Version(String versionString) throws IllegalArgumentException {
         Matcher m = VERSION_PATTERN.matcher(versionString);
         if (!m.matches()) {
-            throw new IllegalArgumentException("Version string " + versionString + " is not a valid version (expection 1.0.0)");
+            throw new IllegalArgumentException("Version string " + versionString + " is not a valid version (expecting 1.0.0)");
         }
         String[] bits = versionString.split("\\.");
-        if (bits.length >= 1)
+        if (bits.length == 0) {
+            major = 0;
+            minor = 0;
+            revision = 0;
+        } else if (bits.length == 1) {
             major = Integer.parseInt(bits[0]);
-        if (bits.length >= 2)
+            minor = 0;
+            revision = 0;
+        } else if (bits.length == 2) {
+            major = Integer.parseInt(bits[0]);
             minor = Integer.parseInt(bits[1]);
-        if (bits.length >= 3)
+            revision = 0;
+        } else {
+            major = Integer.parseInt(bits[0]);
+            minor = Integer.parseInt(bits[1]);
             revision = Integer.parseInt(bits[2]);
+        }
+    }
+
+    public static Version parseVersionString(String s) throws IllegalArgumentException {
+        return new Version(s);
     }
 
     public int getMajor() {
@@ -66,6 +75,10 @@ public class Version {
         return major == v.major &&
                 minor == v.minor &&
                 revision == v.revision;
+    }
+
+    public int hashCode() {
+        return Objects.hashCode(major, minor, revision);
     }
 
     public boolean largerThan(Version other) {
@@ -92,8 +105,4 @@ public class Version {
         return major + "." + minor + "." + revision;
     }
 
-    @Override
-    public Version clone() {
-        return new Version(major, minor, revision);
-    }
 }
