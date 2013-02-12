@@ -585,17 +585,19 @@ public class CoreVectorFunctions {
      * Deform geometry by attracting / repelling it from a point.
      *
      * @param input  The input geometry.
-     * @param point  The target point to use for attraction.
+     * @param target  The target point to use for attraction.
      * @param force The force of attraction.
      * @return New, deformed geometry.
      */
-    public static IGeometry magnet(IGeometry shape, final Point point, final double force) {
+    public static IGeometry magnet(IGeometry shape, final Point target, final double force) {
         return shape.mapPoints(new Function<Point, Point>() {
             @Override
             public Point apply(Point input) {
-                double d = distance(input, point);
-                double a = angle(input, point);
-                return reflect(point, input, a, d * force / 10000.0);
+                double d = distance(input, target);
+                d = force / d;
+                double dx = (input.x - target.x) * d;
+                double dy = (input.y - target.y) * d;
+                return new Point(input.x + dx, input.y + dy);
             }
         });
     }
