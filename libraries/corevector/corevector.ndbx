@@ -146,6 +146,10 @@
                 <menu key="vertical" label="Vertical"/>
             </port>
         </node>
+        <node description="Deform geometry by attracting or repelling it from a point." function="corevector/magnet" image="generic.png" name="magnet" outputType="geometry" position="16.00,12.00" prototype="filter">
+            <port name="point" range="value" type="point" value="0.00,0.00" description="The center point of deformation."/>
+            <port name="force" range="value" type="float" value="1.0" description="The force of attraction."/>
+        </node>
         <node description="Create a point from X/Y coordinates." function="corevector/makePoint" image="make_point.png" name="make_point" outputType="point" position="16.00,12.00" prototype="generator">
             <port name="x" range="value" type="float" value="0.0" widget="float" description="The X position of the point."/>
             <port name="y" range="value" type="float" value="0.0" widget="float" description="The Y position of the point."/>

@@ -12,7 +12,7 @@ import java.awt.geom.Arc2D;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static nodebox.function.MathFunctions.coordinates;
+import static nodebox.function.MathFunctions.*;
 
 /**
  * Core vector function library.
@@ -25,7 +25,7 @@ public class CoreVectorFunctions {
         LIBRARY = JavaLibrary.ofClass("corevector", CoreVectorFunctions.class,
                 "generator", "filter",
                 "align", "arc", "centroid", "colorize", "connect", "copy", "doNothing", "ellipse", "fit", "fitTo",
-                "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "point", "pointOnPath", "rect",
+                "freehand", "grid", "group", "line", "lineAngle", "link", "magnet", "makePoint", "point", "pointOnPath", "rect",
                 "snap", "skew", "toPoints", "ungroup", "textpath",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "snapHandle",
                 "translateHandle");
@@ -493,7 +493,7 @@ public class CoreVectorFunctions {
      * @param position The grid position.
      * @return The snapped geometry.
      */
-    public static AbstractGeometry snap(AbstractGeometry shape, final double distance, final double strength, final Point position) {
+    public static IGeometry snap(IGeometry shape, final double distance, final double strength, final Point position) {
         if (shape == null) return null;
         final double dStrength = strength / 100.0;
         return shape.mapPoints(new Function<Point, Point>() {
@@ -582,6 +582,25 @@ public class CoreVectorFunctions {
     }
 
     /**
+     * Deform geometry by attracting / repelling it from a point.
+     *
+     * @param input  The input geometry.
+     * @param point  The target point to use for attraction.
+     * @param force The force of attraction.
+     * @return New, deformed geometry.
+     */
+    public static IGeometry magnet(IGeometry shape, final Point point, final double force) {
+        return shape.mapPoints(new Function<Point, Point>() {
+            @Override
+            public Point apply(Point input) {
+                double d = distance(input, point);
+                double a = angle(input, point);
+                return reflect(point, input, a, d * force / 10000.0);
+            }
+        });
+    }
+
+    /**
      * Create a new point with the given x,y coordinates.
      *
      * @param x The x coordinate.
@@ -631,7 +650,7 @@ public class CoreVectorFunctions {
                 parseX = true;
             }
         }
-        if (! parseX)
+        if (!parseX)
             throw new IllegalArgumentException("Could not parse point " + lastString);
         return contour;
     }

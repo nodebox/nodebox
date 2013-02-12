@@ -1,5 +1,7 @@
 package nodebox.graphics;
 
+import com.google.common.base.Function;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -117,6 +119,15 @@ public interface IGeometry extends Grob {
      * @return a flattened copy.
      */
     public IGeometry flattened();
+
+    /**
+     * Change all points in the geometry and return a mutated copy.
+     * The original geometry remains unchanged.
+     *
+     * @param pointFunction The function to apply to each point.
+     * @return The new geometry.
+     */
+    public IGeometry mapPoints(Function<Point, Point> pointFunction);
 
     /**
      * Clone the geometry, returning a new copy that is totally independent from the original.
