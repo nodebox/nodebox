@@ -37,6 +37,16 @@ public class DataFunctionsTest {
     }
 
     @Test
+    public void testNestedLookup() {
+        Map<String, Integer> m = ImmutableMap.of("alpha", 1, "beta", 2, "gamma", 3);
+        Map<String, Map<String, Integer>> mm = ImmutableMap.of("greek", m);
+        assertEquals(1, lookup(mm, "greek.alpha"));
+        assertEquals(2, lookup(mm, "greek.beta"));
+        assertNull(lookup(mm, "greek.xxx"));
+        assertNull(lookup(mm, "greek.alpha.test"));
+    }
+
+    @Test
     public void testImportCSV() {
         List<Map<String, Object>> l = importSimpleCSV("src/test/files/colors.csv");
         assertEquals(5, l.size());
