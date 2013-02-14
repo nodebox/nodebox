@@ -7,6 +7,8 @@ public class DeviceHandlerFactory {
     public static DeviceHandler createDeviceHandler(Device device) {
         if (device.getType().equals(Device.TYPE_OSC))
             return createOSCDeviceHandler(device);
+        else if (device.getType().equals(Device.TYPE_KINECT))
+            return createKinectDeviceHandler(device);
         return null;
     }
 
@@ -16,6 +18,11 @@ public class DeviceHandlerFactory {
         OSCDeviceHandler handler = new OSCDeviceHandler(device.getName(), port, autostart);
         if (autostart)
             handler.start();
+        return handler;
+    }
+
+    private static DeviceHandler createKinectDeviceHandler(Device device) {
+        DeviceHandler handler = new KinectDeviceHandler(device.getName());
         return handler;
     }
 }

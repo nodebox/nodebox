@@ -19,7 +19,7 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "kinectSkeleton");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -160,6 +160,26 @@ public class DeviceFunctions {
 
         UdpClient c = new UdpClient(ipAddress, (int) port);
         c.send(message.getBytes());
+    }
+
+    public static List<Map<String, Object>> kinectSkeleton(NodeContext context) {
+        Map<Integer, Map<String, List<Float>>> data = (Map<Integer, Map<String, List<Float>>>) context.getData().get("kinect.skeletondata");
+        if (data == null) return ImmutableList.of();
+        if (data.isEmpty()) return ImmutableList.of();
+
+        ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
+        for (int userId : data.keySet()) {
+            for (Map.Entry<String, List<Float>> entry : data.get(userId).entrySet()) {
+                ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                mb.put("userid", userId);
+                List<Float> xyz = entry.getValue();
+                mb.put("x", xyz.get(0));
+                mb.put("y", xyz.get(1));
+                mb.put("z", xyz.get(2));
+                b.add(mb.build());
+            }
+        }
+        return b.build();
     }
 }
 

@@ -13,7 +13,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Device {
     public static final String TYPE_OSC = "osc";
-    public static final ImmutableList<String> deviceTypes = ImmutableList.of(TYPE_OSC);
+    public static final String TYPE_KINECT = "kinect";
+    public static final ImmutableList<String> deviceTypes = ImmutableList.of(TYPE_OSC, TYPE_KINECT);
 
     private final String name;
     private final String type;
@@ -33,6 +34,10 @@ public class Device {
 
     public static Device oscDevice(String name, long port, boolean autostart) {
         return new Device(name, TYPE_OSC, ImmutableMap.<String, String>of("port", String.valueOf(port), "autostart", String.valueOf(autostart)));
+    }
+
+    public static Device kinectDevice(String name) {
+        return new Device(name, TYPE_KINECT, ImmutableMap.<String, String>of());
     }
 
     public static Device deviceForType(String name, String type) {

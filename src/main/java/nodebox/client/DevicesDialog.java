@@ -109,6 +109,7 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
     private class DevicesPopupMenu extends JPopupMenu {
         private DevicesPopupMenu() {
             add(new AddDeviceHandlerAction("osc", "OSC"));
+            add(new AddDeviceHandlerAction("kinect", "Kinect"));
         }
     }
 

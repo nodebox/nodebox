@@ -1101,6 +1101,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             if (handler instanceof OSCDeviceHandler) {
                 OSCDeviceHandler h = (OSCDeviceHandler) handler;
                 dataBuilder.put(h.getName() + ".messages", h.getOscMessages());
+            } else if (handler instanceof  KinectDeviceHandler) {
+                KinectDeviceHandler h = (KinectDeviceHandler) handler;
+                dataBuilder.put("kinect.skeletondata", h.getSkeletonData());
             }
         }
         final ImmutableMap<String, ?> data = dataBuilder.build();

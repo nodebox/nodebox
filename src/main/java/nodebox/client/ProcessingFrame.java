@@ -25,6 +25,12 @@ public class ProcessingFrame extends JFrame {
         setSize(500, 500);
     }
 
+    public void stop() {
+        applet.stop();
+        applet.context.dispose();
+        applet.destroy();
+    }
+
     public Map<Integer, Map<String, List<Float>>> getSkeletonData() {
         return applet.skeletonData;
     }
@@ -42,7 +48,6 @@ public class ProcessingFrame extends JFrame {
             if(context.enableDepth() == false)
             {
                 println("Can't open the depthMap, maybe the camera is not connected!");
-                exit();
                 return;
             }
 
