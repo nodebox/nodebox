@@ -18,7 +18,7 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
     private NodeBoxDocument document;
 
     public DevicesDialog(NodeBoxDocument document) {
-        super(document, "Devices", true);
+        super(document, "Devices", false);
         this.document = document;
 
         setLayout(new BorderLayout());
