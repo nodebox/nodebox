@@ -13,11 +13,15 @@ import nodebox.util.LoadException;
 import javax.xml.stream.*;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NodeLibrary {
+
+    private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
 
     public static final String CURRENT_FORMAT_VERSION = "17";
 
@@ -220,6 +224,26 @@ public class NodeLibrary {
 
     public NodeLibrary withDeviceRemoved(Device device) {
         return withDeviceRemoved(device.getName());
+    }
+
+    public String uniqueName(String prefix) {
+        Matcher m = NUMBER_AT_THE_END.matcher(prefix);
+        m.find();
+        String namePrefix = m.group(1);
+        String number = m.group(2);
+        int counter;
+        if (number.length() > 0) {
+            counter = Integer.parseInt(number);
+        } else {
+            counter = 1;
+        }
+        while (true) {
+            String suggestedName = namePrefix + counter;
+            if (!hasDevice(suggestedName)) {
+                return suggestedName;
+            }
+            ++counter;
+        }
     }
 
     public NodeLibrary withDeviceRemoved(String name) {

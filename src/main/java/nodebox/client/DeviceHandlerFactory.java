@@ -11,8 +11,8 @@ public class DeviceHandlerFactory {
     }
 
     private static DeviceHandler createOSCDeviceHandler(Device device) {
-        int port = Integer.parseInt((String) device.getProperties().get("port"));
-        boolean autostart = Boolean.parseBoolean((String) device.getProperties().get("autostart"));
+        int port = Integer.parseInt(device.getProperty("port", "-1"));
+        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
         OSCDeviceHandler handler = new OSCDeviceHandler(device.getName(), port, autostart);
         if (autostart)
             handler.start();

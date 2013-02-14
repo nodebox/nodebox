@@ -9,10 +9,7 @@ import oscP5.OscStatus;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -128,6 +125,20 @@ public class OSCDeviceHandler implements DeviceHandler {
             deviceNameLabel = new JLabel(deviceHandler.getName());
             portNumberField = new JTextField();
             portNumberField.setText(String.valueOf(getPort()));
+            portNumberField.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    changePortNumber();
+                }
+            }
+            );
+            portNumberField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent focusEvent) {
+                    changePortNumber();
+                }
+            });
+
             autoStartCheck = new JCheckBox("autostart");
             autoStartCheck.setSelected(isAutoStart());
             autoStartCheck.addItemListener(new ItemListener() {
@@ -138,6 +149,7 @@ public class OSCDeviceHandler implements DeviceHandler {
                 }
             });
             startButton = new JButton();
+
             if (isRunning()) {
                 startButton.setText(isPaused() ? "Start" : "Pause");
             } else {
@@ -147,14 +159,11 @@ public class OSCDeviceHandler implements DeviceHandler {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     if (! isRunning()) {
-                        start();
-                        startButton.setText("Pause");
+                        startOSC();
                     } else if (isPaused()) {
-                        resume();
-                        startButton.setText("Pause");
+                        resumeOSC();
                     } else {
-                        pause();
-                        startButton.setText("Resume");
+                        pauseOSC();
                     }
                 }
             });
@@ -162,8 +171,7 @@ public class OSCDeviceHandler implements DeviceHandler {
             stopButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    stop();
-                    startButton.setText("Start");
+                    stopOSC();
                 }
             });
             clearButton = new JButton("Clear");
@@ -187,6 +195,41 @@ public class OSCDeviceHandler implements DeviceHandler {
             add(clearButton);
             add(Box.createHorizontalGlue());
         }
+
+        private void startOSC() {
+            start();
+            if (isRunning())
+            startButton.setText(isRunning() ? "Pause" : "Start");
+        }
+
+        private void resumeOSC() {
+            resume();
+            startButton.setText(isRunning() ? "Pause" : "Start");
+        }
+
+        private void pauseOSC() {
+            pause();
+            startButton.setText(isRunning() ? "Resume" : "Start");
+        }
+
+        private void stopOSC() {
+            stop();
+            startButton.setText("Start");
+        }
+
+        private void changePortNumber() {
+            try {
+                int newPort = Integer.parseInt(portNumberField.getText());
+                stopOSC();
+                oscPort = newPort;
+                setPropertyValue("port", String.valueOf(newPort));
+            } catch (Exception e) {
+                // todo: better error handling of invalid port values
+                portNumberField.setText(String.valueOf(getPort()));
+                return;
+            }
+        }
+
     }
 
 }
