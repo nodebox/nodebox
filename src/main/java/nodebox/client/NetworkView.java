@@ -725,11 +725,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 case KeyEvent.VK_BACK_SPACE:
                     getDocument().deleteSelection();
                     break;
-                case KeyEvent.VK_ENTER:
-                    if (selectedNodes.size() == 1) {
-                        Node node = findNodeWithName(selectedNodes.iterator().next());
-                        renameNode(node);
-                    }
             }
         }
 
