@@ -994,6 +994,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public boolean isConnected(String portName) {
         Node network = getActiveNetwork();
         Node node = getActiveNode();
+        if (network == null || node == null) return false;
         for (Connection c : network.getConnections()) {
             if (c.getInputNode().equals(node.getName()) && c.getInputPort().equals(portName))
                 return true;
