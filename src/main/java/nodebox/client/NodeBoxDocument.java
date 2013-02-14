@@ -90,6 +90,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<Zoom> zoomListeners = new ArrayList<Zoom>();
 
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
+    private DevicesDialog devicesDialog;
+
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -221,6 +223,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 if (handler != null)
                     deviceHandlers.add(handler);
             }
+            devicesDialog = new DevicesDialog(this);
 //            addressBar.setMessage("OSC Port " + getOSCPort());
         }
     }
@@ -1689,8 +1692,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void showDevices() {
-        DevicesDialog dialog = new DevicesDialog(this);
-        dialog.setVisible(true);
+        devicesDialog.setVisible(true);
     }
 
     public void reload() {
