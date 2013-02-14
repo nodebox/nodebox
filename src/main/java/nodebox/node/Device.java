@@ -57,8 +57,24 @@ public class Device {
         return type;
     }
 
+    public boolean hasProperty(String name) {
+        return properties.containsKey(name);
+    }
+
+    public String getProperty(String name) {
+        return properties.get(name);
+    }
+
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public String getProperty(String name, String defaultValue) {
+        if (hasProperty(name)) {
+            return properties.get(name);
+        } else {
+            return defaultValue;
+        }
     }
 
     public Device withProperty(String name, String value) {

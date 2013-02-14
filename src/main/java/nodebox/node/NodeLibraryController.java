@@ -376,6 +376,17 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
 
+    public Device addDevice(String deviceType) {
+        String deviceName = nodeLibrary.uniqueName(deviceType);
+        Device device = Device.deviceForType(deviceName, deviceType);
+        nodeLibrary = nodeLibrary.withDeviceAdded(device);
+        return device;
+    }
+
+    public void removeDevice(String deviceName) {
+        nodeLibrary = nodeLibrary.withDeviceRemoved(deviceName);
+    }
+
     public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
         nodeLibrary = nodeLibrary.withDevicePropertyChanged(deviceName, propertyName, propertyValue);
     }

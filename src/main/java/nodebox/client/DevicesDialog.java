@@ -63,10 +63,6 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
         rebuildInterface();
     }
 
-    private void addDeviceHandler(String type) {
-        // todo: implement
-    }
-
     private void rebuildInterface() {
         controlPanel.removeAll();
         int rowIndex = 0;
@@ -84,7 +80,8 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
             ActionListener removeDeviceListener = new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    removeDevice(deviceHandler.getName());
+                    document.removeDevice(deviceHandler.getName());
+                    rebuildInterface();
                 }
             };
 
@@ -102,14 +99,11 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
         fillerConstraints.gridwidth = GridBagConstraints.REMAINDER;
         controlPanel.add(filler, fillerConstraints);
         validate();
+        repaint();
     }
 
     public void onPropertyChange(String deviceName, String key, String newValue) {
         document.setDeviceProperty(deviceName, key, newValue);
-    }
-
-    public void removeDevice(String deviceName) {
-        // todo: implement
     }
 
     private class DevicesPopupMenu extends JPopupMenu {
@@ -127,7 +121,8 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            addDeviceHandler(type);
+            document.addDevice(type);
+            rebuildInterface();
         }
     }
 }

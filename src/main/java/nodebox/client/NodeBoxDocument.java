@@ -756,6 +756,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
+    public void addDevice(String deviceType) {
+        // todo: undo / redo
+        Device device = controller.addDevice(deviceType);
+        DeviceHandler handler = DeviceHandlerFactory.createDeviceHandler(device);
+        if (handler != null)
+            deviceHandlers.add(handler);
+    }
+
+    public void removeDevice(String deviceName) {
+        // todo: undo / redo
+        for (DeviceHandler handler : getDeviceHandlers()) {
+            if (handler.getName().equals(deviceName)) {
+                handler.stop();
+                deviceHandlers.remove(handler);
+                controller.removeDevice(deviceName);
+            }
+        }
+    }
+
     public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
         checkNotNull(deviceName, "Device name cannot be null.");
         checkArgument(getNodeLibrary().hasDevice(deviceName));
