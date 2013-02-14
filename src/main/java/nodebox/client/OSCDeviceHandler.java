@@ -138,6 +138,8 @@ public class OSCDeviceHandler implements DeviceHandler {
                     changePortNumber();
                 }
             });
+            portNumberField.setPreferredSize(new Dimension(70, portNumberField.getHeight()));
+            portNumberField.setMinimumSize(new Dimension(70, portNumberField.getHeight()));
 
             autoStartCheck = new JCheckBox("autostart");
             autoStartCheck.setSelected(isAutoStart());
