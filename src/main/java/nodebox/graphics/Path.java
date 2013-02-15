@@ -833,8 +833,8 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
         dy.put(0, 0.0);
         dy.put(points.length - 1, 0.0);
         bi.put(1, -0.25);
-        ax.put(1, (points[2].x - points[0].x - dx.get(0)) / 4);
-        ay.put(1, (points[2].y - points[0].y - dy.get(0)) / 4);
+        ax.put(1, (points[2].x - points[0].x - dx.get(0)) / (curvature - bi.get(1)));
+        ay.put(1, (points[2].y - points[0].y - dy.get(0)) / (curvature - bi.get(1)));
 
         for (int i = 2; i < points.length - 1; i++) {
             bi.put(i, -1 / (curvature + bi.get(i - 1)));
