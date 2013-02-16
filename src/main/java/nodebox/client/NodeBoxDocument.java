@@ -1096,15 +1096,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final NodeLibrary renderLibrary = getNodeLibrary();
         final Node renderNetwork = getRenderedNode();
 
-        ImmutableMap.Builder<String, Object> dataBuilder = new ImmutableMap.Builder<String, Object>();
-        dataBuilder.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
-        for (DeviceHandler handler : deviceHandlers) {
-            if (handler instanceof OSCDeviceHandler) {
-                OSCDeviceHandler h = (OSCDeviceHandler) handler;
-                dataBuilder.put(h.getName() + ".messages", h.getOscMessages());
-            }
-        }
-        final ImmutableMap<String, ?> data = dataBuilder.build();
+        Map<String, Object> dataMap = new HashMap<String, Object>();
+        dataMap.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
+        for (DeviceHandler handler : deviceHandlers)
+            handler.addData(dataMap);
+        final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
         final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
         currentRender = new SwingWorker<List<?>, Node>() {
