@@ -1,4 +1,4 @@
-package nodebox.client;
+package nodebox.client.devicehandler;
 
 import com.google.common.collect.ImmutableList;
 import nodebox.node.Device;

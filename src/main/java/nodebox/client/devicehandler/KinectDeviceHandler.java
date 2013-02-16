@@ -1,6 +1,7 @@
-package nodebox.client;
+package nodebox.client.devicehandler;
 
 import com.google.common.collect.ImmutableMap;
+import nodebox.client.ProcessingFrame;
 
 import javax.swing.*;
 import java.awt.*;

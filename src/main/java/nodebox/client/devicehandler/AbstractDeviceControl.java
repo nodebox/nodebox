@@ -1,4 +1,4 @@
-package nodebox.client;
+package nodebox.client.devicehandler;
 
 import javax.swing.*;
 

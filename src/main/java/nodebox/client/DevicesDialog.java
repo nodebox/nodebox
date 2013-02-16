@@ -1,5 +1,7 @@
 package nodebox.client;
 
+import nodebox.client.devicehandler.DeviceControl;
+import nodebox.client.devicehandler.DeviceHandler;
 import nodebox.ui.ActionHeader;
 import nodebox.ui.InsetLabel;
 

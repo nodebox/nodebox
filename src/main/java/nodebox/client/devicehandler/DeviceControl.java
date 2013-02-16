@@ -1,4 +1,4 @@
-package nodebox.client;
+package nodebox.client.devicehandler;
 
 public interface DeviceControl {
     public void setPropertyChangeListener(OnPropertyChangeListener l);

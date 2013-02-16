@@ -2,6 +2,8 @@ package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import nodebox.client.devicehandler.DeviceHandler;
+import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.ObjectsRenderer;

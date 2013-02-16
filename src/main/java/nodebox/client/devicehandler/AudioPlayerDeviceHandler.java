@@ -1,4 +1,4 @@
-package nodebox.client;
+package nodebox.client.devicehandler;
 
 import ddf.minim.AudioBuffer;
 import ddf.minim.AudioPlayer;
@@ -7,6 +7,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Map;
+
+import nodebox.client.MinimApplet;
 
 public class AudioPlayerDeviceHandler implements DeviceHandler {
     private String name;
