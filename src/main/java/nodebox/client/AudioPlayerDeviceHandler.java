@@ -6,6 +6,7 @@ import ddf.minim.AudioPlayer;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Map;
 
 public class AudioPlayerDeviceHandler implements DeviceHandler {
     private String name;
@@ -55,6 +56,13 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         applet.dispose();
         frame.dispose();
     }
+
+    public void addData(Map map) {
+        if (getPlayer() != null)
+            map.put(getName() + ".player", getPlayer());
+    }
+
+
 
     public AbstractDeviceControl createControl() {
         return new AudioPlayerDeviceControl(this);

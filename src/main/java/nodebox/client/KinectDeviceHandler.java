@@ -36,7 +36,10 @@ public class KinectDeviceHandler implements DeviceHandler {
         frame.stop();
         frame.dispose();
         frame = null;
+    }
 
+    public void addData(Map map) {
+        map.put("kinect.skeletondata", getSkeletonData());
     }
 
     public AbstractDeviceControl createControl() {

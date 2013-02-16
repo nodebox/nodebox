@@ -100,6 +100,10 @@ public class OSCDeviceHandler implements DeviceHandler {
         paused = false;
     }
 
+    public void addData(Map map) {
+        map.put(getName() + ".messages", getOscMessages());
+    }
+
     public AbstractDeviceControl createControl() {
         return new OSCDeviceControl(this);
     }

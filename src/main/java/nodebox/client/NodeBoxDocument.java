@@ -1096,23 +1096,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final Node renderNetwork = getRenderedNode();
 
         ImmutableMap.Builder<String, Object> dataBuilder = new ImmutableMap.Builder<String, Object>();
-        dataBuilder.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
-        for (DeviceHandler handler : deviceHandlers) {
-            if (handler instanceof OSCDeviceHandler) {
-                OSCDeviceHandler h = (OSCDeviceHandler) handler;
-                dataBuilder.put(h.getName() + ".messages", h.getOscMessages());
-            } else if (handler instanceof  KinectDeviceHandler) {
-                KinectDeviceHandler h = (KinectDeviceHandler) handler;
-                dataBuilder.put("kinect.skeletondata", h.getSkeletonData());
-            } else if (handler instanceof AudioPlayerDeviceHandler) {
-                AudioPlayerDeviceHandler h = (AudioPlayerDeviceHandler) handler;
-                if (h.getMix() != null)
-                    dataBuilder.put(h.getName() + ".mix", h.getMix());
-                if (h.getPlayer() != null)
-                    dataBuilder.put(h.getName() + ".player", h.getPlayer());
-            }
-        }
-        final ImmutableMap<String, ?> data = dataBuilder.build();
+
+        Map<String, Object> dataMap = new HashMap<String, Object>();
+        dataMap.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
+        for (DeviceHandler handler : deviceHandlers)
+            handler.addData(dataMap);
+        final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
         final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
         currentRender = new SwingWorker<List<?>, Node>() {
