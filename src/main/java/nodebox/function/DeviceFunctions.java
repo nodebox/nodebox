@@ -13,13 +13,15 @@ import java.util.regex.Pattern;
 
 import oscP5.OscMessage;
 
+import ddf.minim.analysis.*;
+import ddf.minim.*;
 
 public class DeviceFunctions {
 
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "kinectSkeleton");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "kinectSkeleton", "audioAnalysis");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -178,6 +180,24 @@ public class DeviceFunctions {
                 mb.put("z", xyz.get(2));
                 b.add(mb.build());
             }
+        }
+        return b.build();
+    }
+
+    public static List<Double> audioAnalysis(String deviceName, long averages, NodeContext context) {
+        AudioPlayer player = (AudioPlayer) context.getData().get(deviceName + ".player");
+        if (player == null) return ImmutableList.of();
+        FFT fft = new FFT( player.bufferSize(), player.sampleRate() );
+        if (averages > 0)
+            fft.linAverages((int) averages);
+        fft.forward( player.mix );
+        ImmutableList.Builder<Double> b = new ImmutableList.Builder<Double>();
+        if (averages == 0) {
+            for (int i = 0; i < fft.specSize(); i++)
+                b.add((double) fft.getBand(i));
+        } else {
+           for(int i = 0; i < fft.avgSize(); i++)
+               b.add((double) fft.getAvg(i));
         }
         return b.build();
     }

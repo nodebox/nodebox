@@ -9,6 +9,8 @@ public class DeviceHandlerFactory {
             return createOSCDeviceHandler(device);
         else if (device.getType().equals(Device.TYPE_KINECT))
             return createKinectDeviceHandler(device);
+        else if (device.getType().equals(Device.TYPE_AUDIOPLAYER))
+            return createAudioPlayerDeviceHandler(device);
         return null;
     }
 
@@ -23,6 +25,15 @@ public class DeviceHandlerFactory {
 
     private static DeviceHandler createKinectDeviceHandler(Device device) {
         DeviceHandler handler = new KinectDeviceHandler(device.getName());
+        return handler;
+    }
+
+    private static DeviceHandler createAudioPlayerDeviceHandler(Device device) {
+        String fileName = device.getProperty("filename", "");
+        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
+        AudioPlayerDeviceHandler handler = new AudioPlayerDeviceHandler(device.getName(), fileName, autostart);
+        if (autostart)
+            handler.start();
         return handler;
     }
 }
