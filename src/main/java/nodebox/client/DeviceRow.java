@@ -1,5 +1,7 @@
 package nodebox.client;
 
+import nodebox.ui.Theme;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -19,11 +21,12 @@ public class DeviceRow extends JComponent {
         add(Box.createHorizontalGlue());
         add(removeDeviceButton);
         add(Box.createHorizontalStrut(26));
+        setBorder(new Theme.BottomBorder(new Color(136, 136, 136)));
     }
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(400, control.getPreferredSize().height + 10);
+        return new Dimension(400, control.getPreferredSize().height + 20);
     }
 
 }
