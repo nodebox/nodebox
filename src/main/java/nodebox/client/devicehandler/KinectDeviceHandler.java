@@ -23,7 +23,7 @@ public class KinectDeviceHandler implements DeviceHandler {
         return name;
     }
 
-    public Map<Integer, Map<String, List<Float>>> getSkeletonData() {
+    private Map<Integer, Map<String, List<Float>>> getSkeletonData() {
         if (frame == null) return ImmutableMap.of();
         return frame.getSkeletonData();
     }

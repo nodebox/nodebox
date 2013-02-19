@@ -30,6 +30,7 @@ public class ProcessingFrame extends JFrame {
     }
 
     public Map<Integer, Map<String, List<Float>>> getSkeletonData() {
+        if (applet == null) return ImmutableMap.of();
         return applet.skeletonData;
     }
 
