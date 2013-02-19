@@ -21,11 +21,6 @@ public class MinimApplet extends PApplet {
             player.loop();
     }
 
-    public AudioBuffer getMix() {
-        if (player == null) return null;
-        return player.mix;
-    }
-
     public AudioPlayer getPlayer() {
         if (player == null) return null;
         return player;

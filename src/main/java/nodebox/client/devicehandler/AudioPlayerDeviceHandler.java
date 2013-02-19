@@ -36,16 +36,6 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         return autostart;
     }
 
-    public AudioBuffer getMix() {
-        if (applet == null) return null;
-        return applet.getMix();
-    }
-
-    public AudioPlayer getPlayer() {
-        if (applet == null) return null;
-        return applet.getPlayer();
-    }
-
     public void start() {
         if (frame != null) stop();
         frame = new JFrame();
@@ -64,11 +54,9 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     }
 
     public void addData(Map map) {
-        if (getPlayer() != null)
-            map.put(getName() + ".player", getPlayer());
+        if (applet.getPlayer() != null)
+            map.put(getName() + ".player", applet.getPlayer());
     }
-
-
 
     public AbstractDeviceControl createControl() {
         return new AudioPlayerDeviceControl(this);
