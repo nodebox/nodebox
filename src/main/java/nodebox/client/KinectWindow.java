@@ -9,6 +9,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import processing.core.PApplet;
+import processing.core.PImage;
 import processing.core.PVector;
 import SimpleOpenNI.*;
 
@@ -16,13 +17,24 @@ import SimpleOpenNI.*;
 public class KinectWindow extends JFrame {
     private Applet applet;
 
-    public KinectWindow() {
+    private boolean enableDepth;
+    private boolean enableRGB;
+    private boolean enableScene;
+    private boolean enableSkeleton;
+
+    public KinectWindow(boolean enableDepth, boolean enableRGB, boolean enableScene, boolean enableSkeleton) {
         super("Kinect");
+
+        this.enableDepth = enableDepth;
+        this.enableRGB = enableRGB;
+        this.enableScene = enableScene;
+        this.enableSkeleton = enableSkeleton;
+
         setLayout(new BorderLayout());
         applet = new Applet();
         add(applet, BorderLayout.CENTER);
         applet.init();
-        setSize(500, 500);
+        setSize(640, 480);
     }
 
     public void stop() {
@@ -40,49 +52,98 @@ public class KinectWindow extends JFrame {
 
         private Map<Integer, Map<String, List<Float>>> skeletonData = ImmutableMap.of();
 
+        private boolean depthEnabled = false;
+        private boolean rgbEnabled = false;
+        private boolean sceneEnabled = false;
+        private boolean skeletonEnabled = false;
+
+        private String view = "depth";
+
         public void setup() {
             context = new SimpleOpenNI(this);
+            context.enableRGB();
 
-            // enable depthMap generation
-            if(context.enableDepth() == false)
-            {
-                println("Can't open the depthMap, maybe the camera is not connected!");
-                return;
+            if (enableDepth) {
+                depthEnabled = context.enableDepth();
+                if(! depthEnabled)
+                    println("Can't open the depthMap, maybe the camera is not connected!");
             }
 
-            // enable skeleton generation for all joints
-            context.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
+            if (enableRGB) {
+                rgbEnabled = context.enableRGB();
+                if (! rgbEnabled)
+                    println("Can't open the rgbMap, maybe the camera is not connected or there is no rgbSensor!");
+            }
 
-            background(200,0,0);
+            if (depthEnabled && rgbEnabled)
+                context.alternativeViewPointDepthToImage();
+
+            if (enableScene) {
+                sceneEnabled = context.enableScene();
+                if (! sceneEnabled)
+                    println("Can't open the sceneMap, maybe the camera is not connected!");
+            }
+
+            if (enableSkeleton) {
+                skeletonEnabled = context.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
+                if (! skeletonEnabled)
+                    println("Can't perform skeleton tracking, maybe the camera is not connected!");
+            }
+
+            /*background(200,0,0);
 
             stroke(0,0,255);
-            strokeWeight(3);
-            smooth();
+            strokeWeight(3);*/
 
-            size(context.depthWidth(), context.depthHeight());
-            KinectWindow.this.setSize(width, height);
+            smooth();
+            size(640, 480);
         }
 
         public void draw() {
             // update the cam
             context.update();
+            PImage depthImage = context.depthImage();
+            if (view.equals("depth")) {
+                image(context.depthImage(), 0, 0);
+            } else if (view.equals("rgb")) {
+                image(context.rgbImage(), 0, 0);
+            } else if (view.equals("scene")) {
+                image(context.sceneImage(), 0, 0);
+            }
 
-            // draw depthImageMap
-            image(context.depthImage(),0,0);
+            if (skeletonEnabled)
+                trackUsers();
+        }
 
-            // draw the skeleton if it's available
+        private void trackUsers() {
             int[] userList = context.getUsers();
 
-            ImmutableMap.Builder<Integer, Map<String, List<Float>>> builder = new ImmutableMap.Builder<Integer, Map<String, List<Float>>>();
+            if (userList.length > 0) {
+                ImmutableMap.Builder<Integer, Map<String, List<Float>>> builder = new ImmutableMap.Builder<Integer, Map<String, List<Float>>>();
 
-            for(int i=0;i<userList.length;i++)
-            {
-                if(context.isTrackingSkeleton(userList[i])) {
-                    drawSkeleton(userList[i]);
-                    builder.put(userList[i], retrieveSkeletonData(userList[i]));
+                for(int i=0;i<userList.length;i++)
+                {
+                    if(context.isTrackingSkeleton(userList[i])) {
+                        drawSkeleton(userList[i]);
+                        builder.put(userList[i], retrieveSkeletonData(userList[i]));
+                    }
                 }
+                skeletonData = builder.build();
             }
-            skeletonData = builder.build();
+        }
+
+        @Override
+        public void stop() {
+            if (context != null) {
+                if (depthEnabled)
+                    context.getDepthGenerator().StopGenerating();
+                if (rgbEnabled)
+                    context.getImageGenerator().StopGenerating();
+                if (sceneEnabled)
+                    context.getSceneAnalyzer().StopGenerating();
+                if (skeletonEnabled)
+                    context.getUserGenerator().StopGenerating();
+            }
         }
 
         public Map<String, List<Float>> retrieveSkeletonData(int userId) {
@@ -205,12 +266,6 @@ public class KinectWindow extends JFrame {
         {
             println("onEndPose - userId: " + userId + ", pose: " + pose);
         }
-    }
-
-    public static void main(String[] args) {
-        JFrame frame = new KinectWindow();
-        frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }
 

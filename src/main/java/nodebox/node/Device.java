@@ -22,6 +22,7 @@ public class Device {
     private final ImmutableMap<String, String> properties;
 
     private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|autostart)$");
+    private static final Pattern KINECT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(depthEnabled|rgbEnabled|sceneEnabled|skeletonEnabled)$");
     private static final Pattern AUDIOPLAYER_PROPERTY_NAMES_PATTERN = Pattern.compile("^(filename|autostart|loop)$");
 
     private final transient int hashCode;
@@ -31,6 +32,7 @@ public class Device {
     static {
         ImmutableMap.Builder<String, Pattern> builder = new ImmutableMap.Builder<String, Pattern>();
         builder.put(TYPE_OSC, OSC_PROPERTY_NAMES_PATTERN);
+        builder.put(TYPE_KINECT, KINECT_PROPERTY_NAMES_PATTERN);
         builder.put(TYPE_AUDIOPLAYER, AUDIOPLAYER_PROPERTY_NAMES_PATTERN);
         validPropertyNames = builder.build();
     }

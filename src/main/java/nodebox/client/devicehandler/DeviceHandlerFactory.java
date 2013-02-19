@@ -24,7 +24,15 @@ public class DeviceHandlerFactory {
     }
 
     private static DeviceHandler createKinectDeviceHandler(Device device) {
-        DeviceHandler handler = new KinectDeviceHandler(device.getName());
+        boolean depthEnabled = Boolean.parseBoolean(device.getProperty("depthEnabled", "true"));
+        boolean rgbEnabled = Boolean.parseBoolean(device.getProperty("rgbEnabled", "false"));
+        boolean sceneEnabled = Boolean.parseBoolean(device.getProperty("sceneEnabled", "false"));
+        boolean skeletonEnabled = Boolean.parseBoolean(device.getProperty("skeletonEnabled", "false"));
+        KinectDeviceHandler handler = new KinectDeviceHandler(device.getName());
+        handler.enableDepth(depthEnabled);
+        handler.enableRGB(rgbEnabled);
+        handler.enableScene(sceneEnabled);
+        handler.enableSkeleton(skeletonEnabled);
         return handler;
     }
 
