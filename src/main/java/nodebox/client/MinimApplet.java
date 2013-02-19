@@ -33,4 +33,13 @@ public class MinimApplet extends PApplet {
 
     public void draw() {
     }
+
+    @Override
+    public void stop() {
+        if (player != null)
+            player.close();
+        player = null;
+        if (minim != null)
+            minim.stop();
+    }
 }

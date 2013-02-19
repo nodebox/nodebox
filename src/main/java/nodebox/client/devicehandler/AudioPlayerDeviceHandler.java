@@ -47,6 +47,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     }
 
     public void start() {
+        if (frame != null) stop();
         frame = new JFrame();
         applet = new MinimApplet(fileName, true);
         applet.init();
@@ -54,9 +55,12 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     }
 
     public void stop() {
-        applet.stop();
-        applet.dispose();
-        frame.dispose();
+        if (frame != null) {
+            applet.stop();
+            applet.dispose();
+            frame.dispose();
+            frame = null;
+        }
     }
 
     public void addData(Map map) {
