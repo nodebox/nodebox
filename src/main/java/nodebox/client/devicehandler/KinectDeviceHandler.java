@@ -5,10 +5,7 @@ import nodebox.client.KinectWindow;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.awt.event.*;
 import java.util.List;
 import java.util.Map;
 
@@ -135,7 +132,7 @@ public class KinectDeviceHandler implements DeviceHandler {
                         int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
                         if (reply == JOptionPane.YES_OPTION) {
                             stop();
-                            //checkValidInputs();
+                            checkValidInputs();
                         }
                     }
                 }
@@ -222,7 +219,7 @@ public class KinectDeviceHandler implements DeviceHandler {
             rgbCheck.setEnabled(enabled);
             sceneCheck.setEnabled(enabled);
             skeletonCheck.setEnabled(enabled);
-            startButton.setEnabled(enabled);
+            startButton.setText(isRunning() ? "Show" : "Start");
             stopButton.setEnabled(! enabled);
         }
     }
