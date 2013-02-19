@@ -27,8 +27,6 @@ public class ProcessingFrame extends JFrame {
 
     public void stop() {
         applet.stop();
-        applet.context.dispose();
-        applet.destroy();
     }
 
     public Map<Integer, Map<String, List<Float>>> getSkeletonData() {

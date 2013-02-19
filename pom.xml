@@ -80,6 +80,12 @@
         </dependency>
 
         <dependency>
+            <groupId>simple-open-ni</groupId>
+            <artifactId>simple-open-ni</artifactId>
+            <version>0.27.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>oscP5</groupId>
             <artifactId>oscP5</artifactId>
             <version>0.9.9</version>

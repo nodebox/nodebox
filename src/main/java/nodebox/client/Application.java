@@ -30,9 +30,7 @@ import nodebox.versioncheck.Version;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -144,6 +142,61 @@ public class Application implements Host {
         applyPreferences();
         registerForMacOSXEvents();
         initPython();
+
+        if (ENABLE_DEVICE_SUPPORT)
+            extractNativeKinectLibrary();
+    }
+
+    private void extractNativeKinectLibrary() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("/native/");
+
+        String filename;
+        String filename32;
+        String filename64;
+
+        if (PlatformUtils.onMac()) {
+            sb.append("macosx/");
+            filename32 = filename64 = "libSimpleOpenNI.jnilib";
+        } else if (PlatformUtils.onWindows()) {
+            sb.append("windows/");
+            filename32 = "SimpleOpenNI32.dll";
+            filename64 = "SimpleOpenNI64.dll";
+        } else {
+            sb.append("linux/");
+            filename32 = "libSimpleOpenNI32.so";
+            filename64 = "libSimpleOpenNI64.so";
+        }
+
+        if (System.getProperty("os.arch").contains("64")) {
+            sb.append("x86_64/");
+            sb.append(filename64);
+            filename = filename64;
+        } else {
+            sb.append("x86/");
+            sb.append(filename32);
+            filename = filename32;
+        }
+        InputStream stream = Application.class.getResourceAsStream(sb.toString());
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        // todo: fix temp path for windows
+        File file = new File("/var/tmp/" + filename);
+
+        try {
+            FileOutputStream foStream = new FileOutputStream(file);
+            byte[] buf = new byte[1024];
+            int len;
+            while ((len = stream.read(buf)) > 0) {
+                out.write(buf, 0, len);
+            }
+            out.writeTo(foStream);
+        }catch (IOException exc) {
+            System.out.println(exc);
+        } finally {
+        }
+
+        System.load("/var/tmp/" + filename);
     }
 
     private void installDefaultExceptionHandler() {

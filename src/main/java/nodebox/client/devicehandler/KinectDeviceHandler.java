@@ -29,14 +29,17 @@ public class KinectDeviceHandler implements DeviceHandler {
     }
 
     public void start() {
+        if (frame != null) return;
         frame = new ProcessingFrame();
         frame.setVisible(true);
     }
 
     public void stop() {
-        frame.stop();
-        frame.dispose();
-        frame = null;
+        if (frame != null) {
+            frame.stop();
+            frame.dispose();
+            frame = null;
+        }
     }
 
     public void addData(Map map) {
