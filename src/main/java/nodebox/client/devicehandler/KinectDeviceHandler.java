@@ -80,7 +80,13 @@ public class KinectDeviceHandler implements DeviceHandler {
             stopButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    stop();
+                    if (kinectWindow != null) {
+                        String message = "If you stop the Kinect now, it cannot be used until you restart NodeBox. Do you really want to do this?";
+                        String title = "Are you sure?";
+                        int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+                        if (reply == JOptionPane.YES_OPTION)
+                            stop();
+                    }
                 }
             });
             add(Box.createHorizontalStrut(10));
