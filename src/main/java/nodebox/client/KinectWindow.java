@@ -13,11 +13,11 @@ import processing.core.PVector;
 import SimpleOpenNI.*;
 
 
-public class ProcessingFrame extends JFrame {
+public class KinectWindow extends JFrame {
     private Applet applet;
 
-    public ProcessingFrame() {
-        super("Processing Frame");
+    public KinectWindow() {
+        super("Kinect");
         setLayout(new BorderLayout());
         applet = new Applet();
         add(applet, BorderLayout.CENTER);
@@ -60,7 +60,7 @@ public class ProcessingFrame extends JFrame {
             smooth();
 
             size(context.depthWidth(), context.depthHeight());
-            ProcessingFrame.this.setSize(width, height);
+            KinectWindow.this.setSize(width, height);
         }
 
         public void draw() {
@@ -208,7 +208,7 @@ public class ProcessingFrame extends JFrame {
     }
 
     public static void main(String[] args) {
-        JFrame frame = new ProcessingFrame();
+        JFrame frame = new KinectWindow();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

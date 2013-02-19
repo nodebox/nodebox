@@ -1,7 +1,7 @@
 package nodebox.client.devicehandler;
 
 import com.google.common.collect.ImmutableMap;
-import nodebox.client.ProcessingFrame;
+import nodebox.client.KinectWindow;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,11 +12,11 @@ import java.util.Map;
 
 public class KinectDeviceHandler implements DeviceHandler {
     private String name;
-    private ProcessingFrame frame;
+    private KinectWindow kinectWindow;
 
     public KinectDeviceHandler(String name) {
         this.name = name;
-        frame = null;
+        kinectWindow = null;
     }
 
     public String getName() {
@@ -24,21 +24,24 @@ public class KinectDeviceHandler implements DeviceHandler {
     }
 
     private Map<Integer, Map<String, List<Float>>> getSkeletonData() {
-        if (frame == null) return ImmutableMap.of();
-        return frame.getSkeletonData();
+        if (kinectWindow == null) return ImmutableMap.of();
+        return kinectWindow.getSkeletonData();
     }
 
     public void start() {
-        if (frame != null) return;
-        frame = new ProcessingFrame();
-        frame.setVisible(true);
+        if (kinectWindow != null) {
+            kinectWindow.setVisible(true);
+            return;
+        }
+        kinectWindow = new KinectWindow();
+        kinectWindow.setVisible(true);
     }
 
     public void stop() {
-        if (frame != null) {
-            frame.stop();
-            frame.dispose();
-            frame = null;
+        if (kinectWindow != null) {
+            kinectWindow.stop();
+            kinectWindow.dispose();
+            kinectWindow = null;
         }
     }
 
