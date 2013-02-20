@@ -17,6 +17,10 @@ public class KinectDeviceHandler implements DeviceHandler {
     private boolean rgbEnabled = false;
     private boolean sceneEnabled = false;
     private boolean skeletonEnabled = false;
+
+    private String fileName = "";
+    private boolean useFile = false;
+
     private String currentView = "Depth";
 
     private KinectWindow kinectWindow;
@@ -28,6 +32,22 @@ public class KinectDeviceHandler implements DeviceHandler {
 
     public String getName() {
         return name;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public boolean shouldUseFile() {
+        return useFile;
+    }
+
+    public void setUseFile(boolean useFile) {
+        this.useFile = useFile;
     }
 
     public boolean isDepthEnabled() {
@@ -119,6 +139,10 @@ public class KinectDeviceHandler implements DeviceHandler {
         private JCheckBox rgbCheck;
         private JCheckBox sceneCheck;
         private JCheckBox skeletonCheck;
+        private JCheckBox useFileCheck;
+        private JTextField fileNameField;
+        private JButton fileButton;
+        private JButton clearButton;
         private JComboBox viewBox;
 
 
@@ -126,7 +150,7 @@ public class KinectDeviceHandler implements DeviceHandler {
             super(deviceHandler);
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-            Dimension d = new Dimension(450, 60);
+            Dimension d = new Dimension(450, 80);
             setPreferredSize(d);
             setMaximumSize(d);
             setSize(d);
@@ -135,6 +159,48 @@ public class KinectDeviceHandler implements DeviceHandler {
             add(Box.createHorizontalStrut(10));
             add(deviceNameLabel);
             add(Box.createHorizontalStrut(5));
+
+            JPanel recordingPanel = new JPanel();
+            recordingPanel.setLayout(new BoxLayout(recordingPanel, BoxLayout.X_AXIS));
+
+            fileNameField = new JTextField();
+            fileNameField.setText(getFileName());
+
+            fileButton = new JButton("File...");
+            fileButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                }
+            });
+
+            clearButton = new JButton("Clear");
+            clearButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    setFileName("");
+                    fileNameField.setText("");
+                    setPropertyValue("filename", "");
+                }
+            });
+
+            useFileCheck = new JCheckBox("Use File");
+            useFileCheck.setSelected(shouldUseFile());
+            useFileCheck.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent itemEvent) {
+                    setUseFile(useFileCheck.isSelected());
+                    setPropertyValue("useFile", String.valueOf(useFile));
+                }
+            });
+
+            recordingPanel.add(useFileCheck);
+            recordingPanel.add(Box.createHorizontalStrut(5));
+            recordingPanel.add(fileNameField);
+            recordingPanel.add(Box.createHorizontalStrut(5));
+            recordingPanel.add(fileButton);
+            recordingPanel.add(Box.createHorizontalStrut(5));
+            recordingPanel.add(clearButton);
+            recordingPanel.add(Box.createHorizontalGlue());
 
             JPanel enablePanel = new JPanel();
             enablePanel.setLayout(new BoxLayout(enablePanel, BoxLayout.X_AXIS));
@@ -240,6 +306,7 @@ public class KinectDeviceHandler implements DeviceHandler {
 
             JPanel mainPanel = new JPanel();
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            mainPanel.add(recordingPanel);
             mainPanel.add(enablePanel);
             mainPanel.add(startStopPanel);
 

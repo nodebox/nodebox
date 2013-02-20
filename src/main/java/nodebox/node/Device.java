@@ -22,7 +22,7 @@ public class Device {
     private final ImmutableMap<String, String> properties;
 
     private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|autostart)$");
-    private static final Pattern KINECT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(depthEnabled|rgbEnabled|sceneEnabled|skeletonEnabled)$");
+    private static final Pattern KINECT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(depthEnabled|rgbEnabled|sceneEnabled|skeletonEnabled|useFile|filename)$");
     private static final Pattern AUDIOPLAYER_PROPERTY_NAMES_PATTERN = Pattern.compile("^(filename|autostart|loop)$");
 
     private final transient int hashCode;

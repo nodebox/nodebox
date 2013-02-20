@@ -28,11 +28,15 @@ public class DeviceHandlerFactory {
         boolean rgbEnabled = Boolean.parseBoolean(device.getProperty("rgbEnabled", "false"));
         boolean sceneEnabled = Boolean.parseBoolean(device.getProperty("sceneEnabled", "false"));
         boolean skeletonEnabled = Boolean.parseBoolean(device.getProperty("skeletonEnabled", "false"));
+        boolean useFile = Boolean.parseBoolean(device.getProperty("useFile", "false"));
+        String fileName = device.getProperty("filename", "");
         KinectDeviceHandler handler = new KinectDeviceHandler(device.getName());
         handler.enableDepth(depthEnabled);
         handler.enableRGB(rgbEnabled);
         handler.enableScene(sceneEnabled);
         handler.enableSkeleton(skeletonEnabled);
+        handler.setUseFile(useFile);
+        handler.setFileName(fileName);
         return handler;
     }
 
