@@ -105,44 +105,12 @@ public class KinectDeviceHandler implements DeviceHandler {
             kinectWindow.setVisible(true);
             return;
         }
+
+        kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
         if (shouldUseFile()) {
-            Object[] possibleValues = { "Play", "Record" };
-            Object selectedValue = JOptionPane.showInputDialog(null,
-                    "Play or record?", "Play or Record?",
-                    JOptionPane.INFORMATION_MESSAGE, null,
-                    possibleValues, possibleValues[0]);
-            if (selectedValue == null) return;
-
-            if (selectedValue.equals("Play"))
-                startPlayback();
-            else if (selectedValue.equals("Record"))
-                startRecording();
-
-        } else {
-            startNormal();
+            kinectWindow.setFileName(getFileName());
+            kinectWindow.setPlayback(true);
         }
-    }
-
-    private void startNormal() {
-        kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
-        kinectWindow.setView(currentView);
-        kinectWindow.init();
-        kinectWindow.setVisible(true);
-    }
-
-    private void startPlayback() {
-        kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
-        kinectWindow.setFileName(getFileName());
-        kinectWindow.setPlaying(true);
-        kinectWindow.setView(currentView);
-        kinectWindow.init();
-        kinectWindow.setVisible(true);
-    }
-
-    private void startRecording() {
-        kinectWindow = new KinectWindow(true, true, isSceneEnabled(), isSkeletonEnabled());
-        kinectWindow.setFileName(getFileName());
-        kinectWindow.setRecording(true);
         kinectWindow.setView(currentView);
         kinectWindow.init();
         kinectWindow.setVisible(true);
@@ -211,8 +179,7 @@ public class KinectDeviceHandler implements DeviceHandler {
             fileButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                        //JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(fileButton);
-                        File f = FileUtils.showSaveDialog(null, getFileName(), "*.oni", "ONI files");
+                        File f = FileUtils.showOpenDialog(null, getFileName(), "oni", "ONI files");
                         if (f != null) {
                             setFileName(f.getAbsolutePath());
                             fileNameField.setText(new File(getFileName()).getName());
