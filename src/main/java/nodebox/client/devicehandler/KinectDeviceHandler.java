@@ -17,6 +17,7 @@ public class KinectDeviceHandler implements DeviceHandler {
     private boolean rgbEnabled = false;
     private boolean sceneEnabled = false;
     private boolean skeletonEnabled = false;
+    private String currentView = "Depth";
 
     private KinectWindow kinectWindow;
 
@@ -61,6 +62,12 @@ public class KinectDeviceHandler implements DeviceHandler {
         skeletonEnabled = enable;
     }
 
+    public void setCurrentView(String view) {
+        this.currentView = view;
+        if (kinectWindow != null)
+            kinectWindow.setView(view);
+    }
+
     private Map<Integer, Map<String, List<Float>>> getSkeletonData() {
         if (kinectWindow == null) return ImmutableMap.of();
         return kinectWindow.getSkeletonData();
@@ -77,6 +84,7 @@ public class KinectDeviceHandler implements DeviceHandler {
             return;
         }
         kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
+        kinectWindow.setView(currentView);
         kinectWindow.setVisible(true);
     }
 
@@ -111,6 +119,8 @@ public class KinectDeviceHandler implements DeviceHandler {
         private JCheckBox rgbCheck;
         private JCheckBox sceneCheck;
         private JCheckBox skeletonCheck;
+        private JComboBox viewBox;
+
 
         public KinectDeviceControl(KinectDeviceHandler deviceHandler) {
             super(deviceHandler);
@@ -122,42 +132,9 @@ public class KinectDeviceHandler implements DeviceHandler {
             setSize(d);
 
             deviceNameLabel = new JLabel(deviceHandler.getName());
-            startButton = new JButton("Start");
-            startButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    start();
-                    checkValidInputs();
-                }
-            });
-            stopButton = new JButton("Stop");
-            stopButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    if (kinectWindow != null) {
-                        String message = "If you stop the Kinect now, it cannot be used until you restart NodeBox. Do you really want to do this?";
-                        String title = "Are you sure?";
-                        int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-                        if (reply == JOptionPane.YES_OPTION) {
-                            stop();
-                            checkValidInputs();
-                        }
-                    }
-                }
-            });
             add(Box.createHorizontalStrut(10));
             add(deviceNameLabel);
             add(Box.createHorizontalStrut(5));
-
-            JPanel mainPanel = new JPanel();
-            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-
-            JPanel startStopPanel = new JPanel();
-            startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
-
-            startStopPanel.add(startButton);
-            startStopPanel.add(Box.createHorizontalStrut(5));
-            startStopPanel.add(stopButton);
 
             JPanel enablePanel = new JPanel();
             enablePanel.setLayout(new BoxLayout(enablePanel, BoxLayout.X_AXIS));
@@ -213,6 +190,56 @@ public class KinectDeviceHandler implements DeviceHandler {
 
             enablePanel.add(skeletonCheck);
 
+            startButton = new JButton("Start");
+            startButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    start();
+                    checkValidInputs();
+                }
+            });
+
+            stopButton = new JButton("Stop");
+            stopButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    if (kinectWindow != null) {
+                        String message = "If you stop the Kinect now, it cannot be used until you restart NodeBox. Do you really want to do this?";
+                        String title = "Are you sure?";
+                        int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+                        if (reply == JOptionPane.YES_OPTION) {
+                            stop();
+                            checkValidInputs();
+                        }
+                    }
+                }
+            });
+
+            viewBox = new JComboBox();
+            viewBox.addItem("Depth");
+            viewBox.addItem("Color");
+            viewBox.addItem("Scene");
+            viewBox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    String view = (String) viewBox.getSelectedItem();
+                    setCurrentView(view);
+                }
+            });
+            viewBox.setSelectedItem(currentView);
+
+            JPanel startStopPanel = new JPanel();
+            startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
+            startStopPanel.add(startButton);
+            startStopPanel.add(Box.createHorizontalStrut(5));
+            startStopPanel.add(stopButton);
+            startStopPanel.add(Box.createHorizontalStrut(5));
+            startStopPanel.add(new JLabel("View:"));
+            startStopPanel.add(viewBox);
+            startStopPanel.add(Box.createHorizontalGlue());
+
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
             mainPanel.add(enablePanel);
             mainPanel.add(startStopPanel);
 

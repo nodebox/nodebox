@@ -22,6 +22,8 @@ public class KinectWindow extends JFrame {
     private boolean enableScene;
     private boolean enableSkeleton;
 
+    private String view = "Depth";
+
     public KinectWindow(boolean enableDepth, boolean enableRGB, boolean enableScene, boolean enableSkeleton) {
         super("Kinect");
 
@@ -51,6 +53,10 @@ public class KinectWindow extends JFrame {
         return applet.context;
     }
 
+    public void setView(String view) {
+        this.view = view;
+    }
+
     public class Applet extends PApplet {
         private SimpleOpenNI context = null;
         private boolean autoCalib=true;
@@ -62,7 +68,6 @@ public class KinectWindow extends JFrame {
         private boolean sceneEnabled = false;
         private boolean skeletonEnabled = false;
 
-        private String view = "depth";
 
         public void setup() {
             context = new SimpleOpenNI(this);
@@ -101,14 +106,28 @@ public class KinectWindow extends JFrame {
         public void draw() {
             // update the cam
             context.update();
-            if (view.equals("depth")) {
+
+            background(0);
+            fill(255);
+
+            if (view.equals("Depth")) {
                 PImage depthImage = context.depthImage();
                 if (depthImage != null)
-                image(depthImage, 0, 0);
-            } else if (view.equals("rgb")) {
-                image(context.rgbImage(), 0, 0);
-            } else if (view.equals("scene")) {
-                image(context.sceneImage(), 0, 0);
+                    image(depthImage, 0, 0);
+                else
+                    text("Depth image not available.", 200, 200);
+            } else if (view.equals("Color")) {
+                PImage rgbImage = context.rgbImage();
+                if (rgbImage != null)
+                    image(rgbImage, 0, 0);
+                else
+                    text("Color image not available.", 200, 200);
+            } else if (view.equals("Scene")) {
+                PImage sceneImage = context.sceneImage();
+                if (sceneImage != null)
+                    image(sceneImage, 0, 0);
+                else
+                    text("Scene image not available.", 200, 200);
             }
 
             if (skeletonEnabled)
