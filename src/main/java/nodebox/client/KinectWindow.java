@@ -46,8 +46,13 @@ public class KinectWindow extends JFrame {
         return applet.skeletonData;
     }
 
+    public SimpleOpenNI getContext() {
+        if (applet == null) return null;
+        return applet.context;
+    }
+
     public class Applet extends PApplet {
-        private SimpleOpenNI context;
+        private SimpleOpenNI context = null;
         private boolean autoCalib=true;
 
         private Map<Integer, Map<String, List<Float>>> skeletonData = ImmutableMap.of();
@@ -61,7 +66,6 @@ public class KinectWindow extends JFrame {
 
         public void setup() {
             context = new SimpleOpenNI(this);
-            context.enableRGB();
 
             if (enableDepth) {
                 depthEnabled = context.enableDepth();
@@ -102,9 +106,10 @@ public class KinectWindow extends JFrame {
         public void draw() {
             // update the cam
             context.update();
-            PImage depthImage = context.depthImage();
             if (view.equals("depth")) {
-                image(context.depthImage(), 0, 0);
+                PImage depthImage = context.depthImage();
+                if (depthImage != null)
+                image(depthImage, 0, 0);
             } else if (view.equals("rgb")) {
                 image(context.rgbImage(), 0, 0);
             } else if (view.equals("scene")) {

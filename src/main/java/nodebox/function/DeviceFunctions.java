@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import netP5.UdpClient;
+import nodebox.graphics.Color;
 import nodebox.graphics.Point;
 import nodebox.node.NodeContext;
 
@@ -15,13 +16,17 @@ import oscP5.OscMessage;
 
 import ddf.minim.analysis.*;
 import ddf.minim.*;
+import processing.core.PImage;
+import processing.core.PVector;
+
+import SimpleOpenNI.*;
 
 public class DeviceFunctions {
 
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "kinectSkeleton", "audioAnalysis");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "kinectSkeleton", "kinectData", "audioAnalysis");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -179,6 +184,54 @@ public class DeviceFunctions {
                 mb.put("y", xyz.get(1));
                 mb.put("z", xyz.get(2));
                 b.add(mb.build());
+            }
+        }
+        return b.build();
+    }
+
+     public static List<Map<String, Object>> kinectData(long steps, long minimumZ, long maximumZ, NodeContext context) {
+        SimpleOpenNI ctx = (SimpleOpenNI) context.getData().get("kinect.context");
+        if (ctx == null) return ImmutableList.of();
+        int[]   depthMap = ctx.depthMap();
+        int     index;
+        PVector realWorldPoint;
+
+        PVector[] realWorldMap = ctx.depthMapRealWorld();
+        ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
+        PVector tempVec1 = new PVector();
+        PImage rgbImage = ctx.rgbImage();
+
+        for(int y=0;y < ctx.depthHeight();y+=steps)
+        {
+            for(int x=0;x < ctx.depthWidth();x+=steps)
+            {
+                index = x + y * ctx.depthWidth();
+                if(depthMap[index] > 0)
+                {
+                    realWorldPoint = realWorldMap[index];
+                    if (realWorldPoint.z >= minimumZ && realWorldPoint.z <= maximumZ) {
+                        ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                        ctx.convertRealWorldToProjective(realWorldPoint, tempVec1);
+
+                        mb.put("x", realWorldPoint.x);
+                        mb.put("y", realWorldPoint.y);
+                        mb.put("z", realWorldPoint.z);
+                        mb.put("px", tempVec1.x);
+                        mb.put("py", tempVec1.y);
+
+                        if (rgbImage != null) {
+                            int c = rgbImage.pixels[index];
+                            int alpha = (c >> 24) & 0xFF;
+                            int red   = (c >> 16) & 0xFF;
+                            int green = (c >> 8)  & 0xFF;
+                            int blue  =  c        & 0xFF;
+
+                            mb.put("color", new Color(red / 255.0, green / 255.0, blue / 255.0));
+                        }
+
+                        b.add(mb.build());
+                    }
+                }
             }
         }
         return b.build();

@@ -34,7 +34,15 @@
                <port name="arguments" range="list" type="list" widget="none" description="The arguments to send over osc."/>
         </node>
         <node category="device" description="Skeleton joint data from kinect" function="device/kinectSkeleton"
-              image="generic.png" name="skeleton" position="1.00,1.00" outputType="string" outputRange="list">
+              image="generic.png" name="skeleton" position="1.00,1.00" outputType="data" outputRange="list">
+            <port name="context" type="context"
+                  description="The internal execution context."/>
+        </node>
+        <node category="device" description="Data from the Kinect" function="device/kinectData"
+              image="generic.png" name="kinect_data" position="1.00,1.00" outputType="data" outputRange="list">
+            <port name="step" type="int" value="3" description="Step size for the depth data."/>
+            <port name="minimum_z" type="int" value="500" description="Minimum Z."/>
+            <port name="maximum_z" type="int" value="3000" description="Maximum Z."/>
             <port name="context" type="context"
                   description="The internal execution context."/>
         </node>

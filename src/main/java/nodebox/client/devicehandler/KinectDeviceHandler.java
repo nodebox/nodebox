@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 import java.util.Map;
+import SimpleOpenNI.*;
 
 public class KinectDeviceHandler implements DeviceHandler {
     private String name;
@@ -65,6 +66,11 @@ public class KinectDeviceHandler implements DeviceHandler {
         return kinectWindow.getSkeletonData();
     }
 
+    private SimpleOpenNI getContext() {
+        if (kinectWindow == null) return null;
+        return kinectWindow.getContext();
+    }
+
     public void start() {
         if (kinectWindow != null) {
             kinectWindow.setVisible(true);
@@ -88,6 +94,8 @@ public class KinectDeviceHandler implements DeviceHandler {
 
     public void addData(Map map) {
         map.put("kinect.skeletondata", getSkeletonData());
+        if (getContext() != null)
+            map.put("kinect.context", getContext());
     }
 
     public AbstractDeviceControl createControl() {
