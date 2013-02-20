@@ -1,13 +1,12 @@
 package nodebox.client.devicehandler;
 
-import ddf.minim.AudioBuffer;
-import ddf.minim.AudioPlayer;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Map;
 
+import nodebox.client.FileUtils;
 import nodebox.client.MinimApplet;
 
 public class AudioPlayerDeviceHandler implements DeviceHandler {
@@ -36,6 +35,10 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         return fileName;
     }
 
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     public boolean isAutoStart() {
         return autostart;
     }
@@ -43,7 +46,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     public void start() {
         if (frame != null) stop();
         frame = new JFrame();
-        applet = new MinimApplet(fileName, true);
+        applet = new MinimApplet(getFileName(), true);
         applet.init();
         frame.add(applet);
     }
@@ -71,6 +74,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         private JLabel deviceNameLabel;
         private JTextField fileNameField;
         private JCheckBox autoStartCheck;
+        private JButton fileButton;
         private JButton startButton;
         private JButton stopButton;
 
@@ -78,28 +82,37 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             super(deviceHandler);
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-            Dimension d = new Dimension(450, 30);
+            Dimension d = new Dimension(450, 60);
             setPreferredSize(d);
             setMaximumSize(d);
             setSize(d);
 
             deviceNameLabel = new JLabel(deviceHandler.getName());
+
+            add(Box.createHorizontalStrut(10));
+            add(deviceNameLabel);
+            add(Box.createHorizontalStrut(5));
+
+            JPanel filePanel = new JPanel();
+            filePanel.setLayout(new BoxLayout(filePanel, BoxLayout.X_AXIS));
+
             fileNameField = new JTextField(100);
-            fileNameField.setText(getFileName());
-            fileNameField.addActionListener(new ActionListener() {
+            fileNameField.setText(new File(getFileName()).getName());
+            fileNameField.setEditable(false);
+            fileNameField.setPreferredSize(new Dimension(100, fileNameField.getHeight()));
+
+            fileButton = new JButton("File...");
+            fileButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    changeFileName();
-                }
-            }
-            );
-            fileNameField.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusLost(FocusEvent focusEvent) {
-                    changeFileName();
+                    File f = FileUtils.showOpenDialog(null, getFileName(), "mp3,wav", "Music files");
+                    if (f != null) {
+                        setFileName(f.getAbsolutePath());
+                        fileNameField.setText(new File(getFileName()).getName());
+                        setPropertyValue("filename", getFileName());
+                    }
                 }
             });
-
 
             autoStartCheck = new JCheckBox("autostart");
             autoStartCheck.setSelected(isAutoStart());
@@ -110,14 +123,20 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                     setPropertyValue("autostart", String.valueOf(autostart));
                 }
             });
+
+            filePanel.add(fileNameField);
+            add(Box.createHorizontalStrut(5));
+            filePanel.add(fileButton);
+            add(Box.createHorizontalGlue());
+
             startButton = new JButton("Start");
             startButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    fileName = fileNameField.getText();
                     start();
                 }
             });
+
             stopButton = new JButton("Stop");
             stopButton.addActionListener(new ActionListener() {
                 @Override
@@ -125,22 +144,23 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                     stop();
                 }
             });
-            add(Box.createHorizontalStrut(10));
-            add(deviceNameLabel);
-            add(Box.createHorizontalStrut(5));
-            add(fileNameField);
-            add(Box.createHorizontalStrut(5));
-            add(autoStartCheck);
-            add(Box.createHorizontalStrut(5));
-            add(startButton);
-            add(Box.createHorizontalStrut(5));
-            add(stopButton);
-            add(Box.createHorizontalGlue());
-        }
 
-        private void changeFileName() {
-            stop();
-            setPropertyValue("filename", fileNameField.getText());
+            JPanel startStopPanel = new JPanel();
+            startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
+            startStopPanel.add(autoStartCheck);
+            startStopPanel.add(Box.createHorizontalStrut(5));
+            startStopPanel.add(startButton);
+            startStopPanel.add(Box.createHorizontalStrut(5));
+            startStopPanel.add(stopButton);
+            startStopPanel.add(Box.createHorizontalGlue());
+
+            JPanel mainPanel = new JPanel();
+            mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            mainPanel.add(filePanel);
+            mainPanel.add(startStopPanel);
+
+            add(mainPanel);
+            add(Box.createHorizontalGlue());
         }
     }
 }
