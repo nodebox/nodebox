@@ -94,11 +94,6 @@ public class KinectWindow extends JFrame {
                     println("Can't perform skeleton tracking, maybe the camera is not connected!");
             }
 
-            /*background(200,0,0);
-
-            stroke(0,0,255);
-            strokeWeight(3);*/
-
             smooth();
             size(640, 480);
         }
@@ -177,6 +172,9 @@ public class KinectWindow extends JFrame {
         public void drawSkeleton(int userId)
         {
             // to get the 3d joint data
+
+            stroke(0,0,255);
+            strokeWeight(3);
 
             context.drawLimb(userId, SimpleOpenNI.SKEL_HEAD, SimpleOpenNI.SKEL_NECK);
 
