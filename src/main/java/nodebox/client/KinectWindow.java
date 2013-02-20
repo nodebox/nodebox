@@ -24,6 +24,10 @@ public class KinectWindow extends JFrame {
 
     private String view = "Depth";
 
+    private String fileName = "";
+    private boolean recording = false;
+    private boolean playing = false;
+
     public KinectWindow(boolean enableDepth, boolean enableRGB, boolean enableScene, boolean enableSkeleton) {
         super("Kinect");
 
@@ -35,8 +39,24 @@ public class KinectWindow extends JFrame {
         setLayout(new BorderLayout());
         applet = new Applet();
         add(applet, BorderLayout.CENTER);
-        applet.init();
+        //applet.init();
         setSize(640, 480);
+    }
+
+    public void init() {
+        applet.init();
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setPlaying(boolean playing) {
+        this.playing = playing;
+    }
+
+    public void setRecording(boolean recording) {
+        this.recording = recording;
     }
 
     public void stop() {
@@ -71,6 +91,10 @@ public class KinectWindow extends JFrame {
 
         public void setup() {
             context = new SimpleOpenNI(this);
+            if (playing) {
+                if ( ! context.openFileRecording(fileName))
+                    println("can't find recording !!!!");
+            }
 
             if (enableDepth) {
                 depthEnabled = context.enableDepth();
@@ -84,10 +108,10 @@ public class KinectWindow extends JFrame {
                     println("Can't open the rgbMap, maybe the camera is not connected or there is no rgbSensor!");
             }
 
-            if (depthEnabled && rgbEnabled)
-                context.alternativeViewPointDepthToImage();
+            //if (depthEnabled && rgbEnabled)
+            //    context.alternativeViewPointDepthToImage();
 
-            if (enableScene) {
+            /*if (enableScene) {
                 sceneEnabled = context.enableScene();
                 if (! sceneEnabled)
                     println("Can't open the sceneMap, maybe the camera is not connected!");
@@ -97,6 +121,16 @@ public class KinectWindow extends JFrame {
                 skeletonEnabled = context.enableUser(SimpleOpenNI.SKEL_PROFILE_ALL);
                 if (! skeletonEnabled)
                     println("Can't perform skeleton tracking, maybe the camera is not connected!");
+            }*/
+
+            if (recording) {
+                // setup the recording
+                context.enableRecorder(SimpleOpenNI.RECORD_MEDIUM_FILE, fileName);
+                // select the recording channels
+                context.addNodeToRecording(SimpleOpenNI.NODE_DEPTH,
+                        SimpleOpenNI.CODEC_16Z_EMB_TABLES);
+                context.addNodeToRecording(SimpleOpenNI.NODE_IMAGE,
+                        SimpleOpenNI.CODEC_JPEG);
             }
 
             smooth();

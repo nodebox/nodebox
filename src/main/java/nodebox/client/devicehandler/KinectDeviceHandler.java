@@ -1,11 +1,13 @@
 package nodebox.client.devicehandler;
 
 import com.google.common.collect.ImmutableMap;
+import nodebox.client.FileUtils;
 import nodebox.client.KinectWindow;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import SimpleOpenNI.*;
@@ -103,8 +105,46 @@ public class KinectDeviceHandler implements DeviceHandler {
             kinectWindow.setVisible(true);
             return;
         }
+        if (shouldUseFile()) {
+            Object[] possibleValues = { "Play", "Record" };
+            Object selectedValue = JOptionPane.showInputDialog(null,
+                    "Play or record?", "Play or Record?",
+                    JOptionPane.INFORMATION_MESSAGE, null,
+                    possibleValues, possibleValues[0]);
+            if (selectedValue == null) return;
+
+            if (selectedValue.equals("Play"))
+                startPlayback();
+            else if (selectedValue.equals("Record"))
+                startRecording();
+
+        } else {
+            startNormal();
+        }
+    }
+
+    private void startNormal() {
         kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
         kinectWindow.setView(currentView);
+        kinectWindow.init();
+        kinectWindow.setVisible(true);
+    }
+
+    private void startPlayback() {
+        kinectWindow = new KinectWindow(isDepthEnabled(), isRGBEnabled(), isSceneEnabled(), isSkeletonEnabled());
+        kinectWindow.setFileName(getFileName());
+        kinectWindow.setPlaying(true);
+        kinectWindow.setView(currentView);
+        kinectWindow.init();
+        kinectWindow.setVisible(true);
+    }
+
+    private void startRecording() {
+        kinectWindow = new KinectWindow(true, true, isSceneEnabled(), isSkeletonEnabled());
+        kinectWindow.setFileName(getFileName());
+        kinectWindow.setRecording(true);
+        kinectWindow.setView(currentView);
+        kinectWindow.init();
         kinectWindow.setVisible(true);
     }
 
@@ -164,12 +204,20 @@ public class KinectDeviceHandler implements DeviceHandler {
             recordingPanel.setLayout(new BoxLayout(recordingPanel, BoxLayout.X_AXIS));
 
             fileNameField = new JTextField();
-            fileNameField.setText(getFileName());
+            fileNameField.setText(new File(getFileName()).getName());
+            fileNameField.setEditable(false);
 
             fileButton = new JButton("File...");
             fileButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
+                        //JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(fileButton);
+                        File f = FileUtils.showSaveDialog(null, getFileName(), "*.oni", "ONI files");
+                        if (f != null) {
+                            setFileName(f.getAbsolutePath());
+                            fileNameField.setText(new File(getFileName()).getName());
+                            setPropertyValue("filename", getFileName());
+                        }
                 }
             });
 
@@ -322,6 +370,9 @@ public class KinectDeviceHandler implements DeviceHandler {
             sceneCheck.setEnabled(enabled);
             skeletonCheck.setEnabled(enabled);
             startButton.setText(isRunning() ? "Show" : "Start");
+            useFileCheck.setEnabled(enabled);
+            fileButton.setEnabled(enabled);
+            clearButton.setEnabled(enabled);
             stopButton.setEnabled(! enabled);
         }
     }
