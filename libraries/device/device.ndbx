@@ -46,6 +46,11 @@
             <port name="context" type="context"
                   description="The internal execution context."/>
         </node>
+        <node category="device" description="Blobs from the kinect" function="device/kinectBlobs"
+              image="generic.png" name="kinect_blobs" position="1.00,1.00" outputType="geometry" outputRange="value">
+            <port name="context" type="context"
+                  description="The internal execution context."/>
+        </node>
         <node category="device" description="Audio analysis with Minim" function="device/audioAnalysis"
               image="generic.png" name="audio_analysis" position="1.00,1.00" outputType="float" outputRange="list">
             <port name="device_name" type="string"
