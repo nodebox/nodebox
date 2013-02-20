@@ -32,6 +32,10 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         return name;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     public boolean isAutoStart() {
         return autostart;
     }
@@ -54,7 +58,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     }
 
     public void addData(Map map) {
-        if (applet.getPlayer() != null)
+        if (applet != null && applet.getPlayer() != null)
             map.put(getName() + ".player", applet.getPlayer());
     }
 
@@ -81,7 +85,22 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
             deviceNameLabel = new JLabel(deviceHandler.getName());
             fileNameField = new JTextField(100);
-            fileNameField.setText(fileName);
+            fileNameField.setText(getFileName());
+            fileNameField.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    changeFileName();
+                }
+            }
+            );
+            fileNameField.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent focusEvent) {
+                    changeFileName();
+                }
+            });
+
+
             autoStartCheck = new JCheckBox("autostart");
             autoStartCheck.setSelected(isAutoStart());
             autoStartCheck.addItemListener(new ItemListener() {
@@ -117,6 +136,11 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             add(Box.createHorizontalStrut(5));
             add(stopButton);
             add(Box.createHorizontalGlue());
+        }
+
+        private void changeFileName() {
+            stop();
+            setPropertyValue("filename", fileNameField.getText());
         }
     }
 }
