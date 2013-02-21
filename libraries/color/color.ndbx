@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx type="file" uuid="d81dc9ae-d9a4-4e9e-95f9-b9563a6af88c">
+<ndbx formatVersion="16" type="file" uuid="d81dc9ae-d9a4-4e9e-95f9-b9563a6af88c">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
     <link href="java:nodebox.function.ColorFunctions" rel="functions"/>
-    <node description="Create colors." name="root" renderedChild="color">
-        <node description="Create a color value that can be used as a variable." function="color/color" name="color" outputType="color" position="1.00,4.00" category="color">
-            <port name="color" range="value" type="color" value="#000000ff" widget="color" description="The input color."/>
+    <node description="Create colors." name="root" prototype="core.network" renderedChild="color">
+        <node category="color" description="Create a color value that can be used as a variable." function="color/color" name="color" outputType="color" position="1.00,1.00">
+            <port name="color" range="value" type="color" value="#000000ff" widget="color"/>
         </node>
-        <node description="Create a gray color." function="color/gray" name="gray_color" outputType="color" position="1.00,3.00" category="color">
-            <port name="gray" range="value" type="float" value="0.0" widget="float" description="The gray value of the color."/>
-            <port name="alpha" range="value" type="float" value="255.0" widget="float" description="The alpha transparency of the color."/>
-            <port name="range" range="value" type="float" value="255.0" widget="float" description="The upper limit of the input values."/>
+        <node category="color" description="Create a gray color." function="color/gray" name="gray_color" outputType="color" position="1.00,2.00">
+            <port name="gray" range="value" type="float" value="0.0" widget="float"/>
+            <port name="alpha" range="value" type="float" value="255.0" widget="float"/>
+            <port name="range" range="value" type="float" value="255.0" widget="float"/>
         </node>
-        <node description="Create a HSB color." function="color/hsb" name="hsb_color" outputType="color" position="1.00,1.00" category="color">
-            <port name="hue" range="value" type="float" value="0.0" widget="float" description="The hue or tint of the color."/>
-            <port name="saturation" range="value" type="float" value="0.0" widget="float" description="The saturation or intensity of the color."/>
-            <port name="brightness" range="value" type="float" value="0.0" widget="float" description="The brightness or vividness of the color."/>
-            <port name="alpha" range="value" type="float" value="255.0" widget="float" description="The alpha transparency of the color."/>
-            <port name="range" range="value" type="float" value="255.0" widget="float" description="The upper limit of the input values."/>
+        <node category="color" description="Create a HSB color." function="color/hsb" image="hsb_color.png" name="hsb_color" outputType="color" position="1.00,3.00">
+            <port name="hue" range="value" type="float" value="0.0" widget="float"/>
+            <port name="saturation" range="value" type="float" value="0.0" widget="float"/>
+            <port name="brightness" range="value" type="float" value="0.0" widget="float"/>
+            <port name="alpha" range="value" type="float" value="255.0" widget="float"/>
+            <port name="range" range="value" type="float" value="255.0" widget="float"/>
         </node>
-        <node description="Create a RGB color." function="color/rgb" name="rgb_color" outputType="color" position="1.00,2.00" category="color">
-            <port name="red" range="value" type="float" value="0.0" widget="float" description="The red component of the color."/>
-            <port name="green" range="value" type="float" value="0.0" widget="float" description="The green component of the color."/>
-            <port name="blue" range="value" type="float" value="0.0" widget="float" description="The blue component of the color."/>
-            <port name="alpha" range="value" type="float" value="255.0" widget="float" description="The alpha transparency of the color."/>
-            <port name="range" range="value" type="float" value="255.0" widget="float" description="The upper limit of the input values."/>
+        <node category="color" description="Create a RGB color." function="color/rgb" image="rgb_color.png" name="rgb_color" outputType="color" position="1.00,4.00">
+            <port name="red" range="value" type="float" value="0.0" widget="float"/>
+            <port name="green" range="value" type="float" value="0.0" widget="float"/>
+            <port name="blue" range="value" type="float" value="0.0" widget="float"/>
+            <port name="alpha" range="value" type="float" value="255.0" widget="float"/>
+            <port name="range" range="value" type="float" value="255.0" widget="float"/>
         </node>
     </node>
 </ndbx>
