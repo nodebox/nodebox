@@ -125,7 +125,7 @@
             <port name="end" range="value" type="float" value="10.0" widget="float"/>
             <port name="step" range="value" type="float" value="1.0" widget="float"/>
         </node>
-        <node category="math" description="Calculate a new point based on the angle and distance from an original point." function="math/reflect" image="generic.png" name="reflect" outputType="point" position="1.00,32.00">
+        <node category="math" description="Calculate a new point based on the angle and distance from an original point." function="math/reflect" image="reflect.png" name="reflect" outputType="point" position="1.00,32.00">
             <port name="point1" range="value" type="point" value="0.00,0.00" widget="point"/>
             <port name="point2" range="value" type="point" value="100.00,100.00" widget="point"/>
             <port name="angle" range="value" type="float" value="0.0" widget="float"/>
