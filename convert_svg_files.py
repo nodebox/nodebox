@@ -24,7 +24,7 @@ import sys
 SOURCE_DIRECTORY = 'artwork'
 TARGET_DIRECTORY = 'libraries'
 
-LIBRARIES = ['core', 'corevector', 'data', 'list', 'math']
+LIBRARIES = ['color', 'core', 'corevector', 'data', 'device', 'list', 'math', 'string']
 
 if sys.platform == 'darwin':
     SVG2PNG_COMMAND = 'svg2png -w 26 -h 26 %s %s'
