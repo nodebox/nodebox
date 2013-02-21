@@ -1,35 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx type="file" uuid="a779a96c-efec-4fbd-a804-7c12072bcb74">
     <link href="java:nodebox.function.DeviceFunctions" rel="functions"/>
-    <node description="Real time nodes." name="root" renderedChild="mouse_position">
-        <node category="device" description="Get the most recent mouse position" function="device/mousePosition"
-              image="generic.png" name="mouse_position" position="1.00,1.00" outputType="point">
-            <port name="context" type="context"
-                  description="The internal execution context from which to extract the frame number."/>
+    <node description="Real time nodes." name="root" prototype="core.network" renderedChild="mouse_position">
+        <node category="device" description="Buffer incoming points" function="device/bufferPoints" image="generic.png" name="buffer_points" outputRange="list" outputType="point" position="1.00,1.00">
+            <port name="point" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port name="size" range="value" type="int" value="100" widget="int"/>
+            <port name="state" range="value" type="state" widget="none"/>
         </node>
-        <node category="device" description="Buffer incoming points" function="device/bufferPoints"
-              image="generic.png" name="buffer_points" position="1.00,1.00" outputType="point" outputRange="list">
-            <port name="point" type="point" description="The latest point."/>
-            <port name="size" type="int" value="100" description="The amount of points to buffer."/>
-            <port name="state" type="state" description="The previous state of the node."/>
+        <node category="device" description="Get the most recent mouse position" function="device/mousePosition" image="generic.png" name="mouse_position" outputType="point" position="1.00,2.00">
+            <port name="context" range="value" type="context" widget="none"/>
         </node>
-        <node category="device" description="Receive messages from OSC" function="device/receiveOSC"
-              image="generic.png" name="receive_osc" position="1.00,1.00" outputType="string" outputRange="list">
-            <port name="address_prefix" type="string"
-                  description="The prefix of the addresses to receive the messages on." value="/"/>
-            <port name="arguments" type="string"
-                  description="The names of the OSC messages' arguments, delimited by ','"/>
-            <port name="context" type="context"
-                  description="The internal execution context."/>
+        <node category="device" description="Receive messages from OSC" function="device/receiveOSC" image="receive_osc.png" name="receive_osc" outputRange="list" outputType="string" position="1.00,3.00">
+            <port name="address_prefix" range="value" type="string" value="/" widget="string"/>
+            <port name="arguments" range="value" type="string" value="" widget="string"/>
+            <port name="context" range="value" type="context" widget="none"/>
         </node>
-         <node category="device" description="Send messages over OSC" function="device/sendOSC"
-              image="generic.png" name="send_osc" position="1.00,1.00" alwaysRendered="true">
-               <port name="address" type="string"
-                  description="The address to send the messages to."/>
-               <port name="port" range="value" type="int" value="9999" widget="int" description="The osc output port."/>
-               <port name="route" type="string"
-                                 description="The routing for the message."/>
-               <port name="arguments" range="list" type="list" widget="none" description="The arguments to send over osc."/>
+        <node category="device" description="Send messages over OSC" function="device/sendOSC" image="send_osc.png" name="send_osc" position="1.00,4.00">
+            <port name="address" range="value" type="string" value="" widget="string"/>
+            <port name="port" range="value" type="int" value="9999" widget="int"/>
+            <port name="route" range="value" type="string" value="" widget="string"/>
+            <port name="arguments" range="list" type="list" widget="none"/>
         </node>
     </node>
 </ndbx>
