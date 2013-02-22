@@ -48,4 +48,12 @@ public class FullScreenFrame extends JFrame {
     public void close() {
         document.closeFullScreenWindow();
     }
+
+    public void toggleAnimation() {
+        document.toggleAnimation();
+    }
+
+    public void rewindAnimation() {
+        document.doRewind();
+    }
 }
