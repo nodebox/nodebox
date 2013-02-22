@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="16" type="file">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <property name="oscPort" value="2084"/>
+    <node name="root" prototype="core.network">
+    </node>
+</ndbx>

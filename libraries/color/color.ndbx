@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ndbx formatVersion="16" type="file" uuid="d81dc9ae-d9a4-4e9e-95f9-b9563a6af88c">
+<ndbx type="file" uuid="d81dc9ae-d9a4-4e9e-95f9-b9563a6af88c">
     <property name="canvasHeight" value="1000"/>
     <property name="canvasWidth" value="1000"/>
     <link href="java:nodebox.function.ColorFunctions" rel="functions"/>

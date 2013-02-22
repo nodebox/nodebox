@@ -68,6 +68,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("13", upgradeMethod("upgrade13to14"));
         upgradeMap.put("14", upgradeMethod("upgrade14to15"));
         upgradeMap.put("15", upgradeMethod("upgrade15to16"));
+        upgradeMap.put("16", upgradeMethod("upgrade16to17"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -279,6 +280,11 @@ public class NodeLibraryUpgrades {
         UpgradeOp addAttributeOp = new AddAttributeOp("corevector.geonet", "outputType", "geometry");
         UpgradeOp changePrototypeOp = new ChangePrototypeOp("corevector.geonet", "core.network");
         return transformXml(inputXml, "16", renameNodeOp1, renameNodeOp2, renameNodeOp3, addAttributeOp, changePrototypeOp);
+    }
+
+    public static UpgradeStringResult upgrade16to17(String inputXml) throws LoadException {
+        UpgradeOp convertOSCPropertyOp = new ConvertOSCPropertyFormatOp();
+        return transformXml(inputXml, "17", convertOSCPropertyOp);
     }
 
     private static List<Node> childNodes(Node parent) {
@@ -558,6 +564,37 @@ public class NodeLibraryUpgrades {
         public void apply(Element e) {
             if (isNodeWithPrototype(e, prototype)) {
                 e.setAttribute(attributeName, attributeValue);
+            }
+        }
+    }
+
+    private static class ConvertOSCPropertyFormatOp extends UpgradeOp {
+        @Override
+        public void apply(Element e) {
+            if (e.getTagName().equals("property")) {
+                Element parent = (Element) e.getParentNode();
+                if (parent != null && parent.getTagName().equals("ndbx")) {
+                    Attr name = e.getAttributeNode("name");
+                    Attr value = e.getAttributeNode("value");
+                    if (name != null && name.getValue().equals("oscPort")) {
+                        if (value != null) {
+                            Element device = e.getOwnerDocument().createElement("device");
+                            device.setAttribute("name", "osc1");
+                            device.setAttribute("type", "osc");
+                            Element portProperty = e.getOwnerDocument().createElement("property");
+                            portProperty.setAttribute("name", "port");
+                            portProperty.setAttribute("value", value.getValue());
+                            device.appendChild(portProperty);
+                            Element autostartProperty = e.getOwnerDocument().createElement("property");
+                            autostartProperty.setAttribute("name", "autostart");
+                            autostartProperty.setAttribute("value", "true");
+                            device.appendChild(autostartProperty);
+                            parent.replaceChild(device, e);
+                        } else {
+                            parent.removeChild(e);
+                        }
+                    }
+                }
             }
         }
     }
