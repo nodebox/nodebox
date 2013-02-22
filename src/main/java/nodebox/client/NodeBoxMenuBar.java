@@ -98,6 +98,8 @@ public class NodeBoxMenuBar extends JMenuBar {
         showConsoleItem = windowMenu.add(new JCheckBoxMenuItem(new ShowConsoleAction()));
         setShowConsoleChecked(Application.getInstance() != null && Application.getInstance().isConsoleOpened());
         windowMenu.addSeparator();
+        windowMenu.add(new ShowDevicesAction());
+        windowMenu.addSeparator();
         windowMenu.add(new BringAllToFrontAction());
         // TODO Add all active windows.
         add(windowMenu);
@@ -546,6 +548,16 @@ public class NodeBoxMenuBar extends JMenuBar {
                 instance.hideConsole();
             else
                 instance.showConsole();
+        }
+    }
+
+    public class ShowDevicesAction extends AbstractDocumentAction {
+        public ShowDevicesAction() {
+            putValue(NAME, "Show Devices");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().showDevices();
         }
     }
 

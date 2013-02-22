@@ -1,11 +1,16 @@
 package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
+import nodebox.node.Device;
 import oscP5.OscEventListener;
 import oscP5.OscMessage;
 import oscP5.OscP5;
 import oscP5.OscStatus;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,17 +20,21 @@ public class OSCDeviceHandler implements DeviceHandler {
     private String name;
     private OscP5 oscP5;
     private int oscPort;
+    private boolean autostart;
     private Map<String, List<Object>> oscMessages = new HashMap<String, List<Object>>();
+    private boolean paused;
 
     public OSCDeviceHandler(String name) {
-        this(name, -1);
+        this(name, -1, false);
     }
 
-    public OSCDeviceHandler(String name, int oscPort) {
+    public OSCDeviceHandler(String name, int oscPort, boolean autostart) {
         this.name = name;
         this.oscPort = oscPort;
+        this.autostart = autostart;
         oscP5 = null;
         oscMessages.clear();
+        paused = false;
     }
 
     public String getName() {
@@ -34,6 +43,18 @@ public class OSCDeviceHandler implements DeviceHandler {
 
     public int getPort() {
         return oscPort;
+    }
+
+    public boolean isAutoStart() {
+        return autostart;
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public boolean isRunning() {
+        return oscP5 != null;
     }
 
     public Map<String, List<Object>> getOscMessages() {
@@ -45,20 +66,18 @@ public class OSCDeviceHandler implements DeviceHandler {
     }
 
     public void start() {
-        start(oscPort);
-    }
-
-    public void start(int port) {
         if (oscP5 != null)
             stop();
-        oscPort = port;
+        if (oscPort == -1) return;
         oscMessages.clear();
-        oscP5 = new OscP5(new Object(), port);
+        oscP5 = new OscP5(new Object(), oscPort);
         oscP5.addListener(new OscEventListener() {
             @Override
             public void oscEvent(OscMessage m) {
-                ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
-                oscMessages.put(m.addrPattern(), arguments);
+                if (! isPaused()) {
+                    ImmutableList<Object> arguments = ImmutableList.copyOf(m.arguments());
+                    oscMessages.put(m.addrPattern(), arguments);
+                }
             }
 
             @Override
@@ -67,11 +86,98 @@ public class OSCDeviceHandler implements DeviceHandler {
         });
     }
 
+    public void pause() {
+        paused = true;
+    }
+
+    public void resume() {
+        paused = false;
+    }
+
     public void stop() {
         if (oscP5 != null)
             oscP5.stop();
         oscP5 = null;
-        oscPort = -1;
-        oscMessages.clear();
+        paused = false;
     }
+
+    public AbstractDeviceControl createControl() {
+        return new OSCDeviceControl(this);
+    }
+
+    private class OSCDeviceControl extends AbstractDeviceControl {
+
+        private JLabel deviceNameLabel;
+        private JTextField portNumberField;
+        private JCheckBox autoStartCheck;
+        private JButton startButton;
+        private JButton stopButton;
+        private JButton clearButton;
+
+        public OSCDeviceControl(OSCDeviceHandler deviceHandler) {
+            super(deviceHandler);
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+
+            Dimension d = new Dimension(450, 30);
+            setPreferredSize(d);
+            setMaximumSize(d);
+            setSize(d);
+
+            deviceNameLabel = new JLabel(deviceHandler.getName());
+            portNumberField = new JTextField();
+            portNumberField.setText(String.valueOf(getPort()));
+            autoStartCheck = new JCheckBox("autostart");
+            autoStartCheck.setSelected(isAutoStart());
+            startButton = new JButton();
+            if (isRunning()) {
+                startButton.setText(isPaused() ? "Start" : "Pause");
+            } else {
+                startButton.setText("Start");
+            }
+            startButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    if (! isRunning()) {
+                        start();
+                        startButton.setText("Pause");
+                    } else if (isPaused()) {
+                        resume();
+                        startButton.setText("Pause");
+                    } else {
+                        pause();
+                        startButton.setText("Resume");
+                    }
+                }
+            });
+            stopButton = new JButton("Stop");
+            stopButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    stop();
+                    startButton.setText("Start");
+                }
+            });
+            clearButton = new JButton("Clear");
+            clearButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    oscMessages.clear();
+                }
+            });
+            add(Box.createHorizontalStrut(10));
+            add(deviceNameLabel);
+            add(Box.createHorizontalStrut(5));
+            add(portNumberField);
+            add(Box.createHorizontalStrut(5));
+            add(autoStartCheck);
+            add(Box.createHorizontalStrut(5));
+            add(startButton);
+            add(Box.createHorizontalStrut(5));
+            add(stopButton);
+            add(Box.createHorizontalStrut(5));
+            add(clearButton);
+            add(Box.createHorizontalGlue());
+        }
+    }
+
 }
