@@ -54,7 +54,8 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new SaveAsAction());
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
-        fileMenu.add(new DevicesAction());
+        if (Application.ENABLE_DEVICE_SUPPORT)
+            fileMenu.add(new DevicesAction());
         fileMenu.add(new CodeLibrariesAction());
         fileMenu.add(new DocumentPropertiesAction());
         fileMenu.addSeparator();
