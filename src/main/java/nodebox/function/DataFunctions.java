@@ -1,6 +1,7 @@
 package nodebox.function;
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.util.ReflectionUtils;
@@ -18,6 +19,7 @@ public class DataFunctions {
 
     public static final FunctionLibrary LIBRARY;
     private static final Map<String, Character> separators;
+    private static final Splitter DOT_SPLITTER = Splitter.on('.');
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
@@ -35,12 +37,43 @@ public class DataFunctions {
 
     /**
      * Try a number of ways to lookup a key in an object.
+     * <p/>
+     * If the key has dots in it, use a nested lookup.
      *
      * @param o   The object to search
      * @param key The key to find.
      * @return The value of the key if found, otherwise null.
      */
     public static Object lookup(Object o, String key) {
+        if (key == null) return null;
+        return nestedLookup(o, DOT_SPLITTER.split(key));
+    }
+
+    /**
+     * Lookup a value in a nested structure.
+     *
+     * @param o    The object to search.
+     * @param keys The keys to find.
+     * @return The value of the key if found, otherwise null.
+     */
+    public static Object nestedLookup(Object o, Iterable<String> keys) {
+        for (String key : keys) {
+            o = fastLookup(o, key);
+            if (o == null) {
+                break;
+            }
+        }
+        return o;
+    }
+
+    /**
+     * Try a number of ways to lookup a key in an object.
+     *
+     * @param o   The object to search
+     * @param key The key to find.
+     * @return The value of the key if found, otherwise null.
+     */
+    private static Object fastLookup(Object o, String key) {
         if (o == null || key == null) return null;
         if (o instanceof Map) {
             Map m = (Map) o;
@@ -103,7 +136,7 @@ public class DataFunctions {
                 ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
                 for (int i = 0; i < row.length; i++) {
                     String header = i < headers.length ? headers[i] : String.format("Column %s", i + 1);
-                    if (! columnNumerics.containsKey(header))
+                    if (!columnNumerics.containsKey(header))
                         columnNumerics.put(header, null);
 
                     String v = row[i].trim();

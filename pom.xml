@@ -68,6 +68,18 @@
         </dependency>
 
         <dependency>
+            <groupId>org.clojars.processing-core</groupId>
+            <artifactId>org.processing.core</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.clojars.automata</groupId>
+            <artifactId>ddf.minim</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>oscP5</groupId>
             <artifactId>oscP5</artifactId>
             <version>0.9.9</version>
@@ -80,7 +92,11 @@
           <id>emrg</id>
           <url>http://repo.emrg.be</url>
         </repository>
-    </repositories>    
+        <repository>
+          <id>clojars.org</id>
+          <url>http://clojars.org/repo</url>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>

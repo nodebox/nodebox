@@ -79,6 +79,10 @@ public class Rect implements Iterable {
         return y;
     }
 
+    public Point getPosition() {
+        return new Point(x, y);
+    }
+
     public Point getCentroid() {
         return new Point(x + width / 2, y + height / 2);
     }

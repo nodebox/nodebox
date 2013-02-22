@@ -7,8 +7,8 @@ import java.io.IOException;
 
 public class ActionHeader extends JPanel {
 
-    public static Image backgroundImage;
-    public static Image dividerImage;
+    public static final Image backgroundImage;
+    public static final Image dividerImage;
 
     static {
         try {

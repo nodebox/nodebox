@@ -344,7 +344,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         if (dy < GRID_CELL_SIZE) {
             g.drawLine(x0, y0, x1, y1);
         } else {
-            double halfDx = Math.abs(x1 - x0) / 2;
+            double halfDx = Math.abs(x1 - x0) / 2.0;
             GeneralPath p = new GeneralPath();
             p.moveTo(x0, y0);
             p.curveTo(x0, y0 + halfDx, x1, y1 - halfDx, x1, y1);

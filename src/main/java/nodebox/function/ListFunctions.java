@@ -3,7 +3,6 @@ package nodebox.function;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
-import nodebox.util.ListUtils;
 import nodebox.util.MathUtils;
 
 import java.util.*;
@@ -130,7 +129,7 @@ public class ListFunctions {
      */
     public static List<?> slice(Iterable<?> iterable, long startIndex, long size, boolean invert) {
         if (iterable == null) return ImmutableList.of();
-        if (! invert) {
+        if (!invert) {
             Iterable<?> skipped = Iterables.skip(iterable, (int) startIndex);
             return ImmutableList.copyOf(Iterables.limit(skipped, (int) size));
         } else {
@@ -336,16 +335,29 @@ public class ListFunctions {
      * Filter a list so it only contains unique elements (no duplicates).
      *
      * @param iterable The list to filter.
+     * @param key      Optionally, the lookup key that will be used to find distincts.
      * @return The filtered list.
      */
-    public static List<?> distinct(Iterable<?> iterable) {
+    public static List<?> distinct(Iterable<?> iterable, String key) {
         if (iterable == null) return ImmutableList.of();
-        List<Object> newList = new ArrayList<Object>();
-        for (Object object : iterable) {
-            if (newList.contains(object)) continue;
-            newList.add(object);
+        if (key != null) {
+            key = key.trim().isEmpty() ? null : key;
         }
-        return ImmutableList.copyOf(newList);
+        Set<Integer> distinctKeys = new HashSet<Integer>();
+        ImmutableList.Builder<?> b = ImmutableList.builder();
+        for (Object object : iterable) {
+            final Integer hashCode;
+            if (key == null) {
+                hashCode = object == null ? null : object.hashCode();
+            } else {
+                Object v = DataFunctions.lookup(object, key);
+                hashCode = v == null ? null : v.hashCode();
+            }
+            if (hashCode != null && distinctKeys.contains(hashCode))  continue;
+            distinctKeys.add(hashCode);
+            b.add(object);
+        }
+        return b.build();
     }
 
     public static List<?> takeEvery(Iterable<?> iterable, long n) {
@@ -363,9 +375,9 @@ public class ListFunctions {
         return b.build();
     }
 
-    public static <K,V> Map<K,V> zipMap(Iterable<K> keys, Iterable<V> values) {
+    public static <K, V> Map<K, V> zipMap(Iterable<K> keys, Iterable<V> values) {
         if (keys == null || values == null) return ImmutableMap.of();
-        ImmutableMap.Builder<K,V> b = ImmutableMap.builder();
+        ImmutableMap.Builder<K, V> b = ImmutableMap.builder();
         Iterator<K> keyIterator = keys.iterator();
         Iterator<V> valueIterator = values.iterator();
         while (keyIterator.hasNext() && valueIterator.hasNext()) {

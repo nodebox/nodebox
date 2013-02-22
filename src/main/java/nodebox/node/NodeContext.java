@@ -1,5 +1,6 @@
 package nodebox.node;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.function.Function;
@@ -21,6 +22,7 @@ public final class NodeContext {
     private final ImmutableMap<String, ?> data;
     private final ImmutableMap<Node, List<?>> previousRenderResults;
     private final Map<Node, List<?>> renderResults;
+    private final Map<NodeArguments, List<?>> nodeArgumentsResults;
 
 
     public NodeContext(NodeLibrary nodeLibrary) {
@@ -37,6 +39,7 @@ public final class NodeContext {
         this.frame = frame;
         this.data = ImmutableMap.copyOf(data);
         this.renderResults = new HashMap<Node, List<?>>();
+        this.nodeArgumentsResults = new HashMap<NodeArguments, List<?>>();
         this.previousRenderResults = ImmutableMap.copyOf(previousRenderResults);
     }
 
@@ -125,6 +128,11 @@ public final class NodeContext {
     }
 
     public List<?> renderChild(Node network, Node child, Map<Port, ?> networkArgumentMap) {
+        NodeArguments nodeArguments = new NodeArguments(network, child, networkArgumentMap);
+
+        List<?> storedResults = nodeArgumentsResults.get(nodeArguments);
+        if (storedResults != null) return storedResults;
+
         // A list of all result objects.
         List<Object> resultsList = new ArrayList<Object>();
         // If the node has no input ports, execute the node once for its side effects.
@@ -167,7 +175,7 @@ public final class NodeContext {
                 resultsList.addAll(results);
             }
         }
-
+        nodeArgumentsResults.put(nodeArguments, resultsList);
         return resultsList;
     }
 
@@ -372,4 +380,29 @@ public final class NodeContext {
         }
     }
 
+    private class NodeArguments {
+        private Node network;
+        private Node node;
+        private Map<Port, ?> argumentMap;
+
+        public NodeArguments(Node network, Node node, Map<Port, ?> argumentMap) {
+            this.network = network;
+            this.node = node;
+            this.argumentMap = argumentMap;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(network, node, argumentMap);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof NodeArguments)) return false;
+            final NodeArguments other = (NodeArguments) o;
+            return Objects.equal(network, other.network)
+                    && Objects.equal(node, other.node)
+                    && Objects.equal(argumentMap, other.argumentMap);
+        }
+    }
 }

@@ -642,6 +642,18 @@ public class NodeLibraryTest {
         assertEquals("geometry", root.getChild("geonet1").getOutputType());
     }
 
+    @Test
+    public void testUpgrade16to17() {
+        File version16File = new File("src/test/files/upgrade-v16.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version16File);
+        NodeLibrary upgradedLibrary = result.getLibrary(version16File, NodeRepository.of());
+        assertFalse(upgradedLibrary.hasProperty("oscPort"));
+        assertTrue(upgradedLibrary.hasDevice("osc1"));
+        assertEquals(1, upgradedLibrary.getDevices().size());
+        assertEquals("2084", upgradedLibrary.getDevices().get(0).getProperties().get("port"));
+        assertEquals("true", upgradedLibrary.getDevices().get(0).getProperties().get("autostart"));
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

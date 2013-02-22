@@ -133,12 +133,25 @@ public class ListFunctionsTest {
 
     @Test
     public void testDistinct() {
-        // Distinct is stable: the same seed always returns the same sort order.
-        assertElements(ListFunctions.distinct(ImmutableList.of()));
-        assertElements(ListFunctions.distinct(ImmutableList.of(1, 2, 3, 4)), 1, 2, 3, 4);
-        assertElements(ListFunctions.distinct(ImmutableList.of(4, 3, 2, 1)), 4, 3, 2, 1);
-        assertElements(ListFunctions.distinct(ImmutableList.of(3, 4, 3, 1, 2, 1)), 3, 4, 1, 2);
-        assertElements(ListFunctions.distinct(ImmutableList.of(3, 4, 3, 2, 1)), 3, 4, 2, 1);
+        assertElements(ListFunctions.distinct(ImmutableList.of(), null));
+        assertElements(ListFunctions.distinct(ImmutableList.of(1, 2, 3, 4), null), 1, 2, 3, 4);
+        assertElements(ListFunctions.distinct(ImmutableList.of(4, 3, 2, 1), null), 4, 3, 2, 1);
+        assertElements(ListFunctions.distinct(ImmutableList.of(3, 4, 3, 1, 2, 1), null), 3, 4, 1, 2);
+        assertElements(ListFunctions.distinct(ImmutableList.of(3, 4, 3, 2, 1), null), 3, 4, 2, 1);
+    }
+
+    @Test
+    public void testDistinctWithKey() {
+        ImmutableMap<String,Integer> m1 = ImmutableMap.of("a", 1, "b", 100, "c", 1234);
+        ImmutableMap<String,Integer> m2 = ImmutableMap.of("a", 2, "b", 100, "c", 2345);
+        ImmutableMap<String,Integer> m3 = ImmutableMap.of("a", 1, "b", 100, "c", 3456);
+        ImmutableList<ImmutableMap<String,Integer>> l = ImmutableList.of(m1, m2, m3, m1);
+
+        assertElements(ListFunctions.distinct(l, ""), m1, m2, m3);
+        assertElements(ListFunctions.distinct(l, null), m1, m2, m3);
+        assertElements(ListFunctions.distinct(l, "a"), m1, m2);
+        assertElements(ListFunctions.distinct(l, "b"), m1);
+        assertElements(ListFunctions.distinct(l, "xxx"), m1, m2, m3, m1);
     }
 
     @Test

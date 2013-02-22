@@ -19,7 +19,7 @@ public class NButton extends JComponent implements MouseListener {
     public static final int BUTTON_HEIGHT = 21;
     public static final int IMAGE_TEXT_MARGIN = 3;
     public static final int TEXT_BASELINE = 14;
-    public static Image checkOn, checkOff, checkDisabledOn, checkDisabledOff;
+    public static final Image checkOn, checkOff, checkDisabledOn, checkDisabledOff;
     private String text;
     private Image normalImage, checkedImage;
     private Object actionObject;

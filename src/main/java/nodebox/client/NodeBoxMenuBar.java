@@ -54,6 +54,8 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new SaveAsAction());
         fileMenu.add(new RevertAction());
         fileMenu.addSeparator();
+        if (Application.ENABLE_DEVICE_SUPPORT)
+            fileMenu.add(new DevicesAction());
         fileMenu.add(new CodeLibrariesAction());
         fileMenu.add(new DocumentPropertiesAction());
         fileMenu.addSeparator();
@@ -281,6 +283,16 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             getDocument().revert();
+        }
+    }
+
+    public class DevicesAction extends AbstractDocumentAction {
+        public DevicesAction() {
+            putValue(NAME, "Devices...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().showDevices();
         }
     }
 

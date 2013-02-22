@@ -16,6 +16,7 @@
         </node>
         <node description="Remove all duplicate items from the list." function="list/distinct" image="distinct.png" name="distinct" outputRange="list" outputType="list" position="7.00,5.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
+            <port name="key" range="value" type="string" widget="string" description="An optional lookup key that will be searched for distinct values."/>
         </node>
         <node description="Take the first item of the list." function="list/first" image="first.png" name="first" outputType="data" position="1.00,4.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>

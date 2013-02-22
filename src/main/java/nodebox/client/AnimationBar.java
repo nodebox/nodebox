@@ -20,11 +20,11 @@ public class AnimationBar extends JPanel implements ChangeListener {
         try {
             animationBackground = ImageIO.read(AnimationBar.class.getResourceAsStream("/animation-background.png"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    public static Image animationBackground;
+    public static final Image animationBackground;
     private final NodeBoxDocument document;
     private final DraggableNumber frameNumber;
     private final NButton playButton;

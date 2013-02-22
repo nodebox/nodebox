@@ -55,24 +55,24 @@ public class Theme {
     public static final Color TEXT_WARNING_COLOR = new Color(200, 0, 0);
 
     // Borders
-    public static Color BORDER_COLOR;
-    public static Border LINE_BORDER;
-    public static Border TOP_BOTTOM_BORDER;
-    public static Border TOP_BORDER;
-    public static Border BOTTOM_BORDER;
-    public static Border PARAMETER_ROW_BORDER;
-    public static Border PARAMETER_NOTES_BORDER;
-    public static Border INNER_SHADOW_BORDER;
-    public static Border EMPTY_BORDER;
+    public static final Color BORDER_COLOR;
+    public static final Border LINE_BORDER;
+    public static final Border TOP_BOTTOM_BORDER;
+    public static final Border TOP_BORDER;
+    public static final Border BOTTOM_BORDER;
+    public static final Border PARAMETER_ROW_BORDER;
+    public static final Border PARAMETER_NOTES_BORDER;
+    public static final Border INNER_SHADOW_BORDER;
+    public static final Border EMPTY_BORDER;
 
     // Fonts
-    public static Font EDITOR_FONT;
-    public static Font MESSAGE_FONT;
-    public static Font NETWORK_FONT;
-    public static Font INFO_FONT;
-    public static Font SMALL_FONT;
-    public static Font SMALL_BOLD_FONT;
-    public static Font SMALL_MONO_FONT;
+    public static final Font EDITOR_FONT;
+    public static final Font MESSAGE_FONT;
+    public static final Font NETWORK_FONT;
+    public static final Font INFO_FONT;
+    public static final Font SMALL_FONT;
+    public static final Font SMALL_BOLD_FONT;
+    public static final Font SMALL_MONO_FONT;
 
     public static final int LABEL_WIDTH = 114;
 
