@@ -36,6 +36,7 @@ public class OSCDeviceHandler implements DeviceHandler {
         paused = false;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -93,6 +94,7 @@ public class OSCDeviceHandler implements DeviceHandler {
         paused = false;
     }
 
+    @Override
     public void stop() {
         if (oscP5 != null)
             oscP5.stop();
@@ -100,10 +102,12 @@ public class OSCDeviceHandler implements DeviceHandler {
         paused = false;
     }
 
-    public void addData(Map map) {
+    @Override
+    public void addData(Map<String, Object> map) {
         map.put(getName() + ".messages", getOscMessages());
     }
 
+    @Override
     public AbstractDeviceControl createControl() {
         return new OSCDeviceControl(this);
     }
