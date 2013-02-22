@@ -253,6 +253,7 @@ public class NodeLibrary {
         List<FunctionLibrary> functionLibraries = new LinkedList<FunctionLibrary>();
         Map<String, String> propertyMap = new HashMap<String, String>();
         Node rootNode = Node.ROOT;
+        List<Device> devices = new LinkedList<Device>();
 
         while (true) {
             int eventType = reader.next();
@@ -263,6 +264,9 @@ public class NodeLibrary {
                 } else if (tagName.equals("link")) {
                     FunctionLibrary functionLibrary = parseLink(file, reader);
                     functionLibraries.add(functionLibrary);
+                } else if (tagName.equals("device")) {
+                    Device device = parseDevice(reader);
+                    devices.add(device);
                 } else if (tagName.equals("node")) {
                     rootNode = parseNode(reader, rootNode, nodeRepository);
                 } else {
@@ -275,7 +279,7 @@ public class NodeLibrary {
             }
         }
         FunctionLibrary[] fl = functionLibraries.toArray(new FunctionLibrary[functionLibraries.size()]);
-        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, ImmutableList.<Device>of(), uuid);
+        return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, devices, uuid);
     }
 
     private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
@@ -294,6 +298,34 @@ public class NodeLibrary {
         String value = reader.getAttributeValue(null, "value");
         if (name == null || value == null) return;
         propertyMap.put(name, value);
+    }
+
+    /**
+     * Parse the external devices.
+     */
+    private static Device parseDevice(XMLStreamReader reader) throws XMLStreamException {
+        String name = reader.getAttributeValue(null, "name");
+        String type = reader.getAttributeValue(null, "type");
+
+        Device device = Device.deviceForType(name, type);
+
+        while (true) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("property")) {
+                    String propertyName = reader.getAttributeValue(null, "name");
+                    String propertyValue = reader.getAttributeValue(null, "value");
+                    if (propertyName == null || propertyValue == null) continue;
+                    device = device.withProperty(propertyName, propertyValue);
+                }
+            } else if (eventType == XMLStreamConstants.END_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("device"))
+                    break;
+            }
+        }
+        return device;
     }
 
     /**

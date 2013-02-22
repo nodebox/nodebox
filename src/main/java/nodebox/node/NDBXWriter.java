@@ -68,6 +68,8 @@ public class NDBXWriter {
             // Write the function repository.
             writeFunctionRepository(doc, rootElement, library.getFunctionRepository(), file);
 
+            writeDevices(doc, rootElement, library.getDevices());
+
             // Write the root node.
             writeNode(doc, rootElement, library.getRoot(), library.getNodeRepository());
 
@@ -106,6 +108,28 @@ public class NDBXWriter {
             Element el = doc.createElement("link");
             el.setAttribute("rel", "functions");
             el.setAttribute("href", library.getLink(baseFile));
+            parent.appendChild(el);
+        }
+    }
+
+    /**
+     * Write out external devices.
+     *
+     * @param doc     the XML document
+     * @param parent  the parent element
+     * @param devices the external devices to write
+     */
+    private static void writeDevices(Document doc, Element parent, List<Device> devices) {
+        for (Device device : devices) {
+            Element el = doc.createElement("device");
+            el.setAttribute("name", device.getName());
+            el.setAttribute("type", device.getType());
+            for (Map.Entry<String, String> property : device.getProperties().entrySet()) {
+                Element e = doc.createElement("property");
+                e.setAttribute("name", property.getKey());
+                e.setAttribute("value", property.getValue());
+                el.appendChild(e);
+            }
             parent.appendChild(el);
         }
     }
