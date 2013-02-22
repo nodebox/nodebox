@@ -89,6 +89,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private JSplitPane topSplit;
     private final ProgressPanel progressPanel;
 
+    private FullScreenFrame fullScreenFrame = null;
+
     private List<Zoom> zoomListeners = new ArrayList<Zoom>();
 
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
@@ -1082,6 +1084,30 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    public void renderFullScreen() {
+        if (fullScreenFrame != null)
+            closeFullScreenWindow();
+        fullScreenFrame = new FullScreenFrame(this);
+        fullScreenFrame.setVisible(true);
+        fullScreenFrame.setOutputValues(lastRenderResult);
+    }
+
+    public void closeFullScreenWindow() {
+        if (fullScreenFrame != null) {
+            fullScreenFrame.setVisible(false);
+            fullScreenFrame.dispose();
+            fullScreenFrame = null;
+            viewerPane.setOutputValues(lastRenderResult);
+        }
+    }
+
+    private Viewer getViewer() {
+        if (fullScreenFrame != null)
+            return fullScreenFrame.getViewer();
+        else
+            return viewerPane.getViewer();
+    }
+
     /**
      * Ask the document to stop the active rendering.
      */
@@ -1135,7 +1161,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
                 networkView.checkErrorAndRepaint();
                 progressPanel.setInProgress(false);
-                viewerPane.setOutputValues(results);
+                if (fullScreenFrame != null)
+                    fullScreenFrame.setOutputValues(results);
+                else
+                    viewerPane.setOutputValues(results);
 
                 if (shouldRender.getAndSet(false)) {
                     SwingUtilities.invokeLater(new Runnable() {

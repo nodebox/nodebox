@@ -90,6 +90,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         nodeMenu.add(new ReloadAction());
         nodeMenu.add(new PlayPauseAction());
         nodeMenu.add(new RewindAction());
+        nodeMenu.add(new FullScreenAction());
         //nodeMenu.add(newLibraryAction);
         add(nodeMenu);
 
@@ -511,6 +512,17 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
     }
 
+    public class FullScreenAction extends  AbstractDocumentAction {
+        public FullScreenAction() {
+            putValue(NAME, "Full Screen");
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, Event.META_MASK | Event.SHIFT_MASK));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            getDocument().renderFullScreen();
+        }
+    }
 
 
 //    public class NewLibraryAction extends AbstractAction {
