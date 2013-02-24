@@ -39,7 +39,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     private java.util.List<?> outputValues;
     private Class valuesClass;
-    private Visualizer currentVisualizer;
+    private Visualizer currentVisualizer = DEFAULT_VISUALIZER;
 
     static {
         visualizers = ImmutableList.of(CanvasVisualizer.INSTANCE, GrobVisualizer.INSTANCE, PointVisualizer.INSTANCE, ColorVisualizer.INSTANCE);
