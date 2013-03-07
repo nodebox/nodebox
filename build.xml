@@ -110,6 +110,16 @@
             <fileset dir="${resources}"/>
         </copy>
     </target>
+    <target name="compile-debug" depends="init">
+        <javac destdir="${build.prod}" debug="on" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
+            <src path="${src}"/>
+            <classpath refid="compile.classpath"/>
+            <compilerarg value="-Xlint:unchecked"/>
+        </javac>
+        <copy todir="${build.prod}">
+            <fileset dir="${resources}"/>
+        </copy>
+    </target>
 
     <target name="compile-tests" depends="compile">
         <javac srcdir="${test}" destdir="${build.test}" source="1.6" target="1.6" includeantruntime="false"
@@ -307,6 +317,13 @@
     <target name="run" depends="compile,bindir">
         <java classname="nodebox.client.Application" fork="true">
             <classpath refid="runtime.classpath"/>
+        </java>
+    </target>
+    <target name="debug" depends="compile-debug,bindir">
+        <java classname="nodebox.client.Application" fork="true">
+            <classpath refid="runtime.classpath"/>
+        	<jvmarg value="-Xdebug" />
+        	<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8888" />
         </java>
     </target>
 
