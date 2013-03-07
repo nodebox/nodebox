@@ -1,18 +1,35 @@
 package nodebox.function;
 
-import au.com.bytecode.opencsv.CSVReader;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import nodebox.util.ReflectionUtils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import nodebox.util.ReflectionUtils;
+
+import org.bson.types.ObjectId;
+
+import au.com.bytecode.opencsv.CSVReader;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.util.JSON;
 
 public class DataFunctions {
 
@@ -23,7 +40,7 @@ public class DataFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
-                "lookup", "importCSV");
+                "lookup", "importCSV", "importMongoDb");
 
         separators = new HashMap<String, Character>();
         separators.put("period", '.');
@@ -32,7 +49,7 @@ public class DataFunctions {
         separators.put("tab", '\t');
         separators.put("space", ' ');
         separators.put("double", '"');
-        separators.put("single", '\'');
+        separators.put("single", '\'');    
     }
 
     /**
@@ -188,5 +205,89 @@ public class DataFunctions {
             throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);
         }
     }
-
+    
+    /**
+     * Import the MongoDB collection
+     * <p/>
+     *
+     * @param url MongoDB data source: mongodb://<user>:<pass>@<host>:<port>/<db>/
+     * @return A list of maps.
+     */
+    public static List<DBObject> importMongoDb(String uri, String query, String fields, String orderBy, long skip, long count) {
+    	if (uri == null || uri.trim().isEmpty()) return ImmutableList.of();
+   
+    	try {
+    		URI u = new URI(uri);
+    		
+    		if (!u.getScheme().equals("mongodb")) return ImmutableList.of();
+			
+			String[] parts = u.getPath().split("/");
+			
+			if (parts.length < 3) return ImmutableList.of();
+			
+    		int port = u.getPort();
+    		
+			MongoClient client = new MongoClient(u.getHost(), port == -1 ? 27017 : port);
+			
+			String db_name = parts[1], collection_name = parts[2];
+			
+			if (!client.getDatabaseNames().contains(db_name)) return ImmutableList.of();
+			
+			DB db = client.getDB(db_name);
+			
+			if (!db.getCollectionNames().contains(collection_name)) return ImmutableList.of();
+			
+			String userInfo = u.getUserInfo();
+			
+			if (userInfo != null && userInfo.length() > 0) {
+				String username, password;
+				
+				int pos = userInfo.indexOf(':');
+				
+				if (pos == -1) {
+					username = userInfo;
+					password = "";
+				} else {
+					username = userInfo.substring(0, pos);
+					password = userInfo.substring(pos + 1);
+				}
+			
+				db.authenticate(username, password.toCharArray());
+			}
+			
+			DBCollection coll = db.getCollection(collection_name);
+			DBObject q = (DBObject) JSON.parse(query);
+			
+			if (u.getFragment() != null) {
+				q.put("_id", new ObjectId(u.getFragment()));
+			}
+			
+			DBCursor c;
+			
+			if (fields != null && fields.length() > 0) {
+				c = coll.find(q, (DBObject) JSON.parse(fields));
+			} else {
+				c = coll.find(q);
+			}
+			
+			if (orderBy != null && orderBy.length() > 0) {
+				c.sort((DBObject) JSON.parse(orderBy));
+			}
+			
+			if (skip > 0) c.skip((int) skip);
+			if (count > 0) c.limit((int) count);
+			
+			ImmutableList.Builder<DBObject> b = ImmutableList.builder();
+			
+			while (c.hasNext()) {
+				b.add(c.next());
+			}
+			
+			return b.build();
+		} catch (UnknownHostException e) {
+			throw new RuntimeException("Could not connect MongoDb: " + e.getMessage(), e);
+		} catch (URISyntaxException e) {
+			throw new RuntimeException("Invalid data source uri: " + e.getMessage(), e);
+		}
+    }
 }

@@ -24,5 +24,13 @@
             <port name="list" range="value" type="list" widget="none" description="The input value."/>
             <port name="key" range="value" type="string" value="x" widget="string" description="The key to lookup."/>
         </node>
+        <node description="Import objects from MongoDB" function="data/importMongoDb" image="import_mongodb.png" name="import_mongodb" outputRange="list" outputType="string" position="1.00,1.00" category="data">
+            <port name="uri" range="value" type="string" value="mongodb://localhost/db/collection" widget="string" description="The data source URI."/>
+            <port name="query" range="value" type="string" value="{}" widget="string" description="The object for which to search."/>
+            <port name="fields" range="value" type="string" value="" widget="string" description="The fields of matching objects to return."/>
+            <port name="orderBy" range="value" type="string" value="" widget="string" description="Sorts this cursor's elements."/>
+            <port name="skip" range="value" type="int" value="0" min="0" widget="int" description="The number of objects to skip."/>
+            <port name="count" range="value" type="int" value="0" min="0" widget="int" description="The number of elements returned."/>
+        </node>
     </node>
 </ndbx>

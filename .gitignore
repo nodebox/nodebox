@@ -19,3 +19,7 @@ Thumbs.db
 # Jython package cache and compiled files
 lib/cachedir
 *$py.class
+
+.classpath
+.project
+.settings
