@@ -26,6 +26,7 @@ public final class Node {
         checkNotNull(parentPath);
         checkNotNull(nodeName);
         checkArgument(parentPath.startsWith("/"), "Only absolute paths are supported.");
+        if (nodeName.isEmpty()) return parentPath;
         if (parentPath.equals("/")) {
             return "/" + nodeName;
         } else {

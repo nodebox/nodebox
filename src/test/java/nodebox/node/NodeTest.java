@@ -31,6 +31,7 @@ public class NodeTest {
     public void testPath() {
         assertEquals("/child", Node.path("/", Node.ROOT.withName("child")));
         assertEquals("/parent/child", Node.path("/parent", Node.ROOT.withName("child")));
+        assertEquals("/parent", Node.path("/parent", ""));
     }
 
     @Test(expected = IllegalArgumentException.class)
