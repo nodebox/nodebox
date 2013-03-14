@@ -23,7 +23,7 @@ public class DataFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
-                "lookup", "importCSV");
+                "lookup", "importCSV", "filterData");
 
         separators = new HashMap<String, Character>();
         separators.put("period", '.');
@@ -188,5 +188,79 @@ public class DataFunctions {
             throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);
         }
     }
+
+    public static List<Object> filterData(List<Object> rows, String key, String op, Object value) {
+        if (value == null) return rows;
+        ImmutableList.Builder<Object> b = ImmutableList.builder();
+        try {
+            double floatValue = Double.parseDouble(value.toString());
+            for (Object o: rows) {
+                if (doubleMatches(o, key, op, floatValue)) {
+                    b.add(o);
+                }
+            }
+        } catch (NumberFormatException e) {
+            for (Object o: rows) {
+                if (objectMatches(o, key, op, value)) {
+                    b.add(o);
+                }
+            }
+        }
+        return b.build();
+    }
+
+    private static boolean objectMatches(Object o, String key, String op, Object value) {
+        if (value == null) return false;
+        Object v = fastLookup(o, key);
+        if (op.equals("=") && value.equals(v)) {
+            return true;
+        } else if (op.equals("!=") && !value.equals(v)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean doubleMatches(Object o, String key, String op, double value) {
+        Object v = fastLookup(o, key);
+        if (v == null) return false; // TODO is this the best thing?
+        double dv;
+        if (v instanceof Double) {
+            dv = (Double) v;
+        } else if (v instanceof String) {
+            try {
+                dv = Double.parseDouble(v.toString());
+            } catch (NumberFormatException e) {
+                // We use a sentinel here so that it can still be non-equal.
+                dv = Double.MAX_VALUE;
+            }
+        } else if (v instanceof Long) {
+            dv = (double) (Long) v;
+        } else if (v instanceof Integer) {
+            dv = (double) (Integer) v;
+        } else if (v instanceof Float) {
+            dv = (double) (Float) v;
+        } else {
+            return false;
+        }
+
+        if (op.equals("=") && dv == value) {
+            return true;
+        } else if (op.equals("!=") && dv != value) {
+            return true;
+        } else if (op.equals(">") && dv > value) {
+            return true;
+        } else if (op.equals(">=") && dv >= value) {
+            return true;
+        } else if (op.equals("<") && dv < value) {
+            return true;
+        } else if (op.equals("<=") && dv <= value) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
 
 }

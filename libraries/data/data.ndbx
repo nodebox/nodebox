@@ -2,7 +2,7 @@
 <ndbx type="file" uuid="16d37cb2-e85b-4e00-a6a2-92340bd2c5b1">
     <link href="java:nodebox.function.DataFunctions" rel="functions"/>
     <node description="Import and manipulate all kinds of data." name="root" renderedChild="lookup">
-        <node description="Import a comma-separated value file containing tabular data." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="string" position="1.00,1.00" category="data">
+        <node description="Import a comma-separated value file containing tabular data." function="data/importCSV" image="import_csv.png" name="import_csv" outputRange="list" outputType="data" position="1.00,1.00" category="data">
             <port name="file" range="value" type="string" value="" widget="file" description="The CSV file."/>
             <port name="delimiter" range="value" type="string" value="comma" widget="menu" description="The character used to separate columns.">
                 <menu key="comma" label=","/>
@@ -23,6 +23,19 @@
         <node description="Look up a value in a table or object." function="data/lookup" image="lookup.png" name="lookup" outputType="data" position="1.00,2.00" category="data">
             <port name="list" range="value" type="list" widget="none" description="The input value."/>
             <port name="key" range="value" type="string" value="x" widget="string" description="The key to lookup."/>
+        </node>
+        <node description="Filter the data based on key/value." function="data/filterData" name="filter_data" outputRange="list" outputType="data" position="2.00,4.00">
+            <port name="data" range="list" type="data" widget="none"/>
+            <port name="key" range="value" type="string" value="name" widget="string"/>
+            <port name="op" range="value" type="string" value="=" widget="menu">
+                <menu key="=" label="= Equal To"/>
+                <menu key="!=" label="!= Not Equal To"/>
+                <menu key="&gt;" label="&gt; Greater Than"/>
+                <menu key="&gt;=" label="&gt;= Greater or Equal Than"/>
+                <menu key="&lt;" label="&lt; Smaller Than"/>
+                <menu key="&lt;=" label="&lt;= Smaller or Equal Than"/>
+            </port>
+            <port name="value" range="value" type="string" value="Bob" widget="string"/>
         </node>
     </node>
 </ndbx>
