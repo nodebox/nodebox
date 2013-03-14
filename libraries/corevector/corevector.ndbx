@@ -235,6 +235,16 @@
             </port>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point."/>
         </node>
+        <node description="Arrange shapes in a horizontal or vertical layout." function="pyvector/stack" name="stack" outputRange="list" outputType="geometry" position="6.00,7.00">
+            <port name="shapes" range="list" type="geometry" widget="none"/>
+            <port name="direction" range="value" type="string" value="e" widget="menu">
+                <menu key="n" label="North"/>
+                <menu key="e" label="East"/>
+                <menu key="s" label="South"/>
+                <menu key="w" label="West"/>
+            </port>
+            <port name="margin" range="value" type="float" value="5.0" widget="float"/>
+        </node>
         <node description="Create a star shape." function="pyvector/star" handle="pyvector/handle_star" image="star.png" name="star" position="7.00,4.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the star."/>
             <port min="1.0" name="points" range="value" type="int" value="20" widget="int" description="The amount of points in the star."/>
