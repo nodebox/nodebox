@@ -72,7 +72,7 @@
             <port min="1.0" name="n" range="value" type="int" value="1" widget="int" description="The amount of items to skip."/>
         </node>
         <node description="Combine a list of keys and values together into a map." function="list/zipMap" image="zip_map.png" name="zip_map" outputRange="value" outputType="data" category="list">
-            <port name="keys" range="list" type="list" description="A list of keys."/>
+            <port name="keys" range="list" type="string" description="A list of keys."/>
             <port name="values" range="list" type="list" description="A list of values."/>
         </node>
     </node>
