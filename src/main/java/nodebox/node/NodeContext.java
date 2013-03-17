@@ -22,6 +22,7 @@ public final class NodeContext {
     private final ImmutableMap<Node, List<?>> previousRenderResults;
     private final Map<Node, List<?>> renderResults;
     private final Map<NodeArguments, List<?>> nodeArgumentsResults;
+    private final Map<String, ?> portOverrides;
 
     private static final ImmutableMap<String, ?> DEFAULT_CONTEXT_DATA = ImmutableMap.of("frame", 1.0);
 
@@ -30,22 +31,22 @@ public final class NodeContext {
     }
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository) {
-        this(nodeLibrary, functionRepository, DEFAULT_CONTEXT_DATA, ImmutableMap.<Node, List<?>>of());
+        this(nodeLibrary, functionRepository, DEFAULT_CONTEXT_DATA, ImmutableMap.<Node, List<?>>of(), ImmutableMap.<String,Object>of());
     }
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data) {
-        this(nodeLibrary, functionRepository, data, ImmutableMap.<Node, List<?>>of());
+        this(nodeLibrary, functionRepository, data, ImmutableMap.<Node, List<?>>of(), ImmutableMap.<String,Object>of());
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<Node, List<?>> previousRenderResults) {
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<Node, List<?>> previousRenderResults, Map<String, ?> portOverrides) {
         this.nodeLibrary = nodeLibrary;
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.data = ImmutableMap.copyOf(data);
         this.renderResults = new HashMap<Node, List<?>>();
         this.nodeArgumentsResults = new HashMap<NodeArguments, List<?>>();
         this.previousRenderResults = ImmutableMap.copyOf(previousRenderResults);
+        this.portOverrides = ImmutableMap.copyOf(portOverrides);
     }
-
 
     public NodeLibrary getNodeLibrary() {
         return nodeLibrary;
@@ -267,6 +268,9 @@ public final class NodeContext {
      * </ul>
      */
     private Object getPortValue(Node node, Port port) {
+        String portKey = node.getName() + "." + port.getName();
+        Object overrideValue = portOverrides.get(portKey);
+        Object portValue = overrideValue == null ? port.getValue() : overrideValue;
         if (port.getType().equals("context")) {
             return this;
         } else if (port.getType().equals(Port.TYPE_STATE)) {
@@ -278,7 +282,7 @@ public final class NodeContext {
                 return ImmutableList.of();
             }
         } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
-            String path = port.stringValue();
+            String path = String.valueOf(portValue);
             if (!path.startsWith("/")) {
                 // Convert relative to absolute path.
                 if (nodeLibrary.getFile() != null) {
@@ -289,7 +293,7 @@ public final class NodeContext {
                 return path;
             }
         }
-        return port.getValue();
+        return portValue;
     }
 
     private Object invokeFunction(Node node, Function function, Object[] arguments) throws NodeRenderException {

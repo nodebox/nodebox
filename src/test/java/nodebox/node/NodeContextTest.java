@@ -686,4 +686,23 @@ public class NodeContextTest {
         assertEquals(1L, SideEffects.theCounter);
     }
 
+    @Test
+    public void testPortOverrides() {
+        Node number3 = numberNode.withName("number3").withInputValue("number", 3.0);
+        Node number5 = numberNode.withName("number5").withInputValue("number", 5.0);
+        Node net = Node.NETWORK
+                .withChildAdded(number3)
+                .withChildAdded(number5)
+                .withChildAdded(addNode)
+                .connect("number3", "add", "v1")
+                .connect("number5", "add", "v2")
+                .withRenderedChildName("add");
+        // With no overrides, the add node returns 8.0
+        assertResultsEqual(net, addNode, 8.0);
+        ImmutableMap<String,?> overrides = ImmutableMap.of("number3.number", 10.0);
+        NodeContext ctx = new NodeContext(testLibrary, null, ImmutableMap.<String,Object>of(), ImmutableMap.<Node,List<?>>of(), overrides);
+        Iterable<?> values = ctx.renderChild(net, addNode);
+        assertResultsEqual(values, 15.0);
+    }
+
 }

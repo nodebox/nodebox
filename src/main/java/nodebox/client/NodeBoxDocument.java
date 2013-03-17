@@ -1131,7 +1131,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             handler.addData(dataMap);
         final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
-        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults);
+        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults, ImmutableMap.<String,Object>of());
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
             protected List<?> doInBackground() throws Exception {
@@ -1577,7 +1577,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         HashMap<String, Object> data = new HashMap<String, Object>();
                         data.put("frame", (double) frame);
                         data.put("mouse.position", viewer.getLastMousePosition());
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults);
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String,Object>of());
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
