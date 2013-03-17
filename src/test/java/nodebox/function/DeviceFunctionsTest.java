@@ -188,7 +188,7 @@ public class DeviceFunctionsTest {
     }
 
     private NodeContext createNodeContextWithData(Map<String, Object> data) {
-        return new NodeContext(testLibrary, null, 1, data, ImmutableMap.<Node, List<?>>of());
+        return new NodeContext(testLibrary, null, data);
     }
 
     private NodeContext createNodeContextWithOSCData(Map<String, List<Object>> oscMessages) {

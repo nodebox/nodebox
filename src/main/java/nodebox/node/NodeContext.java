@@ -18,25 +18,28 @@ public final class NodeContext {
 
     private final NodeLibrary nodeLibrary;
     private final FunctionRepository functionRepository;
-    private final double frame;
     private final ImmutableMap<String, ?> data;
     private final ImmutableMap<Node, List<?>> previousRenderResults;
     private final Map<Node, List<?>> renderResults;
     private final Map<NodeArguments, List<?>> nodeArgumentsResults;
 
+    private static final ImmutableMap<String, ?> DEFAULT_CONTEXT_DATA = ImmutableMap.of("frame", 1.0);
 
     public NodeContext(NodeLibrary nodeLibrary) {
-        this(nodeLibrary, null, 1, ImmutableMap.<String, Object>of(), ImmutableMap.<Node, List<?>>of());
+        this(nodeLibrary, null);
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, double frame) {
-        this(nodeLibrary, null, frame, ImmutableMap.<String, Object>of(), ImmutableMap.<Node, List<?>>of());
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository) {
+        this(nodeLibrary, functionRepository, DEFAULT_CONTEXT_DATA, ImmutableMap.<Node, List<?>>of());
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, double frame, Map<String, ?> data, Map<Node, List<?>> previousRenderResults) {
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data) {
+        this(nodeLibrary, functionRepository, data, ImmutableMap.<Node, List<?>>of());
+    }
+
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<Node, List<?>> previousRenderResults) {
         this.nodeLibrary = nodeLibrary;
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
-        this.frame = frame;
         this.data = ImmutableMap.copyOf(data);
         this.renderResults = new HashMap<Node, List<?>>();
         this.nodeArgumentsResults = new HashMap<NodeArguments, List<?>>();
@@ -53,7 +56,13 @@ public final class NodeContext {
     }
 
     public double getFrame() {
-        return frame;
+        try {
+            return (Double) data.get("frame");
+        } catch (ClassCastException e) {
+            return 1.0;
+        } catch (NullPointerException e) {
+            return 1.0;
+        }
     }
 
     public Map<String, ?> getData() {
@@ -78,10 +87,10 @@ public final class NodeContext {
     }
 
     public void renderAlwaysRenderedNodes(Node node) throws NodeRenderException {
-        if (! node.isNetwork()) return;
+        if (!node.isNetwork()) return;
         for (Node child : node.getChildren()) {
             if (child.isAlwaysRendered()) {
-                if (! renderResults.containsKey(child))
+                if (!renderResults.containsKey(child))
                     renderNode(child);
             }
         }
@@ -322,7 +331,8 @@ public final class NodeContext {
 
         final int maxSize = biggestArgumentList(argumentsPerPort);
         return new Iterable<Map<Port, ?>>() {
-            int i = 0 ;
+            int i = 0;
+
             @Override
             public Iterator<Map<Port, ?>> iterator() {
                 return new Iterator<Map<Port, ?>>() {

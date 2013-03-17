@@ -1125,12 +1125,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final Node renderNetwork = getRenderedNode();
 
         Map<String, Object> dataMap = new HashMap<String, Object>();
+        dataMap.put("frame", frame);
         dataMap.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
         for (DeviceHandler handler : deviceHandlers)
             handler.addData(dataMap);
         final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
-        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), frame, data, renderResults);
+        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults);
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
             protected List<?> doInBackground() throws Exception {
@@ -1573,10 +1574,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         if (Thread.currentThread().isInterrupted())
                             break;
-                        final ImmutableMap<String, ?> data = ImmutableMap.of(
-                                "mouse.position", viewer.getLastMousePosition() );//,
-                                //"osc.messages", oscMessages);
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, frame, data, renderResults);
+                        HashMap<String, Object> data = new HashMap<String, Object>();
+                        data.put("frame", (double) frame);
+                        data.put("mouse.position", viewer.getLastMousePosition());
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults);
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();

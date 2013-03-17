@@ -485,7 +485,7 @@ public class NodeContextTest {
                 .withFunction("core/frame")
                 .withInputAdded(Port.customPort("context", "context"));
         Node frameNet = Node.NETWORK.withChildAdded(frame).withRenderedChild(frame);
-        NodeContext c = new NodeContext(testLibrary, 42.0);
+        NodeContext c = new NodeContext(testLibrary, FunctionRepository.of(), ImmutableMap.of("frame", 42.0));
         List<?> results = c.renderNode(frameNet);
         assertResultsEqual(results, 42.0);
     }
