@@ -2,6 +2,7 @@ package nodebox.graphics;
 
 import nodebox.client.Viewer;
 import nodebox.client.visualizer.Visualizer;
+import nodebox.client.visualizer.VisualizerFactory;
 import nodebox.util.FileUtils;
 import nodebox.util.ListUtils;
 
@@ -17,7 +18,7 @@ public class ObjectsRenderer {
 
     public static void render(Iterable<?> objects, File file) {
         // TODO Remove reference to Viewer.getVisualizer.
-        Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
+        Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         if (file.getName().toLowerCase().endsWith(".pdf")) {
             PDFRenderer.render(file, v, objects);
         } else {
@@ -30,12 +31,12 @@ public class ObjectsRenderer {
     }
 
     public static BufferedImage createImage(Iterable<?> objects) {
-        Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
+        Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         return createImage(v, objects);
     }
 
     public static BufferedImage createMovieImage(Iterable<?> objects, int width, int height) {
-        Visualizer v = Viewer.getVisualizer(objects, ListUtils.listClass(objects));
+        Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

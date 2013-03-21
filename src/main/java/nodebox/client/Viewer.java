@@ -23,9 +23,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     public static final double MIN_ZOOM = 0.01;
     public static final double MAX_ZOOM = 64.0;
 
-    private static final ImmutableList<Visualizer> visualizers;
-    private static final Visualizer DEFAULT_VISUALIZER = LastResortVisualizer.INSTANCE;
-
     private final JPopupMenu viewerMenu;
 
     private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
@@ -39,11 +36,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     private java.util.List<?> outputValues;
     private Class valuesClass;
-    private Visualizer currentVisualizer = DEFAULT_VISUALIZER;
-
-    static {
-        visualizers = ImmutableList.of(CanvasVisualizer.INSTANCE, GrobVisualizer.INSTANCE, PointVisualizer.INSTANCE, ColorVisualizer.INSTANCE);
-    }
+    private Visualizer currentVisualizer = VisualizerFactory.getDefaultVisualizer();
 
     public Viewer() {
         super(MIN_ZOOM, MAX_ZOOM);
@@ -119,7 +112,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     public void setOutputValues(java.util.List<?> outputValues) {
         this.outputValues = outputValues;
         valuesClass = listClass(outputValues);
-        Visualizer visualizer = getVisualizer(outputValues, valuesClass);
+        Visualizer visualizer = VisualizerFactory.getVisualizer(outputValues, valuesClass);
         if (visualizer instanceof LastResortVisualizer && outputValues.size() == 0) {
             // This scenario means likely that we're in a node that normally outputs
             // some visual type but currently outputs null (or None)
@@ -135,14 +128,6 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         }
         checkNotNull(currentVisualizer);
         repaint();
-    }
-
-    public static Visualizer getVisualizer(Iterable<?> objects, Class listClass) {
-        for (Visualizer visualizer : visualizers) {
-            if (visualizer.accepts(objects, listClass))
-                return visualizer;
-        }
-        return DEFAULT_VISUALIZER;
     }
 
     @Override

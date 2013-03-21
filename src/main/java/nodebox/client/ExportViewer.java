@@ -1,6 +1,7 @@
 package nodebox.client;
 
 import nodebox.client.visualizer.Visualizer;
+import nodebox.client.visualizer.VisualizerFactory;
 import nodebox.graphics.Grob;
 import nodebox.util.ListUtils;
 
@@ -29,7 +30,7 @@ public class ExportViewer extends JFrame {
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.translate(getWidth() / 2, getHeight() / 2);
-            Visualizer v = nodebox.client.Viewer.getVisualizer(outputValues, ListUtils.listClass(outputValues));
+            Visualizer v = VisualizerFactory.getVisualizer(outputValues, ListUtils.listClass(outputValues));
             // todo: handle canvas clipping
             v.draw(g2, outputValues);
         }
