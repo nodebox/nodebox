@@ -883,9 +883,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         addressBar.setPath(activeNetworkPath);
         //viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
         networkView.updateNodes();
-        networkView.resetViewTransform();
-        if (!restoring)
+        if (!restoring) {
+            networkView.resetViewTransform();
             networkView.singleSelect(getActiveNode());
+        }
         viewerPane.repaint();
         dataSheet.repaint();
 
