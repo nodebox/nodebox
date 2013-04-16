@@ -48,8 +48,8 @@ public class NetworkFunctions {
     public static Iterable<?> queryJSON(final Object json, final String query) {
         if (json instanceof Map) {
             Map<?, ?> requestMap = (Map<?, ?>) json;
-            if (requestMap.containsKey("text")) {
-                return queryJSON(requestMap.get("text"), query);
+            if (requestMap.containsKey("body")) {
+                return queryJSON(requestMap.get("body"), query);
             } else {
                 throw new IllegalArgumentException("Cannot parse JSON input.");
             }
@@ -85,7 +85,7 @@ public class NetworkFunctions {
             HttpResponse response = client.execute(request);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
-                String text = EntityUtils.toString(entity);
+                String body = EntityUtils.toString(entity);
                 HashMap<String, String> m = new HashMap<String, String>();
                 for (Header h : response.getAllHeaders()) {
                     m.put(h.getName(), h.getValue());
@@ -93,7 +93,7 @@ public class NetworkFunctions {
 
                 Map<String, String> headers = ImmutableMap.copyOf(m);
                 return ImmutableMap.of(
-                        "text", text,
+                        "body", body,
                         "statusCode", response.getStatusLine().getStatusCode(),
                         "headers", headers);
             } else {
@@ -116,7 +116,7 @@ public class NetworkFunctions {
 
     private static Map<String, Object> emptyResponse(int statusCode) {
         return ImmutableMap.<String, Object>of(
-                "text", "",
+                "body", "",
                 "statusCode", statusCode
         );
     }
