@@ -247,7 +247,11 @@ public final class NodeContext {
     private List<?> evaluatePort(Node network, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
         Node outputNode = findOutputNode(network, child, childPort);
         if (outputNode != null) {
-            return renderChild(network, outputNode, networkArgumentMap);
+            List<?> result = renderChild(network, outputNode, networkArgumentMap);
+            if (childPort.isFileWidget()) {
+                return convertToFileNames(result);
+            }
+            return result;
         } else {
             Object value = getPortValue(child, childPort);
             if (value == null) {
@@ -256,6 +260,26 @@ public final class NodeContext {
                 return ImmutableList.of(value);
             }
         }
+    }
+
+    private List<?> convertToFileNames(List<?> values) {
+        ImmutableList.Builder<Object> b = ImmutableList.builder();
+        for (Object v : values) {
+            b.add(convertToFileName(v));
+        }
+        return b.build();
+    }
+
+    private Object convertToFileName(Object value) {
+        String path = String.valueOf(value);
+        if (!path.startsWith("/")) {
+            // Convert relative to absolute path.
+            if (nodeLibrary.getFile() != null) {
+                File f = new File(nodeLibrary.getFile().getParentFile(), path);
+                return f.getAbsolutePath();
+            }
+        }
+        return path;
     }
 
     /**
@@ -282,16 +306,7 @@ public final class NodeContext {
                 return ImmutableList.of();
             }
         } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
-            String path = String.valueOf(portValue);
-            if (!path.startsWith("/")) {
-                // Convert relative to absolute path.
-                if (nodeLibrary.getFile() != null) {
-                    File f = new File(nodeLibrary.getFile().getParentFile(), path);
-                    return f.getAbsolutePath();
-                }
-            } else {
-                return path;
-            }
+            return convertToFileName(portValue);
         }
         return portValue;
     }
