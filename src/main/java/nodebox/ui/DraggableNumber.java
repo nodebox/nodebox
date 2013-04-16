@@ -14,7 +14,7 @@ import java.util.Locale;
  * DraggableNumber represents a number that can be edited in a variety of interesting ways:
  * by dragging, selecting the arrow buttons, or double-clicking to do direct input.
  */
-public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener {
+public class DraggableNumber extends JComponent implements MouseListener, MouseMotionListener, ComponentListener, FocusListener {
 
     private static Image draggerLeft, draggerRight, draggerBackground;
     private static int draggerLeftWidth, draggerRightWidth, draggerHeight;
@@ -64,6 +64,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         addMouseListener(this);
         addMouseMotionListener(this);
         addComponentListener(this);
+        setFocusable(true);
+        addFocusListener(this);
         Dimension d = new Dimension(87, 20);
         setPreferredSize(d);
 
@@ -75,6 +77,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         numberField.addKeyListener(new EscapeListener());
         numberField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                breakFocusCycle();
                 commitNumberField();
             }
         });
@@ -82,6 +85,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             public void focusLost(FocusEvent e) {
                 if (numberField.isVisible())
                     commitNumberField();
+                setFocusable(true);
             }
         });
         add(numberField);
@@ -200,6 +204,28 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         return new Rectangle(r.width - draggerRightWidth, r.y, draggerRightWidth, draggerHeight);
     }
 
+
+    public void focusGained(FocusEvent e) {
+        showNumberField();
+        setFocusable(false);
+    }
+
+    public void focusLost(FocusEvent e) {
+    }
+
+    // We want to move focus to a sibling focusable control using TAB only, not by hitting
+    // Enter or Escape. In these cases we need to break out of the current focus cycle.
+    private void breakFocusCycle() {
+        Container o = getParent();
+        while (o != null) {
+            if (o != null && o.isFocusable())
+                break;
+            o = o.getParent();
+        }
+        if (o != null)
+            o.requestFocus();
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
@@ -267,13 +293,17 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             setValue(getValue() + dx);
             fireStateChanged();
         } else if (e.getClickCount() >= 2) {
-            numberField.setText(valueAsString());
-            numberField.setVisible(true);
-            numberField.requestFocus();
-            numberField.selectAll();
-            componentResized(null);
-            repaint();
+            showNumberField();
         }
+    }
+
+    private void showNumberField() {
+        numberField.setText(valueAsString());
+        numberField.setVisible(true);
+        numberField.requestFocus();
+        numberField.selectAll();
+        componentResized(null);
+        repaint();
     }
 
     public void mouseReleased(MouseEvent e) {
@@ -363,8 +393,10 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     private class EscapeListener extends KeyAdapter {
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE)
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                breakFocusCycle();
                 numberField.setVisible(false);
+            }
         }
     }
 }
