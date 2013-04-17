@@ -6,7 +6,6 @@ import nodebox.client.devicehandler.DeviceHandler;
 import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
-import nodebox.graphics.ObjectsRenderer;
 import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;

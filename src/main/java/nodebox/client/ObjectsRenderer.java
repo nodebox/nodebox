@@ -1,8 +1,9 @@
-package nodebox.graphics;
+package nodebox.client;
 
-import nodebox.client.Viewer;
 import nodebox.client.visualizer.Visualizer;
 import nodebox.client.visualizer.VisualizerFactory;
+import nodebox.graphics.Drawable;
+import nodebox.graphics.PDFRenderer;
 import nodebox.util.FileUtils;
 import nodebox.util.ListUtils;
 
@@ -20,7 +21,8 @@ public class ObjectsRenderer {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         if (file.getName().toLowerCase().endsWith(".pdf")) {
-            PDFRenderer.render(file, v, objects);
+            LinkedVisualizer linkedVisualizer = new LinkedVisualizer(v, objects);
+            PDFRenderer.render(linkedVisualizer, v.getBounds(objects), file);
         } else {
             try {
                 ImageIO.write(createImage(v, objects), FileUtils.getExtension(file), file);
@@ -57,6 +59,25 @@ public class ObjectsRenderer {
         visualizer.draw(g, objects);
         img.flush();
         return img;
+    }
+
+
+    /**
+     * A visualizer linked to its objects.
+     */
+    private static class LinkedVisualizer implements Drawable {
+        private Visualizer visualizer;
+        private Iterable<?> objects;
+
+        private LinkedVisualizer(Visualizer visualizer, Iterable<?> objects) {
+            this.visualizer = visualizer;
+            this.objects = objects;
+        }
+
+        @Override
+        public void draw(Graphics2D g) {
+            visualizer.draw(g, objects);
+        }
     }
 
 }
