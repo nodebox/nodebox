@@ -15,6 +15,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class NodeSelectionDialog extends JDialog {
 
@@ -33,7 +34,6 @@ public class NodeSelectionDialog extends JDialog {
             category = null;
             filteredNodes = new ArrayList<Node>();
             filteredNodes.addAll(repository.getNodes());
-            //filteredNodes.addAll(library.getExportedNodes());
             Collections.sort(filteredNodes, new NodeNameComparator());
         }
 
@@ -43,30 +43,10 @@ public class NodeSelectionDialog extends JDialog {
 
         public void setSearchString(String searchString) {
             this.searchString = searchString = searchString.trim().toLowerCase();
-            if (searchString.length() == 0) {
-                // Add all the nodes from the repository.
-                filteredNodes.clear();
-                filteredNodes.addAll(repository.getNodesByCategory(category));
-                // Add all the exported nodes from the current library.
-                //filteredNodes.addAll(library.getExportedNodes());
-                Collections.sort(filteredNodes, new NodeNameComparator());
-            } else {
-                java.util.List<Node> nodes = new ArrayList<Node>();
-
-                filteredNodes.clear();
-                // Add all the nodes from the repository.
-                for (Node node : repository.getNodesByCategory(category)) {
-                    if (contains(node, searchString))
-                        nodes.add(node);
-                }
-                // Add all the exported nodes from the current library.
-//                for (Node node : library.getExportedNodes()) {
-//                    if (contains(node, searchString))
-//                        nodes.add(node);
-//                }
-
-                filteredNodes.addAll(sortNodes(nodes, this.searchString));
-            }
+            java.util.List<Node> nodes = new ArrayList<Node>();
+            filteredNodes.clear();
+            // Add all the nodes from the repository.
+            filteredNodes.addAll(filterNodes(repository.getNodesByCategory(category), this.searchString));
         }
 
         public String getCategory() {
@@ -78,32 +58,35 @@ public class NodeSelectionDialog extends JDialog {
             setSearchString(searchString);
         }
 
-        private boolean contains(Node node, String searchString) {
-            String description = node.getDescription() == null ? "" : node.getDescription().toLowerCase();
-            return node.getName().toLowerCase().contains(searchString) || description.contains(searchString);
-        }
+        private java.util.List<Node> filterNodes(java.util.List<Node> nodes, String searchString) {
+            Pattern findFirstLettersPattern = Pattern.compile("^" + StringUtils.join(searchString, "\\w*_") + ".*");
+            Pattern findConsecutiveLettersPattern = Pattern.compile(".*" + searchString + ".*");
+            Pattern findNonConsecutiveLettersPattern = Pattern.compile(".*" + StringUtils.join(searchString, "\\w*") + ".*");
 
-
-        private java.util.List<Node> sortNodes(java.util.List<Node> nodes, String searchString) {
             java.util.List<Node> sortedNodes = new ArrayList<Node>();
-            java.util.List<Node> startsWithNodes = new ArrayList<Node>();
-            java.util.List<Node> containsNodes = new ArrayList<Node>();
+            java.util.List<Node> firstLettersNodes = new ArrayList<Node>();
+            java.util.List<Node> consecutiveLettersNodes = new ArrayList<Node>();
+            java.util.List<Node> nonConsecutiveLettersNodes = new ArrayList<Node>();
             java.util.List<Node> descriptionNodes = new ArrayList<Node>();
 
             for (Node node : nodes) {
                 if (node.getName().equals(searchString))
                     sortedNodes.add(node);
-                else if (node.getName().startsWith(searchString))
-                    startsWithNodes.add(node);
-                else if (node.getName().contains(searchString))
-                    containsNodes.add(node);
+                else if (findFirstLettersPattern.matcher(node.getName()).matches())
+                    firstLettersNodes.add(node);
+                else if (findConsecutiveLettersPattern.matcher(node.getName()).matches())
+                    consecutiveLettersNodes.add(node);
+                else if (findNonConsecutiveLettersPattern.matcher(node.getName()).matches())
+                    nonConsecutiveLettersNodes.add(node);
                 else
                     descriptionNodes.add(node);
             }
-            Collections.sort(startsWithNodes, new NodeNameComparator());
-            sortedNodes.addAll(startsWithNodes);
-            Collections.sort(containsNodes, new NodeNameComparator());
-            sortedNodes.addAll(containsNodes);
+            Collections.sort(firstLettersNodes, new NodeNameComparator());
+            sortedNodes.addAll(firstLettersNodes);
+            Collections.sort(consecutiveLettersNodes, new NodeNameComparator());
+            sortedNodes.addAll(consecutiveLettersNodes);
+            Collections.sort(nonConsecutiveLettersNodes, new NodeNameComparator());
+            sortedNodes.addAll(nonConsecutiveLettersNodes);
             Collections.sort(descriptionNodes, new NodeNameComparator());
             sortedNodes.addAll(descriptionNodes);
             return sortedNodes;
