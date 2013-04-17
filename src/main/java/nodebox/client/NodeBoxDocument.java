@@ -1344,7 +1344,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (documentFile == null) {
             return saveAs();
         } else {
-            return saveToFile(documentFile);
+            boolean saved = saveToFile(documentFile);
+            if (saved)
+                NodeBoxMenuBar.addRecentFile(documentFile);
+            return saved;
         }
     }
 
@@ -1362,8 +1365,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             }
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
             setDocumentFile(chosenFile);
-            NodeBoxMenuBar.addRecentFile(documentFile);
-            return saveToFile(documentFile);
+            boolean saved = saveToFile(documentFile);
+            if (saved)
+                NodeBoxMenuBar.addRecentFile(documentFile);
+            return saved;
         }
         return false;
     }
