@@ -47,7 +47,10 @@ public class PortRow extends JComponent implements MouseListener, ActionListener
 
         Port port = getPort();
         label = new ShadowLabel(StringUtils.humanizeName(portName));
-        label.setToolTipText(port.getName());
+        if (! port.getDescription().isEmpty())
+            label.setToolTipText(port.getName() + ": " + port.getDescription());
+        else
+            label.setToolTipText(port.getName());
         label.setBorder(null);
         label.setPreferredSize(labelSize);
         label.setMinimumSize(labelSize);

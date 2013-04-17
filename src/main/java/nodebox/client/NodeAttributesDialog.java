@@ -115,6 +115,11 @@ public class NodeAttributesDialog  extends JDialog {
         document.setNodeHandle(getNode(), handle);
     }
 
+    public void setPortDescription(String port, String description) {
+        onChanged();
+        document.setPortDescription(port, description);
+    }
+
     public void setPortWidget(String port, Port.Widget widget) {
         onChanged();
         document.setPortWidget(port, widget);

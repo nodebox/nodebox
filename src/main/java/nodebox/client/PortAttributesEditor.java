@@ -23,6 +23,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     private JTextField nameField;
     private JTextField labelField;
     private JTextField typeField;
+    private JTextField descriptionField;
     private JComboBox widgetBox;
     private JComboBox rangeBox;
     private JTextField valueField;
@@ -100,6 +101,11 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         typeField = new JTextField(20);
         typeField.setEnabled(false);
         addRow("Type", typeField);
+
+        // Description
+        descriptionField = new JTextField(20);
+        descriptionField.addActionListener(this);
+        addRow("Description", descriptionField);
 
         // Widget
         if (getPort().isStandardType()) {
@@ -182,6 +188,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         nameField.setText(port.getName());
         labelField.setText(port.getLabel());
         typeField.setText(port.getType());
+        descriptionField.setText(port.getDescription());
         rangeBox.setSelectedItem(getHumanizedRange(port.getRange()));
         if (port.isStandardType()) {
             widgetBox.setSelectedItem(getHumanizedWidget(port.getWidget()));
@@ -204,7 +211,9 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     public void actionPerformed(ActionEvent e) {
         Port port = getPort();
-        if (e.getSource() == widgetBox) {
+        if (e.getSource() == descriptionField) {
+            nodeAttributesDialog.setPortDescription(portName, descriptionField.getText());
+        } else if (e.getSource() == widgetBox) {
             HumanizedObject newWidget = (HumanizedObject) widgetBox.getSelectedItem();
             if (port.getWidget() == newWidget.getObject()) return;
             nodeAttributesDialog.setPortWidget(portName, (Port.Widget) newWidget.getObject());
