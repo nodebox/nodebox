@@ -531,6 +531,7 @@ public class NodeLibrary {
         String widget = reader.getAttributeValue(null, "widget");
         String range = reader.getAttributeValue(null, "range");
         String value = reader.getAttributeValue(null, "value");
+        String description = reader.getAttributeValue(null, "description");
         String min = reader.getAttributeValue(null, "min");
         String max = reader.getAttributeValue(null, "max");
 
@@ -550,6 +551,8 @@ public class NodeLibrary {
             port = port.withParsedAttribute(Port.Attribute.RANGE, range);
         if (value != null)
             port = port.withParsedAttribute(Port.Attribute.VALUE, value);
+        if (description != null)
+            port = port.withParsedAttribute(Port.Attribute.DESCRIPTION, description);
         if (min != null)
             port = port.withParsedAttribute(Port.Attribute.MINIMUM_VALUE, min);
         if (max != null)

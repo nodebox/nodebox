@@ -322,6 +322,8 @@ public class NDBXWriter {
             el.setAttribute("range", port.getRange().toString().toLowerCase());
         if (port.isStandardType())
             el.setAttribute("value", port.stringValue());
+        if (shouldWriteAttribute(node, port, Port.Attribute.DESCRIPTION))
+            el.setAttribute("description", port.getDescription());
         if (shouldWriteAttribute(node, port, Port.Attribute.MINIMUM_VALUE))
             if (port.getMinimumValue() != null)
                 el.setAttribute("min", String.format(Locale.US, "%s", port.getMinimumValue()));

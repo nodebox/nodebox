@@ -594,6 +594,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
+     * Change the description for the given port
+     *
+     * @param portName      The name of the port to change.
+     * @param description   The new description.
+     */
+    public void setPortDescription(String portName, String description) {
+        checkValidPort(portName);
+        addEdit("Change Description");
+        controller.setPortDescription(getActiveNodePath(), portName, description);
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
      * Change the widget for the given port
      *
      * @param portName The name of the port to change.

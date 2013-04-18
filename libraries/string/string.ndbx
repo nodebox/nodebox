@@ -15,6 +15,14 @@
             <port max="21.0" min="2.0" name="radix" range="value" type="int" value="10" widget="int"/>
             <port name="padding" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
+        <node category="string" description="Change a string into upper, lower or title case." function="string/changeCase" name="change_case" outputType="string" position="4.00,6.00">
+            <port name="string" range="value" type="string" value="default" widget="string"/>
+            <port name="method" range="value" type="string" value="uppercase" widget="menu">
+                <menu key="lowercase" label="Lower Case"/>
+                <menu key="uppercase" label="Upper Case"/>
+                <menu key="titlecase" label="Title Case"/>
+            </port>
+        </node>
         <node category="string" description="Output the character at a given index" function="string/characterAt" name="character_at" outputRange="list" outputType="string" position="7.00,1.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
             <port min="1.0" name="index" range="value" type="int" value="1" widget="int"/>

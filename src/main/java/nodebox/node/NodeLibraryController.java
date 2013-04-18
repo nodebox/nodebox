@@ -274,6 +274,13 @@ public class NodeLibraryController {
         replaceNodeInPath(nodePath, newNode);
     }
 
+    public void setPortDescription(String nodePath, String portName, String description) {
+        Node node = getNode(nodePath);
+        Port newPort = node.getInput(portName).withDescription(description);
+        Node newNode = node.withInputChanged(portName, newPort);
+        replaceNodeInPath(nodePath, newNode);
+    }
+
     public void setPortWidget(String nodePath, String portName, Port.Widget widget) {
         Node node = getNode(nodePath);
         Port newPort = node.getInput(portName).withWidget(widget);
