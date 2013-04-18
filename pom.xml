@@ -64,7 +64,7 @@
         <dependency>
             <groupId>net.nodebox</groupId>
             <artifactId>graphics</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.0.1</version>
         </dependency>
 
         <dependency>
