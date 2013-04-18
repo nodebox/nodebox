@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ndbx formatVersion="17" type="file" uuid="4fb9eaea-2ceb-4201-9707-172e4f67f913">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="colorize1" position="1.00,4.00" prototype="corevector.colorize"/>
+        <node name="ellipse1" position="1.00,2.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="50.0"/>
+            <port name="height" type="float" value="50.0"/>
+        </node>
+        <node name="grid1" position="4.00,4.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="6"/>
+            <port name="rows" type="int" value="6"/>
+        </node>
+        <node name="hsb_color1" position="4.00,2.00" prototype="color.hsb_color">
+            <port name="saturation" type="float" value="200.0"/>
+            <port name="brightness" type="float" value="200.0"/>
+        </node>
+        <node name="sample1" position="1.00,1.00" prototype="math.sample">
+            <port name="amount" type="int" value="4"/>
+            <port name="start" type="float" value="30.0"/>
+            <port name="end" type="float" value="60.0"/>
+        </node>
+        <node name="sample2" position="4.00,1.00" prototype="math.sample">
+            <port name="amount" type="int" value="5"/>
+            <port name="start" type="float" value="50.0"/>
+            <port name="end" type="float" value="150.0"/>
+        </node>
+        <node name="translate1" position="1.00,6.00" prototype="corevector.translate"/>
+        <conn input="ellipse1.width" output="sample1"/>
+        <conn input="ellipse1.height" output="sample1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="hsb_color1.hue" output="sample2"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+    </node>
+</ndbx>
