@@ -12,19 +12,17 @@ import java.util.Map;
 public class AudioPlayerDeviceHandler implements DeviceHandler {
     private String name;
     private String fileName;
-    private boolean autostart;
     private JFrame frame = null;
 
     private MinimApplet applet = null;
 
     public AudioPlayerDeviceHandler(String name) {
-        this(name, "", false);
+        this(name, "");
     }
 
-    public AudioPlayerDeviceHandler(String name, String fileName, boolean autostart) {
+    public AudioPlayerDeviceHandler(String name, String fileName) {
         this.name = name;
         this.fileName = fileName;
-        this.autostart = autostart;
     }
 
     public String getName() {
@@ -37,10 +35,6 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
-    }
-
-    public boolean isAutoStart() {
-        return autostart;
     }
 
     public void start() {
@@ -74,7 +68,6 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
         private JLabel deviceNameLabel;
         private JTextField fileNameField;
-        private JCheckBox autoStartCheck;
         private JButton fileButton;
         private JButton startButton;
         private JButton stopButton;
@@ -115,16 +108,6 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                 }
             });
 
-            autoStartCheck = new JCheckBox("autostart");
-            autoStartCheck.setSelected(isAutoStart());
-            autoStartCheck.addItemListener(new ItemListener() {
-                @Override
-                public void itemStateChanged(ItemEvent itemEvent) {
-                    autostart = autoStartCheck.isSelected();
-                    setPropertyValue("autostart", String.valueOf(autostart));
-                }
-            });
-
             filePanel.add(fileNameField);
             add(Box.createVerticalStrut(5));
             filePanel.add(fileButton);
@@ -147,8 +130,6 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
-            startStopPanel.add(autoStartCheck);
-            startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(startButton);
             startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(stopButton);
