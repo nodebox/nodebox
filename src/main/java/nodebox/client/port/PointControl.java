@@ -18,8 +18,8 @@ public class PointControl extends AbstractPortControl implements ChangeListener,
     private final DraggableNumber xNumber;
     private final DraggableNumber yNumber;
 
-    public PointControl(Port port) {
-        super(port);
+    public PointControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         xNumber = new DraggableNumber();
         xNumber.addChangeListener(this);

@@ -6,11 +6,13 @@ import javax.swing.*;
 
 public abstract class AbstractPortControl extends JComponent implements PortControl {
 
+    protected String nodePath;
     protected Port port;
     private String displayName;
     private OnValueChangeListener onValueChangeListener;
 
-    protected AbstractPortControl(Port port) {
+    protected AbstractPortControl(String nodePath, Port port) {
+        this.nodePath = nodePath;
         this.port = port;
         displayName = port.getName();
     }
@@ -29,7 +31,7 @@ public abstract class AbstractPortControl extends JComponent implements PortCont
 
     public void setPortValue(Object value) {
         if (onValueChangeListener != null)
-            onValueChangeListener.onValueChange(this, value);
+            onValueChangeListener.onValueChange(nodePath, port.getName(), value);
     }
 
     public void setValueChangeListener(OnValueChangeListener l) {

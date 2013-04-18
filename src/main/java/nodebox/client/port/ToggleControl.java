@@ -9,8 +9,8 @@ public class ToggleControl extends AbstractPortControl {
 
     private NButton checkBox;
 
-    public ToggleControl(Port port) {
-        super(port);
+    public ToggleControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         checkBox = new NButton(NButton.Mode.CHECK, port.getLabel());
         checkBox.setActionMethod(this, "toggle");

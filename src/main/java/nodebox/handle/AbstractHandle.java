@@ -97,10 +97,10 @@ public abstract class AbstractHandle implements Handle {
         return null;
     }
 
-    public void setValue(String portName, Object value) {
+    /*public void setValue(String portName, Object value) {
         if (delegate != null && !isConnected(portName))
             delegate.setValue(portName, value);
-    }
+    }*/
 
     public void silentSet(String portName, Object value) {
         if (delegate != null && !isConnected(portName))
