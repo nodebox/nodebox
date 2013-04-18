@@ -2,6 +2,8 @@ package nodebox.client.devicehandler;
 
 import nodebox.client.FileUtils;
 import nodebox.client.MinimApplet;
+import nodebox.client.NodeBoxDocument;
+import nodebox.node.NodeLibrary;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +42,13 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
     public void start() {
         if (frame != null) stop();
         frame = new JFrame();
-        applet = new MinimApplet(getFileName(), true);
+        NodeLibrary nodeLibrary = NodeBoxDocument.getCurrentDocument().getNodeLibrary();
+        String fileName = getFileName();
+        if (! fileName.startsWith("/") && nodeLibrary.getFile() != null) {
+            File f = new File(nodeLibrary.getFile().getParentFile(), fileName);
+            fileName = f.getAbsolutePath();
+        }
+        applet = new MinimApplet(fileName, true);
         applet.init();
         frame.add(applet);
     }
@@ -101,9 +109,16 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                 public void actionPerformed(ActionEvent actionEvent) {
                     File f = FileUtils.showOpenDialog(null, getFileName(), "mp3,wav", "Music files");
                     if (f != null) {
-                        setFileName(f.getAbsolutePath());
-                        fileNameField.setText(new File(getFileName()).getName());
-                        setPropertyValue("filename", getFileName());
+                        File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentFile();
+                        String fileName;
+                        if (libraryFile != null) {
+                            fileName = nodebox.util.FileUtils.getRelativePath(f, libraryFile.getParentFile());
+                        } else {
+                            fileName = f.getAbsolutePath();
+                        }
+                        setFileName(fileName);
+                        fileNameField.setText(f.getName());
+                        setPropertyValue("filename", fileName);
                     }
                 }
             });
