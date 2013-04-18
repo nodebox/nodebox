@@ -53,6 +53,7 @@ public class Application implements Host {
     private static Application instance;
 
     private JFrame hiddenFrame;
+    private ExamplesBrowser examplesBrowser;
 
     public static Application getInstance() {
         return instance;
@@ -446,6 +447,14 @@ public class Application implements Host {
         doc.setVisible(true);
         doc.takeScreenshot(screenshotFile);
         doc.close();
+    }
+
+    public void openExamplesBrowser() {
+        if (examplesBrowser == null) {
+            examplesBrowser = new ExamplesBrowser();
+        }
+        examplesBrowser.setVisible(true);
+        examplesBrowser.toFront();
     }
 
     //// Host implementation ////
