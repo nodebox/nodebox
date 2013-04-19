@@ -611,6 +611,11 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         return port.getType().equals(Port.TYPE_STATE) || port.getType().equals(Port.TYPE_CONTEXT);
     }
 
+    @Override
+    protected void onViewTransformChanged(double viewX, double viewY, double viewScale) {
+        document.setActiveNetworkPanZoom(viewX, viewY, viewScale);
+    }
+
     //// Selections ////
 
     public boolean isSelected(Node node) {

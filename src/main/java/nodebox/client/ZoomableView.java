@@ -96,9 +96,13 @@ public class ZoomableView extends JComponent {
         this.viewX = viewX;
         this.viewY = viewY;
         this.viewScale = viewScale;
+        onViewTransformChanged(viewX, viewY, viewScale);
         this.viewTransform = null;
         this.inverseViewTransform = null;
         repaint();
+    }
+
+    protected void onViewTransformChanged(double viewX, double viewY, double viewScale) {
     }
 
     public AffineTransform getViewTransform() {

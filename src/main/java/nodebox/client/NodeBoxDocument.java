@@ -66,6 +66,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private boolean restoring = false;
     private boolean invalidateFunctionRepository = false;
     private double frame = 1;
+    private Map<String, double[]> networkPanZoomValues = new HashMap<String, double[]>();
 
     // Rendering
     private final AtomicBoolean isRendering = new AtomicBoolean(false);
@@ -326,6 +327,18 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkNotNull(node);
         checkNotNull(name);
         controller.renameNode(activeNetworkPath, node.getName(), name);
+
+        String nodePath = Node.path(activeNetworkPath, node.getName());
+        if (networkPanZoomValues.containsKey(nodePath)) {
+            String newNodePath = Node.path(activeNetworkPath, name);
+            for (String key : ImmutableList.copyOf(networkPanZoomValues.keySet())) {
+                if (key.equals(nodePath) || key.startsWith(nodePath + "/")) {
+                    String newKey = key.replace(nodePath, newNodePath);
+                    networkPanZoomValues.put(newKey, networkPanZoomValues.get(key));
+                }
+            }
+        }
+
         setActiveNode(name);
         networkView.updateNodes();
         networkView.singleSelect(getActiveNode());
@@ -515,6 +528,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkNotNull(node, "Node to remove cannot be null.");
         checkArgument(getActiveNetwork().hasChild(node), "Node to remove is not in active network.");
         controller.removeNode(activeNetworkPath, node.getName());
+
         // If the removed node was the active one, reset the port view.
         if (node == getActiveNode()) {
             setActiveNode((Node) null);
@@ -896,10 +910,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         addressBar.setPath(activeNetworkPath);
         //viewer.setHandleEnabled(activeNode != null && activeNode.hasEnabledHandle());
         networkView.updateNodes();
-        if (!restoring) {
+        if (networkPanZoomValues.containsKey(activeNetworkPath)) {
+            double[] pz = networkPanZoomValues.get(activeNetworkPath);
+            networkView.setViewTransform(pz[0], pz[1], pz[2]);
+        } else if (!restoring)
             networkView.resetViewTransform();
+        if (!restoring)
             networkView.singleSelect(getActiveNode());
-        }
         viewerPane.repaint();
         dataSheet.repaint();
 
@@ -1687,6 +1704,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             subnet = getActiveNetwork().getChild(name);
         }
 
+        if (networkPanZoomValues.containsKey(activeNetworkPath))
+            networkPanZoomValues.put(Node.path(activeNetworkPath, name), networkPanZoomValues.get(activeNetworkPath));
+
         stopEdits();
 
         setActiveNode(subnet);
@@ -1763,6 +1783,11 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void removeZoomListener(Zoom listener) {
         zoomListeners.remove(listener);
+    }
+
+    public void setActiveNetworkPanZoom(double viewX, double viewY, double viewScale) {
+        double[] pz = new double[] { viewX, viewY, viewScale };
+        networkPanZoomValues.put(getActiveNetworkPath(), pz);
     }
 
     //// Window events ////
