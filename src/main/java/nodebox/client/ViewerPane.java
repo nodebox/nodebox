@@ -19,7 +19,7 @@ public class ViewerPane extends Pane {
     private final PaneHeader paneHeader;
     private final Viewer viewer;
     private final DataSheet dataSheet;
-    private final NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck;
+    private final NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck, renderRootCheck;
     private final JPanel contentPanel;
     private OutputView currentView;
     private Iterable<?> outputValues;
@@ -58,10 +58,14 @@ public class ViewerPane extends Pane {
         pointNumbersCheck.setActionMethod(this, "togglePointNumbers");
         originCheck = new NButton(NButton.Mode.CHECK, "Origin");
         originCheck.setActionMethod(this, "toggleOrigin");
+        renderRootCheck = new NButton(NButton.Mode.CHECK, "Render Root");
+        renderRootCheck.setActionMethod(this, "toggleRenderRoot");
+        renderRootCheck.setChecked(true);
         paneHeader.add(handlesCheck);
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
         paneHeader.add(originCheck);
+        paneHeader.add(renderRootCheck);
         add(paneHeader, BorderLayout.NORTH);
     }
 
@@ -91,6 +95,14 @@ public class ViewerPane extends Pane {
 
     public void toggleOrigin() {
         viewer.setShowOrigin(originCheck.isChecked());
+    }
+
+    public void toggleRenderRoot() {
+        document.requestRender();
+    }
+
+    public boolean shouldAlwaysRenderRoot() {
+        return renderRootCheck.isChecked();
     }
 
     public Pane duplicate() {
