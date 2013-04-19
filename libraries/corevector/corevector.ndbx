@@ -9,13 +9,13 @@
         </node>
         <node description="Align a shape in relation to the origin." function="corevector/align" handle="corevector/pointHandle" image="align.png" name="align" position="10.00,10.00" prototype="filter">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The alignment point."/>
-            <port name="halign" range="value" type="string" value="center" widget="menu" description="The horizontal alignment.">
+            <port name="halign" label="Horizontal Align" range="value" type="string" value="center" widget="menu" description="The horizontal alignment.">
                 <menu key="none" label="No Change"/>
                 <menu key="left" label="Left"/>
                 <menu key="center" label="Center"/>
                 <menu key="right" label="Right"/>
             </port>
-            <port name="valign" range="value" type="string" value="middle" widget="menu" description="The vertical alignment.">
+            <port name="valign" label="Vertical Align" range="value" type="string" value="middle" widget="menu" description="The vertical alignment.">
                 <menu key="none" label="No Change"/>
                 <menu key="top" label="Top"/>
                 <menu key="middle" label="Middle"/>
@@ -38,7 +38,7 @@
         <node description="Change the color of a shape." function="corevector/colorize" image="colorize.png" name="colorize" position="4.00,11.00" prototype="filter">
             <port name="fill" range="value" type="color" value="#000000ff" widget="color" description="The new fill color. Set alpha to 0 for no fill."/>
             <port name="stroke" range="value" type="color" value="#000000ff" widget="color" description="The new stroke color."/>
-            <port min="0.0" name="strokeWidth" range="value" type="float" value="0.0" widget="float" description="The new stroke width. Set to 0 for no stroke."/>/>
+            <port min="0.0" name="strokeWidth" label="Stroke Width" range="value" type="float" value="0.0" widget="float" description="The new stroke width. Set to 0 for no stroke."/>/>
         </node>
         <node description="Add, subtract or intersect geometry." function="pyvector/compound" image="compound.png" name="compound" position="4.00,10.00" prototype="generator">
             <port name="shape1" range="value" type="geometry" widget="none" description="The first shape."/>
@@ -128,8 +128,8 @@
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The target position of the shape."/>
         </node>
         <node description="Create a line between two points." function="corevector/line" handle="corevector/lineHandle" image="line.png" name="line" position="7.00,7.00" prototype="generator">
-            <port name="point1" range="value" type="point" value="0.00,0.00" widget="point" description="The starting point of the line."/>
-            <port name="point2" range="value" type="point" value="100.00,100.00" widget="point" description="The ending point of the line."/>
+            <port name="point1" label="Point 1" range="value" type="point" value="0.00,0.00" widget="point" description="The starting point of the line."/>
+            <port name="point2" label="Point 2" range="value" type="point" value="100.00,100.00" widget="point" description="The ending point of the line."/>
             <port name="points" range="value" type="int" value="2" widget="int" min="2" description="The amount of points to generate along the line."/>
         </node>
         <node description="Create a line between one point and an angle + distance." function="corevector/lineAngle" handle="corevector/lineAngleHandle" image="line_angle.png" name="line_angle" position="4.00,7.00" prototype="generator">
@@ -165,8 +165,8 @@
             <port name="align" range="value" type="boolean" value="false" widget="toggle" description="If true, aligns the polygon to the X axis."/>
         </node>
         <node description="Create a quadratic curve with one off-curve point." function="pyvector/quad_curve" image="quad_curve.png" name="quad_curve" position="4.00,6.00" prototype="generator">
-            <port name="point1" range="value" type="point" value="0.00,0.00" widget="point" description="The starting point."/>
-            <port name="point2" range="value" type="point" value="100.00,0.00" widget="point" description="The ending point."/>
+            <port name="point1" label="Point 1" range="value" type="point" value="0.00,0.00" widget="point" description="The starting point."/>
+            <port name="point2" label="Point 2" range="value" type="point" value="100.00,0.00" widget="point" description="The ending point."/>
             <port name="t" range="value" type="float" value="50.0" widget="float" description="The position of the off-curve point (0 - 100)."/>
             <port name="distance" range="value" type="float" value="50.0" widget="float" description="The offset of the curve from a straight line."/>
         </node>
@@ -248,8 +248,8 @@
         <node description="Create a star shape." function="pyvector/star" handle="pyvector/handle_star" image="star.png" name="star" position="7.00,4.00" prototype="generator">
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the star."/>
             <port min="1.0" name="points" range="value" type="int" value="20" widget="int" description="The amount of points in the star."/>
-            <port name="outer" range="value" type="float" value="200.0" widget="float" description="The outer diameter of the star."/>
-            <port name="inner" range="value" type="float" value="100.0" widget="float" description="The inner diameter of the star."/>
+            <port name="outer" label="Outer Diameter" range="value" type="float" value="200.0" widget="float" description="The outer diameter of the star."/>
+            <port name="inner" label="Inner Diameter" range="value" type="float" value="100.0" widget="float" description="The inner diameter of the star."/>
         </node>
         <node description="Create a text path that follows a shape." function="pyvector/text_on_path" image="text_on_path.png" name="text_on_path" position="10.00,2.00" prototype="generator">
             <port name="text" range="value" type="string" value="text following a path" widget="string" description="The input text."/>
