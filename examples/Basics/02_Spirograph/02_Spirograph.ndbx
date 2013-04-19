@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="17" type="file" uuid="2832e95e-68f0-49cd-822d-944e6d902ab1">
     <property name="canvasHeight" value="1000"/>
     <property name="canvasWidth" value="1000"/>
+    <property name="title" value="Spirograph"/>
     <node name="root" prototype="core.network" renderedChild="copy1">
         <node name="copy1" position="1.00,3.00" prototype="corevector.copy">
             <port name="copies" type="int" value="6"/>

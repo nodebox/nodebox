@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx formatVersion="17" type="file" uuid="4fb9eaea-2ceb-4201-9707-172e4f67f913">
     <property name="canvasHeight" value="1000"/>
     <property name="canvasWidth" value="1000"/>
+    <property name="title" value="Hello Ellipse"/>
     <node name="root" prototype="core.network" renderedChild="translate1">
         <node name="colorize1" position="1.00,4.00" prototype="corevector.colorize"/>
         <node name="ellipse1" position="1.00,2.00" prototype="corevector.ellipse">
