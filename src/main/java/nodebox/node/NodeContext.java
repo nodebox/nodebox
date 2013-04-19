@@ -103,8 +103,11 @@ public final class NodeContext {
 
         // If the node has children, forgo the operation of the current node and evaluate the child.
         Object result;
-        if (node.hasRenderedChild()) {
-            result = renderChild(node, node.getRenderedChild(), argumentMap);
+        if (node.isNetwork()) {
+            if (node.hasRenderedChild())
+                result = renderChild(node, node.getRenderedChild(), argumentMap);
+            else
+                result = ImmutableList.of();
         } else {
             result = invokeNode(node, argumentMap);
         }

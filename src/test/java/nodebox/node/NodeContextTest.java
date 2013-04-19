@@ -360,7 +360,7 @@ public class NodeContextTest {
     @Test
     public void testRenderEmptyNetwork() {
         Node network = Node.NETWORK;
-        assertResultsEqual(network, 0.0);
+        assertResultsEqual(network);
     }
 
     @Test
@@ -617,7 +617,7 @@ public class NodeContextTest {
 
     @Test
     public void testNestedFilter() {
-        Node makeNestedWords = Node.NETWORK
+        Node makeNestedWords = Node.ROOT
                 .withName("makeNestedWords")
                 .withFunction("test/makeNestedWords")
                 .withOutputType("string")
