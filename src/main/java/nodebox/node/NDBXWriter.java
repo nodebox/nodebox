@@ -314,6 +314,8 @@ public class NDBXWriter {
         Element el = doc.createElement("port");
         el.setAttribute("name", port.getName());
         el.setAttribute("type", port.getType());
+        if (shouldWriteAttribute(node, port, Port.Attribute.LABEL))
+            el.setAttribute("label", port.getLabel());
         if (shouldWriteAttribute(node, port, Port.Attribute.CHILD_REFERENCE) && port.getChildReference() != null)
             el.setAttribute("childReference", port.getChildReference());
         if (shouldWriteAttribute(node, port, Port.Attribute.WIDGET))

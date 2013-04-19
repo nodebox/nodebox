@@ -190,7 +190,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         @Override
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             Port port = (Port) value;
-            String displayValue = port.getLabel() + " (" + port.getName() + ")";
+            String displayValue = port.getDisplayLabel() + " (" + port.getName() + ")";
             return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
         }
     }

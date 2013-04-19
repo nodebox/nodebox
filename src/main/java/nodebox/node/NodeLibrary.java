@@ -527,6 +527,7 @@ public class NodeLibrary {
         // Name and type are always required.
         String name = reader.getAttributeValue(null, "name");
         String type = reader.getAttributeValue(null, "type");
+        String label = reader.getAttributeValue(null, "label");
         String childReference = reader.getAttributeValue(null, "childReference");
         String widget = reader.getAttributeValue(null, "widget");
         String range = reader.getAttributeValue(null, "range");
@@ -543,6 +544,8 @@ public class NodeLibrary {
         }
 
         // Widget, value, min, max are optional and could come from the prototype.
+        if (label != null)
+            port = port.withParsedAttribute(Port.Attribute.LABEL, label);
         if (childReference != null)
             port = port.withParsedAttribute(Port.Attribute.CHILD_REFERENCE, childReference);
         if (widget != null)

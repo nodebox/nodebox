@@ -608,6 +608,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
+     * Change the label for the given port
+     *
+     * @param portName The name of the port to change.
+     * @param label    The new label.
+     */
+    public void setPortLabel(String portName, String label) {
+        checkValidPort(portName);
+        addEdit("Change Label");
+        controller.setPortLabel(getActiveNodePath(), portName, label);
+        portView.updateAll();
+        requestRender();
+    }
+
+    /**
      * Change the description for the given port
      *
      * @param portName      The name of the port to change.

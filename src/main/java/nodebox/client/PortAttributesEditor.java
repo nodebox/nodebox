@@ -5,7 +5,6 @@ import nodebox.Icons;
 import nodebox.node.Port;
 import nodebox.node.MenuItem;
 import nodebox.ui.Theme;
-import nodebox.util.StringUtils;
 import nodebox.util.HumanizedObject;
 
 import javax.swing.*;
@@ -94,7 +93,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
         // Label
         labelField = new JTextField(20);
-        labelField.setEnabled(false);
+        labelField.addActionListener(this);
         addRow("Label", labelField);
 
         // Type
@@ -186,7 +185,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
     public void updateValues() {
         Port port = getPort();
         nameField.setText(port.getName());
-        labelField.setText(port.getLabel());
+        labelField.setText(port.getDisplayLabel());
         typeField.setText(port.getType());
         descriptionField.setText(port.getDescription());
         rangeBox.setSelectedItem(getHumanizedRange(port.getRange()));
@@ -211,7 +210,10 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     public void actionPerformed(ActionEvent e) {
         Port port = getPort();
-        if (e.getSource() == descriptionField) {
+        if (e.getSource() == labelField) {
+            if (labelField.getText().equals(port.getDisplayLabel())) return;
+            nodeAttributesDialog.setPortLabel(portName, labelField.getText());
+        } else if (e.getSource() == descriptionField) {
             nodeAttributesDialog.setPortDescription(portName, descriptionField.getText());
         } else if (e.getSource() == widgetBox) {
             HumanizedObject newWidget = (HumanizedObject) widgetBox.getSelectedItem();

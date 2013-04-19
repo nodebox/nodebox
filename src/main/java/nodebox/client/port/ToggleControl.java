@@ -12,7 +12,7 @@ public class ToggleControl extends AbstractPortControl {
     public ToggleControl(Port port) {
         super(port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        checkBox = new NButton(NButton.Mode.CHECK, port.getLabel());
+        checkBox = new NButton(NButton.Mode.CHECK, port.getDisplayLabel());
         checkBox.setActionMethod(this, "toggle");
         add(checkBox);
         setValueForControl(port.getValue());
