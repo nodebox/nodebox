@@ -78,7 +78,7 @@ public class NodeSelectionDialog extends JDialog {
                     consecutiveLettersNodes.add(node);
                 else if (findNonConsecutiveLettersPattern.matcher(node.getName()).matches())
                     nonConsecutiveLettersNodes.add(node);
-                else
+                else if (node.getDescription().contains(searchString))
                     descriptionNodes.add(node);
             }
             Collections.sort(firstLettersNodes, new NodeNameComparator());
