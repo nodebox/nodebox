@@ -38,21 +38,28 @@ public class ExamplesBrowser extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
 
-        categoriesPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
+        examplesPanel = new JPanel(new ExampleLayout(10, 10));
+        examplesPanel.setBackground(Color.WHITE);
+
+        categoriesPanel = new CategoriesPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        categoriesPanel.setBackground(Color.WHITE);
         File[] categoryFolders = getExampleCategoryFolders();
+        final List<CategoryButton> categoryButtons = new ArrayList<CategoryButton>();
         for (final File f : categoryFolders) {
-            JButton b = new JButton(f.getName());
+            final CategoryButton b = new CategoryButton(f.getName().substring(3));
             b.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
+                    for (CategoryButton b : categoryButtons) {
+                        b.setActive(false);
+                    }
+                    b.setActive(true);
                     selectCategory(f);
                 }
             });
+            categoryButtons.add(b);
             categoriesPanel.add(b);
         }
-
-        examplesPanel = new JPanel(new ExampleLayout(10, 10));
-        examplesPanel.setBackground(Color.WHITE);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(categoriesPanel, BorderLayout.NORTH);
@@ -60,6 +67,7 @@ public class ExamplesBrowser extends JFrame {
 
         setContentPane(mainPanel);
         setJMenuBar(new NodeBoxMenuBar());
+        categoryButtons.get(0).setActive(true);
         selectCategory(categoryFolders[0]);
     }
 
@@ -78,6 +86,7 @@ public class ExamplesBrowser extends JFrame {
             examplesPanel.add(b);
         }
         examplesPanel.validate();
+        examplesPanel.repaint();
     }
 
     private void openExample(Example example) {
@@ -173,9 +182,71 @@ public class ExamplesBrowser extends JFrame {
         }
     }
 
+    private static class CategoriesPanel extends JPanel {
+        private CategoriesPanel(LayoutManager layoutManager) {
+            super(layoutManager);
+            setSize(300, 32);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            g.setColor(new Color(240, 240, 240));
+            g.fillRect(0, 0, getWidth(), getHeight() - 1);
+            g.setColor(new Color(200, 200, 200));
+            g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
+        }
+    }
+
+    private static class CategoryButton extends JButton {
+
+        private boolean active;
+
+        private CategoryButton(String title) {
+            super(title);
+            setSize(150, 32);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            active = false;
+        }
+
+        private boolean isActive() {
+            return active;
+        }
+
+        private void setActive(boolean active) {
+            this.active = active;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g;
+            if (active) {
+                g2.setColor(new Color(2, 164, 228));
+                g2.fillRect(0, 0, getWidth(), getHeight());
+            } else {
+                g2.setColor(new Color(255, 255, 255));
+                g2.drawLine(0, 0, 0, getHeight()-2);
+                g2.setColor(new Color(210, 210, 210));
+                g2.drawLine(getWidth()-1, 0, getWidth()-1, getHeight()-2);
+            }
+
+            g2.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+            if (active) {
+                g2.setColor(Color.WHITE);
+            } else {
+                g2.setColor(new Color(160, 160, 160));
+            }
+            g2.drawString(getText(), 10, 20);
+
+            //g2.setColor(Color.GREEN);
+            //g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+        }
+
+    }
+
     private static class ExampleButton extends JButton {
-        private ExampleButton(String s, Icon icon) {
-            super(s, icon);
+        private ExampleButton(String title, Icon icon) {
+            super(title, icon);
             setSize(150, 125);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
