@@ -7,7 +7,7 @@
             <port name="size" range="value" type="int" value="100" widget="int"/>
             <port name="state" range="value" type="state" widget="none"/>
         </node>
-        <node category="device" description="Get the most recent mouse position" function="device/mousePosition" image="generic.png" name="mouse_position" outputType="point" position="1.00,2.00">
+        <node category="device" description="Get the most recent mouse position" function="device/mousePosition" image="mouse_position.png" name="mouse_position" outputType="point" position="1.00,2.00">
             <port name="context" range="value" type="context" widget="none"/>
         </node>
         <node category="device" description="Receive messages from OSC" function="device/receiveOSC"
