@@ -157,27 +157,21 @@ public class ExamplesBrowser extends JFrame {
         public final String name;
         public final String title;
         public final String description;
-        public final String category;
-        public final String subCategory;
         public final Image thumbnail;
 
         public static Example fromNodeLibrary(File nodeBoxFile, Map<String, String> propertyMap) {
             String name = FileUtils.getBaseName(nodeBoxFile.getName());
             String title = getProperty(propertyMap, "title", name);
             String description = getProperty(propertyMap, "description", "");
-            String category = getProperty(propertyMap, "category", "Uncategorized");
-            String subCategory = getProperty(propertyMap, "subCategory", "Uncategorized");
             Image thumbnail = thumbnailForLibraryFile(nodeBoxFile);
-            return new Example(nodeBoxFile, name, title, description, category, subCategory, thumbnail);
+            return new Example(nodeBoxFile, name, title, description, thumbnail);
         }
 
-        public Example(File file, String name, String title, String description, String category, String subCategory, Image thumbnail) {
+        public Example(File file, String name, String title, String description, Image thumbnail) {
             this.file = file;
             this.name = name;
             this.title = title;
             this.description = description;
-            this.category = category;
-            this.subCategory = subCategory;
             this.thumbnail = thumbnail;
         }
     }
