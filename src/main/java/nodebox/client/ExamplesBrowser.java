@@ -1,18 +1,22 @@
 package nodebox.client;
 
 import nodebox.node.NodeLibrary;
+import nodebox.ui.Theme;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class ExamplesBrowser extends JFrame {
 
@@ -20,6 +24,7 @@ public class ExamplesBrowser extends JFrame {
     private static final File examplesFolder = new File("examples");
     private static final Font EXAMPLE_TITLE_FONT = new Font(Font.DIALOG, Font.BOLD, 12);
     private static final Color EXAMPLE_TITLE_COLOR = new Color(60, 60, 200);
+    private static final Pattern NUMBERS_PREFIX_PATTERN = Pattern.compile("^[0-9]+\\s");
 
     static {
         try {
@@ -29,7 +34,13 @@ public class ExamplesBrowser extends JFrame {
         }
     }
 
+    private Category currentCategory;
+    private SubCategory currentSubCategory;
+
+    private Map<String, File> categoryFolderMap = new HashMap<String, File>();
+
     private final JPanel categoriesPanel;
+    private final JPanel subCategoriesPanel;
     private final JPanel examplesPanel;
 
     public ExamplesBrowser() {
@@ -38,42 +49,92 @@ public class ExamplesBrowser extends JFrame {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
 
+
+        categoriesPanel = new CategoriesPanel();
+        categoriesPanel.setBackground(Color.WHITE);
+
+        subCategoriesPanel = new SubCategoriesPanel();
+
         examplesPanel = new JPanel(new ExampleLayout(10, 10));
         examplesPanel.setBackground(Color.WHITE);
 
-        categoriesPanel = new CategoriesPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        categoriesPanel.setBackground(Color.WHITE);
-        File[] categoryFolders = getExampleCategoryFolders();
-        final List<CategoryButton> categoryButtons = new ArrayList<CategoryButton>();
-        for (final File f : categoryFolders) {
-            final CategoryButton b = new CategoryButton(f.getName().substring(3));
-            b.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent actionEvent) {
-                    for (CategoryButton b : categoryButtons) {
-                        b.setActive(false);
-                    }
-                    b.setActive(true);
-                    selectCategory(f);
-                }
-            });
-            categoryButtons.add(b);
-            categoriesPanel.add(b);
-        }
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(categoriesPanel, BorderLayout.NORTH);
+        mainPanel.add(subCategoriesPanel, BorderLayout.WEST);
         mainPanel.add(examplesPanel, BorderLayout.CENTER);
 
         setContentPane(mainPanel);
         setJMenuBar(new NodeBoxMenuBar());
-        categoryButtons.get(0).setActive(true);
-        selectCategory(categoryFolders[0]);
+
+
+        mainPanel.getActionMap().put("Reload", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                reload();
+            }
+        });
+
+        mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), "Reload");
+
+        reload();
+    }
+
+    /**
+     * Refresh the examples browser by loading everything from disk.
+     */
+    private void reload() {
+        final List<Category> categories = parseCategories(examplesFolder);
+
+        categoriesPanel.removeAll();
+        for (final Category category : categories) {
+            final CategoryButton b = new CategoryButton(category);
+            b.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    for (Component c : categoriesPanel.getComponents()) {
+                        CategoryButton b = (CategoryButton) c;
+                        b.setSelected(false);
+                    }
+                    b.setSelected(true);
+                    selectCategory(category);
+                }
+            });
+            categoriesPanel.add(b);
+        }
+        categoriesPanel.validate();
+        categoriesPanel.repaint();
+        ((CategoryButton) categoriesPanel.getComponent(0)).setSelected(true);
+        selectCategory(categories.get(0));
     }
 
 
-    private void selectCategory(File categoryFolder) {
-        List<Example> examples = getExamples(categoryFolder);
+    private void selectCategory(Category category) {
+        subCategoriesPanel.removeAll();
+        final List<SubCategory> subCategories = category.subCategories;
+        for (final SubCategory subCategory : subCategories) {
+            final SubCategoryButton b = new SubCategoryButton(subCategory);
+            b.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    for (Component c : subCategoriesPanel.getComponents()) {
+                        SubCategoryButton b = (SubCategoryButton) c;
+                        b.setSelected(false);
+                    }
+                    b.setSelected(true);
+                    selectSubCategory(subCategory);
+                }
+            });
+            subCategoriesPanel.add(b);
+        }
+        subCategoriesPanel.validate();
+        subCategoriesPanel.repaint();
+        ((SubCategoryButton) subCategoriesPanel.getComponent(0)).setSelected(true);
+        selectSubCategory(subCategories.get(0));
+    }
+
+    private void selectSubCategory(SubCategory subCategory) {
+        List<Example> examples = subCategory.examples;
         examplesPanel.removeAll();
         for (final Example e : examples) {
             ExampleButton b = new ExampleButton(e.title, new ImageIcon(e.thumbnail));
@@ -89,42 +150,69 @@ public class ExamplesBrowser extends JFrame {
         examplesPanel.repaint();
     }
 
+
     private void openExample(Example example) {
         Application.getInstance().openDocument(example.file);
     }
 
-    public static File[] getExampleCategoryFolders() {
-        return examplesFolder.listFiles(new FileFilter() {
+    public static List<Category> parseCategories(File parentDirectory) {
+        File[] directories = parentDirectory.listFiles(new FileFilter() {
             @Override
             public boolean accept(File file) {
                 return file.isDirectory() && !file.isHidden();
             }
         });
+
+        ArrayList<Category> categories = new ArrayList<Category>();
+        for (File d : directories) {
+            String name = fileToTitle(d);
+            List<SubCategory> subCategories = parseSubCategories(d);
+            categories.add(new Category(name, d, subCategories));
+        }
+        return categories;
     }
 
-    public static File[] getExampleFiles(File directory) {
-        return directory.listFiles(new FileFilter() {
+    private static List<SubCategory> parseSubCategories(File directory) {
+        File[] directories = directory.listFiles(new FileFilter() {
             @Override
-            public boolean accept(File projectDirectory) {
-                if (!projectDirectory.isDirectory()) return false;
-                return nodeBoxFileForDirectory(projectDirectory).exists();
+            public boolean accept(File file) {
+                return file.isDirectory() && !file.isHidden();
             }
         });
+
+        ArrayList<SubCategory> subCategories = new ArrayList<SubCategory>();
+        for (File d : directories) {
+            String name = fileToTitle(d);
+            List<Example> examples = parseExamples(d);
+            subCategories.add(new SubCategory(name, d, examples));
+        }
+        return subCategories;
     }
 
-    public static File nodeBoxFileForDirectory(File projectDirectory) {
-        return new File(projectDirectory, projectDirectory.getName() + ".ndbx");
-    }
+    public static List<Example> parseExamples(File directory) {
+        File[] directories = directory.listFiles(new FileFilter() {
+            @Override
+            public boolean accept(File projectDirectory) {
+                return projectDirectory.isDirectory() && nodeBoxFileForDirectory(projectDirectory).exists();
+            }
+        });
 
-    public static List<Example> getExamples(File directory) {
         ArrayList<Example> examples = new ArrayList<Example>();
-        File[] projectDirectories = getExampleFiles(directory);
-        for (File projectDirectory : projectDirectories) {
+        for (File projectDirectory : directories) {
             File nodeBoxFile = nodeBoxFileForDirectory(projectDirectory);
             Map<String, String> propertyMap = NodeLibrary.parseHeader(nodeBoxFile);
             examples.add(Example.fromNodeLibrary(nodeBoxFile, propertyMap));
         }
         return examples;
+    }
+
+    public static String fileToTitle(File file) {
+        String baseName = FileUtils.getBaseName(file.getName());
+        return NUMBERS_PREFIX_PATTERN.matcher(baseName).replaceFirst("");
+    }
+
+    public static File nodeBoxFileForDirectory(File projectDirectory) {
+        return new File(projectDirectory, projectDirectory.getName() + ".ndbx");
     }
 
     public static Image thumbnailForLibraryFile(File nodeBoxFile) {
@@ -151,25 +239,46 @@ public class ExamplesBrowser extends JFrame {
         }
     }
 
+    public static final class Category {
+        public final String name;
+        public final File directory;
+        public final List<SubCategory> subCategories;
+
+        public Category(String name, File directory, List<SubCategory> subCategories) {
+            this.name = name;
+            this.directory = directory;
+            this.subCategories = subCategories;
+        }
+    }
+
+    public static final class SubCategory {
+        public final String name;
+        public final File directory;
+        public final List<Example> examples;
+
+        public SubCategory(String name, File directory, List<Example> examples) {
+            this.name = name;
+            this.directory = directory;
+            this.examples = examples;
+        }
+    }
+
     public static class Example {
 
         public final File file;
-        public final String name;
         public final String title;
         public final String description;
         public final Image thumbnail;
 
         public static Example fromNodeLibrary(File nodeBoxFile, Map<String, String> propertyMap) {
-            String name = FileUtils.getBaseName(nodeBoxFile.getName());
-            String title = getProperty(propertyMap, "title", name);
+            String title = getProperty(propertyMap, "title", fileToTitle(nodeBoxFile));
             String description = getProperty(propertyMap, "description", "");
             Image thumbnail = thumbnailForLibraryFile(nodeBoxFile);
-            return new Example(nodeBoxFile, name, title, description, thumbnail);
+            return new Example(nodeBoxFile, title, description, thumbnail);
         }
 
-        public Example(File file, String name, String title, String description, Image thumbnail) {
+        public Example(File file, String title, String description, Image thumbnail) {
             this.file = file;
-            this.name = name;
             this.title = title;
             this.description = description;
             this.thumbnail = thumbnail;
@@ -177,8 +286,8 @@ public class ExamplesBrowser extends JFrame {
     }
 
     private static class CategoriesPanel extends JPanel {
-        private CategoriesPanel(LayoutManager layoutManager) {
-            super(layoutManager);
+        private CategoriesPanel() {
+            super(new FlowLayout(FlowLayout.LEADING, 0, 0));
             setSize(300, 32);
         }
 
@@ -191,41 +300,40 @@ public class ExamplesBrowser extends JFrame {
         }
     }
 
-    private static class CategoryButton extends JButton {
+    private static class SubCategoriesPanel extends JPanel {
+        private SubCategoriesPanel() {
+            super();
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setSize(300, 32);
+            setMinimumSize(new Dimension(150, 32));
+            setMaximumSize(new Dimension(150, 1000));
+            setPreferredSize(new Dimension(150, 500));
+        }
+    }
 
-        private boolean active;
+    private static class CategoryButton extends JToggleButton {
 
-        private CategoryButton(String title) {
-            super(title);
+        private CategoryButton(Category category) {
+            super(category.name);
             setSize(150, 32);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            active = false;
-        }
-
-        private boolean isActive() {
-            return active;
-        }
-
-        private void setActive(boolean active) {
-            this.active = active;
-            repaint();
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g;
-            if (active) {
+            if (isSelected()) {
                 g2.setColor(new Color(2, 164, 228));
                 g2.fillRect(0, 0, getWidth(), getHeight());
             } else {
                 g2.setColor(new Color(255, 255, 255));
-                g2.drawLine(0, 0, 0, getHeight()-2);
+                g2.drawLine(0, 0, 0, getHeight() - 2);
                 g2.setColor(new Color(210, 210, 210));
-                g2.drawLine(getWidth()-1, 0, getWidth()-1, getHeight()-2);
+                g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight() - 2);
             }
 
             g2.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
-            if (active) {
+            if (isSelected()) {
                 g2.setColor(Color.WHITE);
             } else {
                 g2.setColor(new Color(160, 160, 160));
@@ -237,6 +345,31 @@ public class ExamplesBrowser extends JFrame {
         }
 
     }
+
+    private class SubCategoryButton extends JToggleButton {
+        public SubCategoryButton(SubCategory subCategory) {
+            super(subCategory.name);
+            forceSize(this, 150, 32);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            if (isSelected()) {
+                g.setColor(new Color(2, 164, 228));
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+
+            g.setFont(Theme.SMALL_FONT);
+            if (isSelected()) {
+                g.setColor(Color.WHITE);
+            } else {
+                g.setColor(Color.BLACK);
+            }
+            g.drawString(getText(), 5, 20);
+        }
+    }
+
 
     private static class ExampleButton extends JButton {
         private ExampleButton(String title, Icon icon) {
@@ -307,6 +440,13 @@ public class ExamplesBrowser extends JFrame {
         }
     }
 
+    private static void forceSize(Component c, int width, int height) {
+        Dimension d = new Dimension(width, height);
+        c.setSize(d);
+        c.setMinimumSize(d);
+        c.setMaximumSize(d);
+        c.setPreferredSize(d);
+    }
 
     public static void main(String[] args) {
         ExamplesBrowser browser = new ExamplesBrowser();
