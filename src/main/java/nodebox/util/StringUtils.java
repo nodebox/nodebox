@@ -72,7 +72,7 @@ public class StringUtils {
     }
 
     public static String join(String charString, String separator) {
-        List lst = new ArrayList();
+        List<Character> lst = new ArrayList<Character>();
         for (Character c : charString.toCharArray())
             lst.add(c);
         return join(lst, separator);
