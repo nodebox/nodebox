@@ -19,6 +19,7 @@
 
 package nodebox.util;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -68,6 +69,13 @@ public class StringUtils {
             }
         }
         return sb.toString();
+    }
+
+    public static String join(String charString, String separator) {
+        List<Character> lst = new ArrayList<Character>();
+        for (Character c : charString.toCharArray())
+            lst.add(c);
+        return join(lst, separator);
     }
 
 }
