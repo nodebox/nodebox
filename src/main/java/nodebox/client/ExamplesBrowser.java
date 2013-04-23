@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -24,8 +23,6 @@ public class ExamplesBrowser extends JFrame {
 
     private static final Image DEFAULT_EXAMPLE_IMAGE;
     private static final File examplesFolder = new File("examples");
-    private static final Font EXAMPLE_TITLE_FONT = new Font(Font.DIALOG, Font.BOLD, 12);
-    private static final Color EXAMPLE_TITLE_COLOR = new Color(60, 60, 200);
     private static final Pattern NUMBERS_PREFIX_PATTERN = Pattern.compile("^[0-9]+\\s");
 
     static {
@@ -35,11 +32,6 @@ public class ExamplesBrowser extends JFrame {
             throw new RuntimeException(e);
         }
     }
-
-    private Category currentCategory;
-    private SubCategory currentSubCategory;
-
-    private Map<String, File> categoryFolderMap = new HashMap<String, File>();
 
     private final JPanel categoriesPanel;
     private final JPanel subCategoriesPanel;
@@ -454,8 +446,6 @@ public class ExamplesBrowser extends JFrame {
 
     private static class ExampleLayout implements LayoutManager {
 
-        private ArrayList<Component> components = new ArrayList<Component>();
-
         private int hGap, vGap;
 
         private ExampleLayout(int hGap, int vGap) {
@@ -465,13 +455,11 @@ public class ExamplesBrowser extends JFrame {
 
         @Override
         public void addLayoutComponent(String s, Component component) {
-            components.add(component);
 
         }
 
         @Override
         public void removeLayoutComponent(Component component) {
-            components.remove(component);
         }
 
         @Override
