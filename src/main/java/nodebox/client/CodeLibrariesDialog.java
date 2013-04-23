@@ -98,7 +98,7 @@ public class CodeLibrariesDialog extends JDialog {
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        if (document.getDocumentFile() == null) {
+        if (document.getDocumentDirectory() == null) {
             panel.add(new MessageBar("<html>&nbsp;&nbsp;&nbsp;<b>Please save your document first.</b></html>"), BorderLayout.NORTH);
         } else {
             ActionHeader actionHeader = new ActionHeader();
@@ -206,7 +206,7 @@ public class CodeLibrariesDialog extends JDialog {
     }
 
     private File chooseFileWithExtension(String extension, String extensionDescription) {
-        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), NodeBoxDocument.lastFilePath, extension, extensionDescription);
+        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), NodeBoxDocument.lastProjectPath, extension, extensionDescription);
     }
 
     private void removeSelectedLibrary() {
