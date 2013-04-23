@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import static nodebox.ui.SwingUtils.drawShadowText;
+
 public class ExamplesBrowser extends JFrame {
 
     private static final Image DEFAULT_EXAMPLE_IMAGE;
@@ -56,7 +58,7 @@ public class ExamplesBrowser extends JFrame {
         subCategoriesPanel = new SubCategoriesPanel();
 
         examplesPanel = new JPanel(new ExampleLayout(10, 10));
-        examplesPanel.setBackground(Color.WHITE);
+        examplesPanel.setBackground(new Color(196, 196, 196));
 
 
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -293,11 +295,21 @@ public class ExamplesBrowser extends JFrame {
 
         @Override
         protected void paintComponent(Graphics g) {
-            g.setColor(new Color(240, 240, 240));
-            g.fillRect(0, 0, getWidth(), getHeight() - 1);
-            g.setColor(new Color(200, 200, 200));
+            g.setColor(new Color(210, 210, 210));
+            g.fillRect(0, 0, getWidth(), getHeight());
+            g.setColor(new Color(225, 225, 225));
+            g.drawLine(0, 0, getWidth(), 0);
+            g.setColor(new Color(136, 136, 136));
             g.drawLine(0, getHeight() - 1, getWidth(), getHeight() - 1);
         }
+    }
+
+    private static void drawVLine(Graphics g, int x, int y, int height) {
+        g.drawLine(x, y, x, y + height);
+    }
+
+    private static void drawHLine(Graphics g, int x, int y, int width) {
+        g.drawLine(x, y, x + width, y);
     }
 
     private static class SubCategoriesPanel extends JPanel {
@@ -308,6 +320,18 @@ public class ExamplesBrowser extends JFrame {
             setMinimumSize(new Dimension(150, 32));
             setMaximumSize(new Dimension(150, 1000));
             setPreferredSize(new Dimension(150, 500));
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            g.setColor(new Color(153, 153, 153));
+            g.fillRect(0, 0, getWidth(), getHeight());
+            g.setColor(new Color(146, 146, 146));
+            drawVLine(g, getWidth() - 3, 0, getHeight());
+            g.setColor(new Color(133, 133, 133));
+            drawVLine(g, getWidth() - 2, 0, getHeight());
+            g.setColor(new Color(112, 112, 112));
+            drawVLine(g, getWidth() - 1, 0, getHeight());
         }
     }
 
@@ -321,24 +345,39 @@ public class ExamplesBrowser extends JFrame {
 
         @Override
         protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
+
+            int hMargin = 4;
+            int vMargin = 3;
+            Rectangle r = new Rectangle(0, 0, getWidth() - 1, getHeight() - 1);
+            r.grow(-hMargin, -vMargin);
+
             if (isSelected()) {
-                g2.setColor(new Color(2, 164, 228));
-                g2.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(new Color(198, 198, 198));
+                g.fillRect(r.x, r.y, r.width, r.height);
+                g.setColor(new Color(166, 166, 166));
+                g.drawRect(r.x + 1, r.y + 1, r.width - 2, r.height - 2);
+                g.setColor(new Color(119, 119, 119));
+                g.drawLine(r.x, r.y, r.x + r.width, r.y);
+                g.drawLine(r.x, r.y, r.x, r.y + r.height);
+                g.setColor(new Color(237, 237, 237));
+                g.drawLine(r.x, r.y + r.height, r.x + r.width, r.y + r.height);
+                g.drawLine(r.x + r.width, r.y, r.x + r.width, r.y + r.height);
             } else {
-                g2.setColor(new Color(255, 255, 255));
-                g2.drawLine(0, 0, 0, getHeight() - 2);
-                g2.setColor(new Color(210, 210, 210));
-                g2.drawLine(getWidth() - 1, 0, getWidth() - 1, getHeight() - 2);
+                g.setColor(new Color(179, 179, 179));
+                g.drawLine(0, 2, 0, getHeight() - 4);
+                g.setColor(new Color(237, 237, 237));
+                g.drawLine(1, 2, 1, getHeight() - 4);
             }
 
-            g2.setFont(new Font(Font.DIALOG, Font.BOLD, 14));
+            g.setFont(Theme.SMALL_BOLD_FONT);
+            g.setFont(Theme.SMALL_BOLD_FONT);
             if (isSelected()) {
-                g2.setColor(Color.WHITE);
+                g.setColor(Theme.TEXT_NORMAL_COLOR);
             } else {
-                g2.setColor(new Color(160, 160, 160));
+                g.setColor(Theme.TEXT_HEADER_COLOR);
+                //g.setColor(new Color(160, 160, 160));
             }
-            g2.drawString(getText(), 10, 20);
+            drawShadowText((Graphics2D) g, getText(), 10, 18);
 
             //g2.setColor(Color.GREEN);
             //g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
@@ -356,17 +395,34 @@ public class ExamplesBrowser extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
             if (isSelected()) {
-                g.setColor(new Color(2, 164, 228));
+                g.setColor(new Color(196, 196, 196));
                 g.fillRect(0, 0, getWidth(), getHeight());
+            } else if (isLastButton()) {
+                g.setColor(new Color(255, 255, 255, 50));
+                drawHLine(g, 0, 0, getWidth() - 2);
+                g.setColor(new Color(0, 0, 0, 50));
+                drawHLine(g, 0, getHeight() - 2, getWidth() - 2);
+                g.setColor(new Color(255, 255, 255, 50));
+                drawHLine(g, 0, getHeight() - 1, getWidth() - 2);
+            } else {
+                g.setColor(new Color(255, 255, 255, 50));
+                drawHLine(g, 0, 0, getWidth() - 1);
+                g.setColor(new Color(0, 0, 0, 50));
+                drawHLine(g, 0, getHeight() - 1, getWidth() - 1);
             }
 
-            g.setFont(Theme.SMALL_FONT);
+            g.setFont(Theme.SMALL_BOLD_FONT);
+            g.setColor(Theme.TEXT_NORMAL_COLOR);
             if (isSelected()) {
-                g.setColor(Color.WHITE);
+                drawShadowText((Graphics2D) g, getText(), 5, 20);
             } else {
-                g.setColor(Color.BLACK);
+                drawShadowText((Graphics2D) g, getText(), 5, 20, Theme.DEFAULT_SHADOW_COLOR, 1);
+
             }
-            g.drawString(getText(), 5, 20);
+        }
+
+        private boolean isLastButton() {
+            return getParent().getComponent(getParent().getComponentCount() - 1) == SubCategoryButton.this;
         }
     }
 
@@ -380,11 +436,19 @@ public class ExamplesBrowser extends JFrame {
 
         @Override
         protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
             getIcon().paintIcon(this, g, 0, 0);
-            g2.setFont(EXAMPLE_TITLE_FONT);
-            g2.setColor(EXAMPLE_TITLE_COLOR);
-            g2.drawString(getText(), 1, 117);
+            g.setColor(new Color(140, 140, 140));
+            drawHLine(g, 0, 0, 149);
+            drawVLine(g, 0, 0, 100);
+            g.setColor(new Color(237, 237, 237));
+            drawHLine(g, 0, 100, 149);
+            drawVLine(g, 149, 0, 100);
+            g.setColor(new Color(166, 166, 166, 100));
+            g.drawRect(1, 1, 147, 98);
+
+            g.setFont(Theme.SMALL_BOLD_FONT);
+            g.setColor(Theme.TEXT_NORMAL_COLOR);
+            drawShadowText((Graphics2D) g, getText(), 0, 113);
         }
     }
 
