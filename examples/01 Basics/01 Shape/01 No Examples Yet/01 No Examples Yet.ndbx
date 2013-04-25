@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="c3792595-b616-45de-b135-9d7788be108f">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="textpath1">
+        <node name="textpath1" position="1.00,1.00" prototype="corevector.textpath">
+            <port name="text" type="string" value=":-("/>
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="150.0"/>
+        </node>
+    </node>
+</ndbx>
