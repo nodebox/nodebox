@@ -136,6 +136,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
 
         ArrayList<String> portNames = new ArrayList<String>();
 
+        String activeNodePath = document.getActiveNodePath();
+
         for (Port p : node.getInputs())
             portNames.add(p.getName());
 
@@ -155,7 +157,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
                 control.setFont(Theme.SMALL_FONT);
                 control.setForeground(Theme.TEXT_DISABLED_COLOR);
             } else if (widgetClass != null) {
-                control = (JComponent) constructControl(widgetClass, p);
+                control = (JComponent) constructControl(widgetClass, activeNodePath, p);
                 ((PortControl) control).setValueChangeListener(this);
                 ((PortControl) control).setDisplayName(portName);
                 controlMap.put(portName, (PortControl) control);
@@ -192,10 +194,10 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
     }
 
     @SuppressWarnings("unchecked")
-    private PortControl constructControl(Class controlClass, Port p) {
+    private PortControl constructControl(Class controlClass, String activeNodePath, Port p) {
         try {
-            Constructor constructor = controlClass.getConstructor(Port.class);
-            return (PortControl) constructor.newInstance(p);
+            Constructor constructor = controlClass.getConstructor(String.class, Port.class);
+            return (PortControl) constructor.newInstance(activeNodePath, p);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Cannot construct control", e);
             throw new AssertionError("Cannot construct control:" + e);
@@ -206,8 +208,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
         return controlMap.get(portName);
     }
 
-    public void onValueChange(PortControl control, Object newValue) {
-        document.setValue(control.getDisplayName(), newValue);
+    public void onValueChange(String nodePath, String portName, Object newValue) {
+        document.setValue(nodePath, portName, newValue);
     }
 
     private class ControlPanel extends JPanel {

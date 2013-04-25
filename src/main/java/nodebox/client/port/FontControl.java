@@ -20,8 +20,8 @@ public class FontControl extends AbstractPortControl implements ActionListener {
     private FontDataModel fontModel;
     private String value;
 
-    public FontControl(Port port) {
-        super(port);
+    public FontControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fontChooser = new JComboBox();
         fontModel = new FontDataModel();

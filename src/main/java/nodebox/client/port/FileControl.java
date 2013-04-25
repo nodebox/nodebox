@@ -16,8 +16,8 @@ public class FileControl extends AbstractPortControl implements ActionListener {
     private JTextField fileField;
     private JButton chooseButton;
 
-    public FileControl(Port port) {
-        super(port);
+    public FileControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         fileField = new JTextField();
         fileField.putClientProperty("JComponent.sizeVariant", "small");

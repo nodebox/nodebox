@@ -4,8 +4,8 @@ import nodebox.node.Port;
 
 public class ImageControl extends FileControl {
 
-    public ImageControl(Port port) {
-        super(port);
+    public ImageControl(String nodePath, Port port) {
+        super(nodePath, port);
     }
 
     @Override
