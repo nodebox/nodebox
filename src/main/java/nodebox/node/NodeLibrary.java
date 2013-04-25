@@ -535,7 +535,6 @@ public class NodeLibrary {
         String description = reader.getAttributeValue(null, "description");
         String min = reader.getAttributeValue(null, "min");
         String max = reader.getAttributeValue(null, "max");
-        String fileType = reader.getAttributeValue(null, "fileType");
 
         Port port;
         if (prototype == null) {
@@ -561,8 +560,6 @@ public class NodeLibrary {
             port = port.withParsedAttribute(Port.Attribute.MINIMUM_VALUE, min);
         if (max != null)
             port = port.withParsedAttribute(Port.Attribute.MAXIMUM_VALUE, max);
-        if (fileType != null)
-            port = port.withParsedAttribute(Port.Attribute.FILE_TYPE, fileType);
 
         ImmutableList.Builder<MenuItem> b = ImmutableList.builder();
 

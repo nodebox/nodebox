@@ -251,9 +251,10 @@ public final class NodeContext {
         Node outputNode = findOutputNode(network, child, childPort);
         if (outputNode != null) {
             List<?> result = renderChild(network, outputNode, networkArgumentMap);
-            if (childPort.isFileWidget()) {
-                return convertToFileNames(result);
-            }
+            if (childPort.getWidget() == Port.Widget.FILE) {
+                return convertToFileNames(result, "data");
+            } else if (childPort.getWidget() == Port.Widget.IMAGE)
+                return convertToFileNames(result, "images");
             return result;
         } else {
             Object value = getPortValue(child, childPort);
@@ -265,20 +266,20 @@ public final class NodeContext {
         }
     }
 
-    private List<?> convertToFileNames(List<?> values) {
+    private List<?> convertToFileNames(List<?> values, String subfolder) {
         ImmutableList.Builder<Object> b = ImmutableList.builder();
         for (Object v : values) {
-            b.add(convertToFileName(v));
+            b.add(convertToFileName(v, subfolder));
         }
         return b.build();
     }
 
-    private Object convertToFileName(Object value) {
+    private Object convertToFileName(Object value, String subfolder) {
         String path = String.valueOf(value);
         if (!path.startsWith("/")) {
             // Convert relative to absolute path.
             if (nodeLibrary.getFile() != null) {
-                File f = new File(nodeLibrary.getFile().getParentFile(), path);
+                File f = new File(new File(nodeLibrary.getFile().getParentFile(), subfolder), path);
                 return f.getAbsolutePath();
             }
         }
@@ -308,8 +309,11 @@ public final class NodeContext {
             } else {
                 return ImmutableList.of();
             }
-        } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
-            return convertToFileName(portValue);
+        } else if (! port.stringValue().isEmpty()) {
+            if (port.isFileWidget())
+                return convertToFileName(portValue, Port.FILE_TYPE_DATA);
+            else if (port.isImageWidget())
+                return convertToFileName(portValue, Port.FILE_TYPE_IMAGES);
         }
         return portValue;
     }
