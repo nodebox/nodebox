@@ -331,7 +331,7 @@ public class ExamplesBrowser extends JFrame {
 
         private CategoryButton(Category category) {
             super(category.name);
-            setSize(150, 32);
+            forceSize(this, 120, 32);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         }
 
