@@ -6,9 +6,7 @@ import nodebox.ui.Theme;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
@@ -51,12 +49,19 @@ public class ExamplesBrowser extends JFrame {
 
         examplesPanel = new JPanel(new ExampleLayout(10, 10));
         examplesPanel.setBackground(new Color(196, 196, 196));
-
+        JScrollPane examplesScroll = new JScrollPane(examplesPanel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        examplesScroll.setBorder(null);
+        examplesScroll.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateExamplesPanelSize();
+            }
+        });
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(categoriesPanel, BorderLayout.NORTH);
         mainPanel.add(subCategoriesPanel, BorderLayout.WEST);
-        mainPanel.add(examplesPanel, BorderLayout.CENTER);
+        mainPanel.add(examplesScroll, BorderLayout.CENTER);
 
         setContentPane(mainPanel);
         if (PlatformUtils.onMac()) {
@@ -141,10 +146,18 @@ public class ExamplesBrowser extends JFrame {
             });
             examplesPanel.add(b);
         }
+        updateExamplesPanelSize();
         examplesPanel.validate();
         examplesPanel.repaint();
     }
 
+    private void updateExamplesPanelSize() {
+        Component scrollPane = examplesPanel.getParent();
+        int scrollPaneWidth = scrollPane.getWidth();
+        ExampleLayout exampleLayout = (ExampleLayout) examplesPanel.getLayout();
+        int contentsHeight = exampleLayout.calculateHeight(examplesPanel, scrollPaneWidth);
+        examplesPanel.setSize(scrollPaneWidth, contentsHeight);
+    }
 
     private void openExample(Example example) {
         Application.getInstance().openDocument(example.file);
@@ -471,6 +484,29 @@ public class ExamplesBrowser extends JFrame {
         @Override
         public Dimension minimumLayoutSize(Container container) {
             return container.getSize();
+        }
+
+        /**
+         * Given a fixed width, what should be the height of this container?
+         * @param containerWidth The width of the parent component.
+         * @return The height in pixels.
+         */
+        public int calculateHeight(Container container, int containerWidth) {
+            int y = vGap;
+            int x = hGap;
+            int maxHeightForRow = 0;
+            for (Component c : container.getComponents()) {
+                int width = c.getWidth();
+                int height = c.getHeight();
+                maxHeightForRow = Math.max(maxHeightForRow, height);
+                if (x > containerWidth - width + hGap * 2) {
+                    x = hGap;
+                    y += maxHeightForRow + vGap;
+                    maxHeightForRow = 0;
+                }
+                x += width + hGap;
+            }
+            return y + 125 + vGap;
         }
 
         @Override
