@@ -332,6 +332,8 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, port, Port.Attribute.MAXIMUM_VALUE))
             if (port.getMaximumValue() != null)
                 el.setAttribute("max", String.format(Locale.US, "%s", port.getMaximumValue()));
+        if (shouldWriteAttribute(node, port, Port.Attribute.FILE_TYPE))
+            el.setAttribute("fileType", port.getFileType());
         if (shouldWriteAttribute(node, port, Port.Attribute.MENU_ITEMS))
             writeMenuItems(doc, el, port.getMenuItems());
         parent.appendChild(el);
