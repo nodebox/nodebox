@@ -55,9 +55,9 @@ public class FileControl extends AbstractPortControl implements ActionListener {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         File f = FileUtils.showOpenDialog(frame, port.stringValue(), acceptedExtensions(), acceptedDescription());
         if (f != null) {
-            File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentFile();
+            File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentDirectory();
             String subfolder = port.isImageWidget() ? Port.FILE_TYPE_IMAGES : Port.FILE_TYPE_DATA;
-            File directory = new File(libraryFile.getParentFile(), subfolder);
+            File directory = new File(libraryFile, subfolder);
             if (! directory.exists())
                 directory.mkdir();
             File nf = new File(directory, f.getName());

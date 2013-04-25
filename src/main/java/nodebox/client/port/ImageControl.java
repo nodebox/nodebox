@@ -10,7 +10,7 @@ public class ImageControl extends FileControl {
 
     @Override
     public String acceptedExtensions() {
-        return "png,jpg,jpeg,tiff,gif";
+        return "png,jpg,jpeg,tiff,gif,svg";
     }
 
     @Override

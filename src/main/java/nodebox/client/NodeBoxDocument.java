@@ -1343,6 +1343,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private void createTemporaryDirectory() {
         temporaryDirectory = FileUtils.createTemporaryDirectory("nbtemp");
         temporaryDirectory.deleteOnExit();
+        controller.setNodeLibraryFile(new File(temporaryDirectory, "temp.ndbx"));
     }
 
     public File getDocumentDirectory() {
