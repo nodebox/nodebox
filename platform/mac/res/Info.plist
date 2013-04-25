@@ -36,7 +36,7 @@
     <key>CFBundleSignature</key>
     <string>ndbx</string>
     <key>CFBundleGetInfoString</key>
-    <string>@@VERSION@@, Copyright NodeBox, (c) 2004-2012</string>
+    <string>@@VERSION@@, Copyright EMRG, (c) 2004-2013</string>
     <key>CFBundleShortVersionString</key>
     <string>@@VERSION@@</string>
     <key>CFBundleVersion</key>
