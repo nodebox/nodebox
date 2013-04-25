@@ -59,8 +59,9 @@ public class ExamplesBrowser extends JFrame {
         mainPanel.add(examplesPanel, BorderLayout.CENTER);
 
         setContentPane(mainPanel);
-        setJMenuBar(new NodeBoxMenuBar());
-
+        if (PlatformUtils.onMac()) {
+            setJMenuBar(new NodeBoxMenuBar());
+        }
 
         mainPanel.getActionMap().put("Reload", new AbstractAction() {
             @Override
