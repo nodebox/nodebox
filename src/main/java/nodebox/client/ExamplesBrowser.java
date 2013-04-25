@@ -39,7 +39,7 @@ public class ExamplesBrowser extends JFrame {
 
     public ExamplesBrowser() {
         super("Examples");
-        setSize(600, 400);
+        setSize(800, 500);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationByPlatform(true);
 
