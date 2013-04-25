@@ -25,8 +25,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,6 +98,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
     private DevicesDialog devicesDialog;
 
+    private static Image APPLICATION_ICON_IMAGE;
+
+    static {
+        try {
+            APPLICATION_ICON_IMAGE = ImageIO.read(NodeBoxDocument.class.getResourceAsStream("/application-logo.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -214,6 +225,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);
+        setIconImage(APPLICATION_ICON_IMAGE);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         updateTitle();
@@ -624,8 +636,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Change the description for the given port
      *
-     * @param portName      The name of the port to change.
-     * @param description   The new description.
+     * @param portName    The name of the port to change.
+     * @param description The new description.
      */
     public void setPortDescription(String portName, String description) {
         checkValidPort(portName);
@@ -1175,7 +1187,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             handler.addData(dataMap);
         final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
-        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults, ImmutableMap.<String,Object>of());
+        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults, ImmutableMap.<String, Object>of());
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
             protected List<?> doInBackground() throws Exception {
@@ -1626,7 +1638,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         HashMap<String, Object> data = new HashMap<String, Object>();
                         data.put("frame", (double) frame);
                         data.put("mouse.position", viewer.getLastMousePosition());
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String,Object>of());
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String, Object>of());
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();
