@@ -13,8 +13,8 @@ public class DataControl extends AbstractPortControl implements ActionListener {
     //private JButton showDataButton;
     private JButton clearDataButton;
 
-    public DataControl(Port port) {
-        super(port);
+    public DataControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
         clearDataButton = new JButton("Clear");
         clearDataButton.setMargin(new Insets(1, 0, 0, 0));

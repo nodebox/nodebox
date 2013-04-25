@@ -18,8 +18,8 @@ public class ColorControl extends AbstractPortControl implements ChangeListener,
     private ColorButton colorButton;
     private ColorDialog colorDialog;
 
-    public ColorControl(Port port) {
-        super(port);
+    public ColorControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 1, 0));
         colorButton = new ColorButton();
         colorButton.setPreferredSize(new Dimension(40, 19));

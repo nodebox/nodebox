@@ -771,16 +771,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
-     * Set the port of the active node to the given value.
+     * Set the port with the given node path to a new value.
      *
-     * @param portName The name of the port on the active node.
+     * @param nodePath The path inside the network of the node the port belongs to.
+     * @param portName The name of the port.
      * @param value    The new value.
      */
-    public void setValue(String portName, Object value) {
-        checkValidPort(portName);
-        addEdit("Change Value", "changeValue", getActiveNodePath() + "#" + portName);
+    public void setValue(String nodePath, String portName, Object value) {
+        checkNotNull(getNodeLibrary().getNodeForPath(nodePath));
+        addEdit("Change Value", "changeValue", nodePath + "#" + portName);
 
-        controller.setPortValue(getActiveNodePath(), portName, value);
+        controller.setPortValue(nodePath, portName, value);
 
         // TODO set variables on the root port.
 //        if (port.getNode() == nodeLibrary.getRoot()) {
@@ -870,8 +871,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void silentSet(String portName, Object value) {
         try {
-            Port port = getActiveNode().getInput(portName);
-            setValue(portName, value);
+            setValue(getActiveNodePath(), portName, value);
         } catch (Exception ignored) {
         }
     }

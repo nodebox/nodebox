@@ -24,7 +24,7 @@ public interface PortControl {
     public OnValueChangeListener getValueChangeListener();
 
     public static interface OnValueChangeListener {
-        public void onValueChange(PortControl control, Object newValue);
+        public void onValueChange(String nodePath, String portName, Object newValue);
     }
 
 }

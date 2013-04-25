@@ -57,7 +57,9 @@ public interface Handle {
      * @param portName The port this value is linked to.
      * @param value    The new value.
      */
-    public void setValue(String portName, Object value);
+//    public void setValue(String portName, Object value);
+
+
 
     /**
      * Set a value on the node without causing an error.
