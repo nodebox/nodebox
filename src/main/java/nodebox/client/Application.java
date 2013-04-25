@@ -463,7 +463,12 @@ public class Application implements Host {
     }
 
     public String getAppcastURL() {
-        return "https://secure.nodebox.net/app/nodebox/appcast.xml";
+        StringBuilder b = new StringBuilder("https://secure.nodebox.net/app/nodebox/appcast.xml");
+        b.append("?v=");
+        b.append(getVersion().toString());
+        b.append("&p=");
+        b.append(PlatformUtils.current_platform);
+        return b.toString();
     }
 
     public Updater getUpdater() {
