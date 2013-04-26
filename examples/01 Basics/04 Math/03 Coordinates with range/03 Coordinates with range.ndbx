@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="d5cc07c1-5699-4c02-b3ed-05a04a017f95">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="3.00,9.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b2782"/>
+            <port name="strokeWidth" type="float" value="3.0"/>
+        </node>
+        <node name="colorize2" position="10.00,9.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#4e9df481"/>
+            <port name="strokeWidth" type="float" value="3.0"/>
+        </node>
+        <node name="combine1" position="5.00,11.00" prototype="list.combine"/>
+        <node name="combine2" position="5.00,4.00" prototype="list.combine"/>
+        <node name="combine3" position="12.00,4.00" prototype="list.combine"/>
+        <node name="connect1" position="3.00,8.00" prototype="corevector.connect"/>
+        <node name="connect2" position="10.00,8.00" prototype="corevector.connect"/>
+        <node name="coordinates1" position="3.00,7.00" prototype="math.coordinates"/>
+        <node name="coordinates2" position="10.00,7.00" prototype="math.coordinates"/>
+        <node name="range1" position="2.00,3.00" prototype="math.range">
+            <port name="end" type="float" value="360.0"/>
+            <port name="step" type="float" value="6.0"/>
+        </node>
+        <node name="range2" position="9.00,3.00" prototype="math.range">
+            <port name="end" type="float" value="360.0"/>
+            <port name="step" type="float" value="12.0"/>
+        </node>
+        <node name="range3" position="5.00,1.00" prototype="math.range">
+            <port name="end" type="float" value="30.0"/>
+            <port name="step" type="float" value="7.0"/>
+        </node>
+        <node name="range4" position="12.00,1.00" prototype="math.range">
+            <port name="end" type="float" value="30.0"/>
+            <port name="step" type="float" value="7.0"/>
+        </node>
+        <node name="reverse1" position="6.00,3.00" prototype="list.reverse"/>
+        <node name="reverse2" position="13.00,3.00" prototype="list.reverse"/>
+        <node name="wave1" position="4.00,6.00" prototype="math.wave">
+            <port name="min" type="float" value="41.0"/>
+            <port name="max" type="float" value="235.0"/>
+            <port name="period" type="float" value="1.1499764919281006"/>
+            <port name="type" type="string" value="sawtooth"/>
+        </node>
+        <node name="wave2" position="11.00,6.00" prototype="math.wave">
+            <port name="min" type="float" value="41.0"/>
+            <port name="max" type="float" value="235.0"/>
+            <port name="period" type="float" value="1.1499764919281006"/>
+            <port name="type" type="string" value="sawtooth"/>
+        </node>
+        <conn input="connect1.points" output="coordinates1"/>
+        <conn input="coordinates1.distance" output="wave1"/>
+        <conn input="combine2.list2" output="reverse1"/>
+        <conn input="wave1.offset" output="combine2"/>
+        <conn input="reverse1.list" output="range3"/>
+        <conn input="combine2.list1" output="range3"/>
+        <conn input="coordinates1.angle" output="range1"/>
+        <conn input="colorize1.shape" output="connect1"/>
+        <conn input="connect2.points" output="coordinates2"/>
+        <conn input="coordinates2.distance" output="wave2"/>
+        <conn input="combine3.list2" output="reverse2"/>
+        <conn input="wave2.offset" output="combine3"/>
+        <conn input="reverse2.list" output="range4"/>
+        <conn input="combine3.list1" output="range4"/>
+        <conn input="coordinates2.angle" output="range2"/>
+        <conn input="colorize2.shape" output="connect2"/>
+        <conn input="combine1.list1" output="colorize1"/>
+        <conn input="combine1.list2" output="colorize2"/>
+    </node>
+</ndbx>

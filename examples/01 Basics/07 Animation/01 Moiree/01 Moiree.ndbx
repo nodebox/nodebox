@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="7ff3af82-5089-4df8-903b-6854aad85a26">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="colorize1" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="combine1" position="3.00,7.00" prototype="list.combine"/>
+        <node name="delete1" position="4.00,10.00" prototype="corevector.delete">
+            <port name="scope" type="string" value="paths"/>
+            <port name="operation" type="string" value="non-selected"/>
+        </node>
+        <node name="divide1" position="4.00,3.00" prototype="math.divide">
+            <port name="value2" type="float" value="3.0"/>
+        </node>
+        <node name="ellipse1" position="1.00,1.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="5.0"/>
+            <port name="height" type="float" value="5.0"/>
+        </node>
+        <node name="ellipse2" position="6.00,8.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="300.0"/>
+            <port name="height" type="float" value="300.0"/>
+        </node>
+        <node name="frame1" position="4.00,2.00" prototype="core.frame"/>
+        <node name="grid1" position="4.00,1.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="30"/>
+            <port name="rows" type="int" value="30"/>
+        </node>
+        <node name="group1" position="3.00,8.00" prototype="corevector.group"/>
+        <node name="rotate1" position="3.00,5.00" prototype="corevector.rotate"/>
+        <node name="translate1" position="1.00,4.00" prototype="corevector.translate"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="translate1.shape" output="ellipse1"/>
+        <conn input="rotate1.shape" output="translate1"/>
+        <conn input="combine1.list1" output="translate1"/>
+        <conn input="delete1.bounding" output="ellipse2"/>
+        <conn input="group1.shapes" output="combine1"/>
+        <conn input="combine1.list2" output="rotate1"/>
+        <conn input="delete1.shape" output="group1"/>
+        <conn input="divide1.value1" output="frame1"/>
+        <conn input="rotate1.angle" output="divide1"/>
+        <conn input="colorize1.shape" output="delete1"/>
+    </node>
+</ndbx>

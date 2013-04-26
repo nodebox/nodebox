@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="98f6bd76-a395-40d0-beee-573f8fc682e0">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="color1" position="5.00,2.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="color2" position="5.00,3.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color3" position="5.00,4.00" prototype="color.color">
+            <port name="color" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize1" position="1.00,7.00" prototype="corevector.colorize"/>
+        <node name="combine1" position="4.00,5.00" prototype="list.combine"/>
+        <node name="grid1" position="4.00,1.00" prototype="corevector.grid"/>
+        <node name="integer1" position="1.00,2.00" prototype="math.integer"/>
+        <node name="make_numbers1" position="1.00,1.00" prototype="math.make_numbers">
+            <port name="string" type="string" value="1,2,3,4,5"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="textpath1" position="1.00,3.00" prototype="corevector.textpath">
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+        </node>
+        <conn input="integer1.value" output="make_numbers1"/>
+        <conn input="textpath1.text" output="integer1"/>
+        <conn input="colorize1.shape" output="textpath1"/>
+        <conn input="textpath1.position" output="grid1"/>
+        <conn input="combine1.list1" output="color1"/>
+        <conn input="combine1.list2" output="color2"/>
+        <conn input="combine1.list3" output="color3"/>
+        <conn input="colorize1.fill" output="combine1"/>
+    </node>
+</ndbx>

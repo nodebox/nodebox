@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="e854c9c0-9730-4830-8607-cd397a57d43e">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="color1" position="5.00,6.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color2" position="2.00,8.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="colorize1" position="5.00,9.00" prototype="corevector.colorize">
+            <port name="strokeWidth" type="float" value="0.1"/>
+        </node>
+        <node name="colorize2" position="1.00,9.00" prototype="corevector.colorize"/>
+        <node name="combine1" position="5.00,11.00" prototype="list.combine"/>
+        <node name="convert_range1" position="8.00,5.00" prototype="math.convert_range">
+            <port name="source_end" type="float" value="1000.0"/>
+            <port name="target_end" type="float" value="295.0"/>
+        </node>
+        <node name="distance1" position="7.00,3.00" prototype="math.distance">
+            <port name="point1" type="point" value="-50.00,-10.00"/>
+        </node>
+        <node name="grid1" position="4.00,1.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="50"/>
+            <port name="rows" type="int" value="50"/>
+        </node>
+        <node name="hsb_color1" position="8.00,7.00" prototype="color.hsb_color">
+            <port name="hue" type="float" value="150.0"/>
+            <port name="saturation" type="float" value="173.0"/>
+            <port name="brightness" type="float" value="244.0"/>
+        </node>
+        <node name="max1" position="11.00,4.00" prototype="math.max"/>
+        <node name="min1" position="8.00,4.00" prototype="math.min"/>
+        <node name="rect1" position="4.00,4.00" prototype="corevector.rect">
+            <port name="width" type="float" value="7.0"/>
+            <port name="height" type="float" value="7.0"/>
+        </node>
+        <node name="rect2" position="1.00,7.00" prototype="corevector.rect">
+            <port name="width" type="float" value="300.0"/>
+            <port name="height" type="float" value="300.0"/>
+        </node>
+        <conn input="distance1.point2" output="grid1"/>
+        <conn input="convert_range1.value" output="distance1"/>
+        <conn input="rect1.position" output="grid1"/>
+        <conn input="colorize1.shape" output="rect1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="min1.values" output="distance1"/>
+        <conn input="convert_range1.source_start" output="min1"/>
+        <conn input="max1.values" output="distance1"/>
+        <conn input="convert_range1.source_end" output="max1"/>
+        <conn input="colorize1.stroke" output="color1"/>
+        <conn input="colorize2.shape" output="rect2"/>
+        <conn input="colorize2.fill" output="color2"/>
+        <conn input="combine1.list1" output="colorize2"/>
+        <conn input="combine1.list2" output="colorize1"/>
+        <conn input="hsb_color1.alpha" output="convert_range1"/>
+        <conn input="hsb_color1.brightness" output="convert_range1"/>
+    </node>
+</ndbx>

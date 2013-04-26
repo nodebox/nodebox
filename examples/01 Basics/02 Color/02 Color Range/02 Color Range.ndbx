@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="4411cb0f-71e1-4152-ab0f-f5208c5390b8">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="colorize1" position="1.00,5.00" prototype="corevector.colorize"/>
+        <node name="ellipse1" position="1.00,2.00" prototype="corevector.ellipse"/>
+        <node name="grid1" position="1.00,1.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="3"/>
+            <port name="rows" type="int" value="3"/>
+        </node>
+        <node name="hsb_color1" position="5.00,3.00" prototype="color.hsb_color">
+            <port name="saturation" type="float" value="166.0"/>
+            <port name="brightness" type="float" value="200.0"/>
+        </node>
+        <node name="sample1" position="5.00,2.00" prototype="math.sample">
+            <port name="amount" type="int" value="9"/>
+            <port name="end" type="float" value="150.0"/>
+        </node>
+        <conn input="hsb_color1.hue" output="sample1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="ellipse1.position" output="grid1"/>
+    </node>
+</ndbx>

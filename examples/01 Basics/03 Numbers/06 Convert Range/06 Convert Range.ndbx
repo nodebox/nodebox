@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="7278e0af-cf51-4e3c-9573-21cf42beb859">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="colorize1" position="1.00,7.00" prototype="corevector.colorize"/>
+        <node name="convert_range1" position="3.00,5.00" prototype="math.convert_range">
+            <port name="target_end" type="float" value="255.0"/>
+        </node>
+        <node name="convert_range2" position="6.00,5.00" prototype="math.convert_range">
+            <port name="target_start" type="float" value="125.0"/>
+            <port name="target_end" type="float" value="255.0"/>
+        </node>
+        <node name="ellipse1" position="1.00,6.00" prototype="corevector.ellipse"/>
+        <node name="grid1" position="4.00,9.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="5"/>
+            <port name="rows" type="int" value="2"/>
+            <port name="width" type="float" value="430.0"/>
+            <port name="height" type="float" value="150.0"/>
+        </node>
+        <node name="hsb_color1" position="4.00,8.00" prototype="color.hsb_color">
+            <port name="hue" type="float" value="17.0"/>
+            <port name="saturation" type="float" value="208.0"/>
+            <port name="brightness" type="float" value="200.0"/>
+        </node>
+        <node name="max1" position="6.00,3.00" prototype="math.max"/>
+        <node name="min1" position="3.00,3.00" prototype="math.min"/>
+        <node name="sample1" position="1.00,1.00" prototype="math.sample">
+            <port name="start" type="float" value="30.0"/>
+        </node>
+        <node name="translate1" position="1.00,10.00" prototype="corevector.translate"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="ellipse1.width" output="sample1"/>
+        <conn input="ellipse1.height" output="sample1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="min1.values" output="sample1"/>
+        <conn input="max1.values" output="sample1"/>
+        <conn input="convert_range1.source_start" output="min1"/>
+        <conn input="convert_range1.source_end" output="max1"/>
+        <conn input="convert_range1.value" output="sample1"/>
+        <conn input="hsb_color1.saturation" output="convert_range1"/>
+        <conn input="convert_range2.source_start" output="min1"/>
+        <conn input="convert_range2.source_end" output="max1"/>
+        <conn input="convert_range2.value" output="sample1"/>
+        <conn input="hsb_color1.brightness" output="convert_range2"/>
+    </node>
+</ndbx>

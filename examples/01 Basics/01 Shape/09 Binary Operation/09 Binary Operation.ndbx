@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="ebd61410-e4de-490b-abf0-f0f17705d686">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="colorize1" position="4.00,7.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b27ff"/>
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="2.0"/>
+        </node>
+        <node name="compound1" position="5.00,4.00" prototype="corevector.compound">
+            <port name="function" type="string" value="intersected"/>
+            <port name="invert_difference" type="boolean" value="true"/>
+        </node>
+        <node name="ellipse1" position="8.00,3.00" prototype="corevector.ellipse"/>
+        <node name="grid1" position="8.00,6.00" prototype="corevector.grid">
+            <port name="rows" type="int" value="4"/>
+        </node>
+        <node name="hsb_color1" position="2.00,5.00" prototype="color.hsb_color">
+            <port name="hue" type="float" value="17.0"/>
+            <port name="saturation" type="float" value="208.0"/>
+            <port name="brightness" type="float" value="210.0"/>
+        </node>
+        <node name="make_numbers1" position="4.00,1.00" prototype="math.make_numbers">
+            <port name="string" type="string" value="50,-50,50,-50"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="make_numbers2" position="7.00,1.00" prototype="math.make_numbers">
+            <port name="string" type="string" value="50,-50,-50,50"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="make_point1" position="5.00,2.00" prototype="corevector.make_point"/>
+        <node name="random_numbers1" position="2.00,4.00" prototype="math.random_numbers">
+            <port name="amount" type="int" value="12"/>
+            <port name="start" type="float" value="100.0"/>
+            <port name="end" type="float" value="250.0"/>
+            <port name="seed" type="int" value="6"/>
+        </node>
+        <node name="rect1" position="5.00,3.00" prototype="corevector.rect">
+            <port name="position" type="point" value="-50.00,0.00"/>
+        </node>
+        <node name="translate1" position="4.00,8.00" prototype="corevector.translate"/>
+        <conn input="compound1.shape1" output="rect1"/>
+        <conn input="compound1.shape2" output="ellipse1"/>
+        <conn input="make_point1.x" output="make_numbers1"/>
+        <conn input="rect1.position" output="make_point1"/>
+        <conn input="make_point1.y" output="make_numbers2"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="colorize1.shape" output="compound1"/>
+        <conn input="hsb_color1.brightness" output="random_numbers1"/>
+    </node>
+</ndbx>

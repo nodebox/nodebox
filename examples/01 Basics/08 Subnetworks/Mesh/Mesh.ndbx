@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="aae021b9-13ff-4841-b83b-0ec125d8206e">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="colorize1" position="1.00,9.00" prototype="corevector.colorize">
+            <port name="strokeWidth" type="float" value="0.25"/>
+        </node>
+        <node name="count1" position="4.00,5.00" prototype="list.count"/>
+        <node name="ellipse1" position="1.00,1.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="300.0"/>
+            <port name="height" type="float" value="300.0"/>
+        </node>
+        <node name="mesh" position="1.00,8.00" prototype="core.network" renderedChild="line1">
+            <node name="line1" position="3.00,7.00" prototype="corevector.line"/>
+            <node name="slice1" position="4.00,5.00" prototype="list.slice">
+                <port name="start_index" type="int" value="3"/>
+                <port name="size" type="int" value="1"/>
+            </node>
+            <port childReference="slice1.list" name="list" range="list" type="list" widget="none"/>
+            <port childReference="slice1.start_index" min="0.0" name="start_index" range="value" type="int" value="1" widget="int"/>
+            <port childReference="line1.point2" name="point2" range="list" type="point" value="100.00,100.00" widget="point"/>
+            <conn input="line1.point1" output="slice1"/>
+        </node>
+        <node name="point1" position="1.00,3.00" prototype="corevector.point"/>
+        <node name="range1" position="4.00,6.00" prototype="math.range"/>
+        <node name="resample1" position="1.00,2.00" prototype="corevector.resample">
+            <port name="length" type="float" value="50.0"/>
+        </node>
+        <conn input="range1.end" output="count1"/>
+        <conn input="mesh.start_index" output="range1"/>
+        <conn input="colorize1.shape" output="mesh"/>
+        <conn input="point1.value" output="resample1"/>
+        <conn input="count1.list" output="point1"/>
+        <conn input="mesh.list" output="point1"/>
+        <conn input="mesh.point2" output="point1"/>
+        <conn input="resample1.shape" output="ellipse1"/>
+    </node>
+</ndbx>
