@@ -52,6 +52,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private File documentFile;
     private boolean documentChanged;
+    private boolean needsResave;
     private AnimationTimer animationTimer;
     private boolean loaded = false;
 
@@ -1396,7 +1397,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public boolean save() {
-        if (documentFile == null) {
+        if (documentFile == null || needsResave()) {
             return saveAs();
         } else {
             boolean saved = saveToFile(documentFile);
@@ -1421,8 +1422,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
             setDocumentFile(chosenFile);
             boolean saved = saveToFile(documentFile);
-            if (saved)
+            if (saved) {
+                setNeedsResave(false);
                 NodeBoxMenuBar.addRecentFile(documentFile);
+            }
             return saved;
         }
         return false;
@@ -1597,6 +1600,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 movie.save(w);
             }
         });
+    }
+
+    public boolean needsResave() {
+        return needsResave;
+    }
+
+    public void setNeedsResave(boolean needsResave) {
+        this.needsResave = needsResave;
     }
 
     private abstract class ExportDelegate {

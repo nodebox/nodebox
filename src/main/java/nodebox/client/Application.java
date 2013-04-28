@@ -380,7 +380,15 @@ public class Application implements Host {
         return doc;
     }
 
-    public boolean openDocument(File file) {
+    public NodeBoxDocument openExample(File file) {
+        NodeBoxDocument doc = openDocument(file);
+        if (doc != null) {
+            doc.setNeedsResave(true);
+        }
+        return doc;
+    }
+
+    public NodeBoxDocument openDocument(File file) {
         // Check if the document is already open.
         String path;
         try {
@@ -393,7 +401,7 @@ public class Application implements Host {
                         doc.toFront();
                         doc.requestFocus();
                         NodeBoxMenuBar.addRecentFile(file);
-                        return true;
+                        return doc;
                     }
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
@@ -407,12 +415,12 @@ public class Application implements Host {
             NodeBoxDocument doc = NodeBoxDocument.load(file);
             addDocument(doc);
             NodeBoxMenuBar.addRecentFile(file);
-            return true;
+            return doc;
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error while loading " + file, e);
             ExceptionDialog d = new ExceptionDialog(null, e);
             d.setVisible(true);
-            return false;
+            return null;
         }
     }
 

@@ -160,7 +160,7 @@ public class ExamplesBrowser extends JFrame {
     }
 
     private void openExample(Example example) {
-        Application.getInstance().openDocument(example.file);
+        Application.getInstance().openExample(example.file);
     }
 
     public static List<Category> parseCategories(File parentDirectory) {
