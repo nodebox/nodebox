@@ -46,9 +46,7 @@ import java.util.prefs.Preferences;
 public class Application implements Host {
 
     public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
-    public static final String PREFERENCE_ENABLE_NETWORK_SUPPORT = "NBEnableNetworkSupport";
     public static boolean ENABLE_DEVICE_SUPPORT = false;
-    public static boolean ENABLE_NETWORK_SUPPORT = false;
 
     private static Application instance;
 
@@ -231,7 +229,6 @@ public class Application implements Host {
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
         ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
-        ENABLE_NETWORK_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_NETWORK_SUPPORT, "false"));
     }
 
     /**
@@ -276,11 +273,9 @@ public class Application implements Host {
         libraries.add(systemLibrary("list"));
         libraries.add(systemLibrary("data"));
         libraries.add(systemLibrary("corevector"));
+        libraries.add(systemLibrary("network"));
         if (Application.ENABLE_DEVICE_SUPPORT) {
             libraries.add(systemLibrary("device"));
-        }
-        if (Application.ENABLE_NETWORK_SUPPORT) {
-            libraries.add(systemLibrary("network"));
         }
         systemRepository = NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
     }
