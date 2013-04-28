@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="89d819ae-8113-47ba-bd29-ab8861dcf282">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="1.00,6.00" prototype="corevector.colorize"/>
+        <node name="colorize2" position="4.00,6.00" prototype="corevector.colorize"/>
+        <node name="colorize3" position="7.00,6.00" prototype="corevector.colorize"/>
+        <node name="combine1" position="1.00,8.00" prototype="list.combine"/>
+        <node name="ellipse1" position="1.00,5.00" prototype="corevector.ellipse"/>
+        <node name="ellipse2" position="4.00,5.00" prototype="corevector.ellipse">
+            <port name="position" type="point" value="110.00,0.00"/>
+        </node>
+        <node name="ellipse3" position="7.00,5.00" prototype="corevector.ellipse">
+            <port name="position" type="point" value="220.00,0.00"/>
+        </node>
+        <node name="gray_color1" position="7.00,3.00" prototype="color.gray_color"/>
+        <node name="hsb_color1" prototype="color.hsb_color">
+            <port name="saturation" type="float" value="200.0"/>
+            <port name="brightness" type="float" value="200.0"/>
+        </node>
+        <node name="number1" position="3.00,0.00" prototype="math.number">
+            <port name="value" type="float" value="16.0"/>
+        </node>
+        <node name="rgb_color1" position="4.00,3.00" prototype="color.rgb_color">
+            <port name="green" type="float" value="130.0"/>
+        </node>
+        <node name="subtract1" position="4.00,1.00" prototype="math.subtract">
+            <port name="value1" type="float" value="255.0"/>
+        </node>
+        <conn input="hsb_color1.hue" output="number1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="colorize2.shape" output="ellipse2"/>
+        <conn input="colorize2.fill" output="rgb_color1"/>
+        <conn input="combine1.list1" output="colorize1"/>
+        <conn input="combine1.list2" output="colorize2"/>
+        <conn input="colorize3.shape" output="ellipse3"/>
+        <conn input="colorize3.fill" output="gray_color1"/>
+        <conn input="combine1.list3" output="colorize3"/>
+        <conn input="subtract1.value2" output="number1"/>
+        <conn input="rgb_color1.blue" output="subtract1"/>
+    </node>
+</ndbx>

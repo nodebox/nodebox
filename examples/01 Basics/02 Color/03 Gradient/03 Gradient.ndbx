@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="ce64118b-62a7-4178-9e07-8d736f4a088b">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="colorize1" position="2.00,5.00" prototype="corevector.colorize"/>
+        <node name="grid1" position="2.00,2.00" prototype="corevector.grid"/>
+        <node name="rect1" position="2.00,3.00" prototype="corevector.rect">
+            <port name="width" type="float" value="30.0"/>
+            <port name="height" type="float" value="30.0"/>
+        </node>
+        <node name="rgb_color1" position="5.00,3.00" prototype="color.rgb_color">
+            <port name="green" type="float" value="100.0"/>
+            <port name="blue" type="float" value="150.0"/>
+        </node>
+        <node name="sample1" position="5.00,2.00" prototype="math.sample">
+            <port name="amount" type="int" value="100"/>
+            <port name="end" type="float" value="255.0"/>
+        </node>
+        <conn input="rgb_color1.red" output="sample1"/>
+        <conn input="colorize1.fill" output="rgb_color1"/>
+        <conn input="colorize1.shape" output="rect1"/>
+        <conn input="rect1.position" output="grid1"/>
+    </node>
+</ndbx>

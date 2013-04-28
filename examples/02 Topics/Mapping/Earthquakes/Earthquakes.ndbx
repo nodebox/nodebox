@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="04f59806-49d3-4f9d-aabf-3cbf46c3bb9c">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="Lat" position="8.00,3.00" prototype="data.lookup">
+            <port name="key" type="string" value="Lat"/>
+        </node>
+        <node name="Lon" position="4.00,3.00" prototype="data.lookup">
+            <port name="key" type="string" value="Lon"/>
+        </node>
+        <node name="colorize1" position="6.00,7.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b27ff"/>
+            <port name="stroke" type="color" value="#ffffff2b"/>
+            <port name="strokeWidth" type="float" value="0.1"/>
+        </node>
+        <node name="colorize2" position="2.00,5.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#001a2fff"/>
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="0.1"/>
+        </node>
+        <node name="combine1" position="1.00,10.00" prototype="list.combine"/>
+        <node name="ellipse1" position="6.00,6.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="2.0"/>
+            <port name="height" type="float" value="2.0"/>
+        </node>
+        <node name="import_csv1" position="5.00,1.00" prototype="data.import_csv">
+            <port name="file" type="string" value="quakes.csv"/>
+        </node>
+        <node name="import_svg1" position="1.00,1.00" prototype="corevector.import_svg">
+            <port name="file" type="string" value="map-equirectangular.svg"/>
+        </node>
+        <node name="make_point1" position="6.00,5.00" prototype="corevector.make_point"/>
+        <node name="negate1" position="8.00,4.00" prototype="math.negate"/>
+        <node name="scale1" position="1.00,2.00" prototype="corevector.scale">
+            <port name="scale" type="point" value="100.00,-100.00"/>
+            <port name="origin" type="point" value="0.00,1.50"/>
+        </node>
+        <conn input="Lon.list" output="import_csv1"/>
+        <conn input="Lat.list" output="import_csv1"/>
+        <conn input="make_point1.x" output="Lon"/>
+        <conn input="ellipse1.position" output="make_point1"/>
+        <conn input="negate1.value" output="Lat"/>
+        <conn input="make_point1.y" output="negate1"/>
+        <conn input="scale1.shape" output="import_svg1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="combine1.list2" output="colorize1"/>
+        <conn input="colorize2.shape" output="scale1"/>
+        <conn input="combine1.list1" output="colorize2"/>
+    </node>
+</ndbx>

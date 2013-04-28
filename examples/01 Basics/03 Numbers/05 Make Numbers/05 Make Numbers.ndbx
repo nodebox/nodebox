@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="7224c1ef-ebda-4fa6-9fd8-576172265169">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="align1" position="1.00,2.00" prototype="corevector.align"/>
+        <node name="arc1" position="1.00,1.00" prototype="corevector.arc">
+            <port name="width" type="float" value="200.0"/>
+            <port name="height" type="float" value="200.0"/>
+            <port name="degrees" type="float" value="90.0"/>
+        </node>
+        <node name="color1" position="5.00,8.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="color2" position="8.00,8.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color3" position="11.00,8.00" prototype="color.color">
+            <port name="color" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize1" position="1.00,10.00" prototype="corevector.colorize"/>
+        <node name="combine1" position="5.00,9.00" prototype="list.combine"/>
+        <node name="count1" position="4.00,2.00" prototype="list.count"/>
+        <node name="divide1" position="4.00,3.00" prototype="math.divide">
+            <port name="value2" type="float" value="4.0"/>
+        </node>
+        <node name="grid1" position="4.00,1.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="4"/>
+            <port name="rows" type="int" value="4"/>
+        </node>
+        <node name="make_numbers1" position="7.00,3.00" prototype="math.make_numbers">
+            <port name="string" type="string" value="0;90;180;270"/>
+        </node>
+        <node name="repeat1" position="7.00,5.00" prototype="list.repeat"/>
+        <node name="rotate1" position="1.00,5.00" prototype="corevector.rotate"/>
+        <node name="shuffle1" position="7.00,6.00" prototype="list.shuffle">
+            <port name="seed" type="int" value="8"/>
+        </node>
+        <node name="translate1" position="1.00,7.00" prototype="corevector.translate"/>
+        <conn input="rotate1.angle" output="shuffle1"/>
+        <conn input="translate1.shape" output="rotate1"/>
+        <conn input="repeat1.list" output="make_numbers1"/>
+        <conn input="divide1.value1" output="count1"/>
+        <conn input="repeat1.amount" output="divide1"/>
+        <conn input="shuffle1.list" output="repeat1"/>
+        <conn input="align1.shape" output="arc1"/>
+        <conn input="rotate1.shape" output="align1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="count1.list" output="grid1"/>
+        <conn input="combine1.list1" output="color1"/>
+        <conn input="combine1.list2" output="color2"/>
+        <conn input="combine1.list3" output="color3"/>
+        <conn input="colorize1.shape" output="translate1"/>
+        <conn input="colorize1.fill" output="combine1"/>
+    </node>
+</ndbx>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="59a83c1d-0b1f-4833-be5b-beb062a2f514">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="colorize1" position="7.00,8.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#4e9df4ff"/>
+            <port name="stroke" type="color" value="#d26b27ff"/>
+            <port name="strokeWidth" type="float" value="1.0"/>
+        </node>
+        <node name="connect1" position="7.00,7.00" prototype="corevector.connect"/>
+        <node name="height" position="2.00,7.00" prototype="math.multiply">
+            <port name="value2" type="float" value="200.0"/>
+        </node>
+        <node name="make_point1" position="7.00,6.00" prototype="corevector.make_point"/>
+        <node name="multiply1" position="5.00,2.00" prototype="math.multiply">
+            <port name="value2" type="float" value="20.0"/>
+        </node>
+        <node name="multiply2" position="2.00,5.00" prototype="math.multiply">
+            <port name="value2" type="float" value="21.25998306274414"/>
+        </node>
+        <node name="sample1" position="1.00,1.00" prototype="math.sample">
+            <port name="amount" type="int" value="1000"/>
+            <port name="end" type="float" value="10.0"/>
+        </node>
+        <node name="sin1" position="5.00,3.00" prototype="math.sin"/>
+        <node name="sin2" position="2.00,6.00" prototype="math.sin"/>
+        <node name="width" position="5.00,4.00" prototype="math.multiply">
+            <port name="value2" type="float" value="200.0"/>
+        </node>
+        <conn input="multiply1.value1" output="sample1"/>
+        <conn input="multiply2.value1" output="sample1"/>
+        <conn input="sin1.value" output="multiply1"/>
+        <conn input="sin2.value" output="multiply2"/>
+        <conn input="connect1.points" output="make_point1"/>
+        <conn input="width.value1" output="sin1"/>
+        <conn input="make_point1.x" output="width"/>
+        <conn input="height.value1" output="sin2"/>
+        <conn input="make_point1.y" output="height"/>
+        <conn input="colorize1.shape" output="connect1"/>
+    </node>
+</ndbx>

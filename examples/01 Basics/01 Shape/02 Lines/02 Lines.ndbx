@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="be5b894e-2602-4dbf-ae1e-f7cffdd252f4">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="1.00,3.00" prototype="corevector.colorize">
+            <port name="stroke" type="color" value="#d26b27ff"/>
+            <port name="strokeWidth" type="float" value="2.0"/>
+        </node>
+        <node name="colorize2" position="4.00,3.00" prototype="corevector.colorize">
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="2.0"/>
+        </node>
+        <node name="colorize3" position="7.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#00000000"/>
+            <port name="stroke" type="color" value="#001a2fff"/>
+            <port name="strokeWidth" type="float" value="2.0"/>
+        </node>
+        <node name="combine1" position="3.00,5.00" prototype="list.combine"/>
+        <node name="line1" position="1.00,1.00" prototype="corevector.line"/>
+        <node name="line_angle1" position="4.00,1.00" prototype="corevector.line_angle">
+            <port name="position" type="point" value="0.00,100.00"/>
+            <port name="angle" type="float" value="-45.0"/>
+            <port name="distance" type="float" value="140.0"/>
+        </node>
+        <node name="quad_curve1" position="7.00,1.00" prototype="corevector.quad_curve">
+            <port name="point2" type="point" value="0.00,100.00"/>
+        </node>
+        <conn input="colorize1.shape" output="line1"/>
+        <conn input="combine1.list1" output="colorize1"/>
+        <conn input="colorize2.shape" output="line_angle1"/>
+        <conn input="colorize3.shape" output="quad_curve1"/>
+        <conn input="combine1.list2" output="colorize2"/>
+        <conn input="combine1.list3" output="colorize3"/>
+    </node>
+</ndbx>

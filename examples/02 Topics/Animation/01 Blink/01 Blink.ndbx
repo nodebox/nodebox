@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="8c252f53-0acd-4519-8f54-796c17c4952f">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="colorize1" position="2.00,9.00" prototype="corevector.colorize"/>
+        <node name="compare1" position="4.00,5.00" prototype="math.compare">
+            <port name="value2" type="float" value="94.0"/>
+        </node>
+        <node name="distance1" position="3.00,4.00" prototype="math.distance">
+            <port name="point2" type="point" value="0.00,0.00"/>
+        </node>
+        <node name="divide1" position="6.00,2.00" prototype="math.divide">
+            <port name="value2" type="float" value="20.0"/>
+        </node>
+        <node name="ellipse1" position="1.00,7.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="30.0"/>
+            <port name="height" type="float" value="30.0"/>
+        </node>
+        <node name="frame1" position="6.00,1.00" prototype="core.frame"/>
+        <node name="grid1" position="2.00,2.00" prototype="corevector.grid"/>
+        <node name="hsb_color1" position="4.00,8.00" prototype="color.hsb_color">
+            <port name="hue" type="float" value="17.0"/>
+            <port name="saturation" type="float" value="208.0"/>
+            <port name="brightness" type="float" value="210.0"/>
+        </node>
+        <node name="multiply1" position="4.00,6.00" prototype="math.multiply">
+            <port name="value2" type="float" value="255.0"/>
+        </node>
+        <node name="multiply2" position="6.00,4.00" prototype="math.multiply">
+            <port name="value2" type="float" value="220.0"/>
+        </node>
+        <node name="sin1" position="6.00,3.00" prototype="math.sin"/>
+        <node name="translate1" position="2.00,10.00" prototype="corevector.translate"/>
+        <conn input="compare1.value1" output="distance1"/>
+        <conn input="multiply1.value1" output="compare1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="sin1.value" output="divide1"/>
+        <conn input="multiply2.value1" output="sin1"/>
+        <conn input="compare1.value2" output="multiply2"/>
+        <conn input="distance1.point1" output="grid1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="divide1.value1" output="frame1"/>
+        <conn input="hsb_color1.brightness" output="multiply1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+    </node>
+</ndbx>

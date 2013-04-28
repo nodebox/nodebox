@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="83f57169-0122-4e27-80f0-3efab45c6972">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="FX" position="3.00,19.00" prototype="corevector.make_point"/>
+        <node name="add1" position="13.00,5.00" prototype="math.add">
+            <port name="value2" type="float" value="20.0"/>
+        </node>
+        <node name="add3" position="6.00,19.00" prototype="math.add"/>
+        <node name="add4" position="10.00,19.00" prototype="math.add"/>
+        <node name="colorize1" position="6.00,24.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b2700"/>
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="1.0"/>
+        </node>
+        <node name="connect1" position="6.00,23.00" prototype="corevector.connect">
+            <port name="closed" type="boolean" value="false"/>
+        </node>
+        <node name="distance1" position="14.00,9.00" prototype="math.distance"/>
+        <node name="divide1" position="13.00,10.00" prototype="math.divide"/>
+        <node name="divide2" position="6.00,20.00" prototype="math.divide">
+            <port name="value2" type="float" value="1.2"/>
+        </node>
+        <node name="divide3" position="10.00,20.00" prototype="math.divide">
+            <port name="value2" type="float" value="1.2"/>
+        </node>
+        <node name="divide4" position="3.00,2.00" prototype="math.divide">
+            <port name="value2" type="float" value="110.0"/>
+        </node>
+        <node name="divide5" position="12.00,2.00" prototype="math.divide">
+            <port name="value2" type="float" value="10.0"/>
+        </node>
+        <node name="dx" position="2.00,14.00" prototype="math.subtract"/>
+        <node name="dy" position="9.00,14.00" prototype="math.subtract"/>
+        <node name="frame1" position="3.00,1.00" prototype="core.frame"/>
+        <node name="grid1" position="8.00,8.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="42"/>
+            <port name="rows" type="int" value="42"/>
+            <port name="width" type="float" value="400.0"/>
+            <port name="height" type="float" value="400.0"/>
+        </node>
+        <node name="increase_FX" position="11.00,7.00" prototype="math.number">
+            <port name="value" type="float" value="-50.0"/>
+        </node>
+        <node name="lookup1" position="2.00,12.00" prototype="data.lookup"/>
+        <node name="lookup2" position="5.00,12.00" prototype="data.lookup"/>
+        <node name="lookup3" position="9.00,12.00" prototype="data.lookup">
+            <port name="key" type="string" value="y"/>
+        </node>
+        <node name="lookup4" position="12.00,12.00" prototype="data.lookup">
+            <port name="key" type="string" value="y"/>
+        </node>
+        <node name="make_point1" position="1.00,7.00" prototype="corevector.make_point">
+            <port name="x" type="float" value="38.0"/>
+            <port name="y" type="float" value="-25.0"/>
+        </node>
+        <node name="make_point4" position="6.00,22.00" prototype="corevector.make_point"/>
+        <node name="multiply1" position="3.00,16.00" prototype="math.multiply"/>
+        <node name="multiply2" position="9.00,16.00" prototype="math.multiply"/>
+        <node name="multiply3" position="3.00,4.00" prototype="math.multiply">
+            <port name="value2" type="float" value="250.0"/>
+        </node>
+        <node name="multiply4" position="12.00,4.00" prototype="math.multiply">
+            <port name="value2" type="float" value="60.0"/>
+        </node>
+        <node name="null1" position="8.00,10.00" prototype="corevector.null"/>
+        <node name="null2" position="1.00,9.00" prototype="corevector.null"/>
+        <node name="point1" position="7.00,6.00" prototype="corevector.point"/>
+        <node name="resample1" position="7.00,5.00" prototype="corevector.resample">
+            <port name="length" type="float" value="1.0"/>
+        </node>
+        <node name="sin1" position="3.00,3.00" prototype="math.sin"/>
+        <node name="sin2" position="12.00,3.00" prototype="math.sin"/>
+        <node name="textpath1" position="7.00,4.00" prototype="corevector.textpath">
+            <port name="text" type="string" value="--------elastik--------"/>
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="80.0"/>
+        </node>
+        <conn input="divide1.value2" output="distance1"/>
+        <conn input="dx.value1" output="lookup2"/>
+        <conn input="dx.value2" output="lookup1"/>
+        <conn input="dy.value1" output="lookup4"/>
+        <conn input="dy.value2" output="lookup3"/>
+        <conn input="multiply1.value1" output="dx"/>
+        <conn input="multiply1.value2" output="divide1"/>
+        <conn input="multiply2.value1" output="dy"/>
+        <conn input="multiply2.value2" output="divide1"/>
+        <conn input="lookup2.list" output="null1"/>
+        <conn input="lookup4.list" output="null1"/>
+        <conn input="distance1.point2" output="null1"/>
+        <conn input="divide2.value1" output="add3"/>
+        <conn input="add4.value2" output="lookup4"/>
+        <conn input="divide3.value1" output="add4"/>
+        <conn input="make_point4.x" output="divide2"/>
+        <conn input="make_point4.y" output="divide3"/>
+        <conn input="divide1.value1" output="increase_FX"/>
+        <conn input="connect1.points" output="make_point4"/>
+        <conn input="lookup1.list" output="null2"/>
+        <conn input="lookup3.list" output="null2"/>
+        <conn input="distance1.point1" output="null2"/>
+        <conn input="null2.shape" output="make_point1"/>
+        <conn input="add3.value1" output="multiply1"/>
+        <conn input="FX.x" output="multiply1"/>
+        <conn input="add3.value2" output="lookup2"/>
+        <conn input="add4.value1" output="multiply2"/>
+        <conn input="FX.y" output="multiply2"/>
+        <conn input="resample1.shape" output="textpath1"/>
+        <conn input="point1.value" output="resample1"/>
+        <conn input="null1.shape" output="point1"/>
+        <conn input="divide4.value1" output="frame1"/>
+        <conn input="sin1.value" output="divide4"/>
+        <conn input="multiply3.value1" output="sin1"/>
+        <conn input="make_point1.x" output="multiply3"/>
+        <conn input="divide5.value1" output="frame1"/>
+        <conn input="sin2.value" output="divide5"/>
+        <conn input="multiply4.value1" output="sin2"/>
+        <conn input="add1.value1" output="multiply4"/>
+        <conn input="increase_FX.value" output="add1"/>
+        <conn input="colorize1.shape" output="connect1"/>
+    </node>
+</ndbx>

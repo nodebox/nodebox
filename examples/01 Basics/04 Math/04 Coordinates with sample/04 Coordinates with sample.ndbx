@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="d5cc07c1-5699-4c02-b3ed-05a04a017f95">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize2">
+        <node name="colorize2" position="3.00,10.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#4e9df481"/>
+            <port name="strokeWidth" type="float" value="1.0"/>
+        </node>
+        <node name="combine2" position="4.00,5.00" prototype="list.combine"/>
+        <node name="connect1" position="3.00,9.00" prototype="corevector.connect">
+            <port name="closed" type="boolean" value="false"/>
+        </node>
+        <node name="coordinates1" position="3.00,8.00" prototype="math.coordinates"/>
+        <node name="reverse1" position="5.00,3.00" prototype="list.reverse"/>
+        <node name="sample1" position="4.00,1.00" prototype="math.sample">
+            <port name="amount" type="int" value="357"/>
+            <port name="end" type="float" value="3.141"/>
+        </node>
+        <node name="sample2" position="1.00,1.00" prototype="math.sample">
+            <port name="amount" type="int" value="5000"/>
+            <port name="end" type="float" value="360.0"/>
+        </node>
+        <node name="wave1" position="4.00,7.00" prototype="math.wave">
+            <port name="max" type="float" value="250.0"/>
+            <port name="period" type="float" value="38.0"/>
+        </node>
+        <conn input="connect1.points" output="coordinates1"/>
+        <conn input="coordinates1.distance" output="wave1"/>
+        <conn input="reverse1.list" output="sample1"/>
+        <conn input="combine2.list2" output="reverse1"/>
+        <conn input="combine2.list1" output="sample1"/>
+        <conn input="wave1.offset" output="combine2"/>
+        <conn input="coordinates1.angle" output="sample2"/>
+        <conn input="colorize2.shape" output="connect1"/>
+    </node>
+</ndbx>
