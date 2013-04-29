@@ -1456,7 +1456,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     if (! newDir.exists())
                         newDir.mkdir();
                     for (File f : origDir.listFiles()) {
-                        FileUtils.writeFile(new File(newDir, f.getName()), FileUtils.readFile(f));
+                        FileUtils.copyFile(f, new File(newDir, f.getName()));
                     }
                 }
             }

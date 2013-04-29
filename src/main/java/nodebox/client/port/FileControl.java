@@ -60,8 +60,7 @@ public class FileControl extends AbstractPortControl implements ActionListener {
             File directory = new File(libraryFile, subfolder);
             if (! directory.exists())
                 directory.mkdir();
-            File nf = new File(directory, f.getName());
-            FileUtils.writeFile(nf, FileUtils.readFile(f));
+            FileUtils.copyFile(f, new File(directory, f.getName()));
             setPortValue(f.getName());
 /*
             if (libraryFile != null) {

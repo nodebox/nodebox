@@ -395,7 +395,7 @@ public class Application implements Host {
             if (reply == JOptionPane.YES_OPTION) {
                 File newDirectory = new File(directory, baseName);
                 newDirectory.mkdir();
-                FileUtils.writeFile(new File(newDirectory, fileName), FileUtils.readFile(file));
+                FileUtils.copyFile(file, new File(newDirectory, fileName));
                 file.delete();
                 return openDocument(newDirectory);
             } else
