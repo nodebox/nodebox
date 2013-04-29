@@ -150,6 +150,14 @@ public class FileUtils {
         }
     }
 
+    public static void copyFile(File fromFile, File toFile) {
+        try {
+            Files.copy(fromFile, toFile);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy file " + fromFile + " to " + toFile);
+        }
+    }
+
     public static File createTemporaryDirectory(String prefix) {
         File tempDir = null;
         try {
