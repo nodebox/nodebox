@@ -1,5 +1,7 @@
 package nodebox.util;
 
+import com.google.common.io.Files;
+
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
