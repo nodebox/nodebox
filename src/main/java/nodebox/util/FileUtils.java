@@ -14,6 +14,21 @@ public class FileUtils {
     public static final String SEPARATOR = "/";
 
     /**
+     * Gets the name of a file without the extension.
+     *
+     * @param fileName the file name
+     * @return the extension of the file.
+     */
+    public static String getBaseName(String fileName) {
+        if (fileName == null) return null;
+        int pos = fileName.lastIndexOf(".");
+        // If there wasn't any '.' just return the string as is.
+        if (pos == -1) return fileName;
+        // Otherwise return the string, up to the dot.
+        return fileName.substring(0, pos);
+    }
+
+    /**
      * Returns the file name without its path and extension.
      * <p/>
      * If the file has no extension, the file name is returned as is.

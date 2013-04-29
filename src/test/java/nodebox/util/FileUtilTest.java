@@ -5,7 +5,7 @@ import org.junit.Test;
 import java.io.File;
 
 import static junit.framework.Assert.assertEquals;
-import static nodebox.client.FileUtils.getBaseName;
+import static nodebox.util.FileUtils.getBaseName;
 
 public class FileUtilTest {
 

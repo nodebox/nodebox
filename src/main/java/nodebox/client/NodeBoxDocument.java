@@ -1456,7 +1456,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     if (! newDir.exists())
                         newDir.mkdir();
                     for (File f : origDir.listFiles()) {
-                        nodebox.client.FileUtils.writeFile(new File(newDir, f.getName()), FileUtils.readFile(f));
+                        FileUtils.writeFile(new File(newDir, f.getName()), FileUtils.readFile(f));
                     }
                 }
             }
@@ -1502,7 +1502,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (documentFile == null) {
             setTitle("Untitled" + postfix);
         } else {
-            setTitle(nodebox.client.FileUtils.getBaseName(documentFile.getName()) + postfix);
+            setTitle(FileUtils.getBaseName(documentFile.getName()) + postfix);
             getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
     }
