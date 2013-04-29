@@ -1,6 +1,6 @@
 package nodebox.client.devicehandler;
 
-import nodebox.client.FileUtils;
+import nodebox.util.FileUtils;
 import nodebox.client.MinimApplet;
 import nodebox.client.NodeBoxDocument;
 import nodebox.node.NodeLibrary;
@@ -112,7 +112,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                         File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentFile();
                         String fileName;
                         if (libraryFile != null) {
-                            fileName = nodebox.util.FileUtils.getRelativePath(f, libraryFile.getParentFile());
+                            fileName = FileUtils.getRelativePath(f, libraryFile.getParentFile());
                         } else {
                             fileName = f.getAbsolutePath();
                         }
