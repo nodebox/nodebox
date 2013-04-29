@@ -87,6 +87,7 @@ public class FileUtils {
 
     private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
         FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
+        fileDialog.setDirectory(pathName);
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
         fileDialog.setVisible(true);
         String chosenFile = fileDialog.getFile();

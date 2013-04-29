@@ -53,16 +53,24 @@ public class FileControl extends AbstractPortControl implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        File f = FileUtils.showOpenDialog(frame, "", acceptedExtensions(), acceptedDescription());
+
+        File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentDirectory();
+        File dataDirectory = new File(libraryFile, port.isImageWidget() ? Port.FILE_TYPE_IMAGES : Port.FILE_TYPE_DATA);
+
+        String openPath = "";
+        if (dataDirectory.exists()) {
+            File fileDirectory = new File(dataDirectory, fileField.getText()).getParentFile();
+            if (fileDirectory.exists())
+                openPath = fileDirectory.getAbsolutePath();
+        }
+
+        File f = FileUtils.showOpenDialog(frame, openPath, acceptedExtensions(), acceptedDescription());
         if (f != null) {
-            File libraryFile = NodeBoxDocument.getCurrentDocument().getDocumentDirectory();
-            String subfolder = port.isImageWidget() ? Port.FILE_TYPE_IMAGES : Port.FILE_TYPE_DATA;
-            File directory = new File(libraryFile, subfolder);
-            if (! directory.exists())
-                directory.mkdir();
-            String relativePath = FileUtils.getRelativeLink(f, directory);
+            if (! dataDirectory.exists())
+                dataDirectory.mkdir();
+            String relativePath = FileUtils.getRelativeLink(f, dataDirectory);
             if (relativePath.startsWith("..")) {
-                FileUtils.copyFile(f, new File(directory, f.getName()));
+                FileUtils.copyFile(f, new File(dataDirectory, f.getName()));
                 setPortValue(f.getName());
             } else {
                 setPortValue(relativePath);
