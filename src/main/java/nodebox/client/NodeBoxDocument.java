@@ -1453,14 +1453,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         // Only copy subdirectories if the project location is different from the original.
         if (d != null && ! d.equals(directory)) {
             for (String s : NodeLibrary.STANDARD_FILE_TYPES) {
-                File origDir = new File(d, s);
-                if (origDir.exists()) {
-                    File newDir = new File(directory, s);
-                    // todo: handle recursive path copying
-                    FileUtils.createDirectoryIfMissing(newDir);
-                    for (File f : origDir.listFiles()) {
-                        FileUtils.copyFile(f, new File(newDir, f.getName()));
-                    }
+                File sourceDir = new File(d, s);
+                if (sourceDir.exists()) {
+                    File targetDir = new File(directory, s);
+                    FileUtils.copyDirectory(sourceDir, targetDir);
                 }
             }
         }

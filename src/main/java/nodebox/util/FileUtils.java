@@ -168,11 +168,25 @@ public class FileUtils {
         }
     }
 
-    public static void copyFile(File fromFile, File toFile) {
+    public static void copyFile(File sourceLocation, File targetLocation) {
         try {
-            Files.copy(fromFile, toFile);
+            Files.copy(sourceLocation, targetLocation);
         } catch (IOException e) {
-            throw new RuntimeException("Could not copy file " + fromFile + " to " + toFile);
+            throw new RuntimeException("Could not copy file " + sourceLocation + " to " + targetLocation);
+        }
+    }
+
+    public static void copyDirectory(File sourceLocation , File targetLocation) {
+        if (sourceLocation.isDirectory()) {
+            createDirectoryIfMissing(targetLocation);
+
+            String[] children = sourceLocation.list();
+            for (int i=0; i<children.length; i++) {
+                copyDirectory(new File(sourceLocation, children[i]),
+                        new File(targetLocation, children[i]));
+            }
+        } else {
+            copyFile(sourceLocation, targetLocation);
         }
     }
 
