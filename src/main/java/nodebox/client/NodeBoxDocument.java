@@ -1346,6 +1346,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         controller.setNodeLibraryFile(new File(temporaryDirectory, "temp.ndbx"));
     }
 
+    public boolean isTemporary() {
+        return temporaryDirectory != null;
+    }
+
     public File getDocumentDirectory() {
         if (documentDirectory == null) return temporaryDirectory;
         return documentDirectory;
@@ -1353,6 +1357,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void setDocumentDirectory(File documentDirectory) {
         this.documentDirectory = documentDirectory;
+        this.temporaryDirectory = null;
     }
 
     public File getDocumentFile() {
@@ -1443,24 +1448,22 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     private boolean saveToDirectory(File directory) {
-        File file = new File(directory, directory.getName() + ".ndbx");
-        if (! directory.exists()) {
-            directory.mkdir();
-        }
-        if (getDocumentDirectory() != null) {
-            File d = getDocumentDirectory();
+        FileUtils.createDirectoryIfMissing(directory);
+        File d = getDocumentDirectory();
+        // Only copy subdirectories if the project location is different from the original.
+        if (d != null && ! d.equals(directory)) {
             for (String s : new String[] {"data", "images", "icons", "code"}) {
                 File origDir = new File(d, s);
                 if (origDir.exists()) {
                     File newDir = new File(directory, s);
-                    if (! newDir.exists())
-                        newDir.mkdir();
+                    FileUtils.createDirectoryIfMissing(newDir);
                     for (File f : origDir.listFiles()) {
                         FileUtils.copyFile(f, new File(newDir, f.getName()));
                     }
                 }
             }
         }
+        File file = new File(directory, directory.getName() + ".ndbx");
         if (saveToFile(file)) {
             setDocumentDirectory(directory);
             setDocumentFile(file);
