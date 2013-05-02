@@ -4,6 +4,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
@@ -27,7 +28,15 @@ public class NodeLibrary {
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
+    public static final String FILE_TYPE_CODE = "code";
+    public static final String FILE_TYPE_DATA = "data";
+    public static final String FILE_TYPE_ICONS = "icons";
+    public static final String FILE_TYPE_IMAGES = "images";
+
+    public static final ImmutableSet<String> STANDARD_FILE_TYPES = ImmutableSet.of(FILE_TYPE_CODE, FILE_TYPE_DATA, FILE_TYPE_ICONS, FILE_TYPE_IMAGES);
+
     public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
+
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());

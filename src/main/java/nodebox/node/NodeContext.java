@@ -311,9 +311,9 @@ public final class NodeContext {
             }
         } else if (! port.stringValue().isEmpty()) {
             if (port.isFileWidget())
-                return convertToFileName(portValue, Port.FILE_TYPE_DATA);
+                return convertToFileName(portValue, NodeLibrary.FILE_TYPE_DATA);
             else if (port.isImageWidget())
-                return convertToFileName(portValue, Port.FILE_TYPE_IMAGES);
+                return convertToFileName(portValue, NodeLibrary.FILE_TYPE_IMAGES);
         }
         return portValue;
     }

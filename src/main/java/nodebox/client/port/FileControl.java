@@ -1,6 +1,7 @@
 package nodebox.client.port;
 
 import nodebox.client.NodeBoxDocument;
+import nodebox.node.NodeLibrary;
 import nodebox.node.Port;
 import nodebox.ui.Theme;
 import nodebox.util.FileUtils;
@@ -54,7 +55,7 @@ public class FileControl extends AbstractPortControl implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         NodeBoxDocument doc = NodeBoxDocument.getCurrentDocument();
         File libraryFile = doc.getDocumentDirectory();
-        File dataDirectory = new File(libraryFile, port.isImageWidget() ? Port.FILE_TYPE_IMAGES : Port.FILE_TYPE_DATA);
+        File dataDirectory = new File(libraryFile, port.isImageWidget() ? NodeLibrary.FILE_TYPE_IMAGES : NodeLibrary.FILE_TYPE_DATA);
 
         String openPath = "";
         if (! doc.isTemporary() && dataDirectory.exists()) {

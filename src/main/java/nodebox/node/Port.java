@@ -26,8 +26,6 @@ public final class Port {
     public static final String TYPE_CONTEXT = "context";
     public static final String TYPE_STATE = "state";
 
-    public static final String FILE_TYPE_DATA = "data";
-    public static final String FILE_TYPE_IMAGES = "images";
 
     public enum Attribute {NAME, TYPE, LABEL, CHILD_REFERENCE, WIDGET, RANGE, VALUE, DESCRIPTION, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
 
@@ -51,7 +49,6 @@ public final class Port {
     public static final ImmutableMap<String, Object> DEFAULT_VALUES;
     public static final ImmutableSet<String> STANDARD_TYPES;
     public static final ImmutableMap<String, ImmutableList<Port.Widget>> WIDGET_MAPPING;
-    public static final ImmutableSet<String> STANDARD_FILE_TYPES;
 
     static {
         ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
@@ -72,8 +69,6 @@ public final class Port {
         w.put(TYPE_POINT, ImmutableList.of(Widget.POINT));
         w.put(TYPE_COLOR, ImmutableList.of(Widget.COLOR));
         WIDGET_MAPPING = w.build();
-
-        STANDARD_FILE_TYPES = ImmutableSet.of(FILE_TYPE_DATA, FILE_TYPE_IMAGES);
     }
 
     private final String name;
@@ -221,7 +216,7 @@ public final class Port {
                 minimumValue = Double.valueOf(minString);
             if (maxString != null)
                 maximumValue = Double.valueOf(maxString);
-            if (fileType == null || ! STANDARD_FILE_TYPES.contains(fileType)) fileType = "";
+            if (fileType == null || ! NodeLibrary.STANDARD_FILE_TYPES.contains(fileType)) fileType = "";
             return new Port(name, type, label, null, widget, range, value, description, minimumValue, maximumValue, menuItems);
         } else {
             return Port.customPort(name, type);
