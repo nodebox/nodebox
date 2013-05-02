@@ -176,6 +176,13 @@ public class FileUtils {
         }
     }
 
+    public static void createDirectoryIfMissing(File directory) {
+        if (! directory.exists()) {
+            if (! directory.mkdir())
+                throw new RuntimeException("Could not create directory " + directory);
+        }
+    }
+
     public static File createTemporaryDirectory(String prefix) {
         File tempDir = null;
         try {
