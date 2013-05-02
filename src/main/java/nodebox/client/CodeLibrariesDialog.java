@@ -98,39 +98,35 @@ public class CodeLibrariesDialog extends JDialog {
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        if (document.getDocumentDirectory() == null) {
-            panel.add(new MessageBar("<html>&nbsp;&nbsp;&nbsp;<b>Please save your document first.</b></html>"), BorderLayout.NORTH);
-        } else {
-            ActionHeader actionHeader = new ActionHeader();
-            actionHeader.setLayout(new BoxLayout(actionHeader, BoxLayout.LINE_AXIS));
-            InsetLabel actionHeaderLabel = new InsetLabel("Code Libraries");
-            actionHeader.add(Box.createHorizontalStrut(10));
-            actionHeader.add(actionHeaderLabel);
-            actionHeader.add(Box.createHorizontalGlue());
-            JButton removeLibraryButton = new JButton(minusIcon);
-            removeLibraryButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent actionEvent) {
-                    removeSelectedLibrary();
-                }
-            });
-            removeLibraryButton.setBorder(null);
-            final LanguagePopupMenu languagePopup = new LanguagePopupMenu();
-            final JButton plusLibraryButton = new JButton(plusIcon);
-            plusLibraryButton.setBorder(null);
-            plusLibraryButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    languagePopup.show(plusLibraryButton, -20, 21);
-                }
-            });
-            actionHeader.addDivider();
-            actionHeader.add(Box.createHorizontalStrut(10));
-            actionHeader.add(removeLibraryButton);
-            actionHeader.add(Box.createHorizontalStrut(20));
-            actionHeader.add(plusLibraryButton);
-            actionHeader.add(Box.createHorizontalStrut(10));
-            panel.add(actionHeader, BorderLayout.NORTH);
-        }
+        ActionHeader actionHeader = new ActionHeader();
+        actionHeader.setLayout(new BoxLayout(actionHeader, BoxLayout.LINE_AXIS));
+        InsetLabel actionHeaderLabel = new InsetLabel("Code Libraries");
+        actionHeader.add(Box.createHorizontalStrut(10));
+        actionHeader.add(actionHeaderLabel);
+        actionHeader.add(Box.createHorizontalGlue());
+        JButton removeLibraryButton = new JButton(minusIcon);
+        removeLibraryButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                removeSelectedLibrary();
+            }
+        });
+        removeLibraryButton.setBorder(null);
+        final LanguagePopupMenu languagePopup = new LanguagePopupMenu();
+        final JButton plusLibraryButton = new JButton(plusIcon);
+        plusLibraryButton.setBorder(null);
+        plusLibraryButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                languagePopup.show(plusLibraryButton, -20, 21);
+            }
+        });
+        actionHeader.addDivider();
+        actionHeader.add(Box.createHorizontalStrut(10));
+        actionHeader.add(removeLibraryButton);
+        actionHeader.add(Box.createHorizontalStrut(20));
+        actionHeader.add(plusLibraryButton);
+        actionHeader.add(Box.createHorizontalStrut(10));
+        panel.add(actionHeader, BorderLayout.NORTH);
 
 
         functionLibraryList = new JList(functionLibraryListModel);

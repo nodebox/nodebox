@@ -50,7 +50,7 @@ def convert_directory(source_directory, target_directory):
 
 def convert_library(library):
     source_dir = os.path.join(SOURCE_DIRECTORY, library)
-    target_dir = os.path.join(TARGET_DIRECTORY, library)
+    target_dir = os.path.join(TARGET_DIRECTORY, library, "icons")
     convert_directory(source_dir, target_dir)
     
 if __name__=='__main__':

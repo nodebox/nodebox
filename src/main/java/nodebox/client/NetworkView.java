@@ -147,9 +147,12 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             libraryDirectory = new File("libraries/core");
 
         if (libraryDirectory != null) {
-            File nodeImageFile = new File(libraryDirectory, node.getImage());
-            if (nodeImageFile.exists()) {
-                return readNodeImage(nodeImageFile);
+            File iconsDirectory = new File(libraryDirectory, NodeLibrary.FILE_TYPE_ICONS);
+            if (iconsDirectory != null) {
+                File nodeImageFile = new File(iconsDirectory, node.getImage());
+                if (nodeImageFile.exists()) {
+                    return readNodeImage(nodeImageFile);
+                }
             }
         }
         return null;
