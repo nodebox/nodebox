@@ -341,7 +341,10 @@ public class NodeLibrary {
         checkState(linkRelation.equals("functions"));
         String ref = reader.getAttributeValue(null, "href");
         // loading should happen lazily?
-        return FunctionLibrary.load(file, ref);
+        if (file == null)
+            return FunctionLibrary.load(null, ref);
+        else
+            return FunctionLibrary.load(new File(file.getParentFile(), FILE_TYPE_CODE), ref);
     }
 
     /**

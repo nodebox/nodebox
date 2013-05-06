@@ -27,7 +27,7 @@ public abstract class FunctionLibrary {
         checkState(hrefMatcher.groupCount() == 2);
         String language = hrefMatcher.group(1);
         String identifier = hrefMatcher.group(2);
-        if (file != null)
+        if (file != null && file.isFile())
             file = file.getParentFile();
         if (language.equals("java")) {
             return JavaLibrary.loadStaticClass(identifier);
