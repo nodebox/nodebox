@@ -89,7 +89,9 @@ final class ClojureLibrary extends FunctionLibrary {
 
     @Override
     public String getLink(File baseFile) {
-        File parentFile = baseFile != null ? baseFile.getParentFile() : null;
+        File parentFile = null;
+        if (baseFile != null)
+            parentFile = baseFile.isFile() ? baseFile.getParentFile() : baseFile;
         return "clojure:" + FileUtils.getRelativeLink(file, parentFile);
     }
 

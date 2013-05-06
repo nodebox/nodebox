@@ -18,7 +18,7 @@ public class FunctionLibraryTest {
         FunctionLibrary clojureLibrary = FunctionLibrary.load(href);
         assertEquals("clojure-math", clojureLibrary.getNamespace());
         assertTrue(clojureLibrary.hasFunction("add"));
-        assertEquals(href, clojureLibrary.getLink(new File(userDir, "test.ndbx")));
+        assertEquals(href, clojureLibrary.getLink(userDir));
     }
 
     @Test
@@ -27,7 +27,7 @@ public class FunctionLibraryTest {
         FunctionLibrary pythonLibrary = FunctionLibrary.load(href);
         assertEquals("functions", pythonLibrary.getNamespace());
         assertTrue(pythonLibrary.hasFunction("add"));
-        assertEquals(href, pythonLibrary.getLink(new File(userDir, "test.ndbx")));
+        assertEquals(href, pythonLibrary.getLink(userDir));
     }
 
     @Test
