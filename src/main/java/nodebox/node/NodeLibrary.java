@@ -277,12 +277,6 @@ public class NodeLibrary {
         return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
     }
 
-    public File getCodeFolder(FunctionLibrary library) {
-        if (library.getLanguage().equals("java")) return null;
-        if (file == null) return null;
-        return new File(file.getParentFile(), FILE_TYPE_CODE);
-    }
-
     //// Loading ////
 
     private static NodeLibrary load(String libraryName, File file, Reader r, NodeRepository nodeRepository) throws XMLStreamException {
@@ -342,15 +336,24 @@ public class NodeLibrary {
         return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, devices, uuid);
     }
 
+    public File getCodeFolder(String language) {
+        return getCodeFolder(file, language);
+    }
+
+    public static File getCodeFolder(File file, String language) {
+        if (language.equals("java")) return null;
+        if (file == null) return null;
+        if (file.isFile()) file = file.getParentFile();
+        File codeFolder = new File(file, FILE_TYPE_CODE);
+        return new File(codeFolder, language);
+    }
+
     private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
         String linkRelation = reader.getAttributeValue(null, "rel");
         checkState(linkRelation.equals("functions"));
         String ref = reader.getAttributeValue(null, "href");
         // loading should happen lazily?
-        if (file == null)
-            return FunctionLibrary.load(null, ref);
-        else
-            return FunctionLibrary.load(new File(file.getParentFile(), FILE_TYPE_CODE), ref);
+        return FunctionLibrary.load(getCodeFolder(file, FunctionLibrary.parseLanguage(ref)), ref);
     }
 
     /**

@@ -108,7 +108,7 @@ public class NDBXWriter {
             if (library == CoreFunctions.LIBRARY) continue;
             Element el = doc.createElement("link");
             el.setAttribute("rel", "functions");
-            el.setAttribute("href", library.getLink(writeFullPath ? null : nodeLibrary.getCodeFolder(library)));
+            el.setAttribute("href", library.getLink(writeFullPath ? null : nodeLibrary.getCodeFolder(library.getLanguage())));
             parent.appendChild(el);
         }
     }

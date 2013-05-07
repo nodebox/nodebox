@@ -157,8 +157,8 @@ public class NodeLibraryTest {
         assertTrue(repository.hasFunction("relative/concat"));
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         FunctionLibrary relativeLibrary = library.getFunctionRepository().getLibrary("relative");
-        assertEquals("python:src/test/files/code/relative.py", relativeLibrary.getLink(userDir));
-        assertEquals("python:relative.py", relativeLibrary.getLink(new File(relativeImportDir, NodeLibrary.FILE_TYPE_CODE)));
+        assertEquals("python:src/test/files/code/python/relative.py", relativeLibrary.getLink(userDir));
+        assertEquals("python:relative.py", relativeLibrary.getLink(library.getCodeFolder(relativeImportDir, relativeLibrary.getLanguage())));
     }
 
     /**

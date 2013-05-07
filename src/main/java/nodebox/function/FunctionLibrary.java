@@ -40,6 +40,13 @@ public abstract class FunctionLibrary {
         }
     }
 
+    public static String parseLanguage(String href) {
+        Matcher hrefMatcher = HREF_PATTERN.matcher(href);
+        checkArgument(hrefMatcher.matches(), "Library identifier should be in the form language:filename.ext");
+        checkState(hrefMatcher.groupCount() == 2);
+        return hrefMatcher.group(1);
+    }
+
     public static FunctionLibrary ofClass(String namespace, Class c, String... methodNames) {
         return JavaLibrary.ofClass(namespace, c, methodNames);
     }
