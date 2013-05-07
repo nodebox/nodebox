@@ -337,6 +337,7 @@ public class NodeLibrary {
     }
 
     public File getCodeFolder(String language) {
+        if (! file.exists()) return getCodeFolder(file.getParentFile(), language);
         return getCodeFolder(file, language);
     }
 

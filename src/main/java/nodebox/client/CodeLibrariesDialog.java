@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import nodebox.function.CoreFunctions;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
+import nodebox.node.NodeLibrary;
 import nodebox.ui.ActionHeader;
 import nodebox.ui.InsetLabel;
 import nodebox.ui.MessageBar;
@@ -165,7 +166,7 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            File chosenFile = chooseFileWithExtension("py", "Python file");
+            File chosenFile = chooseFileWithExtension("py", "python", "Python file");
             if (chosenFile != null && chosenFile.getName().endsWith(".py")) {
                 addLibrary("python", chosenFile);
             }
@@ -178,21 +179,26 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            File chosenFile = chooseFileWithExtension("clj", "Clojure file");
+            File chosenFile = chooseFileWithExtension("clj", "clojure", "Clojure file");
             if (chosenFile != null && chosenFile.getName().endsWith(".clj")) {
                 addLibrary("clojure", chosenFile);
             }
         }
-
     }
 
     private void addLibrary(String prefix, File libraryFile) {
-        String relativePath = FileUtils.getRelativePath(libraryFile, document.getDocumentFile().getParentFile());
-        FunctionLibrary library = FunctionLibrary.load(document.getDocumentFile(), prefix + ":" + relativePath);
+        File codeDirectory = document.getNodeLibrary().getCodeFolder(prefix);
+        if (codeDirectory == null) return;
+        FileUtils.createDirectoryIfMissing(codeDirectory.getParentFile());
+        FileUtils.createDirectoryIfMissing(codeDirectory);
+        // todo: don't copy if libraryFile is already inside codeDirectory
+        String relativePath = FileUtils.getRelativeLink(libraryFile, codeDirectory);
+        if (relativePath.startsWith(".."))
+            FileUtils.copyFile(libraryFile, new File(codeDirectory, libraryFile.getName()));
+        FunctionLibrary library = FunctionLibrary.load(codeDirectory, prefix + ":" + libraryFile.getName());
         functionRepository = functionRepository.withLibraryAdded(library);
         reloadListModel();
         repositoryChanged = true;
-
     }
 
     public FunctionRepository getFunctionRepository() {
@@ -201,8 +207,12 @@ public class CodeLibrariesDialog extends JDialog {
         return null;
     }
 
-    private File chooseFileWithExtension(String extension, String extensionDescription) {
-        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), NodeBoxDocument.lastProjectPath, extension, extensionDescription);
+    private File chooseFileWithExtension(String extension, String lang, String extensionDescription) {
+        File codeDirectory = document.getNodeLibrary().getCodeFolder(lang);
+        String path = NodeBoxDocument.lastProjectPath;
+        if (! document.isTemporary() && codeDirectory.exists())
+            path = codeDirectory.getAbsolutePath();
+        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), path, extension, extensionDescription);
     }
 
     private void removeSelectedLibrary() {
