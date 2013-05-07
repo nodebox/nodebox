@@ -16,6 +16,8 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class NetworkFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("network", NetworkFunctions.class,
-                "httpGet", "queryJSON");
+                "httpGet", "queryJSON", "encodeURL");
     }
 
     public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
@@ -62,6 +64,14 @@ public class NetworkFunctions {
             }
         } else {
             throw new IllegalArgumentException("Cannot parse JSON input.");
+        }
+    }
+
+    public static String encodeURL(final String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return s;
         }
     }
 

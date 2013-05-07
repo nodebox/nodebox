@@ -14,8 +14,8 @@ public class TextControl extends AbstractPortControl implements ActionListener {
     private JTextField textField;
     private JButton externalWindowButton;
 
-    public TextControl(Port port) {
-        super(port);
+    public TextControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new BorderLayout(0, 0));
         textField = new JTextField();
         textField.putClientProperty("JComponent.sizeVariant", "small");

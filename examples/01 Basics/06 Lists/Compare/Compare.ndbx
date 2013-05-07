@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="1501b38c-798f-4535-8e45-c58bb9eafead">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="shapes_net">
+        <node name="compare1" position="3.00,6.00" prototype="math.compare">
+            <port name="value2" type="float" value="25.0"/>
+        </node>
+        <node name="count1" position="2.00,3.00" prototype="list.count"/>
+        <node name="grid1" position="1.00,1.00" prototype="corevector.grid"/>
+        <node name="random_numbers1" position="2.00,4.00" prototype="math.random_numbers">
+            <port name="start" type="float" value="10.0"/>
+            <port name="end" type="float" value="30.0"/>
+        </node>
+        <node name="round1" position="3.00,7.00" prototype="math.round"/>
+        <node name="shapes_net" position="1.00,9.00" prototype="core.network" renderedChild="translate1">
+            <node name="colorize1" position="1.00,4.00" prototype="corevector.colorize">
+                <port name="fill" type="color" value="#d26b27ff"/>
+            </node>
+            <node name="colorize2" position="4.00,4.00" prototype="corevector.colorize">
+                <port name="fill" type="color" value="#4e9df4ff"/>
+            </node>
+            <node name="ellipse1" position="4.00,3.00" prototype="corevector.ellipse">
+                <port name="width" type="float" value="50.0"/>
+                <port name="height" type="float" value="50.0"/>
+            </node>
+            <node name="rect2" position="1.00,3.00" prototype="corevector.rect">
+                <port name="width" type="float" value="40.0"/>
+                <port name="height" type="float" value="40.0"/>
+            </node>
+            <node name="size" position="5.00,1.00" prototype="math.number">
+                <port name="value" type="float" value="100.0"/>
+            </node>
+            <node name="switch1" position="1.00,7.00" prototype="list.switch"/>
+            <node name="translate1" position="1.00,9.00" prototype="corevector.translate"/>
+            <port childReference="translate1.translate" name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
+            <port childReference="size.value" name="size" range="value" type="float" value="100.0" widget="float"/>
+            <port childReference="switch1.index" name="index" range="value" type="int" value="0" widget="int"/>
+            <conn input="translate1.shape" output="switch1"/>
+            <conn input="rect2.width" output="size"/>
+            <conn input="rect2.height" output="size"/>
+            <conn input="ellipse1.width" output="size"/>
+            <conn input="ellipse1.height" output="size"/>
+            <conn input="colorize1.shape" output="rect2"/>
+            <conn input="colorize2.shape" output="ellipse1"/>
+            <conn input="switch1.input2" output="colorize2"/>
+            <conn input="switch1.input1" output="colorize1"/>
+        </node>
+        <conn input="count1.list" output="grid1"/>
+        <conn input="random_numbers1.amount" output="count1"/>
+        <conn input="compare1.value1" output="random_numbers1"/>
+        <conn input="round1.value" output="compare1"/>
+        <conn input="shapes_net.position" output="grid1"/>
+        <conn input="shapes_net.size" output="random_numbers1"/>
+        <conn input="shapes_net.index" output="round1"/>
+    </node>
+</ndbx>

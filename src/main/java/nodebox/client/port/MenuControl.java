@@ -17,8 +17,8 @@ public class MenuControl extends AbstractPortControl implements ActionListener {
     private JComboBox menuBox;
     private MenuDataModel menuModel;
 
-    public MenuControl(Port port) {
-        super(port);
+    public MenuControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         menuBox = new JComboBox();
         menuModel = new MenuDataModel(port);

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="4800bdff-ad07-4aef-ae87-9d0df3ca4bec">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="combine1" position="1.00,4.00" prototype="list.combine"/>
+        <node name="textpath1" position="1.00,1.00" prototype="corevector.textpath">
+            <port name="text" type="string" value="Hello"/>
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="90.0"/>
+            <port name="align" type="string" value="RIGHT"/>
+        </node>
+        <node name="textpath2" position="4.00,1.00" prototype="corevector.textpath">
+            <port name="text" type="string" value="World"/>
+            <port name="font_size" type="float" value="30.0"/>
+            <port name="align" type="string" value="LEFT"/>
+        </node>
+        <conn input="combine1.list1" output="textpath1"/>
+        <conn input="combine1.list2" output="textpath2"/>
+    </node>
+</ndbx>

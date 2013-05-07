@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="45d12803-f704-4ef3-9109-532a379cdb44">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="8.00,9.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b271d"/>
+            <port name="strokeWidth" type="float" value="1.0"/>
+        </node>
+        <node name="combine1" position="4.00,10.00" prototype="list.combine"/>
+        <node name="concatenate2" position="4.00,7.00" prototype="string.concatenate">
+            <port name="string2" type="string" value=" "/>
+        </node>
+        <node name="pick1" position="1.00,5.00" prototype="list.pick">
+            <port name="amount" type="int" value="1"/>
+        </node>
+        <node name="pick2" position="4.00,5.00" prototype="list.pick">
+            <port name="amount" type="int" value="1"/>
+        </node>
+        <node name="pick3" position="7.00,5.00" prototype="list.pick">
+            <port name="amount" type="int" value="1"/>
+        </node>
+        <node name="pick4" position="10.00,5.00" prototype="list.pick">
+            <port name="amount" type="int" value="1"/>
+        </node>
+        <node name="rect1" position="8.00,8.00" prototype="corevector.rect">
+            <port name="position" type="point" value="0.00,-10.00"/>
+            <port name="width" type="float" value="650.0"/>
+            <port name="roundness" type="point" value="40.00,40.00"/>
+        </node>
+        <node name="split1" position="1.00,4.00" prototype="string.make_strings">
+            <port name="string" type="string" value="creep,craw,slim,fuzz,whirl,roll,sail,hug"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="split2" position="10.00,4.00" prototype="string.make_strings">
+            <port name="string" type="string" value="naut,fish,bot,zorg,ball,feeder,pod,bath,toy,zoid"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="split3" position="4.00,4.00" prototype="string.make_strings">
+            <port name="string" type="string" value="y,er,o"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="split4" position="7.00,4.00" prototype="string.make_strings">
+            <port name="string" type="string" value=",glurg,gobble,doozle,floozie,glar"/>
+            <port name="separator" type="string" value=","/>
+        </node>
+        <node name="textpath1" position="4.00,8.00" prototype="corevector.textpath">
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="50.0"/>
+        </node>
+        <node name="variation" position="6.00,2.00" prototype="math.integer">
+            <port name="value" type="int" value="-5"/>
+        </node>
+        <node name="zoid" position="15.00,6.00" prototype="core.network" renderedChild="translate1">
+            <node name="colorize1" position="5.00,13.00" prototype="corevector.colorize">
+                <port name="fill" type="color" value="#d26b277a"/>
+                <port name="stroke" type="color" value="#4e9df4ff"/>
+                <port name="strokeWidth" type="float" value="1.0"/>
+            </node>
+            <node name="colorize2" position="2.00,10.00" prototype="corevector.colorize">
+                <port name="fill" type="color" value="#001a2fb5"/>
+                <port name="stroke" type="color" value="#001a2fff"/>
+            </node>
+            <node name="colorize3" position="16.00,11.00" prototype="corevector.colorize">
+                <port name="fill" type="color" value="#d26b277a"/>
+                <port name="stroke" type="color" value="#4e9df4ff"/>
+                <port name="strokeWidth" type="float" value="1.0"/>
+            </node>
+            <node name="combine1" position="5.00,12.00" prototype="list.combine"/>
+            <node name="combine2" position="9.00,15.00" prototype="list.combine"/>
+            <node name="combine3" position="9.00,17.00" prototype="list.combine"/>
+            <node name="compound1" position="5.00,11.00" prototype="corevector.compound">
+                <port name="function" type="string" value="subtracted"/>
+            </node>
+            <node name="compound2" position="2.00,9.00" prototype="corevector.compound">
+                <port name="function" type="string" value="subtracted"/>
+            </node>
+            <node name="count1" position="9.00,4.00" prototype="list.count"/>
+            <node name="count2" position="20.00,4.00" prototype="list.count"/>
+            <node name="ellipse1" position="5.00,3.00" prototype="corevector.ellipse"/>
+            <node name="ellipse2" position="5.00,7.00" prototype="corevector.ellipse">
+                <port name="width" type="float" value="30.0"/>
+                <port name="height" type="float" value="30.0"/>
+            </node>
+            <node name="group1" position="5.00,10.00" prototype="corevector.group"/>
+            <node name="group2" position="9.00,18.00" prototype="corevector.group"/>
+            <node name="point1" position="16.00,4.00" prototype="corevector.point"/>
+            <node name="quad_curve1" position="16.00,9.00" prototype="corevector.quad_curve">
+                <port name="distance" type="float" value="-40.0"/>
+            </node>
+            <node name="random_numbers1" position="9.00,6.00" prototype="math.random_numbers">
+                <port name="start" type="float" value="70.0"/>
+                <port name="end" type="float" value="220.0"/>
+                <port name="seed" type="int" value="1"/>
+            </node>
+            <node name="random_numbers2" position="6.00,1.00" prototype="math.random_numbers">
+                <port name="amount" type="int" value="1"/>
+                <port name="start" type="float" value="330.0"/>
+                <port name="end" type="float" value="460.0"/>
+            </node>
+            <node name="random_numbers3" position="21.00,6.00" prototype="math.random_numbers">
+                <port name="start" type="float" value="-200.0"/>
+                <port name="end" type="float" value="-20.0"/>
+            </node>
+            <node name="reflect1" position="5.00,8.00" prototype="corevector.reflect">
+                <port name="angle" type="float" value="90.0"/>
+            </node>
+            <node name="reflect2" position="8.00,9.00" prototype="corevector.reflect">
+                <port name="angle" type="float" value="90.0"/>
+            </node>
+            <node name="reflect3" position="11.00,9.00" prototype="corevector.reflect">
+                <port name="angle" type="float" value="90.0"/>
+            </node>
+            <node name="resample1" position="16.00,3.00" prototype="corevector.resample">
+                <port name="length" type="float" value="15.0"/>
+            </node>
+            <node name="scale1" position="8.00,8.00" prototype="corevector.scale">
+                <port name="scale" type="point" value="50.00,50.00"/>
+            </node>
+            <node name="scale2" position="11.00,8.00" prototype="corevector.scale">
+                <port name="scale" type="point" value="20.00,20.00"/>
+            </node>
+            <node name="scatter1" position="6.00,5.00" prototype="corevector.scatter">
+                <port name="amount" type="int" value="7"/>
+            </node>
+            <node name="shift1" position="17.00,6.00" prototype="list.shift"/>
+            <node name="translate1" position="9.00,19.00" prototype="corevector.translate">
+                <port name="translate" type="point" value="0.00,-301.00"/>
+            </node>
+            <port childReference="scatter1.seed" name="seed_1" range="value" type="int" value="0" widget="int"/>
+            <port childReference="random_numbers1.seed" name="seed_2" range="value" type="int" value="1" widget="int"/>
+            <port childReference="random_numbers2.seed" name="seed_3" range="value" type="int" value="0" widget="int"/>
+            <port childReference="translate1.translate" name="position" range="value" type="point" value="0.00,-301.00" widget="point"/>
+            <conn input="scatter1.shape" output="ellipse1"/>
+            <conn input="ellipse2.position" output="scatter1"/>
+            <conn input="reflect1.shape" output="ellipse2"/>
+            <conn input="group1.shapes" output="reflect1"/>
+            <conn input="compound1.shape2" output="group1"/>
+            <conn input="compound1.shape1" output="ellipse1"/>
+            <conn input="combine1.list1" output="compound1"/>
+            <conn input="scale1.shape" output="ellipse2"/>
+            <conn input="reflect2.shape" output="scale1"/>
+            <conn input="combine1.list2" output="reflect2"/>
+            <conn input="scale1.origin" output="scatter1"/>
+            <conn input="count1.list" output="scatter1"/>
+            <conn input="random_numbers1.amount" output="count1"/>
+            <conn input="ellipse2.width" output="random_numbers1"/>
+            <conn input="ellipse2.height" output="random_numbers1"/>
+            <conn input="colorize1.shape" output="combine1"/>
+            <conn input="combine2.list2" output="colorize1"/>
+            <conn input="combine2.list1" output="colorize2"/>
+            <conn input="scale2.shape" output="ellipse2"/>
+            <conn input="scale2.origin" output="scatter1"/>
+            <conn input="reflect3.shape" output="scale2"/>
+            <conn input="combine2.list3" output="reflect3"/>
+            <conn input="compound2.shape1" output="reflect1"/>
+            <conn input="compound2.shape2" output="reflect2"/>
+            <conn input="colorize2.shape" output="compound2"/>
+            <conn input="ellipse1.width" output="random_numbers2"/>
+            <conn input="ellipse1.height" output="random_numbers2"/>
+            <conn input="resample1.shape" output="ellipse1"/>
+            <conn input="quad_curve1.point2" output="shift1"/>
+            <conn input="point1.value" output="resample1"/>
+            <conn input="quad_curve1.point1" output="point1"/>
+            <conn input="shift1.list" output="point1"/>
+            <conn input="count2.list" output="point1"/>
+            <conn input="random_numbers3.amount" output="count2"/>
+            <conn input="quad_curve1.distance" output="random_numbers3"/>
+            <conn input="combine3.list2" output="combine2"/>
+            <conn input="colorize3.shape" output="quad_curve1"/>
+            <conn input="combine3.list1" output="colorize3"/>
+            <conn input="group2.shapes" output="combine3"/>
+            <conn input="translate1.shape" output="group2"/>
+        </node>
+        <conn input="textpath1.text" output="concatenate2"/>
+        <conn input="pick1.list" output="split1"/>
+        <conn input="pick2.list" output="split3"/>
+        <conn input="pick3.list" output="split4"/>
+        <conn input="pick4.list" output="split2"/>
+        <conn input="concatenate2.string1" output="pick1"/>
+        <conn input="concatenate2.string2" output="pick2"/>
+        <conn input="concatenate2.string3" output="pick3"/>
+        <conn input="concatenate2.string4" output="pick4"/>
+        <conn input="pick1.seed" output="variation"/>
+        <conn input="pick2.seed" output="variation"/>
+        <conn input="pick3.seed" output="variation"/>
+        <conn input="pick4.seed" output="variation"/>
+        <conn input="zoid.seed_1" output="variation"/>
+        <conn input="zoid.seed_2" output="variation"/>
+        <conn input="zoid.seed_3" output="variation"/>
+        <conn input="combine1.list3" output="zoid"/>
+        <conn input="combine1.list2" output="textpath1"/>
+        <conn input="colorize1.shape" output="rect1"/>
+        <conn input="combine1.list1" output="colorize1"/>
+    </node>
+</ndbx>

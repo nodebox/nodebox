@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="10bfc7af-1762-42e5-a4d4-463fe84b5d57">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize2" position="8.00,9.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize3" position="2.00,11.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#001a2fff"/>
+        </node>
+        <node name="combine1" position="3.00,13.00" prototype="list.combine"/>
+        <node name="convert_range1" position="2.00,7.00" prototype="math.convert_range">
+            <port name="target_start" type="float" value="-500.0"/>
+            <port name="target_end" type="float" value="500.0"/>
+        </node>
+        <node name="convert_range2" position="10.00,4.00" prototype="math.convert_range">
+            <port name="source_start" type="float" value="-1.0"/>
+            <port name="source_end" type="float" value="1.0"/>
+            <port name="target_start" type="float" value="-100.0"/>
+            <port name="target_end" type="float" value="100.0"/>
+        </node>
+        <node name="convert_range3" position="14.00,4.00" prototype="math.convert_range">
+            <port name="target_end" type="float" value="12.0"/>
+        </node>
+        <node name="convert_range5" position="17.00,5.00" prototype="math.convert_range">
+            <port name="target_end" type="float" value="8.0"/>
+        </node>
+        <node name="ellipse1" position="2.00,10.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="3.0"/>
+            <port name="height" type="float" value="3.0"/>
+        </node>
+        <node name="import_csv1" position="2.00,1.00" prototype="data.import_csv">
+            <port name="file" type="string" value="arrested.csv"/>
+        </node>
+        <node name="keyword" position="18.00,3.00" prototype="data.lookup">
+            <port name="key" type="string" value="Most important word"/>
+        </node>
+        <node name="make_point1" position="2.00,9.00" prototype="corevector.make_point"/>
+        <node name="make_point2" position="18.00,6.00" prototype="corevector.make_point"/>
+        <node name="max1" position="6.00,3.00" prototype="math.max"/>
+        <node name="min1" position="3.00,4.00" prototype="math.min"/>
+        <node name="polarity" position="10.00,3.00" prototype="data.lookup">
+            <port name="key" type="string" value="Polarity"/>
+        </node>
+        <node name="retweets" position="14.00,3.00" prototype="data.lookup">
+            <port name="key" type="string" value="Retweets"/>
+        </node>
+        <node name="rotate1" position="16.00,9.00" prototype="corevector.rotate">
+            <port name="angle" type="float" value="-45.0"/>
+        </node>
+        <node name="textpath1" position="16.00,7.00" prototype="corevector.textpath">
+            <port name="align" type="string" value="LEFT"/>
+            <port name="position" type="point" value="10.00,0.00"/>
+        </node>
+        <node name="timestamp" position="2.00,2.00" prototype="data.lookup">
+            <port name="key" type="string" value="Timestamp"/>
+        </node>
+        <node name="translate1" position="16.00,10.00" prototype="corevector.translate"/>
+        <conn input="timestamp.list" output="import_csv1"/>
+        <conn input="min1.values" output="timestamp"/>
+        <conn input="max1.values" output="timestamp"/>
+        <conn input="convert_range1.source_start" output="min1"/>
+        <conn input="convert_range1.source_end" output="max1"/>
+        <conn input="convert_range1.value" output="timestamp"/>
+        <conn input="polarity.list" output="import_csv1"/>
+        <conn input="convert_range2.value" output="polarity"/>
+        <conn input="ellipse1.position" output="make_point1"/>
+        <conn input="retweets.list" output="import_csv1"/>
+        <conn input="convert_range3.value" output="retweets"/>
+        <conn input="ellipse1.width" output="convert_range3"/>
+        <conn input="ellipse1.height" output="convert_range3"/>
+        <conn input="keyword.list" output="import_csv1"/>
+        <conn input="textpath1.text" output="keyword"/>
+        <conn input="convert_range5.value" output="retweets"/>
+        <conn input="textpath1.font_size" output="convert_range5"/>
+        <conn input="make_point1.x" output="convert_range1"/>
+        <conn input="make_point2.x" output="convert_range1"/>
+        <conn input="rotate1.shape" output="textpath1"/>
+        <conn input="translate1.shape" output="rotate1"/>
+        <conn input="translate1.translate" output="make_point2"/>
+        <conn input="colorize3.shape" output="ellipse1"/>
+        <conn input="combine1.list1" output="colorize3"/>
+        <conn input="colorize2.shape" output="translate1"/>
+        <conn input="combine1.list2" output="colorize2"/>
+    </node>
+</ndbx>

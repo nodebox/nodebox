@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="e3f7259e-5235-49ef-b988-ac33e1c5173d">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="add1" position="4.00,2.00" prototype="math.add">
+            <port name="value2" type="float" value="5.0"/>
+        </node>
+        <node name="colorize1" position="5.00,5.00" prototype="corevector.colorize"/>
+        <node name="count1" position="9.00,6.00" prototype="list.count"/>
+        <node name="divide1" position="1.00,3.00" prototype="math.divide">
+            <port name="value2" type="float" value="10.0"/>
+        </node>
+        <node name="frame1" position="4.00,1.00" prototype="core.frame"/>
+        <node name="grid1" position="8.00,5.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="6"/>
+            <port name="rows" type="int" value="6"/>
+            <port name="width" type="float" value="510.0"/>
+            <port name="height" type="float" value="510.0"/>
+        </node>
+        <node name="hsb_color1" position="1.00,6.00" prototype="color.hsb_color">
+            <port name="saturation" type="float" value="255.0"/>
+            <port name="brightness" type="float" value="200.0"/>
+        </node>
+        <node name="mod1" position="1.00,4.00" prototype="math.mod">
+            <port name="value2" type="float" value="10.0"/>
+        </node>
+        <node name="multiply1" position="1.00,5.00" prototype="math.multiply">
+            <port name="value2" type="float" value="28.0"/>
+        </node>
+        <node name="multiply2" position="9.00,8.00" prototype="math.multiply">
+            <port name="value2" type="float" value="2.2999978065490723"/>
+        </node>
+        <node name="rect1" position="5.00,4.00" prototype="corevector.rect"/>
+        <node name="sample1" position="9.00,7.00" prototype="math.sample">
+            <port name="start" type="float" value="1.0"/>
+        </node>
+        <node name="translate1" position="5.00,9.00" prototype="corevector.translate"/>
+        <conn input="multiply1.value1" output="mod1"/>
+        <conn input="hsb_color1.hue" output="multiply1"/>
+        <conn input="colorize1.shape" output="rect1"/>
+        <conn input="colorize1.fill" output="hsb_color1"/>
+        <conn input="mod1.value1" output="divide1"/>
+        <conn input="add1.value1" output="frame1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="count1.list" output="grid1"/>
+        <conn input="sample1.amount" output="count1"/>
+        <conn input="sample1.end" output="count1"/>
+        <conn input="divide1.value1" output="add1"/>
+        <conn input="multiply2.value1" output="sample1"/>
+        <conn input="add1.value2" output="multiply2"/>
+    </node>
+</ndbx>

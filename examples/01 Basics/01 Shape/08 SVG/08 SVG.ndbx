@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="47616d87-ee94-493c-a54c-31863a467391">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="1.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#001a2f88"/>
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="10.0"/>
+        </node>
+        <node name="colorize2" position="7.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="combine1" position="1.00,6.00" prototype="list.combine"/>
+        <node name="fit1" position="1.00,2.00" prototype="corevector.fit"/>
+        <node name="grid1" position="4.00,2.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="6"/>
+            <port name="rows" type="int" value="8"/>
+            <port name="width" type="float" value="1030.0"/>
+            <port name="height" type="float" value="1500.0"/>
+        </node>
+        <node name="import_svg1" position="1.00,1.00" prototype="corevector.import_svg">
+            <port name="file" type="string" value="building.svg"/>
+        </node>
+        <node name="rect1" position="7.00,1.00" prototype="corevector.rect">
+            <port name="width" type="float" value="1240.0"/>
+            <port name="height" type="float" value="1810.0"/>
+        </node>
+        <node name="translate1" position="1.00,4.00" prototype="corevector.translate"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="fit1.shape" output="import_svg1"/>
+        <conn input="colorize1.shape" output="fit1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="colorize2.shape" output="rect1"/>
+        <conn input="combine1.list1" output="colorize2"/>
+        <conn input="combine1.list2" output="translate1"/>
+    </node>
+</ndbx>

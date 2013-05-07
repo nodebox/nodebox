@@ -10,8 +10,8 @@ import java.awt.event.FocusEvent;
 
 public class PasswordControl extends StringControl {
 
-    public PasswordControl(Port port) {
-        super(port);
+    public PasswordControl(String nodePath, Port port) {
+        super(nodePath, port);
     }
 
     @Override

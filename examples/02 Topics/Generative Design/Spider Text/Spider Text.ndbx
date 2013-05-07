@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="1b803437-d422-412b-88bc-f6069b2aad78">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="3.00,12.00" prototype="corevector.colorize">
+            <port name="stroke" type="color" value="#4e9df4ff"/>
+            <port name="strokeWidth" type="float" value="0.5"/>
+        </node>
+        <node name="colorize2" position="0.00,12.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#001a2fff"/>
+        </node>
+        <node name="combine1" position="2.00,14.00" prototype="list.combine"/>
+        <node name="compare1" position="3.00,7.00" prototype="math.compare">
+            <port name="value2" type="float" value="49.0"/>
+        </node>
+        <node name="cull1" position="1.00,9.00" prototype="list.cull"/>
+        <node name="cull2" position="5.00,9.00" prototype="list.cull"/>
+        <node name="distance1" position="3.00,6.00" prototype="math.distance"/>
+        <node name="frame1" position="8.00,1.00" prototype="core.frame"/>
+        <node name="line1" position="3.00,11.00" prototype="corevector.line"/>
+        <node name="lines_amount" position="4.00,1.00" prototype="math.integer">
+            <port name="value" type="int" value="30"/>
+        </node>
+        <node name="make_point1" position="8.00,2.00" prototype="corevector.make_point"/>
+        <node name="point1" position="1.00,3.00" prototype="corevector.point"/>
+        <node name="point2" position="8.00,5.00" prototype="corevector.point"/>
+        <node name="repeat2" position="1.00,4.00" prototype="list.repeat">
+            <port name="amount" type="int" value="30"/>
+        </node>
+        <node name="repeat3" position="8.00,6.00" prototype="list.repeat">
+            <port name="amount" type="int" value="30"/>
+        </node>
+        <node name="resample1" position="1.00,2.00" prototype="corevector.resample">
+            <port name="length" type="float" value="5.0"/>
+        </node>
+        <node name="shuffle1" position="8.00,7.00" prototype="list.shuffle">
+            <port name="seed" type="int" value="1"/>
+        </node>
+        <node name="textpath1" position="1.00,1.00" prototype="corevector.textpath">
+            <port name="text" type="string" value="Spider"/>
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="185.0"/>
+        </node>
+        <node name="translate1" position="8.00,4.00" prototype="corevector.translate"/>
+        <conn input="distance1.point2" output="shuffle1"/>
+        <conn input="compare1.value1" output="distance1"/>
+        <conn input="cull1.booleans" output="compare1"/>
+        <conn input="cull2.booleans" output="compare1"/>
+        <conn input="cull2.list" output="shuffle1"/>
+        <conn input="line1.point1" output="cull1"/>
+        <conn input="line1.point2" output="cull2"/>
+        <conn input="resample1.shape" output="textpath1"/>
+        <conn input="point1.value" output="resample1"/>
+        <conn input="repeat2.list" output="point1"/>
+        <conn input="distance1.point1" output="repeat2"/>
+        <conn input="cull1.list" output="repeat2"/>
+        <conn input="translate1.shape" output="resample1"/>
+        <conn input="point2.value" output="translate1"/>
+        <conn input="repeat3.list" output="point2"/>
+        <conn input="shuffle1.list" output="repeat3"/>
+        <conn input="make_point1.y" output="frame1"/>
+        <conn input="translate1.translate" output="make_point1"/>
+        <conn input="repeat3.amount" output="lines_amount"/>
+        <conn input="repeat2.amount" output="lines_amount"/>
+        <conn input="colorize1.shape" output="line1"/>
+        <conn input="combine1.list2" output="colorize1"/>
+        <conn input="colorize2.shape" output="resample1"/>
+        <conn input="combine1.list1" output="colorize2"/>
+    </node>
+</ndbx>

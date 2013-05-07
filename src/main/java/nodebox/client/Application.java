@@ -18,6 +18,7 @@
  */
 package nodebox.client;
 
+import com.google.common.collect.Iterables;
 import nodebox.util.FileUtils;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
@@ -47,13 +48,12 @@ import java.util.prefs.Preferences;
 public class Application implements Host {
 
     public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
-    public static final String PREFERENCE_ENABLE_NETWORK_SUPPORT = "NBEnableNetworkSupport";
     public static boolean ENABLE_DEVICE_SUPPORT = false;
-    public static boolean ENABLE_NETWORK_SUPPORT = false;
 
     private static Application instance;
 
     private JFrame hiddenFrame;
+    private ExamplesBrowser examplesBrowser;
 
     public static Application getInstance() {
         return instance;
@@ -231,7 +231,6 @@ public class Application implements Host {
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
         ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
-        ENABLE_NETWORK_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_NETWORK_SUPPORT, "false"));
     }
 
     /**
@@ -276,11 +275,9 @@ public class Application implements Host {
         libraries.add(systemLibrary("list"));
         libraries.add(systemLibrary("data"));
         libraries.add(systemLibrary("corevector"));
+        libraries.add(systemLibrary("network"));
         if (Application.ENABLE_DEVICE_SUPPORT) {
             libraries.add(systemLibrary("device"));
-        }
-        if (Application.ENABLE_NETWORK_SUPPORT) {
-            libraries.add(systemLibrary("network"));
         }
         systemRepository = NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
     }
@@ -403,12 +400,18 @@ public class Application implements Host {
         }
     }
 
+    public boolean openExample(File file) {
+        boolean result = openDocument(file);
+        if (result)
+            Iterables.getLast(documents).setNeedsResave(true);
+        return result;
+    }
+
     public boolean openDocument(File f) {
         if (f.isFile() && f.getName().endsWith(".ndbx"))
             return openDocumentFromFile(f);
         else if (f.isDirectory() && ! new File(f, f.getName() + ".ndbx").exists())
             return false;
-
         // Check if the document is already open.
         File directory = f;
         String path;
@@ -478,6 +481,14 @@ public class Application implements Host {
         doc.close();
     }
 
+    public void openExamplesBrowser() {
+        if (examplesBrowser == null) {
+            examplesBrowser = new ExamplesBrowser();
+        }
+        examplesBrowser.setVisible(true);
+        examplesBrowser.toFront();
+    }
+
     //// Host implementation ////
 
     public String getName() {
@@ -493,7 +504,12 @@ public class Application implements Host {
     }
 
     public String getAppcastURL() {
-        return "https://secure.nodebox.net/app/nodebox/appcast.xml";
+        StringBuilder b = new StringBuilder("https://secure.nodebox.net/app/nodebox/appcast.xml");
+        b.append("?v=");
+        b.append(getVersion().toString());
+        b.append("&p=");
+        b.append(PlatformUtils.current_platform);
+        return b.toString();
     }
 
     public Updater getUpdater() {

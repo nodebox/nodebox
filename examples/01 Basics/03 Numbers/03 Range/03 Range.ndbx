@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="7278e0af-cf51-4e3c-9573-21cf42beb859">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="translate1">
+        <node name="color1" position="7.00,3.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="color2" position="7.00,4.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color3" position="7.00,5.00" prototype="color.color">
+            <port name="color" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize1" position="1.00,4.00" prototype="corevector.colorize"/>
+        <node name="combine1" position="6.00,6.00" prototype="list.combine"/>
+        <node name="count1" position="5.00,2.00" prototype="list.count"/>
+        <node name="ellipse1" position="1.00,3.00" prototype="corevector.ellipse"/>
+        <node name="grid1" position="5.00,1.00" prototype="corevector.grid"/>
+        <node name="range1" position="1.00,1.00" prototype="math.range">
+            <port name="step" type="float" value="5.0"/>
+        </node>
+        <node name="translate1" position="1.00,5.00" prototype="corevector.translate"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="translate1.shape" output="colorize1"/>
+        <conn input="combine1.list1" output="color1"/>
+        <conn input="combine1.list2" output="color2"/>
+        <conn input="combine1.list3" output="color3"/>
+        <conn input="colorize1.fill" output="combine1"/>
+        <conn input="count1.list" output="grid1"/>
+        <conn input="range1.end" output="count1"/>
+        <conn input="ellipse1.width" output="range1"/>
+        <conn input="ellipse1.height" output="range1"/>
+    </node>
+</ndbx>

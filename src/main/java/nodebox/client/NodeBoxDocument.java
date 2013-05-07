@@ -25,8 +25,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,6 +54,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private File documentDirectory;
     private File documentFile;
     private boolean documentChanged;
+    private boolean needsResave;
     private AnimationTimer animationTimer;
     private boolean loaded = false;
 
@@ -98,6 +101,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
     private DevicesDialog devicesDialog;
 
+    private static Image APPLICATION_ICON_IMAGE;
+
+    static {
+        try {
+            APPLICATION_ICON_IMAGE = ImageIO.read(NodeBoxDocument.class.getResourceAsStream("/application-logo.png"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -220,6 +232,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setContentPane(rootPanel);
         setLocationByPlatform(true);
         setSize(1100, 800);
+        setIconImage(APPLICATION_ICON_IMAGE);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
         updateTitle();
@@ -630,8 +643,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Change the description for the given port
      *
-     * @param portName      The name of the port to change.
-     * @param description   The new description.
+     * @param portName    The name of the port to change.
+     * @param description The new description.
      */
     public void setPortDescription(String portName, String description) {
         checkValidPort(portName);
@@ -777,16 +790,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
-     * Set the port of the active node to the given value.
+     * Set the port with the given node path to a new value.
      *
-     * @param portName The name of the port on the active node.
+     * @param nodePath The path inside the network of the node the port belongs to.
+     * @param portName The name of the port.
      * @param value    The new value.
      */
-    public void setValue(String portName, Object value) {
-        checkValidPort(portName);
-        addEdit("Change Value", "changeValue", getActiveNodePath() + "#" + portName);
+    public void setValue(String nodePath, String portName, Object value) {
+        checkNotNull(getNodeLibrary().getNodeForPath(nodePath));
+        addEdit("Change Value", "changeValue", nodePath + "#" + portName);
 
-        controller.setPortValue(getActiveNodePath(), portName, value);
+        controller.setPortValue(nodePath, portName, value);
 
         // TODO set variables on the root port.
 //        if (port.getNode() == nodeLibrary.getRoot()) {
@@ -876,8 +890,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void silentSet(String portName, Object value) {
         try {
-            Port port = getActiveNode().getInput(portName);
-            setValue(portName, value);
+            setValue(getActiveNodePath(), portName, value);
         } catch (Exception ignored) {
         }
     }
@@ -1181,7 +1194,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             handler.addData(dataMap);
         final ImmutableMap<String, ?> data = ImmutableMap.copyOf(dataMap);
 
-        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults, ImmutableMap.<String,Object>of());
+        final NodeContext context = new NodeContext(renderLibrary, getFunctionRepository(), data, renderResults, ImmutableMap.<String, Object>of());
         currentRender = new SwingWorker<List<?>, Node>() {
             @Override
             protected List<?> doInBackground() throws Exception {
@@ -1410,7 +1423,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public boolean save() {
-        if (documentDirectory == null) {
+        if (documentDirectory == null || needsResave()) {
             return saveAs();
         } else {
             boolean saved = saveToDirectory(documentDirectory);
@@ -1423,20 +1436,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public boolean saveAs() {
         File chosenDirectory = FileUtils.showSaveDialog(this, lastProjectPath, "", "");
         if (chosenDirectory != null) {
-            /*if (!chosenFile.getAbsolutePath().endsWith(".ndbx")) {
-                chosenFile = new File(chosenFile.getAbsolutePath() + ".ndbx");
-                if (chosenFile.exists()) {
-                    ReplaceDialog rd = new ReplaceDialog(chosenFile);
-                    int retVal = rd.show(this);
-                    if (retVal == JOptionPane.CANCEL_OPTION)
-                        return saveAs();
-                }
-            }*/
             lastProjectPath = chosenDirectory.getParentFile().getAbsolutePath();
 
             boolean saved = saveToDirectory(chosenDirectory);
-            if (saved)
+            if (saved) {
+                setNeedsResave(false);
                 NodeBoxMenuBar.addRecentDirectory(chosenDirectory);
+            }
             return saved;
         }
         return false;
@@ -1637,6 +1643,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         });
     }
 
+    public boolean needsResave() {
+        return needsResave;
+    }
+
+    public void setNeedsResave(boolean needsResave) {
+        this.needsResave = needsResave;
+    }
+
     private abstract class ExportDelegate {
         protected InterruptibleProgressDialog progressDialog;
 
@@ -1676,7 +1690,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         HashMap<String, Object> data = new HashMap<String, Object>();
                         data.put("frame", (double) frame);
                         data.put("mouse.position", viewer.getLastMousePosition());
-                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String,Object>of());
+                        NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String, Object>of());
 
                         List<?> results = context.renderNode(exportNetwork);
                         renderResults = context.getRenderResults();

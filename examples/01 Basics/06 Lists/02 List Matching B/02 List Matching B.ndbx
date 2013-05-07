@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="98f6bd76-a395-40d0-beee-573f8fc682e0">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="colorize1">
+        <node name="color1" position="9.00,4.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="color2" position="9.00,5.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color3" position="9.00,6.00" prototype="color.color">
+            <port name="color" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize1" position="2.00,9.00" prototype="corevector.colorize">
+            <port name="strokeWidth" type="float" value="15.0"/>
+        </node>
+        <node name="combine1" position="8.00,7.00" prototype="list.combine"/>
+        <node name="grid1" position="4.00,4.00" prototype="corevector.grid">
+            <port name="columns" type="int" value="5"/>
+            <port name="rows" type="int" value="5"/>
+        </node>
+        <node name="polygon1" position="1.00,2.00" prototype="corevector.polygon">
+            <port name="radius" type="float" value="30.0"/>
+            <port name="align" type="boolean" value="true"/>
+        </node>
+        <node name="range1" position="5.00,2.00" prototype="math.range">
+            <port name="end" type="float" value="360.0"/>
+            <port name="step" type="float" value="90.0"/>
+        </node>
+        <node name="reverse1" position="8.00,8.00" prototype="list.reverse"/>
+        <node name="rotate1" position="1.00,4.00" prototype="corevector.rotate"/>
+        <node name="translate1" position="2.00,7.00" prototype="corevector.translate"/>
+        <conn input="rotate1.shape" output="polygon1"/>
+        <conn input="rotate1.angle" output="range1"/>
+        <conn input="translate1.shape" output="rotate1"/>
+        <conn input="translate1.translate" output="grid1"/>
+        <conn input="combine1.list1" output="color1"/>
+        <conn input="combine1.list2" output="color2"/>
+        <conn input="combine1.list3" output="color3"/>
+        <conn input="colorize1.fill" output="combine1"/>
+        <conn input="colorize1.shape" output="translate1"/>
+        <conn input="reverse1.list" output="combine1"/>
+        <conn input="colorize1.stroke" output="reverse1"/>
+    </node>
+</ndbx>

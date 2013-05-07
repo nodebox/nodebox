@@ -48,6 +48,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         recentFileMenus.add(recentFileMenu);
         buildRecentFileMenu();
         fileMenu.add(recentFileMenu);
+        fileMenu.add(new OpenExamplesAction());
         fileMenu.addSeparator();
         fileMenu.add(new CloseAction());
         fileMenu.add(new SaveAction());
@@ -239,6 +240,20 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             Application.getInstance().openDocument(file);
+        }
+    }
+
+    public static class OpenExamplesAction extends AbstractAction {
+
+
+
+        public OpenExamplesAction() {
+            putValue(NAME, "Open Examples...");
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_O, Event.SHIFT_MASK));
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            Application.getInstance().openExamplesBrowser();
         }
     }
 

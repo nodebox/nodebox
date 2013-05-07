@@ -23,10 +23,11 @@ public interface HandleDelegate {
      * This callback is fired whenever we want to set a value and have an error reported back.
      * This method can be called for every drag or move of the mouse, if needed.
      *
+     * @param nodePath The path inside the network of the node the port belongs to.
      * @param portName The port this value is linked to.
      * @param value    The new value.
      */
-    public void setValue(String portName, Object value);
+    public void setValue(String nodePath, String portName, Object value);
 
     /**
      * Set a value on the node without causing an error.

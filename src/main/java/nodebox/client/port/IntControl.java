@@ -15,8 +15,8 @@ public class IntControl extends AbstractPortControl implements ChangeListener, A
 
     private DraggableNumber draggable;
 
-    public IntControl(Port port) {
-        super(port);
+    public IntControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="3750a076-b74e-478c-ad84-9ed8e57051f9">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="arc1" position="8.00,9.00" prototype="corevector.arc">
+            <port name="width" type="float" value="300.0"/>
+            <port name="height" type="float" value="300.0"/>
+        </node>
+        <node name="arc2" position="11.00,11.00" prototype="corevector.arc">
+            <port name="width" type="float" value="370.0"/>
+            <port name="height" type="float" value="370.0"/>
+            <port name="degrees" type="float" value="10.0"/>
+        </node>
+        <node name="color1" position="4.00,6.00" prototype="color.color">
+            <port name="color" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="color2" position="4.00,7.00" prototype="color.color">
+            <port name="color" type="color" value="#001a2fff"/>
+        </node>
+        <node name="color3" position="4.00,8.00" prototype="color.color">
+            <port name="color" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize1" position="5.00,11.00" prototype="corevector.colorize">
+            <port name="strokeWidth" type="float" value="1.0"/>
+        </node>
+        <node name="colorize2" position="8.00,12.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#ffffffff"/>
+        </node>
+        <node name="combine1" position="5.00,14.00" prototype="list.combine"/>
+        <node name="combine2" position="3.00,9.00" prototype="list.combine"/>
+        <node name="convert_range1" position="7.00,6.00" prototype="math.convert_range">
+            <port name="target_end" type="float" value="360.0"/>
+        </node>
+        <node name="divide1" position="7.00,4.00" prototype="math.divide"/>
+        <node name="multiply1" position="7.00,5.00" prototype="math.multiply">
+            <port name="value2" type="float" value="100.0"/>
+        </node>
+        <node name="random_numbers1" position="7.00,1.00" prototype="math.random_numbers">
+            <port name="amount" type="int" value="13"/>
+            <port name="start" type="float" value="30.0"/>
+            <port name="end" type="float" value="140.0"/>
+            <port name="seed" type="int" value="10"/>
+        </node>
+        <node name="round1" position="10.00,7.00" prototype="math.round"/>
+        <node name="running_total1" position="7.00,7.00" prototype="math.running_total"/>
+        <node name="sum1" position="6.00,2.00" prototype="math.sum"/>
+        <node name="text_on_path1" position="8.00,11.00" prototype="corevector.text_on_path">
+            <port name="font_name" type="string" value="Verdana-Bold"/>
+            <port name="font_size" type="float" value="12.0"/>
+            <port name="margin" type="float" value="3.0"/>
+            <port name="baseline_offset" type="float" value="6.0"/>
+        </node>
+        <conn input="sum1.values" output="random_numbers1"/>
+        <conn input="divide1.value1" output="random_numbers1"/>
+        <conn input="divide1.value2" output="sum1"/>
+        <conn input="multiply1.value1" output="divide1"/>
+        <conn input="convert_range1.value" output="multiply1"/>
+        <conn input="running_total1.values" output="convert_range1"/>
+        <conn input="arc1.degrees" output="convert_range1"/>
+        <conn input="arc1.start_angle" output="running_total1"/>
+        <conn input="colorize1.shape" output="arc1"/>
+        <conn input="text_on_path1.path" output="arc1"/>
+        <conn input="round1.value" output="convert_range1"/>
+        <conn input="text_on_path1.text" output="round1"/>
+        <conn input="arc2.start_angle" output="running_total1"/>
+        <conn input="combine1.list2" output="colorize1"/>
+        <conn input="combine1.list1" output="arc2"/>
+        <conn input="colorize2.shape" output="text_on_path1"/>
+        <conn input="combine1.list3" output="colorize2"/>
+        <conn input="combine2.list1" output="color1"/>
+        <conn input="combine2.list2" output="color2"/>
+        <conn input="combine2.list3" output="color3"/>
+        <conn input="colorize1.fill" output="combine2"/>
+    </node>
+</ndbx>

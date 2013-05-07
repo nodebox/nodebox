@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="5bf28856-8de0-4951-92cc-27c26ee63820">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="1.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#d26b27ff"/>
+        </node>
+        <node name="colorize2" position="4.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#4e9df4ff"/>
+        </node>
+        <node name="colorize3" position="7.00,3.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#001a2fff"/>
+        </node>
+        <node name="combine1" position="3.00,5.00" prototype="list.combine"/>
+        <node name="ellipse1" position="4.00,1.00" prototype="corevector.ellipse">
+            <port name="position" type="point" value="10.00,0.00"/>
+        </node>
+        <node name="polygon1" position="7.00,1.00" prototype="corevector.polygon">
+            <port name="position" type="point" value="100.00,0.00"/>
+            <port name="radius" type="float" value="60.0"/>
+        </node>
+        <node name="rect1" position="1.00,1.00" prototype="corevector.rect">
+            <port name="position" type="point" value="-100.00,0.00"/>
+        </node>
+        <conn input="colorize1.shape" output="rect1"/>
+        <conn input="combine1.list1" output="colorize1"/>
+        <conn input="colorize2.shape" output="ellipse1"/>
+        <conn input="colorize3.shape" output="polygon1"/>
+        <conn input="combine1.list2" output="colorize2"/>
+        <conn input="combine1.list3" output="colorize3"/>
+    </node>
+</ndbx>

@@ -86,6 +86,47 @@ public class NodeLibrary {
         }
     }
 
+    public static Map<String,String> parseHeader(File f) {
+        try {
+            XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(new FileReader(f));
+            while (reader.hasNext()) {
+                int eventType = reader.next();
+                if (eventType == XMLStreamConstants.START_ELEMENT) {
+                    String tagName = reader.getLocalName();
+                    if (tagName.equals("ndbx")) {
+                        return parseHeader(reader);
+                    } else {
+                        throw new XMLStreamException("Only tag ndbx allowed, not " + tagName, reader.getLocation());
+                    }
+                }
+            }
+        } catch (XMLStreamException e) {
+            throw new RuntimeException(e);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        return Collections.emptyMap();
+    }
+
+    private static Map<String,String> parseHeader(XMLStreamReader reader) throws XMLStreamException {
+        Map<String,String> propertyMap  = new HashMap<String, String>();
+        while (true) {
+            int eventType = reader.next();
+            if (eventType == XMLStreamConstants.START_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("property")) {
+                    parseProperty(reader, propertyMap);
+                }
+            } else if (eventType == XMLStreamConstants.END_ELEMENT) {
+                String tagName = reader.getLocalName();
+                if (tagName.equals("ndbx"))
+                    break;
+            }
+        }
+        return propertyMap;
+    }
+
     private final String name;
     private final File file;
     private final Node root;

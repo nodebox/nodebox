@@ -13,8 +13,8 @@ public class FloatControl extends AbstractPortControl implements ChangeListener,
 
     private DraggableNumber draggable;
 
-    public FloatControl(Port port) {
-        super(port);
+    public FloatControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
         draggable = new DraggableNumber();
         draggable.addChangeListener(this);

@@ -12,7 +12,6 @@ public class PreferencePanel extends JDialog implements ActionListener {
     private final Application application;
     private final Preferences preferences;
     private JCheckBox enableDeviceSupportCheck;
-    private JCheckBox enableNetworkSupportCheck;
 
     public PreferencePanel(Application application, Window owner) {
         super(owner, "Preferences");
@@ -32,10 +31,6 @@ public class PreferencePanel extends JDialog implements ActionListener {
         enableDeviceSupportCheck = new JCheckBox("Device Support");
         enableDeviceSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(enableDeviceSupportCheck);
-
-        enableNetworkSupportCheck = new JCheckBox("Network Support");
-        enableNetworkSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
-        contentPanel.add(enableNetworkSupportCheck);
 
         rootPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -71,19 +66,8 @@ public class PreferencePanel extends JDialog implements ActionListener {
         preferences.put(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, Boolean.toString(enabled));
     }
 
-    private boolean isNetworkSupportEnabled() {
-        return Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_NETWORK_SUPPORT, "false"));
-    }
-
-    private void setEnableNetworkSupport(boolean enabled) {
-        application.ENABLE_NETWORK_SUPPORT = enabled;
-        preferences.put(Application.PREFERENCE_ENABLE_NETWORK_SUPPORT, Boolean.toString(enabled));
-    }
-
-
     private void readPreferences() {
         enableDeviceSupportCheck.setSelected(isDeviceSupportEnabled());
-        enableNetworkSupportCheck.setSelected(isNetworkSupportEnabled());
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
@@ -91,10 +75,6 @@ public class PreferencePanel extends JDialog implements ActionListener {
 
         if (isDeviceSupportEnabled() != enableDeviceSupportCheck.isSelected()) {
             setEnableDeviceSupport(enableDeviceSupportCheck.isSelected());
-            changed = true;
-        }
-        if (isNetworkSupportEnabled() != enableNetworkSupportCheck.isSelected()) {
-            setEnableNetworkSupport(enableNetworkSupportCheck.isSelected());
             changed = true;
         }
         if (changed) {

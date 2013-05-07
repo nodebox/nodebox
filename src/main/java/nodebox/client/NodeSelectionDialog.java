@@ -286,9 +286,9 @@ public class NodeSelectionDialog extends JDialog {
             if (filteredNodeListModel.getSearchString().equals(searchField.getText())) return;
             filteredNodeListModel.setSearchString(searchField.getText());
             // Trigger a model reload.
-            nodeList.setModel(filteredNodeListModel);
             nodeList.setSelectedIndex(0);
             nodeList.ensureIndexIsVisible(0);
+            nodeList.revalidate();
             repaint();
         }
     }
@@ -312,7 +312,7 @@ public class NodeSelectionDialog extends JDialog {
             setMinimumSize(new Dimension(120, 25));
             setMaximumSize(new Dimension(500, 25));
             setPreferredSize(new Dimension(120, 25));
-            setPreferredSize(new Dimension(120, 25));
+            setSize(new Dimension(120, 25));
             setAlignmentX(JComponent.LEFT_ALIGNMENT);
         }
 
@@ -346,11 +346,9 @@ public class NodeSelectionDialog extends JDialog {
 
         private CategoryList() {
             super(null);
-            Dimension d = new Dimension(120, 300);
             setBackground(new java.awt.Color(244, 244, 244));
             setBorder(null);
             setOpaque(true);
-            setPreferredSize(d);
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         }
 
@@ -373,9 +371,9 @@ public class NodeSelectionDialog extends JDialog {
                 selectedCategory.setSelected(true);
                 filteredNodeListModel.setCategory((String) selectedCategory.source);
                 // Trigger a model reload.
-                nodeList.setModel(filteredNodeListModel);
                 nodeList.setSelectedIndex(0);
                 nodeList.ensureIndexIsVisible(0);
+                nodeList.revalidate();
                 nodeList.repaint();
             }
         }

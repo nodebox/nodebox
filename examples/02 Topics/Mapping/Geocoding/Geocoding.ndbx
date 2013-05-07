@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="17" type="file" uuid="89ddf6bb-34ab-4098-87e6-bc24edc395a7">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="combine1">
+        <node name="colorize1" position="5.00,10.00" prototype="corevector.colorize">
+            <port name="fill" type="color" value="#ff0000ff"/>
+        </node>
+        <node name="combine1" position="1.00,12.00" prototype="list.combine"/>
+        <node name="concatenate1" position="5.00,2.00" prototype="string.concatenate">
+            <port name="string1" type="string" value="http://maps.googleapis.com/maps/api/geocode/json?sensor=true&amp;address="/>
+        </node>
+        <node name="ellipse1" position="5.00,9.00" prototype="corevector.ellipse">
+            <port name="width" type="float" value="3.0"/>
+            <port name="height" type="float" value="3.0"/>
+        </node>
+        <node name="encode_url1" position="5.00,1.00" prototype="network.encode_url">
+            <port name="value" type="string" value="Antwerp, Belgium"/>
+        </node>
+        <node name="http_get1" position="5.00,3.00" prototype="network.http_get">
+            <port name="url" type="string" value="http://maps.googleapis.com/maps/api/geocode/json?address=1600+Amphitheatre+Parkway&amp;sensor=true"/>
+        </node>
+        <node name="import_svg1" position="1.00,8.00" prototype="corevector.import_svg">
+            <port name="file" type="string" value="map-equirectangular.svg"/>
+        </node>
+        <node name="latitude" position="8.00,6.00" prototype="data.lookup">
+            <port name="key" type="string" value="lat"/>
+        </node>
+        <node name="longitude" position="5.00,6.00" prototype="data.lookup">
+            <port name="key" type="string" value="lng"/>
+        </node>
+        <node name="make_point1" position="5.00,8.00" prototype="corevector.make_point"/>
+        <node name="negate1" position="8.00,7.00" prototype="math.negate"/>
+        <node name="query_json1" position="5.00,4.00" prototype="network.query_json">
+            <port name="query" type="string" value="$.results[0].geometry.location"/>
+        </node>
+        <node name="scale1" position="1.00,9.00" prototype="corevector.scale">
+            <port name="scale" type="point" value="100.00,-100.00"/>
+            <port name="origin" type="point" value="0.00,1.50"/>
+        </node>
+        <conn input="query_json1.json" output="http_get1"/>
+        <conn input="latitude.list" output="query_json1"/>
+        <conn input="longitude.list" output="query_json1"/>
+        <conn input="make_point1.x" output="longitude"/>
+        <conn input="scale1.shape" output="import_svg1"/>
+        <conn input="ellipse1.position" output="make_point1"/>
+        <conn input="combine1.list1" output="scale1"/>
+        <conn input="negate1.value" output="latitude"/>
+        <conn input="make_point1.y" output="negate1"/>
+        <conn input="colorize1.shape" output="ellipse1"/>
+        <conn input="combine1.list2" output="colorize1"/>
+        <conn input="concatenate1.string2" output="encode_url1"/>
+        <conn input="http_get1.url" output="concatenate1"/>
+    </node>
+</ndbx>

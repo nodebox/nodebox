@@ -189,7 +189,7 @@ public class ZoomableView extends JComponent {
 
         @Override
         public void mouseEntered(MouseEvent e) {
-            grabFocus();
+            requestFocusInWindow();
         }
     }
 

@@ -137,7 +137,7 @@ public class NodeAttributesDialog  extends JDialog {
 
     public void setPortValue(String port, Object value) {
         onChanged();
-        document.setValue(port, value);
+        document.setValue(document.getActiveNodePath(), port, value);
     }
 
     public void setPortMinimumValue(String port, Double minimumValue) {

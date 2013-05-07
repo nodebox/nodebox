@@ -15,8 +15,8 @@ public class StringControl extends AbstractPortControl implements ActionListener
 
     private JTextComponent field;
 
-    public StringControl(Port port) {
-        super(port);
+    public StringControl(String nodePath, Port port) {
+        super(nodePath, port);
         setLayout(new BorderLayout());
         field = createField();
         add(field, BorderLayout.CENTER);
