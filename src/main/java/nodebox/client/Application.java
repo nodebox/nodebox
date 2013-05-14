@@ -401,13 +401,21 @@ public class Application implements Host {
     }
 
     public NodeBoxDocument openExample(File file) {
-        NodeBoxDocument doc = openDocument(file);
+        NodeBoxDocument doc = openDocument(file, false);
         if (doc != null)
             doc.setNeedsResave(true);
         return doc;
     }
 
     public NodeBoxDocument openDocument(File f) {
+        return openDocument(f, true);
+    }
+
+    public NodeBoxDocument openDocument(File f, boolean checkIfExample) {
+        if (checkIfExample) {
+            if (! FileUtils.getRelativePath(f, new File("examples")).startsWith(".."))
+                return openExample(f);
+        }
         if (f.isFile() && f.getName().endsWith(".ndbx"))
             return openDocumentFromFile(f);
         else if (f.isDirectory() && ! new File(f, f.getName() + ".ndbx").exists())

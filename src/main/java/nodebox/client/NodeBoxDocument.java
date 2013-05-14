@@ -1454,6 +1454,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     private boolean saveToDirectory(File directory) {
+        return saveToDirectory(directory, null);
+    }
+
+    private boolean saveToDirectory(File directory, String fileName) {
         FileUtils.createDirectoryIfMissing(directory);
         File d = getDocumentDirectory();
         // Only copy subdirectories if the project location is different from the original.
@@ -1466,7 +1470,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 }
             }
         }
-        File file = new File(directory, directory.getName() + ".ndbx");
+        boolean sameNameAsDir = fileName == null || fileName.length() == 0;
+        File file = new File(directory, sameNameAsDir ? directory.getName() + ".ndbx" : fileName);
         if (saveToFile(file)) {
             setDocumentDirectory(directory);
             setDocumentFile(file);
@@ -1649,6 +1654,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void setNeedsResave(boolean needsResave) {
         this.needsResave = needsResave;
+        if (needsResave) {
+            File temporaryDirectory = FileUtils.createTemporaryDirectory("nbtemp");
+            temporaryDirectory.deleteOnExit();
+            saveToDirectory(temporaryDirectory, documentFile.getName());
+            this.temporaryDirectory = temporaryDirectory;
+        }
     }
 
     private abstract class ExportDelegate {
