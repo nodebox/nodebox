@@ -204,6 +204,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         nodeMenu.add(new DeleteAction());
         nodeMenu.add(new GroupIntoNetworkAction(null));
         goInSubnetworkMenuItem = nodeMenu.add(new GoInAction());
+        //test for add comment menu item
+        nodeMenu.add(new AddCommentAction());
         nodeMenu.add(new HelpAction());
     }
 
@@ -1137,7 +1139,18 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             getDocument().groupIntoNetwork(position);
         }
     }
-
+    
+    private class AddCommentAction extends AbstractAction {
+    	private AddCommentAction() {
+    		super("Add Comment");
+    	}
+    	
+    	public void actionPerformed(ActionEvent e) {
+    		String comment="";
+    		comment=JOptionPane.showInputDialog("Add new comment:");
+    	}
+    }
+    
     private class HelpAction extends AbstractAction {
         private HelpAction() {
             super("Help");
