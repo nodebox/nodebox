@@ -379,7 +379,7 @@ public class Application implements Host {
         return doc;
     }
 
-    public boolean openDocumentFromFile(File file) {
+    public NodeBoxDocument openDocumentFromFile(File file) {
         String fileName = file.getName();
         String baseName = FileUtils.getBaseName(fileName);
         File directory = file.getParentFile();
@@ -396,22 +396,22 @@ public class Application implements Host {
                 file.delete();
                 return openDocument(newDirectory);
             } else
-                return false;
+                return null;
         }
     }
 
-    public boolean openExample(File file) {
-        boolean result = openDocument(file);
-        if (result)
-            Iterables.getLast(documents).setNeedsResave(true);
-        return result;
+    public NodeBoxDocument openExample(File file) {
+        NodeBoxDocument doc = openDocument(file);
+        if (doc != null)
+            doc.setNeedsResave(true);
+        return doc;
     }
 
-    public boolean openDocument(File f) {
+    public NodeBoxDocument openDocument(File f) {
         if (f.isFile() && f.getName().endsWith(".ndbx"))
             return openDocumentFromFile(f);
         else if (f.isDirectory() && ! new File(f, f.getName() + ".ndbx").exists())
-            return false;
+            return null;
         // Check if the document is already open.
         File directory = f;
         String path;
@@ -425,7 +425,7 @@ public class Application implements Host {
                         doc.toFront();
                         doc.requestFocus();
                         NodeBoxMenuBar.addRecentDirectory(directory);
-                        return true;
+                        return doc;
                     }
                 } catch (IOException e) {
                     logger.log(Level.WARNING, "The document " + doc.getDocumentDirectory() + " refers to path with errors", e);
@@ -439,12 +439,12 @@ public class Application implements Host {
             NodeBoxDocument doc = NodeBoxDocument.load(directory);
             addDocument(doc);
             NodeBoxMenuBar.addRecentDirectory(directory);
-            return true;
+            return doc;
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error while loading " + directory, e);
             ExceptionDialog d = new ExceptionDialog(null, e);
             d.setVisible(true);
-            return false;
+            return null;
         }
     }
 
