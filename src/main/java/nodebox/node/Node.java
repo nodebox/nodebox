@@ -231,6 +231,18 @@ public final class Node {
         return !children.isEmpty();
     }
 
+    public boolean usesChildInputForNextFrame(Node child) {
+        for (Connection conn : getConnections()) {
+            if (child.getName().equals(conn.getOutputNode())) {
+                Node inputChild = getChild(conn.getInputNode());
+                Port inputPort = inputChild.getInput(conn.getInputPort());
+                if (inputPort.getType().equals(Port.TYPE_PREVIOUS))
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public ImmutableList<Node> getChildren() {
         return children;
     }

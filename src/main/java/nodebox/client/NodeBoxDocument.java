@@ -1193,7 +1193,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             @Override
             protected List<?> doInBackground() throws Exception {
                 List<?> results = context.renderNode(renderNetwork);
-                context.renderAlwaysRenderedNodes(renderNetwork);
                 renderResults = context.getRenderResults();
                 return results;
             }
