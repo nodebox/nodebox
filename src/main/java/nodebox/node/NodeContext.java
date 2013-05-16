@@ -250,6 +250,14 @@ public final class NodeContext {
     private List<?> evaluatePort(Node network, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
         Node outputNode = findOutputNode(network, child, childPort);
         if (outputNode != null) {
+            if (childPort.getType().equals(Port.TYPE_PREVIOUS)) {
+                List<?> previousResults = previousRenderResults.get(outputNode);
+                if (previousResults != null) {
+                    return previousResults;
+                } else {
+                    return ImmutableList.of();
+                }
+            }
             List<?> result = renderChild(network, outputNode, networkArgumentMap);
             if (childPort.isFileWidget()) {
                 return convertToFileNames(result);
@@ -308,6 +316,8 @@ public final class NodeContext {
             } else {
                 return ImmutableList.of();
             }
+        } else if (port.getType().equals(Port.TYPE_PREVIOUS)) {
+            return ImmutableList.of();
         } else if (port.isFileWidget() && !port.stringValue().isEmpty()) {
             return convertToFileName(portValue);
         }
