@@ -268,7 +268,13 @@ public class NodeLibraryController {
         Node newParent = getNode(parentPath).withChildRenamed(oldName, newName);
         replaceNodeInPath(parentPath, newParent);
     }
-
+    
+    //TEST commentNode
+    public void commentNode(String parentPath, String nodeName, String comment) {
+    	Node newNode=getNode(parentPath).withChildCommented(nodeName, comment);
+    	replaceNodeInPath(parentPath, newNode);
+    }
+    
     public void addPort(String nodePath, String portName, String portType) {
         Node newNode = getNode(nodePath).withInputAdded(Port.portForType(portName, portType));
         replaceNodeInPath(nodePath, newNode);

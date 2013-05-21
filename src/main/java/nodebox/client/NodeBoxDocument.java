@@ -357,6 +357,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.singleSelect(getActiveNode());
         requestRender();
     }
+    
+  //TEST GIA NODE COMMENT STO DOCUMENT
+    public void setNodeComment(Node node, String comment){
+    	checkNotNull(node);
+        checkNotNull(comment);
+        controller.commentNode(activeNetworkPath, node.getName(), comment);
+        addEdit("Set Node Comment");
+        requestRender();
+    }
 
     /**
      * Change the category for the node.

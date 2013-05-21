@@ -36,7 +36,7 @@ public final class Node {
 
     private enum Nodes {ROOT_NODE, NETWORK_NODE}
 
-    public enum Attribute {PROTOTYPE, NAME, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE, ALWAYS_RENDERED}
+    public enum Attribute {PROTOTYPE, NAME, COMMENT, CATEGORY, DESCRIPTION, IMAGE, FUNCTION, POSITION, INPUTS, OUTPUT_TYPE, OUTPUT_RANGE, IS_NETWORK, CHILDREN, RENDERED_CHILD_NAME, CONNECTIONS, HANDLE, ALWAYS_RENDERED}
 
     /**
      * Check if data from the output node can be converted and used in the input port.
@@ -101,6 +101,7 @@ public final class Node {
 
     private final Node prototype;
     private final String name;
+    private String comment;
     private final String category;
     private final String description;
     private final String image;
@@ -128,6 +129,7 @@ public final class Node {
                 checkState(ROOT == null, "You cannot create more than one root node.");
                 prototype = null;
                 name = "node";
+                comment="";
                 description = "Base node to be extended for custom nodes.";
                 image = "node.png";
                 outputRange = Port.DEFAULT_RANGE;
@@ -138,6 +140,7 @@ public final class Node {
                 checkState(NETWORK == null, "You cannot create more than one network node.");
                 prototype = ROOT;
                 name = "network";
+                comment="";
                 image = "network.png";
                 description = "Create an empty subnetwork.";
                 outputRange = Port.Range.LIST;
@@ -162,7 +165,7 @@ public final class Node {
         }
     }
 
-    private Node(Node prototype, String name, String category, String description, String image, String function,
+    private Node(Node prototype, String name, String comment, String category, String description, String image, String function,
                  Point position, ImmutableList<Port> inputs,
                  String outputType, Port.Range outputRange, boolean isNetwork, ImmutableList<Node> children,
                  String renderedChildName, ImmutableList<Connection> connections, String handle, boolean isAlwaysRendered) {
@@ -173,6 +176,7 @@ public final class Node {
         checkArgument(!name.equals("network"), "The name network is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
+        this.comment=comment;
         this.category = category;
         this.description = description;
         this.image = image;
@@ -198,7 +202,11 @@ public final class Node {
     public String getName() {
         return name;
     }
-
+    //diko mou ki auto!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    public String getComment() {
+    	return comment;
+    }
+    
     public String getCategory() {
         return category;
     }
@@ -350,6 +358,8 @@ public final class Node {
             return getPrototype();
         } else if (attribute == Attribute.NAME) {
             return getName();
+        } else if (attribute ==Attribute.COMMENT) {
+        	return getComment();
         } else if (attribute == Attribute.CATEGORY) {
             return getCategory();
         } else if (attribute == Attribute.DESCRIPTION) {
@@ -466,6 +476,10 @@ public final class Node {
     public Node withName(String name) {
         validateName(name);
         return newNodeWithAttribute(Attribute.NAME, name);
+    }
+    
+    public Node withComment(String comment) {
+    	return newNodeWithAttribute(Attribute.COMMENT, comment);
     }
 
     /**
@@ -604,7 +618,14 @@ public final class Node {
 
         return newParent;
     }
-
+    
+    //TEST GIA EISAGWGI TOY COMMENT STO NODE
+    public Node withChildCommented(String childName, String comment) {
+    	 Node newNode = getChild(childName).withComment(comment);
+         //Node newParent = withChildRemoved(childName).withChildAdded(newNode);
+    	 return withChildReplaced(childName, newNode);
+    }
+    
     /**
      * Create a new node with the given child input port removed.
      * <p/>
@@ -1239,10 +1260,18 @@ public final class Node {
      * @param value     The value for the attribute. The type needs to match the internal type.
      * @return A copy of this node with the attribute changed.
      */
+    //ELEXOS GIA COMMENT ATTRIBUTE!
+    //ELEGXOS!
+    // |
+    // |
+    // |
+    //\ /
+    // `
     @SuppressWarnings("unchecked")
     private Node newNodeWithAttribute(Attribute attribute, Object value) {
         Node prototype = this.prototype;
         String name = this.name;
+        String comment=this.comment;
         String category = this.category;
         String description = this.description;
         String image = this.image;
@@ -1265,6 +1294,9 @@ public final class Node {
             case NAME:
                 name = (String) value;
                 break;
+            case COMMENT:
+            	comment= (String) value;
+            	break;
             case CATEGORY:
                 category = (String) value;
                 break;
@@ -1322,7 +1354,7 @@ public final class Node {
         else if (name.equals("network"))
             name = "network1";
 
-        return new Node(prototype, name, category, description, image, function, position,
+        return new Node(prototype, name, comment, category, description, image, function, position,
                 inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle, alwaysRendered);
     }
 
