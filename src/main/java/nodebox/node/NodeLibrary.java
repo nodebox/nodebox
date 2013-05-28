@@ -426,7 +426,7 @@ public class NodeLibrary {
      */
     private static Map<String,String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
         Map<String, String> attributeMap = new HashMap<String, String>();
-        String[] attributes = {"prototype", "name", "category", "description", "image", "function",
+        String[] attributes = {"prototype", "name", "comment", "category", "description", "image", "function",
                                "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
         for (String attribute : attributes)
             parseNodeAttribute(reader, attributeMap, attribute);
@@ -445,6 +445,7 @@ public class NodeLibrary {
     private static Node createNode(Map<String, String> attributeMap, Node extendFromNode, Node parent, NodeRepository nodeRepository) {
         String prototypeId = attributeMap.get("prototype");
         String name = attributeMap.get("name");
+        String comment = attributeMap.get("comment");
         String category = attributeMap.get("category");
         String description = attributeMap.get("description");
         String image = attributeMap.get("image");
@@ -461,6 +462,8 @@ public class NodeLibrary {
 
         if (name != null)
             node = node.withName(name);
+        if (comment != null)
+        	node = node.withComment(comment);
         if (category != null)
             node = node.withCategory(category);
         if (description != null)
@@ -537,7 +540,7 @@ public class NodeLibrary {
                     break;
             }
         }
-
+        
         // This has to come at the end, since the child first needs to exist.
         String renderedChildName = attributeMap.get("renderedChild");
         if (renderedChildName != null)
