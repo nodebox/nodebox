@@ -358,12 +358,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
     
-  //TEST GIA NODE COMMENT STO DOCUMENT
+    /**
+     * Change the comment for the node.
+     *
+     * @param node     The node to be commented.
+     * @param category The new comment.
+     */
     public void setNodeComment(Node node, String comment){
     	checkNotNull(node);
         checkNotNull(comment);
         controller.commentNode(activeNetworkPath, node.getName(), comment);
-        addEdit("Set Node Comment");
+        //addEdit not working, maybe comments shouldn't be added to undo manager
+        //since they don't affect nodes in any way and also
+        //there is an edit or remove option in the nodemenu2, maybe...
+        //addEdit("Set Node Comment");
         requestRender();
     }
 

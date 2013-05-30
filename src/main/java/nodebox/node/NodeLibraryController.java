@@ -269,7 +269,7 @@ public class NodeLibraryController {
         replaceNodeInPath(parentPath, newParent);
     }
     
-    //TEST commentNode
+    //replace a node in the given path with a new node with comment
     public void commentNode(String parentPath, String nodeName, String comment) {
     	Node newNode=getNode(parentPath).withChildCommented(nodeName, comment);
     	replaceNodeInPath(parentPath, newNode);

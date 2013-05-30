@@ -173,7 +173,7 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, Node.Attribute.NAME))
             el.setAttribute("name", node.getName());
         
-        // Write comment<--------------------------elpizw na min dialuthei to suban!!!!!!!!!!!!!!!!!!!!!
+        // Write comment
         if (shouldWriteAttribute(node, Node.Attribute.COMMENT))
             el.setAttribute("comment", node.getComment());
         
