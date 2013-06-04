@@ -791,7 +791,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private void editCommentNode(Node node) {
     	String comment = JOptionPane.showInputDialog(this,"Edit comment:",node.getComment());
     	getDocument().setNodeComment(node, comment);
-    	
     }
     
     //checks if a node is commented

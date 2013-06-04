@@ -1482,9 +1482,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             getRootPane().putClientProperty("Window.documentModified", documentChanged);
         }
         if (documentFile == null) {
-            setTitle("Untitled" + postfix);
+            setTitle("Untitled - Nodebox" + postfix);
         } else {
-            setTitle(documentFile.getName() + postfix);
+            setTitle(documentFile.getName() + " - Nodebox" + postfix);
             getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
     }
