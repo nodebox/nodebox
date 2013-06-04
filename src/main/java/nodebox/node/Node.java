@@ -101,10 +101,7 @@ public final class Node {
 
     private final Node prototype;
     private final String name;
-    //comment isn't declared final because it's not like metadata.
-    //It is more related to the user than to the node.
-    //Or maybe this is completely irrelevant and it should be declared as final... I don't know
-    private String comment = ""; 
+    private final String comment; 
     private final String category;
     private final String description;
     private final String image;
@@ -132,6 +129,7 @@ public final class Node {
                 checkState(ROOT == null, "You cannot create more than one root node.");
                 prototype = null;
                 name = "node";
+                comment = "";
                 description = "Base node to be extended for custom nodes.";
                 image = "node.png";
                 outputRange = Port.DEFAULT_RANGE;
@@ -142,6 +140,7 @@ public final class Node {
                 checkState(NETWORK == null, "You cannot create more than one network node.");
                 prototype = ROOT;
                 name = "network";
+                comment = "";
                 image = "network.png";
                 description = "Create an empty subnetwork.";
                 outputRange = Port.Range.LIST;
@@ -637,7 +636,7 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildCommented(String childName, String comment) {
-    	 Node newNode = getChild(childName).withComment(comment);
+    	 Node newNode = getChild(childName).withName(childName).withComment(comment);
          //Node newParent = withChildRemoved(childName).withChildAdded(newNode);
     	 return withChildReplaced(childName, newNode);
     }
