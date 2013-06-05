@@ -69,7 +69,7 @@ public class NodeLibrary {
         checkNotNull(f, "File cannot be null.");
         String libraryName = FileUtils.stripExtension(f);
         try {
-            return load(libraryName, f, new FileReader(f), nodeRepository);
+            return load(libraryName, f, createFileReader(f), nodeRepository);
         } catch (FileNotFoundException e) {
             throw new LoadException(f, "File not found.");
         } catch (XMLStreamException e) {
@@ -80,7 +80,7 @@ public class NodeLibrary {
     public static Map<String,String> parseHeader(File f) {
         try {
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(new FileReader(f));
+            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(createFileReader(f));
             while (reader.hasNext()) {
                 int eventType = reader.next();
                 if (eventType == XMLStreamConstants.START_ELEMENT) {
@@ -116,6 +116,26 @@ public class NodeLibrary {
             }
         }
         return propertyMap;
+    }
+
+    /**
+     * Create a file reader using the UTF-8 encoding.
+     *
+     * Unfortunately, Java's FileReader constructor does not accept an encoding, which is an oversight in the API.
+     * Instead, it opts to create a reader with the default platform encoding. This means it differs between platforms,
+     * and even inside and outside of the IDE.
+     *
+     * This method removes the ambiguity and always reads files in UTF-8.
+     *
+     * @param file the file to read.
+     * @return A Reader.
+     */
+    private static Reader createFileReader(File file) throws FileNotFoundException {
+        try {
+            return new InputStreamReader(new FileInputStream(file), "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private final String name;
