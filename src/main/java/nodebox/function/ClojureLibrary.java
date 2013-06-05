@@ -69,8 +69,10 @@ final class ClojureLibrary extends FunctionLibrary {
                 Var var = (Var) entry.getValue();
                 if (var.ns.toString().equals(namespace)) {
                     String name = entry.getKey().toString();
-                    Function f = new ClojureFunction(name, var.fn());
-                    builder.put(name, f);
+                    if (var.deref() instanceof IFn) {
+                        Function f = new ClojureFunction(name, var.fn());
+                        builder.put(name, f);
+                    }
                 }
             }
         }
