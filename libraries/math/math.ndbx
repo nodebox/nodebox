@@ -34,6 +34,15 @@
                 <menu key="!=" label="!= not equals"/>
             </port>
         </node>
+        <node category="math" description="Create a logical or operator." function="math/logicOR" image="boolean.png" name="logical" outputType="boolean" position="1.00,5.00">
+            <port name="boolean1"  type="boolean" value="false" widget="toggle"/>
+            <port name="boolean2" range="value" type="boolean" value="false" widget="toggle"/>
+            <port name="comparator" range="value" type="string" value="or" widget="menu">
+                <menu key="or" label="OR"/>
+                <menu key="and" label="AND"/>
+                <menu key="xor" label="XOR"/>
+            </port>
+        </node>
         <node category="math" description="Convert a value from one range to another." function="math/convertRange" image="convert_range.png" name="convert_range" position="4.00,1.00">
             <port name="value" range="value" type="float" value="50.0" widget="float"/>
             <port name="source_start" range="value" type="float" value="0.0" widget="float"/>

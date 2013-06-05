@@ -32,7 +32,7 @@ public class MathFunctions {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
                 "number", "integer", "makeBoolean",
                 "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
-                "log", "sum", "average", "compare", "min", "max", "ceil", "floor", "runningTotal",
+                "log", "sum", "average", "compare", "logicOR", "min", "max", "ceil", "floor", "runningTotal",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "round",
                 "sample", "range",
@@ -182,6 +182,21 @@ public class MathFunctions {
             return comparison != 0;
         } else {
             throw new IllegalArgumentException("unknown comparison operation " + comparator);
+        }
+    }
+
+
+    public static boolean logicOR(Boolean b1, Boolean b2, String comparator){
+        if (comparator.equals("or")) {
+            return b1 || b2;
+        } else if (comparator.equals("and")) {
+            return b1 && b2;
+        }
+        else if (comparator.equals("xor")) {
+            return b1 ^ b2;
+        }
+        else {
+            throw new IllegalArgumentException("unknown logical operation " );
         }
     }
 
