@@ -32,7 +32,7 @@ public class MathFunctions {
         LIBRARY = JavaLibrary.ofClass("math", MathFunctions.class,
                 "number", "integer", "makeBoolean",
                 "negate", "abs", "add", "subtract", "multiply", "divide", "mod", "sqrt", "pow",
-                "log", "sum", "average", "compare", "logicOR", "min", "max", "ceil", "floor", "runningTotal",
+                "log", "sum", "average", "compare", "logicOperator", "min", "max", "ceil", "floor", "runningTotal",
                 "even", "odd",
                 "makeNumbers", "randomNumbers", "round",
                 "sample", "range",
@@ -186,7 +186,7 @@ public class MathFunctions {
     }
 
 
-    public static boolean logicOR(Boolean b1, Boolean b2, String comparator){
+    public static boolean logicOperator(Boolean b1, Boolean b2, String comparator){
         if (comparator.equals("or")) {
             return b1 || b2;
         } else if (comparator.equals("and")) {
