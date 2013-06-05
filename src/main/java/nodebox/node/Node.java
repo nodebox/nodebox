@@ -477,6 +477,7 @@ public final class Node {
         validateName(name);
         return newNodeWithAttribute(Attribute.NAME, name);
     }
+    
     /**
      * Create a new node with the given comment.
      * <p/>

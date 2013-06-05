@@ -657,7 +657,13 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         }
         return null;
     }
-    //find if there is a commented node at a given point
+    
+    /**
+     * Check if there is a commented node at a given point
+     *
+     * @param point The point that the mouse produces a MouseEvent
+     * @return the Node if it exist at the given point
+     */
     public Node getNodeWithCommentAt(Point2D point) {
         for (Node node : getNodesReversed()) {
         	if(isCommented(node)){
