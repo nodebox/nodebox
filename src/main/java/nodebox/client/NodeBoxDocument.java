@@ -357,6 +357,23 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         networkView.singleSelect(getActiveNode());
         requestRender();
     }
+    
+    /**
+     * Change the comment for the node.
+     *
+     * @param node     The node to be commented.
+     * @param category The new comment.
+     */
+    public void setNodeComment(Node node, String comment){
+    	checkNotNull(node);
+        checkNotNull(comment);
+        controller.commentNode(activeNetworkPath, node.getName(), comment);
+        //addEdit not working, maybe comments shouldn't be added to undo manager
+        //since they don't affect nodes in any way and also
+        //there is an edit or remove option in the nodemenu2, maybe...
+        //addEdit("Set Node Comment");
+        requestRender();
+    }
 
     /**
      * Change the category for the node.
@@ -1465,9 +1482,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             getRootPane().putClientProperty("Window.documentModified", documentChanged);
         }
         if (documentFile == null) {
-            setTitle("Untitled" + postfix);
+            setTitle("Untitled - Nodebox" + postfix);
         } else {
-            setTitle(documentFile.getName() + postfix);
+            setTitle(documentFile.getName() + " - Nodebox" + postfix);
             getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
     }
