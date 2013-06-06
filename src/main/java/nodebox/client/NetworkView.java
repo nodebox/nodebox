@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NetworkView extends ZoomableView implements PaneView, Zoom {
-
+	
     public static final int GRID_CELL_SIZE = 48;
     public static final int NODE_MARGIN = 6;
     public static final int NODE_PADDING = 5;
@@ -70,9 +70,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private JPopupMenu networkMenu;
     private Point networkMenuLocation;
 
-    private JPopupMenu nodeMenu;
+    private JPopupMenu nodeMenu;//node menu for nodes without comment
+    private JPopupMenu nodeMenu2;//node menu for nodes with comment
     private Point nodeMenuLocation;
-
+    
     private LoadingCache<Node, BufferedImage> nodeImageCache;
 
     private Set<String> selectedNodes = new HashSet<String>();
@@ -85,6 +86,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
     private Node overOutput;
+    private Node overComment;//over a node with comment
     private Node connectionOutput;
     private NodePort connectionInput;
     private Point2D connectionPoint;
@@ -169,6 +171,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             }
         }
     }
+    
+    
 
     public NetworkView(NodeBoxDocument document) {
         super(MIN_ZOOM, MAX_ZOOM);
@@ -197,14 +201,27 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
-
+        
+        // nodemenu shows with nodes without comment
         nodeMenu = new JPopupMenu();
         nodeMenu.add(new SetRenderedAction());
         nodeMenu.add(new RenameAction());
         nodeMenu.add(new DeleteAction());
         nodeMenu.add(new GroupIntoNetworkAction(null));
         goInSubnetworkMenuItem = nodeMenu.add(new GoInAction());
+        nodeMenu.add(new AddCommentAction());//adds a comment
         nodeMenu.add(new HelpAction());
+        
+        // nodemenu2 shows with commented nodes  
+        nodeMenu2 = new JPopupMenu();
+        nodeMenu2.add(new SetRenderedAction());
+        nodeMenu2.add(new RenameAction());
+        nodeMenu2.add(new DeleteAction());
+        nodeMenu2.add(new GroupIntoNetworkAction(null));
+        goInSubnetworkMenuItem = nodeMenu2.add(new GoInAction());
+        nodeMenu2.add(new EditCommentAction());//edits a comment
+        nodeMenu2.add(new RemoveCommentAction());//removes a remove
+        nodeMenu2.add(new HelpAction());
     }
 
     public NodeBoxDocument getDocument() {
@@ -271,7 +288,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
-        // Draw background
+        // Draw background 
         g2.setColor(Theme.NETWORK_BACKGROUND_COLOR);
         g2.fill(g.getClipBounds());
 
@@ -288,7 +305,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         paintCurrentConnection(g2);
         paintPortTooltip(g2);
         paintDragSelection(g2);
-
+        paintCommentBox(g2);
         // Restore original transform
         g2.setTransform(originalTransform);
     }
@@ -358,7 +375,14 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node.equals(node.getName()) ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getCachedImageForNode(node);
-            paintNode(g, getActiveNetwork(), node, icon, isSelected(node), renderedNode == node, connectionOutput, hoverInputPort, overOutput == node);
+            //import the comment icon indication
+            BufferedImage commentIcon=null;
+            try {
+            	commentIcon  = ImageIO.read(getClass().getResourceAsStream("/comment-icon.png"));
+            }
+            catch (IOException e) {
+            }
+            paintNode(g, getActiveNetwork(), node, icon, commentIcon, isSelected(node), renderedNode == node, isCommented(node), connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
@@ -384,8 +408,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             return getShortenedName(name.substring(0, startChars) + "\u2026" + name.substring(name.length() - 3, name.length()), startChars - 1);
         return name;
     }
-
-    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+    
+    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, BufferedImage commentIcon, boolean selected, boolean rendered, boolean commented, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -395,14 +419,14 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
         }
 
-        // Draw node
+        // Draw node 
         g.setColor(portTypeColor(outputType));
         if (selected) {
             g.fillRect(r.x + 2, r.y + 2, NODE_WIDTH - 4, NODE_HEIGHT - 4);
         } else {
             g.fillRect(r.x, r.y, NODE_WIDTH, NODE_HEIGHT);
         }
-
+        
         // Draw render flag
         if (rendered) {
             g.setColor(Color.WHITE);
@@ -465,6 +489,12 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g.setColor(Color.WHITE);
         g.setFont(Theme.NETWORK_FONT);
         g.drawString(getShortenedName(node.getName(), 7), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
+        
+        //Draw comment indication 
+        if (commented) {
+        	g.setColor(Color.GREEN);
+        	g.drawImage(commentIcon, r.x + NODE_WIDTH - 20 , r.y + NODE_MARGIN, NODE_ICON_SIZE-12, NODE_ICON_SIZE-18,null);
+        }
     }
 
     private void paintPortTooltip(Graphics2D g) {
@@ -497,6 +527,27 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
         g.setColor(TOOLTIP_TEXT_COLOR);
         g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent() + verticalOffset);
+    }
+    
+    //paints the comment box and the node comment inside it
+    private void paintCommentBox(Graphics2D g){
+    	if(overComment != null){
+    		 BufferedImage commentBox=null;
+             try {
+             	commentBox  = ImageIO.read(getClass().getResourceAsStream("/notes-background.png"));
+             }
+             catch (IOException e) {
+             }
+             Rectangle r = nodeRect(overComment);
+             FontMetrics fontMetrics = g.getFontMetrics();
+             int commentWidth = fontMetrics.stringWidth(overComment.getComment());
+             g.setColor(Color.BLACK);
+             if(commentBox.getWidth()>commentWidth)
+            	 g.drawImage(commentBox, (int) r.x + GRID_CELL_SIZE-NODE_MARGIN, (int) r.y + GRID_CELL_SIZE-NODE_MARGIN, commentBox.getWidth(), commentBox.getHeight(), null);
+             else
+            	 g.drawImage(commentBox, (int) r.x + GRID_CELL_SIZE-NODE_MARGIN, (int) r.y + GRID_CELL_SIZE-NODE_MARGIN, commentWidth+3*NODE_MARGIN, commentBox.getHeight(), null);
+             g.drawString(overComment.getComment(), (int) r.x+ GRID_CELL_SIZE+NODE_MARGIN, (int) r.y + GRID_CELL_SIZE+NODE_MARGIN);
+    	}
     }
 
     private void paintDragSelection(Graphics2D g) {
@@ -606,7 +657,25 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         }
         return null;
     }
-
+    
+    /**
+     * Check if there is a commented node at a given point
+     *
+     * @param point The point that the mouse produces a MouseEvent
+     * @return the Node if it exist at the given point
+     */
+    public Node getNodeWithCommentAt(Point2D point) {
+        for (Node node : getNodesReversed()) {
+        	if(isCommented(node)){
+        		Rectangle r = nodeRect(node);
+        		if (r.contains(point)) {
+        			return node;
+        		}
+        	}
+        }
+        return null;
+    }
+    
     private static boolean isHiddenPort(Port port) {
         return port.getType().equals(Port.TYPE_STATE) || port.getType().equals(Port.TYPE_CONTEXT);
     }
@@ -625,7 +694,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public void select(Node node) {
         selectedNodes.add(node.getName());
     }
-
+    
     /**
      * Select this node, and only this node.
      * <p/>
@@ -699,16 +768,43 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     private void renameNode(Node node) {
-        String s = JOptionPane.showInputDialog(this, "New name:", node.getName());
-        if (s == null || s.length() == 0)
+        String newName = JOptionPane.showInputDialog(this, "New name:", node.getName());
+        if (newName == null || newName.length() == 0)
             return;
         try {
-            getDocument().setNodeName(node, s);
+            getDocument().setNodeName(node, newName);
         } catch (InvalidNameException ex) {
             JOptionPane.showMessageDialog(this, "The given name is not valid.\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    //it shows an input dialog to insert a new comment   
+    private void commentNode(Node node) {
+    	String comment= JOptionPane.showInputDialog(this,"New comment:");
+    	if (comment == null || comment.length() == 0)
+    		return;
+    	try{
+    		getDocument().setNodeComment(node, comment);
+    	}
+    		catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "An error occurred:\n" + ex.getMessage(), Application.NAME, JOptionPane.ERROR_MESSAGE);
+    	}
+    }
+    
+    //it shows an input dialog to edit a comment
+    private void editCommentNode(Node node) {
+    	String comment = JOptionPane.showInputDialog(this,"Edit comment:",node.getComment());
+    	getDocument().setNodeComment(node, comment);
+    }
+    
+    //checks if a node is commented
+    private boolean isCommented(Node node) {
+    	if(node.getComment().equals(""))
+    		return false;
+    	else
+    		return true;
     }
 
     //// Network navigation ////
@@ -845,7 +941,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         }
 
         public void mouseEntered(MouseEvent e) {
-            grabFocus();
+        	grabFocus();
         }
 
         public void mouseExited(MouseEvent e) {
@@ -911,6 +1007,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             Point2D pt = inverseViewTransformPoint(e.getPoint());
             overOutput = getNodeWithOutputPortAt(pt);
             overInput = getInputPortAt(pt);
+            //find if mouse is over node with comment
+            overComment = getNodeWithCommentAt(pt);
             // It is probably very inefficient to repaint the view every time the mouse moves.
             repaint();
         }
@@ -941,7 +1039,14 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             if (pressedNode != null) {
                 goInSubnetworkMenuItem.setVisible(pressedNode.isNetwork());
                 nodeMenuLocation = pt;
-                nodeMenu.show(this, e.getX(), e.getY());
+                //if node doesn't have comment show node menu with add comment option
+                if(!isCommented(pressedNode)){
+                	nodeMenu.show(this, e.getX(), e.getY());
+                }
+                //if it is commented show node with edit and remove options
+                else{
+                	nodeMenu2.show(this, e.getX(), e.getY());
+                }
             } else {
                 networkMenuLocation = pt;
                 networkMenu.show(this, e.getX(), e.getY());
@@ -1137,7 +1242,45 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             getDocument().groupIntoNetwork(position);
         }
     }
-
+    //Action for nodemenu2 remove comment option
+    private class RemoveCommentAction extends AbstractAction{
+    	private RemoveCommentAction() {
+    		super("Remove Comment");
+    	}
+    	
+    	public void actionPerformed(ActionEvent e) {
+    		Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+    		if (node != null) 
+    			getDocument().setNodeComment(node, "");
+    	}
+    }
+    //Action for nodemenu2 edit comment option
+    private class EditCommentAction extends AbstractAction{
+    	private EditCommentAction(){
+    		super("Edit Comment");
+    	}
+    	
+    	public void actionPerformed(ActionEvent e) {
+    		 Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+             if (node != null) {
+            	 editCommentNode(node);
+             }
+    	}
+    }
+    //Action for nodemenu add comment option
+    private class AddCommentAction extends AbstractAction {
+    	private AddCommentAction() {
+    		super("Add Comment");
+    	}
+    	
+    	public void actionPerformed(ActionEvent e) {
+    		 Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
+             if (node != null) {
+            	 commentNode(node);
+             }
+    	}
+    }
+    
     private class HelpAction extends AbstractAction {
         private HelpAction() {
             super("Help");
