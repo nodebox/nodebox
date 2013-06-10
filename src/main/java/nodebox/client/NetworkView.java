@@ -64,7 +64,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final Color DRAG_SELECTION_COLOR = new Color(255, 255, 255, 100);
     public static final BasicStroke DRAG_SELECTION_STROKE = new BasicStroke(1f);
     public static final BasicStroke CONNECTION_STROKE = new BasicStroke(2);
-
+    public static final BasicStroke FEEDBACK_STROKE = new BasicStroke(1.0f,
+                    BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_MITER,
+                    10.0f, new float[] {10.0f}, 0.0f);
     private final NodeBoxDocument document;
 
     private JPopupMenu networkMenu;
@@ -324,6 +327,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         Node inputNode = findNodeWithName(connection.getInputNode());
         Port inputPort = inputNode.getInput(connection.getInputPort());
         g.setColor(portTypeColor(outputNode.getOutputType()));
+        if (connection.isFeedbackLoop())
+            g.setStroke(FEEDBACK_STROKE);
+        else
+            g.setStroke(CONNECTION_STROKE);
         Rectangle outputRect = nodeRect(outputNode);
         Rectangle inputRect = nodeRect(inputNode);
         paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, inputRect.x + portOffset(inputNode, inputPort) + 4, inputRect.y - 4);
@@ -335,6 +342,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         if (connectionOutput != null) {
             Rectangle outputRect = nodeRect(connectionOutput);
             g.setColor(portTypeColor(connectionOutput.getOutputType()));
+            if (isShiftPressed)
+                g.setStroke(FEEDBACK_STROKE);
+            else
+                g.setStroke(CONNECTION_STROKE);
             paintConnectionLine(g, outputRect.x + 4, outputRect.y + outputRect.height + 1, (int) connectionPoint.getX(), (int) connectionPoint.getY());
         }
     }
@@ -837,7 +848,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 if (isAltPressed)
                     getDocument().stopEditing();
                 if (connectionOutput != null && connectionInput != null) {
-                    getDocument().connect(connectionOutput.getName(), connectionInput.node, connectionInput.port);
+                    Connection.Type connectionType = isShiftPressed ? Connection.Type.FEEDBACK : Connection.Type.STANDARD;
+                    getDocument().connect(connectionOutput.getName(), connectionInput.node, connectionInput.port, connectionType);
                 }
                 connectionOutput = null;
                 repaint();

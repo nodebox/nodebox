@@ -200,7 +200,7 @@ public class NodeLibraryController {
                 subnet = subnet.publish(inputNodeName, c.getInputPort(), portName);
                 newParent = newParent
                         .withChildReplaced(subnet.getName(), subnet)
-                        .connect(outputNodeName, subnet.getName(), portName);
+                        .connect(outputNodeName, subnet.getName(), portName, c.getType());
             }
         }
 
@@ -229,7 +229,7 @@ public class NodeLibraryController {
             // Subnetwork output connection(s).
             for (Connection c : parent.getConnections()) {
                 if (renderedChild.equals(c.getOutputNode()) && newParent.hasChild(c.getInputNode()))
-                    newParent = newParent.connect(subnet.getName(), c.getInputNode(), c.getInputPort());
+                    newParent = newParent.connect(subnet.getName(), c.getInputNode(), c.getInputPort(), c.getType());
             }
         }
 
@@ -371,7 +371,11 @@ public class NodeLibraryController {
     }
 
     public void connect(String parentPath, String outputNode, String inputNode, String inputPort) {
-        Node newParent = getNode(parentPath).connect(outputNode, inputNode, inputPort);
+        connect(parentPath, outputNode, inputNode, inputPort, Connection.Type.STANDARD);
+    }
+
+    public void connect(String parentPath, String outputNode, String inputNode, String inputPort, Connection.Type connectionType) {
+        Node newParent = getNode(parentPath).connect(outputNode, inputNode, inputPort, connectionType);
         replaceNodeInPath(parentPath, newParent);
     }
 

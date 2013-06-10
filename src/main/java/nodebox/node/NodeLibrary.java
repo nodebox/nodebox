@@ -656,10 +656,12 @@ public class NodeLibrary {
     private static Connection parseConnection(XMLStreamReader reader) throws XMLStreamException {
         String outputNode = reader.getAttributeValue(null, "output");
         String input = reader.getAttributeValue(null, "input");
+        String type = reader.getAttributeValue(null, "type");
         Iterator<String> inputIterator = PORT_NAME_SPLITTER.split(input).iterator();
         String inputNode = inputIterator.next();
         String inputPort = inputIterator.next();
-        return new Connection(outputNode, inputNode, inputPort);
+        if (type == null) type = "standard";
+        return new Connection(outputNode, inputNode, inputPort, Connection.Type.valueOf(type.toUpperCase()));
     }
 
     ///// Mutation methods ////

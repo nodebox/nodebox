@@ -25,7 +25,6 @@ public final class Port {
     public static final String TYPE_GEOMETRY = "geometry";
     public static final String TYPE_CONTEXT = "context";
     public static final String TYPE_STATE = "state";
-    public static final String TYPE_PREVIOUS = "previous";
 
     public enum Attribute {NAME, TYPE, LABEL, CHILD_REFERENCE, WIDGET, RANGE, VALUE, DESCRIPTION, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
 

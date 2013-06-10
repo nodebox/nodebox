@@ -350,6 +350,8 @@ public class NDBXWriter {
         Element connElement = doc.createElement("conn");
         connElement.setAttribute("output", String.format("%s", conn.getOutputNode()));
         connElement.setAttribute("input", String.format("%s.%s", conn.getInputNode(), conn.getInputPort()));
+        if (conn.isFeedbackLoop())
+            connElement.setAttribute("type", conn.getType().toString().toLowerCase());
         parent.appendChild(connElement);
     }
 
