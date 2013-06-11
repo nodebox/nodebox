@@ -814,7 +814,8 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 connectionInput = getInputPortAt(pt);
                 if (connectionInput != null) {
                     // We're over a port, but is it connected?
-                    Connection c = getActiveNetwork().getConnection(connectionInput.node, connectionInput.port);
+                    Connection.Type type = isShiftPressed ? Connection.Type.FEEDBACK : Connection.Type.STANDARD;
+                    Connection c = getActiveNetwork().getConnection(connectionInput.node, connectionInput.port, type);
                     // Disconnect it, but start a new connection on the same node immediately.
                     if (c != null) {
                         getDocument().disconnect(c);
