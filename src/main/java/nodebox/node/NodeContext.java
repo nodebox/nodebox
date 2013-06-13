@@ -189,6 +189,7 @@ public final class NodeContext {
             }
         }
         nodeArgumentsResults.put(nodeArguments, resultsList);
+        renderResults.put(nodeArguments.node, resultsList);
         return resultsList;
     }
 
