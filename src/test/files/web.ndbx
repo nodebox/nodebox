@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx type="file" uuid="bf383dad-b331-4be9-ae9e-f4ab4e14bad5">
+    <link href="javascript:web.js" rel="functions"/>
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <node name="root" prototype="core.network" renderedChild="add42">
+        <node name="add42" position="1.00,1.00" outputType="float" function="web/add42">
+            <port name="number" range="value" type="float" value="0.00" widget="float"/>
+        </node>
+    </node>
+</ndbx>

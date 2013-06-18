@@ -122,6 +122,11 @@ final class JavaScriptLibrary extends FunctionLibrary {
     }
 
     @Override
+    public File getFile() {
+        return file;
+    }
+
+    @Override
     public Function getFunction(String name) {
         return functionMap.get(name);
     }

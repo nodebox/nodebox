@@ -60,6 +60,11 @@ public final class JavaLibrary extends FunctionLibrary {
         return "java:" + clazz.getName();
     }
 
+    @Override
+    public File getFile() {
+        return null;
+    }
+
     public String getSimpleIdentifier() {
         return getNamespace();
     }

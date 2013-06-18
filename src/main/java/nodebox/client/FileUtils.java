@@ -60,13 +60,7 @@ public class FileUtils {
     private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
         FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
         if (pathName == null || pathName.trim().length() == 0) {
-            NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
-            if (document != null) {
-                File documentFile = document.getDocumentFile();
-                if (documentFile != null) {
-                    fileDialog.setDirectory(documentFile.getParentFile().getPath());
-                }
-            }
+            setDirectoryToCurrentFile(fileDialog);
         } else {
             File f = new File(pathName);
             if (f.isDirectory()) {
@@ -97,6 +91,30 @@ public class FileUtils {
             return null;
         }
 
+    }
+
+    public static File chooseDirectory(Frame owner) {
+        FileDialog dialog = new FileDialog(owner, "Choose a Directory", FileDialog.SAVE);
+        System.setProperty("apple.awt.fileDialogForDirectories", "true");
+        setDirectoryToCurrentFile(dialog);
+        dialog.setVisible(true);
+        String directory = dialog.getDirectory();
+        String file = dialog.getFile();
+        if (file != null) {
+            return new File(directory, file);
+        } else {
+            return null;
+        }
+    }
+
+    private static void setDirectoryToCurrentFile(FileDialog dialog) {
+        NodeBoxDocument document = NodeBoxDocument.getCurrentDocument();
+        if (document != null) {
+            File documentFile = document.getDocumentFile();
+            if (documentFile != null) {
+                dialog.setDirectory(documentFile.getParentFile().getPath());
+            }
+        }
     }
 
     public static String[] parseExtensions(String extensions) {

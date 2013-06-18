@@ -63,6 +63,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         fileMenu.add(new ExportAction());
         fileMenu.add(new ExportRangeAction());
         fileMenu.add(new ExportMovieAction());
+        fileMenu.add(new ExportToWebAction());
         if (!Platform.onMac()) {
             fileMenu.addSeparator();
             fileMenu.add(new ExitAction());
@@ -360,6 +361,16 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public void actionPerformed(ActionEvent e) {
             getDocument().exportMovie();
+        }
+    }
+
+    public class ExportToWebAction extends AbstractDocumentAction {
+        public ExportToWebAction() {
+            putValue(NAME, "Export To Web...");
+        }
+
+        public void actionPerformed(ActionEvent e) {
+            getDocument().exportToWeb();
         }
     }
 

@@ -20,7 +20,7 @@ public abstract class FunctionLibrary {
     public static FunctionLibrary load(String href) {
         return load(null, href);
     }
-    
+
     public static FunctionLibrary load(File file, String href) {
         Matcher hrefMatcher = HREF_PATTERN.matcher(href);
         checkArgument(hrefMatcher.matches(), "Library identifier should be in the form language:filename.ext");
@@ -35,6 +35,8 @@ public abstract class FunctionLibrary {
             return ClojureLibrary.loadScript(file, identifier);
         } else if (language.equals("python")) {
             return PythonLibrary.loadScript(file, identifier);
+        } else if (language.equals("javascript")) {
+            return JavaScriptLibrary.loadScript(file, identifier);
         } else {
             throw new LoadException(file, "Unknown function library type " + language + ".");
         }
@@ -43,7 +45,7 @@ public abstract class FunctionLibrary {
     public static FunctionLibrary ofClass(String namespace, Class c, String... methodNames) {
         return JavaLibrary.ofClass(namespace, c, methodNames);
     }
-    
+
     public abstract String getSimpleIdentifier();
 
     public abstract String getNamespace();
@@ -60,7 +62,7 @@ public abstract class FunctionLibrary {
     public String getLink() {
         return getLink(null);
     }
-    
+
     /**
      * Get the name of the library as it should be written when linking to this library.
      * <p/>
@@ -71,10 +73,17 @@ public abstract class FunctionLibrary {
      */
     public abstract String getLink(File baseFile);
 
+    /**
+     * Get the file that contains the library's code.
+     *
+     * @return the File or null if the code is not contained in a file.
+     */
+    public abstract File getFile();
+
     public abstract Function getFunction(String name);
 
     public abstract boolean hasFunction(String name);
-    
+
     public void reload() {
     }
 

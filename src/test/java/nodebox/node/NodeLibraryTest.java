@@ -8,6 +8,7 @@ import nodebox.function.ListFunctions;
 import nodebox.function.MathFunctions;
 import nodebox.graphics.Color;
 import nodebox.graphics.Point;
+import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 import org.junit.Test;
 
@@ -702,6 +703,25 @@ public class NodeLibraryTest {
         NodeLibrary newLibrary = NodeLibrary.load("test", xml, NodeRepository.of());
         assertTrue(newLibrary.hasProperty("alpha"));
         assertEquals("42", newLibrary.getProperty("alpha"));
+    }
+
+    @Test
+    public void testJavaScriptExport() {
+        File exportDirectory = new File("tmp");
+        exportDirectory.mkdirs();
+
+        NodeLibrary library = NodeLibrary.load(new File("src/test/files/web.ndbx"), NodeRepository.of());
+        library.exportToWeb(exportDirectory);
+
+        assertFileExists(new File(exportDirectory, "index.html"));
+        assertFileExists(new File(exportDirectory, "web.js"));
+        assertFileExists(new File(exportDirectory, "nodecore.js"));
+
+        FileUtils.deleteDirectory(exportDirectory);
+    }
+
+    private void assertFileExists(File file) {
+        assertTrue("File " + file + " does not exist.", file.exists());
     }
 
     public Node makeLetterMenuNode() {

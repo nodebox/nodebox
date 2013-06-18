@@ -142,7 +142,7 @@ public class NDBXWriter {
      * @param nodeRepository The list of node libraries to look for the node.
      * @return the node id, in the format libraryname.nodename.
      */
-    private static String findNodeId(Node node, NodeRepository nodeRepository) {
+    public static String findNodeId(Node node, NodeRepository nodeRepository) {
         NodeLibrary library = nodeRepository.nodeLibraryForNode(node);
         if (library == null) {
             return node.getName();

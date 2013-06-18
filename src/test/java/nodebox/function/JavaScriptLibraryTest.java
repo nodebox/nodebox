@@ -22,7 +22,7 @@ public class JavaScriptLibraryTest {
 
     @Test
     public void testLoadUnderscore() {
-        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("src/test/javascript/underscore.js");
+        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("src/main/resources/underscore.js");
         assertEquals("_", lib.getNamespace());
         assertTrue(lib.hasFunction("uniq"));
         Function fn = lib.getFunction("uniq");

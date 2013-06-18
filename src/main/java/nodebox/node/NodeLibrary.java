@@ -4,30 +4,53 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.gson.*;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
-import javax.xml.stream.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NodeLibrary {
 
-    private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
-
     public static final String CURRENT_FORMAT_VERSION = "17";
-
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
-
     public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
+    private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
+    private final String name;
+    private final File file;
+    private final Node root;
+    private final NodeRepository nodeRepository;
+    private final FunctionRepository functionRepository;
+    private final ImmutableMap<String, String> properties;
+    private final ImmutableList<Device> devices;
+    private final UUID uuid;
+
+    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, Map<String, String> properties, List<Device> devices, UUID uuid) {
+        checkNotNull(name, "Name cannot be null.");
+        checkNotNull(root, "Root node cannot be null.");
+        checkNotNull(functionRepository, "Function repository cannot be null.");
+        this.name = name;
+        this.root = root;
+        this.nodeRepository = nodeRepository;
+        this.functionRepository = functionRepository;
+        this.file = file;
+        this.properties = ImmutableMap.copyOf(properties);
+        this.devices = ImmutableList.copyOf(devices);
+        this.uuid = uuid;
+    }
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
@@ -77,7 +100,7 @@ public class NodeLibrary {
         }
     }
 
-    public static Map<String,String> parseHeader(File f) {
+    public static Map<String, String> parseHeader(File f) {
         try {
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(createFileReader(f));
@@ -100,8 +123,8 @@ public class NodeLibrary {
         return Collections.emptyMap();
     }
 
-    private static Map<String,String> parseHeader(XMLStreamReader reader) throws XMLStreamException {
-        Map<String,String> propertyMap  = new HashMap<String, String>();
+    private static Map<String, String> parseHeader(XMLStreamReader reader) throws XMLStreamException {
+        Map<String, String> propertyMap = new HashMap<String, String>();
         while (true) {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
@@ -120,11 +143,11 @@ public class NodeLibrary {
 
     /**
      * Create a file reader using the UTF-8 encoding.
-     *
+     * <p/>
      * Unfortunately, Java's FileReader constructor does not accept an encoding, which is an oversight in the API.
      * Instead, it opts to create a reader with the default platform encoding. This means it differs between platforms,
      * and even inside and outside of the IDE.
-     *
+     * <p/>
      * This method removes the ambiguity and always reads files in UTF-8.
      *
      * @param file the file to read.
@@ -137,199 +160,6 @@ public class NodeLibrary {
             throw new RuntimeException(e);
         }
     }
-
-    private final String name;
-    private final File file;
-    private final Node root;
-    private final NodeRepository nodeRepository;
-    private final FunctionRepository functionRepository;
-    private final ImmutableMap<String, String> properties;
-    private final ImmutableList<Device> devices;
-    private final UUID uuid;
-
-    private NodeLibrary(String name, File file, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, Map<String, String> properties, List<Device> devices, UUID uuid) {
-        checkNotNull(name, "Name cannot be null.");
-        checkNotNull(root, "Root node cannot be null.");
-        checkNotNull(functionRepository, "Function repository cannot be null.");
-        this.name = name;
-        this.root = root;
-        this.nodeRepository = nodeRepository;
-        this.functionRepository = functionRepository;
-        this.file = file;
-        this.properties = ImmutableMap.copyOf(properties);
-        this.devices = ImmutableList.copyOf(devices);
-        this.uuid = uuid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public File getFile() {
-        return file;
-    }
-
-    public UUID getUuid() {
-        return uuid;
-    }
-
-    public Node getRoot() {
-        return root;
-    }
-
-    public Node getNodeForPath(String path) {
-        checkArgument(path.startsWith("/"), "Only absolute paths are supported.");
-        if (path.length() == 1) return root;
-
-        Node node = root;
-        path = path.substring(1);
-        for (String name : Splitter.on("/").split(path)) {
-            node = node.getChild(name);
-            if (node == null) return null;
-        }
-        return node;
-    }
-
-    public NodeRepository getNodeRepository() {
-        return nodeRepository;
-    }
-
-    public FunctionRepository getFunctionRepository() {
-        return functionRepository;
-    }
-
-    //// Properties ////
-
-    public boolean hasProperty(String name) {
-        return properties.containsKey(name);
-    }
-
-    public String getProperty(String name) {
-        return properties.get(name);
-    }
-
-    public Set<String> getPropertyNames() {
-        return properties.keySet();
-    }
-
-    public String getProperty(String name, String defaultValue) {
-        if (hasProperty(name)) {
-            return properties.get(name);
-        } else {
-            return defaultValue;
-        }
-    }
-
-    public Map<String, String> getProperties() {
-        return properties;
-    }
-
-    public boolean isValidPropertyName(String name) {
-        checkNotNull(name);
-        // no whitespace, only lowercase, numbers + period.
-        return true;
-    }
-
-    public NodeLibrary withProperty(String name, String value) {
-        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
-        checkArgument(isValidPropertyName(name), "Property name '%s' is not valid.", name);
-        b.putAll(properties);
-        b.put(name, value);
-        return withProperties(b.build());
-    }
-
-    public NodeLibrary withPropertyRemoved(String name) {
-        if (!hasProperty(name)) return this;
-        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
-        for (Map.Entry<String, String> entry : this.properties.entrySet()) {
-            if (!entry.getKey().equals(name)) {
-                b.put(entry);
-            }
-        }
-        return withProperties(b.build());
-    }
-
-    public NodeLibrary withProperties(Map<String, String> properties) {
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, ImmutableMap.copyOf(properties), this.devices, this.uuid);
-    }
-
-
-    public ImmutableList<Device> getDevices() {
-        return devices;
-    }
-
-    public boolean hasDevice(String name) {
-        for (Device device : devices) {
-            if (device.getName().equals(name))
-                return true;
-        }
-        return false;
-    }
-
-    public Device getDevice(String name) {
-        for (Device device : devices) {
-            if (device.getName().equals(name))
-                return device;
-        }
-        return null;
-    }
-
-    public NodeLibrary withDeviceAdded(Device device) {
-        checkNotNull(device, "Device cannot be null.");
-        checkArgument(! hasDevice(device.getName()), "There is already a device named %s", device.getName());
-        ImmutableList.Builder<Device> b = ImmutableList.builder();
-        b.addAll(getDevices());
-        b.add(device);
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
-    }
-
-    public NodeLibrary withDeviceRemoved(Device device) {
-        return withDeviceRemoved(device.getName());
-    }
-
-    public String uniqueName(String prefix) {
-        Matcher m = NUMBER_AT_THE_END.matcher(prefix);
-        m.find();
-        String namePrefix = m.group(1);
-        String number = m.group(2);
-        int counter;
-        if (number.length() > 0) {
-            counter = Integer.parseInt(number);
-        } else {
-            counter = 1;
-        }
-        while (true) {
-            String suggestedName = namePrefix + counter;
-            if (!hasDevice(suggestedName)) {
-                return suggestedName;
-            }
-            ++counter;
-        }
-    }
-
-    public NodeLibrary withDeviceRemoved(String name) {
-        ImmutableList.Builder<Device> b = ImmutableList.builder();
-        for (Device device : getDevices()) {
-            if (! device.getName().equals(name))
-                b.add(device);
-        }
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
-    }
-
-    public NodeLibrary withDevicePropertyChanged(String deviceName, String propertyName, String propertyValue) {
-        checkArgument(hasDevice(deviceName), "No device %s present.");
-        Device newDevice = getDevice(deviceName).withProperty(propertyName, propertyValue);
-        ImmutableList.Builder<Device> b = ImmutableList.builder();
-        for (Device device : getDevices()) {
-            if (device.getName().equals(deviceName))
-                b.add(newDevice);
-            else
-                b.add(device);
-        }
-        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
-    }
-
-    //// Loading ////
 
     private static NodeLibrary load(String libraryName, File file, Reader r, NodeRepository nodeRepository) throws XMLStreamException {
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -444,22 +274,23 @@ public class NodeLibrary {
     /**
      * Parse the <node> tag's attribute values.
      */
-    private static Map<String,String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
+    private static Map<String, String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
         Map<String, String> attributeMap = new HashMap<String, String>();
         String[] attributes = {"prototype", "name", "category", "description", "image", "function",
-                               "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
+                "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
         for (String attribute : attributes)
             parseNodeAttribute(reader, attributeMap, attribute);
         return attributeMap;
     }
 
+    //// Properties ////
+
     /**
-     *
      * @param attributeMap   The map containing node attributes.
      * @param extendFromNode The node from which to extend when there is no specified prototype.
      * @param parent         The parent node.
      * @param nodeRepository The node library dependencies.
-     * @return  A new node.
+     * @return A new node.
      */
 
     private static Node createNode(Map<String, String> attributeMap, Node extendFromNode, Node parent, NodeRepository nodeRepository) {
@@ -525,7 +356,7 @@ public class NodeLibrary {
                 String tagName = reader.getLocalName();
 
                 if (tagName.equals("node") || tagName.equals("importCoreNode")) {
-                    if (prototypeId == null && ! node.isNetwork())
+                    if (prototypeId == null && !node.isNetwork())
                         node = createNode(attributeMap, Node.NETWORK, parent, nodeRepository);
                 }
 
@@ -662,6 +493,186 @@ public class NodeLibrary {
         return new Connection(outputNode, inputNode, inputPort);
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public Node getRoot() {
+        return root;
+    }
+
+    public Node getNodeForPath(String path) {
+        checkArgument(path.startsWith("/"), "Only absolute paths are supported.");
+        if (path.length() == 1) return root;
+
+        Node node = root;
+        path = path.substring(1);
+        for (String name : Splitter.on("/").split(path)) {
+            node = node.getChild(name);
+            if (node == null) return null;
+        }
+        return node;
+    }
+
+    public NodeRepository getNodeRepository() {
+        return nodeRepository;
+    }
+
+    public FunctionRepository getFunctionRepository() {
+        return functionRepository;
+    }
+
+    public boolean hasProperty(String name) {
+        return properties.containsKey(name);
+    }
+
+    public String getProperty(String name) {
+        return properties.get(name);
+    }
+
+    public Set<String> getPropertyNames() {
+        return properties.keySet();
+    }
+
+    public String getProperty(String name, String defaultValue) {
+        if (hasProperty(name)) {
+            return properties.get(name);
+        } else {
+            return defaultValue;
+        }
+    }
+
+    private int getPropertyAsInt(String name, int defaultValue) {
+        String v = getProperty(name);
+        if (v != null) {
+            try {
+                return Integer.valueOf(v);
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        } else {
+            return defaultValue;
+        }
+    }
+
+    //// Loading ////
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public boolean isValidPropertyName(String name) {
+        checkNotNull(name);
+        // no whitespace, only lowercase, numbers + period.
+        return true;
+    }
+
+    public NodeLibrary withProperty(String name, String value) {
+        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+        checkArgument(isValidPropertyName(name), "Property name '%s' is not valid.", name);
+        b.putAll(properties);
+        b.put(name, value);
+        return withProperties(b.build());
+    }
+
+    public NodeLibrary withPropertyRemoved(String name) {
+        if (!hasProperty(name)) return this;
+        ImmutableMap.Builder<String, String> b = ImmutableMap.builder();
+        for (Map.Entry<String, String> entry : this.properties.entrySet()) {
+            if (!entry.getKey().equals(name)) {
+                b.put(entry);
+            }
+        }
+        return withProperties(b.build());
+    }
+
+    public NodeLibrary withProperties(Map<String, String> properties) {
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, ImmutableMap.copyOf(properties), this.devices, this.uuid);
+    }
+
+    public ImmutableList<Device> getDevices() {
+        return devices;
+    }
+
+    public boolean hasDevice(String name) {
+        for (Device device : devices) {
+            if (device.getName().equals(name))
+                return true;
+        }
+        return false;
+    }
+
+    public Device getDevice(String name) {
+        for (Device device : devices) {
+            if (device.getName().equals(name))
+                return device;
+        }
+        return null;
+    }
+
+    public NodeLibrary withDeviceAdded(Device device) {
+        checkNotNull(device, "Device cannot be null.");
+        checkArgument(!hasDevice(device.getName()), "There is already a device named %s", device.getName());
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        b.addAll(getDevices());
+        b.add(device);
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
+    }
+
+    public NodeLibrary withDeviceRemoved(Device device) {
+        return withDeviceRemoved(device.getName());
+    }
+
+    public String uniqueName(String prefix) {
+        Matcher m = NUMBER_AT_THE_END.matcher(prefix);
+        m.find();
+        String namePrefix = m.group(1);
+        String number = m.group(2);
+        int counter;
+        if (number.length() > 0) {
+            counter = Integer.parseInt(number);
+        } else {
+            counter = 1;
+        }
+        while (true) {
+            String suggestedName = namePrefix + counter;
+            if (!hasDevice(suggestedName)) {
+                return suggestedName;
+            }
+            ++counter;
+        }
+    }
+
+    public NodeLibrary withDeviceRemoved(String name) {
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        for (Device device : getDevices()) {
+            if (!device.getName().equals(name))
+                b.add(device);
+        }
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
+    }
+
+    public NodeLibrary withDevicePropertyChanged(String deviceName, String propertyName, String propertyValue) {
+        checkArgument(hasDevice(deviceName), "No device %s present.");
+        Device newDevice = getDevice(deviceName).withProperty(propertyName, propertyValue);
+        ImmutableList.Builder<Device> b = ImmutableList.builder();
+        for (Device device : getDevices()) {
+            if (device.getName().equals(deviceName))
+                b.add(newDevice);
+            else
+                b.add(device);
+        }
+        return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
+    }
+
     ///// Mutation methods ////
 
     public NodeLibrary withRoot(Node newRoot) {
@@ -692,12 +703,79 @@ public class NodeLibrary {
         NDBXWriter.write(this, file);
     }
 
-    //// Object overrides ////
+    //// Web export ////
+
+    public String toJSON() {
+        GsonBuilder b = new GsonBuilder();
+        b.registerTypeAdapter(Node.class, new NodeSerializer());
+        b.setPrettyPrinting();
+        Gson gson = b.create();
+        return gson.toJson(getRoot());
+    }
+
+    public void exportToWeb(File exportDirectory) {
+        // Make sure the export folder exists.
+        if (!exportDirectory.exists()) {
+            exportDirectory.mkdirs();
+        } else if (!exportDirectory.isDirectory()) {
+            throw new RuntimeException("Export location " + exportDirectory + " is not a directory.");
+        }
+
+        // Copy all JavaScript function libraries over.
+        ArrayList<File> javaScriptLibraries = new ArrayList<File>();
+        FunctionRepository repo = getFunctionRepository();
+        for (FunctionLibrary l : repo.getLibraries()) {
+            if (l.getLanguage().equals("javascript")) {
+                File f = l.getFile();
+                javaScriptLibraries.add(f);
+                FileUtils.copyFile(f, new File(exportDirectory, f.getName()));
+            }
+        }
+
+        // Copy core JavaScript libraries.
+        copyResourceToDirectory("/jquery.js", exportDirectory);
+        copyResourceToDirectory("/underscore.js", exportDirectory);
+        copyResourceToDirectory("/graphics.js", exportDirectory);
+        copyResourceToDirectory("/nodecore.js", exportDirectory);
+
+        // Write out the HTML file.
+        File htmlFile = new File(exportDirectory, "index.html");
+        try {
+            PrintWriter out = new PrintWriter(htmlFile);
+            out.write("<html><head>\n");
+            out.write("<script src=\"underscore.js\"></script>\n");
+            out.write("<script src=\"jquery.js\"></script>\n");
+            out.write("<script src=\"graphics.js\"></script>\n");
+            out.write("<script src=\"nodecore.js\"></script>\n");
+            for (File f : javaScriptLibraries) {
+                out.write("<script src=\"" + f.getName() + "\"></script>");
+            }
+            // TODO Add script libraries from function repository here.
+            out.write("</head><body>\n");
+            int canvasWidth = getPropertyAsInt("canvasWidth", 300);
+            int canvasHeight = getPropertyAsInt("canvasHeight", 300);
+            out.write(String.format("<canvas id=\"c\" width=\"%s\" height=\"%s\" ></canvas>\n", canvasWidth, canvasHeight));
+            out.write("<script>\nvar ndbx = " + toJSON() + "\n</script>\n");
+            out.write("<script>nodecore.renderLibrary(ndbx);</script>\n");
+            out.write("</body></html>\n");
+            out.close();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void copyResourceToDirectory(String resourceFile, File directory) {
+        FileUtils.writeStreamToFile(getClass().getResourceAsStream(resourceFile), new File(directory, resourceFile));
+    }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(name, root, functionRepository);
     }
+
+
+    //// Object overrides ////
 
     @Override
     public boolean equals(Object o) {
@@ -711,6 +789,38 @@ public class NodeLibrary {
     @Override
     public String toString() {
         return String.format("<NodeLibrary %s>", name);
+    }
+
+    private class NodeSerializer implements JsonSerializer<Node> {
+        @Override
+        public JsonElement serialize(Node node, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject o = new JsonObject();
+            o.addProperty("name", node.getName());
+            o.addProperty("prototype", NDBXWriter.findNodeId(node.getPrototype(), getNodeRepository()));
+            o.addProperty("function", node.getFunction());
+            if (node.hasRenderedChild()) {
+                o.addProperty("renderedChild", node.getRenderedChildName());
+            }
+
+            JsonArray children = new JsonArray();
+            for (Node child : node.getChildren()) {
+                children.add(context.serialize(child));
+            }
+            o.add("children", children);
+
+            JsonArray ports = new JsonArray();
+            for (Port port : node.getInputs()) {
+                ports.add(context.serialize(port));
+            }
+            o.add("ports", ports);
+
+            JsonArray connections = new JsonArray();
+            for (Connection c : node.getConnections()) {
+                connections.add(context.serialize(c));
+            }
+            o.add("connections", connections);
+            return o;
+        }
     }
 
 }

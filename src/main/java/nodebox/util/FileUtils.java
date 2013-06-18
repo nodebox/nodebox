@@ -3,6 +3,9 @@ package nodebox.util;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -59,7 +62,6 @@ public class FileUtils {
         return fileName.substring(i + 1).toLowerCase(Locale.US);
     }
 
-
     public static File showOpenDialog(Frame owner, String pathName, String extensions, String description) {
         return showFileDialog(owner, pathName, extensions, description, FileDialog.LOAD);
     }
@@ -90,36 +92,6 @@ public class FileUtils {
             ext[i++] = st.nextToken();
         }
         return ext;
-    }
-
-    public static class FileExtensionFilter extends FileFilter implements FilenameFilter {
-        String[] extensions;
-        String desc;
-
-        public FileExtensionFilter(String extensions, String desc) {
-            this.extensions = parseExtensions(extensions);
-            this.desc = desc;
-        }
-
-        public boolean accept(File f) {
-            return f.isDirectory() || accept(null, f.getName());
-        }
-
-        public boolean accept(File f, String s) {
-            String extension = FileUtils.getExtension(s);
-            if (extension != null) {
-                for (String extension1 : extensions) {
-                    if (extension1.equals("*") || extension1.equalsIgnoreCase(extension)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public String getDescription() {
-            return desc;
-        }
     }
 
     public static String readFile(File file) {
@@ -178,7 +150,6 @@ public class FileUtils {
         }
         return (directory.delete());
     }
-
 
     public static String getFullPath(File f) {
         try {
@@ -239,6 +210,103 @@ public class FileUtils {
             return getFullPath(target);
         } else {
             return getRelativePath(target, base);
+        }
+    }
+
+    /**
+     * Copy a file.
+     *
+     * @param sourceFile the source file.
+     * @param destFile   the destination file. Should not exist.
+     * @throws IOException If an error occurs.
+     */
+    public static void copyFile(File sourceFile, File destFile) {
+        if (!destFile.exists()) {
+            try {
+                destFile.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        FileChannel source = null;
+        FileChannel destination = null;
+
+        try {
+            source = new FileInputStream(sourceFile).getChannel();
+            destination = new FileOutputStream(destFile).getChannel();
+            destination.transferFrom(source, 0, source.size());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (source != null) {
+                try {
+                    source.close();
+                } catch (IOException ignored) {
+                }
+            }
+            if (destination != null) {
+                try {
+                    destination.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    public static void writeStreamToFile(InputStream stream, File file) {
+        ReadableByteChannel input = null;
+        FileChannel output = null;
+        try {
+            input = Channels.newChannel(stream);
+            output = new FileOutputStream(file).getChannel();
+            output.transferFrom(input, 0, Long.MAX_VALUE);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException ignored) {
+                }
+            }
+            if (output != null) {
+                try {
+                    output.close();
+                } catch (IOException ignored) {
+                }
+            }
+        }
+
+    }
+
+    public static class FileExtensionFilter extends FileFilter implements FilenameFilter {
+        String[] extensions;
+        String desc;
+
+        public FileExtensionFilter(String extensions, String desc) {
+            this.extensions = parseExtensions(extensions);
+            this.desc = desc;
+        }
+
+        public boolean accept(File f) {
+            return f.isDirectory() || accept(null, f.getName());
+        }
+
+        public boolean accept(File f, String s) {
+            String extension = FileUtils.getExtension(s);
+            if (extension != null) {
+                for (String extension1 : extensions) {
+                    if (extension1.equals("*") || extension1.equalsIgnoreCase(extension)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public String getDescription() {
+            return desc;
         }
     }
 }

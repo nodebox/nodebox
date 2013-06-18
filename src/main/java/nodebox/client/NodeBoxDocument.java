@@ -1556,6 +1556,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return false;
     }
 
+    public void exportToWeb() {
+        File exportDirectory = nodebox.client.FileUtils.chooseDirectory(this);
+        if (exportDirectory != null) {
+            getNodeLibrary().exportToWeb(exportDirectory);
+            try {
+                Desktop.getDesktop().open(exportDirectory);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     private int getCanvasWidth() {
         try {
             return Integer.parseInt(getNodeLibrary().getProperty("canvasWidth", "1000"));
