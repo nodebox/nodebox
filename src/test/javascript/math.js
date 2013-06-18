@@ -1,6 +1,6 @@
 // JavaScript math library for testing.
-var jsMath = {};
+var math = {};
 
-jsMath.add = function(a, b) {
+math.add = function(a, b) {
     return a + b;
 };

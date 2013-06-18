@@ -18,16 +18,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class FunctionRepository {
 
     public static FunctionRepository of(FunctionLibrary... libraries) {
-        ImmutableSet.Builder<FunctionLibrary> librarySet = ImmutableSet.builder();
-        librarySet.addAll(ImmutableSet.copyOf(libraries));
+        HashMap<String,FunctionLibrary> builder = new HashMap<String, FunctionLibrary>();
         // The core library is always included.
-        librarySet.add(CoreFunctions.LIBRARY);
-
-        ImmutableMap.Builder<String, FunctionLibrary> builder = ImmutableMap.builder();
-        for (FunctionLibrary library : librarySet.build()) {
+        builder.put(CoreFunctions.LIBRARY.getNamespace(), CoreFunctions.LIBRARY);
+        for (FunctionLibrary library : libraries) {
+            if (!builder.containsKey(library.getNamespace())) {
             builder.put(library.getNamespace(), library);
+            }
         }
-        return new FunctionRepository(builder.build());
+        return new FunctionRepository(ImmutableMap.copyOf(builder));
     }
 
     public static FunctionRepository combine(FunctionRepository... repositories) {

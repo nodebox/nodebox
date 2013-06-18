@@ -17,23 +17,17 @@ import java.io.IOException;
  */
 final class JavaScriptLibrary extends FunctionLibrary {
 
-    private final static Context globalContext;
-    private final static Scriptable globalScope;
-
-    static {
-        globalContext = Context.enter();
-        globalScope = globalContext.initStandardObjects();
-    }
-
-    private final String namespace;
+    private final Context context;
+    private final Scriptable scope;
     private final File file;
+    private String namespace;
     private ImmutableMap<String, Function> functionMap;
 
-
-    JavaScriptLibrary(String namespace, File file, ImmutableMap<String, Function> functionMap) {
-        this.namespace = namespace;
+    JavaScriptLibrary(File file) {
         this.file = file;
-        this.functionMap = functionMap;
+        context = Context.enter();
+        scope = context.initStandardObjects();
+        loadScript(file);
     }
 
     /**
@@ -62,17 +56,16 @@ final class JavaScriptLibrary extends FunctionLibrary {
         } else {
             file = new File(fileName);
         }
-        return loadScript(file);
+        return new JavaScriptLibrary(file);
     }
 
-    private static JavaScriptLibrary loadScript(File file) {
-        String namespace;
+    private void loadScript(File file) {
         ImmutableMap.Builder<String, Function> builder = ImmutableMap.builder();
 
         try {
-            Object[] beforeNamespaces = globalScope.getIds();
-            globalContext.evaluateReader(globalScope, new FileReader(file), file.getName(), 1, null);
-            Object[] afterNamespaces = globalScope.getIds();
+            Object[] beforeNamespaces = scope.getIds();
+            context.evaluateReader(scope, new FileReader(file), file.getName(), 1, null);
+            Object[] afterNamespaces = scope.getIds();
             if (beforeNamespaces.length == afterNamespaces.length) {
                 throw new LoadException(file, "JavaScript libraries did not define a namespace..");
             }
@@ -82,7 +75,7 @@ final class JavaScriptLibrary extends FunctionLibrary {
                 throw new LoadException(file, String.format("Namespace %s is not a string.", nsId));
             }
             namespace = (String) nsId;
-            Scriptable ns = (Scriptable) globalScope.get(namespace, globalScope);
+            Scriptable ns = (Scriptable) scope.get(namespace, scope);
             Object[] ids = ns.getIds();
             for (Object id : ids) {
                 String objectName = id.toString();
@@ -95,9 +88,7 @@ final class JavaScriptLibrary extends FunctionLibrary {
         } catch (IOException e) {
             throw new LoadException(file, String.format("Could not load file: " + e.getMessage()), e);
         }
-
-        return new JavaScriptLibrary(namespace, file, builder.build());
-
+        functionMap = builder.build();
     }
 
     @Override
@@ -136,7 +127,7 @@ final class JavaScriptLibrary extends FunctionLibrary {
         return functionMap.containsKey(name);
     }
 
-    private static final class JavaScriptFunction implements Function {
+    private final class JavaScriptFunction implements Function {
 
         private final String name;
         private final org.mozilla.javascript.Function fn;
@@ -153,7 +144,7 @@ final class JavaScriptLibrary extends FunctionLibrary {
 
         @Override
         public Object invoke(Object... args) throws Exception {
-            return fn.call(globalContext, globalScope, null, args);
+            return fn.call(context, scope, null, args);
         }
 
         @Override

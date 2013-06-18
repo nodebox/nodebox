@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx type="file" uuid="28d310d7-c61a-4a65-9308-eb8967d6a7e5">
+    <link href="java:nodebox.function.MathFunctions" rel="functions"/>
+    <link href="javascript:../javascript/math.js" rel="functions" />
+    <node name="root" prototype="core.network" renderedChild="add1">
+        <node name="add1" position="1.00,1.00" function="math/add">
+            <port name="value1" type="float" value="5.0"/>
+            <port name="value2" type="float" value="3.0"/>
+        </node>
+    </node>
+</ndbx>

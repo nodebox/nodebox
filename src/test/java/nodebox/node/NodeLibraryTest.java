@@ -706,6 +706,17 @@ public class NodeLibraryTest {
     }
 
     @Test
+    public void testDoubleNamespace() {
+        NodeLibrary library = NodeLibrary.load(new File("src/test/files/double-namespace.ndbx"), NodeRepository.of());
+        FunctionRepository repository = library.getFunctionRepository();
+        FunctionLibrary mathLibrary = repository.getLibrary("math");
+        assertEquals("java", mathLibrary.getLanguage());
+        assertEquals("java:nodebox.function.MathFunctions", mathLibrary.getLink());
+        library.getRoot().getChild("add1");
+        assertResultsEqual(library.getRoot(), library.getRoot().getChild("add1"), 8.0);
+    }
+
+    @Test
     public void testJavaScriptExport() {
         File exportDirectory = new File("tmp");
         exportDirectory.mkdirs();

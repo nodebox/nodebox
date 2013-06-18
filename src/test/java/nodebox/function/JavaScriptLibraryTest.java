@@ -10,7 +10,7 @@ public class JavaScriptLibraryTest {
     @Test
     public void testLoad() {
         JavaScriptLibrary lib = JavaScriptLibrary.loadScript("src/test/javascript/math.js");
-        assertEquals("jsMath", lib.getNamespace());
+        assertEquals("math", lib.getNamespace());
         assertTrue(lib.hasFunction("add"));
         Function fn = lib.getFunction("add");
         try {
