@@ -723,8 +723,9 @@ public class NodeLibrary {
 
         // Copy all JavaScript function libraries over.
         ArrayList<File> javaScriptLibraries = new ArrayList<File>();
-        FunctionRepository repo = getFunctionRepository();
-        for (FunctionLibrary l : repo.getLibraries()) {
+
+        FunctionRepository combinedRepository = FunctionRepository.combine(getNodeRepository().getFunctionRepository(), getFunctionRepository());
+        for (FunctionLibrary l : combinedRepository.getLibraries()) {
             if (l.getLanguage().equals("javascript")) {
                 File f = l.getFile();
                 javaScriptLibraries.add(f);
@@ -796,7 +797,6 @@ public class NodeLibrary {
         public JsonElement serialize(Node node, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject o = new JsonObject();
             o.addProperty("name", node.getName());
-            o.addProperty("prototype", NDBXWriter.findNodeId(node.getPrototype(), getNodeRepository()));
             o.addProperty("function", node.getFunction());
             if (node.hasRenderedChild()) {
                 o.addProperty("renderedChild", node.getRenderedChildName());

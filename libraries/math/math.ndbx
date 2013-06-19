@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx type="file" uuid="b299e4dc-c763-4008-b8cb-d631e03c5c0a">
     <link href="java:nodebox.function.MathFunctions" rel="functions"/>
+    <link href="javascript:math.js" rel="functions"/>
     <node description="Calculate using numbers." name="root" prototype="core.network" renderedChild="abs">
         <node category="math" description="Convert every number to a positive number." function="math/abs" image="abs.png" name="abs" position="1.00,1.00">
             <port name="value" range="value" type="float" value="0.0" widget="float"/>

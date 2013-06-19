@@ -99,7 +99,7 @@ public abstract class FunctionLibrary {
     public boolean equals(Object o) {
         if (!(o instanceof FunctionLibrary)) return false;
         final FunctionLibrary other = (FunctionLibrary) o;
-        return Objects.equal(getNamespace(), other.getNamespace());
+        return Objects.equal(getLink(), other.getLink());
     }
 
     @Override

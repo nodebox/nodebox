@@ -11,6 +11,7 @@ import org.mozilla.javascript.Scriptable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 
 /**
  * Function library implementation of JavaScript code.

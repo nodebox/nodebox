@@ -2,8 +2,9 @@ package nodebox.function;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import nodebox.node.Node;
 import nodebox.node.Port;
 
@@ -17,37 +18,35 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class FunctionRepository {
 
+    private final ImmutableMultimap<String, FunctionLibrary> libraryMap;
+    private final transient Map<String, Function> functionCache = new HashMap<String, Function>();
+
+    private FunctionRepository(ImmutableMultimap<String, FunctionLibrary> libraryMap) {
+        this.libraryMap = libraryMap;
+    }
+
     public static FunctionRepository of(FunctionLibrary... libraries) {
-        HashMap<String,FunctionLibrary> builder = new HashMap<String, FunctionLibrary>();
+        Multimap<String, FunctionLibrary> builder = LinkedHashMultimap.create();
         // The core library is always included.
         builder.put(CoreFunctions.LIBRARY.getNamespace(), CoreFunctions.LIBRARY);
         for (FunctionLibrary library : libraries) {
-            if (!builder.containsKey(library.getNamespace())) {
             builder.put(library.getNamespace(), library);
-            }
         }
-        return new FunctionRepository(ImmutableMap.copyOf(builder));
+        return new FunctionRepository(ImmutableMultimap.copyOf(builder));
     }
 
     public static FunctionRepository combine(FunctionRepository... repositories) {
-        ImmutableSet.Builder<FunctionLibrary> librarySet = ImmutableSet.builder();
+        Multimap<String, FunctionLibrary> builder = LinkedHashMultimap.create();
         // The core library is always included.
-        librarySet.add(CoreFunctions.LIBRARY);
+        builder.put(CoreFunctions.LIBRARY.getNamespace(), CoreFunctions.LIBRARY);
         for (FunctionRepository repository : repositories) {
-            librarySet.addAll(repository.getLibraries());
+            for (FunctionLibrary library : repository.getLibraries()) {
+                if (!builder.containsEntry(library.getNamespace(), library)) {
+                    builder.put(library.getNamespace(), library);
+                }
+            }
         }
-        ImmutableMap.Builder<String, FunctionLibrary> builder = ImmutableMap.builder();
-        for (FunctionLibrary library : librarySet.build()) {
-            builder.put(library.getNamespace(), library);
-        }
-        return new FunctionRepository(builder.build());
-    }
-
-    private final ImmutableMap<String, FunctionLibrary> libraryMap;
-    private final transient Map<String, Function> functionCache = new HashMap<String, Function>();
-
-    private FunctionRepository(ImmutableMap<String, FunctionLibrary> libraryMap) {
-        this.libraryMap = libraryMap;
+        return new FunctionRepository(ImmutableMultimap.copyOf(builder));
     }
 
     public void reload() {
@@ -70,9 +69,10 @@ public class FunctionRepository {
             checkArgument(functionParts.length == 2, "The function identifier should be in the form 'namespace/function'.");
             String namespace = functionParts[0];
             String functionName = functionParts[1];
-            FunctionLibrary library = libraryMap.get(namespace);
-            checkArgument(library != null, "Could not find function %s: unknown namespace.", identifier);
-            assert library != null; // To avoid a compiler warning.
+            Collection<FunctionLibrary> libraries = libraryMap.get(namespace);
+            checkArgument(!libraries.isEmpty(), "Could not find function %s: unknown namespace.", identifier);
+            // Get the first library.
+            FunctionLibrary library = libraries.iterator().next();
             checkArgument(library.hasFunction(functionName), "Could not find function %s: unknown function.", identifier);
             Function function = library.getFunction(functionName);
             functionCache.put(identifier, function);
@@ -106,6 +106,12 @@ public class FunctionRepository {
     }
 
     public FunctionLibrary getLibrary(String namespace) {
+        checkNotNull(namespace);
+        checkArgument(libraryMap.containsKey(namespace), "Could not find library %s: unknown namespace.", namespace);
+        return libraryMap.get(namespace).iterator().next();
+    }
+
+    public Collection<FunctionLibrary> getLibraries(String namespace) {
         checkNotNull(namespace);
         checkArgument(libraryMap.containsKey(namespace), "Could not find library %s: unknown namespace.", namespace);
         return libraryMap.get(namespace);
