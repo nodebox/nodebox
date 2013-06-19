@@ -33,7 +33,7 @@ nodecore.findPort = function (node, portName) {
 
 nodecore.findConnectionByInput = function (network, nodeName, portName) {
     return _.find(network.connections, function (conn) {
-        return conn.input === nodeName && conn.port === portName;
+        return conn.inputNode === nodeName && conn.inputPort === portName;
     });
 };
 
@@ -82,7 +82,7 @@ nodecore.connect = function (network, outputNode, inputNode, inputPort) {
 
 nodecore.disconnectInput = function (network, inputNode, inputPort) {
     network.connections = _.reject(network.connections, function (c) {
-        return c.input === inputNode.name && c.port === inputPort.name;
+        return c.inputNode === inputNode.name && c.inputPort === inputPort.name;
     });
     nodecore.drawNetworkView();
     nodecore.updateParameterView();
@@ -158,7 +158,7 @@ nodecore.evaluatePort = function (network, nodeName, portName) {
     var childPort = nodecore.findPort(childNode, portName);
     var connection = nodecore.findConnectionByInput(network, nodeName, portName);
     if (connection) {
-        var result = nodecore.evaluateChild(network, connection.output);
+        var result = nodecore.evaluateChild(network, connection.outputNode);
         // TODO convert the result.
         // TODO list matching.
         return result;
