@@ -98,6 +98,7 @@ public class FileUtils {
         System.setProperty("apple.awt.fileDialogForDirectories", "true");
         setDirectoryToCurrentFile(dialog);
         dialog.setVisible(true);
+        System.setProperty("apple.awt.fileDialogForDirectories", "false");
         String directory = dialog.getDirectory();
         String file = dialog.getFile();
         if (file != null) {
