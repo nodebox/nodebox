@@ -45,42 +45,6 @@ nodecore.setPortValue = function (node, portName, value) {
     port.value = value;
 };
 
-nodecore.lookupNode = function (prototypeId) {
-    var ns, name;
-    var names = prototypeId.split('.');
-    if (names.length == 1) {
-        ns = 'core';
-        name = names[0];
-    } else {
-        ns = names[0];
-        name = names[1];
-    }
-    var nodeLibrary = nodecore.library[ns];
-    return nodeLibrary[name];
-};
-
-nodecore.buildNode = function (nodeData) {
-    var prototype = nodeData.prototype || 'core.node';
-    var protoNode = nodecore.lookupNode(prototype);
-    if (!protoNode) {
-        console.log("Could not find prototype " + nodeData.prototype, nodeData);
-        return null;
-    }
-    var node = $.extend(true, {}, protoNode, nodeData);
-    var key;
-    for (key in nodeData.values) {
-        nodecore.setPortValue(node, key, node.values[key]);
-    }
-    return node;
-};
-
-// Build a network out of network data.
-// This resolves the prototypes and fills in port values.
-nodecore.buildNetwork = function (networkData) {
-    var children = _.map(networkData.children, nodecore.buildNode);
-    return $.extend(true, networkData, { children: children });
-};
-
 nodecore.randomPosition = function () {
     var r = function () {
         return Math.round(Math.random() * 250);
@@ -225,7 +189,7 @@ nodecore.evaluateChild = function (network, nodeName) {
 };
 
 nodecore.renderLibrary = function (ndbx) {
-    var network = nodecore.buildNetwork(ndbx);
+    var network = ndbx;
     var canvas = document.getElementById('c');
     var result = nodecore.evaluateNetwork(network);
     console.log(result);
