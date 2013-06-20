@@ -14,7 +14,6 @@ if (!console) {
 }
 
 nodecore.findNode = function (network, nodeName) {
-    console.log(network.children.size());
     return _.find(network.children, function (n) {
         return n.name === nodeName;
     });
@@ -128,9 +127,7 @@ nodecore.evaluatePort = function (network, nodeName, portName) {
 // Evaluate a child node in the network.
 // Returns a list of results.
 nodecore.evaluateChild = function (network, nodeName) {
-    console.log(network, nodeName);
     var childNode = nodecore.findNode(network, nodeName);
-    console.log(childNode);
     var portNames = _.pluck(childNode.ports, 'name');
     var argLists = _.map(portNames, _.partial(nodecore.evaluatePort, network, nodeName));
     var fn = nodecore.lookupFunction(childNode['function']);
