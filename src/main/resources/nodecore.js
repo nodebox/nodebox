@@ -101,7 +101,18 @@ nodecore.lookupFunction = function (functionName) {
     var names = functionName.split('/');
     var ns = names[0];
     var name = names[1];
-    return window[ns][name];
+    var functionNamespace = window[ns];
+    if (!functionNamespace) {
+        console.log('Function namespace "' + functionNamespace + '" not found.');
+        return null;
+    }
+    var fn = functionNamespace[name];
+    if (!fn) {
+        console.log('Function "' + functionName + '" not found.');
+        return null;
+    } else {
+        return fn;
+    }
 };
 
 nodecore.evaluateNetwork = function (network) {
