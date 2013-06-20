@@ -52,9 +52,7 @@ math.negate = function (v) {
 
 math.abs = Math.abs;
 
-math.noValues = function (values) {
-    values === null || values.isEmpty();
-};
+math.noValues = _.isEmpty;
 
 math.sum = function (values) {
     if (values.length === 0) {
@@ -69,18 +67,13 @@ math.sum = function (values) {
 };
 
 math.average = function (values) {
+    if (values === null || values.length === 0) return 0;
     return math.sum(values) / values.length;
 };
 
-math.max = function (values) {
-    // This doesn't work for lists with more than 65,535 elements.
-    return Math.max.apply(Math, values);
-};
+math.max = _.max;
 
-math.min = function (values) {
-    // This doesn't work for lists with more than 65,535 elements.
-    return Math.min.apply(Math, values);
-};
+math.min = _.min;
 
 math.ceil = Math.ceil;
 
