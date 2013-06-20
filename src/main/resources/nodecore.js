@@ -31,21 +31,6 @@ nodecore.findConnectionByInput = function (network, nodeName, portName) {
     });
 };
 
-nodecore.setPortValue = function (node, portName, value) {
-    var port = nodecore.findPort(node, portName);
-    if (!port) {
-        console.log("Could not find port " + portName, node, portName, value);
-    }
-    port.value = value;
-};
-
-nodecore.randomPosition = function () {
-    var r = function () {
-        return Math.round(Math.random() * 250);
-    };
-    return {x: r(), y: r()};
-};
-
 // Get the size of the of the largest list.
 nodecore.maxListSize = function (lists) {
     if (lists.length === 0) return 0;
@@ -156,7 +141,6 @@ nodecore.evaluateChild = function (network, nodeName) {
 };
 
 nodecore.renderLibrary = function (network, animate) {
-    var canvas = document.getElementById('c');
     var result = nodecore.evaluateNetwork(network);
     console.log(result);
     var ctx = document.getElementById('c').getContext('2d');
