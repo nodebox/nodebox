@@ -1,25 +1,20 @@
 var nodecore = {};
 
-// Contains all loaded libraries.
-nodecore.library = {};
+if (!console) {
+    var console = {};
+    var out = Packages.java.lang.System.out;
 
-nodecore.node = {
-    name: 'node',
-    outputType: 'float',
-    x: 0,
-    y: 0,
-    fn: null,
-    ports: []
-};
-
-nodecore.network = $.extend(true, {}, nodecore.node, {
-    children: [],
-    connections: []
-});
-
-nodecore.library['core'] = {'node': nodecore.node, 'network': nodecore.network};
+    console.log = function (s) {
+        for (var i = 0; i < arguments.length; i++) {
+            out['print(java.lang.Object)'](arguments[i]);
+            out.print(' ');
+        }
+        out.print('\n');
+    };
+}
 
 nodecore.findNode = function (network, nodeName) {
+    console.log(network.children.size());
     return _.find(network.children, function (n) {
         return n.name === nodeName;
     });
@@ -50,43 +45,6 @@ nodecore.randomPosition = function () {
         return Math.round(Math.random() * 250);
     };
     return {x: r(), y: r()};
-};
-
-nodecore.generateName = function (network, prefix) {
-    var i = 1;
-    var suggestedName = prefix + i;
-    while (nodecore.findNode(network, suggestedName)) {
-        i += 1;
-        suggestedName = prefix + i;
-    }
-    return suggestedName;
-};
-
-nodecore.createNode = function (network, prototypeName) {
-    var protoNode = nodecore.findNode(prototypeName);
-    var node = $.extend(true, {}, protoNode, nodecore.randomPosition());
-    node.name = nodecore.generateName(network, prototypeName);
-    network.children.push(node);
-    window._session.log({event: 'create', prototype: prototypeName, name: node.name});
-    nodecore.networkChanged();
-};
-
-nodecore.connect = function (network, outputNode, inputNode, inputPort) {
-    nodecore.disconnectInput(network, inputNode, inputPort);
-    network.connections.push({output: outputNode.name, input: inputNode.name, port: inputPort.name});
-    nodecore.drawNetworkView();
-    nodecore.updateParameterView();
-    nodecore.evaluateAndCheck();
-    window._session.log({event: 'connect', output: outputNode.name, input: inputNode.name, port: inputPort.name});
-};
-
-nodecore.disconnectInput = function (network, inputNode, inputPort) {
-    network.connections = _.reject(network.connections, function (c) {
-        return c.inputNode === inputNode.name && c.inputPort === inputPort.name;
-    });
-    nodecore.drawNetworkView();
-    nodecore.updateParameterView();
-    nodecore.evaluateAndCheck();
 };
 
 // Get the size of the of the largest list.
@@ -160,7 +118,6 @@ nodecore.evaluatePort = function (network, nodeName, portName) {
     if (connection) {
         var result = nodecore.evaluateChild(network, connection.outputNode);
         // TODO convert the result.
-        // TODO list matching.
         return result;
     } else {
         // Wrap the value in a list of 1. List cycling takes care of the rest.
@@ -171,10 +128,12 @@ nodecore.evaluatePort = function (network, nodeName, portName) {
 // Evaluate a child node in the network.
 // Returns a list of results.
 nodecore.evaluateChild = function (network, nodeName) {
+    console.log(network, nodeName);
     var childNode = nodecore.findNode(network, nodeName);
+    console.log(childNode);
     var portNames = _.pluck(childNode.ports, 'name');
     var argLists = _.map(portNames, _.partial(nodecore.evaluatePort, network, nodeName));
-    var fn = nodecore.lookupFunction(childNode.function);
+    var fn = nodecore.lookupFunction(childNode['function']);
     if (fn !== null) {
         var results = nodecore.cycleMap(fn, argLists);
         if (childNode.returnsList) {
@@ -183,7 +142,7 @@ nodecore.evaluateChild = function (network, nodeName) {
             return results;
         }
     } else {
-        console.log("Function " + childNode.function + " not found.", nodeName);
+        console.log("Function " + childNode['function'] + " not found.", nodeName);
         return [];
     }
 };
