@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx type="file" uuid="a2c19b18-d4c6-400f-9f6d-381a108da473">
     <link href="java:nodebox.function.ListFunctions" rel="functions"/>
+    <link href="javascript:list.js" rel="functions"/>
     <node description="Process all kinds of lists." name="root" renderedChild="reverse">
         <node description="Combine multiple lists into one." function="list/combine" image="combine.png" name="combine" outputRange="list" outputType="list" position="4.00,3.00" category="list">
             <port name="list1" range="list" type="list" widget="none" description="The first list."/>
