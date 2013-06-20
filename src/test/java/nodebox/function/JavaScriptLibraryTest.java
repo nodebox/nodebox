@@ -9,7 +9,7 @@ public class JavaScriptLibraryTest {
 
     @Test
     public void testLoad() {
-        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("src/test/javascript/math.js");
+        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/math/math.js");
         assertEquals("math", lib.getNamespace());
         assertTrue(lib.hasFunction("add"));
         Function fn = lib.getFunction("add");
@@ -21,11 +21,11 @@ public class JavaScriptLibraryTest {
     }
 
     @Test
-    public void testLoadUnderscore() {
-        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("src/main/resources/underscore.js");
-        assertEquals("_", lib.getNamespace());
-        assertTrue(lib.hasFunction("uniq"));
-        Function fn = lib.getFunction("uniq");
+    public void testListOperations() {
+        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/list/list.js");
+        assertEquals("list", lib.getNamespace());
+        assertTrue(lib.hasFunction("distinct"));
+        Function fn = lib.getFunction("distinct");
         try {
             Object o = fn.invoke(toJavaScriptArray(1, 2, 2, 3, 1));
             assertTrue(o instanceof NativeArray);

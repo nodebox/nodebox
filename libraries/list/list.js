@@ -45,3 +45,5 @@ list.slice = function (l, startIndex, size, invert) {
         return firstList.concat(secondList);
     }
 };
+
+list.distinct = _.uniq;
