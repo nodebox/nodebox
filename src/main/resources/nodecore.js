@@ -144,7 +144,7 @@ nodecore.evaluateChild = function (network, nodeName) {
     var fn = nodecore.lookupFunction(childNode['function']);
     if (fn !== null) {
         var results = nodecore.cycleMap(fn, argLists);
-        if (childNode.returnsList) {
+        if (childNode.outputRange === 'LIST') {
             return results[0];
         } else {
             return results;
@@ -155,8 +155,7 @@ nodecore.evaluateChild = function (network, nodeName) {
     }
 };
 
-nodecore.renderLibrary = function (ndbx) {
-    var network = ndbx;
+nodecore.renderLibrary = function (network, animate) {
     var canvas = document.getElementById('c');
     var result = nodecore.evaluateNetwork(network);
     console.log(result);
@@ -167,4 +166,20 @@ nodecore.renderLibrary = function (ndbx) {
     //grasp.drawOrigin(sourceCtx);
     ctx.fillStyle = 'black';
     g.draw(ctx, result);
+    core._currentFrame += 1;
+    if (animate) {
+        setTimeout(function () {
+            nodecore.renderLibrary(network, true);
+        }, 16);
+    }
+};
+
+var core = {};
+core.zero = function () {
+    return 0.0;
+};
+
+core._currentFrame = 1;
+core.frame = function () {
+    return core._currentFrame;
 };

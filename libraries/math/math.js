@@ -77,7 +77,7 @@ math.max = function (values) {
     return Math.max.apply(Math, values);
 };
 
-math.min = function(values) {
+math.min = function (values) {
     // This doesn't work for lists with more than 65,535 elements.
     return Math.min.apply(Math, values);
 };
@@ -116,4 +116,28 @@ math.logicOR = function (v1, v2, comparator) {
     } else {
         return false;
     }
+};
+
+math.sin = Math.sin;
+math.cos = Math.cos;
+math.tan = Math.tan;
+
+Math.pi = function () {
+    return Math.PI;
+};
+
+math.e = function () {
+    return Math.E;
+};
+
+math.sample = function(amount, start, end) {
+    if (amount === 0) return [];
+    if (amount === 1) return [start + (end - start) / 2];
+
+    var step = (end - start) / (amount - 1);
+    var values = [];
+    for (var i=0;i<amount;i++) {
+        values.push(start + step * i);
+    }
+    return values;
 };

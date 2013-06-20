@@ -40,3 +40,7 @@ corevector.ellipse = function (position, width, height) {
         ]
     };
 };
+
+corevector.makePoint = function(x, y) {
+    return {x: x, y: y};
+};

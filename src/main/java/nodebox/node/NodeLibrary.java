@@ -741,26 +741,29 @@ public class NodeLibrary {
         copyResourceToDirectory("/underscore.js", exportDirectory);
         copyResourceToDirectory("/graphics.js", exportDirectory);
         copyResourceToDirectory("/nodecore.js", exportDirectory);
+        copyResourceToDirectory("/ndbx.css", exportDirectory);
+
+        boolean autoStart = Boolean.parseBoolean(getProperty("autoStart", "false"));
 
         // Write out the HTML file.
         File htmlFile = new File(exportDirectory, "index.html");
         try {
             PrintWriter out = new PrintWriter(htmlFile);
             out.write("<html><head>\n");
+            out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>");
             out.write("<script src=\"underscore.js\"></script>\n");
             out.write("<script src=\"jquery.js\"></script>\n");
             out.write("<script src=\"graphics.js\"></script>\n");
             out.write("<script src=\"nodecore.js\"></script>\n");
             for (File f : javaScriptLibraries) {
-                out.write("<script src=\"" + f.getName() + "\"></script>");
+                out.write("<script src=\"" + f.getName() + "\"></script>\n");
             }
-            // TODO Add script libraries from function repository here.
             out.write("</head><body>\n");
             int canvasWidth = getPropertyAsInt("canvasWidth", 300);
             int canvasHeight = getPropertyAsInt("canvasHeight", 300);
             out.write(String.format("<canvas id=\"c\" width=\"%s\" height=\"%s\" ></canvas>\n", canvasWidth, canvasHeight));
             out.write("<script>\nvar ndbx = " + toJSON() + "\n</script>\n");
-            out.write("<script>nodecore.renderLibrary(ndbx);</script>\n");
+            out.write("<script>nodecore.renderLibrary(ndbx, " + Boolean.toString(autoStart) + ");</script>\n");
             out.write("</body></html>\n");
             out.close();
         } catch (FileNotFoundException e) {
@@ -801,6 +804,7 @@ public class NodeLibrary {
             JsonObject o = new JsonObject();
             o.addProperty("name", node.getName());
             o.addProperty("function", node.getFunction());
+            o.addProperty("outputRange", node.getOutputRange().toString());
             if (node.hasRenderedChild()) {
                 o.addProperty("renderedChild", node.getRenderedChildName());
             }
