@@ -261,7 +261,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public FunctionRepository getFunctionRepository() {
         if (invalidateFunctionRepository) {
-            functionRepository = FunctionRepository.combine(getNodeRepository().getFunctionRepository(), getNodeLibrary().getFunctionRepository());
+            functionRepository = getNodeLibrary().getCombinedFunctionRepository();
             invalidateFunctionRepository = false;
         }
         return functionRepository;

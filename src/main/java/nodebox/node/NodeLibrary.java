@@ -530,6 +530,10 @@ public class NodeLibrary {
         return functionRepository;
     }
 
+    public FunctionRepository getCombinedFunctionRepository() {
+        return FunctionRepository.combine(nodeRepository.getFunctionRepository(), getFunctionRepository());
+    }
+
     public boolean hasProperty(String name) {
         return properties.containsKey(name);
     }
@@ -724,8 +728,7 @@ public class NodeLibrary {
         // Copy all JavaScript function libraries over.
         ArrayList<File> javaScriptLibraries = new ArrayList<File>();
 
-        FunctionRepository combinedRepository = FunctionRepository.combine(getNodeRepository().getFunctionRepository(), getFunctionRepository());
-        for (FunctionLibrary l : combinedRepository.getLibraries()) {
+        for (FunctionLibrary l : getCombinedFunctionRepository().getLibraries()) {
             if (l.getLanguage().equals("javascript")) {
                 File f = l.getFile();
                 javaScriptLibraries.add(f);
