@@ -1,8 +1,10 @@
 package nodebox.function;
 
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Resources;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 import org.mozilla.javascript.Context;
@@ -11,7 +13,7 @@ import org.mozilla.javascript.Scriptable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
+import java.net.URL;
 
 /**
  * Function library implementation of JavaScript code.
@@ -28,7 +30,18 @@ final class JavaScriptLibrary extends FunctionLibrary {
         this.file = file;
         context = Context.enter();
         scope = context.initStandardObjects();
+
+        loadSourceFromResource("underscore.js");
         loadScript(file);
+    }
+
+    private static String getSource(String resourceName) {
+        try {
+            URL url = Resources.getResource(resourceName);
+            return Resources.toString(url, Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -58,6 +71,10 @@ final class JavaScriptLibrary extends FunctionLibrary {
             file = new File(fileName);
         }
         return new JavaScriptLibrary(file);
+    }
+
+    private Object loadSourceFromResource(String resourceName) {
+        return context.evaluateString(scope, getSource(resourceName), resourceName, 1, null);
     }
 
     private void loadScript(File file) {
