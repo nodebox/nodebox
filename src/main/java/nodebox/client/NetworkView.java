@@ -100,15 +100,15 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             throw new RuntimeException(e);
         }
 
-        PORT_COLORS.put(Port.TYPE_INT, new Color(116, 119, 121));
-        PORT_COLORS.put(Port.TYPE_FLOAT, new Color(116, 119, 121));
-        PORT_COLORS.put(Port.TYPE_STRING, new Color(92, 90, 91));
-        PORT_COLORS.put(Port.TYPE_BOOLEAN, new Color(92, 90, 91));
-        PORT_COLORS.put(Port.TYPE_POINT, new Color(119, 154, 173));
-        PORT_COLORS.put(Port.TYPE_COLOR, new Color(94, 85, 112));
+        PORT_COLORS.put(Port.TYPE_INT, new Color(114, 110, 111));
+        PORT_COLORS.put(Port.TYPE_FLOAT, new Color(114, 110, 111));
+        PORT_COLORS.put(Port.TYPE_STRING, new Color(74, 158, 105));
+        PORT_COLORS.put(Port.TYPE_BOOLEAN, new Color(150, 153, 154));
+        PORT_COLORS.put(Port.TYPE_POINT, new Color(125, 191, 232));
+        PORT_COLORS.put(Port.TYPE_COLOR, new Color(149, 64, 59));
         PORT_COLORS.put("geometry", new Color(20, 20, 20));
-        PORT_COLORS.put("list", new Color(76, 137, 174));
-        PORT_COLORS.put("data", new Color(52, 85, 129));
+        PORT_COLORS.put("list", new Color(68, 154, 207));
+        PORT_COLORS.put("data", new Color(22, 85, 173));
     }
 
     /**
