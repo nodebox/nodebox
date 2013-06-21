@@ -76,7 +76,16 @@ public class NodeTest {
                 .withChildAdded(Node.ROOT.withName("child"))
                 .withChildRenamed("child", "root");
     }
-
+    
+    @Test
+    public void testWithChildCommented() {
+    	Node alpha = Node.NETWORK.withName("alpha");
+    	Node beta = Node.ROOT.withName("beta");
+    	String testComment="test";
+    	alpha=alpha.withChildAdded(beta).withChildCommented("beta",testComment);
+    	assertTrue(alpha.getChild("beta").getComment().equals("test"));
+    }
+    
     @Test
     public void testChangeFunction() {
         Node test = Node.ROOT.extend().withFunction("test/test");
