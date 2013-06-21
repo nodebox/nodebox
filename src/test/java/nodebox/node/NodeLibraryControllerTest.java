@@ -278,7 +278,16 @@ public class NodeLibraryControllerTest {
         assertFalse(controller.getRootNode().hasChild("child"));
         assertTrue(controller.getRootNode().hasChild("n"));
     }
-
+    
+    @Test
+    public void testCommentNode() {
+        Node child = Node.ROOT.withName("child");
+        controller.addNode("/", child);
+        controller.commentNode("/", "child", "test");
+        assertTrue(controller.getRootNode().hasChild("child"));
+        assertTrue(controller.getNode("/child").getComment().equals("test"));
+    }
+    
     @Test
     public void testRenderedNodeRenaming() {
         Node child = Node.ROOT.withName("child");
