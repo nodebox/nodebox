@@ -357,7 +357,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkNotNull(comment);
         addEdit("Set Node Comment");
         controller.commentNode(activeNetworkPath, node.getName(), comment.trim());
-        requestRender();
     }
 
     /**
