@@ -92,6 +92,7 @@ public final class Node {
     public static final Node NETWORK = new Node(Nodes.NETWORK_NODE);
 
     public static final Map<String, Node> coreNodes;
+
     static {
         ImmutableMap.Builder<String, Node> builder = new ImmutableMap.Builder<String, Node>();
         builder.put("ROOT", ROOT);
@@ -101,7 +102,7 @@ public final class Node {
 
     private final Node prototype;
     private final String name;
-    private final String comment; 
+    private final String comment;
     private final String category;
     private final String description;
     private final String image;
@@ -176,7 +177,7 @@ public final class Node {
         checkArgument(!name.equals("network"), "The name network is a reserved internal name.");
         this.prototype = prototype;
         this.name = name;
-        this.comment=comment;
+        this.comment = comment;
         this.category = category;
         this.description = description;
         this.image = image;
@@ -202,11 +203,11 @@ public final class Node {
     public String getName() {
         return name;
     }
-    
+
     public String getComment() {
-    	return comment;
+        return comment;
     }
-    
+
     public String getCategory() {
         return category;
     }
@@ -359,7 +360,7 @@ public final class Node {
         } else if (attribute == Attribute.NAME) {
             return getName();
         } else if (attribute == Attribute.COMMENT) {
-        	return getComment();
+            return getComment();
         } else if (attribute == Attribute.CATEGORY) {
             return getCategory();
         } else if (attribute == Attribute.DESCRIPTION) {
@@ -477,19 +478,19 @@ public final class Node {
         validateName(name);
         return newNodeWithAttribute(Attribute.NAME, name);
     }
-    
+
     /**
      * Create a new node with the given comment.
      * <p/>
      * If you call this on ROOT, extend() is called implicitly.
      *
-     * @param name The new node comment.
+     * @param comment The new node comment.
      * @return A new Node.
      */
     public Node withComment(String comment) {
-    	return newNodeWithAttribute(Attribute.COMMENT, comment);
+        return newNodeWithAttribute(Attribute.COMMENT, comment);
     }
-    
+
     /**
      * Create a new node with the given category.
      * <p/>
@@ -626,9 +627,9 @@ public final class Node {
 
         return newParent;
     }
-    
+
     /**
-     * Create a new node with the given child node commented.
+     * Create a new node with a comment added to the given child.
      * <p/>
      * If you call this on ROOT, extend() is called implicitly.
      *
@@ -637,11 +638,10 @@ public final class Node {
      * @return A new Node.
      */
     public Node withChildCommented(String childName, String comment) {
-    	 Node newNode = getChild(childName).withName(childName).withComment(comment);
-         //Node newParent = withChildRemoved(childName).withChildAdded(newNode);
-    	 return withChildReplaced(childName, newNode);
+        Node newNode = getChild(childName).withComment(comment);
+        return withChildReplaced(childName, newNode);
     }
-    
+
     /**
      * Create a new node with the given child input port removed.
      * <p/>
@@ -1280,7 +1280,7 @@ public final class Node {
     private Node newNodeWithAttribute(Attribute attribute, Object value) {
         Node prototype = this.prototype;
         String name = this.name;
-        String comment=this.comment;
+        String comment = this.comment;
         String category = this.category;
         String description = this.description;
         String image = this.image;
@@ -1304,8 +1304,8 @@ public final class Node {
                 name = (String) value;
                 break;
             case COMMENT:
-            	comment= (String) value;
-            	break;
+                comment = (String) value;
+                break;
             case CATEGORY:
                 category = (String) value;
                 break;

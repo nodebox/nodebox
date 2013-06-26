@@ -7,7 +7,6 @@ import org.junit.Test;
 import java.util.List;
 
 import static nodebox.util.Assertions.assertResultsEqual;
-
 import static org.junit.Assert.*;
 
 public class NodeLibraryControllerTest {
@@ -90,7 +89,7 @@ public class NodeLibraryControllerTest {
 
     /**
      * Test that adding nodes gives them unique names.
-     * 
+     * <p/>
      * addNode() is only used for pasting.
      */
     @Test
@@ -218,7 +217,7 @@ public class NodeLibraryControllerTest {
         assertTrue(controller.getRootNode().hasChild("protoNode1"));
         assertSame(proto, controller.getNodeLibrary().getNodeForPath("/protoNode1").getPrototype());
     }
-    
+
     @Test
     public void testRemoveNode() {
         Node child = Node.ROOT.withName("child");
@@ -260,7 +259,7 @@ public class NodeLibraryControllerTest {
         assertTrue(rootNode.hasChild("protoNode2"));
         assertTrue(rootNode.hasChild("protoNode3"));
 
-        controller.removeNode("/","protoNode2");
+        controller.removeNode("/", "protoNode2");
         rootNode = controller.getRootNode();
         assertFalse(rootNode.hasChild("protoNode2"));
 
@@ -269,7 +268,7 @@ public class NodeLibraryControllerTest {
         assertTrue(rootNode.hasChild("protoNode2"));
         assertFalse(rootNode.hasChild("protoNode4"));
     }
-    
+
     @Test
     public void testSimpleRename() {
         Node child = Node.ROOT.withName("child");
@@ -278,7 +277,7 @@ public class NodeLibraryControllerTest {
         assertFalse(controller.getRootNode().hasChild("child"));
         assertTrue(controller.getRootNode().hasChild("n"));
     }
-    
+
     @Test
     public void testCommentNode() {
         Node child = Node.ROOT.withName("child");
@@ -287,7 +286,7 @@ public class NodeLibraryControllerTest {
         assertTrue(controller.getRootNode().hasChild("child"));
         assertTrue(controller.getNode("/child").getComment().equals("test"));
     }
-    
+
     @Test
     public void testRenderedNodeRenaming() {
         Node child = Node.ROOT.withName("child");
@@ -317,7 +316,7 @@ public class NodeLibraryControllerTest {
         controller.disconnect("/", c);
         assertEquals(0, controller.getRootNode().getConnections().size());
     }
-    
+
     @Test
     public void testRemoveNodeWithConnections() {
         createSimpleConnection();

@@ -10,14 +10,16 @@ import nodebox.graphics.Point;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
-import javax.xml.stream.*;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NodeLibrary {
 
@@ -77,7 +79,7 @@ public class NodeLibrary {
         }
     }
 
-    public static Map<String,String> parseHeader(File f) {
+    public static Map<String, String> parseHeader(File f) {
         try {
             XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(createFileReader(f));
@@ -100,8 +102,8 @@ public class NodeLibrary {
         return Collections.emptyMap();
     }
 
-    private static Map<String,String> parseHeader(XMLStreamReader reader) throws XMLStreamException {
-        Map<String,String> propertyMap  = new HashMap<String, String>();
+    private static Map<String, String> parseHeader(XMLStreamReader reader) throws XMLStreamException {
+        Map<String, String> propertyMap = new HashMap<String, String>();
         while (true) {
             int eventType = reader.next();
             if (eventType == XMLStreamConstants.START_ELEMENT) {
@@ -120,11 +122,11 @@ public class NodeLibrary {
 
     /**
      * Create a file reader using the UTF-8 encoding.
-     *
+     * <p/>
      * Unfortunately, Java's FileReader constructor does not accept an encoding, which is an oversight in the API.
      * Instead, it opts to create a reader with the default platform encoding. This means it differs between platforms,
      * and even inside and outside of the IDE.
-     *
+     * <p/>
      * This method removes the ambiguity and always reads files in UTF-8.
      *
      * @param file the file to read.
@@ -276,7 +278,7 @@ public class NodeLibrary {
 
     public NodeLibrary withDeviceAdded(Device device) {
         checkNotNull(device, "Device cannot be null.");
-        checkArgument(! hasDevice(device.getName()), "There is already a device named %s", device.getName());
+        checkArgument(!hasDevice(device.getName()), "There is already a device named %s", device.getName());
         ImmutableList.Builder<Device> b = ImmutableList.builder();
         b.addAll(getDevices());
         b.add(device);
@@ -310,7 +312,7 @@ public class NodeLibrary {
     public NodeLibrary withDeviceRemoved(String name) {
         ImmutableList.Builder<Device> b = ImmutableList.builder();
         for (Device device : getDevices()) {
-            if (! device.getName().equals(name))
+            if (!device.getName().equals(name))
                 b.add(device);
         }
         return new NodeLibrary(this.name, this.file, this.root, this.nodeRepository, this.functionRepository, this.properties, b.build(), this.uuid);
@@ -444,28 +446,27 @@ public class NodeLibrary {
     /**
      * Parse the <node> tag's attribute values.
      */
-    private static Map<String,String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
+    private static Map<String, String> parseNodeAttributes(XMLStreamReader reader) throws XMLStreamException {
         Map<String, String> attributeMap = new HashMap<String, String>();
         String[] attributes = {"prototype", "name", "comment", "category", "description", "image", "function",
-                               "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
+                "outputType", "outputRange", "position", "renderedChild", "handle", "alwaysRendered"};
         for (String attribute : attributes)
             parseNodeAttribute(reader, attributeMap, attribute);
         return attributeMap;
     }
 
     /**
-     *
      * @param attributeMap   The map containing node attributes.
      * @param extendFromNode The node from which to extend when there is no specified prototype.
      * @param parent         The parent node.
      * @param nodeRepository The node library dependencies.
-     * @return  A new node.
+     * @return A new node.
      */
 
     private static Node createNode(Map<String, String> attributeMap, Node extendFromNode, Node parent, NodeRepository nodeRepository) {
         String prototypeId = attributeMap.get("prototype");
         String name = attributeMap.get("name");
-        String comment = attributeMap.get("comment");//get the node comment
+        String comment = attributeMap.get("comment");
         String category = attributeMap.get("category");
         String description = attributeMap.get("description");
         String image = attributeMap.get("image");
@@ -482,8 +483,8 @@ public class NodeLibrary {
 
         if (name != null)
             node = node.withName(name);
-        if (comment != null)//create the node comment if not null
-        	node = node.withComment(comment);
+        if (comment != null)
+            node = node.withComment(comment);
         if (category != null)
             node = node.withCategory(category);
         if (description != null)
@@ -528,7 +529,7 @@ public class NodeLibrary {
                 String tagName = reader.getLocalName();
 
                 if (tagName.equals("node") || tagName.equals("importCoreNode")) {
-                    if (prototypeId == null && ! node.isNetwork())
+                    if (prototypeId == null && !node.isNetwork())
                         node = createNode(attributeMap, Node.NETWORK, parent, nodeRepository);
                 }
 
