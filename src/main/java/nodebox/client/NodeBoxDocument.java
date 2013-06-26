@@ -355,7 +355,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void setNodeComment(Node node, String comment) {
         checkNotNull(node);
         checkNotNull(comment);
-        controller.commentNode(activeNetworkPath, node.getName(), comment);
+        controller.commentNode(activeNetworkPath, node.getName(), comment.trim());
         // TODO Enable undo support.
         // addEdit not working, maybe comments shouldn't be added to undo manager
         // since they don't affect nodes in any way and also

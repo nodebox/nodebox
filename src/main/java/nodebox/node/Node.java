@@ -208,6 +208,10 @@ public final class Node {
         return comment;
     }
 
+    public boolean hasComment() {
+        return comment != null && !comment.trim().isEmpty();
+    }
+
     public String getCategory() {
         return category;
     }
