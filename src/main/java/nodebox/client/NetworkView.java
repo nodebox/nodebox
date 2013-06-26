@@ -1227,8 +1227,12 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
         public void actionPerformed(ActionEvent e) {
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
-            if (node != null)
+            if (node != null) {
                 getDocument().setNodeComment(node, "");
+                // Since this node no longer has a comment, we're no longer over a comment node.
+                overComment = null;
+                repaint();
+            }
         }
     }
 
@@ -1254,6 +1258,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
             if (node != null) {
                 createComment(node);
+                repaint();
             }
         }
     }
