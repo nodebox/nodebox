@@ -70,8 +70,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private JPopupMenu networkMenu;
     private Point networkMenuLocation;
 
-    private JPopupMenu nodeMenu; // Node menu for nodes without comment
-    private JPopupMenu nodeMenu2; // Node menu for nodes with comment
     private Point nodeMenuLocation;
 
     private LoadingCache<Node, BufferedImage> nodeImageCache;
@@ -93,7 +91,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
-    private Component goInSubnetworkMenuItem;
 
     static {
         try {
@@ -201,27 +198,27 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         networkMenu.add(new NewNodeAction());
         networkMenu.add(new ResetViewAction());
         networkMenu.add(new GoUpAction());
+    }
 
-        // nodemenu shows with nodes without comment
-        nodeMenu = new JPopupMenu();
-        nodeMenu.add(new SetRenderedAction());
-        nodeMenu.add(new RenameAction());
-        nodeMenu.add(new DeleteAction());
-        nodeMenu.add(new GroupIntoNetworkAction(null));
-        goInSubnetworkMenuItem = nodeMenu.add(new GoInAction());
-        nodeMenu.add(new AddCommentAction());
-        nodeMenu.add(new HelpAction());
+    private JPopupMenu createNodeMenu(Node node) {
+        JPopupMenu menu = new JPopupMenu();
+        menu.add(new SetRenderedAction());
+        menu.add(new RenameAction());
+        menu.add(new DeleteAction());
+        menu.add(new GroupIntoNetworkAction(null));
 
-        // nodemenu2 shows with commented nodes
-        nodeMenu2 = new JPopupMenu();
-        nodeMenu2.add(new SetRenderedAction());
-        nodeMenu2.add(new RenameAction());
-        nodeMenu2.add(new DeleteAction());
-        nodeMenu2.add(new GroupIntoNetworkAction(null));
-        goInSubnetworkMenuItem = nodeMenu2.add(new GoInAction());
-        nodeMenu2.add(new EditCommentAction());
-        nodeMenu2.add(new RemoveCommentAction());
-        nodeMenu2.add(new HelpAction());
+        if (node.isNetwork()) {
+            menu.add(new GoInAction());
+        }
+        if (!node.hasComment()) {
+            menu.add(new AddCommentAction());
+        } else {
+            menu.add(new EditCommentAction());
+            menu.add(new RemoveCommentAction());
+        }
+
+        menu.add(new HelpAction());
+        return menu;
     }
 
     public NodeBoxDocument getDocument() {
@@ -376,7 +373,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         for (Node node : getNodes()) {
             Port hoverInputPort = overInput != null && overInput.node.equals(node.getName()) ? findNodeWithName(overInput.node).getInput(overInput.port) : null;
             BufferedImage icon = getCachedImageForNode(node);
-            paintNode(g, getActiveNetwork(), node, icon, commentIcon, isSelected(node), renderedNode == node, hasComment(node), connectionOutput, hoverInputPort, overOutput == node);
+            paintNode(g, getActiveNetwork(), node, icon, commentIcon, isSelected(node), renderedNode == node, connectionOutput, hoverInputPort, overOutput == node);
         }
     }
 
@@ -403,7 +400,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         return name;
     }
 
-    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, BufferedImage commentIcon, boolean selected, boolean rendered, boolean commented, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+    private void paintNode(Graphics2D g, Node network, Node node, BufferedImage icon, BufferedImage commentIcon, boolean selected, boolean rendered, Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
         Rectangle r = nodeRect(node);
         String outputType = node.getOutputType();
 
@@ -485,7 +482,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g.drawString(getShortenedName(node.getName(), 7), r.x + NODE_ICON_SIZE + NODE_PADDING * 2 + 2, r.y + 22);
 
         // Draw comment icon
-        if (commented) {
+        if (node.hasComment()) {
             g.setColor(Color.GREEN);
             g.drawImage(commentIcon, r.x + NODE_WIDTH - 20, r.y + NODE_MARGIN, NODE_ICON_SIZE - 12, NODE_ICON_SIZE - 18, null);
         }
@@ -530,10 +527,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             int commentWidth = fontMetrics.stringWidth(overComment.getComment());
             g.setColor(Color.BLACK);
             if (commentBox.getWidth() > commentWidth)
-                g.drawImage(commentBox, (int) r.x + GRID_CELL_SIZE - NODE_MARGIN, (int) r.y + GRID_CELL_SIZE - NODE_MARGIN, commentBox.getWidth(), commentBox.getHeight(), null);
+                g.drawImage(commentBox, r.x + GRID_CELL_SIZE - NODE_MARGIN, r.y + GRID_CELL_SIZE - NODE_MARGIN, commentBox.getWidth(), commentBox.getHeight(), null);
             else
-                g.drawImage(commentBox, (int) r.x + GRID_CELL_SIZE - NODE_MARGIN, (int) r.y + GRID_CELL_SIZE - NODE_MARGIN, commentWidth + 3 * NODE_MARGIN, commentBox.getHeight(), null);
-            g.drawString(overComment.getComment(), (int) r.x + GRID_CELL_SIZE + NODE_MARGIN, (int) r.y + GRID_CELL_SIZE + NODE_MARGIN);
+                g.drawImage(commentBox, r.x + GRID_CELL_SIZE - NODE_MARGIN, r.y + GRID_CELL_SIZE - NODE_MARGIN, commentWidth + 3 * NODE_MARGIN, commentBox.getHeight(), null);
+            g.drawString(overComment.getComment(), r.x + GRID_CELL_SIZE + NODE_MARGIN, r.y + GRID_CELL_SIZE + NODE_MARGIN);
         }
     }
 
@@ -653,7 +650,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
      */
     public Node getNodeWithCommentAt(Point2D point) {
         for (Node node : getNodesReversed()) {
-            if (hasComment(node)) {
+            if (node.hasComment()) {
                 Rectangle r = nodeRect(node);
                 if (r.contains(point)) {
                     return node;
@@ -770,20 +767,16 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     /**
      * Show an input dialog to insert a new comment.
      */
-    private void createComment(Node node) {
+    private void addComment(Node node) {
         String comment = JOptionPane.showInputDialog(this, "New comment:");
-        if (comment == null || comment.length() == 0)
-            return;
-        getDocument().setNodeComment(node, comment);
+        if (comment != null && !comment.trim().isEmpty()) {
+            getDocument().setNodeComment(node, comment);
+        }
     }
 
     private void editComment(Node node) {
         String comment = JOptionPane.showInputDialog(this, "Edit comment:", node.getComment());
         getDocument().setNodeComment(node, comment);
-    }
-
-    private boolean hasComment(Node node) {
-        return !node.getComment().isEmpty();
     }
 
     //// Network navigation ////
@@ -1015,15 +1008,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         } else {
             Node pressedNode = getNodeAt(inverseViewTransformPoint(pt));
             if (pressedNode != null) {
-                goInSubnetworkMenuItem.setVisible(pressedNode.isNetwork());
+                JPopupMenu nodeMenu = createNodeMenu(pressedNode);
                 nodeMenuLocation = pt;
-                // If the node doesn't have a comment show nodeMenu with add comment option.
-                if (!hasComment(pressedNode)) {
-                    nodeMenu.show(this, e.getX(), e.getY());
-                } else {
-                    // If the node has a comment show nodeMenu2 with edit and remove options.
-                    nodeMenu2.show(this, e.getX(), e.getY());
-                }
+                nodeMenu.show(this, e.getX(), e.getY());
             } else {
                 networkMenuLocation = pt;
                 networkMenu.show(this, e.getX(), e.getY());
@@ -1257,7 +1244,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         public void actionPerformed(ActionEvent e) {
             Node node = getNodeAt(inverseViewTransformPoint(nodeMenuLocation));
             if (node != null) {
-                createComment(node);
+                addComment(node);
                 repaint();
             }
         }
