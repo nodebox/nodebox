@@ -167,3 +167,21 @@ core._currentFrame = 1;
 core.frame = function () {
     return core._currentFrame;
 };
+
+// Generate a random function that is seeded with the given value.
+core.randomGenerator = function (seed) {
+    // Based on random number generator from
+    // http://indiegamr.com/generate-repeatable-random-numbers-in-js/
+    return function (min, max) {
+        min = min || 0;
+        max = max || 1;
+        seed = (seed * 9301 + 49297) % 233280;
+        var v = seed / 233280;
+        return min + v * (max - min);
+    };
+};
+
+// Generate a random number with the given seed between min and max.
+core.randomNumber = function (seed, min, max) {
+    return core.randomGenerator(seed)(min, max);
+};
