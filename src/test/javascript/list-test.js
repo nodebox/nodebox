@@ -59,3 +59,12 @@ test("sort", function() {
     deepEqual(list.sort([1]), [1]);
     deepEqual(list.sort([3, 2, 1]), [1, 2, 3]);
 });
+
+test("switch", function () {
+    deepEqual(list.switch(1, 2, 3, 0), 1);
+    deepEqual(list.switch([1], [2], [3], 0), [1]);
+    deepEqual(list.switch([1], [2], [3], 5), [3], "index is wrapped");
+    deepEqual(list.switch(1, null, 2, 1), 2, "skip inputs that are null");
+    deepEqual(list.switch(null, null, null, 0), null, "return null if there are no inputs");
+    deepEqual(list.switch(1, 2, 3, -1), 3, "index can be negative");
+});

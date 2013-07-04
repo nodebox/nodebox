@@ -127,3 +127,15 @@ list.slice = function (l, startIndex, size, invert) {
 list.sort = function(l) {
     return _.clone(l).sort();
 };
+
+// Switch between multiple inputs.
+list.switch = function (l1, l2, l3, index) {
+    var inputs = [];
+    if (l1 !== null) inputs.push(l1);
+    if (l2 !== null) inputs.push(l2);
+    if (l3 !== null) inputs.push(l3);
+    if (_.isEmpty(inputs)) return null;
+    index = index % inputs.length;
+    if (index < 0) index += inputs.length;
+    return inputs[index];
+};
