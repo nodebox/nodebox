@@ -151,3 +151,16 @@ list.takeEvery = function (l, n) {
     }
     return results;
 };
+
+// Combine a list of keys and values together into a map.
+list.zipMap = function (keys, vals) {
+    var minLength = Math.min(keys.length, vals.length);
+    var k, v;
+    var m = {};
+    for (var i = 0; i < minLength; i++) {
+        k = keys[i];
+        v = vals[i];
+        m[k] = v;
+    }
+    return m;
+};

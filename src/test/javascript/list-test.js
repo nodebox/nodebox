@@ -79,3 +79,13 @@ test("takeEvery", function () {
     deepEqual(list.takeEvery(l, 3), [1, 4]);
     deepEqual(list.takeEvery(l, 9), [1]);
 });
+
+test("zipMap", function () {
+    deepEqual(list.zipMap([], []), {}, "no elements returns an emtpy map");
+    deepEqual(list.zipMap(["a"], []), {}, "keys but no values returns an emtpy map");
+    deepEqual(list.zipMap([], [1]), {}, "values but no keys returns an emtpy map");
+    deepEqual(list.zipMap(["a"], [1]), {a: 1});
+    deepEqual(list.zipMap(["a", "b"], [1]), {a: 1}, "stop when we run out of values");
+    deepEqual(list.zipMap(["a"], [1, 2]), {a: 1}, "stop when we run out of keys");
+    deepEqual(list.zipMap(["a", "b"], [1, 2]), {a: 1, b: 2});
+});
