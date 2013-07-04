@@ -94,6 +94,23 @@ list.shift = function (l, amount) {
     return tail.concat(head);
 };
 
+// Randomize the ordering of items in the list.
+list.shuffle = function (l, seed) {
+
+    function swap(l, i, j) {
+        var tmp = l[i];
+        l[i] = l[j];
+        l[j] = tmp;
+    }
+
+    var rand = core.randomGenerator(seed);
+    var shuffled = _.clone(l);
+    for (var i = shuffled.length; i > 1; i--) {
+        swap(shuffled, i - 1, Math.floor(rand(0, i)));
+    }
+    return shuffled;
+};
+
 // Take a portion of the original list.
 list.slice = function (l, startIndex, size, invert) {
     if (l == null) return [];

@@ -34,3 +34,12 @@ test("shift", function () {
     deepEqual(list.shift([], 9), []);
     deepEqual(list.shift([1], 9), [1]);
 });
+
+test("shuffle", function () {
+    deepEqual(list.shuffle([], 42), []);
+    deepEqual(list.shuffle([1], 42), [1]);
+
+    deepEqual(list.shuffle([1, 2, 3, 4, 5], 33), [1, 4, 5, 2, 3]);
+    deepEqual(list.shuffle([1, 2, 3, 4, 5], 99), [4, 3, 5, 2, 1]);
+    deepEqual(list.shuffle([1, 2, 3, 4, 5], 42), [1, 2, 3, 4, 5]);
+});
