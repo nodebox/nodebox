@@ -85,6 +85,15 @@ list.second = function (l) {
     }
 };
 
+// Move items at the beginning of the list to the end.
+list.shift = function (l, amount) {
+    // If the amount is bigger than the number of items, wrap around.
+    amount = amount % l.length;
+    var head = l.slice(0, amount);
+    var tail = l.slice(amount);
+    return tail.concat(head);
+};
+
 // Take a portion of the original list.
 list.slice = function (l, startIndex, size, invert) {
     if (l == null) return [];

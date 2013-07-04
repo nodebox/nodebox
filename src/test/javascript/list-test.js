@@ -19,3 +19,18 @@ test("reverse", function () {
     // Make sure the original list is unchanged.
     deepEqual(a, [1, 2, 3]);
 });
+
+test("shift", function () {
+    var l = [1, 2, 3];
+    deepEqual(list.shift(l, 0), [1, 2, 3]);
+    deepEqual(list.shift(l, 1), [2, 3, 1]);
+    deepEqual(list.shift(l, 2), [3, 1, 2]);
+    deepEqual(list.shift(l, 3), [1, 2, 3]);
+    deepEqual(list.shift(l, 4), [2, 3, 1]);
+
+    deepEqual(list.shift(l, -1), [3, 1, 2]);
+    deepEqual(list.shift(l, -2), [2, 3, 1]);
+
+    deepEqual(list.shift([], 9), []);
+    deepEqual(list.shift([1], 9), [1]);
+});
