@@ -54,7 +54,7 @@ test("slice", function () {
     deepEqual(list.slice(l, -1, 5), []);
 });
 
-test("sort", function() {
+test("sort", function () {
     deepEqual(list.sort([]), []);
     deepEqual(list.sort([1]), [1]);
     deepEqual(list.sort([3, 2, 1]), [1, 2, 3]);

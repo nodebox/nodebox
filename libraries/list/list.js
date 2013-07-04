@@ -124,7 +124,8 @@ list.slice = function (l, startIndex, size, invert) {
     }
 };
 
-list.sort = function(l) {
+// Sort items in the list.
+list.sort = function (l) {
     return _.clone(l).sort();
 };
 
