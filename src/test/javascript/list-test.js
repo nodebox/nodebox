@@ -43,3 +43,13 @@ test("shuffle", function () {
     deepEqual(list.shuffle([1, 2, 3, 4, 5], 99), [4, 3, 5, 2, 1]);
     deepEqual(list.shuffle([1, 2, 3, 4, 5], 42), [1, 2, 3, 4, 5]);
 });
+
+test("slice", function () {
+    var l = [1, 2, 3, 4, 5];
+    deepEqual(list.slice(l, 0, 1), [1]);
+    deepEqual(list.slice(l, 1, 1), [2]);
+    deepEqual(list.slice(l, 0, 3), [1, 2, 3]);
+    deepEqual(list.slice(l, 0, 3, true), [4, 5]);
+
+    deepEqual(list.slice(l, -1, 5), []);
+});
