@@ -62,7 +62,7 @@
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
             <port name="key" range="value" type="string" value="" widget="string" description="The key used to compare and sort the items."/>
         </node>
-        <node description="Switch between multiple inputs." function="list/doSwitch" image="switch.png" name="switch" outputRange="list" position="10.00,13.00" category="list">
+        <node description="Switch between multiple inputs." function="list/doSwitch" image="switch.png" name="switch" outputRange="list" outputType="list" position="10.00,13.00" category="list">
             <port name="input1" range="list" type="list" widget="none" description="The first list."/>
             <port name="input2" range="list" type="list" widget="none" description="The second list."/>
             <port name="input3" range="list" type="list" widget="none" description="The third list."/>
