@@ -70,3 +70,12 @@ test("switch", function () {
     deepEqual(list.switch(null, null, null, 0), null, "return null if there are no inputs");
     deepEqual(list.switch(1, 2, 3, -1), 3, "index can be negative");
 });
+
+test("takeEvery", function () {
+    var l = [1, 2, 3, 4, 5];
+    deepEqual(list.takeEvery(l, 0), [], "every 0 elements returns no results");
+    deepEqual(list.takeEvery(l, 1), l, "every 1 elements returns everything");
+    deepEqual(list.takeEvery(l, 2), [1, 3, 5]);
+    deepEqual(list.takeEvery(l, 3), [1, 4]);
+    deepEqual(list.takeEvery(l, 9), [1]);
+});

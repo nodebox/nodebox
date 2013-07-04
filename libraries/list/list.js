@@ -140,3 +140,14 @@ list.switch = function (l1, l2, l3, index) {
     if (index < 0) index += inputs.length;
     return inputs[index];
 };
+
+// Take every nth item of the list.
+list.takeEvery = function (l, n) {
+    var results = [];
+    for (var i = 0; i < l.length; i++) {
+        if (i % n === 0) {
+            results.push(l[i]);
+        }
+    }
+    return results;
+};
