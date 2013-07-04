@@ -1,3 +1,5 @@
+module("math");
+
 test("number", function () {
     ok(math.number(42) === 42);
 });

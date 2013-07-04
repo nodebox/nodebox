@@ -1,3 +1,5 @@
+module("list");
+
 test("pick", function () {
     deepEqual(list.pick([1, 2, 3], 1, 1), [1]);
     deepEqual(list.pick([1, 2, 3], 1, 5), [2]);
