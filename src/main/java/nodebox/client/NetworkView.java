@@ -48,6 +48,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
+    public static final int COMMENT_BOX_MARGIN_HORIZONTAL = 5;
 
     private static Map<String, BufferedImage> fileImageCache = new HashMap<String, BufferedImage>();
     private static BufferedImage nodeGeneric, commentIcon, commentBox;
@@ -484,7 +485,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         // Draw comment icon
         if (node.hasComment()) {
             g.setColor(Color.GREEN);
-            g.drawImage(commentIcon, r.x + NODE_WIDTH - 20, r.y + NODE_MARGIN, NODE_ICON_SIZE - 12, NODE_ICON_SIZE - 18, null);
+            g.drawImage(commentIcon, r.x + NODE_WIDTH - 17, r.y + NODE_MARGIN + 8, null);
         }
     }
 
@@ -525,12 +526,13 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             Rectangle r = nodeRect(overComment);
             FontMetrics fontMetrics = g.getFontMetrics();
             int commentWidth = fontMetrics.stringWidth(overComment.getComment());
-            g.setColor(Color.BLACK);
-            if (commentBox.getWidth() > commentWidth)
-                g.drawImage(commentBox, r.x + GRID_CELL_SIZE - NODE_MARGIN, r.y + GRID_CELL_SIZE - NODE_MARGIN, commentBox.getWidth(), commentBox.getHeight(), null);
-            else
-                g.drawImage(commentBox, r.x + GRID_CELL_SIZE - NODE_MARGIN, r.y + GRID_CELL_SIZE - NODE_MARGIN, commentWidth + 3 * NODE_MARGIN, commentBox.getHeight(), null);
-            g.drawString(overComment.getComment(), r.x + GRID_CELL_SIZE + NODE_MARGIN, r.y + GRID_CELL_SIZE + NODE_MARGIN);
+            int x = r.x + GRID_CELL_SIZE - 5;
+            int y = r.y + GRID_CELL_SIZE - 5;
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(x + 1, y + 1, commentWidth + COMMENT_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight());
+            g.drawImage(commentBox, x, y, commentWidth + COMMENT_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight(), null);
+            g.setColor(Color.DARK_GRAY);
+            g.drawString(overComment.getComment(), x + COMMENT_BOX_MARGIN_HORIZONTAL, y + 14);
         }
     }
 
