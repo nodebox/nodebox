@@ -115,7 +115,7 @@ math.sin = Math.sin;
 math.cos = Math.cos;
 math.tan = Math.tan;
 
-Math.pi = function () {
+math.pi = function () {
     return Math.PI;
 };
 
@@ -123,7 +123,7 @@ math.e = function () {
     return Math.E;
 };
 
-math.sample = function(amount, start, end) {
+math.sample = function (amount, start, end) {
     if (amount === 0) return [];
     if (amount === 1) return [start + (end - start) / 2];
 
@@ -133,4 +133,36 @@ math.sample = function(amount, start, end) {
         values.push(start + step * i);
     }
     return values;
+};
+
+math.round = function (v) {
+    return Math.round(v);
+};
+
+math.radians = function (degrees) {
+    return degrees * Math.PI / 180;
+};
+
+math.degrees = function (radians) {
+    return radians * 180 / Math.PI;
+};
+
+math.distance = function (p1, p2) {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+};
+
+math.angle = function (p1, p2) {
+    return math.degrees(Math.atan2(p2.y - p1.y, p2.x - p1.x));
+};
+
+math.coordinates = function (p, angle, distance) {
+    var x = p.x + Math.cos(math.radians(angle)) * distance;
+    var y = p.y + Math.sin(math.radians(angle)) * distance;
+    return {x: x, y: y};
+};
+
+math.reflect = function (p1, p2, angle, distance) {
+    distance *= math.distance(p1, p2);
+    angle += math.angle(p1, p2);
+    return math.coordinates(p1, angle, distance);
 };
