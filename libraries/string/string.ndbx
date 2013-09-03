@@ -2,20 +2,20 @@
 <ndbx type="file" uuid="9eb894f5-3b8b-40e4-9b56-4aaf0242eba7">
     <link href="java:nodebox.function.StringFunctions" rel="functions"/>
     <node description="Create and manipulate text." name="root" prototype="core.network" renderedChild="length">
-        <node category="string" description="Convert a string into its binary representation" function="string/asBinaryList" name="as_binary_list" outputRange="list" outputType="string" position="4.00,4.00">
+        <node category="string" description="Convert a string into its binary representation" function="string/asBinaryList" image="as_binary_list.png" name="as_binary_list" outputRange="list" outputType="string" position="4.00,4.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
         </node>
-        <node category="string" description="Convert a string into its binary representation" function="string/asBinaryString" name="as_binary_string" outputType="string" position="4.00,3.00">
+        <node category="string" description="Convert a string into its binary representation" function="string/asBinaryString" image="as_binary_string.png" name="as_binary_string" outputType="string" position="4.00,3.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
             <port name="digit_separator" range="value" type="string" value="" widget="string"/>
             <port name="byte_separator" range="value" type="string" value=" " widget="string"/>
         </node>
-        <node category="string" description="Convert a string into a numeric encoding" function="string/asNumberList" name="as_number_list" outputRange="list" outputType="string" position="4.00,5.00">
+        <node category="string" description="Convert a string into a numeric encoding" function="string/asNumberList" image="as_number_list.png" name="as_number_list" outputRange="list" outputType="string" position="4.00,5.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
             <port max="21.0" min="2.0" name="radix" range="value" type="int" value="10" widget="int"/>
             <port name="padding" range="value" type="boolean" value="true" widget="toggle"/>
         </node>
-        <node category="string" description="Change a string into upper, lower or title case." function="string/changeCase" name="change_case" outputType="string" position="4.00,6.00">
+        <node category="string" description="Change a string into upper, lower or title case." function="string/changeCase" image="change_case.png" name="change_case" outputType="string" position="4.00,6.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
             <port name="method" range="value" type="string" value="uppercase" widget="menu">
                 <menu key="lowercase" label="Lower Case"/>
@@ -23,11 +23,11 @@
                 <menu key="titlecase" label="Title Case"/>
             </port>
         </node>
-        <node category="string" description="Output the character at a given index" function="string/characterAt" name="character_at" outputRange="list" outputType="string" position="7.00,1.00">
+        <node category="string" description="Output the character at a given index" function="string/characterAt" image="character_at.png" name="character_at" outputRange="list" outputType="string" position="7.00,1.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
             <port min="1.0" name="index" range="value" type="int" value="1" widget="int"/>
         </node>
-        <node category="string" description="Create a list of characters from a string" function="string/characters" name="characters" outputRange="list" outputType="string" position="4.00,1.00">
+        <node category="string" description="Create a list of characters from a string" function="string/characters" image="characters.png" name="characters" outputRange="list" outputType="string" position="4.00,1.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
         </node>
         <node category="string" description="Add strings together." function="string/concatenate" image="concatenate.png" name="concatenate" outputType="string" position="1.00,5.00">
@@ -53,14 +53,14 @@
             <port name="value" range="value" type="float" value="0.0" widget="float"/>
             <port name="format" range="value" type="string" value="%.2f" widget="string"/>
         </node>
-        <node category="string" description="Count the number of characters in a string." function="string/length" name="length" outputType="int" position="1.00,3.00">
+        <node category="string" description="Count the number of characters in a string." function="string/length" image="length.png" name="length" outputType="int" position="1.00,3.00">
             <port name="string" range="value" type="string" value="" widget="string"/>
         </node>
         <node category="string" description="Create a list of strings." function="string/makeStrings" name="make_strings" outputRange="list" outputType="string" position="1.00,2.00">
             <port name="string" range="value" type="string" value="Alpha;Beta;Gamma" widget="string"/>
             <port name="separator" range="value" type="string" value=";" widget="string"/>
         </node>
-        <node category="string" description="Create a list of random characters taken from a set" function="string/randomCharacter" name="random_character" outputRange="list" outputType="string" position="4.00,2.00">
+        <node category="string" description="Create a list of random characters taken from a set" function="string/randomCharacter" image="random_character.png" name="random_character" outputRange="list" outputType="string" position="4.00,2.00">
             <port name="characters" range="value" type="string" value="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" widget="string"/>
             <port min="0.0" name="amount" range="value" type="int" value="10" widget="int"/>
             <port name="seed" range="value" type="int" value="0" widget="int"/>
@@ -83,10 +83,10 @@
             <port min="1.0" name="end" range="value" type="int" value="2" widget="int"/>
             <port name="end_offset" range="value" type="boolean" value="false" widget="toggle"/>
         </node>
-        <node category="string" description="Remove white space from the start and end" function="string/trim" name="trim" outputType="string" position="7.00,8.00">
+        <node category="string" description="Remove white space from the start and end" function="string/trim" image="trim.png" name="trim" outputType="string" position="7.00,8.00">
             <port name="string" range="value" type="string" value="  def  au lt  " widget="string"/>
         </node>
-        <node category="string" description="Count the number of words in a string." function="string/wordCount" name="word_count" outputType="int" position="1.00,4.00">
+        <node category="string" description="Count the number of words in a string." function="string/wordCount" image="word_count.png" name="word_count" outputType="int" position="1.00,4.00">
             <port name="string" range="value" type="string" value="" widget="string"/>
         </node>
     </node>

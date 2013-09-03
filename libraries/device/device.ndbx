@@ -28,7 +28,7 @@
             <port name="arguments" range="list" type="list" widget="none"/>
         </node>
         <node category="device" description="Audio analysis with Minim" function="device/audioAnalysis"
-              image="generic.png" name="audio_analysis" position="1.00,1.00" outputType="float" outputRange="list">
+              image="audio_analysis.png" name="audio_analysis" position="1.00,1.00" outputType="float" outputRange="list">
             <port name="device_name" type="string"
                   description="The audio device." value="audioplayer1"/>
             <port name="averages" type="int"
