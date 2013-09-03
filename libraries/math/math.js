@@ -186,3 +186,31 @@ math.range = function (start, end, step) {
     return newList;
 };
 
+math.clamp = function (v) {
+  return 0 > v ? 0 : 1 < v ? 1 : v;
+};
+
+math.convertRange = function (value, srcMin, srcMax, targetMin, targetMax, overflowMethod) {
+    if (overflowMethod === "wrap") {
+        value = srcMin + value % (srcMax - srcMin);
+    } else if (overflowMethod === "mirror") {
+        var rest = value % (srcMax - srcMin);
+        if ((int) (value / (srcMax - srcMin)) % 2 == 1)
+            value = srcMax - rest;
+        else
+            value = srcMin + rest;
+    } else if (overflowMethod === "clamp") {
+        value = math.clamp(value, srcMin, srcMax);
+    }
+
+    // Convert value to 0.0-1.0 range.
+    try {
+        value = (value - srcMin) / (srcMax - srcMin);
+    } catch (e) {
+        value = srcMin;
+    }
+
+    // Convert value to target range.
+    return targetMin + value * (targetMax - targetMin);
+};
+

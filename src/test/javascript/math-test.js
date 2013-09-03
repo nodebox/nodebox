@@ -167,3 +167,8 @@ test("range", function() {
     ok(math.noValues(math.range(0, 5, -1)) === true);
     deepEqual(math.range(5, 0, -1), [5, 4, 3, 2, 1]);
 });
+
+test("convertRange", function() {
+    equal(math.convertRange(50, 0, 100, 0, 1), 0.5);
+    equal(math.convertRange(75, 0, 100, 1, 0), 0.25);
+});
