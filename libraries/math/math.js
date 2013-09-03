@@ -166,3 +166,23 @@ math.reflect = function (p1, p2, angle, distance) {
     angle += math.angle(p1, p2);
     return math.coordinates(p1, angle, distance);
 };
+
+math.makeNumbers = function (s, separator) {
+    if (s == null || _.isEmpty(s)) return [];
+    if (separator == null || _.isEmpty(separator))
+        separator = "";
+    return _.map(s.split(separator), parseFloat);
+};
+
+math.range = function (start, end, step) {
+    if (step === 0 || start === end || (start < end && step < 0) || (start > end && step > 0))
+        return [];
+    var newList = [];
+    var next = start;
+    while ((step > 0 && next < end) || (step <= 0 && next > end)) {
+        newList.push(next);
+        next += step;
+    }
+    return newList;
+};
+

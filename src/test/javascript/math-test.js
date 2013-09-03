@@ -153,5 +153,17 @@ test("coordinates", function() {
 test("reflect", function() {
     pointsFuzzyEqual(math.reflect({x: 50, y: 50}, {x: 100, y: 100}, 120, 2), {x: -86.6, y: 86.6}, 2);
     pointsFuzzyEqual(math.reflect({x: 50, y: 50}, {x: 60, y: 70}, 220, 1), {x: 55.2, y: 28.25}, 2);
+});
 
+test("makeNumbers", function() {
+    deepEqual(math.makeNumbers("11;22;33", ";"), [11.0, 22.0, 33.0]);
+    deepEqual(math.makeNumbers("11223456", ""), [1.0, 1.0, 2.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+});
+
+test("range", function() {
+    deepEqual(math.range(0, 5, 1), [0, 1, 2, 3, 4]);
+    deepEqual(math.range(0, 5, 1.5), [0, 1.5, 3, 4.5]);
+    ok(math.noValues(math.range(0, 5, 0)) === true);
+    ok(math.noValues(math.range(0, 5, -1)) === true);
+    deepEqual(math.range(5, 0, -1), [5, 4, 3, 2, 1]);
 });
