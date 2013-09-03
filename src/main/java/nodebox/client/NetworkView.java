@@ -484,8 +484,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
         // Draw comment icon
         if (node.hasComment()) {
-            g.setColor(Color.GREEN);
-            g.drawImage(commentIcon, r.x + NODE_WIDTH - 17, r.y + NODE_MARGIN + 8, null);
+            g.drawImage(commentIcon, r.x + NODE_WIDTH - 13, r.y + 5, null);
         }
     }
 
@@ -526,7 +525,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             Rectangle r = nodeRect(overComment);
             FontMetrics fontMetrics = g.getFontMetrics();
             int commentWidth = fontMetrics.stringWidth(overComment.getComment());
-            int x = r.x + GRID_CELL_SIZE - 5;
+            int x = r.x + 16;
             int y = r.y + GRID_CELL_SIZE - 5;
             g.setColor(Color.DARK_GRAY);
             g.fillRect(x + 1, y + 1, commentWidth + COMMENT_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight());
