@@ -135,9 +135,7 @@ math.sample = function (amount, start, end) {
     return values;
 };
 
-math.round = function (v) {
-    return Math.round(v);
-};
+math.round = Math.round;
 
 math.radians = function (degrees) {
     return degrees * Math.PI / 180;
