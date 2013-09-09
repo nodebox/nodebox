@@ -172,3 +172,9 @@ test("convertRange", function() {
     equal(math.convertRange(50, 0, 100, 0, 1), 0.5);
     equal(math.convertRange(75, 0, 100, 1, 0), 0.25);
 });
+
+test("runningTotal", function() {
+    deepEqual(math.runningTotal(), [0.0]);
+    deepEqual(math.runningTotal([]), [0.0]);
+    deepEqual(math.runningTotal([1, 2 , 3 ,4 , 5]), [0, 1, 3, 6, 10]);
+});

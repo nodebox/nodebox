@@ -212,3 +212,14 @@ math.convertRange = function (value, srcMin, srcMax, targetMin, targetMax, overf
     return targetMin + value * (targetMax - targetMin);
 };
 
+math.runningTotal = function (numbers) {
+    if (numbers == null || _.isEmpty(numbers)) return [0.0];
+    var currentTotal = 0;
+    var b = [];
+    for (var i = 0; i < numbers.length; i++) {
+        b.push(currentTotal);
+        currentTotal += numbers[i];
+    }
+    return b;
+};
+
