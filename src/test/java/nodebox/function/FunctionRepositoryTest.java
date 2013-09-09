@@ -49,7 +49,8 @@ public class FunctionRepositoryTest {
                 "java:nodebox.function.CoreFunctions",
                 "java:nodebox.function.MathFunctions",
                 "javascript:math.js",
-                "java:nodebox.function.StringFunctions");
+                "java:nodebox.function.StringFunctions",
+                "javascript:../string/string.js");
     }
 
     private void assertFunctionLinks(NodeLibrary library, Collection<FunctionLibrary> libraries, String... links) {
