@@ -52,3 +52,28 @@ test("characters", function () {
     deepEqual(string.characters("a;b"), ["a", ";", "b"]);
     deepEqual(string.characters("hello"), ["h", "e", "l", "l", "o"]);
 });
+
+test("contains", function () {
+    ok(string.contains("default", "") === true);
+    ok(string.contains("default") === false);
+    ok(string.contains("default", "efa") === true);
+    ok(string.contains("default", "efi") === false);
+});
+
+test("endsWith", function () {
+    ok(string.endsWith("default", "") === true);
+    ok(string.endsWith("default") === false);
+    ok(string.endsWith("default", "def") === false);
+    ok(string.endsWith("default", "lt") === true);
+    ok(string.endsWith("default", "lT") === false);
+    ok(string.endsWith("default", "alt") === false);
+});
+
+test("startsWith", function () {
+    ok(string.startsWith("default", "") === true);
+    ok(string.startsWith("default") === false);
+    ok(string.startsWith("default", "def") === true);
+    ok(string.startsWith("Default", "def") === false);
+    ok(string.startsWith("default", "lt") === false);
+    ok(string.startsWith("default", "dex") === false);
+});
