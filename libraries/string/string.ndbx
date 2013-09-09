@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx type="file" uuid="9eb894f5-3b8b-40e4-9b56-4aaf0242eba7">
     <link href="java:nodebox.function.StringFunctions" rel="functions"/>
+    <link href="javascript:string.js" rel="functions"/>
     <node description="Create and manipulate text." name="root" prototype="core.network" renderedChild="length">
         <node category="string" description="Convert a string into its binary representation" function="string/asBinaryList" name="as_binary_list" outputRange="list" outputType="string" position="4.00,4.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
