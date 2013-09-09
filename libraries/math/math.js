@@ -193,7 +193,7 @@ math.convertRange = function (value, srcMin, srcMax, targetMin, targetMax, overf
         value = srcMin + value % (srcMax - srcMin);
     } else if (overflowMethod === "mirror") {
         var rest = value % (srcMax - srcMin);
-        if ((int) (value / (srcMax - srcMin)) % 2 == 1)
+        if ((value / (srcMax - srcMin)) % 2 == 1)
             value = srcMax - rest;
         else
             value = srcMin + rest;

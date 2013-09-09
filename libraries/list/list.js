@@ -130,7 +130,8 @@ list.sort = function (l) {
 };
 
 // Switch between multiple inputs.
-list.doSwitch = list.switch = function (l1, l2, l3, index) {
+// list.doSwitch = list.switch = function (l1, l2, l3, index) {
+list.doSwitch = function (l1, l2, l3, index) {
     var inputs = [];
     if (l1 !== null) inputs.push(l1);
     if (l2 !== null) inputs.push(l2);
