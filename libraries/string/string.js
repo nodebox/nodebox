@@ -94,3 +94,14 @@ string.trim = function (s) {
     if (s == null) return null;
     return s.trim();
 };
+
+string.equal = function (s, value, caseSensitive) {
+    if ((s == null) || (value == null)) {
+        return false;
+    }
+    if (caseSensitive) {
+        return s === value;
+    } else {
+        return s.toLowerCase() === value.toLowerCase();
+    }
+};

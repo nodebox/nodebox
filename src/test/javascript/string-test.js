@@ -96,3 +96,13 @@ test("trim", function() {
     equal(string.trim("  Hello world!   "), "Hello world!");
     equal(string.trim("Hello   world!"), "Hello   world!");
 });
+
+test("equal", function() {
+    ok(string.equal("Hello world!") === false);
+    ok(string.equal("Hello world!", "Hello world!") === true);
+    ok(string.equal("Hello world!", "Hello world!", true) === true);
+    ok(string.equal("Hello world!", "ello world!") === false);
+    ok(string.equal("Hello world!", "hello world!", true) === false);
+    ok(string.equal("Hello world!", "hello world!", false) === true);
+    ok(string.equal("Hello world!", "hello world!") === true);
+});
