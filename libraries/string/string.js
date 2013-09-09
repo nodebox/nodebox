@@ -53,6 +53,13 @@ string.characters = function (s) {
     return s.split("");
 };
 
+string.characterAt = function (s, index) {
+    if (s == null || _.isEmpty(s)) return null;
+    index--;
+    index = index % s.length;
+    return s.charAt(index);
+};
+
 string.contains = function (s, value) {
     if (s == null || value == null) return false;
     return s.indexOf(value) !== -1;
@@ -68,3 +75,22 @@ string.startsWith = function (s, value) {
     return s.indexOf(value) === 0;
 };
 
+string.subString = function (s, start, end, endOffset) {
+    if (s == null) return null;
+
+    start--;
+    end--;
+    start = start % s.length;
+
+    if (endOffset) {
+        end = (end % s.length) + 1;
+    } else {
+        end = end % (s.length + 1);
+    }
+    return s.substring(start, end);
+};
+
+string.trim = function (s) {
+    if (s == null) return null;
+    return s.trim();
+};

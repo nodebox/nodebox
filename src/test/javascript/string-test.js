@@ -53,6 +53,12 @@ test("characters", function () {
     deepEqual(string.characters("hello"), ["h", "e", "l", "l", "o"]);
 });
 
+test("characterAt", function() {
+    equal(string.characterAt("default", 1), "d");
+    equal(string.characterAt("default", 3), "f");
+    equal(string.characterAt("default", 8), "d");
+});
+
 test("contains", function () {
     ok(string.contains("default", "") === true);
     ok(string.contains("default") === false);
@@ -76,4 +82,17 @@ test("startsWith", function () {
     ok(string.startsWith("Default", "def") === false);
     ok(string.startsWith("default", "lt") === false);
     ok(string.startsWith("default", "dex") === false);
+});
+
+test("subString", function () {
+    equal(string.subString("Hello world!", 3, 7, false), "llo ");
+    equal(string.subString("Hello world!", 1, 4, false), "Hel");
+    equal(string.subString("Hello world!", 1, 4, true), "Hell");
+});
+
+test("trim", function() {
+    equal(string.trim("  Hello world!"), "Hello world!");
+    equal(string.trim("Hello world!   "), "Hello world!");
+    equal(string.trim("  Hello world!   "), "Hello world!");
+    equal(string.trim("Hello   world!"), "Hello   world!");
 });
