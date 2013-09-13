@@ -18,7 +18,6 @@
  */
 package nodebox.client;
 
-import nodebox.client.ExamplesBrowser;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
 import nodebox.ui.ExceptionDialog;
