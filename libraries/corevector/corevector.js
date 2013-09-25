@@ -159,6 +159,42 @@ corevector.grid = function (rows, columns, width, height, position) {
     return Object.freeze(points);
 };
 
+corevector.reflect = function (shape, position, angle, keepOriginal) {
+    if (shape == null) return null;
+
+    function f(point) {
+        var d = g.geometry.distance(point.x, point.y, position.x, position.y);
+        var a = g.geometry.angle(point.x, point.y, position.x, position.y);
+        var pt = g.geometry.coordinates(position.x, position.y, d * Math.cos(g.math.radians(a - angle)), 180 + angle);
+        d = g.geometry.distance(point.x, point.y, pt.x, pt.y);
+        a = g.geometry.angle(point.x, point.y, pt.x, pt.y);
+        pt = g.geometry.coordinates(point.x, point.y, d * 2, a);
+        return g.makePoint(pt.x, pt.y);
+    }
+
+    var elements = _.map(shape.elements, function(elem) {
+        if (elem.cmd === g.CLOSE) return elem;
+        else if (elem.cmd === g.MOVETO) {
+            var pt = f(elem.point);
+            return g.moveto(pt.x, pt.y);
+        } else if (elem.cmd === g.LINETO) {
+            var pt = f(elem.point);
+            return g.lineto(pt.x, pt.y);
+        } else if (elem.cmd === g.CURVETO) {
+            var pt = f(elem.point);
+            var ctrl1 = f(elem.ctrl1);
+            var ctrl2 = f(elem.ctrl2);
+            return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+        }
+    });
+    var p = g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+    if (keepOriginal)
+        return [shape, p];
+    else
+        return p;
+
+};
+
 corevector.makePoint = function(x, y) {
     return {x: x, y: y};
 };
