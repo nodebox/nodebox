@@ -90,7 +90,7 @@ corevector.translate = function (shape, position) {
 };
 
 corevector.scale = function (shape, scale) {
-    var t = g.scale(g.IDENTITY, scale.x, scale.y);
+    var t = g.scale(g.IDENTITY, scale.x / 100, scale.y / 100);
     return g.transformPath(shape, t);
 };
 
