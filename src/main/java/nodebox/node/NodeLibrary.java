@@ -803,7 +803,7 @@ public class NodeLibrary {
         public JsonElement serialize(Node node, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject o = new JsonObject();
             o.addProperty("name", node.getName());
-            o.addProperty("function", node.getFunction());
+            o.addProperty("function", node.getFunction().replace("pyvector", "corevector"));
             o.addProperty("outputRange", node.getOutputRange().toString());
             if (node.hasRenderedChild()) {
                 o.addProperty("renderedChild", node.getRenderedChildName());
