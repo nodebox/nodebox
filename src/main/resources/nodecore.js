@@ -107,17 +107,24 @@ nodecore.evaluateNetwork = function (network) {
 // Evaluate the result of a port in the network.
 // Returns a list of results.
 nodecore.evaluatePort = function (network, nodeName, portName) {
+    var result;
     var childNode = nodecore.findNode(network, nodeName);
     var childPort = nodecore.findPort(childNode, portName);
     var connection = nodecore.findConnectionByInput(network, nodeName, portName);
     if (connection) {
-        var result = nodecore.evaluateChild(network, connection.outputNode);
+        result = nodecore.evaluateChild(network, connection.outputNode);
         // TODO convert the result.
-        return result;
+        // By default, cycleMap will unwrap the given argument lists and pass them to
+        // the function one by one. If the port takes in a list, we don't want that.
+        // Instead of hacking cycleMap, we wrap the inner list (the port value)
+        // in an outer list with one element. cycleMap will unwrap this outer list,
+        // passing the inner list unchanged.
+        result = childPort.range === 'LIST' ? [result] : result;
     } else {
         // Wrap the value in a list of 1. List cycling takes care of the rest.
-        return [childPort.value];
+        result = [childPort.value];
     }
+    return result;
 };
 
 // Evaluate a child node in the network.
