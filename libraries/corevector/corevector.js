@@ -195,6 +195,34 @@ corevector.reflect = function (shape, position, angle, keepOriginal) {
 
 };
 
+corevector.copy = function (shape, copies, order, translate, rotate, scale) {
+    var shapes = [];
+    var tx = 0;
+    var ty = 0;
+    var r = 0;
+    var sx = 1.0;
+    var sy = 1.0;
+    for (var i=0; i<copies; i++) {
+        var t = g.IDENTITY;
+        _.each(order, function(op) {
+            if (op === 't')
+                t = g.translate(t, tx, ty);
+            else if (op === 'r')
+                t = g.rotate(t, r);
+            else if (op === 's')
+                t = g.scale(t, sx, sy);
+        });
+        shapes.push(g.transformPath(shape, t));
+
+        tx += translate.x;
+        ty += translate.y;
+        r += rotate;
+        sx += scale.x;
+        sy += scale.y;
+    }
+    return shapes;
+};
+
 corevector.makePoint = function(x, y) {
     return {x: x, y: y};
 };
