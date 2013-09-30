@@ -1,3 +1,6 @@
+/*---  Based on: canvas.js, https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
+  ---  De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research. --*/
+
 var g = {};
 
 g._freeze = function (o) {
