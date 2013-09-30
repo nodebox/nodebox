@@ -1,5 +1,13 @@
 module("nodecore");
 
+// Test functions.
+var t = {};
+
+// A function with side effects.
+t.always42 = function () {
+    return 42;
+};
+
 test("evaluate simple network", function () {
     var net;
     net = {
@@ -204,4 +212,23 @@ test("evaluate nodes that return lists and take in lists", function () {
     };
 
     deepEqual(nodecore.evaluateNetwork(net), [11, 22, 33, 11, 22, 33, 11, 22, 33]);
+});
+
+test("evaluate nodes that return lists and take in lists", function () {
+    var net;
+
+    net = {
+        name: 'root',
+        function: 'core/zero',
+        renderedChild: 'sideEffect',
+        children: [
+            {
+                name: 'sideEffect',
+                function: 't/always42',
+                ports: []
+            }
+        ]
+    };
+
+    deepEqual(nodecore.evaluateNetwork(net), [42]);
 });

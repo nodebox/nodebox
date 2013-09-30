@@ -134,17 +134,23 @@ nodecore.evaluateChild = function (network, nodeName) {
     var portNames = _.pluck(childNode.ports, 'name');
     var argLists = _.map(portNames, _.partial(nodecore.evaluatePort, network, nodeName));
     var fn = nodecore.lookupFunction(childNode['function']);
+    var results;
     if (fn !== null) {
-        var results = nodecore.cycleMap(fn, argLists);
-        if (childNode.outputRange === 'LIST') {
-            return results[0];
+        if (_.isEmpty(argLists)) {
+            // If the node has no parameters, just call it.
+            results = [fn.apply()];
         } else {
-            return results;
+            // If the node has parameters, cycle all argument lists.
+            results = nodecore.cycleMap(fn, argLists);
+        }
+        if (childNode.outputRange === 'LIST') {
+            results = results[0];
         }
     } else {
         console.log("Function " + childNode['function'] + " not found.", nodeName);
-        return [];
+        results = [];
     }
+    return results;
 };
 
 nodecore.renderLibrary = function (network, animate) {
