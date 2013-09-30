@@ -99,6 +99,13 @@ corevector.rotate = function (shape, angle) {
     return g.transformPath(shape, t);
 };
 
+corevector.skew = function (shape, skew, origin) {
+    var t = g.translate(g.IDENTITY, origin.x, origin.y);
+    t = g.skew(t, skew.x, skew.y);
+    t = g.translate(t, -origin.x, -origin.y);
+    return g.transformPath(shape, t);
+};
+
 corevector.resample = function (shape, method, length, points, perContour) {
     var pts = _.map(g.points(shape, points + 1), function(pe)
                     { return pe.point; });
@@ -223,6 +230,197 @@ corevector.copy = function (shape, copies, order, translate, rotate, scale) {
     return shapes;
 };
 
-corevector.makePoint = function(x, y) {
+corevector.connect = function (points, closed) {
+    if (points == null) return null;
+    var elements = [];
+    for (var i=0; i<points.length; i++) {
+        var pt = points[i];
+        if (i === 0)
+            elements.push(g.moveto(pt.x, pt.y));
+        else
+            elements.push(g.lineto(pt.x, pt.y));
+    }
+
+    if (closed)
+        elements.push(g.closePath());
+
+    return Object.freeze({
+        elements: elements,
+        fill: null,
+        stroke: {"r": 0, "g": 0, "b": 0, "a": 1},
+        strokeWidth: 1
+    });
+};
+
+corevector.fit = function (shape, position, width, height, keepProportions) {
+    if (shape == null) return null;
+    var bounds = g.bounds(shape);
+    var px = bounds.x;
+    var py = bounds.y;
+    var pw = bounds.width;
+    var ph = bounds.height;
+
+    // Make sure pw and ph aren't infinitely small numbers.
+    // This will lead to incorrect transformations with for examples lines.
+    if (0 < pw && pw <= 0.000000000001) pw = 0;
+    if (0 < ph && ph <= 0.000000000001) ph = 0;
+
+    var t = g.IDENTITY;
+    t = g.translate(t, position.x, position.y);
+    var w, h;
+    if (keepProportions) {
+        // Don't scale widths or heights that are equal to zero.
+        w = (pw !== 0) ? width / pw : Number.POSITIVE_INFINITY;
+        h = (ph !== 0) ? height / ph : Number.POSITIVE_INFINITY;
+        w = h = Math.min(w, h);
+    } else {
+        // Don't scale widths or heights that are equal to zero.
+        w = (pw !== 0) ? width / pw : 1;
+        h = (ph !== 0) ? height / ph : 1;
+    }
+    t = g.scale(t, w, h);
+    t = g.translate(t, -pw / 2 - px, -ph / 2 - py);
+
+    return g.transformPath(shape, t)
+};
+
+corevector.fitTo = function (shape, bounding, keepProportions) {
+    // Fit a shape to another shape.
+    if (shape == null) return null;
+    if (bounding == null) return shape;
+
+    var bounds = g.bounds(bounding);
+
+    var bx = bounds.x;
+    var by = bounds.y;
+    var bw = bounds.width;
+    var bh = bounds.height;
+
+    return corevector.fit(shape, {x: bx+bw/2, y: by+bh/2}, bw, bh, keepProportions);
+};
+
+corevector.fit_to = corevector.fitTo;
+
+corevector.align = function (shape, position, hAlign, vAlign) {
+    if (shape == null) return null;
+    var x = position.x;
+    var y = position.y;
+    var bounds = g.bounds(shape);
+    var dx, dy;
+    if (hAlign === "left") {
+        dx = x - bounds.x;
+    } else if (hAlign === "right") {
+        dx = x - bounds.x - bounds.width;
+    } else if (hAlign === "center") {
+        dx = x - bounds.x - bounds.width / 2;
+    } else {
+        dx = 0;
+    }
+    if (vAlign === "top") {
+        dy = y - bounds.y;
+    } else if (vAlign === "bottom") {
+        dy = y - bounds.y - bounds.height;
+    } else if (vAlign === "middle") {
+        dy = y - bounds.y - bounds.height / 2;
+    } else {
+        dy = 0;
+    }
+
+    var t = g.translate(g.IDENTITY, dx, dy);
+    return g.transformPath(shape, t);
+};
+
+corevector.scatter = function (shape, amount, seed) {
+    // Generate points within the boundaries of a shape.
+    if (shape == null) return null;
+    var rand = core.randomGenerator(seed);
+    var bounds = g.bounds(shape);
+    var bx = bounds.x;
+    var by = bounds.y;
+    var bw = bounds.width;
+    var bh = bounds.height;
+    var points = [];
+
+    for (var i=0; i<amount; i++) {
+        var tries = 100;
+        while (tries > 0) {
+            var x = bx + rand(0, 1) * bw;
+            var y = by + rand(0, 1) * bh;
+            if (g.pathContains(shape, x, y)) {
+                points.push(g.makePoint(x, y));
+                break;
+            }
+            tries -= 1;
+        }
+    }
+    return points;
+};
+
+corevector.snap = function (shape, distance, strength, position) {
+    // Snap geometry to a grid.
+
+    function _snap(v, offset, distance, strength) {
+        if (offset == null) offset = 0.0;
+        if (distance == null) distance = 10.0;
+        if (strength == null) strength = 1.0;
+        return (v * (1.0-strength)) + (strength * Math.round(v / distance) * distance);
+    }
+
+    if (shape == null) return null;
+    if (position == null) position = g.ZERO;
+    strength /= 100.0;
+    var elements = _.map(shape.elements, function(pe) {
+        if (pe.cmd === g.CLOSE) return pe;
+        else {
+            var x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
+            var y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
+            if (pe.cmd === g.MOVETO)
+                return g.moveto(x, y);
+            else if (pe.cmd === g.LINETO)
+                return g.lineto(x, y);
+            else if (pe.cmd === g.CURVETO) {
+                var ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
+                var ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
+                var ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
+                var ctrl2y = _snap(pe.ctrl2.y + position.y, position.y, distance, strength) - position.y;
+                return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
+            }
+        }
+    });
+    return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+};
+
+corevector.link = function (shape1, shape2, orientation) {
+    if (shape1 == null || shape2 == null) return null;
+    var a = g.bounds(shape1);
+    var b = g.bounds(shape2);
+
+    var elements;
+
+    if (orientation === "horizontal") {
+        var hw = (b.x - (a.x + a.width)) / 2;
+        elements = [
+            g.moveto(a.x + a.width, a.y),
+            g.curveto(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y),
+            g.lineto(b.x, b.y + b.height),
+            g.curveto(b.x - hw, b.y + b.height, a.x + a.width + hw, a.y + a.height, a.x + a.width, a.y + a.height)
+        ];
+    } else {
+        var hh = (b.y - (a.y + a.height)) / 2;
+        elements = [
+            g.moveto(a.x, a.y + a.height),
+            g.curveto(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y),
+            g.lineto(b.x + b.width, b.y),
+            g.curveto(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height)
+        ];
+    }
+    return g.makePath(elements);
+};
+
+corevector.makePoint = function (x, y) {
     return {x: x, y: y};
+};
+
+corevector.point = function (v) {
+    return v;
 };

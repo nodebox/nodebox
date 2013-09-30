@@ -265,7 +265,7 @@ g.bezier._locate = function(path, t, segments) {
 };
 
 
-g.bezier.point = function(path, t, segments) {
+g.bezier.point = function (path, t, segments) {
     /* Returns the DynamicPathElement at time t on the path.
      * Note: in PathElement, ctrl1 is how the curve started, and ctrl2 how it arrives in this point.
      * Here, ctrl1 is how the curve arrives, and ctrl2 how it continues to the next point.
@@ -284,7 +284,107 @@ g.bezier.point = function(path, t, segments) {
     return pe;
 };
 
+g.bezier.extrema = function (p1, p2, p3, p4) {
+    var x1 = p1.x;
+    var y1 = p1.y;
+    var x2 = p2.x;
+    var y2 = p2.y;
+    var x3 = p3.x;
+    var y3 = p3.y;
+    var x4 = p4.x;
+    var y4 = p4.y;
 
+    var minx, maxx, miny, maxy;
+    var ax, bx, cx, ay, by, cy;
+
+    function fuzzyCompare(p1, p2) {
+        return Math.abs(p1 - p2) <= (0.000000000001 * Math.min(Math.abs(p1), Math.abs(p2)));
+    }
+
+    function pointAt (t) {
+        var a, b, c, d;
+        var coeff = coefficients(t);
+        a = coeff[0];
+        b = coeff[1];
+        c = coeff[2];
+        d = coeff[3];
+        return {x: a * x1 + b * x2 + c * x3 + d * x4,
+                y: a * y1 + b * y2 + c * y3 + d * y4};
+    }
+
+    function coefficients (t) {
+        var m_t, a, b, c, d;
+        m_t = 1 - t;
+        b = m_t * m_t;
+        c = t * t;
+        d = c * t;
+        a = b * m_t;
+        b *= (3.0 * t);
+        c *= (3.0 * m_t);
+        return [a, b, c, d];
+    }
+
+    function bezierCheck (t) {
+        if (t >= 0 && t <= 1) {
+            var p = pointAt(t);
+            if (p.x < minx) minx = p.x;
+            else if (p.x > maxx) maxx = p.x;
+            if (p.y < miny) miny = p.y;
+            else if (p.y > maxy) maxy = p.y;
+        }
+    }
+
+    if (x1 < x4) {
+        minx = x1;
+        maxx = x4;
+    } else {
+        minx = x4;
+        maxx = x1;
+    }
+    if (y1 < y4) {
+        miny = y1;
+        maxy = y4;
+    } else {
+        miny = y4;
+        maxy = y1;
+    }
+
+    ax = 3 * (-x1 + 3 * x2 - 3 * x3 + x4);
+    bx = 6 * (x1 - 2 * x2 + x3);
+    cx = 3 * (-x1 + x2);
+
+    if (fuzzyCompare(ax + 1, 1)) {
+        if (!fuzzyCompare(bx + 1, 1))
+            bezierCheck(-cx / bx);
+    } else {
+        var tx = bx * bx - 4 * ax * cx;
+        if (tx >= 0) {
+            var temp = Math.sqrt(tx);
+            var rcp = 1 / (2 * ax);
+            bezierCheck((-bx + temp) * rcp);
+            bezierCheck((-bx - temp) * rcp);
+        }
+    }
+
+    ay = 3 * (-y1 + 3 * y2 - 3 * y3 + y4);
+    by = 6 * (y1 - 2 * y2 + y3);
+    cy = 3 * (-y1 + y2);
+
+    if (fuzzyCompare(ay + 1, 1)) {
+        if (!fuzzyCompare(by + 1, 1))
+            bezierCheck(-cy / by);
+    } else {
+        var ty = by * by - 4 * ay * cy;
+        if (ty > 0) {
+            var temp = Math.sqrt(ty);
+            var rcp = 1 / (2 * ay);
+            bezierCheck((-by + temp) * rcp);
+            bezierCheck((-by - temp) * rcp);
+        }
+    }
+
+    return g.makeRect(minx, miny, maxx - minx, maxy - miny);
+};
 
 g.makePoint = function (x, y) {
     return Object.freeze({ x: x, y: y });
@@ -295,7 +395,7 @@ g.LINETO  = "L";
 g.CURVETO = "C";
 g.CLOSE   = "z";
 
-g.ZERO = new g.makePoint(0, 0);
+g.ZERO = g.makePoint(0, 0);
 g.CLOSE_ELEMENT = { cmd: g.CLOSE };
 
 g.moveTo = g.moveto = function (x, y) {
@@ -452,6 +552,41 @@ g.pathContains = function (path, x, y, precision) {
     return g.geometry.pointInPolygon(points, x, y);
 };
 
+g.bounds = function (path) {
+    if (_.isEmpty(path.elements)) return g.makeRect(0, 0, 0, 0);
+    else {
+        var minX = Number.MAX_VALUE;
+        var minY = Number.MAX_VALUE;
+        var maxX = - Number.MAX_VALUE;
+        var maxY = - Number.MAX_VALUE;
+        var px, py;
+        var prev;
+
+        _.each(path.elements, function(el) {
+            if (el.cmd === g.MOVETO || el.cmd === g.LINETO) {
+                px = el.point.x;
+                py = el.point.y;
+                if (px < minX) minX = px;
+                if (py < minY) minY = py;
+                if (px > maxX) maxX = px;
+                if (py > maxY) maxY = py;
+                prev = el;
+            } else if (el.cmd === g.CURVETO) {
+                var r = g.bezier.extrema(prev.point, el.ctrl1, el.ctrl2, el.point);
+                var right = r.x + r.width;
+                var bottom = r.y + r.height;
+                if (r.x < minX) minX = r.x;
+                if (right > maxX) maxX = right;
+                if (r.y < minY) minY = r.y;
+                if (bottom > maxY) maxY = bottom;
+                prev = el;
+            }
+        });
+
+        return g.makeRect(minX, minY, maxX - minX, maxY - minY);
+    }
+};
+
 
 g.makeRect = function (x, y, width, height) {
   return Object.freeze({ x: x, y: y, width: width, height: height });
@@ -539,6 +674,12 @@ g.rotate = function (matrix, angle) {
     var c = Math.cos(g.math.radians(angle));
     var s = Math.sin(g.math.radians(angle));
     return g._mmult([c, s, 0, -s, c, 0, 0, 0, 1], matrix);
+};
+
+g.skew = function (matrix, x, y) {
+    var kx = Math.PI * x / 180.0;
+    var ky = Math.PI * y / 180.0;
+    return g._mmult([1, Math.tan(ky), 0, -Math.tan(kx), 1, 0, 0, 0, 1], matrix);
 };
 
 g.transformPoint = function (point, matrix) {
