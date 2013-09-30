@@ -417,6 +417,58 @@ corevector.link = function (shape1, shape2, orientation) {
     return g.makePath(elements);
 };
 
+corevector.pointOnPath = function (shape, t) {
+    if (shape == null) return null;
+    t = Math.abs(t % 100);
+    return g.point(shape, t / 100).point;
+};
+
+corevector.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baseline_offset) {
+    if (! shapes) return [];
+    if (path == null) return [];
+
+    if (alignment === "trailing") {
+        shapes = shapes.slice();
+        shapes.reverse();
+    }
+
+    var length = g.length(path) - margin;
+    var m = margin / g.length(path);
+    var c = 0;
+
+    var new_shapes = [];
+    for (var i=0; i<amount; i++) {
+        _.each(shapes, function(shape) {
+            var pos;
+            if (alignment === "distributed") {
+                var p = length / ((amount * shapes.length) - 1);
+                pos = c * p / length;
+                pos = m + (pos * (1 - 2 * m));
+            } else {
+                pos = ((c * spacing) % length) / length;
+                pos = m + (pos * (1 - m));
+
+                if (alignment === "trailing")
+                    pos = 1 - pos;
+            }
+
+            var p1 = g.point(path, pos).point;
+            var p2 = g.point(path, pos + 0.0000001).point;
+            var a = g.geometry.angle(p1.x, p1.y, p2.x, p2.y);
+            if (baseline_offset)
+                p1 = g.geometry.coordinates(p1.x, p1.y, baseline_offset, a - 90);
+            var t = g.IDENTITY;
+            t = g.translate(t, p1.x, p1.y);
+            t = g.rotate(t, a);
+            new_shapes.push(g.transformPath(shape, t));
+            c += 1;
+        });
+    }
+    return new_shapes;
+};
+
+corevector.shape_on_path = corevector.shapeOnPath;
+
 corevector.makePoint = function (x, y) {
     return {x: x, y: y};
 };
