@@ -31,6 +31,14 @@ nodecore.findConnectionByInput = function (network, nodeName, portName) {
     });
 };
 
+// Given a list of lists, combine the lists together.
+// Example:
+//     ndbx.combineLists([[1, 2], [3], [4, 5, 6]])
+//     >> [1, 2, 3, 4, 5, 6]
+nodecore.combineLists = function (lists) {
+    return [].concat.apply([], lists);
+};
+
 // Get the size of the of the largest list.
 nodecore.maxListSize = function (lists) {
     if (lists.length === 0) return 0;
@@ -144,7 +152,8 @@ nodecore.evaluateChild = function (network, nodeName) {
             results = nodecore.cycleMap(fn, argLists);
         }
         if (childNode.outputRange === 'LIST') {
-            results = results[0];
+            // Make a list of all results combined together.
+            results = nodecore.combineLists(results);
         }
     } else {
         console.log("Function " + childNode['function'] + " not found.", nodeName);
