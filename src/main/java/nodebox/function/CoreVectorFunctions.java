@@ -49,7 +49,7 @@ public class CoreVectorFunctions {
      * @param geometry The input geometry.
      * @return The new, rotated geometry.
      */
-    public static Geometry filter(Geometry geometry) {
+    public static IGeometry filter(IGeometry geometry) {
         if (geometry == null) return null;
         Transform t = new Transform();
         t.rotate(45);
