@@ -1146,6 +1146,10 @@ g.svg.read = {
 g.svg.applySvgAttributes = function (node, shape) {
     var fill, stroke, strokeWidth, transforms, types, transform, i;
 
+    if (shape.elements) {
+        fill = 'black';
+    }
+
     transforms = [];
     types = {};
 
