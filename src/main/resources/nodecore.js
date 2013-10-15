@@ -167,7 +167,7 @@ nodecore.renderLibrary = function (network, animate) {
     var ctx = document.getElementById('c').getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, 600, 600);
-    ctx.translate(150, 150);
+    ctx.translate(0, 0);
     ctx.fillStyle = 'black';
     g.draw(ctx, result);
     core._currentFrame += 1;

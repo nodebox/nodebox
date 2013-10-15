@@ -3,17 +3,9 @@
 
 var g = {};
 
-g._freeze = function (o) {
-    Object.freeze(o);
-    return o;
-};
-
-
 /*--- GEOMETRY -------------------------------------------------------------------------------------*/
 
 g.math = {};
-
-g.math.PI = Math.PI;
 
 g.math.round = function (x, decimals) {
     if (!decimals) {
@@ -734,6 +726,9 @@ g.drawCommand = function (ctx, command) {
 g.getColor = function (c) {
     var R,G,B,A;
     if (c != null) {
+        if (_.isString(c)) {
+            return c;
+        }
         R = g.math.round(c.r * 255);
         G = g.math.round(c.g * 255);
         B = g.math.round(c.b * 255);
@@ -742,7 +737,6 @@ g.getColor = function (c) {
         R = G = B = 0;
         A = 1;
     }
-
     return "rgba(" + R + ", " + G + ", " + B + ", " + A + ")";
 };
 
@@ -769,3 +763,545 @@ g.draw = function (ctx, shape) {
         console.log("Error while drawing:", err);
     }
 };
+
+// The SVG engine uses code from the following libraries:
+// - for parsing the main svg tree: two.js - http://jonobr1.github.io/two.js/
+// - for constructing individual paths: canvg - https://code.google.com/p/canvg/
+// - for constructing arcs: fabric.js - http://fabricjs.com
+
+g.svg = {};
+
+g.svg.interpret = function (svgNode) {
+    var tag = svgNode.tagName.toLowerCase();
+    if (!(tag in g.svg.read)) {
+        return null;
+    }
+
+    var node = g.svg.read[tag].call(this, svgNode);
+    return node;
+};
+
+g.svg.getReflection = function(a, b, relative) {
+    var d = g.geometry.distance(a.x, a.y, b.x, b.y);
+
+    if (d <= 0.0001) {
+        return relative ? g.ZERO : a;
+    }
+    var theta = g.geometry.angle(a.x, a.y, b.x, b.y);
+    return g.makePoint(
+        d * Math.cos(theta) + (relative ? 0 : a.x),
+        d * Math.sin(theta) + (relative ? 0 : a.y)
+    );
+};
+
+g.svg.trim = function (s) {
+    return s.replace(/^\s+|\s+$/g, '');
+};
+
+g.svg.compressSpaces = function (s) {
+    return s.replace(/[\s\r\t\n]+/gm,' ');
+};
+
+g.svg.ToNumberArray = function(s) {
+    var a = g.svg.trim(g.svg.compressSpaces((s || '').replace(/,/g, ' '))).split(' ');
+    for (var i=0; i<a.length; i++) {
+        a[i] = parseFloat(a[i]);
+    }
+    return a;
+};
+
+g.svg.read = {
+
+    svg: function() {
+        return g.svg.read.g.apply(this, arguments);
+    },
+
+    g: function(node) {
+
+        var group = [];
+
+        _.each(node.childNodes, function(n) {
+
+            var tag = n.nodeName;
+            if (!tag) return;
+            var tagName = tag.replace(/svg\:/ig, '').toLowerCase();
+            if (tagName in g.svg.read) {
+                var o = g.svg.read[tagName].call(this, n);
+                group.push(o);
+            }
+        });
+
+        return g.svg.applySvgAttributes(node, group);
+    },
+
+    polygon: function(node, open) {
+        var points = node.getAttribute('points');
+
+        var elements = [];
+        points.replace(/([\d\.?]+),([\d\.?]+)/g, function(match, p1, p2) {
+            elements.push((verts.length === 0 ? g.moveto : g.lineto)(parseFloat(p1), parseFloat(p2)));
+        });
+        if (!open) {
+            elements.push(g.closePath());
+        }
+
+        var poly = Object.freeze({ elements: elements });
+        return g.svg.applySvgAttributes(node, poly);
+    },
+
+    polyline: function(node) {
+          return g.svg.read.polygon(node, true);
+    },
+
+    rect: function(node) {
+        var x, y, width, height;
+        x = parseFloat(node.getAttribute('x'));
+        y = parseFloat(node.getAttribute('y'));
+        width = parseFloat(node.getAttribute('width'));
+        height = parseFloat(node.getAttribute('height'));
+        return g.svg.applySvgAttributes(node, g.rect(x, y, width, height));
+    },
+
+    ellipse: function(node) {
+        var cx, cy, rx, ry, x, y, width, height;
+        cx = parseFloat(node.getAttribute('cx'));
+        cy = parseFloat(node.getAttribute('cy'));
+        rx = parseFloat(node.getAttribute('rx'));
+        ry = parseFloat(node.getAttribute('ry'));
+        x = cx - rx;
+        y = cy - ry;
+        width = rx * 2;
+        height = ry * 2;
+        return g.svg.applySvgAttributes(node, g.ellipse(x, y, width, height));
+    },
+
+    circle: function(node) {
+        var cx, cy, r, x, y, width, height;
+        cx = parseFloat(node.getAttribute('cx'));
+        cy = parseFloat(node.getAttribute('cy'));
+        r = parseFloat(node.getAttribute('r'));
+        x = cx - r;
+        y = cy - r;
+        width = height = r * 2;
+        return g.svg.applySvgAttributes(node, g.ellipse(x, y, width, height));
+    },
+
+    line: function(node) {
+        var x1, y1, x2, y2;
+        x1 = parseFloat(node.getAttribute('x1'));
+        y1 = parseFloat(node.getAttribute('y1'));
+        x2 = parseFloat(node.getAttribute('x2'));
+        y2 = parseFloat(node.getAttribute('y2'));
+        return g.svg.applySvgAttributes(node, g.line(x1, y1, x2, y2));
+    },
+
+    path: function(node) {
+        var d = node.getAttribute('d');
+        // TODO: convert to real lexer based on http://www.w3.org/TR/SVG11/paths.html#PathDataBNF
+        d = d.replace(/,/gm,' '); // get rid of all commas
+        d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from commands
+        d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from commands
+        d = d.replace(/([MmZzLlHhVvCcSsQqTtAa])([^\s])/gm,'$1 $2'); // separate commands from points
+        d = d.replace(/([^\s])([MmZzLlHhVvCcSsQqTtAa])/gm,'$1 $2'); // separate commands from points
+        d = d.replace(/([0-9])([+\-])/gm,'$1 $2'); // separate digits when no comma
+        d = d.replace(/(\.[0-9]*)(\.)/gm,'$1 $2'); // separate digits when no comma
+        d = d.replace(/([Aa](\s+[0-9]+){3})\s+([01])\s*([01])/gm,'$1 $3 $4 '); // shorthand elliptical arc path syntax
+        d = g.svg.compressSpaces(d); // compress multiple spaces
+        d = g.svg.trim(d);
+
+        var PathParser = new (function(d) {
+            this.tokens = d.split(' ');
+
+            this.reset = function() {
+                this.i = -1;
+                this.command = '';
+                this.previousCommand = '';
+                this.start = g.makePoint(0, 0);
+                this.control = g.makePoint(0, 0);
+                this.current = g.makePoint(0, 0);
+                this.points = [];
+                this.angles = [];
+            }
+
+            this.isEnd = function() {
+                return this.i >= this.tokens.length - 1;
+            }
+
+            this.isCommandOrEnd = function() {
+                if (this.isEnd()) return true;
+                return this.tokens[this.i + 1].match(/^[A-Za-z]$/) != null;
+            }
+
+            this.isRelativeCommand = function() {
+                switch(this.command)
+                {
+                    case 'm':
+                    case 'l':
+                    case 'h':
+                    case 'v':
+                    case 'c':
+                    case 's':
+                    case 'q':
+                    case 't':
+                    case 'a':
+                    case 'z':
+                        return true;
+                        break;
+                }
+                return false;
+            }
+
+            this.getToken = function() {
+                this.i++;
+                return this.tokens[this.i];
+            }
+
+            this.getScalar = function() {
+                return parseFloat(this.getToken());
+            }
+
+            this.nextCommand = function() {
+                this.previousCommand = this.command;
+                this.command = this.getToken();
+            }
+
+            this.getPoint = function() {
+                var p = g.makePoint(this.getScalar(), this.getScalar());
+                return this.makeAbsolute(p);
+            }
+
+            this.getAsControlPoint = function() {
+                var p = this.getPoint();
+                this.control = p;
+                return p;
+            }
+
+            this.getAsCurrentPoint = function() {
+                var p = this.getPoint();
+                this.current = p;
+                return p;
+            }
+
+            this.getReflectedControlPoint = function() {
+                if (this.previousCommand.toLowerCase() != 'c' &&
+                    this.previousCommand.toLowerCase() != 's' &&
+                        this.previousCommand.toLowerCase() != 'q' &&
+                        this.previousCommand.toLowerCase() != 't' ){
+                        return this.current;
+                }
+
+                // reflect point
+                var p = g.makePoint(2 * this.current.x - this.control.x, 2 * this.current.y - this.control.y);
+                return p;
+            }
+
+            this.makeAbsolute = function(p) {
+                if (this.isRelativeCommand()) {
+                    return g.makePoint(p.x + this.current.x, p.y + this.current.y);
+                }
+                return p;
+            }
+        })(d);
+
+        var elements = [];
+
+        var pp = PathParser;
+        pp.reset();
+
+        while (!pp.isEnd()) {
+            pp.nextCommand();
+            switch (pp.command) {
+                case 'M':
+                case 'm':
+                    var p = pp.getAsCurrentPoint();
+                    elements.push(g.moveTo(p.x, p.y));
+                    pp.start = pp.current;
+                    while (!pp.isCommandOrEnd()) {
+                        var p = pp.getAsCurrentPoint();
+                        elements.push(g.lineTo(p.x, p.y));
+                    }
+                    break;
+                case 'L':
+                case 'l':
+                    while (!pp.isCommandOrEnd()) {
+                        var c = pp.current;
+                        var p = pp.getAsCurrentPoint();
+                        elements.push(g.lineTo(p.x, p.y));
+                    }
+                    break;
+                case 'H':
+                case 'h':
+                    while (!pp.isCommandOrEnd()) {
+                        var newP = g.makePoint((pp.isRelativeCommand() ? pp.current.x : 0) + pp.getScalar(), pp.current.y);
+                        pp.current = newP;
+                        elements.push(g.lineTo(pp.current.x, pp.current.y));
+                    }
+                    break;
+                case 'V':
+                case 'v':
+                    while (!pp.isCommandOrEnd()) {
+                        var newP = g.makePoint(pp.current.x, (pp.isRelativeCommand() ? pp.current.y : 0) + pp.getScalar());
+                        pp.current = newP;
+                        elements.push(g.lineTo(pp.current.x, pp.current.y));
+                    }
+                    break;
+                case 'C':
+                case 'c':
+                    while (!pp.isCommandOrEnd()) {
+                        var curr = pp.current;
+                        var p1 = pp.getPoint();
+                        var cntrl = pp.getAsControlPoint();
+                        var cp = pp.getAsCurrentPoint();
+                        elements.push(g.curveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                    }
+                    break;
+                case 'S':
+                case 's':
+                    while (!pp.isCommandOrEnd()) {
+                        var curr = pp.current;
+                        var p1 = pp.getReflectedControlPoint();
+                        var cntrl = pp.getAsControlPoint();
+                        var cp = pp.getAsCurrentPoint();
+                        elements.push(g.curveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                    }
+                    break;
+                case 'Q':
+                case 'q':
+                    while (!pp.isCommandOrEnd()) {
+                        var curr = pp.current;
+                        var cntrl = pp.getAsControlPoint();
+                        var cp = pp.getAsCurrentPoint();
+                        var cp1x = curr.x + 2/3 * (cntrl.x - curr.x); // CP1 = QP0 + 2/3 *(QP1-QP0)
+                        var cp1y = curr.y + 2/3 * (cntrl.y - curr.y); // CP1 = QP0 + 2/3 *(QP1-QP0)
+                        var cp2x = cp1x + 1/3 * (cp.x - curr.x); // CP2 = CP1 + 1/3 *(QP2-QP0)
+                        var cp2y = cp1y + 1/3 * (cp.y - curr.y); // CP2 = CP1 + 1/3 *(QP2-QP0)
+                        elements.push(g.curveTo(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                    }
+                    break;
+                case 'T':
+                case 't':
+                    while (!pp.isCommandOrEnd()) {
+                        var curr = pp.current;
+                        var cntrl = pp.getReflectedControlPoint();
+                        pp.control = cntrl;
+                        var cp = pp.getAsCurrentPoint();
+                        var cp1x = curr.x + 2/3 * (cntrl.x - curr.x); // CP1 = QP0 + 2/3 *(QP1-QP0)
+                        var cp1y = curr.y + 2/3 * (cntrl.y - curr.y); // CP1 = QP0 + 2/3 *(QP1-QP0)
+                        var cp2x = cp1x + 1/3 * (cp.x - curr.x); // CP2 = CP1 + 1/3 *(QP2-QP0)
+                        var cp2y = cp1y + 1/3 * (cp.y - curr.y); // CP2 = CP1 + 1/3 *(QP2-QP0)
+                        elements.push(g.curveTo(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                    }
+                    break;
+                case 'A':
+                case 'a':
+                    while (!pp.isCommandOrEnd()) {
+                        var curr = pp.current;
+                        var rx = pp.getScalar();
+                        var ry = pp.getScalar();
+                        var rot = pp.getScalar();// * (Math.PI / 180.0);
+                        var large = pp.getScalar();
+                        var sweep = pp.getScalar();
+                        var cp = pp.getAsCurrentPoint();
+                        var ex = cp.x;
+                        var ey = cp.y;
+                        var segs = g.svg.arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y);
+                        for (var i=0; i<segs.length; i++) {
+                            var bez = g.svg.segmentToBezier.apply(this, segs[i]);
+                            elements.push(g.curveTo.apply(this, bez));
+                        }
+                    }
+                    break;
+                case 'Z':
+                case 'z':
+                    elements.push(g.closePath());
+                    pp.current = pp.start;
+            }
+        }
+        return g.svg.applySvgAttributes(node, g.makePath(elements));
+    }
+};
+
+g.svg.applySvgAttributes = function (node, shape) {
+    var fill, stroke, strokeWidth, transforms;
+
+    transforms = [];
+    var types = {};
+
+    types.translate = function (s) {
+        var p = g.makePoint.apply(null, g.svg.ToNumberArray(s));
+        return g.translate(g.IDENTITY, p.x || 0.0, p.y || 0.0);
+    };
+
+    types.matrix = function (s) {
+        var m = g.svg.ToNumberArray(s);
+        return [m[0], m[1], 0, m[2], m[3], 0, m[4], m[5], 1];
+    };
+
+    _.each(node.attributes, function(v, k) {
+        var property = v.nodeName;
+
+        switch (property) {
+            case 'transform':
+                var data = g.svg.trim(g.svg.compressSpaces(v.nodeValue)).replace(/\)(\s?,\s?)/g,') ').split(/\s(?=[a-z])/);
+                for (var i=0; i<data.length; i++) {
+                    var type = g.svg.trim(data[i].split('(')[0]);
+                    var s = data[i].split('(')[1].replace(')','');
+                    var transform = types[type](s);
+                    transforms.push(transform);
+                }
+                break;
+            case 'visibility':
+//              elem.visible = !!v.nodeValue;
+                break;
+            case 'stroke-linecap':
+//              elem.cap = v.nodeValue;
+                break;
+            case 'stroke-linejoin':
+//              elem.join = v.nodeValue;
+                break;
+            case 'stroke-miterlimit':
+//              elem.miter = v.nodeValue;
+                break;
+            case 'stroke-width':
+//              elem.linewidth = parseFloat(v.nodeValue);
+                strokeWidth = parseFloat(v.nodeValue);
+                break;
+            case 'stroke-opacity':
+            case 'fill-opacity':
+//              elem.opacity = v.nodeValue;
+                break;
+            case 'fill':
+                fill = v.nodeValue;
+              break;
+            case 'stroke':
+                stroke = v.nodeValue;
+              break;
+            case 'style':
+                var d = {};
+                _.each(v.nodeValue.split(';'), function(s) {
+                    var el = s.split(':');
+                    d[el[0].trim()] = el[1];
+                });
+                if (d["fill"]) {
+                    fill = d["fill"];
+                }
+                if (d["stroke"]) {
+                    stroke = d["stroke"];
+                }
+                if (d["stroke-width"]) {
+                    strokeWidth = parseFloat(d["stroke-width"]);
+                }
+                break;
+        }
+    });
+
+    var transform = g.IDENTITY;
+    for (var i = 0; i < transforms.length; i++) {
+        transform = g.append(transform, transforms[i]);
+    }
+
+    function applyAttributes(shape) {
+      if (shape.elements) {
+          return Object.freeze({
+            elements: g.transformPath(shape, transform).elements,
+            fill: (fill === undefined) ? shape.fill : fill,
+            stroke: (stroke === undefined) ? shape.stroke : stroke,
+            strokeWidth: transform[0] * ((strokeWidth === undefined) ? shape.strokeWidth : strokeWidth)
+          });
+      } else {
+          return _.map(shape, applyAttributes);
+      }
+    }
+
+    return applyAttributes(shape);
+};
+
+g.svg.arcToSegments = function (x, y, rx, ry, large, sweep, rotateX, ox, oy) {
+/*    argsString = _join.call(arguments);
+    if (arcToSegmentsCache[argsString]) {
+      return arcToSegmentsCache[argsString];
+    } */
+
+    var th = rotateX * (Math.PI/180);
+    var sin_th = Math.sin(th);
+    var cos_th = Math.cos(th);
+    rx = Math.abs(rx);
+    ry = Math.abs(ry);
+    var px = cos_th * (ox - x) * 0.5 + sin_th * (oy - y) * 0.5;
+    var py = cos_th * (oy - y) * 0.5 - sin_th * (ox - x) * 0.5;
+    var pl = (px*px) / (rx*rx) + (py*py) / (ry*ry);
+    if (pl > 1) {
+        pl = Math.sqrt(pl);
+        rx *= pl;
+        ry *= pl;
+    }
+
+    var a00 = cos_th / rx;
+    var a01 = sin_th / rx;
+    var a10 = (-sin_th) / ry;
+    var a11 = (cos_th) / ry;
+    var x0 = a00 * ox + a01 * oy;
+    var y0 = a10 * ox + a11 * oy;
+    var x1 = a00 * x + a01 * y;
+    var y1 = a10 * x + a11 * y;
+
+    var d = (x1-x0) * (x1-x0) + (y1-y0) * (y1-y0);
+    var sfactor_sq = 1 / d - 0.25;
+    if (sfactor_sq < 0) sfactor_sq = 0;
+    var sfactor = Math.sqrt(sfactor_sq);
+    if (sweep === large) sfactor = -sfactor;
+    var xc = 0.5 * (x0 + x1) - sfactor * (y1-y0);
+    var yc = 0.5 * (y0 + y1) + sfactor * (x1-x0);
+
+    var th0 = Math.atan2(y0-yc, x0-xc);
+    var th1 = Math.atan2(y1-yc, x1-xc);
+
+    var th_arc = th1-th0;
+    if (th_arc < 0 && sweep === 1){
+      th_arc += 2*Math.PI;
+    } else if (th_arc > 0 && sweep === 0) {
+      th_arc -= 2 * Math.PI;
+    }
+
+    var segments = Math.ceil(Math.abs(th_arc / (Math.PI * 0.5 + 0.001)));
+    var result = [];
+    for (var i=0; i<segments; i++) {
+      var th2 = th0 + i * th_arc / segments;
+      var th3 = th0 + (i+1) * th_arc / segments;
+      result[i] = [xc, yc, th2, th3, rx, ry, sin_th, cos_th];
+    }
+
+//    arcToSegmentsCache[argsString] = result;
+    return result;
+};
+
+g.svg.segmentToBezier = function (cx, cy, th0, th1, rx, ry, sin_th, cos_th) {
+//    argsString = _join.call(arguments);
+//    if (segmentToBezierCache[argsString]) {
+//      return segmentToBezierCache[argsString];
+//    }
+
+    var a00 = cos_th * rx;
+    var a01 = -sin_th * ry;
+    var a10 = sin_th * rx;
+    var a11 = cos_th * ry;
+
+    var th_half = 0.5 * (th1 - th0);
+    var t = (8/3) * Math.sin(th_half * 0.5) * Math.sin(th_half * 0.5) / Math.sin(th_half);
+    var x1 = cx + Math.cos(th0) - t * Math.sin(th0);
+    var y1 = cy + Math.sin(th0) + t * Math.cos(th0);
+    var x3 = cx + Math.cos(th1);
+    var y3 = cy + Math.sin(th1);
+    var x2 = x3 + t * Math.sin(th1);
+    var y2 = y3 - t * Math.cos(th1);
+
+//    segmentToBezierCache[argsString] = [
+    return [
+      a00 * x1 + a01 * y1,      a10 * x1 + a11 * y1,
+      a00 * x2 + a01 * y2,      a10 * x2 + a11 * y2,
+      a00 * x3 + a01 * y3,      a10 * x3 + a11 * y3
+    ];
+
+//    return segmentToBezierCache[argsString];
+};
+
