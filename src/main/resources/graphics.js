@@ -1154,8 +1154,29 @@ g.svg.applySvgAttributes = function (node, shape) {
     types = {};
 
     types.translate = function (s) {
-        var p = g.makePoint.apply(null, g.svg.ToNumberArray(s));
-        return g.translate(g.IDENTITY, p.x || 0.0, p.y || 0.0);
+        var a = g.svg.ToNumberArray(s),
+            tx = a[0],
+            ty = a[1] || 0;
+        return g.translate(g.IDENTITY, tx, ty);
+    };
+
+    types.scale = function (s) {
+        var a = g.svg.ToNumberArray(s),
+            sx = a[0],
+            sy = a[1] || sx;
+        return g.scale(g.IDENTITY, sx, sy);
+    };
+
+    types.rotate = function (s) {
+        var t,
+            a = g.svg.ToNumberArray(s),
+            r = a[0],
+            tx = a[1] || 0,
+            ty = a[2] || 0;
+        t = g.translate(g.IDENTITY, tx, ty);
+        t = g.rotate(t, r);
+        t = g.translate(t, -tx, -ty);
+        return t;
     };
 
     types.matrix = function (s) {
