@@ -1,5 +1,14 @@
 var corevector = {};
 
+corevector.generator = function () {
+    return g.rect(0, 0, 100, 100);
+};
+
+corevector.filter = function (shape) {
+    var t = g.rotate(g.IDENTITY, 45);
+    return g.transformPath(shape, t);
+};
+
 corevector.rect = function (position, width, height) {
     return g.rect(position.x - width / 2, position.y - height / 2, width, height);
 };
