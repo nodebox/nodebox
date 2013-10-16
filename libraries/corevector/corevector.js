@@ -426,6 +426,53 @@ corevector.link = function (shape1, shape2, orientation) {
     return g.makePath(elements);
 };
 
+corevector.stack = function (shapes, direction, margin) {
+    if (shapes == null) { return []; }
+    if (shapes.length <= 1) {
+        return shapes;
+    }
+    var first_bounds = g.bounds(shapes[0]);
+    var new_shapes = [];
+    if (direction === 'e') {
+        var tx = -(first_bounds.width / 2);
+        _.each(shapes, function(shape) {
+            var t = g.IDENTITY;
+            var bounds = g.bounds(shape);
+            t = g.translate(t, tx - bounds.x, 0);
+            new_shapes.push(g.transformPath(shape, t));
+            tx += bounds.width + margin;
+        });
+    } else if (direction === 'w') {
+        var tx = first_bounds.width / 2;
+        _.each(shapes, function(shape) {
+            var t = g.IDENTITY;
+            var bounds = g.bounds(shape);
+            t = g.translate(t, tx + bounds.x, 0);
+            new_shapes.push(g.transformPath(shape, t));
+            tx -= bounds.width + margin;
+        });
+    } else if (direction === 'n') {
+        var ty = first_bounds.height / 2;
+        _.each(shapes, function(shape) {
+            var t = g.IDENTITY;
+            var bounds = g.bounds(shape);
+            t = g.translate(t, 0, ty + bounds.y);
+            new_shapes.push(g.transformPath(shape, t));
+            ty -= bounds.height + margin;
+        });
+    } else if (direction === 's') {
+        var ty = -(first_bounds.height / 2);
+        _.each(shapes, function(shape) {
+            var t = g.IDENTITY;
+            var bounds = g.bounds(shape);
+            t = g.translate(t, 0, ty - bounds.y);
+            new_shapes.push(g.transformPath(shape, t));
+            ty += bounds.height + margin;
+        });
+    }
+    return new_shapes;
+};
+
 corevector.pointOnPath = function (shape, t) {
     if (shape == null) return null;
     t = Math.abs(t % 100);
