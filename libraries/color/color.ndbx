@@ -3,6 +3,7 @@
     <property name="canvasHeight" value="1000"/>
     <property name="canvasWidth" value="1000"/>
     <link href="java:nodebox.function.ColorFunctions" rel="functions"/>
+    <link href="javascript:color.js" rel="functions"/>
     <node description="Create colors." name="root" prototype="core.network" renderedChild="color">
         <node category="color" description="Create a color value that can be used as a variable." function="color/color" name="color" outputType="color" position="1.00,1.00">
             <port name="color" range="value" type="color" value="#000000ff" widget="color"/>
