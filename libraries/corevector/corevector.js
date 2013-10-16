@@ -490,3 +490,21 @@ corevector.makePoint = function (x, y) {
 corevector.point = function (v) {
     return v;
 };
+
+corevector.centroid = function (shape) {
+    if (shape == null) return g.ZERO;
+    var elements = shape.elements;
+    var firstPoint = elements[0].point;
+    var xs = firstPoint.x;
+    var ys = firstPoint.y;
+    var count = 1;
+    for (var i = 1; i < elements.length; i++) {
+        if (elements[i].point) {
+            var pt = elements[i].point;
+            xs += pt.x;
+            ys += pt.y;
+            count++;
+        }
+    }
+    return g.makePoint(xs/count, ys/count);
+};
