@@ -3,6 +3,10 @@
 
 var g = {};
 
+g.RGB = "RGB";
+g.HSB = "HSB";
+g.HEX = "HEX";
+
 /*--- GEOMETRY -------------------------------------------------------------------------------------*/
 
 g.math = {};
@@ -635,6 +639,265 @@ g.getRectCentroid = function (rect) {
     return g.makePoint(rect.x + rect.width / 2,  rect.y + rect.height / 2);
 };
 
+g._namedColors = {
+    "lightpink"            : [1.00, 0.71, 0.76],
+    "pink"                 : [1.00, 0.75, 0.80],
+    "crimson"              : [0.86, 0.08, 0.24],
+    "lavenderblush"        : [1.00, 0.94, 0.96],
+    "palevioletred"        : [0.86, 0.44, 0.58],
+    "hotpink"              : [1.00, 0.41, 0.71],
+    "deeppink"             : [1.00, 0.08, 0.58],
+    "mediumvioletred"      : [0.78, 0.08, 0.52],
+    "orchid"               : [0.85, 0.44, 0.84],
+    "thistle"              : [0.85, 0.75, 0.85],
+    "plum"                 : [0.87, 0.63, 0.87],
+    "violet"               : [0.93, 0.51, 0.93],
+    "fuchsia"              : [1.00, 0.00, 1.00],
+    "darkmagenta"          : [0.55, 0.00, 0.55],
+    "purple"               : [0.50, 0.00, 0.50],
+    "mediumorchid"         : [0.73, 0.33, 0.83],
+    "darkviolet"           : [0.58, 0.00, 0.83],
+    "darkorchid"           : [0.60, 0.20, 0.80],
+    "indigo"               : [0.29, 0.00, 0.51],
+    "blueviolet"           : [0.54, 0.17, 0.89],
+    "mediumpurple"         : [0.58, 0.44, 0.86],
+    "mediumslateblue"      : [0.48, 0.41, 0.93],
+    "slateblue"            : [0.42, 0.35, 0.80],
+    "darkslateblue"        : [0.28, 0.24, 0.55],
+    "ghostwhite"           : [0.97, 0.97, 1.00],
+    "lavender"             : [0.90, 0.90, 0.98],
+    "blue"                 : [0.00, 0.00, 1.00],
+    "mediumblue"           : [0.00, 0.00, 0.80],
+    "darkblue"             : [0.00, 0.00, 0.55],
+    "navy"                 : [0.00, 0.00, 0.50],
+    "midnightblue"         : [0.10, 0.10, 0.44],
+    "royalblue"            : [0.25, 0.41, 0.88],
+    "cornflowerblue"       : [0.39, 0.58, 0.93],
+    "lightsteelblue"       : [0.69, 0.77, 0.87],
+    "lightslategray"       : [0.47, 0.53, 0.60],
+    "slategray"            : [0.44, 0.50, 0.56],
+    "dodgerblue"           : [0.12, 0.56, 1.00],
+    "aliceblue"            : [0.94, 0.97, 1.00],
+    "steelblue"            : [0.27, 0.51, 0.71],
+    "lightskyblue"         : [0.53, 0.81, 0.98],
+    "skyblue"              : [0.53, 0.81, 0.92],
+    "deepskyblue"          : [0.00, 0.75, 1.00],
+    "lightblue"            : [0.68, 0.85, 0.90],
+    "powderblue"           : [0.69, 0.88, 0.90],
+    "cadetblue"            : [0.37, 0.62, 0.63],
+    "darkturquoise"        : [0.00, 0.81, 0.82],
+    "azure"                : [0.94, 1.00, 1.00],
+    "lightcyan"            : [0.88, 1.00, 1.00],
+    "paleturquoise"        : [0.69, 0.93, 0.93],
+    "aqua"                 : [0.00, 1.00, 1.00],
+    "darkcyan"             : [0.00, 0.55, 0.55],
+    "teal"                 : [0.00, 0.50, 0.50],
+    "darkslategray"        : [0.18, 0.31, 0.31],
+    "mediumturquoise"      : [0.28, 0.82, 0.80],
+    "lightseagreen"        : [0.13, 0.70, 0.67],
+    "turquoise"            : [0.25, 0.88, 0.82],
+    "aquamarine"           : [0.50, 1.00, 0.83],
+    "mediumaquamarine"     : [0.40, 0.80, 0.67],
+    "mediumspringgreen"    : [0.00, 0.98, 0.60],
+    "mintcream"            : [0.96, 1.00, 0.98],
+    "springgreen"          : [0.00, 1.00, 0.50],
+    "mediumseagreen"       : [0.24, 0.70, 0.44],
+    "seagreen"             : [0.18, 0.55, 0.34],
+    "honeydew"             : [0.94, 1.00, 0.94],
+    "darkseagreen"         : [0.56, 0.74, 0.56],
+    "palegreen"            : [0.60, 0.98, 0.60],
+    "lightgreen"           : [0.56, 0.93, 0.56],
+    "limegreen"            : [0.20, 0.80, 0.20],
+    "lime"                 : [0.00, 1.00, 0.00],
+    "forestgreen"          : [0.13, 0.55, 0.13],
+    "green"                : [0.00, 0.50, 0.00],
+    "darkgreen"            : [0.00, 0.39, 0.00],
+    "lawngreen"            : [0.49, 0.99, 0.00],
+    "chartreuse"           : [0.50, 1.00, 0.00],
+    "greenyellow"          : [0.68, 1.00, 0.18],
+    "darkolivegreen"       : [0.33, 0.42, 0.18],
+    "yellowgreen"          : [0.60, 0.80, 0.20],
+    "olivedrab"            : [0.42, 0.56, 0.14],
+    "ivory"                : [1.00, 1.00, 0.94],
+    "beige"                : [0.96, 0.96, 0.86],
+    "lightyellow"          : [1.00, 1.00, 0.88],
+    "lightgoldenrodyellow" : [0.98, 0.98, 0.82],
+    "yellow"               : [1.00, 1.00, 0.00],
+    "olive"                : [0.50, 0.50, 0.00],
+    "darkkhaki"            : [0.74, 0.72, 0.42],
+    "palegoldenrod"        : [0.93, 0.91, 0.67],
+    "lemonchiffon"         : [1.00, 0.98, 0.80],
+    "khaki"                : [0.94, 0.90, 0.55],
+    "gold"                 : [1.00, 0.84, 0.00],
+    "cornsilk"             : [1.00, 0.97, 0.86],
+    "goldenrod"            : [0.85, 0.65, 0.13],
+    "darkgoldenrod"        : [0.72, 0.53, 0.04],
+    "floralwhite"          : [1.00, 0.98, 0.94],
+    "oldlace"              : [0.99, 0.96, 0.90],
+    "wheat"                : [0.96, 0.87, 0.07],
+    "orange"               : [1.00, 0.65, 0.00],
+    "moccasin"             : [1.00, 0.89, 0.71],
+    "papayawhip"           : [1.00, 0.94, 0.84],
+    "blanchedalmond"       : [1.00, 0.92, 0.80],
+    "navajowhite"          : [1.00, 0.87, 0.68],
+    "antiquewhite"         : [0.98, 0.92, 0.84],
+    "tan"                  : [0.82, 0.71, 0.55],
+    "burlywood"            : [0.87, 0.72, 0.53],
+    "darkorange"           : [1.00, 0.55, 0.00],
+    "bisque"               : [1.00, 0.89, 0.77],
+    "linen"                : [0.98, 0.94, 0.90],
+    "peru"                 : [0.80, 0.52, 0.25],
+    "peachpuff"            : [1.00, 0.85, 0.73],
+    "sandybrown"           : [0.96, 0.64, 0.38],
+    "chocolate"            : [0.82, 0.41, 0.12],
+    "saddlebrown"          : [0.55, 0.27, 0.07],
+    "seashell"             : [1.00, 0.96, 0.93],
+    "sienna"               : [0.63, 0.32, 0.18],
+    "lightsalmon"          : [1.00, 0.63, 0.48],
+    "coral"                : [1.00, 0.50, 0.31],
+    "orangered"            : [1.00, 0.27, 0.00],
+    "darksalmon"           : [0.91, 0.59, 0.48],
+    "tomato"               : [1.00, 0.39, 0.28],
+    "salmon"               : [0.98, 0.50, 0.45],
+    "mistyrose"            : [1.00, 0.89, 0.88],
+    "lightcoral"           : [0.94, 0.50, 0.50],
+    "snow"                 : [1.00, 0.98, 0.98],
+    "rosybrown"            : [0.74, 0.56, 0.56],
+    "indianred"            : [0.80, 0.36, 0.36],
+    "red"                  : [1.00, 0.00, 0.00],
+    "brown"                : [0.65, 0.16, 0.16],
+    "firebrick"            : [0.70, 0.13, 0.13],
+    "darkred"              : [0.55, 0.00, 0.00],
+    "maroon"               : [0.50, 0.00, 0.00],
+    "white"                : [1.00, 1.00, 1.00],
+    "whitesmoke"           : [0.96, 0.96, 0.96],
+    "gainsboro"            : [0.86, 0.86, 0.86],
+    "lightgrey"            : [0.83, 0.83, 0.83],
+    "silver"               : [0.75, 0.75, 0.75],
+    "darkgray"             : [0.66, 0.66, 0.66],
+    "gray"                 : [0.50, 0.50, 0.50],
+    "grey"                 : [0.50, 0.50, 0.50],
+    "dimgray"              : [0.41, 0.41, 0.41],
+    "dimgrey"              : [0.41, 0.41, 0.41],
+    "black"                : [0.00, 0.00, 0.00],
+    "cyan"                 : [0.00, 0.68, 0.94],
+
+    "transparent"          : [0.00, 0.00, 0.00, 0.00],
+    "bark"                 : [0.25, 0.19, 0.13]
+};
+
+// Converts the given R,G,B values to a hexadecimal color string.
+g._rgb2hex = function (r, g, b) {
+    var parseHex = function (i) {
+        return ((i === 0) ? "00" : (i.length < 2) ? "0" + i : i).toString(16).toUpperCase();
+    };
+    return "#"
+        + parseHex(Math.round(r * 255))
+        + parseHex(Math.round(g * 255))
+        + parseHex(Math.round(b * 255));
+};
+
+// Converts the given hexadecimal color string to R,G,B (between 0.0-1.0).
+g._hex2rgb = function (hex) {
+    var arr, r, g, b;
+    hex = hex.replace(/^#/, "");
+    if (hex.length < 6) { // hex += hex[-1] * (6-hex.length);
+        arr = [];
+        arr.length = 6 - hex.length;
+        hex += arr.join(hex.substr(hex.length - 1));
+    }
+    r = parseInt(hex.substr(0, 2), 16) / 255;
+    g = parseInt(hex.substr(2, 2), 16) / 255;
+    b = parseInt(hex.substr(4, 2), 16) / 255;
+    return [r, g, b];
+};
+
+// Converts the given R,G,B values to H,S,B (between 0.0-1.0).
+g._rgb2hsb = function (r, g, b) {
+    var h = 0,
+        s = 0,
+        v = Math.max(r, g, b),
+        d = v - Math.min(r, g, b);
+    if (v !== 0) {
+        s = d / v;
+    }
+    if (s !== 0) {
+        if (r === v) {
+            h = (g - b) / d;
+        } else if (g === v) {
+            h = 2 + (b - r) / d;
+        } else {
+            h = 4 + (r - g) / d;
+        }
+    }
+    h = h / 6.0 % 1;
+    return [h, s, v];
+};
+
+// Converts the given H,S,B color values to R,G,B (between 0.0-1.0).
+g._hsb2rgb = function (h, s, v) {
+    if (s === 0) {
+        return [v, v, v];
+    }
+    h = h % 1 * 6.0;
+    var i = Math.floor(h),
+        f = h - i,
+        x = v * (1 - s),
+        y = v * (1 - s * f),
+        z = v * (1 - s * (1 - f));
+    if (i > 4) {
+        return [v, x, y];
+    }
+    return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
+};
+
+g.color = function (R, G, B, A, options) {
+    var rgb;
+    if (R.r && R.g && R.b && R.a) { return R; }
+    if (R instanceof Array) {
+        R = R[0];
+        G = R[1];
+        B = R[2];
+        A = R[3] || 1;
+    } else if (R === undefined || R === null) {
+        R = G = B = A = 0;
+    } else if (G === undefined || G === null) {
+        G = B = R;
+        A = 1;
+    } else if (B === undefined || B === null) {
+        A = G;
+        G = B = R;
+    } else if (A === undefined || A === null) {
+        A = 1;
+    }
+
+    if (options) {
+        // Transform to base 1:
+        if (options.base !== undefined) {
+            R /= options.base;
+            G /= options.base;
+            B /= options.base;
+            A /= options.base;
+        }
+        // Transform to color space RGB:
+        if (options.colorspace === g.HSB) {
+            rgb = g._hsb2rgb(R, G, B);
+            R = rgb[0];
+            G = rgb[1];
+            B = rgb[2];
+        }
+        // Transform to color space HEX:
+        if (options.colorspace === g.HEX) {
+            rgb = g._hex2rgb(R);
+            R = rgb[0];
+            G = rgb[1];
+            B = rgb[2];
+            A = 1;
+        }
+    }
+    return Object.freeze({ r: R, g: G, b: B, a: A });
+};
+
 g.IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 
 g._mmult = function (a, b) {
@@ -740,21 +1003,12 @@ g.drawCommand = function (ctx, command) {
     }
 };
 
-g.getColor = function (c) {
-    var R, G, B, A;
-    if (c !== null) {
-        if (_.isString(c)) {
-            return c;
-        }
-        R = g.math.round(c.r * 255);
-        G = g.math.round(c.g * 255);
-        B = g.math.round(c.b * 255);
-        A = c.a;
-    } else {
-        R = G = B = 0;
-        A = 1;
-    }
-    return "rgba(" + R + ", " + G + ", " + B + ", " + A + ")";
+g._getColor = function (c) {
+    if (c === null) { return "none"; }
+    var R = Math.round(c.r * 255),
+        G = Math.round(c.g * 255),
+        B = Math.round(c.b * 255);
+    return "rgba(" + R + ", " + G + ", " + B + ", " + c.a + ")";
 };
 
 g.draw = function (ctx, shape) {
@@ -767,11 +1021,11 @@ g.draw = function (ctx, shape) {
                 g.drawCommand(ctx, command);
             });
             if (shape.fill !== null) {
-                ctx.fillStyle = g.getColor(shape.fill);
+                ctx.fillStyle = g._getColor(shape.fill);
                 ctx.fill();
             }
             if (shape.stroke && shape.strokeWidth && shape.strokeWidth > 0) {
-                ctx.strokeStyle = g.getColor(shape.stroke);
+                ctx.strokeStyle = g._getColor(shape.stroke);
                 ctx.lineWidth = shape.strokeWidth;
                 ctx.stroke();
             }
@@ -1147,7 +1401,7 @@ g.svg.applySvgAttributes = function (node, shape) {
     var fill, stroke, strokeWidth, transforms, types, transform, i;
 
     if (shape.elements) {
-        fill = 'black';
+        fill = "black";
     }
 
     transforms = [];
@@ -1242,6 +1496,26 @@ g.svg.applySvgAttributes = function (node, shape) {
             break;
         }
     });
+
+    if (fill !== undefined) {
+        if (g._namedColors[fill]) {
+            fill = g.color.apply(g, g._namedColors[fill]);
+        } else if (fill.indexOf("#") === 0) {
+            fill = g.color(fill, 0, 0, 0, { colorspace: g.HEX });
+        } else if (fill === "none") {
+            fill = null;
+        }
+    }
+
+    if (stroke !== undefined) {
+        if (g._namedColors[stroke]) {
+            stroke = g.color.apply(g, g._namedColors[stroke]);
+        } else if (stroke.indexOf("#") === 0) {
+            stroke = g.color(stroke, 0, 0, 0, { colorspace: g.HEX });
+        } else if (stroke === "none") {
+            stroke = null;
+        }
+    }
 
     transform = g.IDENTITY;
     for (i = 0; i < transforms.length; i += 1) {
