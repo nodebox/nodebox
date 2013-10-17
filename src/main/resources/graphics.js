@@ -443,6 +443,47 @@ g.rect = function (x, y, width, height) {
     ] });
 };
 
+g.roundedRect = function (cx, cy, width, height, rx, ry) {
+    var ONE_MINUS_QUARTER = 1.0 - 0.552,
+
+        elements = [],
+
+        halfWidth = width / 2,
+        halfHeight = height / 2,
+        dx = rx,
+        dy = ry,
+
+        left = cx - halfWidth,
+        right = cx + halfWidth,
+        top = cy - halfHeight,
+        bottom = cy + halfHeight;
+
+    // rx/ry cannot be greater than half of the width of the rectangle
+    // (required by SVG spec)
+    dx = Math.min(dx, width * 0.5);
+    dy = Math.min(dy, height * 0.5);
+    elements.push(g.moveto(left + dx, top));
+    if (dx < width * 0.5) {
+        elements.push(g.lineto(right - rx, top));
+    }
+    elements.push(g.curveto(right - dx * ONE_MINUS_QUARTER, top, right, top + dy * ONE_MINUS_QUARTER, right, top + dy));
+    if (dy < height * 0.5) {
+        elements.push(g.lineto(right, bottom - dy));
+    }
+    elements.push(g.curveto(right, bottom - dy * ONE_MINUS_QUARTER, right - dx * ONE_MINUS_QUARTER, bottom, right - dx, bottom));
+    if (dx < width * 0.5) {
+        elements.push(g.lineto(left + dx, bottom));
+    }
+    elements.push(g.curveto(left + dx * ONE_MINUS_QUARTER, bottom, left, bottom - dy * ONE_MINUS_QUARTER, left, bottom - dy));
+    if (dy < height * 0.5) {
+        elements.push(g.lineto(left, top + dy));
+    }
+    elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
+    elements.push(g.closepath());
+    return Object.freeze({ elements: elements });
+};
+
+
 g.ellipse = function (x, y, width, height) {
     var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
         dx = k * 0.5 * width,
