@@ -158,7 +158,7 @@ corevector.wiggle = function (shape, scope, offset, seed) {
     return wiggleShape(shape);
 };
 
-corevector.grid = function (rows, columns, width, height, position) {
+corevector.grid = function (columns, rows, width, height, position) {
     // Create a grid of points.
     var column_size, left;
     var row_size, top;
