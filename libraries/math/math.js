@@ -184,8 +184,10 @@ math.range = function (start, end, step) {
     return newList;
 };
 
-math.clamp = function (v) {
-  return 0 > v ? 0 : 1 < v ? 1 : v;
+math.clamp = function (v, min, max) {
+    if (min === undefined) { min = 0; }
+    if (max === undefined) { max = 1; }
+    return (min > v) ? min : (max < v) ? max : v;
 };
 
 math.convertRange = function (value, srcMin, srcMax, targetMin, targetMax, overflowMethod) {
