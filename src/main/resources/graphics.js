@@ -582,7 +582,7 @@ g.pathContains = function (path, x, y, precision) {
     return g.geometry.pointInPolygon(points, x, y);
 };
 
-g.bounds = function (path) {
+g.pathBounds = function (path) {
     if (_.isEmpty(path.elements)) { return g.makeRect(0, 0, 0, 0); }
 
     var px, py, prev, right, bottom,
@@ -615,6 +615,29 @@ g.bounds = function (path) {
     return g.makeRect(minX, minY, maxX - minX, maxY - minY);
 };
 
+g.groupBounds = function (group) {
+    if (_.isEmpty(group.shapes)) { return g.makeRect(0, 0, 0, 0); }
+    var i, r, shape,
+        shapes = group.shapes;
+    for (i = 0; i < shapes.length; i += 1) {
+        shape = shapes[i];
+        if (r === undefined) {
+            r = g.bounds(shape);
+        }
+        if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
+           (shape.elements && !_.isEmpty(shape.elements))) {
+            r = g.unitedRect(r, g.bounds(shape));
+        }
+    }
+    return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
+};
+
+g.bounds = function (shape) {
+    if (shape.elements) { return g.pathBounds(shape); }
+    if (shape.shapes) { return g.groupBounds(shape); }
+    return g.makeRect(0, 0, 0, 0);
+};
+
 g.makeRect = function (x, y, width, height) {
     return Object.freeze({ x: x, y: y, width: width, height: height });
 };
@@ -645,6 +668,19 @@ g.normalizedRect = function (rect) {
         height = -height;
     }
     return g.makeRect(x, y, width, height);
+};
+
+g.unitedRect = function (r1, r2) {
+    r1 = g.normalizedRect(r1);
+    r2 = g.normalizedRect(r2);
+
+    var x = Math.min(r1.x, r2.x),
+        y = Math.min(r1.y, r2.y),
+        width = Math.max(r1.x + r1.width, r2.x + r2.width) - x,
+        height = Math.max(r1.y + r1.height, r2.y + r2.height) - y;
+
+    return g.makeRect(x, y, width, height);
+
 };
 
 g.getRectCentroid = function (rect) {
