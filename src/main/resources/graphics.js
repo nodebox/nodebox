@@ -488,6 +488,18 @@ g.makePath = function (pe, fill, stroke, strokeWidth) {
     });
 };
 
+g.makeGroup = function (shapes) {
+    var newShapes = [];
+    if (shapes.shapes || shapes.elements) {
+        newShapes = [shapes];
+    } else if (shapes ){
+        newShapes = shapes;
+    }
+    return Object.freeze({
+        shapes: newShapes
+    });
+};
+
 g.getContours = function (path) {
     var contours = [],
         currentContour = [];
@@ -1016,7 +1028,9 @@ g.draw = function (ctx, shape) {
     try {
         if (_.isArray(shape)) {
             _.each(shape, _.partial(g.draw, ctx));
-        } else {
+        } else if (shape.shapes) {
+            _.each(shape.shapes, _.partial(g.draw, ctx));
+        }else {
             ctx.beginPath();
             _.each(shape.elements, function (command) {
                 g.drawCommand(ctx, command);

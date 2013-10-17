@@ -555,3 +555,7 @@ corevector.centroid = function (shape) {
     }
     return g.makePoint(xs/count, ys/count);
 };
+
+corevector.group = function (shapes) {
+    return g.makeGroup(shapes);
+};
