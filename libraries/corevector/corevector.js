@@ -6,7 +6,7 @@ corevector.generator = function () {
 
 corevector.filter = function (shape) {
     var t = g.rotate(g.IDENTITY, 45);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.rect = function (position, width, height) {
@@ -95,24 +95,24 @@ corevector.colorize = function (shape, fill, stroke, strokeWidth) {
 
 corevector.translate = function (shape, position) {
     var t = g.translate(g.IDENTITY, position.x, position.y);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.scale = function (shape, scale) {
     var t = g.scale(g.IDENTITY, scale.x / 100, scale.y / 100);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.rotate = function (shape, angle) {
     var t = g.rotate(g.IDENTITY, angle);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.skew = function (shape, skew, origin) {
     var t = g.translate(g.IDENTITY, origin.x, origin.y);
     t = g.skew(t, skew.x, skew.y);
     t = g.translate(t, -origin.x, -origin.y);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.resample = function (shape, method, length, points, perContour) {
@@ -239,7 +239,7 @@ corevector.copy = function (shape, copies, order, translate, rotate, scale) {
             else if (op === 's')
                 t = g.scale(t, sx, sy);
         });
-        shapes.push(g.transformPath(shape, t));
+        shapes.push(g.transformShape(shape, t));
 
         tx += translate.x;
         ty += translate.y;
@@ -275,33 +275,33 @@ corevector.connect = function (points, closed) {
 corevector.fit = function (shape, position, width, height, keepProportions) {
     if (shape == null) return null;
     var bounds = g.bounds(shape);
-    var px = bounds.x;
-    var py = bounds.y;
-    var pw = bounds.width;
-    var ph = bounds.height;
+    var bx = bounds.x;
+    var by = bounds.y;
+    var bw = bounds.width;
+    var bh = bounds.height;
 
-    // Make sure pw and ph aren't infinitely small numbers.
+    // Make sure bw and bh aren't infinitely small numbers.
     // This will lead to incorrect transformations with for examples lines.
-    if (0 < pw && pw <= 0.000000000001) pw = 0;
-    if (0 < ph && ph <= 0.000000000001) ph = 0;
+    var bw = (bw > 0.000000000001) ? bw : 0;
+    var bh = (bh > 0.000000000001) ? bh : 0;
 
     var t = g.IDENTITY;
     t = g.translate(t, position.x, position.y);
-    var w, h;
+    var sx, sy;
     if (keepProportions) {
-        // Don't scale widths or heights that are equal to zero.
-        w = (pw !== 0) ? width / pw : Number.POSITIVE_INFINITY;
-        h = (ph !== 0) ? height / ph : Number.POSITIVE_INFINITY;
-        w = h = Math.min(w, h);
+        // don't scale widths or heights that are equal to zero.
+        sx = (bw > 0) ? (width / bw) : Number.MAX_VALUE;
+        sy = (bh > 0) ? (height / bh) : Number.MAX_VALUE;
+        sx = sy = Math.min(sx, sy);
     } else {
-        // Don't scale widths or heights that are equal to zero.
-        w = (pw !== 0) ? width / pw : 1;
-        h = (ph !== 0) ? height / ph : 1;
+        sx = (bw > 0) ? (width / bw) : 1;
+        sy = (bh > 0) ? (height / bh) : 1;
     }
-    t = g.scale(t, w, h);
-    t = g.translate(t, -pw / 2 - px, -ph / 2 - py);
 
-    return g.transformPath(shape, t)
+    t = g.scale(t, sx, sy);
+    t = g.translate(t, -bw / 2 - bx, -bh / 2 - by);
+
+    return g.transformShape(shape, t)
 };
 
 corevector.fitTo = function (shape, bounding, keepProportions) {
@@ -347,7 +347,7 @@ corevector.align = function (shape, position, hAlign, vAlign) {
     }
 
     var t = g.translate(g.IDENTITY, dx, dy);
-    return g.transformPath(shape, t);
+    return g.transformShape(shape, t);
 };
 
 corevector.scatter = function (shape, amount, seed) {
@@ -450,7 +450,7 @@ corevector.stack = function (shapes, direction, margin) {
             var t = g.IDENTITY;
             var bounds = g.bounds(shape);
             t = g.translate(t, tx - bounds.x, 0);
-            new_shapes.push(g.transformPath(shape, t));
+            new_shapes.push(g.transformShape(shape, t));
             tx += bounds.width + margin;
         });
     } else if (direction === 'w') {
@@ -459,7 +459,7 @@ corevector.stack = function (shapes, direction, margin) {
             var t = g.IDENTITY;
             var bounds = g.bounds(shape);
             t = g.translate(t, tx + bounds.x, 0);
-            new_shapes.push(g.transformPath(shape, t));
+            new_shapes.push(g.transformShape(shape, t));
             tx -= bounds.width + margin;
         });
     } else if (direction === 'n') {
@@ -468,7 +468,7 @@ corevector.stack = function (shapes, direction, margin) {
             var t = g.IDENTITY;
             var bounds = g.bounds(shape);
             t = g.translate(t, 0, ty + bounds.y);
-            new_shapes.push(g.transformPath(shape, t));
+            new_shapes.push(g.transformShape(shape, t));
             ty -= bounds.height + margin;
         });
     } else if (direction === 's') {
@@ -477,7 +477,7 @@ corevector.stack = function (shapes, direction, margin) {
             var t = g.IDENTITY;
             var bounds = g.bounds(shape);
             t = g.translate(t, 0, ty - bounds.y);
-            new_shapes.push(g.transformPath(shape, t));
+            new_shapes.push(g.transformShape(shape, t));
             ty += bounds.height + margin;
         });
     }
@@ -527,7 +527,7 @@ corevector.shapeOnPath = function (shapes, path, amount, alignment, spacing, mar
             var t = g.IDENTITY;
             t = g.translate(t, p1.x, p1.y);
             t = g.rotate(t, a);
-            new_shapes.push(g.transformPath(shape, t));
+            new_shapes.push(g.transformShape(shape, t));
             c += 1;
         });
     }

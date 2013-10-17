@@ -1036,6 +1036,18 @@ g.transformPath = function (path, matrix) {
     return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
 };
 
+g.transformGroup = function (group, matrix) {
+    var shapes = _.map(group.shapes, function (shape) {
+        return g.transformShape(shape, matrix);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.transformShape = function (shape, matrix) {
+    var fn = (shape.shapes) ? g.transformGroup : g.transformPath;
+    return fn(shape, matrix);
+};
+
 g.drawCommand = function (ctx, command) {
     var cmd = command.cmd;
     if (cmd === 'M') {
