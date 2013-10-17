@@ -127,24 +127,35 @@ corevector.resample = function (shape, method, length, points, perContour) {
 
 corevector.wiggle = function (shape, scope, offset, seed) {
     var rand = core.randomGenerator(seed);
-    var elems = [];
-    for (var i=0; i<shape.elements.length; i++) {
-        var dx = (rand(0, 1) - 0.5) * offset.x * 2;
-        var dy = (rand(0, 1) - 0.5) * offset.y * 2;
-        var pe = shape.elements[i];
-        if (pe.cmd === g.CLOSE) {
-            elems.push(pe);
-        } else if (pe.cmd === g.MOVETO) {
-            elems.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
-        } else if (pe.cmd === g.LINETO) {
-            elems.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
-        } else if (pe.cmd === g.CURVETO) {
-            elems.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
-                             pe.ctrl2.x, pe.ctrl2.y,
-                             pe.point.x + dx, pe.point.y + dy));
+
+    var wiggleShape = function (shape) {
+        if (shape.elements) {
+            var elems = [];
+            for (var i=0; i<shape.elements.length; i++) {
+                var dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                var dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                var pe = shape.elements[i];
+                if (pe.cmd === g.CLOSE) {
+                    elems.push(pe);
+                } else if (pe.cmd === g.MOVETO) {
+                    elems.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
+                } else if (pe.cmd === g.LINETO) {
+                    elems.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
+                } else if (pe.cmd === g.CURVETO) {
+                    elems.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
+                                     pe.ctrl2.x, pe.ctrl2.y,
+                                     pe.point.x + dx, pe.point.y + dy));
+                }
+            }
+            return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, wiggleShape));
+        } else {
+            return _.map(shape, wiggleShape);
         }
     }
-    return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+
+    return wiggleShape(shape);
 };
 
 corevector.grid = function (rows, columns, width, height, position) {
