@@ -150,15 +150,16 @@ public class NodeLibraryTest {
      */
     @Test
     public void testRelativeImport() {
-        File relativeImportFile = new File("src/test/files/relative-import.ndbx");
+        File relativeImportDir = new File("src/test/files");
+        File relativeImportFile = new File(relativeImportDir, "relative-import.ndbx");
         NodeLibrary originalLibrary = NodeLibrary.load(relativeImportFile, NodeRepository.of());
         FunctionRepository repository = originalLibrary.getFunctionRepository();
         assertTrue(repository.hasLibrary("relative"));
         assertTrue(repository.hasFunction("relative/concat"));
         NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         FunctionLibrary relativeLibrary = library.getFunctionRepository().getLibrary("relative");
-        assertEquals("python:src/test/files/relative.py", relativeLibrary.getLink(new File(userDir, "test.ndbx")));
-        assertEquals("python:relative.py", relativeLibrary.getLink(relativeImportFile));
+        assertEquals("python:src/test/files/code/python/relative.py", relativeLibrary.getLink(userDir));
+        assertEquals("python:relative.py", relativeLibrary.getLink(library.getCodeFolder(relativeImportDir, relativeLibrary.getLanguage())));
     }
 
     /**

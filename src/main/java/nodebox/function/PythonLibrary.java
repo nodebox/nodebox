@@ -133,7 +133,9 @@ public class PythonLibrary extends FunctionLibrary {
 
     @Override
     public String getLink(File baseFile) {
-        File parentFile = baseFile != null ? baseFile.getParentFile() : null;
+        File parentFile = null;
+        if (baseFile != null)
+            parentFile = baseFile.isFile() ? baseFile.getParentFile() : baseFile;
         return "python:" + FileUtils.getRelativeLink(file, parentFile);
     }
 

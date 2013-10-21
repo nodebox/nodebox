@@ -9,7 +9,7 @@ public class JavaScriptLibraryTest {
 
     @Test
     public void testLoad() {
-        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/math/math.js");
+        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/math/code/javascript/math.js");
         assertEquals("math", lib.getNamespace());
         assertTrue(lib.hasFunction("add"));
         Function fn = lib.getFunction("add");
@@ -22,7 +22,7 @@ public class JavaScriptLibraryTest {
 
     @Test
     public void testListOperations() {
-        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/list/list.js");
+        JavaScriptLibrary lib = JavaScriptLibrary.loadScript("libraries/list/code/javascript/list.js");
         assertEquals("list", lib.getNamespace());
         assertTrue(lib.hasFunction("distinct"));
         Function fn = lib.getFunction("distinct");

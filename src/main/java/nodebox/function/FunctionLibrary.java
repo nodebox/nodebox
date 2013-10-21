@@ -27,7 +27,7 @@ public abstract class FunctionLibrary {
         checkState(hrefMatcher.groupCount() == 2);
         String language = hrefMatcher.group(1);
         String identifier = hrefMatcher.group(2);
-        if (file != null)
+        if (file != null && file.isFile())
             file = file.getParentFile();
         if (language.equals("java")) {
             return JavaLibrary.loadStaticClass(identifier);
@@ -40,6 +40,13 @@ public abstract class FunctionLibrary {
         } else {
             throw new LoadException(file, "Unknown function library type " + language + ".");
         }
+    }
+
+    public static String parseLanguage(String href) {
+        Matcher hrefMatcher = HREF_PATTERN.matcher(href);
+        checkArgument(hrefMatcher.matches(), "Library identifier should be in the form language:filename.ext");
+        checkState(hrefMatcher.groupCount() == 2);
+        return hrefMatcher.group(1);
     }
 
     public static FunctionLibrary ofClass(String namespace, Class c, String... methodNames) {

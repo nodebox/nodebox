@@ -1,5 +1,7 @@
 package nodebox.util;
 
+import com.google.common.io.Files;
+
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
@@ -13,6 +15,21 @@ import java.util.regex.Pattern;
 public class FileUtils {
 
     public static final String SEPARATOR = "/";
+
+    /**
+     * Gets the name of a file without the extension.
+     *
+     * @param fileName the file name
+     * @return the extension of the file.
+     */
+    public static String getBaseName(String fileName) {
+        if (fileName == null) return null;
+        int pos = fileName.lastIndexOf(".");
+        // If there wasn't any '.' just return the string as is.
+        if (pos == -1) return fileName;
+        // Otherwise return the string, up to the dot.
+        return fileName.substring(0, pos);
+    }
 
     /**
      * Returns the file name without its path and extension.
@@ -72,6 +89,7 @@ public class FileUtils {
 
     private static File showFileDialog(Frame owner, String pathName, String extensions, String description, int fileDialogType) {
         FileDialog fileDialog = new FileDialog(owner, pathName, fileDialogType);
+        fileDialog.setDirectory(pathName);
         fileDialog.setFilenameFilter(new FileExtensionFilter(extensions, description));
         fileDialog.setVisible(true);
         String chosenFile = fileDialog.getFile();
@@ -119,6 +137,27 @@ public class FileUtils {
             out.close();
         } catch (IOException e) {
             throw new RuntimeException("Could not write file " + file, e);
+        }
+    }
+
+    public static void copyDirectory(File sourceLocation , File targetLocation) {
+        if (sourceLocation.isDirectory()) {
+            createDirectoryIfMissing(targetLocation);
+
+            String[] children = sourceLocation.list();
+            for (int i=0; i<children.length; i++) {
+                copyDirectory(new File(sourceLocation, children[i]),
+                        new File(targetLocation, children[i]));
+            }
+        } else {
+            copyFile(sourceLocation, targetLocation);
+        }
+    }
+
+    public static void createDirectoryIfMissing(File directory) {
+        if (! directory.exists()) {
+            if (! directory.mkdir())
+                throw new RuntimeException("Could not create directory " + directory);
         }
     }
 

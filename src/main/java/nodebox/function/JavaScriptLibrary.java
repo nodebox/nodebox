@@ -27,12 +27,16 @@ final class JavaScriptLibrary extends FunctionLibrary {
     private ImmutableMap<String, Function> functionMap;
 
     JavaScriptLibrary(File file) {
-        this.file = file;
+        try {
+            this.file = file.getCanonicalFile();
+        } catch (IOException e) {
+            throw new LoadException(file, e);
+        }
         context = Context.enter();
         scope = context.initStandardObjects();
 
         loadSourceFromResource("underscore.js");
-        loadScript(file);
+        loadScript(this.file);
     }
 
     private static String getSource(String resourceName) {
@@ -126,9 +130,12 @@ final class JavaScriptLibrary extends FunctionLibrary {
 
     @Override
     public String getLink(File baseFile) {
-        File parentFile = baseFile != null ? baseFile.getParentFile() : null;
+        File parentFile = null;
+        if (baseFile != null)
+            parentFile = baseFile.isFile() ? baseFile.getParentFile() : baseFile;
         return "javascript:" + FileUtils.getRelativeLink(file, parentFile);
     }
+
 
     @Override
     public File getFile() {

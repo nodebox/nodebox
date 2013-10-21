@@ -66,7 +66,7 @@ public class NDBXWriter {
             }
 
             // Write the function repository.
-            writeFunctionRepository(doc, rootElement, library.getFunctionRepository(), file);
+            writeFunctionRepository(doc, rootElement, library, file == null);
 
             writeDevices(doc, rootElement, library.getDevices());
 
@@ -96,18 +96,19 @@ public class NDBXWriter {
     /**
      * Write out links to the function repositories used.
      *
-     * @param doc                the XML document
-     * @param parent             the parent element
-     * @param functionRepository the function repository to write
-     * @param baseFile           the file to which the paths of the function libraries are relative to.
+     * @param doc           the XML document
+     * @param parent        the parent element
+     * @param nodeLibrary   the node library that contains the function repository.
+     * @param writeFullPath whether the entire path to the function library should be stored.
      */
-    private static void writeFunctionRepository(Document doc, Element parent, FunctionRepository functionRepository, File baseFile) {
+    private static void writeFunctionRepository(Document doc, Element parent, NodeLibrary nodeLibrary, boolean writeFullPath) {
+        FunctionRepository functionRepository = nodeLibrary.getFunctionRepository();
         for (FunctionLibrary library : functionRepository.getLibraries()) {
             // The core functions library is implicitly included.
             if (library == CoreFunctions.LIBRARY) continue;
             Element el = doc.createElement("link");
             el.setAttribute("rel", "functions");
-            el.setAttribute("href", library.getLink(baseFile));
+            el.setAttribute("href", library.getLink(writeFullPath ? null : nodeLibrary.getCodeFolder(library.getLanguage())));
             parent.appendChild(el);
         }
     }

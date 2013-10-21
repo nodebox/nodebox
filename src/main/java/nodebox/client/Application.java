@@ -18,6 +18,8 @@
  */
 package nodebox.client;
 
+import com.google.common.collect.Iterables;
+import nodebox.util.FileUtils;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
 import nodebox.ui.ExceptionDialog;
@@ -348,11 +350,13 @@ public class Application implements Host {
     public void readFromFile(String path) {
         // This method looks unused, but is actually called using reflection by the OS X adapter.
         // If the application is still starting up, don't open the document immediately but place it in a file loading queue.
+
         if (startingUp.get()) {
             filesToLoad.add(new File(path));
         } else {
             openDocument(new File(path));
         }
+
     }
 
     //// Document management ////
@@ -375,44 +379,77 @@ public class Application implements Host {
         return doc;
     }
 
-    public NodeBoxDocument openExample(File file) {
-        NodeBoxDocument doc = openDocument(file);
-        if (doc != null) {
-            doc.setNeedsResave(true);
+    public NodeBoxDocument openDocumentFromFile(File file) {
+        String fileName = file.getName();
+        String baseName = FileUtils.getBaseName(fileName);
+        File directory = file.getParentFile();
+        if (directory.getName().equals(baseName)) {
+            return openDocument(directory);
+        } else {
+            String message = "The file '" + fileName + "' needs to be in a project folder named '" + baseName + "'.\n" +
+                    "Create this folder, move the file and continue?";
+            int reply = JOptionPane.showConfirmDialog(null, message, "Moving", JOptionPane.YES_NO_OPTION);
+            if (reply == JOptionPane.YES_OPTION) {
+                File newDirectory = new File(directory, baseName);
+                newDirectory.mkdir();
+                FileUtils.copyFile(file, new File(newDirectory, fileName));
+                file.delete();
+                return openDocument(newDirectory);
+            } else
+                return null;
         }
+    }
+
+    public NodeBoxDocument openExample(File file) {
+        NodeBoxDocument doc = openDocument(file, false);
+        if (doc != null)
+            doc.setNeedsResave(true);
         return doc;
     }
 
-    public NodeBoxDocument openDocument(File file) {
+    public NodeBoxDocument openDocument(File f) {
+        return openDocument(f, true);
+    }
+
+    public NodeBoxDocument openDocument(File f, boolean checkIfExample) {
+        if (checkIfExample) {
+            if (! FileUtils.getRelativePath(f, new File("examples")).startsWith(".."))
+                return openExample(f);
+        }
+        if (f.isFile() && f.getName().endsWith(".ndbx"))
+            return openDocumentFromFile(f);
+        else if (f.isDirectory() && ! new File(f, f.getName() + ".ndbx").exists())
+            return null;
         // Check if the document is already open.
+        File directory = f;
         String path;
         try {
-            path = file.getCanonicalPath();
+            path = directory.getCanonicalPath();
             for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
                 try {
-                    if (doc.getDocumentFile() == null) continue;
-                    if (doc.getDocumentFile().getCanonicalPath().equals(path)) {
+                    if (doc.getDocumentDirectory() == null) continue;
+                    if (doc.getDocumentDirectory().getCanonicalPath().equals(path)) {
                         // The document is already open. Bring it to the front.
                         doc.toFront();
                         doc.requestFocus();
-                        NodeBoxMenuBar.addRecentFile(file);
+                        NodeBoxMenuBar.addRecentDirectory(directory);
                         return doc;
                     }
                 } catch (IOException e) {
-                    logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
+                    logger.log(Level.WARNING, "The document " + doc.getDocumentDirectory() + " refers to path with errors", e);
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
+            logger.log(Level.WARNING, "The document " + directory + " refers to path with errors", e);
         }
 
         try {
-            NodeBoxDocument doc = NodeBoxDocument.load(file);
+            NodeBoxDocument doc = NodeBoxDocument.load(directory);
             addDocument(doc);
-            NodeBoxMenuBar.addRecentFile(file);
+            NodeBoxMenuBar.addRecentDirectory(directory);
             return doc;
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Error while loading " + file, e);
+            logger.log(Level.SEVERE, "Error while loading " + directory, e);
             ExceptionDialog d = new ExceptionDialog(null, e);
             d.setVisible(true);
             return null;

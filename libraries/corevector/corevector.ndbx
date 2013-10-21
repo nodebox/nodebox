@@ -124,7 +124,7 @@
             <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to group."/>
         </node>
         <node description="Import geometry from a SVG file." function="pyvector/import_svg" handle="corevector/pointHandle" image="import.png" name="import_svg" position="7.00,3.00" prototype="generator">
-            <port name="file" range="value" type="string" value="" widget="file" description="The SVG file to import."/>
+            <port name="file" range="value" type="string" value="" widget="image" description="The SVG file to import."/>
             <port name="centered" range="value" type="boolean" value="true" widget="toggle" description="If true, centers the shape around the position."/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The target position of the shape."/>
         </node>

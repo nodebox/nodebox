@@ -26,6 +26,7 @@ public final class Port {
     public static final String TYPE_CONTEXT = "context";
     public static final String TYPE_STATE = "state";
 
+
     public enum Attribute {NAME, TYPE, LABEL, CHILD_REFERENCE, WIDGET, RANGE, VALUE, DESCRIPTION, MINIMUM_VALUE, MAXIMUM_VALUE, MENU_ITEMS}
 
     /**
@@ -162,7 +163,7 @@ public final class Port {
      */
 
     public static Port parsedPort(String name, String type, String stringValue) {
-        return parsedPort(name, type, "", "", DEFAULT_RANGE.toString().toLowerCase(), stringValue, "", null, null, ImmutableList.<MenuItem>of());
+        return parsedPort(name, type, "", "", DEFAULT_RANGE.toString().toLowerCase(), stringValue, "", null, null, "", ImmutableList.<MenuItem>of());
     }
 
     /**
@@ -176,7 +177,7 @@ public final class Port {
      * @param menuItems   The list of menu items.
      * @return A new Port.
      */
-    public static Port parsedPort(String name, String type, String label, String widgetString, String rangeString, String valueString, String description, String minString, String maxString, ImmutableList<MenuItem> menuItems) {
+    public static Port parsedPort(String name, String type, String label, String widgetString, String rangeString, String valueString, String description, String minString, String maxString, String fileType, ImmutableList<MenuItem> menuItems) {
         checkNotNull(name, "Name cannot be null.");
         checkNotNull(type, "Type cannot be null.");
         if (STANDARD_TYPES.contains(type)) {
@@ -215,6 +216,7 @@ public final class Port {
                 minimumValue = Double.valueOf(minString);
             if (maxString != null)
                 maximumValue = Double.valueOf(maxString);
+            if (fileType == null || ! NodeLibrary.STANDARD_FILE_TYPES.contains(fileType)) fileType = "";
             return new Port(name, type, label, null, widget, range, value, description, minimumValue, maximumValue, menuItems);
         } else {
             return Port.customPort(name, type);
@@ -489,7 +491,11 @@ public final class Port {
     }
 
     public boolean isFileWidget() {
-        return widget == Widget.FILE || widget == Widget.IMAGE;
+        return widget == Widget.FILE;
+    }
+
+    public boolean isImageWidget() {
+        return widget == Widget.IMAGE;
     }
 
     //// Mutation methods ////

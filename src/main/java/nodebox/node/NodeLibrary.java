@@ -4,7 +4,9 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
+
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
@@ -27,6 +29,14 @@ public class NodeLibrary {
 
     public static final String CURRENT_FORMAT_VERSION = "17";
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
+
+    public static final String FILE_TYPE_CODE = "code";
+    public static final String FILE_TYPE_DATA = "data";
+    public static final String FILE_TYPE_ICONS = "icons";
+    public static final String FILE_TYPE_IMAGES = "images";
+
+    public static final ImmutableSet<String> STANDARD_FILE_TYPES = ImmutableSet.of(FILE_TYPE_CODE, FILE_TYPE_DATA, FILE_TYPE_ICONS, FILE_TYPE_IMAGES);
+
     public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
     private final String name;
@@ -51,6 +61,7 @@ public class NodeLibrary {
         this.devices = ImmutableList.copyOf(devices);
         this.uuid = uuid;
     }
+
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
@@ -218,12 +229,25 @@ public class NodeLibrary {
         return new NodeLibrary(libraryName, file, rootNode, nodeRepository, FunctionRepository.of(fl), propertyMap, devices, uuid);
     }
 
+    public File getCodeFolder(String language) {
+        if (! file.exists()) return getCodeFolder(file.getParentFile(), language);
+        return getCodeFolder(file, language);
+    }
+
+    public static File getCodeFolder(File file, String language) {
+        if (language.equals("java")) return null;
+        if (file == null) return null;
+        if (file.isFile()) file = file.getParentFile();
+        File codeFolder = new File(file, FILE_TYPE_CODE);
+        return new File(codeFolder, language);
+    }
+
     private static FunctionLibrary parseLink(File file, XMLStreamReader reader) throws XMLStreamException {
         String linkRelation = reader.getAttributeValue(null, "rel");
         checkState(linkRelation.equals("functions"));
         String ref = reader.getAttributeValue(null, "href");
         // loading should happen lazily?
-        return FunctionLibrary.load(file, ref);
+        return FunctionLibrary.load(getCodeFolder(file, FunctionLibrary.parseLanguage(ref)), ref);
     }
 
     /**

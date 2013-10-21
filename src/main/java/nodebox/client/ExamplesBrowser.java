@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.node.NodeLibrary;
 import nodebox.ui.Theme;
+import nodebox.util.FileUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

@@ -45,11 +45,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private static final Logger LOG = Logger.getLogger(NodeBoxDocument.class.getName());
     private static final String WINDOW_MODIFIED = "windowModified";
 
-    public static String lastFilePath;
+    public static String lastProjectPath;
     public static String lastExportPath;
 
     private static NodeClipboard nodeClipboard;
 
+    private File temporaryDirectory;
+    private File documentDirectory;
     private File documentFile;
     private boolean documentChanged;
     private boolean needsResave;
@@ -114,31 +116,34 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     /**
-     * Static factory method to create a NodeBoxDocument from a file.
+     * Static factory method to create a NodeBoxDocument from a project directory.
      * <p/>
      * This method can handle file upgrades.
      *
-     * @param file the file to load.
+     * @param directory the directory to load.
      * @return A NodeBoxDocument.
      */
-    public static NodeBoxDocument load(File file) {
+    public static NodeBoxDocument load(File directory) {
         NodeLibrary library;
         NodeBoxDocument document;
+        File file = new File(directory, directory.getName() + ".ndbx");
         try {
             library = NodeLibrary.load(file, Application.getInstance().getSystemRepository());
             document = new NodeBoxDocument(library);
+            document.setDocumentDirectory(directory);
             document.setDocumentFile(file);
         } catch (OutdatedLibraryException e) {
             UpgradeResult result = NodeLibraryUpgrades.upgrade(file);
             // The file is used here as the base name for finding relative libraries.
             library = result.getLibrary(file, Application.getInstance().getSystemRepository());
             document = new NodeBoxDocument(library);
+            document.setDocumentDirectory(directory);
             document.setDocumentFile(file);
             document.showUpgradeResult(result);
         } catch (LoadException e) {
             throw new RuntimeException("Could not load " + file, e);
         }
-        lastFilePath = file.getParentFile().getAbsolutePath();
+        lastProjectPath = directory.getParentFile().getAbsolutePath();
         return document;
     }
 
@@ -173,6 +178,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public NodeBoxDocument() {
         this(createNewLibrary());
+        createTemporaryDirectory();
     }
 
     public NodeBoxDocument(NodeLibrary nodeLibrary) {
@@ -1347,6 +1353,26 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     //// Document actions ////
 
+    private void createTemporaryDirectory() {
+        temporaryDirectory = FileUtils.createTemporaryDirectory("nbtemp");
+        temporaryDirectory.deleteOnExit();
+        controller.setNodeLibraryFile(new File(temporaryDirectory, "temp.ndbx"));
+    }
+
+    public boolean isTemporary() {
+        return temporaryDirectory != null;
+    }
+
+    public File getDocumentDirectory() {
+        if (documentDirectory == null) return temporaryDirectory;
+        return documentDirectory;
+    }
+
+    public void setDocumentDirectory(File documentDirectory) {
+        this.documentDirectory = documentDirectory;
+        this.temporaryDirectory = null;
+    }
+
     public File getDocumentFile() {
         return documentFile;
     }
@@ -1397,34 +1423,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public boolean save() {
-        if (documentFile == null || needsResave()) {
+        if (documentDirectory == null || needsResave()) {
             return saveAs();
         } else {
-            boolean saved = saveToFile(documentFile);
+            boolean saved = saveToDirectory(documentDirectory);
             if (saved)
-                NodeBoxMenuBar.addRecentFile(documentFile);
+                NodeBoxMenuBar.addRecentDirectory(documentDirectory);
             return saved;
         }
     }
 
     public boolean saveAs() {
-        File chosenFile = FileUtils.showSaveDialog(this, lastFilePath, "ndbx", "NodeBox File");
-        if (chosenFile != null) {
-            if (!chosenFile.getAbsolutePath().endsWith(".ndbx")) {
-                chosenFile = new File(chosenFile.getAbsolutePath() + ".ndbx");
-                if (chosenFile.exists()) {
-                    ReplaceDialog rd = new ReplaceDialog(chosenFile);
-                    int retVal = rd.show(this);
-                    if (retVal == JOptionPane.CANCEL_OPTION)
-                        return saveAs();
-                }
-            }
-            lastFilePath = chosenFile.getParentFile().getAbsolutePath();
-            setDocumentFile(chosenFile);
-            boolean saved = saveToFile(documentFile);
+        File chosenDirectory = FileUtils.showSaveDialog(this, lastProjectPath, "", "");
+        if (chosenDirectory != null) {
+            lastProjectPath = chosenDirectory.getParentFile().getAbsolutePath();
+
+            boolean saved = saveToDirectory(chosenDirectory);
             if (saved) {
                 setNeedsResave(false);
-                NodeBoxMenuBar.addRecentFile(documentFile);
+                NodeBoxMenuBar.addRecentDirectory(chosenDirectory);
             }
             return saved;
         }
@@ -1436,6 +1453,37 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         JOptionPane.showMessageDialog(this, "Revert is not implemented yet.", "NodeBox", JOptionPane.ERROR_MESSAGE);
     }
 
+    private boolean saveToDirectory(File directory) {
+        return saveToDirectory(directory, null);
+    }
+
+    private boolean saveToDirectory(File directory, String fileName) {
+        FileUtils.createDirectoryIfMissing(directory);
+        File d = getDocumentDirectory();
+        // Only copy subdirectories if the project location is different from the original.
+        if (d != null && ! d.equals(directory)) {
+            for (String s : NodeLibrary.STANDARD_FILE_TYPES) {
+                File sourceDir = new File(d, s);
+                if (sourceDir.exists()) {
+                    File targetDir = new File(directory, s);
+                    FileUtils.copyDirectory(sourceDir, targetDir);
+                }
+            }
+        }
+        boolean sameNameAsDir = fileName == null || fileName.length() == 0;
+        File file = new File(directory, sameNameAsDir ? directory.getName() + ".ndbx" : fileName);
+        if (saveToFile(file)) {
+            setDocumentDirectory(directory);
+            setDocumentFile(file);
+            documentChanged = false;
+            updateTitle();
+            return true;
+        } else {
+            directory.delete();
+            return false;
+        }
+    }
+
     private boolean saveToFile(File file) {
         try {
             getNodeLibrary().store(file);
@@ -1444,8 +1492,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             LOG.log(Level.SEVERE, "An error occurred while saving the file.", e);
             return false;
         }
-        documentChanged = false;
-        updateTitle();
         return true;
     }
 
@@ -1467,7 +1513,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (documentFile == null) {
             setTitle("Untitled" + postfix);
         } else {
-            setTitle(documentFile.getName() + postfix);
+            setTitle(FileUtils.getBaseName(documentFile.getName()) + postfix);
             getRootPane().putClientProperty("Window.documentFile", documentFile);
         }
     }
@@ -1619,6 +1665,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     public void setNeedsResave(boolean needsResave) {
         this.needsResave = needsResave;
+        if (needsResave) {
+            File temporaryDirectory = FileUtils.createTemporaryDirectory("nbtemp");
+            temporaryDirectory.deleteOnExit();
+            saveToDirectory(temporaryDirectory, documentFile.getName());
+            this.temporaryDirectory = temporaryDirectory;
+        }
     }
 
     private abstract class ExportDelegate {

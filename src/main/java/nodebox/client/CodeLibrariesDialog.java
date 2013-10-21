@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import nodebox.function.CoreFunctions;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
+import nodebox.node.NodeLibrary;
 import nodebox.ui.ActionHeader;
 import nodebox.ui.InsetLabel;
 import nodebox.ui.MessageBar;
@@ -98,39 +99,35 @@ public class CodeLibrariesDialog extends JDialog {
 
         JPanel panel = new JPanel(new BorderLayout());
 
-        if (document.getDocumentFile() == null) {
-            panel.add(new MessageBar("<html>&nbsp;&nbsp;&nbsp;<b>Please save your document first.</b></html>"), BorderLayout.NORTH);
-        } else {
-            ActionHeader actionHeader = new ActionHeader();
-            actionHeader.setLayout(new BoxLayout(actionHeader, BoxLayout.LINE_AXIS));
-            InsetLabel actionHeaderLabel = new InsetLabel("Code Libraries");
-            actionHeader.add(Box.createHorizontalStrut(10));
-            actionHeader.add(actionHeaderLabel);
-            actionHeader.add(Box.createHorizontalGlue());
-            JButton removeLibraryButton = new JButton(minusIcon);
-            removeLibraryButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent actionEvent) {
-                    removeSelectedLibrary();
-                }
-            });
-            removeLibraryButton.setBorder(null);
-            final LanguagePopupMenu languagePopup = new LanguagePopupMenu();
-            final JButton plusLibraryButton = new JButton(plusIcon);
-            plusLibraryButton.setBorder(null);
-            plusLibraryButton.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    languagePopup.show(plusLibraryButton, -20, 21);
-                }
-            });
-            actionHeader.addDivider();
-            actionHeader.add(Box.createHorizontalStrut(10));
-            actionHeader.add(removeLibraryButton);
-            actionHeader.add(Box.createHorizontalStrut(20));
-            actionHeader.add(plusLibraryButton);
-            actionHeader.add(Box.createHorizontalStrut(10));
-            panel.add(actionHeader, BorderLayout.NORTH);
-        }
+        ActionHeader actionHeader = new ActionHeader();
+        actionHeader.setLayout(new BoxLayout(actionHeader, BoxLayout.LINE_AXIS));
+        InsetLabel actionHeaderLabel = new InsetLabel("Code Libraries");
+        actionHeader.add(Box.createHorizontalStrut(10));
+        actionHeader.add(actionHeaderLabel);
+        actionHeader.add(Box.createHorizontalGlue());
+        JButton removeLibraryButton = new JButton(minusIcon);
+        removeLibraryButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent actionEvent) {
+                removeSelectedLibrary();
+            }
+        });
+        removeLibraryButton.setBorder(null);
+        final LanguagePopupMenu languagePopup = new LanguagePopupMenu();
+        final JButton plusLibraryButton = new JButton(plusIcon);
+        plusLibraryButton.setBorder(null);
+        plusLibraryButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                languagePopup.show(plusLibraryButton, -20, 21);
+            }
+        });
+        actionHeader.addDivider();
+        actionHeader.add(Box.createHorizontalStrut(10));
+        actionHeader.add(removeLibraryButton);
+        actionHeader.add(Box.createHorizontalStrut(20));
+        actionHeader.add(plusLibraryButton);
+        actionHeader.add(Box.createHorizontalStrut(10));
+        panel.add(actionHeader, BorderLayout.NORTH);
 
 
         functionLibraryList = new JList(functionLibraryListModel);
@@ -169,7 +166,7 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            File chosenFile = chooseFileWithExtension("py", "Python file");
+            File chosenFile = chooseFileWithExtension("py", "python", "Python file");
             if (chosenFile != null && chosenFile.getName().endsWith(".py")) {
                 addLibrary("python", chosenFile);
             }
@@ -182,21 +179,26 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            File chosenFile = chooseFileWithExtension("clj", "Clojure file");
+            File chosenFile = chooseFileWithExtension("clj", "clojure", "Clojure file");
             if (chosenFile != null && chosenFile.getName().endsWith(".clj")) {
                 addLibrary("clojure", chosenFile);
             }
         }
-
     }
 
     private void addLibrary(String prefix, File libraryFile) {
-        String relativePath = FileUtils.getRelativePath(libraryFile, document.getDocumentFile().getParentFile());
-        FunctionLibrary library = FunctionLibrary.load(document.getDocumentFile(), prefix + ":" + relativePath);
+        File codeDirectory = document.getNodeLibrary().getCodeFolder(prefix);
+        if (codeDirectory == null) return;
+        FileUtils.createDirectoryIfMissing(codeDirectory.getParentFile());
+        FileUtils.createDirectoryIfMissing(codeDirectory);
+        // todo: don't copy if libraryFile is already inside codeDirectory
+        String relativePath = FileUtils.getRelativeLink(libraryFile, codeDirectory);
+        if (relativePath.startsWith(".."))
+            FileUtils.copyFile(libraryFile, new File(codeDirectory, libraryFile.getName()));
+        FunctionLibrary library = FunctionLibrary.load(codeDirectory, prefix + ":" + libraryFile.getName());
         functionRepository = functionRepository.withLibraryAdded(library);
         reloadListModel();
         repositoryChanged = true;
-
     }
 
     public FunctionRepository getFunctionRepository() {
@@ -205,8 +207,12 @@ public class CodeLibrariesDialog extends JDialog {
         return null;
     }
 
-    private File chooseFileWithExtension(String extension, String extensionDescription) {
-        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), NodeBoxDocument.lastFilePath, extension, extensionDescription);
+    private File chooseFileWithExtension(String extension, String lang, String extensionDescription) {
+        File codeDirectory = document.getNodeLibrary().getCodeFolder(lang);
+        String path = NodeBoxDocument.lastProjectPath;
+        if (! document.isTemporary() && codeDirectory.exists())
+            path = codeDirectory.getAbsolutePath();
+        return nodebox.util.FileUtils.showOpenDialog(NodeBoxDocument.getCurrentDocument(), path, extension, extensionDescription);
     }
 
     private void removeSelectedLibrary() {

@@ -32,11 +32,11 @@ public class FunctionRepositoryTest {
         // getLibraries#String will return all implementing libraries.
         assertFunctionLinks(mathLibrary, repository.getLibraries("math"),
                 "java:nodebox.function.MathFunctions",
-                "javascript:math.js");
+                "javascript:code/javascript/math.js");
         assertFunctionLinks(mathLibrary, repository.getLibraries(),
                 "java:nodebox.function.CoreFunctions",
                 "java:nodebox.function.MathFunctions",
-                "javascript:math.js");
+                "javascript:code/javascript/math.js");
     }
 
     @Test
@@ -44,13 +44,13 @@ public class FunctionRepositoryTest {
         FunctionRepository combined = FunctionRepository.combine(mathLibrary.getFunctionRepository(), stringLibrary.getFunctionRepository());
         assertFunctionLinks(mathLibrary, combined.getLibraries("math"),
                 "java:nodebox.function.MathFunctions",
-                "javascript:math.js");
+                "javascript:code/javascript/math.js");
         assertFunctionLinks(mathLibrary, combined.getLibraries(),
                 "java:nodebox.function.CoreFunctions",
                 "java:nodebox.function.MathFunctions",
-                "javascript:math.js",
+                "javascript:code/javascript/math.js",
                 "java:nodebox.function.StringFunctions",
-                "javascript:../string/string.js");
+                "javascript:../string/code/javascript/string.js");
     }
 
     private void assertFunctionLinks(NodeLibrary library, Collection<FunctionLibrary> libraries, String... links) {

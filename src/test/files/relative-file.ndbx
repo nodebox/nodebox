@@ -3,6 +3,6 @@
 <ndbx>
     <link rel="functions" href="java:nodebox.function.TestFunctions"/>
     <node name="file_exists" function="test/fileExists" outputType="boolean">
-        <port name="file" type="string" widget="file" value="relative-file.ndbx"/>
+        <port name="file" type="string" widget="file" value="empty.csv"/>
     </node>
 </ndbx>

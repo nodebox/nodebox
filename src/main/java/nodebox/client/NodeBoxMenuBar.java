@@ -135,10 +135,10 @@ public class NodeBoxMenuBar extends JMenuBar {
         return document != null;
     }
 
-    public static void addRecentFile(File f) {
+    public static void addRecentDirectory(File d) {
         File canonicalFile;
         try {
-            canonicalFile = f.getCanonicalFile();
+            canonicalFile = d.getCanonicalFile();
         } catch (IOException e) {
             logger.log(Level.WARNING, "Could not get canonical file name", e);
             return;
@@ -223,7 +223,7 @@ public class NodeBoxMenuBar extends JMenuBar {
         }
 
         public void actionPerformed(ActionEvent e) {
-            File chosenFile = FileUtils.showOpenDialog(getDocument(), NodeBoxDocument.lastFilePath, "ndbx", "NodeBox Document");
+            File chosenFile = FileUtils.showOpenDialog(getDocument(), NodeBoxDocument.lastProjectPath, "ndbx", "NodeBox Document");
             if (chosenFile != null) {
                 Application.getInstance().openDocument(chosenFile);
             }
