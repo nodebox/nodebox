@@ -717,7 +717,7 @@ public class NodeLibraryTest {
         assertResultsEqual(library.getRoot(), library.getRoot().getChild("add1"), 8.0);
     }
 
-    @Test
+/*    @Test
     public void testJavaScriptExport() {
         File exportDirectory = new File("tmp");
         exportDirectory.mkdirs();
@@ -730,7 +730,7 @@ public class NodeLibraryTest {
         assertFileExists(new File(exportDirectory, "nodecore.js"));
 
         FileUtils.deleteDirectory(exportDirectory);
-    }
+    } */
 
     private void assertFileExists(File file) {
         assertTrue("File " + file + " does not exist.", file.exists());

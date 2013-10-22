@@ -578,7 +578,7 @@ public class NodeLibrary {
         }
     }
 
-    private int getPropertyAsInt(String name, int defaultValue) {
+    public int getPropertyAsInt(String name, int defaultValue) {
         String v = getProperty(name);
         if (v != null) {
             try {
@@ -739,65 +739,6 @@ public class NodeLibrary {
         b.setPrettyPrinting();
         Gson gson = b.create();
         return gson.toJson(getRoot());
-    }
-
-    public void exportToWeb(File exportDirectory) {
-        // Make sure the export folder exists.
-        if (!exportDirectory.exists()) {
-            exportDirectory.mkdirs();
-        } else if (!exportDirectory.isDirectory()) {
-            throw new RuntimeException("Export location " + exportDirectory + " is not a directory.");
-        }
-
-        // Copy all JavaScript function libraries over.
-        ArrayList<File> javaScriptLibraries = new ArrayList<File>();
-
-        for (FunctionLibrary l : getCombinedFunctionRepository().getLibraries()) {
-            if (l.getLanguage().equals("javascript")) {
-                File f = l.getFile();
-                javaScriptLibraries.add(f);
-                FileUtils.copyFile(f, new File(exportDirectory, f.getName()));
-            }
-        }
-
-        // Copy core JavaScript libraries.
-        copyResourceToDirectory("/jquery.js", exportDirectory);
-        copyResourceToDirectory("/underscore.js", exportDirectory);
-        copyResourceToDirectory("/graphics.js", exportDirectory);
-        copyResourceToDirectory("/nodecore.js", exportDirectory);
-        copyResourceToDirectory("/ndbx.css", exportDirectory);
-
-        boolean autoStart = Boolean.parseBoolean(getProperty("autoStart", "false"));
-
-        // Write out the HTML file.
-        File htmlFile = new File(exportDirectory, "index.html");
-        try {
-            PrintWriter out = new PrintWriter(htmlFile);
-            out.write("<html><head>\n");
-            out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>");
-            out.write("<script src=\"underscore.js\"></script>\n");
-            out.write("<script src=\"jquery.js\"></script>\n");
-            out.write("<script src=\"graphics.js\"></script>\n");
-            out.write("<script src=\"nodecore.js\"></script>\n");
-            for (File f : javaScriptLibraries) {
-                out.write("<script src=\"" + f.getName() + "\"></script>\n");
-            }
-            out.write("</head><body>\n");
-            int canvasWidth = getPropertyAsInt("canvasWidth", 300);
-            int canvasHeight = getPropertyAsInt("canvasHeight", 300);
-            out.write(String.format("<canvas id=\"c\" width=\"%s\" height=\"%s\" ></canvas>\n", canvasWidth, canvasHeight));
-            out.write("<script>\nvar ndbx = " + toJSON() + "\n</script>\n");
-            out.write("<script>nodecore.renderLibrary(ndbx, " + Boolean.toString(autoStart) + ");</script>\n");
-            out.write("</body></html>\n");
-            out.close();
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
-
-    private void copyResourceToDirectory(String resourceFile, File directory) {
-        FileUtils.writeStreamToFile(getClass().getResourceAsStream(resourceFile), new File(directory, resourceFile));
     }
 
     @Override

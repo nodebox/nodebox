@@ -541,8 +541,18 @@ corevector.shapeOnPath = function (shapes, path, amount, alignment, spacing, mar
 corevector.shape_on_path = corevector.shapeOnPath;
 
 corevector.importSVG = corevector.import_svg = function (file) {
-    var shape = g.interpret(images['images/' + file]);
-    return shape;
+    var parser, xmlDoc,
+        svgString = ndbx.assets['images/' + file];
+
+    if (window.DOMParser) {
+        parser = new DOMParser();
+        xmlDoc = parser.parseFromString(svgString, "image/svg+xml");
+    } else { // Internet Explorer
+        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+        xmlDoc.async = false;
+        xmlDoc.loadXML(svgString);
+    }
+    return g.svg.interpret(xmlDoc.documentElement);
 };
 
 corevector.makePoint = function (x, y) {

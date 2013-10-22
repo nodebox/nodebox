@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import nodebox.client.devicehandler.DeviceHandler;
 import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
+import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
@@ -22,13 +23,9 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1495,6 +1492,132 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return true;
     }
 
+    private void collectAssets(File sourceLocation, File exportDirectory, Set<String> assets) {
+        if (sourceLocation.isDirectory()) {
+            String[] children = sourceLocation.list();
+            for (int i=0; i<children.length; i++) {
+                collectAssets(new File(sourceLocation, children[i]), exportDirectory, assets);
+            }
+        } else {
+            if (! sourceLocation.isHidden())
+                assets.add(FileUtils.getRelativePath(sourceLocation, exportDirectory));
+        }
+    }
+
+    private void exportToWeb(File exportDirectory) {
+        // Make sure the export folder exists.
+        if (!exportDirectory.exists()) {
+            exportDirectory.mkdirs();
+        } else if (!exportDirectory.isDirectory()) {
+            throw new RuntimeException("Export location " + exportDirectory + " is not a directory.");
+        }
+
+        // Copy all JavaScript function libraries over.
+        ArrayList<File> javaScriptLibraries = new ArrayList<File>();
+        NodeLibrary nodeLibrary = getNodeLibrary();
+
+        Set<String> assets = new HashSet<String>();
+        File d = getDocumentDirectory();
+        if (d != null) {
+            for (String s : new String[] { NodeLibrary.FILE_TYPE_DATA, NodeLibrary.FILE_TYPE_IMAGES }) {
+                File sourceDir = new File(d, s);
+                if (sourceDir.exists()) {
+                    File targetDir = new File(exportDirectory, s);
+                    FileUtils.copyDirectory(sourceDir, targetDir);
+                    collectAssets(targetDir, exportDirectory, assets);
+                }
+            }
+        }
+
+        for (FunctionLibrary l : nodeLibrary.getCombinedFunctionRepository().getLibraries()) {
+            if (l.getLanguage().equals("javascript")) {
+                File f = l.getFile();
+                javaScriptLibraries.add(f);
+                FileUtils.copyFile(f, new File(exportDirectory, f.getName()));
+            }
+        }
+
+        // Copy core JavaScript libraries.
+        copyResourceToDirectory("/jquery.js", exportDirectory);
+        copyResourceToDirectory("/underscore.js", exportDirectory);
+        copyResourceToDirectory("/graphics.js", exportDirectory);
+        copyResourceToDirectory("/nodecore.js", exportDirectory);
+        copyResourceToDirectory("/ndbx.css", exportDirectory);
+
+        boolean autoStart = Boolean.parseBoolean(nodeLibrary.getProperty("autoStart", "false"));
+
+        // Write out the HTML file.
+        File htmlFile = new File(exportDirectory, "index.html");
+        try {
+            PrintWriter out = new PrintWriter(htmlFile);
+            out.write("<html><head>\n");
+            out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>");
+            out.write("<script src=\"underscore.js\"></script>\n");
+            out.write("<script src=\"jquery.js\"></script>\n");
+            out.write("<script src=\"graphics.js\"></script>\n");
+            out.write("<script src=\"nodecore.js\"></script>\n");
+            for (File f : javaScriptLibraries) {
+                out.write("<script src=\"" + f.getName() + "\"></script>\n");
+            }
+            out.write("</head><body>\n");
+            int canvasWidth = nodeLibrary.getPropertyAsInt("canvasWidth", 300);
+            int canvasHeight = nodeLibrary.getPropertyAsInt("canvasHeight", 300);
+            out.write(String.format("<canvas id=\"c\" width=\"%s\" height=\"%s\" ></canvas>\n", canvasWidth, canvasHeight));
+            out.write("<script>");
+            if (!assets.isEmpty()) {
+                out.write("\nvar assets = [");
+                Iterator<String> it = assets.iterator();
+                while (it.hasNext()) {
+                    out.write("\n    \"" + it.next() + "\"");
+                    if (it.hasNext())
+                        out.write(",");
+                }
+                out.write("\n];");
+            }
+            out.write("\nvar ndbx = " + nodeLibrary.toJSON() + "\n</script>\n");
+            if (!assets.isEmpty()) {
+                out.write("\n<script>");
+                out.write("\n    ndbx.assets = {};");
+                out.write("\n    var assetCount = 0;");
+                out.write("\n");
+                out.write("\n    function loadAsset(onCompleteFunction) {");
+                out.write("\n        return function (assetURL) {");
+                out.write("\n            var xhr = new XMLHttpRequest();");
+                out.write("\n            xhr.open('GET', assetURL, true);");
+                out.write("\n            xhr.onreadystatechange = function(){");
+                out.write("\n                if (xhr.readyState === 4) {");
+                out.write("\n                    if(window.location.protocol === \"file:\" || xhr.status === 200) {");
+                out.write("\n                        onCompleteFunction(assetURL, xhr.response);");
+                out.write("\n                    }");
+                out.write("\n                }");
+                out.write("\n            };");
+                out.write("\n            xhr.send(null);");
+                out.write("\n        }");
+                out.write("\n    }");
+                out.write("\n");
+                out.write("\n    _.map(assets, loadAsset(function(name, value) {");
+                out.write("\n        ndbx.assets[name] = value;");
+                out.write("\n        assetCount += 1;");
+                out.write("\n        if (assetCount === assets.length) {");
+                out.write("\n            nodecore.renderLibrary(ndbx, false);");
+                out.write("\n        }");
+                out.write("\n    }));");
+                out.write("\n</script>\n");
+            } else {
+                out.write("<script>nodecore.renderLibrary(ndbx, false);</script>\n");
+            }
+            out.write("</body></html>\n");
+            out.close();
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    private void copyResourceToDirectory(String resourceFile, File directory) {
+        FileUtils.writeStreamToFile(getClass().getResourceAsStream(resourceFile), new File(directory, resourceFile));
+    }
+
     private void markChanged() {
         if (!documentChanged && loaded) {
             documentChanged = true;
@@ -1605,7 +1728,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void exportToWeb() {
         File exportDirectory = nodebox.client.FileUtils.chooseDirectory(this);
         if (exportDirectory != null) {
-            getNodeLibrary().exportToWeb(exportDirectory);
+            exportToWeb(exportDirectory);
             try {
                 Desktop.getDesktop().open(exportDirectory);
             } catch (IOException ignored) {
