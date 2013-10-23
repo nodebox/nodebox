@@ -770,6 +770,8 @@ public class NodeLibrary {
             o.addProperty("name", node.getName());
             o.addProperty("function", node.getFunction().replace("pyvector", "corevector"));
             o.addProperty("outputRange", node.getOutputRange().toString());
+            o.addProperty("outputType", node.getOutputType());
+
             if (node.hasRenderedChild()) {
                 o.addProperty("renderedChild", node.getRenderedChildName());
             }
