@@ -1124,13 +1124,29 @@ g._getColor = function (c) {
     return "rgba(" + R + ", " + G + ", " + B + ", " + c.a + ")";
 };
 
+g.drawPoints = function (ctx, points) {
+    var pt, i;
+    ctx.fillStyle = 'blue';
+    ctx.beginPath();
+    for (i = 0; i < points.length; i += 1) {
+        pt = points[i];
+        ctx.moveTo(pt.x, pt.y);
+        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2, false);
+    }
+    ctx.fill();
+};
+
 g.draw = function (ctx, shape) {
     try {
         if (_.isArray(shape)) {
-            _.each(shape, _.partial(g.draw, ctx));
+            if (shape[0].x !== undefined && shape[0].y !== undefined) {
+                g.drawPoints(ctx, shape);
+            } else {
+                _.each(shape, _.partial(g.draw, ctx));
+            }
         } else if (shape.shapes) {
             _.each(shape.shapes, _.partial(g.draw, ctx));
-        }else {
+        } else if (shape.elements) {
             ctx.beginPath();
             _.each(shape.elements, function (command) {
                 g.drawCommand(ctx, command);
@@ -1144,6 +1160,8 @@ g.draw = function (ctx, shape) {
                 ctx.lineWidth = shape.strokeWidth;
                 ctx.stroke();
             }
+        } else if (shape.x !== undefined && shape.y !== undefined) {
+            g.drawPoints(ctx, [shape]);
         }
     } catch (err) {
         console.log("Error while drawing:", err);
