@@ -520,25 +520,36 @@ g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
 };
 
 g.makePath = function (pe, fill, stroke, strokeWidth) {
-    var elements = pe.elements || pe;
-    return Object.freeze({
-        elements: elements,
-        fill: fill,
-        stroke: stroke,
-        strokeWidth: strokeWidth
-    });
+    var elements = pe.elements || pe,
+        d = { elements: elements };
+    if (fill !== undefined) { d.fill = fill; }
+    if (stroke !== undefined) { d.stroke = stroke; }
+    if (strokeWidth !== undefined) { d.strokeWidth = strokeWidth; }
+    return Object.freeze(d);
 };
 
 g.makeGroup = function (shapes) {
     var newShapes = [];
     if (shapes.shapes || shapes.elements) {
         newShapes = [shapes];
-    } else if (shapes ){
+    } else if (shapes) {
         newShapes = shapes;
     }
     return Object.freeze({
         shapes: newShapes
     });
+};
+
+g.colorizeGroup = function (group, fill, stroke, strokeWidth) {
+    var shapes = _.map(group.shapes, function (shape) {
+        return g.colorizeShape(shape, fill, stroke, strokeWidth);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.colorizeShape = function (shape, fill, stroke, strokeWidth) {
+    var fn = (shape.shapes) ? g.colorizeGroup : g.makePath;
+    return fn(shape, fill, stroke, strokeWidth);
 };
 
 g.getContours = function (path) {
@@ -1196,7 +1207,7 @@ g.svg.read = {
 
     g: function (node) {
 
-        var group = [];
+        var shapes = [];
 
         _.each(node.childNodes, function(n) {
 
@@ -1206,11 +1217,11 @@ g.svg.read = {
             tagName = tag.replace(/svg\:/ig, '').toLowerCase();
             if (tagName in g.svg.read) {
                 o = g.svg.read[tagName].call(this, n);
-                group.push(o);
+                shapes.push(o);
             }
         });
 
-        return g.svg.applySvgAttributes(node, group);
+        return g.svg.applySvgAttributes(node, g.makeGroup(shapes));
     },
 
     polygon: function (node, open) {
@@ -1628,14 +1639,17 @@ g.svg.applySvgAttributes = function (node, shape) {
 
     function applyAttributes(shape) {
         if (shape.elements) {
-            return Object.freeze({
-                elements: g.transformPath(shape, transform).elements,
-                fill: (fill === undefined) ? shape.fill : fill,
-                stroke: (stroke === undefined) ? shape.stroke : stroke,
-                strokeWidth: transform[0] * ((strokeWidth === undefined) ? shape.strokeWidth : strokeWidth)
-            });
+            var elements = g.transformPath(shape, transform).elements,
+                f = (fill === undefined) ? shape.fill : fill,
+                s = (stroke === undefined) ? shape.stroke : stroke,
+                sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
+            if (sw !== undefined) {
+                sw *= transform[0];
+            }
+            return g.makePath(elements, f, s, sw);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, applyAttributes));
         }
-        return _.map(shape, applyAttributes);
     }
 
     return applyAttributes(shape);
