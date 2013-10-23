@@ -93,7 +93,9 @@ corevector.star = function (position, points, outer, inner) {
     return Object.freeze({ elements: elems });
 };
 
-corevector.colorize = g.colorizeShape;
+corevector.colorize = function (shape, fill, stroke, strokeWidth) {
+    return g.colorizeShape(shape, fill, stroke, strokeWidth);
+};
 
 corevector.translate = function (shape, position) {
     var t = g.translate(g.IDENTITY, position.x, position.y);
