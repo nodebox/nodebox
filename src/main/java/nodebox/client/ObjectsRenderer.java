@@ -17,50 +17,41 @@ import java.io.IOException;
 
 public class ObjectsRenderer {
 
-    public static void render(Iterable<?> objects, File file) {
+    public static void render(Iterable<?> objects, Rectangle2D bounds, File file) {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         if (file.getName().toLowerCase().endsWith(".pdf")) {
             LinkedVisualizer linkedVisualizer = new LinkedVisualizer(v, objects);
-            PDFRenderer.render(linkedVisualizer, v.getBounds(objects), file);
+            PDFRenderer.render(linkedVisualizer, bounds, file);
         } else {
             try {
-                ImageIO.write(createImage(v, objects), FileUtils.getExtension(file), file);
+                ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);
             } catch (IOException e) {
                 throw new RuntimeException("Could not write image file " + file, e);
             }
         }
     }
 
-    public static BufferedImage createImage(Iterable<?> objects) {
+    public static BufferedImage createMovieImage(Iterable<?> objects, Rectangle2D bounds) {
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
-        return createImage(v, objects);
+        return createImage(objects, v, bounds, Color.WHITE);
     }
 
-    public static BufferedImage createMovieImage(Iterable<?> objects, int width, int height) {
-        Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
+    private static BufferedImage createImage(Iterable<?> objects, Visualizer visualizer, Rectangle2D bounds, Color backgroundColor) {
+        final int width = (int) Math.round(bounds.getWidth());
+        final int height = (int) Math.round(bounds.getHeight());
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Color.WHITE);
-        g.fillRect(0, 0, width, height);
-        g.translate(width / 2, height / 2);
-        v.draw(g, objects);
-        img.flush();
-        return img;
-    }
-
-    private static BufferedImage createImage(Visualizer visualizer, Iterable<?> objects) {
-        Rectangle2D bounds = visualizer.getBounds(objects);
-        BufferedImage img = new BufferedImage((int) Math.round(bounds.getWidth()), (int) Math.round(bounds.getHeight()), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = img.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        if (backgroundColor != null) {
+            g.setColor(backgroundColor);
+            g.fillRect(0, 0, width, height);
+        }
         g.translate(-bounds.getX(), -bounds.getY());
         visualizer.draw(g, objects);
         img.flush();
         return img;
     }
-
 
     /**
      * A visualizer linked to its objects.

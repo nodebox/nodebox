@@ -21,6 +21,7 @@ import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -103,6 +104,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public NodeBoxDocument(NodeLibrary nodeLibrary) {
+        if (!nodeLibrary.hasProperty("canvasX"))
+            nodeLibrary = nodeLibrary.withProperty("canvasX", "0");
+        if (!nodeLibrary.hasProperty("canvasY"))
+            nodeLibrary = nodeLibrary.withProperty("canvasY", "0");
         if (!nodeLibrary.hasProperty("canvasWidth"))
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
         if (!nodeLibrary.hasProperty("canvasHeight"))
@@ -112,6 +117,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
         this.viewerPane = new ViewerPane(this);
+        viewerPane.getViewer().setCanvasBounds(getCanvasBounds());
         dataSheet = viewerPane.getDataSheet();
         PortPane portPane = new PortPane(this);
         portView = portPane.getPortView();
@@ -1507,7 +1513,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     private void exportToFile(File file, Iterable<?> objects, ImageFormat format) {
         file = format.ensureFileExtension(file);
-        ObjectsRenderer.render(objects, file);
+        ObjectsRenderer.render(objects, getCanvasBounds().getBounds2D(), file);
     }
 
     public boolean exportRange() {
@@ -1556,39 +1562,16 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return false;
     }
 
-    private int getCanvasWidth() {
-        try {
-            return Integer.parseInt(getNodeLibrary().getProperty("canvasWidth", "1000"));
-        } catch (NumberFormatException e) {
-            return 1000;
-        }
-    }
-
-    private int getCanvasHeight() {
-        try {
-            return Integer.parseInt(getNodeLibrary().getProperty("canvasHeight", "1000"));
-        } catch (NumberFormatException e) {
-            return 1000;
-        }
-    }
-
-    /*private int getOSCPort() {
-        try {
-            return Integer.parseInt(getNodeLibrary().getProperty("oscPort", "-1"));
-        } catch (NumberFormatException e) {
-            return -1;
-        }
-    }*/
-
     private void exportToMovieFile(File file, final VideoFormat videoFormat, final int fromValue, final int toValue) {
         file = videoFormat.ensureFileExtension(file);
-        final int width = getCanvasWidth();
-        final int height = getCanvasHeight();
+        final Rectangle2D bounds = getCanvasBounds().getBounds2D();
+        final int width = (int) Math.round(bounds.getWidth());
+        final int height = (int) Math.round(bounds.getHeight());
         final Movie movie = new Movie(file.getAbsolutePath(), videoFormat, width, height, false);
         exportThreadedRange(controller.getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             @Override
             public void frameDone(double frame, Iterable<?> results) {
-                movie.addFrame(ObjectsRenderer.createMovieImage(results, width, height));
+                movie.addFrame(ObjectsRenderer.createMovieImage(results, bounds));
             }
 
             @Override
@@ -1669,12 +1652,40 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         frame.setVisible(true);
     }
 
+    private Rectangle getCanvasBounds() {
+        return new Rectangle(-(getCanvasX() + getCanvasWidth() / 2), -(getCanvasY() + getCanvasHeight() / 2), getCanvasWidth(), getCanvasHeight());
+    }
+
+    private int getCanvasX() {
+        return getIntProperty("canvasX", 0);
+    }
+
+    private int getCanvasY() {
+        return getIntProperty("canvasY", 0);
+    }
+
+    private int getCanvasWidth() {
+        return getIntProperty("canvasWidth", 1000);
+    }
+
+    private int getCanvasHeight() {
+        return getIntProperty("canvasHeight", 1000);
+    }
+
+    private int getIntProperty(String name, int defaultValue) {
+        try {
+            return Integer.parseInt(getNodeLibrary().getProperty(name, String.valueOf(defaultValue)));
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
+    //// Copy / Paste ////
+
     public void cut() {
         copy();
         deleteSelection();
     }
-
-    //// Copy / Paste ////
 
     public void copy() {
         // When copying, save a reference to the nodes and the parent network.
@@ -1769,6 +1780,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (dialog.isCommitted()) {
             addEdit("Change document properties");
             controller.setProperties(dialog.getProperties());
+            getViewer().setCanvasBounds(getCanvasBounds().getBounds2D());
             requestRender();
         }
     }

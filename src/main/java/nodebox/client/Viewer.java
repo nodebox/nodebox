@@ -13,6 +13,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.LinkedList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -32,9 +33,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private boolean showPoints = false;
     private boolean showPointNumbers = false;
     private boolean showOrigin = false;
+    private boolean showBounds = false;
     private boolean viewPositioned = false;
 
     private java.util.List<?> outputValues;
+    private Rectangle2D canvasBounds = new Rectangle2D.Double(-500, -500, 1000, 1000);
     private Class valuesClass;
     private Visualizer currentVisualizer = VisualizerFactory.getDefaultVisualizer();
 
@@ -77,6 +80,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     public void setShowOrigin(boolean showOrigin) {
         this.showOrigin = showOrigin;
+        repaint();
+    }
+
+    public void setShowBounds(boolean showBounds) {
+        this.showBounds = showBounds;
         repaint();
     }
 
@@ -127,6 +135,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             resetViewTransform();
         }
         checkNotNull(currentVisualizer);
+        repaint();
+    }
+
+    public void setCanvasBounds(Rectangle2D bounds) {
+        this.canvasBounds = bounds;
         repaint();
     }
 
@@ -263,6 +276,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         AffineTransform originalTransform = g2.getTransform();
         g2.transform(getViewTransform());
 
+        paintBounds(g2);
         paintObjects(g2);
         paintHandle(g2);
         paintPoints(g2);
@@ -329,6 +343,19 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             g.setColor(Color.DARK_GRAY);
             g.drawLine(x, 0, x, getHeight());
             g.drawLine(0, y, getWidth(), y);
+        }
+    }
+
+    public void paintBounds(Graphics2D g) {
+        if (showBounds) {
+            g.setColor(Color.DARK_GRAY);
+            int x = (int) Math.round(canvasBounds.getX());
+            int y = (int) Math.round(canvasBounds.getY());
+            int width = (int) Math.round(canvasBounds.getWidth());
+            int height = (int) Math.round(canvasBounds.getHeight());
+            g.drawRect(x, y, width, height);
+            g.drawLine(x + width + 1, y + 1, x + width + 1, y + height + 1);
+            g.drawLine(x + 1, y + height + 1, x + width + 1, y + height + 1);
         }
     }
 

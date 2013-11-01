@@ -19,7 +19,7 @@ public class ViewerPane extends Pane {
     private final PaneHeader paneHeader;
     private final Viewer viewer;
     private final DataSheet dataSheet;
-    private final NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck, renderRootCheck;
+    private final NButton handlesCheck, pointsCheck, pointNumbersCheck, originCheck, boundsCheck, renderRootCheck;
     private final JPanel contentPanel;
     private OutputView currentView;
     private Iterable<?> outputValues;
@@ -58,6 +58,8 @@ public class ViewerPane extends Pane {
         pointNumbersCheck.setActionMethod(this, "togglePointNumbers");
         originCheck = new NButton(NButton.Mode.CHECK, "Origin");
         originCheck.setActionMethod(this, "toggleOrigin");
+        boundsCheck = new NButton(NButton.Mode.CHECK, "Bounds");
+        boundsCheck.setActionMethod(this, "toggleBounds");
         renderRootCheck = new NButton(NButton.Mode.CHECK, "Render Root");
         renderRootCheck.setActionMethod(this, "toggleRenderRoot");
         renderRootCheck.setChecked(true);
@@ -65,6 +67,7 @@ public class ViewerPane extends Pane {
         paneHeader.add(pointsCheck);
         paneHeader.add(pointNumbersCheck);
         paneHeader.add(originCheck);
+        paneHeader.add(boundsCheck);
         paneHeader.add(renderRootCheck);
         add(paneHeader, BorderLayout.NORTH);
     }
@@ -85,8 +88,7 @@ public class ViewerPane extends Pane {
         if (objects == null) {
             this.outputValues = ImmutableList.of();
             currentView.setOutputValues(ImmutableList.of());
-        }
-        else {
+        } else {
             Iterable<?> nonNulls = Iterables.filter(objects, Predicates.notNull());
             this.outputValues = ImmutableList.copyOf(nonNulls);
             currentView.setOutputValues(ImmutableList.copyOf(this.outputValues));
@@ -95,6 +97,10 @@ public class ViewerPane extends Pane {
 
     public void toggleOrigin() {
         viewer.setShowOrigin(originCheck.isChecked());
+    }
+
+    public void toggleBounds() {
+        viewer.setShowBounds(boundsCheck.isChecked());
     }
 
     public void toggleRenderRoot() {
