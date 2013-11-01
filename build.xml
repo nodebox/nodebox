@@ -285,7 +285,7 @@
             <arg line="config --get user.name"/>
         </exec>
         <exec executable="codesign">
-            <arg line="-s 'Developer ID Application: ${apple.developer.name}' -f -vvv ${mac.application}"/>
+            <arg line="-s 'Mac Developer: ${apple.developer.name}' -f -vvv ${mac.application}"/>
         </exec>
     </target>
 
