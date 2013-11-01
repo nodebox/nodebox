@@ -32,12 +32,10 @@ public final class GrobVisualizer implements Visualizer {
                 bounds.add(getBounds((Iterable<?>) o));
             }
         }
-        // Give a bit of extra padding. This is used so objects with zero-width bounds (e.g. a vertical line)
-        // actually display.
-        bounds.x -= 5;
-        bounds.y -= 5;
-        bounds.width += 10;
-        bounds.height += 10;
+        // Make sure the width and height or greater than zero.
+        // This happen when drawing a single vertical line, for example.
+        bounds.width = bounds.width > 0 ? bounds.width : 1;
+        bounds.height = bounds.height > 0 ? bounds.height : 1;
         return bounds;
     }
 
