@@ -9,6 +9,10 @@ corevector.filter = function (shape) {
     return g.transformShape(shape, t);
 };
 
+corevector.doNothing = function (shape) {
+    return shape;
+};
+
 corevector.rect = function (position, width, height, roundness) {
     if (roundness.x === 0 && roundness.y === 0) {
         return g.rect(position.x - width / 2, position.y - height / 2, width, height);
