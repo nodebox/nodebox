@@ -768,6 +768,8 @@ public class NodeLibrary {
         public JsonElement serialize(Node node, Type typeOfSrc, JsonSerializationContext context) {
             JsonObject o = new JsonObject();
             o.addProperty("name", node.getName());
+            // HACK: there is no javascript equivalent for the pyvector nodes, so we manually
+            // make it look in corevector. Fortunately this is the only library so far that uses nodes from a file.
             o.addProperty("function", node.getFunction().replace("pyvector", "corevector"));
             o.addProperty("outputRange", node.getOutputRange().toString());
             o.addProperty("outputType", node.getOutputType());
