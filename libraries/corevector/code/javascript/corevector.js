@@ -584,3 +584,68 @@ corevector.centroid = function (shape) {
 corevector.group = function (shapes) {
     return g.makeGroup(shapes);
 };
+
+corevector.deletePoints = function (shape, bounding, deleteSelected) {
+    var deletePoints = function (shape) {
+        if (shape.elements) {
+            var elems = [];
+            for (var i=0; i<shape.elements.length; i++) {
+                var elem = shape.elements[i];
+                if (! elem.point ||
+                    (deleteSelected && g.pathContains(bounding, elem.point.x, elem.point.y)) ||
+                    (!deleteSelected && !g.pathContains(bounding, elem.point.x, elem.point.y)))  {
+                    elems.push(elem);
+                }
+            }
+            return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, deletePoints));
+        } else {
+            return _.map(shape, deletePoints);
+        }
+    }
+
+    return deletePoints(shape);
+};
+
+corevector.deletePaths = function (shape, bounding, deleteSelected) {
+    var deletePaths = function (shape) {
+        if (shape.elements) {
+            return null;
+        } else if (shape.shapes) {
+            var newShapes = [];
+            for (var i = 0; i < shape.shapes.length; i++) {
+                var s = shape.shapes[i];
+                if (s.elements) {
+                    var selected = false;
+                    for (var j=0; j<s.elements.length; j++) {
+                        var elem = s.elements[j];
+                        if (elem.point && g.pathContains(bounding, elem.point.x, elem.point.y)) {
+                            selected = true;
+                            break;
+                        }
+                    }
+                    if (selected !== deleteSelected) {
+                        newShapes.push(s);
+                    }
+                } else if (s.shapes) {
+                    var subshapes = deletePaths(s);
+                    if (subshapes.length !== 0)
+                        newShapes.push(subshapes);
+                }
+            }
+            return g.makeGroup(newShapes);
+        } else {
+            return _.map(shape, deletePaths);
+        }
+    }
+
+    return deletePaths(shape);
+};
+
+corevector["delete"] = function (shape, bounding, scope, operation) {
+    if (shape == null || bounding == null) { return null; }
+    var deleteSelected = operation === "selected";
+    if (scope === "points") { return corevector.deletePoints(shape, bounding, deleteSelected); }
+    if (scope === "paths") { return corevector.deletePaths(shape, bounding, deleteSelected); }
+};
