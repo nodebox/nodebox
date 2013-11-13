@@ -653,3 +653,62 @@ corevector["delete"] = function (shape, bounding, scope, operation) {
     if (scope === "points") { return corevector.deletePoints(shape, bounding, deleteSelected); }
     if (scope === "paths") { return corevector.deletePaths(shape, bounding, deleteSelected); }
 };
+
+corevector._x = function (shape) {
+    if (shape.x) {
+        return shape.x;
+    } else {
+        return g.bounds(shape).x;
+    }
+};
+
+corevector._y = function (shape) {
+    if (shape.y) {
+        return shape.y;
+    } else {
+        return g.bounds(shape).y;
+    }
+};
+
+corevector._angleToPoint = function (point) {
+    return function (shape) {
+        if (shape.x && shape.y) {
+            return g.geometry.angle(shape.x, shape.y, point.x, point.y);
+        } else {
+            var centroid = g.getRectCentroid(g.bounds(shape));
+            return g.geometry.angle(centroid.x, centroid.y, point.x, point.y);
+        }
+    };
+};
+
+corevector._distanceToPoint = function (point) {
+    return function (shape) {
+        if (shape.x && shape.y) {
+            return g.geometry.distance(shape.x, shape.y, point.x, point.y);
+        } else {
+            var centroid = g.getRectCentroid(g.bounds(shape));
+            return g.geometry.distance(centroid.x, centroid.y, point.x, point.y);
+        }
+    };
+};
+
+corevector.sort = function (shapes, orderBy, point) {
+    if (shapes == null) { return null; }
+    var methods = {
+        x: corevector._x,
+        y: corevector._y,
+        angle: corevector._angleToPoint(point),
+        distance: corevector._distanceToPoint(point)
+    };
+    var sortMethod = methods[orderBy];
+    if (sortMethod === undefined) { return shapes; }
+    var newShapes = shapes.slice(0);
+    newShapes.sort(function (a, b) {
+        var _a = sortMethod(a);
+        var _b = sortMethod(b);
+        if (_a < _b) { return -1; }
+        else if (_a > _b) { return 1; }
+        else { return 0; }
+    });
+    return newShapes;
+};
