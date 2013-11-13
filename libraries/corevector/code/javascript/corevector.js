@@ -712,3 +712,20 @@ corevector.sort = function (shapes, orderBy, point) {
     });
     return newShapes;
 };
+
+corevector.ungroup = function (shape) {
+    if (shape.shapes) {
+        var shapes = [];
+        for (var i=0; i<shape.shapes.length; i++) {
+            var s = shape.shapes[i];
+            if (s.elements) {
+                shapes.push(s);
+            } else if (s.shapes) {
+                shapes = shapes.concat(corevector.ungroup(s));
+            }
+        }
+        return shapes;
+    } else if (shape.elements) {
+        return [shape];
+    }
+};
