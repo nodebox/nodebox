@@ -519,6 +519,80 @@ g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
     ] });
 };
 
+g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
+    var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
+        index, elements, angle, relx, rely, coords;
+    w = width / 2;
+    h = height / 2;
+    angStRad = g.math.radians(startAngle);
+    ext = degrees;
+
+    if (ext >= 360.0 || ext <= -360) {
+        arcSegs = 4;
+        increment = Math.PI / 2;
+        cv = 0.5522847498307933;
+        if (ext < 0) {
+            increment = -increment;
+            cv = -cv;
+        }
+    } else {
+        arcSegs = Math.ceil(Math.abs(ext) / 90.0);
+        increment = g.math.radians(ext / arcSegs);
+        cv = 4.0 / 3.0 * Math.sin(increment / 2.0) / (1.0 + Math.cos(increment / 2.0));
+        if (cv === 0) {
+            arcSegs = 0;
+        }
+    }
+
+    if (arcType === "open") {
+        lineSegs = 0;
+    } else if (arcType === "chord") {
+        lineSegs = 1;
+    } else if (arcType === "pie") {
+        lineSegs = 2;
+    }
+
+    if (w < 0 || h < 0) {
+        arcSegs = lineSegs = -1;
+    }
+
+    index = 0;
+    elements = [];
+    while (index <= arcSegs + lineSegs) {
+        angle = angStRad;
+        if (index === 0) {
+            elements.push(
+                g.moveTo(x + Math.cos(angle) * w,
+                         y + Math.sin(angle) * h)
+            );
+        } else if (index > arcSegs) {
+            if (index === arcSegs + lineSegs) {
+                elements.push(g.closePath());
+            } else {
+                elements.push(g.lineTo(x, y));
+            }
+        } else {
+            angle += increment * (index - 1);
+            relx = Math.cos(angle);
+            rely = Math.sin(angle);
+            coords = [];
+            coords.push(x + (relx - cv * rely) * w);
+            coords.push(y + (rely + cv * relx) * h);
+            angle += increment;
+            relx = Math.cos(angle);
+            rely = Math.sin(angle);
+            coords.push(x + (relx + cv * rely) * w);
+            coords.push(y + (rely - cv * relx) * h);
+            coords.push(x + relx * w);
+            coords.push(y + rely * h);
+            elements.push(g.curveTo.apply(null, coords));
+        }
+        index += 1;
+    }
+
+    return Object.freeze({ elements: elements });
+};
+
 g.makePath = function (pe, fill, stroke, strokeWidth) {
     var elements = pe.elements || pe,
         d = { elements: elements };

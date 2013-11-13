@@ -729,3 +729,7 @@ corevector.ungroup = function (shape) {
         return [shape];
     }
 };
+
+corevector.arc = function (position, width, height, startAngle, degrees, arcType) {
+    return g.arc(position.x, position.y, width, height, startAngle, degrees, arcType);
+};
