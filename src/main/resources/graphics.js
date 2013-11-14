@@ -708,6 +708,50 @@ g.pathContains = function (path, x, y, precision) {
     return g.geometry.pointInPolygon(points, x, y);
 };
 
+g.combinePaths = function (shape) {
+    if (shape.elements) { return shape.elements; }
+    var i, elements = [];
+    for (i = 0; i < shape.shapes.length; i += 1) {
+        elements = elements.concat(g.combinePaths(shape.shapes[i]));
+    }
+    return elements;
+};
+
+g.resamplePathByAmount = function (shape, points, perContour) {
+    var i, j, subPath, pts, elem,
+        subPaths = perContour ? g.getContours(shape) : [shape.elements],
+        elems = [];
+    for (j = 0; j < subPaths.length; j += 1) {
+        subPath = g.makePath(subPaths[j]);
+        pts = _.map(g.points(subPath, points + 1), function (pe) { return pe.point; });
+        for (i = 0; i < pts.length - 1; i += 1) {
+            elem = Object.freeze({ cmd:   (i === 0) ? g.MOVETO : g.LINETO,
+                                   point: pts[i] });
+            elems.push(elem);
+        }
+        elems.push(g.closePath());
+    }
+    return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+};
+
+g.resampleGroupByAmount = function (group, points, perContour) {
+    var path, shapes;
+    if (!perContour) {
+        path = g.makePath(g.combinePaths(group));
+        return g.resamplePathByAmount(path, points, perContour);
+    }
+
+    shapes = _.map(group.shapes, function (shape) {
+        return g.resampleByAmount(shape, points, perContour);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.resampleByAmount = function (shape, points, perContour) {
+    var fn = (shape.shapes) ? g.resampleGroupByAmount : g.resamplePathByAmount;
+    return fn(shape, points, perContour);
+};
+
 g.pathBounds = function (path) {
     if (_.isEmpty(path.elements)) { return g.makeRect(0, 0, 0, 0); }
 

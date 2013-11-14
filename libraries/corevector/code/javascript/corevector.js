@@ -124,13 +124,9 @@ corevector.skew = function (shape, skew, origin) {
 };
 
 corevector.resample = function (shape, method, length, points, perContour) {
-    var pts = _.map(g.points(shape, points + 1), function(pe)
-                    { return pe.point; });
-    var elems = [g.moveto(pts[0].x, pts[0].y)];
-    for (var i=1; i<pts.length; i++)
-        elems.push(g.lineto(pts[i].x, pts[i].y));
-    elems.push(g.closePath());
-    return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+    if (method === "amount") {
+        return g.resampleByAmount(shape, points, perContour);
+    }
 };
 
 corevector.wiggle = function (shape, scope, offset, seed) {
