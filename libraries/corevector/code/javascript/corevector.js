@@ -745,7 +745,7 @@ corevector.freehand = function (pathString) {
         for (var i=0; i<values.length; i+=2) {
             if (values[i+1] !== undefined) {
                 var cmd = (i === 0) ? g.moveTo : g.lineTo;
-                elements.push(cmd(values[i], values[i + 1]));
+                elements.push(cmd(parseFloat(values[i]), parseFloat(values[i + 1])));
             }
         }
     }
