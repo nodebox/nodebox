@@ -1200,14 +1200,14 @@ g._getColor = function (c) {
 
 g.drawPoints = function (ctx, points) {
     var pt, i;
-    ctx.fillStyle = 'blue';
+    ctx.fillStyle = 'blue';
     ctx.beginPath();
     for (i = 0; i < points.length; i += 1) {
-        pt = points[i];
-        ctx.moveTo(pt.x, pt.y);
+        pt = points[i];
+        ctx.moveTo(pt.x, pt.y);
         ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2, false);
     }
-    ctx.fill();
+    ctx.fill();
 };
 
 g.draw = function (ctx, shape) {
