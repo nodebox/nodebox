@@ -207,26 +207,43 @@ corevector.reflect = function (shape, position, angle, keepOriginal) {
         return g.makePoint(pt.x, pt.y);
     }
 
-    var elements = _.map(shape.elements, function(elem) {
-        if (elem.cmd === g.CLOSE) return elem;
-        else if (elem.cmd === g.MOVETO) {
-            var pt = f(elem.point);
-            return g.moveto(pt.x, pt.y);
-        } else if (elem.cmd === g.LINETO) {
-            var pt = f(elem.point);
-            return g.lineto(pt.x, pt.y);
-        } else if (elem.cmd === g.CURVETO) {
-            var pt = f(elem.point);
-            var ctrl1 = f(elem.ctrl1);
-            var ctrl2 = f(elem.ctrl2);
-            return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
-        }
-    });
-    var p = g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+    function reflectPath(path) {
+        var elements = _.map(path.elements, function(elem) {
+            if (elem.cmd === g.CLOSE) return elem;
+            else if (elem.cmd === g.MOVETO) {
+                var pt = f(elem.point);
+                return g.moveto(pt.x, pt.y);
+            } else if (elem.cmd === g.LINETO) {
+                var pt = f(elem.point);
+                return g.lineto(pt.x, pt.y);
+            } else if (elem.cmd === g.CURVETO) {
+                var pt = f(elem.point);
+                var ctrl1 = f(elem.ctrl1);
+                var ctrl2 = f(elem.ctrl2);
+                return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+            }
+        });
+        return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
+    }
+
+    function reflectGroup(group) {
+        var shapes = _.map(group.shapes, function (shape) {
+            return reflect(shape);
+        });
+        return g.makeGroup(shapes);
+    }
+
+    function reflect(shape) {
+        var fn = (shape.shapes) ? reflectGroup : reflectPath;
+        return fn(shape);
+    }
+
+    var newShape = reflect(shape);
+
     if (keepOriginal)
-        return g.makeGroup([shape, p]);
+        return g.makeGroup([shape, newShape]);
     else
-        return p;
+        return newShape;
 
 };
 
@@ -564,7 +581,11 @@ corevector.makePoint = function (x, y) {
 };
 
 corevector.point = function (v) {
-    return v;
+    if (v.x && v.y)
+        return v;
+    if (v.elements) {
+      return _.map(_.filter(v.elements, function (el) { if (el.point) return true; return false; }), function (el) { return el.point; })
+    }
 };
 
 corevector.centroid = function (shape) {
