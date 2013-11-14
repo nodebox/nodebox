@@ -224,7 +224,7 @@ corevector.reflect = function (shape, position, angle, keepOriginal) {
     });
     var p = g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
     if (keepOriginal)
-        return [shape, p];
+        return g.makeGroup([shape, p]);
     else
         return p;
 
