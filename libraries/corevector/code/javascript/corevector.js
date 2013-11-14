@@ -733,3 +733,28 @@ corevector.ungroup = function (shape) {
 corevector.arc = function (position, width, height, startAngle, degrees, arcType) {
     return g.arc(position.x, position.y, width, height, startAngle, degrees, arcType);
 };
+
+corevector.freehand = function (pathString) {
+    var contours = _.filter(pathString.split("M"), function (s) { return s.length !== 0; });
+    contours = _.map(contours, function (c) { return c.replace(/,/g, " "); });
+
+    var elements = [];
+
+    for (var j=0; j<contours.length; j++) {
+        var values = _.filter(contours[j].split(" "), function (s) { return s.length !== 0; });
+        for (var i=0; i<values.length; i+=2) {
+            if (values[i+1] !== undefined) {
+                var cmd = (i === 0) ? g.moveTo : g.lineTo;
+                elements.push(cmd(values[i], values[i + 1]));
+            }
+        }
+    }
+
+    return Object.freeze({
+        elements: elements,
+        fill: null,
+        stroke: {"r": 0, "g": 0, "b": 0, "a": 1},
+        strokeWidth: 1
+    });
+
+};
