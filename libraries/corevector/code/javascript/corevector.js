@@ -124,7 +124,9 @@ corevector.skew = function (shape, skew, origin) {
 };
 
 corevector.resample = function (shape, method, length, points, perContour) {
-    if (method === "amount") {
+    if (method === "length") {
+        return g.resampleByLength(shape, length);
+    } else {
         return g.resampleByAmount(shape, points, perContour);
     }
 };

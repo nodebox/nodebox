@@ -433,6 +433,11 @@ g.closePath = g.closepath = function () {
     return g.CLOSE_ELEMENT;
 };
 
+g.isClosed = function (path) {
+    if (_.isEmpty(path.elements)) { return false; }
+    return path.elements[path.elements.length - 1].cmd === g.CLOSE;
+};
+
 g.rect = function (x, y, width, height) {
     return Object.freeze({ elements: [
         g.moveto(x, y),
@@ -717,9 +722,9 @@ g.combinePaths = function (shape) {
     return elements;
 };
 
-g.resamplePathByAmount = function (shape, points, perContour) {
+g.resamplePathByAmount = function (path, points, perContour) {
     var i, j, subPath, pts, elem,
-        subPaths = perContour ? g.getContours(shape) : [shape.elements],
+        subPaths = perContour ? g.getContours(path) : [path.elements],
         elems = [];
     for (j = 0; j < subPaths.length; j += 1) {
         subPath = g.makePath(subPaths[j]);
@@ -731,7 +736,7 @@ g.resamplePathByAmount = function (shape, points, perContour) {
         }
         elems.push(g.closePath());
     }
-    return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+    return g.makePath(elems, path.fill, path.stroke, path.strokeWidth);
 };
 
 g.resampleGroupByAmount = function (group, points, perContour) {
@@ -750,6 +755,32 @@ g.resampleGroupByAmount = function (group, points, perContour) {
 g.resampleByAmount = function (shape, points, perContour) {
     var fn = (shape.shapes) ? g.resampleGroupByAmount : g.resamplePathByAmount;
     return fn(shape, points, perContour);
+};
+
+g.resamplePathByLength = function (path, segmentLength) {
+    var i, subPath, contourLength, amount,
+        subPaths = g.getContours(path),
+        elems = [];
+    for (i = 0; i < subPaths.length; i += 1) {
+        subPath = g.makePath(subPaths[i]);
+        contourLength = g.length(subPath);
+        amount = Math.ceil(contourLength / segmentLength);
+        if (!g.isClosed(subPath)) { amount += 1; }
+        elems = elems.concat(g.resamplePathByAmount(subPath, amount, false).elements);
+    }
+    return g.makePath(elems, path.fill, path.stroke, path.strokeWidth);
+};
+
+g.resampleGroupByLength = function (group, length) {
+    var shapes = _.map(group.shapes, function (shape) {
+        return g.resampleByLength(shape, length);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.resampleByLength = function (shape, length) {
+    var fn = (shape.shapes) ? g.resampleGroupByLength : g.resamplePathByLength;
+    return fn(shape, length);
 };
 
 g.pathBounds = function (path) {
