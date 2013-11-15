@@ -105,3 +105,7 @@ string.equal = function (s, value, caseSensitive) {
         return s.toLowerCase() === value.toLowerCase();
     }
 };
+
+string.replace = function (s, old, new_) {
+    return s.replace(new RegExp(old, "g"), new_);
+};
