@@ -1302,7 +1302,7 @@ g.drawPoints = function (ctx, points) {
     for (i = 0; i < points.length; i += 1) {
         pt = points[i];
         ctx.moveTo(pt.x, pt.y);
-        ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2, false);
+        ctx.arc(pt.x, pt.y, 2, 0, Math.PI * 2, false);
     }
     ctx.fill();
 };
