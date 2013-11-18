@@ -134,7 +134,7 @@ corevector.resample = function (shape, method, length, points, perContour) {
 corevector.wiggle = function (shape, scope, offset, seed) {
     var rand = core.randomGenerator(seed);
 
-    var wiggleShape = function (shape) {
+    var wigglePoints = function (shape) {
         if (shape.elements) {
             var elems = [];
             for (var i=0; i<shape.elements.length; i++) {
@@ -155,13 +155,61 @@ corevector.wiggle = function (shape, scope, offset, seed) {
             }
             return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
         } else if (shape.shapes) {
-            return g.makeGroup(_.map(shape.shapes, wiggleShape));
+            return g.makeGroup(_.map(shape.shapes, wigglePoints));
         } else {
-            return _.map(shape, wiggleShape);
+            return _.map(shape, wigglePoints);
         }
     }
 
-    return wiggleShape(shape);
+    var wigglePaths = function (shape) {
+        if (shape.elements) {
+            return shape;
+        } else if (shape.shapes) {
+            var newShapes = [];
+            for (var i=0; i<shape.shapes.length; i++) {
+                var subShape = shape.shapes[i];
+                if (subShape.elements) {
+                    var dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                    var dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                    var t = g.translate(g.IDENTITY, dx, dy);
+                    newShapes.push(g.transformShape(subShape, t));
+                } else if (subShape.shapes) {
+                    newShapes.push(wigglePaths(subShape));
+                }
+            }
+            return g.makeGroup(newShapes);
+        } else {
+            return _.map(shape, wigglePaths);
+        }
+    };
+
+    var wiggleContours = function (shape) {
+        if (shape.elements) {
+            var subPaths = g.getContours(shape);
+            var elems = [];
+            for (var i=0; i<subPaths.length; i++) {
+                var dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                var dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                var t = g.translate(g.IDENTITY, dx, dy);
+                elems = elems.concat(g.transformShape(g.makePath(subPaths[i]), t).elements);
+            }
+            return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, wiggleContours));
+        } else {
+            return _.map(shape, wiggleContours);
+        }
+    };
+
+    if (scope === "points") {
+        return wigglePoints(shape);
+    }
+    if (scope === "paths") {
+        return wigglePaths(shape);
+    }
+    if (scope === "contours") {
+        return wiggleContours(shape);
+    }
 };
 
 corevector.grid = function (columns, rows, width, height, position) {
