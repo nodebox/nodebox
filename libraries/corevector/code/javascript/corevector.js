@@ -412,25 +412,36 @@ corevector.snap = function (shape, distance, strength, position) {
     if (shape == null) return null;
     if (position == null) position = g.ZERO;
     strength /= 100.0;
-    var elements = _.map(shape.elements, function(pe) {
-        if (pe.cmd === g.CLOSE) return pe;
-        else {
-            var x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
-            var y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
-            if (pe.cmd === g.MOVETO)
-                return g.moveto(x, y);
-            else if (pe.cmd === g.LINETO)
-                return g.lineto(x, y);
-            else if (pe.cmd === g.CURVETO) {
-                var ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
-                var ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
-                var ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
-                var ctrl2y = _snap(pe.ctrl2.y + position.y, position.y, distance, strength) - position.y;
-                return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
-            }
+
+    var snapShape = function (shape) {
+        if (shape.elements) {
+            var elements = _.map(shape.elements, function(pe) {
+                if (pe.cmd === g.CLOSE) return pe;
+                else {
+                    var x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
+                    var y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
+                    if (pe.cmd === g.MOVETO) {
+                        return g.moveto(x, y);
+                    } else if (pe.cmd === g.LINETO) {
+                        return g.lineto(x, y);
+                    } else if (pe.cmd === g.CURVETO) {
+                        var ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
+                        var ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
+                        var ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
+                        var ctrl2y = _snap(pe.ctrl2.y + position.y, position.y, distance, strength) - position.y;
+                        return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
+                    }
+                }
+            });
+            return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, snapShape));
+        } else {
+            return _.map(shape, snapShape);
         }
-    });
-    return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+    }
+
+    return snapShape(shape);
 };
 
 corevector.link = function (shape1, shape2, orientation) {
