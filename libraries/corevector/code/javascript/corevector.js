@@ -568,6 +568,9 @@ corevector.stack = function (shapes, direction, margin) {
 
 corevector.pointOnPath = function (shape, t) {
     if (shape == null) return null;
+    if (shape.shapes) {
+        shape = g.makePath(g.combinePaths(shape));
+    }
     t = Math.abs(t % 100);
     return g.point(shape, t / 100).point;
 };
