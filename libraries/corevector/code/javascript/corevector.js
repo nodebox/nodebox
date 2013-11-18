@@ -588,7 +588,7 @@ corevector.point = function (v) {
 
 corevector.centroid = function (shape) {
     if (shape == null) return g.ZERO;
-    var elements = shape.elements;
+    var elements = g.combinePaths(shape);
     var firstPoint = elements[0].point;
     var xs = firstPoint.x;
     var ys = firstPoint.y;
