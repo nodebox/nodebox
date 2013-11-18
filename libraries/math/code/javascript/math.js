@@ -234,3 +234,25 @@ math.randomNumbers = function (amount, start, end, seed) {
     }
     return numbers;
 };
+
+math.wave = function (min, max, period, t, waveType) {
+    var TWO_PI = 2 * Math.PI;
+    var amplitude = (max - min) / 2;
+    var frequency = TWO_PI / period;
+    var phase = 0;
+    var offset = min + amplitude;
+    var time = t + period / (waveType === "triangle" ? 4 : 2);
+    if (time % period !== 0) {
+        phase = (time * frequency) % TWO_PI;
+    }
+    if (phase < 0) { phase += TWO_PI; }
+    if (waveType === "sine") {
+        return Math.sin(phase) * amplitude + offset;
+    } else if (waveType === "square") {
+        return (phase / TWO_PI < 0.5 ? 1 : -1) * amplitude + offset;
+    } else if (waveType === "triangle") {
+        return Math.abs((phase / TWO_PI) * 2 - 1) * amplitude * 2 - amplitude + offset;
+    } else if (waveType === "sawtooth") {
+        return ((phase / TWO_PI) * 2 - 1) * -amplitude + offset;
+    }
+};
