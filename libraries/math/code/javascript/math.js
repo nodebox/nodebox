@@ -225,3 +225,12 @@ math.runningTotal = function (numbers) {
     return b;
 };
 
+math.randomNumbers = function (amount, start, end, seed) {
+    var rand = core.randomGenerator(seed);
+    var numbers = [];
+    for (var i = 0; i < amount; i++) {
+        var v = start + (rand(0, 1) * (end - start));
+        numbers.push(v);
+    }
+    return numbers;
+};
