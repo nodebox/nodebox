@@ -389,7 +389,7 @@ corevector.scatter = function (shape, amount, seed) {
         while (tries > 0) {
             var x = bx + rand(0, 1) * bw;
             var y = by + rand(0, 1) * bh;
-            if (g.pathContains(shape, x, y)) {
+            if (g.shapeContains(shape, x, y)) {
                 points.push(g.makePoint(x, y));
                 break;
             }

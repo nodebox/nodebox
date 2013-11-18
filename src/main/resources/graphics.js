@@ -713,6 +713,28 @@ g.pathContains = function (path, x, y, precision) {
     return g.geometry.pointInPolygon(points, x, y);
 };
 
+g.groupContains = function (group, x, y, precision) {
+    /* Returns true when point (x,y) falls within the contours of the group.
+     */
+    if (precision === undefined) { precision = 100; }
+    var i, shapes = group.shapes;
+    for (i = 0; i < group.shapes.length; i += 1) {
+        if (g.shapeContains(shapes[i], x, y, precision)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+g.shapeContains = function (shape, x, y, precision) {
+    /* Returns true when point (x,y) falls within the contours of the shape.
+     */
+    if (precision === undefined) { precision = 100; }
+    var fn = (shape.shapes) ? g.groupContains : g.pathContains;
+    return fn(shape, x, y, precision);
+};
+
+
 g.combinePaths = function (shape) {
     if (shape.elements) { return shape.elements; }
     var i, elements = [];
