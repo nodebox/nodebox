@@ -56,9 +56,7 @@ public final class GrobVisualizer implements Visualizer {
 
     public static void drawGrobs(Graphics2D g, Iterable<Grob> objects) {
         for (Grob grob : objects) {
-            Shape oldClip = g.getClip();
             grob.draw(g);
-            g.setClip(oldClip);
         }
     }
 
