@@ -38,14 +38,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     }
 
     // todo: could use something like BoundedRangeModel (but then for floats) for checking bounds.
-
-    private JTextField numberField;
-    private double oldValue, value;
-    private int previousX;
-
-    private Double minimumValue;
-    private Double maximumValue;
-
     /**
      * Only one <code>ChangeEvent</code> is needed per slider instance since the
      * event's only (read-only) state is the source property.  The source
@@ -55,8 +47,13 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
      * @see #fireStateChanged
      */
     protected transient ChangeEvent changeEvent = null;
-
+    private JTextField numberField;
+    private double oldValue, value;
+    private int previousX;
+    private Double minimumValue;
+    private Double maximumValue;
     private NumberFormat numberFormat;
+    private boolean isDragging = false;
 
     public DraggableNumber() {
         setLayout(null);
@@ -99,24 +96,32 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         componentResized(null);
     }
 
+    public static void main(String[] args) {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.getContentPane().add(new DraggableNumber());
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    //// Value ranges ////
+
     @Override
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         if (!enabled) cancelNumberField();
     }
 
-    //// Value ranges ////
-
     public Double getMinimumValue() {
         return minimumValue;
     }
 
-    public boolean hasMinimumValue() {
-        return minimumValue == null;
-    }
-
     public void setMinimumValue(Double minimumValue) {
         this.minimumValue = minimumValue;
+    }
+
+    public boolean hasMinimumValue() {
+        return minimumValue == null;
     }
 
     public void clearMinimumValue() {
@@ -127,22 +132,27 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         return maximumValue;
     }
 
+    public void setMaximumValue(Double maximumValue) {
+        this.maximumValue = maximumValue;
+    }
+
     public boolean hasMaximumValue() {
         return maximumValue == null;
     }
 
-    public void setMaximumValue(Double maximumValue) {
-        this.maximumValue = maximumValue;
-    }
+    //// Value ////
 
     public void clearMaximumValue() {
         this.maximumValue = null;
     }
 
-    //// Value ////
-
     public double getValue() {
         return value;
+    }
+
+    public void setValue(double value) {
+        this.value = clampValue(value);
+        repaint();
     }
 
     public double clampValue(double value) {
@@ -153,20 +163,15 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         return value;
     }
 
-    public void setValue(double value) {
-        this.value = clampValue(value);
-        repaint();
-    }
-
     public void setValueFromString(String s) throws NumberFormatException {
         setValue(Double.parseDouble(s));
     }
 
+    //// Number formatting ////
+
     public String valueAsString() {
         return numberFormat.format(value);
     }
-
-    //// Number formatting ////
 
     public NumberFormat getNumberFormat() {
         return numberFormat;
@@ -189,11 +194,11 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         }
     }
 
+    //// Component paint ////
+
     private void cancelNumberField() {
         numberField.setVisible(false);
     }
-
-    //// Component paint ////
 
     private Rectangle getLeftButtonRect() {
         return new Rectangle(0, 0, draggerLeftWidth, draggerHeight);
@@ -204,6 +209,9 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         return new Rectangle(r.width - draggerRightWidth, r.y, draggerRightWidth, draggerHeight);
     }
 
+    private boolean inDraggableArea(Point pt) {
+        return !getLeftButtonRect().contains(pt) && !getRightButtonRect().contains(pt);
+    }
 
     public void focusGained(FocusEvent e) {
         showNumberField();
@@ -226,6 +234,8 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
             o.requestFocus();
     }
 
+    //// Component size ////
+
     @Override
     public void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
@@ -244,15 +254,13 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
         SwingUtils.drawCenteredShadowText(g2, valueAsString(), r.width / 2, 14, Theme.DRAGGABLE_NUMBER_HIGHLIGHT_COLOR);
     }
 
-    //// Component size ////
+    //// Component listeners
 
     @Override
     public Dimension getPreferredSize() {
         // The control is actually 20 pixels high, but setting the height to 30 will leave a nice margin.
         return new Dimension(120, 30);
     }
-
-    //// Component listeners
 
     public void componentResized(ComponentEvent e) {
         numberField.setBounds(draggerLeftWidth, 1, getWidth() - draggerLeftWidth - draggerRightWidth, draggerHeight - 2);
@@ -264,18 +272,20 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     public void componentShown(ComponentEvent e) {
     }
 
+    //// Mouse listeners ////
+
     public void componentHidden(ComponentEvent e) {
     }
 
-    //// Mouse listeners ////
-
     public void mousePressed(MouseEvent e) {
         if (!isEnabled()) return;
+        if (!inDraggableArea(e.getPoint())) return;
         if (e.getButton() == MouseEvent.BUTTON1) {
+            isDragging = true;
             oldValue = getValue();
             previousX = e.getX();
+            SwingUtilities.getRootPane(this).setCursor(dragCursor);
         }
-        SwingUtilities.getRootPane(this).setCursor(dragCursor);
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -308,6 +318,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseReleased(MouseEvent e) {
         if (!isEnabled()) return;
+        isDragging = false;
         SwingUtilities.getRootPane(this).setCursor(Cursor.getDefaultCursor());
         if (oldValue != value)
             fireStateChanged();
@@ -324,6 +335,7 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
 
     public void mouseDragged(MouseEvent e) {
         if (!isEnabled()) return;
+        if (!isDragging) return;
         double deltaX = e.getX() - previousX;
         if (deltaX == 0F) return;
         if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) > 0) {
@@ -346,7 +358,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
     public void addChangeListener(ChangeListener l) {
         listenerList.add(ChangeListener.class, l);
     }
-
 
     /**
      * Removes a ChangeListener from the slider.
@@ -377,14 +388,6 @@ public class DraggableNumber extends JComponent implements MouseListener, MouseM
                 ((ChangeListener) listeners[i + 1]).stateChanged(changeEvent);
             }
         }
-    }
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().add(new DraggableNumber());
-        frame.pack();
-        frame.setVisible(true);
     }
 
     /**
