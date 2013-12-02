@@ -983,20 +983,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    /**
-     * Set the active node to the given node.
-     * <p/>
-     * The active node is the one whose parameters are displayed in the port pane,
-     * and whose handle is displayed in the viewer.
-     * <p/>
-     * This will also change the active network if necessary.
-     *
-     * @param node the node to change to.
-     */
-    public void setActiveNode(Node node) {
-        setActiveNode(node != null ? node.getName() : "");
-    }
-
     public void setActiveNode(String nodeName) {
         if (!restoring && getActiveNodeName().equals(nodeName)) return;
         stopCombiningEdits();
@@ -1015,6 +1001,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         portView.updateAll();
         restoring = false;
         networkView.singleSelect(n);
+    }
+
+    /**
+     * Set the active node to the given node.
+     * <p/>
+     * The active node is the one whose parameters are displayed in the port pane,
+     * and whose handle is displayed in the viewer.
+     * <p/>
+     * This will also change the active network if necessary.
+     *
+     * @param node the node to change to.
+     */
+    public void setActiveNode(Node node) {
+        setActiveNode(node != null ? node.getName() : "");
     }
 
     public String getActiveNodePath() {
@@ -1419,10 +1419,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             if (!chosenFile.getAbsolutePath().endsWith(".ndbx")) {
                 chosenFile = new File(chosenFile.getAbsolutePath() + ".ndbx");
                 if (chosenFile.exists()) {
-                    ReplaceDialog rd = new ReplaceDialog(chosenFile);
-                    int retVal = rd.show(this);
-                    if (retVal == JOptionPane.CANCEL_OPTION)
+                    boolean shouldReplace = ReplaceDialog.showForFile(chosenFile);
+                    if (shouldReplace) {
                         return saveAs();
+                    }
                 }
             }
             lastFilePath = chosenFile.getParentFile().getAbsolutePath();
