@@ -753,7 +753,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     private void renameNode(Node node) {
-        String s = JOptionPane.showInputDialog(this, "New name:", node.getName());
+        String s = JOptionPane.showInputDialog(this, "New name (no spaces, don't start with a digit):", node.getName());
         if (s == null || s.length() == 0)
             return;
         try {
