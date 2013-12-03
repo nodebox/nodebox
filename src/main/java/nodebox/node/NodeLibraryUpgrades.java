@@ -114,6 +114,9 @@ public class NodeLibraryUpgrades {
         ArrayList<String> warnings = new ArrayList<String>();
         // Avoid upgrades getting stuck in an infinite loop.
         int tries = 0;
+        if (currentVersion.equals("0.9")) {
+            throw new LoadException(file, "This is a NodeBox 2 file. Download NodeBox 2 from http://beta.nodebox.net/");
+        }
         while (!currentVersion.equals(targetVersion) && tries < 100) {
             Method upgradeMethod = upgradeMap.get(currentVersion);
             if (upgradeMethod == null) {

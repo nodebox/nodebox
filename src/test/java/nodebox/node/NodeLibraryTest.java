@@ -664,7 +664,7 @@ public class NodeLibraryTest {
             NodeLibraryUpgrades.upgrade(version09File);
             fail("Should have thrown a LoadException.");
         } catch (LoadException e) {
-            assertTrue(e.getMessage().contains("too old"));
+            assertTrue(e.getMessage().contains("NodeBox 2"));
         }
     }
 
