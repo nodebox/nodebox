@@ -366,7 +366,7 @@ public class NodeLibraryUpgrades {
     }
 
     private static void renamePortReference(List<Element> elements, String attributeName, String oldNodeName, String newNodeName) {
-        for (Element c:elements) {
+        for (Element c : elements) {
             Attr portReference = c.getAttributeNode(attributeName);
             if (portReference == null) continue;
             Iterator<String> portRefIterator = NodeLibrary.PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
@@ -379,7 +379,7 @@ public class NodeLibraryUpgrades {
     }
 
     private static void renamePortInNodeList(List<Element> elements, String attributeName, String nodeName, String oldPortName, String newPortName) {
-        for (Element c:elements) {
+        for (Element c : elements) {
             Attr portReference = c.getAttributeNode(attributeName);
             if (portReference == null) continue;
             Iterator<String> portRefIterator = NodeLibrary.PORT_NAME_SPLITTER.split(portReference.getValue()).iterator();
@@ -392,7 +392,7 @@ public class NodeLibraryUpgrades {
     }
 
     private static void renameNodeReference(List<Element> elements, String attributeName, String oldNodeName, String newNodeName) {
-        for (Element c:elements) {
+        for (Element c : elements) {
             Attr nodeRef = c.getAttributeNode(attributeName);
             String nodeName = nodeRef.getValue();
             if (oldNodeName.equals(nodeName)) {
@@ -519,7 +519,7 @@ public class NodeLibraryUpgrades {
 
     private static void transformXmlRecursive(Element e, UpgradeOp op) {
         op.apply(e);
-        for (Element child: childElements(e)) {
+        for (Element child : childElements(e)) {
             transformXmlRecursive(child, op);
         }
     }
@@ -625,7 +625,7 @@ public class NodeLibraryUpgrades {
                 Attr name = e.getAttributeNode("name");
                 if (name != null && name.getValue().startsWith(oldPrefix)) {
                     String oldNodeName = name.getValue();
-                    Set<String> childNames = getChildNodeNames((Element)e.getParentNode());
+                    Set<String> childNames = getChildNodeNames((Element) e.getParentNode());
                     String newNodeName = uniqueName(newPrefix, childNames);
                     name.setValue(newNodeName);
 
@@ -666,7 +666,7 @@ public class NodeLibraryUpgrades {
                 }
                 Attr name = e.getAttributeNode("name");
                 if (name != null && name.getValue().equals(oldNodeName)) {
-                    Set<String> childNames = getChildNodeNames((Element)e.getParentNode());
+                    Set<String> childNames = getChildNodeNames((Element) e.getParentNode());
                     String newNodeName = uniqueName(newPrefix, childNames);
                     name.setValue(newNodeName);
 
