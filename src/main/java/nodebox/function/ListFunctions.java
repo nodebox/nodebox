@@ -110,10 +110,18 @@ public class ListFunctions {
      * @param list1 The first list to combine.
      * @param list2 The second list to combine.
      * @param list3 The third list to combine.
+     * @param list4 The fourth list to combine.
+     * @param list5 The fifth list to combine.
+     * @param list6 The sixth list to combine.
+     * @param list7 The seventh list to combine.
      * @return A new list with all input lists combined.
      */
-    public static List<?> combine(Iterable list1, Iterable list2, Iterable list3) {
-        Iterable<Iterable<?>> nonNullLists = Iterables.filter(Lists.<Iterable<?>>newArrayList(list1, list2, list3), Predicates.notNull());
+    public static List<?> combine(Iterable list1, Iterable list2, Iterable list3,
+                                  Iterable list4, Iterable list5, Iterable list6,
+                                  Iterable list7) {
+        Iterable<Iterable<?>> nonNullLists = Iterables.filter(
+                Lists.<Iterable<?>>newArrayList(list1, list2, list3, list4, list5, list6, list7),
+                Predicates.notNull());
         return ImmutableList.copyOf(Iterables.concat(nonNullLists));
     }
 

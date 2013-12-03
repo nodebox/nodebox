@@ -52,10 +52,10 @@ public class ListFunctionsTest {
 
     @Test
     public void testCombine() {
-        assertElements(ListFunctions.combine(ImmutableList.of(), ImmutableList.of(), null));
-        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(), null), 1);
-        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(2), null), 1, 2);
-        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(2), ImmutableList.of(3)), 1, 2, 3);
+        assertElements(ListFunctions.combine(ImmutableList.of(), ImmutableList.of(), null, null, null, null, null));
+        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(), null, null, null, null, null), 1);
+        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(2), null, null, null, null, null), 1, 2);
+        assertElements(ListFunctions.combine(ImmutableList.of(1), ImmutableList.of(2), null, null, null, null, ImmutableList.of(3)), 1, 2, 3);
     }
 
     @Test

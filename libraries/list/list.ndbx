@@ -6,6 +6,10 @@
             <port name="list1" range="list" type="list" widget="none" description="The first list."/>
             <port name="list2" range="list" type="list" widget="none" description="The second list."/>
             <port name="list3" range="list" type="list" widget="none" description="The third list."/>
+            <port name="list4" range="list" type="list" widget="none" description="The fourth list."/>
+            <port name="list5" range="list" type="list" widget="none" description="The fifth list."/>
+            <port name="list6" range="list" type="list" widget="none" description="The sixth list."/>
+            <port name="list7" range="list" type="list" widget="none" description="The seventh list."/>
         </node>
         <node description="Count the number of items in the list." function="list/count" image="count.png" name="count" outputType="int" position="1.00,1.00" category="list">
             <port name="list" range="list" type="list" widget="none" description="The input list."/>
