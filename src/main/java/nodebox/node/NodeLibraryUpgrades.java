@@ -69,6 +69,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("14", upgradeMethod("upgrade14to15"));
         upgradeMap.put("15", upgradeMethod("upgrade15to16"));
         upgradeMap.put("16", upgradeMethod("upgrade16to17"));
+        upgradeMap.put("17", upgradeMethod("upgrade17to18"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -285,6 +286,13 @@ public class NodeLibraryUpgrades {
     public static UpgradeStringResult upgrade16to17(String inputXml) throws LoadException {
         UpgradeOp convertOSCPropertyOp = new ConvertOSCPropertyFormatOp();
         return transformXml(inputXml, "17", convertOSCPropertyOp);
+    }
+
+    public static UpgradeStringResult upgrade17to18(String inputXml) throws LoadException {
+        // Version 18: "switch" and "combine" nodes have more ports. This doesn't change anything in the file
+        // but does make the files backward-incompatible.
+        UpgradeOp convertOSCPropertyOp = new ConvertOSCPropertyFormatOp();
+        return transformXml(inputXml, "18");
     }
 
     private static List<Node> childNodes(Node parent) {
