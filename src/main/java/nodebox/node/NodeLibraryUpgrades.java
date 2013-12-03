@@ -116,7 +116,7 @@ public class NodeLibraryUpgrades {
         while (!currentVersion.equals(targetVersion) && tries < 100) {
             Method upgradeMethod = upgradeMap.get(currentVersion);
             if (upgradeMethod == null) {
-                throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too old or too new.");
+                throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too new. Try downloading a new version of NodeBox from http://nodebox.net/download/");
             }
             try {
                 UpgradeStringResult result = (UpgradeStringResult) upgradeMethod.invoke(null, currentXml);
