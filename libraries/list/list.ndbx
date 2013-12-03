@@ -65,6 +65,9 @@
             <port name="input1" range="list" type="list" widget="none" description="The first list."/>
             <port name="input2" range="list" type="list" widget="none" description="The second list."/>
             <port name="input3" range="list" type="list" widget="none" description="The third list."/>
+            <port name="input4" range="list" type="list" widget="none" description="The fourth list."/>
+            <port name="input5" range="list" type="list" widget="none" description="The fifth list."/>
+            <port name="input6" range="list" type="list" widget="none" description="The sixth list."/>
             <port name="index" range="value" type="int" value="0" widget="int" description="The index of the input list to select. If the index is greater than the number of inputs, it wraps around."/>
         </node>
         <node description="Take every nth element of the list." function="list/takeEvery" image="take_every.png" name="take_every" outputRange="list" outputType="list" position="4.00,2.00" category="list">

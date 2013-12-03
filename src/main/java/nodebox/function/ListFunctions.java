@@ -89,7 +89,6 @@ public class ListFunctions {
         return ImmutableList.copyOf(Iterables.skip(iterable, 1));
     }
 
-
     /**
      * Take the last item of the list.
      *
@@ -166,21 +165,37 @@ public class ListFunctions {
      * @param list1 The first input list.
      * @param list2 The second input list.
      * @param list3 The third input list.
+     * @param list4 The fourth input list.
+     * @param list5 The fifth input list.
+     * @param list6 The sixth input list.
      * @param index The index of the input list to return.
      * @return A list with the specified index.
      */
-    public static List<?> doSwitch(Iterable list1, Iterable list2, Iterable list3, long index) {
+    public static List<?> doSwitch(Iterable list1, Iterable list2, Iterable list3,
+                                   Iterable list4, Iterable list5, Iterable list6,
+                                   long index) {
         Iterable<?> returnList;
-        switch ((int) index % 3) {
+        switch ((int) index % 6) {
             case 0:
                 returnList = list1;
                 break;
             case 1:
                 returnList = list2;
                 break;
-            default:
+            case 2:
                 returnList = list3;
                 break;
+            case 3:
+                returnList = list4;
+                break;
+            case 4:
+                returnList = list5;
+                break;
+            case 5:
+                returnList = list6;
+                break;
+            default:
+                throw new AssertionError();
         }
         if (returnList == null) return ImmutableList.of();
         return ImmutableList.<Object>copyOf(returnList);
@@ -353,7 +368,7 @@ public class ListFunctions {
                 Object v = DataFunctions.lookup(object, key);
                 hashCode = v == null ? null : v.hashCode();
             }
-            if (hashCode != null && distinctKeys.contains(hashCode))  continue;
+            if (hashCode != null && distinctKeys.contains(hashCode)) continue;
             distinctKeys.add(hashCode);
             b.add(object);
         }
