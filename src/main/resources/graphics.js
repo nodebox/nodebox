@@ -95,10 +95,8 @@ g.geometry.coordinates = function (x0, y0, distance, angle) {
      */
     var x = x0 + Math.cos(g.math.radians(angle)) * distance,
         y = y0 + Math.sin(g.math.radians(angle)) * distance;
-    return { x: x, y: y };
+    return new g.Point(x, y);
 };
-
-g.geometry.coordinates = g.frozen(g.geometry.coordinates);
 
 g.geometry.pointInPolygon = function (points, x, y) {
     /* Ray casting algorithm.
@@ -429,18 +427,56 @@ g.bezier.extrema = function (p1, p2, p3, p4) {
 
 /*--- GRAPHICS -------------------------------------------------------------------------------------*/
 
-g.makePoint = function (x, y) {
-    return { x: x, y: y };
+g.Point = function (x, y) {
+    this.x = x;
+    this.y = y;
+    g.deepFreeze(this);
 };
 
-g.makePoint = g.frozen(g.makePoint);
+g.Point.ZERO = new g.Point(0, 0);
+
+g.Point.prototype.add = function (v) {
+    return new g.Point(this.x + v.x, this.y + v.y);
+};
+
+g.Point.prototype.divide = function (n) {
+    return new g.Point(this.x / n, this.y / n);
+};
+
+g.Point.prototype.multiply = function (n) {
+    return new g.Point(this.x * n, this.y * n);
+};
+
+g.Point.prototype.magnitude = function () {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+g.Point.prototype.normalize = function () {
+    var m = this.magnitude();
+    if (m !== 0) {
+        return this.divide(m);
+    } else {
+        return 0;
+    }
+};
+
+g.Point.prototype.translate = function (tx, ty) {
+    return new g.Point(this.x + tx, this.y + ty);
+};
+
+g.Point.prototype.toString = function () {
+    return '[' + this.x + ', ' + this.y + ']';
+};
+
+g.makePoint = function (x, y) {
+    return new g.Point(x, y);
+};
 
 g.MOVETO  = "M";
 g.LINETO  = "L";
 g.CURVETO = "C";
 g.CLOSE   = "z";
 
-g.ZERO = g.makePoint(0, 0);
 g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
 
 g.moveto = function (x, y) {
@@ -1432,7 +1468,7 @@ g.svg.getReflection = function (a, b, relative) {
         d = g.geometry.distance(a.x, a.y, b.x, b.y);
 
     if (d <= 0.0001) {
-        return relative ? g.ZERO : a;
+        return relative ? g.Point.ZERO : a;
     }
     theta = g.geometry.angle(a.x, a.y, b.x, b.y);
     return g.makePoint(
