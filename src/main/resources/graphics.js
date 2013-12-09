@@ -3,11 +3,32 @@
 
 var g = {};
 
-g.RGB = "RGB";
-g.HSB = "HSB";
-g.HEX = "HEX";
+// deepFreeze code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+g.deepFreeze = function (o) {
+    var prop, propKey;
+    Object.freeze(o); // First freeze the object.
+    for (propKey in o) {
+        prop = o[propKey];
+        if (!o.hasOwnProperty(propKey) || !(prop instanceof Object) || Object.isFrozen(prop)) {
+            // If the object is on the prototype, not an object, or is already frozen,
+            // skip it. Note that this might leave an unfrozen reference somewhere in the
+            // object if there is an already frozen object containing an unfrozen object.
+            continue;
+        }
 
-/*--- GEOMETRY -------------------------------------------------------------------------------------*/
+        g.deepFreeze(prop); // Recursively call deepFreeze.
+    }
+    return o;
+}
+
+g.frozen = function (fn) {
+    return function() {
+        var res = fn.apply(null, arguments);
+        return g.deepFreeze(res);
+    };
+};
+
+/*--- MATH UTILITIES ---------------------------------------------------------------------------------*/
 
 g.math = {};
 
@@ -53,6 +74,8 @@ g.math.mix = function (a, b, t) {
     return a + (b - a) * t;
 };
 
+/*--- GEOMETRY -------------------------------------------------------------------------------------*/
+
 g.geometry = {};
 
 g.geometry.angle = function (x0, y0, x1, y1) {
@@ -70,10 +93,12 @@ g.geometry.distance = function (x0, y0, x1, y1) {
 g.geometry.coordinates = function (x0, y0, distance, angle) {
     /* Returns the location of a point by rotating around origin (x0,y0).
      */
-    var x1 = x0 + Math.cos(g.math.radians(angle)) * distance,
-        y1 = y0 + Math.sin(g.math.radians(angle)) * distance;
-    return Object.freeze({ x: x1, y: y1 });
+    var x = x0 + Math.cos(g.math.radians(angle)) * distance,
+        y = y0 + Math.sin(g.math.radians(angle)) * distance;
+    return { x: x, y: y };
 };
+
+g.geometry.coordinates = g.frozen(g.geometry.coordinates);
 
 g.geometry.pointInPolygon = function (points, x, y) {
     /* Ray casting algorithm.
@@ -224,6 +249,7 @@ g.bezier.segmentLengths = function (pathElements, relative, n) {
     return lengths;
 };
 
+g.bezier.segmentLengths = g.frozen(g.bezier.segmentLengths);
 
 g.bezier.length = function (path, segmented, n) {
     /* Returns the approximate length of the path.
@@ -235,7 +261,6 @@ g.bezier.length = function (path, segmented, n) {
             g.bezier.sum(g.bezier.segmentLengths(path.elements, false, n)) :
             g.bezier.segmentLengths(path.elements, true, n);
 };
-
 
 // BEZIER PATH POINT:
 
@@ -264,6 +289,8 @@ g.bezier._locate = function (path, t, segments) {
     if (i === segments.length - 1 && segments[i] === 0) { i -= 1; }
     return [i, t, closeto];
 };
+
+g.bezier._locate = g.frozen(g.bezier._locate);
 
 g.bezier.point = function (path, t, segments) {
     /* Returns the DynamicPathElement at time t on the path.
@@ -400,9 +427,13 @@ g.bezier.extrema = function (p1, p2, p3, p4) {
 };
 
 
+/*--- GRAPHICS -------------------------------------------------------------------------------------*/
+
 g.makePoint = function (x, y) {
-    return Object.freeze({ x: x, y: y });
+    return { x: x, y: y };
 };
+
+g.makePoint = g.frozen(g.makePoint);
 
 g.MOVETO  = "M";
 g.LINETO  = "L";
@@ -410,24 +441,30 @@ g.CURVETO = "C";
 g.CLOSE   = "z";
 
 g.ZERO = g.makePoint(0, 0);
-g.CLOSE_ELEMENT = { cmd: g.CLOSE };
+g.CLOSE_ELEMENT = Object.freeze({ cmd: g.CLOSE });
 
-g.moveTo = g.moveto = function (x, y) {
-    return Object.freeze({ cmd:   g.MOVETO,
-                         point: g.makePoint(x, y) });
+g.moveto = function (x, y) {
+    return { cmd:   g.MOVETO,
+           point: g.makePoint(x, y) };
 };
 
-g.lineTo = g.lineto = function (x, y) {
-    return Object.freeze({ cmd:   g.LINETO,
-                         point: g.makePoint(x, y) });
+g.moveTo = g.moveto = g.frozen(g.moveto);
+
+g.lineto = function (x, y) {
+    return { cmd:   g.LINETO,
+           point: g.makePoint(x, y) };
 };
+
+g.lineTo = g.lineto = g.frozen(g.lineto);
 
 g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
-    return Object.freeze({ cmd:   g.CURVETO,
-                         point: g.makePoint(x, y),
-                         ctrl1: g.makePoint(c1x, c1y),
-                         ctrl2: g.makePoint(c2x, c2y) });
+    return { cmd:   g.CURVETO,
+           point: g.makePoint(x, y),
+           ctrl1: g.makePoint(c1x, c1y),
+           ctrl2: g.makePoint(c2x, c2y) };
 };
+
+g.curveTo = g.curveto = g.frozen(g.curveto);
 
 g.closePath = g.closepath = function () {
     return g.CLOSE_ELEMENT;
@@ -439,14 +476,16 @@ g.isClosed = function (path) {
 };
 
 g.rect = function (x, y, width, height) {
-    return Object.freeze({ elements: [
+    return { elements: [
         g.moveto(x, y),
         g.lineto(x + width, y),
         g.lineto(x + width, y + height),
         g.lineto(x, y + height),
         g.closepath()
-    ] });
+    ] };
 };
+
+g.rect = g.frozen(g.rect);
 
 g.roundedRect = function (cx, cy, width, height, rx, ry) {
     var ONE_MINUS_QUARTER = 1.0 - 0.552,
@@ -485,9 +524,10 @@ g.roundedRect = function (cx, cy, width, height, rx, ry) {
     }
     elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
     elements.push(g.closepath());
-    return Object.freeze({ elements: elements });
+    return { elements: elements };
 };
 
+g.roundedRect = g.frozen(g.roundedRect);
 
 g.ellipse = function (x, y, width, height) {
     var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
@@ -497,32 +537,38 @@ g.ellipse = function (x, y, width, height) {
         y0 = y + 0.5 * height,
         x1 = x + width,
         y1 = y + height;
-    return Object.freeze({ elements: [
+    return { elements: [
         g.moveto(x, y0),
         g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
         g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
         g.curveto(x1, y0 + dy, x0 + dx, y1, x0, y1),
         g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
         g.closepath()
-    ] });
+    ] };
 };
+
+g.ellipse = g.frozen(g.ellipse);
 
 g.line = function (x0, y0, x1, y1) {
-    return Object.freeze({ elements: [
+    return { elements: [
         g.moveto(x0, y0),
         g.lineto(x1, y1)
-    ] });
+    ] };
 };
 
+g.line = g.frozen(g.line);
+
 g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-    return Object.freeze({ elements: [
+    return { elements: [
         g.moveto(x1, y1),
         g.lineto(x2, y2),
         g.lineto(x3, y3),
         g.lineto(x4, y4),
         g.closepath()
-    ] });
+    ] };
 };
+
+g.quad = g.frozen(g.quad);
 
 g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
     var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
@@ -595,8 +641,10 @@ g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
         index += 1;
     }
 
-    return Object.freeze({ elements: elements });
+    return { elements: elements };
 };
+
+g.arc = g.frozen(g.arc);
 
 g.makePath = function (pe, fill, stroke, strokeWidth) {
     var elements = pe.elements || pe,
@@ -604,8 +652,10 @@ g.makePath = function (pe, fill, stroke, strokeWidth) {
     if (fill !== undefined) { d.fill = fill; }
     if (stroke !== undefined) { d.stroke = stroke; }
     if (strokeWidth !== undefined) { d.strokeWidth = strokeWidth; }
-    return Object.freeze(d);
+    return d;
 };
+
+g.makePath = g.frozen(g.makePath);
 
 g.makeGroup = function (shapes) {
     var newShapes = [];
@@ -614,10 +664,10 @@ g.makeGroup = function (shapes) {
     } else if (shapes) {
         newShapes = shapes;
     }
-    return Object.freeze({
-        shapes: newShapes
-    });
+    return { shapes: newShapes };
 };
+
+g.makeGroup = g.frozen(g.makeGroup);
 
 g.colorizeGroup = function (group, fill, stroke, strokeWidth) {
     var shapes = _.map(group.shapes, function (shape) {
@@ -649,8 +699,10 @@ g.getContours = function (path) {
         contours.push(currentContour);
     }
 
-    return Object.freeze(contours);
+    return contours;
 };
+
+g.getContours = g.frozen(g.getContours);
 
 g.point = function (path, t, segments) {
     /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
@@ -687,6 +739,8 @@ g.points = function (path, amount, options) {
     }
     return a;
 };
+
+g.points = g.frozen(g.points);
 
 g.length = function (path, precision) {
     /* Returns an approximation of the total length of the path.
@@ -744,6 +798,8 @@ g.combinePaths = function (shape) {
     return elements;
 };
 
+g.combinePaths = g.frozen(g.combinePaths);
+
 g.resamplePathByAmount = function (path, points, perContour) {
     var i, j, subPath, pts, elem,
         subPaths = perContour ? g.getContours(path) : [path.elements],
@@ -752,8 +808,8 @@ g.resamplePathByAmount = function (path, points, perContour) {
         subPath = g.makePath(subPaths[j]);
         pts = _.map(g.points(subPath, points + 1), function (pe) { return pe.point; });
         for (i = 0; i < pts.length - 1; i += 1) {
-            elem = Object.freeze({ cmd:   (i === 0) ? g.MOVETO : g.LINETO,
-                                   point: pts[i] });
+            elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
+                   point: pts[i] };
             elems.push(elem);
         }
         elems.push(g.closePath());
@@ -862,8 +918,10 @@ g.bounds = function (shape) {
 };
 
 g.makeRect = function (x, y, width, height) {
-    return Object.freeze({ x: x, y: y, width: width, height: height });
+    return { x: x, y: y, width: width, height: height };
 };
+
+g.makeRect = g.frozen(g.makeRect);
 
 g.rectContains = function (rect, x, y) {
     return (x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height);
@@ -909,6 +967,10 @@ g.unitedRect = function (r1, r2) {
 g.getRectCentroid = function (rect) {
     return g.makePoint(rect.x + rect.width / 2,  rect.y + rect.height / 2);
 };
+
+g.RGB = "RGB";
+g.HSB = "HSB";
+g.HEX = "HEX";
 
 g._namedColors = {
     "lightpink"            : [1.00, 0.71, 0.76],
@@ -1057,6 +1119,8 @@ g._namedColors = {
     "bark"                 : [0.25, 0.19, 0.13]
 };
 
+Object.freeze(g._namedColors);
+
 // Converts the given R,G,B values to a hexadecimal color string.
 g._rgb2hex = function (r, g, b) {
     var parseHex = function (i) {
@@ -1166,25 +1230,29 @@ g.color = function (R, G, B, A, options) {
             A = 1;
         }
     }
-    return Object.freeze({ r: R, g: G, b: B, a: A });
+    return { r: R, g: G, b: B, a: A };
 };
 
-g.IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+g.color = g.frozen(g.color);
+
+g.IDENTITY = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 
 g._mmult = function (a, b) {
     /* Returns the 3x3 matrix multiplication of A and B.
      * Note that scale(), translate(), rotate() work with premultiplication,
      * e.g. the matrix A followed by B = BA and not AB.
      */
-    return Object.freeze([
+    return [
         a[0] * b[0] + a[1] * b[3],
         a[0] * b[1] + a[1] * b[4], 0,
         a[3] * b[0] + a[4] * b[3],
         a[3] * b[1] + a[4] * b[4], 0,
         a[6] * b[0] + a[7] * b[3] + b[6],
         a[6] * b[1] + a[7] * b[4] + b[7], 1
-    ]);
+    ];
 };
+
+g._mmult = g.frozen(g._mmult);
 
 g.prepend = function (matrix1, matrix2) {
     return g._mmult(matrix1, matrix2);
@@ -1205,6 +1273,8 @@ g.inverse = function (m) {
         -(m[0] * m[7] - m[1] * m[6]) / d, 1
     ]);
 };
+
+g.inverse = g.frozen(g.inverse);
 
 g.scale = function (matrix, x, y) {
     if (y === undefined) { y = x; }
@@ -1242,18 +1312,18 @@ g.transformPath = function (path, matrix) {
     var elements = _.map(path.elements, function (pe) {
         if (pe.cmd === g.CLOSE) { return pe; }
         if (pe.cmd === g.MOVETO) {
-            return Object.freeze({ cmd: g.MOVETO,
-                                 point: g.transformPoint(pe.point, matrix) });
+            return { cmd: g.MOVETO,
+                   point: g.transformPoint(pe.point, matrix) };
         }
         if (pe.cmd === g.LINETO) {
-            return Object.freeze({ cmd: g.LINETO,
-                                 point: g.transformPoint(pe.point, matrix) });
+            return { cmd: g.LINETO,
+                   point: g.transformPoint(pe.point, matrix) };
         }
         if (pe.cmd === g.CURVETO) {
-            return Object.freeze({ cmd: g.CURVETO,
-                                 point: g.transformPoint(pe.point, matrix),
-                                 ctrl1: g.transformPoint(pe.ctrl1, matrix),
-                                 ctrl2: g.transformPoint(pe.ctrl2, matrix) });
+            return { cmd: g.CURVETO,
+                   point: g.transformPoint(pe.point, matrix),
+                   ctrl1: g.transformPoint(pe.ctrl1, matrix),
+                   ctrl2: g.transformPoint(pe.ctrl2, matrix) };
         }
     });
     return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
