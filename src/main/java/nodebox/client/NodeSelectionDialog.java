@@ -355,7 +355,7 @@ public class NodeSelectionDialog extends JDialog {
         public void addCategory(final String categoryLabel, final Object source) {
             final CategoryLabel label = new CategoryLabel(categoryLabel, source);
             label.addMouseListener(new MouseInputAdapter() {
-                public void mouseClicked(MouseEvent e) {
+                public void mousePressed(MouseEvent e) {
                     setSelectedCategory(label);
                 }
             });
