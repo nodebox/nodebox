@@ -23,9 +23,9 @@ public class ZoomableView extends JComponent {
     private boolean isSpacePressed = false;
     private boolean isPanning = false;
     private Point2D dragStartPoint;
-	private boolean isZooming = false;
+    private boolean isZooming = false;
     private Point2D zoomStartPoint;
-	private Point2D zoomEndPoint;
+    private Point2D zoomEndPoint;
 
     static {
         Image panCursorImage;
@@ -90,7 +90,7 @@ public class ZoomableView extends JComponent {
     public boolean isPanning() {
         return isPanning;
     }
-	
+
     public boolean isZooming() {
         return isZooming;
     }
@@ -181,23 +181,24 @@ public class ZoomableView extends JComponent {
         @Override
         public void mousePressed(MouseEvent e) {
             if (e.isPopupTrigger()) return;
-			
-			//the two if statements below are added to make navigation easier on a wacom pen
-			//middle button to pan, left+middle to zoom
-			//zoom is especially important as wacoms (and laptops) dont have mouse wheels
-			if (isPanning && e.getButton() == MouseEvent.BUTTON1) { //if we are panning, start zooming
-				zoomStartPoint = e.getPoint(); //this is the center of the zoom, doesnt change
-				zoomEndPoint = e.getPoint(); //this is distance the mouse will be dragged when zooming
-				isZooming = true;
-				return;
-			}
-			
-			if (e.getButton() == MouseEvent.BUTTON2) { //middle mouse pan, does same as below
-				dragStartPoint = e.getPoint();
-				isPanning = true;
-				return;
-			}
-			
+
+            // Pan using the middle mouse button.
+            if (e.getButton() == MouseEvent.BUTTON2) { //middle mouse pan, does same as below
+                dragStartPoint = e.getPoint();
+                isPanning = true;
+                return;
+            }
+
+            // Zoom by pressing middle mouse button, then left mouse button.
+            if (isPanning && e.getButton() == MouseEvent.BUTTON1) {
+                // Center point of the zoom, doesn't change.
+                zoomStartPoint = e.getPoint();
+                // The distance the mouse will be dragged when zooming.
+                zoomEndPoint = e.getPoint();
+                isZooming = true;
+                return;
+            }
+
             // If the space bar and mouse is pressed, we're getting ready to pan the view.
             if (isSpacePressed) {
                 // When panning the view use the original mouse point, not the one affected by the view transform.
@@ -208,11 +209,12 @@ public class ZoomableView extends JComponent {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-			if (isZooming && e.getButton() == MouseEvent.BUTTON1) { //finished zooming
-				isZooming = false;
-				dragStartPoint = e.getPoint(); //reset pan startpoint when zoom is finished to avoid a jump
-				return;
-			}
+            if (isZooming && e.getButton() == MouseEvent.BUTTON1) {
+                isZooming = false;
+                // Reset pan start point when zoom is finished to avoid a jump.
+                dragStartPoint = e.getPoint();
+                return;
+            }
             isPanning = false;
         }
 
@@ -225,13 +227,16 @@ public class ZoomableView extends JComponent {
     private class MouseMotionHandler extends MouseMotionAdapter {
         @Override
         public void mouseDragged(MouseEvent e) {
-			if (isZooming()) {
-				Point2D offset = minPoint(e.getPoint(), zoomEndPoint); //how far have we moved?
-				zoom(1+offset.getX()/200.0, zoomStartPoint.getX(), zoomStartPoint.getY()); //drag mouse left to zoom out, right to zoom in
-				zoomEndPoint = e.getPoint(); //reset value because zoom() takes incremental (delta) values
-				return;				
-			}
-			
+            if (isZooming()) {
+                // How far have we moved?
+                Point2D offset = minPoint(e.getPoint(), zoomEndPoint);
+                // Drag mouse left to zoom out, right to zoom in.
+                zoom(1 + offset.getX() / 200.0, zoomStartPoint.getX(), zoomStartPoint.getY());
+                // Reset the end point because zoom() takes incremental (delta) values
+                zoomEndPoint = e.getPoint();
+                return;
+            }
+
             if (isPanning()) {
                 // When panning the view use the original mouse point, not the one affected by the view transform.
                 Point2D offset = minPoint(e.getPoint(), dragStartPoint);
