@@ -57,7 +57,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final float MAX_ZOOM = 1.0f;
 
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
-    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
+    public static final Color DEFAULT_PORT_COLOR = new Color(52, 85, 52);
     public static final Color PORT_HOVER_COLOR = Color.YELLOW;
     public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
     public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
@@ -111,7 +111,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         PORT_COLORS.put("geometry", new Color(20, 20, 20));
         PORT_COLORS.put("list", new Color(76, 137, 174));
         PORT_COLORS.put("data", new Color(52, 85, 129));
-        PORT_COLORS.put("other", new Color(52, 85, 52));
     }
 
     /**
@@ -389,7 +388,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
     public static Color portTypeColor(String type) {
         Color portColor = PORT_COLORS.get(type);
-        return portColor == null ? PORT_COLORS.get("other") : portColor;
+        return portColor == null ? DEFAULT_PORT_COLOR : portColor;
     }
 
     private static String getShortenedName(String name, int startChars) {
