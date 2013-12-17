@@ -1,3 +1,6 @@
+/*jslint sloppy:true, nomen:true, bitwise:true */
+/*global _,Uint8Array,Float32Array,console  */
+
 /*---  Based on: canvas.js, https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
   ---  De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research. --*/
 
@@ -8,23 +11,36 @@ g.deepFreeze = function (o) {
     var prop, propKey;
     Object.freeze(o); // First freeze the object.
     for (propKey in o) {
-        prop = o[propKey];
-        if (!o.hasOwnProperty(propKey) || !(prop instanceof Object) || Object.isFrozen(prop)) {
-            // If the object is on the prototype, not an object, or is already frozen,
-            // skip it. Note that this might leave an unfrozen reference somewhere in the
-            // object if there is an already frozen object containing an unfrozen object.
-            continue;
+        if (o.hasOwnProperty(propKey)) {
+            prop = o[propKey];
+            if (prop instanceof Object && !Object.isFrozen(prop)) {
+                // If the object is on the prototype, not an object, or is already frozen,
+                // skip it. Note that this might leave an unfrozen reference somewhere in the
+                // object if there is an already frozen object containing an unfrozen object.
+                g.deepFreeze(prop); // Recursively call deepFreeze.
+            }
         }
-
-        g.deepFreeze(prop); // Recursively call deepFreeze.
     }
     return o;
-}
+};
 
 g.frozen = function (fn) {
-    return function() {
+    return function () {
         var res = fn.apply(null, arguments);
         return g.deepFreeze(res);
+    };
+};
+
+// Generate a random function that is seeded with the given value.
+g.randomGenerator = function (seed) {
+    // Based on random number generator from
+    // http://indiegamr.com/generate-repeatable-random-numbers-in-js/
+    return function (min, max) {
+        min = min || 0;
+        max = max || 1;
+        seed = (seed * 9301 + 49297) % 233280;
+        var v = seed / 233280;
+        return min + v * (max - min);
     };
 };
 
@@ -143,7 +159,7 @@ g.bezier.linePoint = function (t, x0, y0, x1, y1) {
      */
     var x = x0 + t * (x1 - x0),
         y = y0 + t * (y1 - y0);
-    return g.lineTo(x, y);
+    return g.lineto(x, y);
 };
 
 g.bezier.lineLength = function (x0, y0, x1, y1) {
@@ -502,41 +518,33 @@ g.curveTo = g.curveto = function (c1x, c1y, c2x, c2y, x, y) {
 
 g.curveTo = g.curveto = g.frozen(g.curveto);
 
-g.closePath = g.closepath = function () {
+g.closePath = g.closepath = g.close = function () {
     return g.CLOSE_ELEMENT;
 };
 
-g.isClosed = function (path) {
-    if (_.isEmpty(path.elements)) { return false; }
-    return path.elements[path.elements.length - 1].cmd === g.CLOSE;
-};
-
 g.rect = function (x, y, width, height) {
-    return { elements: [
+    var elements = [
         g.moveto(x, y),
         g.lineto(x + width, y),
         g.lineto(x + width, y + height),
         g.lineto(x, y + height),
-        g.closepath()
-    ] };
+        g.close()
+    ];
+    return new g.Path(elements);
 };
-
-g.rect = g.frozen(g.rect);
 
 g.roundedRect = function (cx, cy, width, height, rx, ry) {
     var ONE_MINUS_QUARTER = 1.0 - 0.552,
 
         elements = [],
 
-        halfWidth = width / 2,
-        halfHeight = height / 2,
         dx = rx,
         dy = ry,
 
-        left = cx - halfWidth,
-        right = cx + halfWidth,
-        top = cy - halfHeight,
-        bottom = cy + halfHeight;
+        left = cx,
+        right = cx + width,
+        top = cy,
+        bottom = cy + height;
 
     // rx/ry cannot be greater than half of the width of the rectangle
     // (required by SVG spec)
@@ -559,11 +567,9 @@ g.roundedRect = function (cx, cy, width, height, rx, ry) {
         elements.push(g.lineto(left, top + dy));
     }
     elements.push(g.curveto(left, top + dy * ONE_MINUS_QUARTER, left + dx * ONE_MINUS_QUARTER, top, left + dx, top));
-    elements.push(g.closepath());
-    return { elements: elements };
+    elements.push(g.close());
+    return new g.Path(elements);
 };
-
-g.roundedRect = g.frozen(g.roundedRect);
 
 g.ellipse = function (x, y, width, height) {
     var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
@@ -572,39 +578,36 @@ g.ellipse = function (x, y, width, height) {
         x0 = x + 0.5 * width,
         y0 = y + 0.5 * height,
         x1 = x + width,
-        y1 = y + height;
-    return { elements: [
-        g.moveto(x, y0),
-        g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
-        g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
-        g.curveto(x1, y0 + dy, x0 + dx, y1, x0, y1),
-        g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
-        g.closepath()
-    ] };
+        y1 = y + height,
+        elements = [
+            g.moveto(x, y0),
+            g.curveto(x, y0 - dy, x0 - dx, y, x0, y),
+            g.curveto(x0 + dx, y, x1, y0 - dy, x1, y0),
+            g.curveto(x1, y0 + dy, x0 + dx, y1, x0, y1),
+            g.curveto(x0 - dx, y1, x, y0 + dy, x, y0),
+            g.close()
+        ];
+    return new g.Path(elements);
 };
 
-g.ellipse = g.frozen(g.ellipse);
-
-g.line = function (x0, y0, x1, y1) {
-    return { elements: [
-        g.moveto(x0, y0),
-        g.lineto(x1, y1)
-    ] };
+g.line = function (x1, y1, x2, y2) {
+    var elements = [
+        g.moveto(x1, y1),
+        g.lineto(x2, y2)
+    ];
+    return new g.Path(elements);
 };
-
-g.line = g.frozen(g.line);
 
 g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
-    return { elements: [
+    var elements = [
         g.moveto(x1, y1),
         g.lineto(x2, y2),
         g.lineto(x3, y3),
         g.lineto(x4, y4),
-        g.closepath()
-    ] };
+        g.close()
+    ];
+    return new g.Path(elements);
 };
-
-g.quad = g.frozen(g.quad);
 
 g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
     var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
@@ -649,14 +652,14 @@ g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
         angle = angStRad;
         if (index === 0) {
             elements.push(
-                g.moveTo(x + Math.cos(angle) * w,
+                g.moveto(x + Math.cos(angle) * w,
                          y + Math.sin(angle) * h)
             );
         } else if (index > arcSegs) {
             if (index === arcSegs + lineSegs) {
-                elements.push(g.closePath());
+                elements.push(g.close());
             } else {
-                elements.push(g.lineTo(x, y));
+                elements.push(g.lineto(x, y));
             }
         } else {
             angle += increment * (index - 1);
@@ -672,55 +675,112 @@ g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
             coords.push(y + (rely - cv * relx) * h);
             coords.push(x + relx * w);
             coords.push(y + rely * h);
-            elements.push(g.curveTo.apply(null, coords));
+            elements.push(g.curveto.apply(null, coords));
         }
         index += 1;
     }
 
-    return { elements: elements };
+    return new g.Path(elements);
 };
 
-g.arc = g.frozen(g.arc);
-
-g.makePath = function (pe, fill, stroke, strokeWidth) {
-    var elements = pe.elements || pe,
-        d = { elements: elements };
-    if (fill !== undefined) { d.fill = fill; }
-    if (stroke !== undefined) { d.stroke = stroke; }
-    if (strokeWidth !== undefined) { d.strokeWidth = strokeWidth; }
-    return d;
-};
-
-g.makePath = g.frozen(g.makePath);
-
-g.makeGroup = function (shapes) {
-    var newShapes = [];
-    if (shapes.shapes || shapes.elements) {
-        newShapes = [shapes];
-    } else if (shapes) {
-        newShapes = shapes;
+g.Path = function (p, attrs) {
+    if (p === undefined) {
+        this.elements = [];
+    } else {
+        this.elements = p.elements || p;
     }
-    return { shapes: newShapes };
+    var key;
+    if (attrs) {
+        for (key in attrs) {
+            if (attrs[key] !== undefined) {
+                this[key] = attrs[key];
+            }
+        }
+    }
+    g.deepFreeze(this);
 };
 
-g.makeGroup = g.frozen(g.makeGroup);
-
-g.colorizeGroup = function (group, fill, stroke, strokeWidth) {
-    var shapes = _.map(group.shapes, function (shape) {
-        return g.colorizeShape(shape, fill, stroke, strokeWidth);
-    });
-    return g.makeGroup(shapes);
+g.Path.prototype.extend = function (p) {
+    var addElements = p.elements || p,
+        elements = this.elements.concat(addElements),
+        attrs = {
+            fill: this.fill,
+            stroke: this.stroke,
+            strokeWidth: this.strokeWidth,
+            _bounds: this._bounds,
+            _length: this._length
+        };
+    return new g.Path(elements, attrs);
 };
 
-g.colorizeShape = function (shape, fill, stroke, strokeWidth) {
-    var fn = (shape.shapes) ? g.colorizeGroup : g.makePath;
-    return fn(shape, fill, stroke, strokeWidth);
+g.Path.prototype.moveTo = function (x, y) {
+    return this.extend(g.moveto(x, y));
 };
 
-g.getContours = function (path) {
+g.Path.prototype.lineTo = function (x, y) {
+    return this.extend(g.lineto(x, y));
+};
+
+g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
+    return this.extend(g.curveto(c1x, c1y, c2x, c2y, x, y));
+};
+
+g.Path.prototype.closePath = function () {
+    return this.extend(g.closePath());
+};
+
+g.Path.prototype.isClosed = function () {
+    if (_.isEmpty(this.elements)) { return false; }
+    return this.elements[this.elements.length - 1].cmd === g.CLOSE;
+};
+
+g.Path.prototype.rect = function (x, y, width, height) {
+    return this.extend(g.rect(x, y, width, height));
+};
+
+g.Path.prototype.rect = function (x, y, width, height) {
+    return this.extend(g.rect(x, y, width, height));
+};
+
+g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
+    return this.extend(g.roundedRect(cx, cy, width, height, rx, ry));
+};
+
+g.Path.prototype.ellipse = function (x, y, width, height) {
+    return this.extend(g.ellipse(x, y, width, height));
+};
+
+g.Path.prototype.line = function (x1, y1, x2, y2) {
+    return this.extend(g.line(x1, y1, x2, y2));
+};
+
+g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
+    var attrs = {
+        fill: fill,
+        stroke: stroke,
+        strokeWidth: strokeWidth,
+        _bounds: this._bounds,
+        _length: this._length
+    };
+    return new g.Path(this.elements, attrs);
+};
+
+g.Path.prototype.fill = function (fill) {
+    return this.colorize(fill, this.stroke, this.strokeWidth);
+};
+
+g.Path.prototype.stroke = function (stroke) {
+    return this.colorize(this.fill, stroke, this.strokeWidth);
+};
+
+g.Path.prototype.strokeWidth = function (strokeWidth) {
+    return this.colorize(this.fill, this.stroke, strokeWidth);
+};
+
+g.Path.prototype.contours = function () {
     var contours = [],
         currentContour = [];
-    _.each(path.elements, function (el) {
+    _.each(this.elements, function (el) {
         if (el.cmd === g.MOVETO) {
             if (!_.isEmpty(currentContour)) {
                 contours.push(currentContour);
@@ -738,167 +798,9 @@ g.getContours = function (path) {
     return contours;
 };
 
-g.getContours = g.frozen(g.getContours);
-
-g.point = function (path, t, segments) {
-    /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
-     */
-    if (segments === undefined) {
-        // Cache the segment lengths for performace.
-        segments = g.bezier.length(path, true, 10);
-    }
-    return g.bezier.point(path, t, segments);
-};
-
-g.points = function (path, amount, options) {
-    /* Returns an array of DynamicPathElements along the path.
-     * To omit the last point on closed paths: {end: 1-1.0/amount}
-     */
-    var d, a, i, segments,
-        start = (options && options.start !== undefined) ? options.start : 0.0,
-        end = (options && options.end !== undefined) ? options.end : 1.0;
-    if (path.elements.length === 0) {
-        // Otherwise g.bezier.point() will raise an error for empty paths.
-        return [];
-    }
-    amount = Math.round(amount);
-    // The delta value is divided by amount-1, because we also want the last point (t=1.0)
-    // If we don't use amount-1, we fall one point short of the end.
-    // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
-    // If amount=2, we want the point at t 0.0 and 1.0.
-    d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
-    a = [];
-    segments = g.bezier.length(path, true, 10);
-
-    for (i = 0; i < amount; i += 1) {
-        a.push(g.point(path, start + d * i, segments));
-    }
-    return a;
-};
-
-g.points = g.frozen(g.points);
-
-g.length = function (path, precision) {
-    /* Returns an approximation of the total length of the path.
-     */
-    if (precision === undefined) { precision = 10; }
-    return g.bezier.length(path, false, precision);
-};
-
-g.pathContains = function (path, x, y, precision) {
-    /* Returns true when point (x,y) falls within the contours of the path.
-     */
-    if (precision === undefined) { precision = 100; }
-    var i, polygon = g.points(path, precision),
-        points = [];
-    for (i = 0; i < polygon.length; i += 1) {
-        if (polygon[i].cmd !== g.CLOSE) {
-            points.push(polygon[i].point);
-        }
-    }
-//    if (this._polygon == null ||
-//        this._polygon[1] != precision) {
-//        this._polygon = [this.points(precision), precision];
-//    }
-    return g.geometry.pointInPolygon(points, x, y);
-};
-
-g.groupContains = function (group, x, y, precision) {
-    /* Returns true when point (x,y) falls within the contours of the group.
-     */
-    if (precision === undefined) { precision = 100; }
-    var i, shapes = group.shapes;
-    for (i = 0; i < group.shapes.length; i += 1) {
-        if (g.shapeContains(shapes[i], x, y, precision)) {
-            return true;
-        }
-    }
-    return false;
-};
-
-g.shapeContains = function (shape, x, y, precision) {
-    /* Returns true when point (x,y) falls within the contours of the shape.
-     */
-    if (precision === undefined) { precision = 100; }
-    var fn = (shape.shapes) ? g.groupContains : g.pathContains;
-    return fn(shape, x, y, precision);
-};
-
-
-g.combinePaths = function (shape) {
-    if (shape.elements) { return shape.elements; }
-    var i, elements = [];
-    for (i = 0; i < shape.shapes.length; i += 1) {
-        elements = elements.concat(g.combinePaths(shape.shapes[i]));
-    }
-    return elements;
-};
-
-g.combinePaths = g.frozen(g.combinePaths);
-
-g.resamplePathByAmount = function (path, points, perContour) {
-    var i, j, subPath, pts, elem,
-        subPaths = perContour ? g.getContours(path) : [path.elements],
-        elems = [];
-    for (j = 0; j < subPaths.length; j += 1) {
-        subPath = g.makePath(subPaths[j]);
-        pts = _.map(g.points(subPath, points + 1), function (pe) { return pe.point; });
-        for (i = 0; i < pts.length - 1; i += 1) {
-            elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
-                   point: pts[i] };
-            elems.push(elem);
-        }
-        elems.push(g.closePath());
-    }
-    return g.makePath(elems, path.fill, path.stroke, path.strokeWidth);
-};
-
-g.resampleGroupByAmount = function (group, points, perContour) {
-    var path, shapes;
-    if (!perContour) {
-        path = g.makePath(g.combinePaths(group));
-        return g.resamplePathByAmount(path, points, perContour);
-    }
-
-    shapes = _.map(group.shapes, function (shape) {
-        return g.resampleByAmount(shape, points, perContour);
-    });
-    return g.makeGroup(shapes);
-};
-
-g.resampleByAmount = function (shape, points, perContour) {
-    var fn = (shape.shapes) ? g.resampleGroupByAmount : g.resamplePathByAmount;
-    return fn(shape, points, perContour);
-};
-
-g.resamplePathByLength = function (path, segmentLength) {
-    var i, subPath, contourLength, amount,
-        subPaths = g.getContours(path),
-        elems = [];
-    for (i = 0; i < subPaths.length; i += 1) {
-        subPath = g.makePath(subPaths[i]);
-        contourLength = g.length(subPath);
-        amount = Math.ceil(contourLength / segmentLength);
-        if (!g.isClosed(subPath)) { amount += 1; }
-        elems = elems.concat(g.resamplePathByAmount(subPath, amount, false).elements);
-    }
-    return g.makePath(elems, path.fill, path.stroke, path.strokeWidth);
-};
-
-g.resampleGroupByLength = function (group, length) {
-    var shapes = _.map(group.shapes, function (shape) {
-        return g.resampleByLength(shape, length);
-    });
-    return g.makeGroup(shapes);
-};
-
-g.resampleByLength = function (shape, length) {
-    var fn = (shape.shapes) ? g.resampleGroupByLength : g.resamplePathByLength;
-    return fn(shape, length);
-};
-
-g.pathBounds = function (path) {
-    if (_.isEmpty(path.elements)) { return g.makeRect(0, 0, 0, 0); }
+g.Path.prototype.bounds = function () {
+    if (this._bounds) { return this._bounds; }
+    if (_.isEmpty(this.elements)) { return g.makeRect(0, 0, 0, 0); }
 
     var px, py, prev, right, bottom,
         minX = Number.MAX_VALUE,
@@ -906,7 +808,7 @@ g.pathBounds = function (path) {
         maxX = -(Number.MAX_VALUE),
         maxY = -(Number.MAX_VALUE);
 
-    _.each(path.elements, function (el) {
+    _.each(this.elements, function (el) {
         if (el.cmd === g.MOVETO || el.cmd === g.LINETO) {
             px = el.point.x;
             py = el.point.y;
@@ -930,28 +832,193 @@ g.pathBounds = function (path) {
     return g.makeRect(minX, minY, maxX - minX, maxY - minY);
 };
 
-g.groupBounds = function (group) {
-    if (_.isEmpty(group.shapes)) { return g.makeRect(0, 0, 0, 0); }
+g.Path.prototype.point = function (t, segments) {
+    /* Returns the DynamicPathElement at time t (0.0-1.0) on the path.
+     */
+    if (segments === undefined) {
+        // Cache the segment lengths for performace.
+        segments = g.bezier.length(this, true, 10);
+    }
+    return g.bezier.point(this, t, segments);
+};
+
+g.Path.prototype.points = function (amount, options) {
+    /* Returns an array of DynamicPathElements along the path.
+     * To omit the last point on closed paths: {end: 1-1.0/amount}
+     */
+    var d, a, i, segments,
+        start = (options && options.start !== undefined) ? options.start : 0.0,
+        end = (options && options.end !== undefined) ? options.end : 1.0;
+    if (this.elements.length === 0) {
+        // Otherwise g.bezier.point() will raise an error for empty paths.
+        return [];
+    }
+    amount = Math.round(amount);
+    // The delta value is divided by amount-1, because we also want the last point (t=1.0)
+    // If we don't use amount-1, we fall one point short of the end.
+    // If amount=4, we want the point at t 0.0, 0.33, 0.66 and 1.0.
+    // If amount=2, we want the point at t 0.0 and 1.0.
+    d = (amount > 1) ? (end - start) / (amount - 1) : (end - start);
+    a = [];
+    segments = g.bezier.length(this, true, 10);
+
+    for (i = 0; i < amount; i += 1) {
+        a.push(this.point(start + d * i, segments));
+    }
+    return Object.freeze(a);
+};
+
+g.Path.prototype.length = function (precision) {
+    /* Returns an approximation of the total length of the path.
+     */
+    if (precision === undefined) { precision = 10; }
+    return g.bezier.length(this, false, precision);
+};
+
+g.Path.prototype.contains = function (x, y, precision) {
+    /* Returns true when point (x,y) falls within the contours of the path.
+     */
+    if (precision === undefined) { precision = 100; }
+    var i, polygon = this.points(precision),
+        points = [];
+    for (i = 0; i < polygon.length; i += 1) {
+        if (polygon[i].cmd !== g.CLOSE) {
+            points.push(polygon[i].point);
+        }
+    }
+//    if (this._polygon == null ||
+//        this._polygon[1] != precision) {
+//        this._polygon = [this.points(precision), precision];
+//    }
+    return g.geometry.pointInPolygon(points, x, y);
+};
+
+g.Path.prototype.resampleByAmount = function (points, perContour) {
+    var i, j, subPath, pts, elem,
+        subPaths = perContour ? this.contours() : [this.elements],
+        elems = [];
+
+    function getPoint(pe) {
+        return pe.point;
+    }
+
+    for (j = 0; j < subPaths.length; j += 1) {
+        subPath = g.makePath(subPaths[j]);
+        pts = _.map(subPath.points(points + 1), getPoint);
+        for (i = 0; i < pts.length - 1; i += 1) {
+            elem = { cmd:   (i === 0) ? g.MOVETO : g.LINETO,
+                   point: pts[i] };
+            elems.push(elem);
+        }
+        elems.push(g.closePath());
+    }
+    return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+};
+
+g.Path.prototype.resampleByLength = function (segmentLength) {
+    var i, subPath, contourLength, amount,
+        subPaths = this.contours(),
+        elems = [];
+    for (i = 0; i < subPaths.length; i += 1) {
+        subPath = g.makePath(subPaths[i]);
+        contourLength = subPath.length();
+        amount = Math.ceil(contourLength / segmentLength);
+        if (!subPath.isClosed()) { amount += 1; }
+        elems = elems.concat(subPath.resampleByAmount(amount, false).elements);
+    }
+    return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
+};
+
+g.makePath = function (pe, fill, stroke, strokeWidth) {
+    var attrs = {
+        fill: fill,
+        stroke: stroke,
+        strokeWidth: strokeWidth
+    };
+    return new g.Path(pe, attrs);
+};
+
+g.Group = function (shapes) {
+    this.shapes = [];
+    if (shapes.shapes || shapes.elements) {
+        this.shapes = [shapes];
+    } else if (shapes) {
+        this.shapes = shapes;
+    }
+    g.deepFreeze(this);
+};
+
+g.Group.prototype.colorize = function (fill, stroke, strokeWidth) {
+    var shapes = _.map(this.shapes, function (shape) {
+        return shape.colorize(fill, stroke, strokeWidth);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.Group.prototype.bounds = function () {
+    if (_.isEmpty(this.shapes)) { return g.makeRect(0, 0, 0, 0); }
     var i, r, shape,
-        shapes = group.shapes;
+        shapes = this.shapes;
     for (i = 0; i < shapes.length; i += 1) {
         shape = shapes[i];
         if (r === undefined) {
-            r = g.bounds(shape);
+            r = shape.bounds();
         }
         if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
-           (shape.elements && !_.isEmpty(shape.elements))) {
-            r = g.unitedRect(r, g.bounds(shape));
+                (shape.elements && !_.isEmpty(shape.elements))) {
+            r = g.unitedRect(r, shape.bounds());
         }
     }
     return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
 };
 
-g.bounds = function (shape) {
-    if (shape.elements) { return g.pathBounds(shape); }
-    if (shape.shapes) { return g.groupBounds(shape); }
-    return g.makeRect(0, 0, 0, 0);
+g.Group.prototype.contains = function (x, y, precision) {
+    /* Returns true when point (x,y) falls within the contours of the group.
+     */
+    if (precision === undefined) { precision = 100; }
+    var i, shapes = this.shapes;
+    for (i = 0; i < shapes.length; i += 1) {
+        if (shapes[i].contains(x, y, precision)) {
+            return true;
+        }
+    }
+    return false;
 };
+
+g.Group.prototype.resampleByAmount = function (points, perContour) {
+    var path, shapes;
+    if (!perContour) {
+        path = g.makePath(g.combinePaths(this));
+        return path.resampleByAmount(points, perContour);
+    }
+
+    shapes = _.map(this.shapes, function (shape) {
+        return shape.resampleByAmount(points, perContour);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.Group.prototype.resampleByLength = function (length) {
+    var shapes = _.map(this.shapes, function (shape) {
+        return shape.resampleByLength(length);
+    });
+    return g.makeGroup(shapes);
+};
+
+g.makeGroup = function (shapes) {
+    return new g.Group(shapes);
+};
+
+g.combinePaths = function (shape) {
+    if (shape.elements) { return shape.elements; }
+    var i, elements = [];
+    for (i = 0; i < shape.shapes.length; i += 1) {
+        elements = elements.concat(g.combinePaths(shape.shapes[i]));
+    }
+    return elements;
+};
+
+g.combinePaths = g.frozen(g.combinePaths);
 
 g.Rect = function (x, y, width, height) {
     this.x = x;
@@ -1035,7 +1102,7 @@ g.Rect.prototype.centroid = function () {
 };
 
 g.makeRect = function (x, y, width, height) {
-    return new Rect(x, y, width, height);
+    return new g.Rect(x, y, width, height);
 };
 
 g.makeCenteredRect = function (cx, cy, width, height) {
@@ -1311,36 +1378,51 @@ g.color = function (R, G, B, A, options) {
 
 g.color = g.frozen(g.color);
 
-g.IDENTITY = Object.freeze([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+g.Matrix3 = g.Transform = function (m) {
+    /* A geometric transformation in Euclidean space (i.e. 2D)
+     * that preserves collinearity and ratio of distance between points.
+     * Linear transformations include rotation, translation, scaling, shear.
+     */
+    if (m !== undefined) {
+        this.m = m;
+    } else {
+        this.m = [1, 0, 0, 0, 1, 0, 0, 0, 1]; // Identity matrix.
+    }
+    g.deepFreeze(this);
+};
 
-g._mmult = function (a, b) {
+g.Matrix3.IDENTITY = new g.Matrix3();
+
+g.Matrix3._mmult = function (a, b) {
     /* Returns the 3x3 matrix multiplication of A and B.
      * Note that scale(), translate(), rotate() work with premultiplication,
      * e.g. the matrix A followed by B = BA and not AB.
      */
-    return [
+    if (a.m !== undefined) { a = a.m; }
+    if (b.m !== undefined) { b = b.m; }
+
+    return new g.Matrix3([
         a[0] * b[0] + a[1] * b[3],
         a[0] * b[1] + a[1] * b[4], 0,
         a[3] * b[0] + a[4] * b[3],
         a[3] * b[1] + a[4] * b[4], 0,
         a[6] * b[0] + a[7] * b[3] + b[6],
         a[6] * b[1] + a[7] * b[4] + b[7], 1
-    ];
+    ]);
 };
 
-g._mmult = g.frozen(g._mmult);
-
-g.prepend = function (matrix1, matrix2) {
-    return g._mmult(matrix1, matrix2);
+g.Matrix3.prototype.prepend = function (matrix) {
+    return g.Matrix3._mmult(this.m, matrix.m);
 };
 
-g.append = function (matrix1, matrix2) {
-    return g._mmult(matrix2, matrix1);
+g.Matrix3.prototype.append = function (matrix) {
+    return g.Matrix3._mmult(matrix.m, this.m);
 };
 
-g.inverse = function (m) {
-    var d = m[0] * m[4] - m[1] * m[3];
-    return Object.freeze([
+g.Matrix3.prototype.inverse = function () {
+    var m = this.m,
+        d = m[0] * m[4] - m[1] * m[3];
+    return new g.Matrix3([
         m[4] / d,
         -m[1] / d, 0,
         -m[3] / d,
@@ -1350,71 +1432,72 @@ g.inverse = function (m) {
     ]);
 };
 
-g.inverse = g.frozen(g.inverse);
-
-g.scale = function (matrix, x, y) {
+g.Matrix3.prototype.scale = function (x, y) {
     if (y === undefined) { y = x; }
-    return g._mmult([x, 0, 0, 0, y, 0, 0, 0, 1], matrix);
+    return g.Matrix3._mmult([x, 0, 0, 0, y, 0, 0, 0, 1], this.m);
 };
 
-g.translate = function (matrix, x, y) {
-    return g._mmult([1, 0, 0, 0, 1, 0, x, y, 1], matrix);
+g.Matrix3.prototype.translate = function (x, y) {
+    return g.Matrix3._mmult([1, 0, 0, 0, 1, 0, x, y, 1], this.m);
 };
 
-g.rotate = function (matrix, angle) {
+g.Matrix3.prototype.rotate = function (angle) {
     var c = Math.cos(g.math.radians(angle)),
         s = Math.sin(g.math.radians(angle));
-    return g._mmult([c, s, 0, -s, c, 0, 0, 0, 1], matrix);
+    return g.Matrix3._mmult([c, s, 0, -s, c, 0, 0, 0, 1], this.m);
 };
 
-g.skew = function (matrix, x, y) {
+g.Matrix3.prototype.skew = function (x, y) {
     var kx = Math.PI * x / 180.0,
         ky = Math.PI * y / 180.0;
-    return g._mmult([1, Math.tan(ky), 0, -Math.tan(kx), 1, 0, 0, 0, 1], matrix);
+    return g.Matrix3._mmult([1, Math.tan(ky), 0, -Math.tan(kx), 1, 0, 0, 0, 1], this.m);
 };
 
-g.transformPoint = function (point, matrix) {
+g.Matrix3.prototype.transformPoint = function (point) {
     /* Returns the new coordinates of the given point (x,y) after transformation.
      */
     var x = point.x,
-        y = point.y;
-    return g.makePoint(
-        x * matrix[0] + y * matrix[3] + matrix[6],
-        x * matrix[1] + y * matrix[4] + matrix[7]
+        y = point.y,
+        m = this.m;
+    return new g.Point(
+        x * m[0] + y * m[3] + m[6],
+        x * m[1] + y * m[4] + m[7]
     );
 };
 
-g.transformPath = function (path, matrix) {
-    var elements = _.map(path.elements, function (pe) {
-        if (pe.cmd === g.CLOSE) { return pe; }
-        if (pe.cmd === g.MOVETO) {
-            return { cmd: g.MOVETO,
-                   point: g.transformPoint(pe.point, matrix) };
-        }
-        if (pe.cmd === g.LINETO) {
-            return { cmd: g.LINETO,
-                   point: g.transformPoint(pe.point, matrix) };
-        }
-        if (pe.cmd === g.CURVETO) {
-            return { cmd: g.CURVETO,
-                   point: g.transformPoint(pe.point, matrix),
-                   ctrl1: g.transformPoint(pe.ctrl1, matrix),
-                   ctrl2: g.transformPoint(pe.ctrl2, matrix) };
-        }
-    });
+g.Matrix3.prototype.transformPath = function (path) {
+    var _this = this,
+        elements = _.map(path.elements, function (pe) {
+            if (pe.cmd === g.CLOSE) { return pe; }
+            if (pe.cmd === g.MOVETO) {
+                return { cmd: g.MOVETO,
+                    point: _this.transformPoint(pe.point) };
+            }
+            if (pe.cmd === g.LINETO) {
+                return { cmd: g.LINETO,
+                    point: _this.transformPoint(pe.point) };
+            }
+            if (pe.cmd === g.CURVETO) {
+                return { cmd: g.CURVETO,
+                    point: _this.transformPoint(pe.point),
+                    ctrl1: _this.transformPoint(pe.ctrl1),
+                    ctrl2: _this.transformPoint(pe.ctrl2) };
+            }
+        });
     return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
 };
 
-g.transformGroup = function (group, matrix) {
-    var shapes = _.map(group.shapes, function (shape) {
-        return g.transformShape(shape, matrix);
-    });
+g.Matrix3.prototype.transformGroup = function (group) {
+    var _this = this,
+        shapes = _.map(group.shapes, function (shape) {
+            return _this.transformShape(shape);
+        });
     return g.makeGroup(shapes);
 };
 
-g.transformShape = function (shape, matrix) {
-    var fn = (shape.shapes) ? g.transformGroup : g.transformPath;
-    return fn(shape, matrix);
+g.Matrix3.prototype.transformShape = function (shape) {
+    var fn = (shape.shapes) ? this.transformGroup : this.transformPath;
+    return fn.call(this, shape);
 };
 
 g.drawCommand = function (ctx, command) {
@@ -1495,7 +1578,7 @@ g.svg = {};
 g.svg.interpret = function (svgNode) {
     var node,
         tag = svgNode.tagName.toLowerCase();
-    if (!(tag in g.svg.read)) {
+    if (g.svg.read[tag] === undefined) {
         return null;
     }
 
@@ -1544,13 +1627,13 @@ g.svg.read = {
 
         var shapes = [];
 
-        _.each(node.childNodes, function(n) {
+        _.each(node.childNodes, function (n) {
 
             var tag, tagName, o;
             tag = n.nodeName;
             if (!tag) { return; }
             tagName = tag.replace(/svg\:/ig, '').toLowerCase();
-            if (tagName in g.svg.read) {
+            if (g.svg.read[tagName] !== undefined) {
                 o = g.svg.read[tagName].call(this, n);
                 shapes.push(o);
             }
@@ -1740,18 +1823,18 @@ g.svg.read = {
             case 'M':
             case 'm':
                 p = pp.getAsCurrentPoint();
-                elements.push(g.moveTo(p.x, p.y));
+                elements.push(g.moveto(p.x, p.y));
                 pp.start = pp.current;
                 while (!pp.isCommandOrEnd()) {
                     p = pp.getAsCurrentPoint();
-                    elements.push(g.lineTo(p.x, p.y));
+                    elements.push(g.lineto(p.x, p.y));
                 }
                 break;
             case 'L':
             case 'l':
                 while (!pp.isCommandOrEnd()) {
                     p = pp.getAsCurrentPoint();
-                    elements.push(g.lineTo(p.x, p.y));
+                    elements.push(g.lineto(p.x, p.y));
                 }
                 break;
             case 'H':
@@ -1759,7 +1842,7 @@ g.svg.read = {
                 while (!pp.isCommandOrEnd()) {
                     newP = g.makePoint((pp.isRelativeCommand() ? pp.current.x : 0) + pp.getScalar(), pp.current.y);
                     pp.current = newP;
-                    elements.push(g.lineTo(pp.current.x, pp.current.y));
+                    elements.push(g.lineto(pp.current.x, pp.current.y));
                 }
                 break;
             case 'V':
@@ -1767,7 +1850,7 @@ g.svg.read = {
                 while (!pp.isCommandOrEnd()) {
                     newP = g.makePoint(pp.current.x, (pp.isRelativeCommand() ? pp.current.y : 0) + pp.getScalar());
                     pp.current = newP;
-                    elements.push(g.lineTo(pp.current.x, pp.current.y));
+                    elements.push(g.lineto(pp.current.x, pp.current.y));
                 }
                 break;
             case 'C':
@@ -1777,7 +1860,7 @@ g.svg.read = {
                     p1 = pp.getPoint();
                     cntrl = pp.getAsControlPoint();
                     cp = pp.getAsCurrentPoint();
-                    elements.push(g.curveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                    elements.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
                 }
                 break;
             case 'S':
@@ -1787,7 +1870,7 @@ g.svg.read = {
                     p1 = pp.getReflectedControlPoint();
                     cntrl = pp.getAsControlPoint();
                     cp = pp.getAsCurrentPoint();
-                    elements.push(g.curveTo(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
+                    elements.push(g.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y));
                 }
                 break;
             case 'Q':
@@ -1800,7 +1883,7 @@ g.svg.read = {
                     cp1y = curr.y + 2 / 3 * (cntrl.y - curr.y); // CP1 = QP0 + 2 / 3 *(QP1-QP0)
                     cp2x = cp1x + 1 / 3 * (cp.x - curr.x); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
                     cp2y = cp1y + 1 / 3 * (cp.y - curr.y); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
-                    elements.push(g.curveTo(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                    elements.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
                 }
                 break;
             case 'T':
@@ -1814,7 +1897,7 @@ g.svg.read = {
                     cp1y = curr.y + 2 / 3 * (cntrl.y - curr.y); // CP1 = QP0 + 2 / 3 *(QP1-QP0)
                     cp2x = cp1x + 1 / 3 * (cp.x - curr.x); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
                     cp2y = cp1y + 1 / 3 * (cp.y - curr.y); // CP2 = CP1 + 1 / 3 *(QP2-QP0)
-                    elements.push(g.curveTo(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
+                    elements.push(g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y));
                 }
                 break;
             case 'A':
@@ -1832,7 +1915,7 @@ g.svg.read = {
                     segs = g.svg.arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y);
                     for (i = 0; i < segs.length; i += 1) {
                         bez = g.svg.segmentToBezier.apply(this, segs[i]);
-                        elements.push(g.curveTo.apply(this, bez));
+                        elements.push(g.curveto.apply(this, bez));
                     }
                 }
                 break;
@@ -2082,4 +2165,793 @@ g.svg.segmentToBezier = function (cx, cy, th0, th1, rx, ry, sin_th, cos_th) {
     ];
 
 //    return segmentToBezierCache[argsString];
+};
+
+g.shapes = {};
+
+g.shapes.rect = function (position, width, height, roundness) {
+    if (roundness.x === 0 && roundness.y === 0) {
+        return g.rect(position.x - width / 2, position.y - height / 2, width, height);
+    } else {
+        return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
+    }
+};
+
+g.shapes.ellipse = function (position, width, height) {
+    return g.ellipse(position.x - width / 2, position.y - height / 2, width, height);
+};
+
+g.shapes.line = function (point1, point2) {
+    return g.line(point1.x, point1.y, point2.x, point2.y)
+            .stroke({"r": 0, "g": 0, "b": 0, "a": 1})
+            .strokeWidth(1);
+};
+
+g.shapes.lineAngle = function (point, angle, distance) {
+    var point2 = g.geometry.coordinates(point.x, point.y, distance, angle);
+    return g.shapes.line(point, point2);
+};
+
+g.shapes.arc = function (position, width, height, startAngle, degrees, arcType) {
+    return g.arc(position.x, position.y, width, height, startAngle, degrees, arcType);
+};
+
+g.shapes.quadCurve = function (pt1, pt2, t, distance) {
+    t /= 100.0;
+    var cx = pt1.x + t * (pt2.x - pt1.x),
+        cy = pt1.y + t * (pt2.y - pt1.y),
+        a = g.geometry.angle(pt1.x, pt1.y, pt2.x, pt2.y) + 90,
+        q = g.geometry.coordinates(cx, cy, distance, a),
+        qx = q.x,
+        qy = q.y,
+
+        c1x = pt1.x + 2 / 3.0 * (qx - pt1.x),
+        c1y = pt1.y + 2 / 3.0 * (qy - pt1.y),
+        c2x = pt2.x + 2 / 3.0 * (qx - pt2.x),
+        c2y = pt2.y + 2 / 3.0 * (qy - pt2.y),
+        elements = [
+            g.moveto(pt1.x, pt1.y),
+            g.curveto(c1x, c1y, c2x, c2y, pt2.x, pt2.y)
+        ];
+    return g.makePath(elements, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
+};
+
+g.shapes.polygon = function (position, radius, sides, align) {
+    sides = Math.max(sides, 3);
+    var c0, c1, i, c,
+        x = position.x,
+        y = position.y,
+        r = radius,
+        a = 360.0 / sides,
+        da = 0,
+        elements = [];
+    if (align === true) {
+        c0 = g.geometry.coordinates(x, y, r, 0);
+        c1 = g.geometry.coordinates(x, y, r, a);
+        da = -g.geometry.angle(c1.x, c1.y, c0.x, c0.y);
+    }
+    for (i = 0; i < sides; i += 1) {
+        c = g.geometry.coordinates(x, y, r, (a * i) + da);
+        elements.push(((i === 0) ? g.moveto : g.lineto)(c.x, c.y));
+    }
+    elements.push(g.close());
+    return new g.Path(elements);
+};
+
+g.shapes.star = function (position, points, outer, inner) {
+    var i, angle, radius, x, y,
+        elements = [g.moveto(position.x, position.y + outer / 2)];
+    // Calculate the points of the star.
+    for (i = 1; i < points * 2; i += 1) {
+        angle = i * Math.PI / points;
+        radius = (i % 2 === 1) ? inner / 2 : outer / 2;
+        x = position.x + radius * Math.sin(angle);
+        y = position.y + radius * Math.cos(angle);
+        elements.push(g.lineto(x, y));
+    }
+    elements.push(g.close());
+    return new g.Path(elements);
+};
+
+g.shapes.freehand = function (pathString) {
+    var i, j, values, cmd,
+        elements = [],
+        contours = _.filter(pathString.split("M"), _.isEmpty);
+
+    contours = _.map(contours, function (c) { return c.replace(/,/g, " "); });
+
+    for (j = 0; j < contours.length; j += 1) {
+        values = _.filter(contours[j].split(" "), _.isEmpty);
+        for (i = 0; i < values.length; i += 2) {
+            if (values[i + 1] !== undefined) {
+                cmd = (i === 0) ? g.moveto : g.lineto;
+                elements.push(cmd(parseFloat(values[i]), parseFloat(values[i + 1])));
+            }
+        }
+    }
+
+    return g.makePath(elements, null, {"r": 0, "g": 0, "b": 0, "a": 1}, 1);
+};
+
+g.shapes.grid = function (columns, rows, width, height, position) {
+    // Create a grid of points.
+    var column_size, left, row_size, top, x, y,
+        points = [];
+    if (columns > 1) {
+        column_size = width / (columns - 1);
+        left = position.x - width / 2;
+    } else {
+        column_size = left = position.x;
+    }
+    if (rows > 1) {
+        row_size = height / (rows - 1);
+        top = position.y - height / 2;
+    } else {
+        row_size = top = position.y;
+    }
+
+    _.each(_.range(rows), function (ri) {
+        _.each(_.range(columns), function (ci) {
+            x = left + ci * column_size;
+            y = top + ri * row_size;
+            points.push(g.makePoint(x, y));
+        });
+    });
+    return Object.freeze(points);
+};
+
+g.filters = {};
+
+g.filters.colorize = function (shape, fill, stroke, strokeWidth) {
+    return shape.colorize(fill, stroke, strokeWidth);
+};
+
+g.filters.translate = function (shape, position) {
+    var t = new g.Transform().translate(position.x, position.y);
+    return t.transformShape(shape);
+};
+
+g.filters.scale = function (shape, scale) {
+    var t = new g.Transform().scale(scale.x / 100, scale.y / 100);
+    return t.transformShape(shape);
+};
+
+g.filters.rotate = function (shape, angle) {
+    var t = new g.Transform().rotate(angle);
+    return t.transformShape(shape);
+};
+
+g.filters.skew = function (shape, skew, origin) {
+    var t = g.Transform();
+    t = t.translate(origin.x, origin.y);
+    t = t.skew(skew.x, skew.y);
+    t = t.translate(-origin.x, -origin.y);
+    return t.transformShape(shape);
+};
+
+g.filters.copy = function (shape, copies, order, translate, rotate, scale) {
+    var i, t,
+        shapes = [],
+        tx = 0,
+        ty = 0,
+        r = 0,
+        sx = 1.0,
+        sy = 1.0;
+    for (i = 0; i < copies; i += 1) {
+        t = new g.Transform();
+        _.each(order, function (op) {
+            if (op === 't') {
+                t = t.translate(tx, ty);
+            } else if (op === 'r') {
+                t = t.rotate(r);
+            } else if (op === 's') {
+                t = t.scale(sx, sy);
+            }
+        });
+        shapes.push(t.transformShape(shape));
+
+        tx += translate.x;
+        ty += translate.y;
+        r += rotate;
+        sx += scale.x;
+        sy += scale.y;
+    }
+    return shapes;
+};
+
+g.filters.fit = function (shape, position, width, height, keepProportions) {
+    if (shape === null) { return null; }
+    var t, sx, sy,
+        bounds = shape.bounds(),
+        bx = bounds.x,
+        by = bounds.y,
+        bw = bounds.width,
+        bh = bounds.height;
+
+    // Make sure bw and bh aren't infinitely small numbers.
+    // This will lead to incorrect transformations with for examples lines.
+    bw = (bw > 0.000000000001) ? bw : 0;
+    bh = (bh > 0.000000000001) ? bh : 0;
+
+    t = new g.Transform();
+    t = t.translate(position.x, position.y);
+
+    if (keepProportions) {
+        // don't scale widths or heights that are equal to zero.
+        sx = (bw > 0) ? (width / bw) : Number.MAX_VALUE;
+        sy = (bh > 0) ? (height / bh) : Number.MAX_VALUE;
+        sx = sy = Math.min(sx, sy);
+    } else {
+        sx = (bw > 0) ? (width / bw) : 1;
+        sy = (bh > 0) ? (height / bh) : 1;
+    }
+
+    t = t.scale(sx, sy);
+    t = t.translate(-bw / 2 - bx, -bh / 2 - by);
+
+    return t.transformShape(shape);
+};
+
+g.filters.fitTo = function (shape, bounding, keepProportions) {
+    // Fit a shape to another shape.
+    if (shape === null) { return null; }
+    if (bounding === null) { return shape; }
+
+    var bounds = bounding.bounds(),
+        bx = bounds.x,
+        by = bounds.y,
+        bw = bounds.width,
+        bh = bounds.height;
+
+    return g.filters.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
+};
+
+g.filters.reflect = function (shape, position, angle, keepOriginal) {
+    if (shape === null) { return null; }
+
+    var f, reflectPath, reflectGroup, reflect, newShape;
+
+    f = function (point) {
+        var d = g.geometry.distance(point.x, point.y, position.x, position.y),
+            a = g.geometry.angle(point.x, point.y, position.x, position.y),
+            pt = g.geometry.coordinates(position.x, position.y, d * Math.cos(g.math.radians(a - angle)), 180 + angle);
+        d = g.geometry.distance(point.x, point.y, pt.x, pt.y);
+        a = g.geometry.angle(point.x, point.y, pt.x, pt.y);
+        pt = g.geometry.coordinates(point.x, point.y, d * 2, a);
+        return g.makePoint(pt.x, pt.y);
+    };
+
+    reflectPath = function (path) {
+        var elements = _.map(path.elements, function (elem) {
+            var pt, ctrl1, ctrl2;
+            if (elem.cmd === g.CLOSE) {
+                return elem;
+            } else if (elem.cmd === g.MOVETO) {
+                pt = f(elem.point);
+                return g.moveto(pt.x, pt.y);
+            } else if (elem.cmd === g.LINETO) {
+                pt = f(elem.point);
+                return g.lineto(pt.x, pt.y);
+            } else if (elem.cmd === g.CURVETO) {
+                pt = f(elem.point);
+                ctrl1 = f(elem.ctrl1);
+                ctrl2 = f(elem.ctrl2);
+                return g.curveto(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, pt.x, pt.y);
+            }
+        });
+        return g.makePath(elements, path.fill, path.stroke, path.strokeWidth);
+    };
+
+    reflectGroup = function (group) {
+        var shapes = _.map(group.shapes, function (shape) {
+            return reflect(shape);
+        });
+        return g.makeGroup(shapes);
+    };
+
+    reflect = function (shape) {
+        var fn = (shape.shapes) ? reflectGroup : reflectPath;
+        return fn(shape);
+    };
+
+    newShape = reflect(shape);
+
+    if (keepOriginal) {
+        return g.makeGroup([shape, newShape]);
+    } else {
+        return newShape;
+    }
+};
+
+g.filters.resample = function (shape, method, length, points, perContour) {
+    if (method === "length") {
+        return shape.resampleByLength(length);
+    } else {
+        return shape.resampleByAmount(points, perContour);
+    }
+};
+
+g.filters.wiggle = function (shape, scope, offset, seed) {
+    var rand, wigglePoints, wigglePaths, wiggleContours;
+    rand = g.randomGenerator(seed);
+
+    wigglePoints = function (shape) {
+        if (shape.elements) {
+            var i, dx, dy, pe, elements = [];
+            for (i = 0; i < shape.elements.length; i += 1) {
+                dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                pe = shape.elements[i];
+                if (pe.cmd === g.CLOSE) {
+                    elements.push(pe);
+                } else if (pe.cmd === g.MOVETO) {
+                    elements.push(g.moveto(pe.point.x + dx, pe.point.y + dy));
+                } else if (pe.cmd === g.LINETO) {
+                    elements.push(g.lineto(pe.point.x + dx, pe.point.y + dy));
+                } else if (pe.cmd === g.CURVETO) {
+                    elements.push(g.curveto(pe.ctrl1.x, pe.ctrl1.y,
+                                     pe.ctrl2.x, pe.ctrl2.y,
+                                     pe.point.x + dx, pe.point.y + dy));
+                }
+            }
+            return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, wigglePoints));
+        } else {
+            return _.map(shape, wigglePoints);
+        }
+    };
+
+    wigglePaths = function (shape) {
+        if (shape.elements) {
+            return shape;
+        } else if (shape.shapes) {
+            var i, subShape, dx, dy, t, newShapes = [];
+            for (i = 0; i < shape.shapes.length; i += 1) {
+                subShape = shape.shapes[i];
+                if (subShape.elements) {
+                    dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                    dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                    t = new g.Transform().translate(dx, dy);
+                    newShapes.push(t.transformShape(subShape));
+                } else if (subShape.shapes) {
+                    newShapes.push(wigglePaths(subShape));
+                }
+            }
+            return new g.Group(newShapes);
+        } else {
+            return _.map(shape, wigglePaths);
+        }
+    };
+
+    wiggleContours = function (shape) {
+        if (shape.elements) {
+            var i, dx, dy, t,
+                subPaths = g.getContours(shape),
+                elements = [];
+            for (i = 0; i < subPaths.length; i += 1) {
+                dx = (rand(0, 1) - 0.5) * offset.x * 2;
+                dy = (rand(0, 1) - 0.5) * offset.y * 2;
+                t = new g.Transform().translate(dx, dy);
+                elements = elements.concat(t.transformShape(g.makePath(subPaths[i])).elements);
+            }
+            return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, wiggleContours));
+        } else {
+            return _.map(shape, wiggleContours);
+        }
+    };
+
+    if (scope === "points") {
+        return wigglePoints(shape);
+    }
+    if (scope === "paths") {
+        return wigglePaths(shape);
+    }
+    if (scope === "contours") {
+        return wiggleContours(shape);
+    }
+};
+
+g.filters.scatter = function (shape, amount, seed) {
+    // Generate points within the boundaries of a shape.
+    if (shape === null) { return null; }
+    var i, tries, x, y,
+        rand = g.randomGenerator(seed),
+        bounds = shape.bounds(),
+        bx = bounds.x,
+        by = bounds.y,
+        bw = bounds.width,
+        bh = bounds.height,
+        points = [];
+
+    for (i = 0; i < amount; i += 1) {
+        tries = 100;
+        while (tries > 0) {
+            x = bx + rand(0, 1) * bw;
+            y = by + rand(0, 1) * bh;
+            if (shape.contains(x, y)) {
+                points.push(new g.Point(x, y));
+                break;
+            }
+            tries -= 1;
+        }
+    }
+    return points;
+};
+
+g.filters.connect = function (points, closed) {
+    if (points === null) { return null; }
+    var i, pt, elements = [];
+    for (i = 0; i < points.length; i += 1) {
+        pt = points[i];
+        elements.push((i === 0 ? g.moveto : g.lineto)(pt.x, pt.y));
+    }
+    if (closed) {
+        elements.push(g.closePath());
+    }
+    return g.makePath(elements, null, {"r": 0, "g": 0, "b": 0, "a": 1}, 1);
+};
+
+g.filters.align = function (shape, position, hAlign, vAlign) {
+    if (shape === null) { return null; }
+    var dx, dy, t,
+        x = position.x,
+        y = position.y,
+        bounds = shape.bounds();
+    if (hAlign === "left") {
+        dx = x - bounds.x;
+    } else if (hAlign === "right") {
+        dx = x - bounds.x - bounds.width;
+    } else if (hAlign === "center") {
+        dx = x - bounds.x - bounds.width / 2;
+    } else {
+        dx = 0;
+    }
+    if (vAlign === "top") {
+        dy = y - bounds.y;
+    } else if (vAlign === "bottom") {
+        dy = y - bounds.y - bounds.height;
+    } else if (vAlign === "middle") {
+        dy = y - bounds.y - bounds.height / 2;
+    } else {
+        dy = 0;
+    }
+
+    t = new g.Transform().translate(dx, dy);
+    return t.transformShape(shape);
+};
+
+g.filters.snap = function (shape, distance, strength, position) {
+    // Snap geometry to a grid.
+
+    function _snap(v, offset, distance, strength) {
+        if (offset === null) { offset = 0.0; }
+        if (distance === null) { distance = 10.0; }
+        if (strength === null) { strength = 1.0; }
+        return (v * (1.0 - strength)) + (strength * Math.round(v / distance) * distance);
+    }
+
+    if (shape === null) { return null; }
+    if (position === null) { position = g.Point.ZERO; }
+    strength /= 100.0;
+
+    var snapShape = function (shape) {
+        if (shape.elements) {
+            var elements = _.map(shape.elements, function (pe) {
+                if (pe.cmd === g.CLOSE) { return pe; }
+                var x, y, ctrl1x, ctrl1y, ctrl2x, ctrl2y;
+                x = _snap(pe.point.x + position.x, position.x, distance, strength) - position.x;
+                y = _snap(pe.point.y + position.y, position.y, distance, strength) - position.y;
+                if (pe.cmd === g.MOVETO) {
+                    return g.moveto(x, y);
+                } else if (pe.cmd === g.LINETO) {
+                    return g.lineto(x, y);
+                } else if (pe.cmd === g.CURVETO) {
+                    ctrl1x = _snap(pe.ctrl1.x + position.x, position.x, distance, strength) - position.x;
+                    ctrl1y = _snap(pe.ctrl1.y + position.y, position.y, distance, strength) - position.y;
+                    ctrl2x = _snap(pe.ctrl2.x + position.x, position.x, distance, strength) - position.x;
+                    ctrl2y = _snap(pe.ctrl2.y + position.y, position.y, distance, strength) - position.y;
+                    return g.curveto(ctrl1x, ctrl1y, ctrl2x, ctrl2y, x, y);
+                }
+            });
+            return g.makePath(elements, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, snapShape));
+        } else {
+            return _.map(shape, snapShape);
+        }
+    };
+
+    return snapShape(shape);
+};
+
+g.filters.deletePoints = function (shape, bounding, deleteSelected) {
+    var deletePoints = function (shape) {
+        if (shape.elements) {
+            var i, elem, elems = [];
+            for (i = 0; i < shape.elements.length; i += 1) {
+                elem = shape.elements[i];
+                if (!elem.point ||
+                        (deleteSelected && g.pathContains(bounding, elem.point.x, elem.point.y)) ||
+                        (!deleteSelected && !g.pathContains(bounding, elem.point.x, elem.point.y))) {
+                    elems.push(elem);
+                }
+            }
+            return g.makePath(elems, shape.fill, shape.stroke, shape.strokeWidth);
+        } else if (shape.shapes) {
+            return g.makeGroup(_.map(shape.shapes, deletePoints));
+        } else {
+            return _.map(shape, deletePoints);
+        }
+    };
+
+    return deletePoints(shape);
+};
+
+g.filters.deletePaths = function (shape, bounding, deleteSelected) {
+    var deletePaths = function (shape) {
+        if (shape.elements) {
+            return null;
+        } else if (shape.shapes) {
+            var i, j, s, selected, elem, subShapes, newShapes = [];
+            for (i = 0; i < shape.shapes.length; i += 1) {
+                s = shape.shapes[i];
+                if (s.elements) {
+                    selected = false;
+                    for (j = 0; j < s.elements.length; j += 1) {
+                        elem = s.elements[j];
+                        if (elem.point && bounding.contains(elem.point.x, elem.point.y)) {
+                            selected = true;
+                            break;
+                        }
+                    }
+                    if (selected !== deleteSelected) {
+                        newShapes.push(s);
+                    }
+                } else if (s.shapes) {
+                    subShapes = deletePaths(s);
+                    if (subShapes.length !== 0) {
+                        newShapes.push(subShapes);
+                    }
+                }
+            }
+            return g.makeGroup(newShapes);
+        } else {
+            return _.map(shape, deletePaths);
+        }
+    };
+
+    return deletePaths(shape);
+};
+
+g.filters["delete"] = function (shape, bounding, scope, operation) {
+    if (shape === null || bounding === null) { return null; }
+    var deleteSelected = operation === "selected";
+    if (scope === "points") { return g.filters.deletePoints(shape, bounding, deleteSelected); }
+    if (scope === "paths") { return g.filters.deletePaths(shape, bounding, deleteSelected); }
+};
+
+g.filters.pointOnPath = function (shape, t) {
+    if (shape === null) { return null; }
+    if (shape.shapes) {
+        shape = g.makePath(g.combinePaths(shape));
+    }
+    t = Math.abs(t % 100);
+    return shape.point(t / 100).point;
+};
+
+g.filters.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baseline_offset) {
+    if (!shapes) { return []; }
+    if (path === null) { return []; }
+
+    if (alignment === "trailing") {
+        shapes = shapes.slice();
+        shapes.reverse();
+    }
+
+    var i, pos, p1, p2, a, t,
+        length = path.length() - margin,
+        m = margin / path.length(),
+        c = 0,
+        newShapes = [];
+    
+    function putOnPath(shape) {
+        if (alignment === "distributed") {
+            var p = length / ((amount * shapes.length) - 1);
+            pos = c * p / length;
+            pos = m + (pos * (1 - 2 * m));
+        } else {
+            pos = ((c * spacing) % length) / length;
+            pos = m + (pos * (1 - m));
+
+            if (alignment === "trailing") {
+                pos = 1 - pos;
+            }
+        }
+
+        p1 = path.point(pos).point;
+        p2 = path.point(pos + 0.0000001).point;
+        a = g.geometry.angle(p1.x, p1.y, p2.x, p2.y);
+        if (baseline_offset) {
+            p1 = g.geometry.coordinates(p1.x, p1.y, baseline_offset, a - 90);
+        }
+        t = new g.Transform();
+        t = t.translate(p1.x, p1.y);
+        t = t.rotate(a);
+        newShapes.push(t.transformShape(shape));
+        c += 1;
+    }
+    
+    for (i = 0; i < amount; i += 1) {
+        _.each(shapes, putOnPath);
+    }
+    return newShapes;
+};
+
+g.filters._x = function (shape) {
+    if (shape.x) {
+        return shape.x;
+    } else {
+        return shape.bounds().x;
+    }
+};
+
+g.filters._y = function (shape) {
+    if (shape.y) {
+        return shape.y;
+    } else {
+        return shape.bounds().y;
+    }
+};
+
+g.filters._angleToPoint = function (point) {
+    return function (shape) {
+        if (shape.x && shape.y) {
+            return g.geometry.angle(shape.x, shape.y, point.x, point.y);
+        } else {
+            var centroid = shape.bounds().centroid();
+            return g.geometry.angle(centroid.x, centroid.y, point.x, point.y);
+        }
+    };
+};
+
+g.filters._distanceToPoint = function (point) {
+    return function (shape) {
+        if (shape.x && shape.y) {
+            return g.geometry.distance(shape.x, shape.y, point.x, point.y);
+        } else {
+            var centroid = shape.bounds().centroid();
+            return g.geometry.distance(centroid.x, centroid.y, point.x, point.y);
+        }
+    };
+};
+
+g.filters.sort = function (shapes, orderBy, point) {
+    if (shapes === null) { return null; }
+    var methods, sortMethod, newShapes;
+    methods = {
+        x: g.filters._x,
+        y: g.filters._y,
+        angle: g.filters._angleToPoint(point),
+        distance: g.filters._distanceToPoint(point)
+    };
+    sortMethod = methods[orderBy];
+    if (sortMethod === undefined) { return shapes; }
+    newShapes = shapes.slice(0);
+    newShapes.sort(function (a, b) {
+        var _a = sortMethod(a),
+            _b = sortMethod(b);
+        if (_a < _b) { return -1; }
+        if (_a > _b) { return 1; }
+        return 0;
+    });
+    return newShapes;
+};
+
+g.filters.ungroup = function (shape) {
+    if (shape.shapes) {
+        var i, s, shapes = [];
+        for (i = 0; i < shape.shapes.length; i += 1) {
+            s = shape.shapes[i];
+            if (s.elements) {
+                shapes.push(s);
+            } else if (s.shapes) {
+                shapes = shapes.concat(g.filters.ungroup(s));
+            }
+        }
+        return shapes;
+    } else if (shape.elements) {
+        return [shape];
+    }
+};
+
+g.filters.centroid = function (shape) {
+    if (shape === null) { return g.Point.ZERO; }
+    var i, pt,
+        elements = g.combinePaths(shape),
+        firstPoint = elements[0].point,
+        xs = firstPoint.x,
+        ys = firstPoint.y,
+        count = 1;
+    for (i = 1; i < elements.length; i += 1) {
+        if (elements[i].point) {
+            pt = elements[i].point;
+            xs += pt.x;
+            ys += pt.y;
+            count += 1;
+        }
+    }
+    return new g.Point(xs / count, ys / count);
+};
+
+g.filters.link = function (shape1, shape2, orientation) {
+    if (shape1 === null || shape2 === null) { return null; }
+    var elements, hw, hh,
+        a = shape1.bounds(),
+        b = shape2.bounds();
+
+    if (orientation === "horizontal") {
+        hw = (b.x - (a.x + a.width)) / 2;
+        elements = [
+            g.moveto(a.x + a.width, a.y),
+            g.curveto(a.x + a.width + hw, a.y, b.x - hw, b.y, b.x, b.y),
+            g.lineto(b.x, b.y + b.height),
+            g.curveto(b.x - hw, b.y + b.height, a.x + a.width + hw, a.y + a.height, a.x + a.width, a.y + a.height)
+        ];
+    } else {
+        hh = (b.y - (a.y + a.height)) / 2;
+        elements = [
+            g.moveto(a.x, a.y + a.height),
+            g.curveto(a.x, a.y + a.height + hh, b.x, b.y - hh, b.x, b.y),
+            g.lineto(b.x + b.width, b.y),
+            g.curveto(b.x + b.width, b.y - hh, a.x + a.width, a.y + a.height + hh, a.x + a.width, a.y + a.height)
+        ];
+    }
+    return new g.Path(elements);
+};
+
+g.filters.stack = function (shapes, direction, margin) {
+    if (shapes === null) { return []; }
+    if (shapes.length <= 1) {
+        return shapes;
+    }
+    var tx, ty, t, bounds,
+        first_bounds = shapes[0].bounds(),
+        new_shapes = [];
+    if (direction === 'e') {
+        tx = -(first_bounds.width / 2);
+        _.each(shapes, function (shape) {
+            bounds = shape.bounds();
+            t = new g.Transform().translate(tx - bounds.x, 0);
+            new_shapes.push(t.transformShape(shape));
+            tx += bounds.width + margin;
+        });
+    } else if (direction === 'w') {
+        tx = first_bounds.width / 2;
+        _.each(shapes, function (shape) {
+            bounds = shape.bounds();
+            t = new g.Transform().translate(tx + bounds.x, 0);
+            new_shapes.push(t.transformShape(shape));
+            tx -= bounds.width + margin;
+        });
+    } else if (direction === 'n') {
+        ty = first_bounds.height / 2;
+        _.each(shapes, function (shape) {
+            bounds = shape.bounds();
+            t = new g.Transform().translate(0, ty + bounds.y);
+            new_shapes.push(t.transformShape(shape));
+            ty -= bounds.height + margin;
+        });
+    } else if (direction === 's') {
+        ty = -(first_bounds.height / 2);
+        _.each(shapes, function (shape) {
+            bounds = shape.bounds();
+            t = new g.Transform().translate(0, ty - bounds.y);
+            new_shapes.push(t.transformShape(shape));
+            ty += bounds.height + margin;
+        });
+    }
+    return new_shapes;
 };
