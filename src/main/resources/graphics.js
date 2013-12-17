@@ -1027,6 +1027,61 @@ g.Path.prototype.resampleByLength = function (segmentLength) {
     return g.makePath(elems, this.fill, this.stroke, this.strokeWidth);
 };
 
+g.Path.prototype.toPathData = function () {
+    var i, d, pe, x, y, x1, y1, x2, y2;
+    d = '';
+    for (i = 0; i < this.elements.length; i += 1) {
+        pe = this.elements[i];
+        if (pe.point) {
+            x = g.clamp(pe.point.x, -9999, 9999);
+            y = g.clamp(pe.point.y, -9999, 9999);
+        }
+        if (pe.ctrl1) {
+            x1 = g.clamp(pe.ctrl1.x, -9999, 9999);
+            y1 = g.clamp(pe.ctrl1.y, -9999, 9999);
+        }
+        if (pe.ctrl2) {
+            x2 = g.clamp(pe.ctrl2.x, -9999, 9999);
+            y2 = g.clamp(pe.ctrl2.y, -9999, 9999);
+        }
+        if (pe.cmd === g.MOVETO) {
+            if (!isNaN(x) && !isNaN(y)) {
+                d += 'M' + x + ' ' + y;
+            }
+        } else if (pe.cmd === g.LINETO) {
+            if (!isNaN(x) && !isNaN(y)) {
+                d += 'L' + x + ' ' + y;
+            }
+        } else if (pe.cmd === g.CURVETO) {
+            if (!isNaN(x) && !isNaN(y) && !isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
+                d += 'C' + x1 + ' ' + y1 + ' ' + x2 + ' ' + y2 + ' ' + x + ' ' + y;
+            }
+        } else if (pe.cmd === g.CLOSE) {
+            d += 'Z';
+        }
+    }
+    return d;
+};
+
+// Output the path as an SVG string.
+g.Path.prototype.toSVG = function () {
+    var svg = '<path d="';
+    svg += this.toPathData();
+    svg += '"';
+/*    if (this.fill !== 'black') {
+        if (this.fill === null) {
+            svg += ' fill="none"';
+        } else {
+            svg += ' fill="' + this.fill + '"';
+        }
+    }
+    if (this.stroke) {
+        svg += ' stroke="' + this.stroke + '" stroke-width="' + this.strokeWidth + '"';
+    } */
+    svg += '/>';
+    return svg;
+};
+
 g.makePath = function (pe, fill, stroke, strokeWidth) {
     var attrs = {
         fill: fill,
@@ -1101,6 +1156,14 @@ g.Group.prototype.resampleByLength = function (length) {
         return shape.resampleByLength(length);
     });
     return g.makeGroup(shapes);
+};
+
+g.Group.prototype.toSVG = function () {
+    var l;
+    l = _.map(this.shapes, function (shape) {
+        return shape.toSVG();
+    });
+    return '<g>' + l.join('') + '</g>';
 };
 
 g.makeGroup = function (shapes) {
