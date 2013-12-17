@@ -863,18 +863,6 @@ g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
     return new g.Path(this.elements, attrs);
 };
 
-g.Path.prototype.fill = function (fill) {
-    return this.colorize(fill, this.stroke, this.strokeWidth);
-};
-
-g.Path.prototype.stroke = function (stroke) {
-    return this.colorize(this.fill, stroke, this.strokeWidth);
-};
-
-g.Path.prototype.strokeWidth = function (strokeWidth) {
-    return this.colorize(this.fill, this.stroke, strokeWidth);
-};
-
 g.Path.prototype.contours = function () {
     var contours = [],
         currentContour = [];
@@ -1082,6 +1070,34 @@ g.Path.prototype.toSVG = function () {
     return svg;
 };
 
+// Draw the path to a 2D context.
+g.Path.prototype.draw = function (ctx) {
+    var nElements, i, pe;
+    ctx.beginPath();
+    nElements = this.elements.length;
+    for (i = 0; i < nElements; i += 1) {
+        pe = this.elements[i];
+        if (pe.cmd === g.MOVETO) {
+            ctx.moveTo(pe.point.x, pe.point.y);
+        } else if (pe.cmd === g.LINETO) {
+            ctx.lineTo(pe.point.x, pe.point.y);
+        } else if (pe.cmd === g.CURVETO) {
+            ctx.bezierCurveTo(pe.ctrl1.x, pe.ctrl1.y, pe.ctrl2.x, pe.ctrl2.y, pe.point.x, pe.point.y);
+        } else if (pe.cmd === g.CLOSE) {
+            ctx.closePath();
+        }
+    }
+    if (this.fill !== null) {
+        ctx.fillStyle = g._getColor(this.fill);
+        ctx.fill();
+    }
+    if (this.stroke && this.strokeWidth && this.strokeWidth > 0) {
+        ctx.strokeStyle = this.stroke;
+        ctx.lineWidth = this.strokeWidth;
+        ctx.stroke();
+    }
+};
+
 g.makePath = function (pe, fill, stroke, strokeWidth) {
     var attrs = {
         fill: fill,
@@ -1164,6 +1180,14 @@ g.Group.prototype.toSVG = function () {
         return shape.toSVG();
     });
     return '<g>' + l.join('') + '</g>';
+};
+
+// Draw the group to a 2D context.
+g.Group.prototype.draw = function (ctx) {
+    var i, shapes = this.shapes, nShapes = shapes.length;
+    for (i = 0; i < nShapes; i += 1) {
+        shapes[i].draw(ctx);
+    }
 };
 
 g.makeGroup = function (shapes) {
@@ -1996,22 +2020,8 @@ g.draw = function (ctx, shape) {
             } else {
                 _.each(shape, _.partial(g.draw, ctx));
             }
-        } else if (shape.shapes) {
-            _.each(shape.shapes, _.partial(g.draw, ctx));
-        } else if (shape.elements) {
-            ctx.beginPath();
-            _.each(shape.elements, function (command) {
-                g.drawCommand(ctx, command);
-            });
-            if (shape.fill !== null) {
-                ctx.fillStyle = g._getColor(shape.fill);
-                ctx.fill();
-            }
-            if (shape.stroke && shape.strokeWidth && shape.strokeWidth > 0) {
-                ctx.strokeStyle = g._getColor(shape.stroke);
-                ctx.lineWidth = shape.strokeWidth;
-                ctx.stroke();
-            }
+        } else if (shape.shapes || shape.elements) {
+            shape.draw(ctx);
         } else if (shape.x !== undefined && shape.y !== undefined) {
             g.drawPoints(ctx, [shape]);
         }
@@ -2634,9 +2644,8 @@ g.shapes.ellipse = function (position, width, height) {
 };
 
 g.shapes.line = function (point1, point2) {
-    return g.line(point1.x, point1.y, point2.x, point2.y)
-            .stroke({"r": 0, "g": 0, "b": 0, "a": 1})
-            .strokeWidth(1);
+    return g.makePath(g.line(point1.x, point1.y, point2.x, point2.y),
+                      null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
 };
 
 g.shapes.lineAngle = function (point, angle, distance) {
@@ -3407,6 +3416,8 @@ g.filters.stack = function (shapes, direction, margin) {
     }
     return new_shapes;
 };
+
+g.colors = {};
 
 g.colors.gray = function (gray, alpha, range) {
     range = Math.max(range, 1);
