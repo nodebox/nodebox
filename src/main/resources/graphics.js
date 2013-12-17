@@ -1329,14 +1329,20 @@ g._hsb2rgb = function (h, s, v) {
     return [[v, z, x], [y, v, x], [x, v, z], [x, y, v], [z, x, v]][parseInt(i, 10)];
 };
 
-g.color = function (R, G, B, A, options) {
+g.Color = function (R, G, B, A, options) {
     var rgb;
-    if (R.r && R.g && R.b && R.a) { return R; }
-    if (R instanceof Array) {
-        R = R[0];
+    if (R instanceof g.Color) {
+        return R;
+    } else if (R.r && R.g && R.b && R.a) {
+        G = R.g;
+        B = R.b;
+        A = R.A;
+        R = R.r;
+    } else if (R instanceof Array) {
         G = R[1];
         B = R[2];
         A = R[3] || 1;
+        R = R[0];
     } else if (R === undefined || R === null) {
         R = G = B = A = 0;
     } else if (G === undefined || G === null) {
@@ -1373,10 +1379,34 @@ g.color = function (R, G, B, A, options) {
             A = 1;
         }
     }
-    return { r: R, g: G, b: B, a: A };
+    this.r = R;
+    this.g = G;
+    this.b = B;
+    this.a = A;
+    g.deepFreeze(this);
 };
 
-g.color = g.frozen(g.color);
+g.Color.BLACK = new g.Color(0);
+g.Color.WHITE = new g.Color(1);
+
+g.Color.prototype.rgb = function () {
+    return [this.r, this.g, this.b];
+};
+
+g.Color.prototype.rgba = function () {
+    return [this.r, this.g, this.b, this.a];
+};
+
+g.Color.prototype._get = function () {
+    var R = Math.round(this.r * 255),
+        G = Math.round(this.g * 255),
+        B = Math.round(this.b * 255);
+    return "rgba(" + R + ", " + G + ", " + B + ", " + this.a + ")";
+};
+
+g.makeColor = function (R, G, B, A, options) {
+    return new g.Color(R, G, B, A, options);
+};
 
 g.Matrix3 = g.Transform = function (m) {
     /* A geometric transformation in Euclidean space (i.e. 2D)
@@ -1518,10 +1548,7 @@ g.drawCommand = function (ctx, command) {
 g._getColor = function (c) {
     if (c === null) { return "none"; }
     if (c === undefined) { return "black"; }
-    var R = Math.round(c.r * 255),
-        G = Math.round(c.g * 255),
-        B = Math.round(c.b * 255);
-    return "rgba(" + R + ", " + G + ", " + B + ", " + c.a + ")";
+    return c._get();
 };
 
 g.drawPoints = function (ctx, points) {
@@ -2032,9 +2059,9 @@ g.svg.applySvgAttributes = function (node, shape) {
 
     if (fill !== undefined) {
         if (g._namedColors[fill]) {
-            fill = g.color.apply(g, g._namedColors[fill]);
+            fill = g.makeColor.apply(g, g._namedColors[fill]);
         } else if (fill.indexOf("#") === 0) {
-            fill = g.color(fill, 0, 0, 0, { colorspace: g.HEX });
+            fill = g.makeColor(fill, 0, 0, 0, { colorspace: g.HEX });
         } else if (fill === "none") {
             fill = null;
         }
@@ -2042,9 +2069,9 @@ g.svg.applySvgAttributes = function (node, shape) {
 
     if (stroke !== undefined) {
         if (g._namedColors[stroke]) {
-            stroke = g.color.apply(g, g._namedColors[stroke]);
+            stroke = g.makeColor.apply(g, g._namedColors[stroke]);
         } else if (stroke.indexOf("#") === 0) {
-            stroke = g.color(stroke, 0, 0, 0, { colorspace: g.HEX });
+            stroke = g.makeColor(stroke, 0, 0, 0, { colorspace: g.HEX });
         } else if (stroke === "none") {
             stroke = null;
         }
@@ -2756,7 +2783,7 @@ g.filters.shapeOnPath = function (shapes, path, amount, alignment, spacing, marg
         m = margin / path.length(),
         c = 0,
         newShapes = [];
-    
+
     function putOnPath(shape) {
         if (alignment === "distributed") {
             var p = length / ((amount * shapes.length) - 1);
@@ -2783,7 +2810,7 @@ g.filters.shapeOnPath = function (shapes, path, amount, alignment, spacing, marg
         newShapes.push(t.transformShape(shape));
         c += 1;
     }
-    
+
     for (i = 0; i < amount; i += 1) {
         _.each(shapes, putOnPath);
     }
@@ -2955,3 +2982,19 @@ g.filters.stack = function (shapes, direction, margin) {
     }
     return new_shapes;
 };
+
+g.colors.gray = function (gray, alpha, range) {
+    range = Math.max(range, 1);
+    return g.makeColor(gray / range, gray / range, gray / range, alpha / range);
+};
+
+g.colors.rgb = function (red, green, blue, alpha, range) {
+    range = Math.max(range, 1);
+    return g.makeColor(red / range, green / range, blue / range, alpha / range);
+};
+
+g.colors.hsb = function (hue, saturation, brightness, alpha, range) {
+    range = Math.max(range, 1);
+    return g.makeColor(hue / range, saturation / range, brightness / range, alpha / range, { colorspace: g.HSB });
+};
+
