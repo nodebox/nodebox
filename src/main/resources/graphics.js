@@ -577,6 +577,15 @@ g.makePoint = function (x, y) {
     return new g.Point(x, y);
 };
 
+g.Particle = function (position, velocity, acceleration, mass, lifespan) {
+    this.position = position !== undefined ? position : g.Vec2.ZERO;
+    this.velocity = velocity !== undefined ? velocity : g.Vec2.ZERO;
+    this.acceleration = acceleration !== undefined ? acceleration : g.Vec2.ZERO;
+    this.mass = mass !== undefined ? mass : 1;
+    this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;
+    g.deepFreeze(this);
+};
+
 g.MOVETO  = "M";
 g.LINETO  = "L";
 g.CURVETO = "C";
