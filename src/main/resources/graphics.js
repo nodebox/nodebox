@@ -620,7 +620,7 @@ g.closePath = g.closepath = g.close = function () {
     return g.CLOSE_ELEMENT;
 };
 
-g.rect = function (x, y, width, height) {
+g._rect = function (x, y, width, height) {
     var elements = [
         g.moveto(x, y),
         g.lineto(x + width, y),
@@ -669,7 +669,7 @@ g.roundedRect = function (cx, cy, width, height, rx, ry) {
     return new g.Path(elements);
 };
 
-g.ellipse = function (x, y, width, height) {
+g._ellipse = function (x, y, width, height) {
     var k = 0.55, // kappa = (-1 + sqrt(2)) / 3 * 4
         dx = k * 0.5 * width,
         dy = k * 0.5 * height,
@@ -688,7 +688,7 @@ g.ellipse = function (x, y, width, height) {
     return new g.Path(elements);
 };
 
-g.line = function (x1, y1, x2, y2) {
+g._line = function (x1, y1, x2, y2) {
     var elements = [
         g.moveto(x1, y1),
         g.lineto(x2, y2)
@@ -707,7 +707,7 @@ g.quad = function (x1, y1, x2, y2, x3, y3, x4, y4) {
     return new g.Path(elements);
 };
 
-g.arc = function (x, y, width, height, startAngle, degrees, arcType) {
+g._arc = function (x, y, width, height, startAngle, degrees, arcType) {
     var w, h, angStRad, ext, arcSegs, increment, cv, lineSegs,
         index, elements, angle, relx, rely, coords;
     w = width / 2;
@@ -833,11 +833,7 @@ g.Path.prototype.isClosed = function () {
 };
 
 g.Path.prototype.rect = function (x, y, width, height) {
-    return this.extend(g.rect(x, y, width, height));
-};
-
-g.Path.prototype.rect = function (x, y, width, height) {
-    return this.extend(g.rect(x, y, width, height));
+    return this.extend(g._rect(x, y, width, height));
 };
 
 g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
@@ -845,11 +841,11 @@ g.Path.prototype.roundedRect = function (cx, cy, width, height, rx, ry) {
 };
 
 g.Path.prototype.ellipse = function (x, y, width, height) {
-    return this.extend(g.ellipse(x, y, width, height));
+    return this.extend(g._ellipse(x, y, width, height));
 };
 
 g.Path.prototype.line = function (x1, y1, x2, y2) {
-    return this.extend(g.line(x1, y1, x2, y2));
+    return this.extend(g._line(x1, y1, x2, y2));
 };
 
 g.Path.prototype.colorize = function (fill, stroke, strokeWidth) {
@@ -1091,8 +1087,8 @@ g.Path.prototype.draw = function (ctx) {
         ctx.fillStyle = g._getColor(this.fill);
         ctx.fill();
     }
-    if (this.stroke && this.strokeWidth && this.strokeWidth > 0) {
-        ctx.strokeStyle = this.stroke;
+    if (this.stroke !== null && this.strokeWidth !== null && this.strokeWidth > 0) {
+        ctx.strokeStyle = g._getColor(this.stroke);
         ctx.lineWidth = this.strokeWidth;
         ctx.stroke();
     }
@@ -1518,10 +1514,10 @@ g.Color = function (R, G, B, A, options) {
     var rgb;
     if (R instanceof g.Color) {
         return R;
-    } else if (R.r && R.g && R.b && R.a) {
+    } else if (R.r !== undefined && R.g !== undefined && R.b !== undefined && R.a !== undefined) {
         G = R.g;
         B = R.b;
-        A = R.A;
+        A = R.a;
         R = R.r;
     } else if (R instanceof Array) {
         G = R[1];
@@ -1997,7 +1993,8 @@ g.drawCommand = function (ctx, command) {
 g._getColor = function (c) {
     if (c === null) { return "none"; }
     if (c === undefined) { return "black"; }
-    return c._get();
+    if (c instanceof g.Color) { return c._get(); }
+    return new g.Color(c)._get();
 };
 
 g.drawPoints = function (ctx, points) {
@@ -2129,7 +2126,7 @@ g.svg.read = {
         y = parseFloat(node.getAttribute('y'));
         width = parseFloat(node.getAttribute('width'));
         height = parseFloat(node.getAttribute('height'));
-        return g.svg.applySvgAttributes(node, g.rect(x, y, width, height));
+        return g.svg.applySvgAttributes(node, g._rect(x, y, width, height));
     },
 
     ellipse: function (node) {
@@ -2142,7 +2139,7 @@ g.svg.read = {
         y = cy - ry;
         width = rx * 2;
         height = ry * 2;
-        return g.svg.applySvgAttributes(node, g.ellipse(x, y, width, height));
+        return g.svg.applySvgAttributes(node, g._ellipse(x, y, width, height));
     },
 
     circle: function (node) {
@@ -2153,7 +2150,7 @@ g.svg.read = {
         x = cx - r;
         y = cy - r;
         width = height = r * 2;
-        return g.svg.applySvgAttributes(node, g.ellipse(x, y, width, height));
+        return g.svg.applySvgAttributes(node, g._ellipse(x, y, width, height));
     },
 
     line: function (node) {
@@ -2162,7 +2159,7 @@ g.svg.read = {
         y1 = parseFloat(node.getAttribute('y1'));
         x2 = parseFloat(node.getAttribute('x2'));
         y2 = parseFloat(node.getAttribute('y2'));
-        return g.svg.applySvgAttributes(node, g.line(x1, y1, x2, y2));
+        return g.svg.applySvgAttributes(node, g._line(x1, y1, x2, y2));
     },
 
     path: function (node) {
@@ -2406,14 +2403,14 @@ g.svg.applySvgAttributes = function (node, shape) {
         var a = g.svg.ToNumberArray(s),
             tx = a[0],
             ty = a[1] || 0;
-        return g.translate(g.IDENTITY, tx, ty);
+        return new g.Transform().translate(tx, ty);
     };
 
     types.scale = function (s) {
         var a = g.svg.ToNumberArray(s),
             sx = a[0],
             sy = a[1] || sx;
-        return g.scale(g.IDENTITY, sx, sy);
+        return new g.Transform().scale(sx, sy);
     };
 
     types.rotate = function (s) {
@@ -2422,9 +2419,10 @@ g.svg.applySvgAttributes = function (node, shape) {
             r = a[0],
             tx = a[1] || 0,
             ty = a[2] || 0;
-        t = g.translate(g.IDENTITY, tx, ty);
-        t = g.rotate(t, r);
-        t = g.translate(t, -tx, -ty);
+        t = new g.Transform();
+        t = t.translate(tx, ty);
+        t = t.rotate(r);
+        t = t.translate(-tx, -ty);
         return t;
     };
 
@@ -2629,35 +2627,35 @@ g.svg.segmentToBezier = function (cx, cy, th0, th1, rx, ry, sin_th, cos_th) {
 //    return segmentToBezierCache[argsString];
 };
 
-g.shapes = {};
+////////// Shapes //////////
 
-g.shapes.rect = function (position, width, height, roundness) {
+g.rect = function (position, width, height, roundness) {
     if (roundness.x === 0 && roundness.y === 0) {
-        return g.rect(position.x - width / 2, position.y - height / 2, width, height);
+        return g._rect(position.x - width / 2, position.y - height / 2, width, height);
     } else {
         return g.roundedRect(position.x - width / 2, position.y - height / 2, width, height, roundness.x, roundness.y);
     }
 };
 
-g.shapes.ellipse = function (position, width, height) {
-    return g.ellipse(position.x - width / 2, position.y - height / 2, width, height);
+g.ellipse = function (position, width, height) {
+    return g._ellipse(position.x - width / 2, position.y - height / 2, width, height);
 };
 
-g.shapes.line = function (point1, point2) {
-    return g.makePath(g.line(point1.x, point1.y, point2.x, point2.y),
+g.line = function (point1, point2) {
+    return g.makePath(g._line(point1.x, point1.y, point2.x, point2.y),
                       null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
 };
 
-g.shapes.lineAngle = function (point, angle, distance) {
+g.lineAngle = function (point, angle, distance) {
     var point2 = g.geometry.coordinates(point.x, point.y, distance, angle);
-    return g.shapes.line(point, point2);
+    return g.line(point, point2);
 };
 
-g.shapes.arc = function (position, width, height, startAngle, degrees, arcType) {
-    return g.arc(position.x, position.y, width, height, startAngle, degrees, arcType);
+g.arc = function (position, width, height, startAngle, degrees, arcType) {
+    return g._arc(position.x, position.y, width, height, startAngle, degrees, arcType);
 };
 
-g.shapes.quadCurve = function (pt1, pt2, t, distance) {
+g.quadCurve = function (pt1, pt2, t, distance) {
     t /= 100.0;
     var cx = pt1.x + t * (pt2.x - pt1.x),
         cy = pt1.y + t * (pt2.y - pt1.y),
@@ -2677,7 +2675,7 @@ g.shapes.quadCurve = function (pt1, pt2, t, distance) {
     return g.makePath(elements, null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
 };
 
-g.shapes.polygon = function (position, radius, sides, align) {
+g.polygon = function (position, radius, sides, align) {
     sides = Math.max(sides, 3);
     var c0, c1, i, c,
         x = position.x,
@@ -2699,7 +2697,7 @@ g.shapes.polygon = function (position, radius, sides, align) {
     return new g.Path(elements);
 };
 
-g.shapes.star = function (position, points, outer, inner) {
+g.star = function (position, points, outer, inner) {
     var i, angle, radius, x, y,
         elements = [g.moveto(position.x, position.y + outer / 2)];
     // Calculate the points of the star.
@@ -2714,7 +2712,7 @@ g.shapes.star = function (position, points, outer, inner) {
     return new g.Path(elements);
 };
 
-g.shapes.freehand = function (pathString) {
+g.freehand = function (pathString) {
     var i, j, values, cmd,
         elements = [],
         contours = _.filter(pathString.split("M"), _.isEmpty);
@@ -2734,7 +2732,7 @@ g.shapes.freehand = function (pathString) {
     return g.makePath(elements, null, {"r": 0, "g": 0, "b": 0, "a": 1}, 1);
 };
 
-g.shapes.grid = function (columns, rows, width, height, position) {
+g.grid = function (columns, rows, width, height, position) {
     // Create a grid of points.
     var column_size, left, row_size, top, x, y,
         points = [];
@@ -2761,36 +2759,44 @@ g.shapes.grid = function (columns, rows, width, height, position) {
     return Object.freeze(points);
 };
 
-g.filters = {};
+g.demoRect = function () {
+    return new g.rect({x: 0, y: 0}, 100, 100, {x: 0, y: 0});
+};
 
-g.filters.colorize = function (shape, fill, stroke, strokeWidth) {
+g.demoEllipse = function () {
+    return new g.ellipse({x: 0, y: 0}, 100, 100);
+};
+
+////////// Filters //////////
+
+g.colorize = function (shape, fill, stroke, strokeWidth) {
     return shape.colorize(fill, stroke, strokeWidth);
 };
 
-g.filters.translate = function (shape, position) {
+g.translate = function (shape, position) {
     var t = new g.Transform().translate(position.x, position.y);
     return t.transformShape(shape);
 };
 
-g.filters.scale = function (shape, scale) {
+g.scale = function (shape, scale) {
     var t = new g.Transform().scale(scale.x / 100, scale.y / 100);
     return t.transformShape(shape);
 };
 
-g.filters.rotate = function (shape, angle) {
+g.rotate = function (shape, angle) {
     var t = new g.Transform().rotate(angle);
     return t.transformShape(shape);
 };
 
-g.filters.skew = function (shape, skew, origin) {
-    var t = g.Transform();
+g.skew = function (shape, skew, origin) {
+    var t = new g.Transform();
     t = t.translate(origin.x, origin.y);
     t = t.skew(skew.x, skew.y);
     t = t.translate(-origin.x, -origin.y);
     return t.transformShape(shape);
 };
 
-g.filters.copy = function (shape, copies, order, translate, rotate, scale) {
+g.copy = function (shape, copies, order, translate, rotate, scale) {
     var i, t,
         shapes = [],
         tx = 0,
@@ -2820,7 +2826,7 @@ g.filters.copy = function (shape, copies, order, translate, rotate, scale) {
     return shapes;
 };
 
-g.filters.fit = function (shape, position, width, height, keepProportions) {
+g.fit = function (shape, position, width, height, keepProportions) {
     if (shape === null) { return null; }
     var t, sx, sy,
         bounds = shape.bounds(),
@@ -2853,7 +2859,7 @@ g.filters.fit = function (shape, position, width, height, keepProportions) {
     return t.transformShape(shape);
 };
 
-g.filters.fitTo = function (shape, bounding, keepProportions) {
+g.fitTo = function (shape, bounding, keepProportions) {
     // Fit a shape to another shape.
     if (shape === null) { return null; }
     if (bounding === null) { return shape; }
@@ -2864,10 +2870,10 @@ g.filters.fitTo = function (shape, bounding, keepProportions) {
         bw = bounds.width,
         bh = bounds.height;
 
-    return g.filters.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
+    return g.fit(shape, {x: bx + bw / 2, y: by + bh / 2}, bw, bh, keepProportions);
 };
 
-g.filters.reflect = function (shape, position, angle, keepOriginal) {
+g.reflect = function (shape, position, angle, keepOriginal) {
     if (shape === null) { return null; }
 
     var f, reflectPath, reflectGroup, reflect, newShape;
@@ -2924,7 +2930,7 @@ g.filters.reflect = function (shape, position, angle, keepOriginal) {
     }
 };
 
-g.filters.resample = function (shape, method, length, points, perContour) {
+g.resample = function (shape, method, length, points, perContour) {
     if (method === "length") {
         return shape.resampleByLength(length);
     } else {
@@ -2932,7 +2938,7 @@ g.filters.resample = function (shape, method, length, points, perContour) {
     }
 };
 
-g.filters.wiggle = function (shape, scope, offset, seed) {
+g.wiggle = function (shape, scope, offset, seed) {
     var rand, wigglePoints, wigglePaths, wiggleContours;
     rand = g.randomGenerator(seed);
 
@@ -3015,7 +3021,7 @@ g.filters.wiggle = function (shape, scope, offset, seed) {
     }
 };
 
-g.filters.scatter = function (shape, amount, seed) {
+g.scatter = function (shape, amount, seed) {
     // Generate points within the boundaries of a shape.
     if (shape === null) { return null; }
     var i, tries, x, y,
@@ -3042,7 +3048,7 @@ g.filters.scatter = function (shape, amount, seed) {
     return points;
 };
 
-g.filters.connect = function (points, closed) {
+g.connect = function (points, closed) {
     if (points === null) { return null; }
     var i, pt, elements = [];
     for (i = 0; i < points.length; i += 1) {
@@ -3055,7 +3061,7 @@ g.filters.connect = function (points, closed) {
     return g.makePath(elements, null, {"r": 0, "g": 0, "b": 0, "a": 1}, 1);
 };
 
-g.filters.align = function (shape, position, hAlign, vAlign) {
+g.align = function (shape, position, hAlign, vAlign) {
     if (shape === null) { return null; }
     var dx, dy, t,
         x = position.x,
@@ -3084,7 +3090,7 @@ g.filters.align = function (shape, position, hAlign, vAlign) {
     return t.transformShape(shape);
 };
 
-g.filters.snap = function (shape, distance, strength, position) {
+g.snap = function (shape, distance, strength, position) {
     // Snap geometry to a grid.
 
     function _snap(v, offset, distance, strength) {
@@ -3128,15 +3134,15 @@ g.filters.snap = function (shape, distance, strength, position) {
     return snapShape(shape);
 };
 
-g.filters.deletePoints = function (shape, bounding, deleteSelected) {
+g.deletePoints = function (shape, bounding, deleteSelected) {
     var deletePoints = function (shape) {
         if (shape.elements) {
             var i, elem, elems = [];
             for (i = 0; i < shape.elements.length; i += 1) {
                 elem = shape.elements[i];
-                if (!elem.point ||
-                        (deleteSelected && g.pathContains(bounding, elem.point.x, elem.point.y)) ||
-                        (!deleteSelected && !g.pathContains(bounding, elem.point.x, elem.point.y))) {
+                if (elem.point === undefined ||
+                        (deleteSelected && bounding.contains(elem.point.x, elem.point.y)) ||
+                        (!deleteSelected && !bounding.contains(elem.point.x, elem.point.y))) {
                     elems.push(elem);
                 }
             }
@@ -3151,7 +3157,7 @@ g.filters.deletePoints = function (shape, bounding, deleteSelected) {
     return deletePoints(shape);
 };
 
-g.filters.deletePaths = function (shape, bounding, deleteSelected) {
+g.deletePaths = function (shape, bounding, deleteSelected) {
     var deletePaths = function (shape) {
         if (shape.elements) {
             return null;
@@ -3187,14 +3193,14 @@ g.filters.deletePaths = function (shape, bounding, deleteSelected) {
     return deletePaths(shape);
 };
 
-g.filters["delete"] = function (shape, bounding, scope, operation) {
+g["delete"] = function (shape, bounding, scope, operation) {
     if (shape === null || bounding === null) { return null; }
     var deleteSelected = operation === "selected";
-    if (scope === "points") { return g.filters.deletePoints(shape, bounding, deleteSelected); }
-    if (scope === "paths") { return g.filters.deletePaths(shape, bounding, deleteSelected); }
+    if (scope === "points") { return g.deletePoints(shape, bounding, deleteSelected); }
+    if (scope === "paths") { return g.deletePaths(shape, bounding, deleteSelected); }
 };
 
-g.filters.pointOnPath = function (shape, t) {
+g.pointOnPath = function (shape, t) {
     if (shape === null) { return null; }
     if (shape.shapes) {
         shape = g.makePath(g.combinePaths(shape));
@@ -3203,7 +3209,7 @@ g.filters.pointOnPath = function (shape, t) {
     return shape.point(t / 100).point;
 };
 
-g.filters.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baseline_offset) {
+g.shapeOnPath = function (shapes, path, amount, alignment, spacing, margin, baseline_offset) {
     if (!shapes) { return []; }
     if (path === null) { return []; }
 
@@ -3251,7 +3257,7 @@ g.filters.shapeOnPath = function (shapes, path, amount, alignment, spacing, marg
     return newShapes;
 };
 
-g.filters._x = function (shape) {
+g._x = function (shape) {
     if (shape.x) {
         return shape.x;
     } else {
@@ -3259,7 +3265,7 @@ g.filters._x = function (shape) {
     }
 };
 
-g.filters._y = function (shape) {
+g._y = function (shape) {
     if (shape.y) {
         return shape.y;
     } else {
@@ -3267,7 +3273,7 @@ g.filters._y = function (shape) {
     }
 };
 
-g.filters._angleToPoint = function (point) {
+g._angleToPoint = function (point) {
     return function (shape) {
         if (shape.x && shape.y) {
             return g.geometry.angle(shape.x, shape.y, point.x, point.y);
@@ -3278,7 +3284,7 @@ g.filters._angleToPoint = function (point) {
     };
 };
 
-g.filters._distanceToPoint = function (point) {
+g._distanceToPoint = function (point) {
     return function (shape) {
         if (shape.x && shape.y) {
             return g.geometry.distance(shape.x, shape.y, point.x, point.y);
@@ -3289,14 +3295,14 @@ g.filters._distanceToPoint = function (point) {
     };
 };
 
-g.filters.sort = function (shapes, orderBy, point) {
+g.sort = function (shapes, orderBy, point) {
     if (shapes === null) { return null; }
     var methods, sortMethod, newShapes;
     methods = {
-        x: g.filters._x,
-        y: g.filters._y,
-        angle: g.filters._angleToPoint(point),
-        distance: g.filters._distanceToPoint(point)
+        x: g._x,
+        y: g._y,
+        angle: g._angleToPoint(point),
+        distance: g._distanceToPoint(point)
     };
     sortMethod = methods[orderBy];
     if (sortMethod === undefined) { return shapes; }
@@ -3311,7 +3317,9 @@ g.filters.sort = function (shapes, orderBy, point) {
     return newShapes;
 };
 
-g.filters.ungroup = function (shape) {
+g.group = g.makeGroup;
+
+g.ungroup = function (shape) {
     if (shape.shapes) {
         var i, s, shapes = [];
         for (i = 0; i < shape.shapes.length; i += 1) {
@@ -3319,7 +3327,7 @@ g.filters.ungroup = function (shape) {
             if (s.elements) {
                 shapes.push(s);
             } else if (s.shapes) {
-                shapes = shapes.concat(g.filters.ungroup(s));
+                shapes = shapes.concat(g.ungroup(s));
             }
         }
         return shapes;
@@ -3328,7 +3336,7 @@ g.filters.ungroup = function (shape) {
     }
 };
 
-g.filters.centroid = function (shape) {
+g.centroid = function (shape) {
     if (shape === null) { return g.Point.ZERO; }
     var i, pt,
         elements = g.combinePaths(shape),
@@ -3347,7 +3355,7 @@ g.filters.centroid = function (shape) {
     return new g.Point(xs / count, ys / count);
 };
 
-g.filters.link = function (shape1, shape2, orientation) {
+g.link = function (shape1, shape2, orientation) {
     if (shape1 === null || shape2 === null) { return null; }
     var elements, hw, hh,
         a = shape1.bounds(),
@@ -3373,7 +3381,7 @@ g.filters.link = function (shape1, shape2, orientation) {
     return new g.Path(elements);
 };
 
-g.filters.stack = function (shapes, direction, margin) {
+g.stack = function (shapes, direction, margin) {
     if (shapes === null) { return []; }
     if (shapes.length <= 1) {
         return shapes;
@@ -3416,6 +3424,8 @@ g.filters.stack = function (shapes, direction, margin) {
     }
     return new_shapes;
 };
+
+////////// Colors //////////
 
 g.colors = {};
 
