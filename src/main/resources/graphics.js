@@ -1223,8 +1223,7 @@ g.combinePaths = function (shape) {
 
 g.shapePoints = function (shape) {
     if (shape.elements) {
-        var elements = _.filter(shape.elements, function (el) { return el.cmd !== g.CLOSE; });
-        return _.map(elements, function (el) { return el.point; });
+        return _.map(_.filter(shape.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
     }
     var i, points = [];
     for (i = 0; i < shape.shapes.length; i += 1) {

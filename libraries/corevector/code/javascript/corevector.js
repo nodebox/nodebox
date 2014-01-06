@@ -16,12 +16,7 @@ corevector.doNothing = function (shape) {
 corevector.makePoint = g.makePoint;
 
 corevector.point = function (v) {
-    if (v.x && v.y) {
-        return v;
-    }
-    if (v.elements) {
-        return _.map(_.filter(v.elements, function (el) { if (el.point) { return true; } return false; }), function (el) { return el.point; });
-    }
+    return v;
 };
 
 corevector.rect = g.rect;

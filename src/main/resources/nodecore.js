@@ -135,7 +135,7 @@ nodecore.evaluatePort = function (network, nodeName, portName) {
 
     // convert geometry to points -> improve this.
     var firstOfList = _.first(_.flatten(result));
-    if (firstOfList.bounds !== undefined && childPort.type === "point") {
+    if (firstOfList !== undefined && firstOfList.bounds !== undefined && childPort.type === "point") {
         result = _.flatten(_.map(result, g.shapePoints));
     }
     return result;
