@@ -4,6 +4,6 @@ color.color = function (c) {
     return c;
 };
 
-color.gray = g.colors.gray;
-color.rgb = g.colors.rgb;
-color.hsb = g.colors.hsb;
+color.gray = g.gray;
+color.rgb = g.rgb;
+color.hsb = g.hsb;
