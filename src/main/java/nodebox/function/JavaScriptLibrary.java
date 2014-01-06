@@ -36,6 +36,7 @@ final class JavaScriptLibrary extends FunctionLibrary {
         scope = context.initStandardObjects();
 
         loadSourceFromResource("underscore.js");
+        loadSourceFromResource("graphics.js");
         loadScript(this.file);
     }
 
