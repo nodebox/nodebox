@@ -2737,12 +2737,13 @@ g.star = function (position, points, outer, inner) {
 g.freehand = function (pathString) {
     var i, j, values, cmd,
         elements = [],
-        contours = _.filter(pathString.split("M"), _.isEmpty);
+        nonEmpty = function (s) { return s !== ""; },
+        contours = _.filter(pathString.split("M"), nonEmpty);
 
     contours = _.map(contours, function (c) { return c.replace(/,/g, " "); });
 
     for (j = 0; j < contours.length; j += 1) {
-        values = _.filter(contours[j].split(" "), _.isEmpty);
+        values = _.filter(contours[j].split(" "), nonEmpty);
         for (i = 0; i < values.length; i += 2) {
             if (values[i + 1] !== undefined) {
                 cmd = (i === 0) ? g.moveto : g.lineto;
