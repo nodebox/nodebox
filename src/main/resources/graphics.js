@@ -4,6 +4,28 @@
 /*---  Based on: canvas.js, https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
   ---  De Smedt T. & Daelemans W. (2012). Pattern for Python. Journal of Machine Learning Research. --*/
 
+// The Java rhino engine doesn't know the following variables, so to not break compatibility with the Java version of NodeBox,
+// we provide a fallback mechanism.
+if (typeof Uint8Array === 'undefined') {
+    var Uint8Array = Array;
+}
+
+if (typeof Float32Array === 'undefined') {
+    var Float32Array = Array;
+}
+
+if (Object.freeze === undefined) {
+    Object.freeze = function (o) {
+        return o;
+    };
+}
+
+if (Object.isFrozen === undefined) {
+    Object.isFrozen = function (o) {
+        return false;
+    };
+}
+
 var g = {};
 
 // deepFreeze code from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
