@@ -2675,9 +2675,13 @@ g.ellipse = function (position, width, height) {
     return g._ellipse(position.x - width / 2, position.y - height / 2, width, height);
 };
 
-g.line = function (point1, point2) {
-    return g.makePath(g._line(point1.x, point1.y, point2.x, point2.y),
+g.line = function (point1, point2, points) {
+    var line = g.makePath(g._line(point1.x, point1.y, point2.x, point2.y),
                       null, {'r': 0, 'g': 0, 'b': 0, 'a': 1}, 1.0);
+    if (points !== null && points > 2) {
+        line = line.resampleByAmount(10, false);
+    }
+    return line;
 };
 
 g.lineAngle = function (point, angle, distance) {
