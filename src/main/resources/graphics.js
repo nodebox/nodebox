@@ -1153,7 +1153,7 @@ g.Group.prototype.bounds = function () {
         }
         if ((shape.shapes && !_.isEmpty(shape.shapes)) ||
                 (shape.elements && !_.isEmpty(shape.elements))) {
-            r = g.unitedRect(r, shape.bounds());
+            r = r.unite(shape.bounds());
         }
     }
     return (r !== undefined) ? r : g.makeRect(0, 0, 0, 0);
@@ -2532,14 +2532,14 @@ g.svg.applySvgAttributes = function (node, shape) {
         }
     }
 
-    transform = g.IDENTITY;
+    transform = new g.Transform();
     for (i = 0; i < transforms.length; i += 1) {
         transform = g.append(transform, transforms[i]);
     }
 
     function applyAttributes(shape) {
         if (shape.elements) {
-            var elements = g.transformPath(shape, transform).elements,
+            var elements = transform.transformShape(shape).elements,
                 f = (fill === undefined) ? shape.fill : fill,
                 s = (stroke === undefined) ? shape.stroke : stroke,
                 sw = (strokeWidth === undefined) ? shape.strokeWidth : strokeWidth;
