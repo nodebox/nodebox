@@ -1221,6 +1221,18 @@ g.combinePaths = function (shape) {
     return elements;
 };
 
+g.shapePoints = function (shape) {
+    if (shape.elements) {
+        var elements = _.filter(shape.elements, function (el) { return el.cmd !== g.CLOSE; });
+        return _.map(elements, function (el) { return el.point; });
+    }
+    var i, points = [];
+    for (i = 0; i < shape.shapes.length; i += 1) {
+        points = points.concat(g.shapePoints(shape.shapes[i]));
+    }
+    return points;
+}
+
 g.combinePaths = g.frozen(g.combinePaths);
 
 g.Rect = function (x, y, width, height) {
