@@ -1230,7 +1230,7 @@ g.shapePoints = function (shape) {
         points = points.concat(g.shapePoints(shape.shapes[i]));
     }
     return points;
-}
+};
 
 g.combinePaths = g.frozen(g.combinePaths);
 
