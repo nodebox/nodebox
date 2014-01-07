@@ -1625,7 +1625,7 @@ g.makeColor = function (R, G, B, A, options) {
 
 //// Three-dimensional vectors //////////////////////////////////////////////
 
-g.Vector = function (x, y, z) {
+g.Vec3 = function (x, y, z) {
     this.x = x === undefined ? 0 : x;
     this.y = y === undefined ? 0 : y;
     this.z = z === undefined ? 0 : z;
@@ -1633,20 +1633,20 @@ g.Vector = function (x, y, z) {
 };
 
 // Generate the zero vector.
-g.Vector.ZERO = new g.Vector(0, 0, 0);
+g.Vec3.ZERO = new g.Vec3(0, 0, 0);
 
-g.Vector.up = function () {
-    return new g.Vector(0, 1.0, 0);
+g.Vec3.up = function () {
+    return new g.Vec3(0, 1.0, 0);
 };
 
 // Generate the dot product of two vectors.
-g.Vector.dot = function (a, b) {
+g.Vec3.dot = function (a, b) {
     return (a.x * b.x + a.y * b.y + a.z * b.z);
 };
 
 // Generate the cross product of two vectors.
-g.Vector.cross = function (a, b) {
-    return new g.Vector(
+g.Vec3.cross = function (a, b) {
+    return new g.Vec3(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x
@@ -1654,12 +1654,12 @@ g.Vector.cross = function (a, b) {
 };
 
 // Convert this vector to a string representation.
-g.Vector.prototype.toString = function () {
+g.Vec3.prototype.toString = function () {
     return '[' + this.x + ', ' + this.y + ', ' + this.z + ']';
 };
 
 // Convert this vector to an array.
-g.Vector.prototype.toArray = function () {
+g.Vec3.prototype.toArray = function () {
     var array = [];
     array.push(this.x);
     array.push(this.y);
@@ -1668,34 +1668,34 @@ g.Vector.prototype.toArray = function () {
 };
 
 // Calculate the length of this vector.
-g.Vector.prototype.getLength = function () {
+g.Vec3.prototype.getLength = function () {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
 };
 
 // Create a new vector that is this vector, normalized.
-g.Vector.prototype.normalize = function () {
+g.Vec3.prototype.normalize = function () {
     var len, c;
     len = this.getLength();
     if (len === 0) {
         return this;
     }
     c = 1.0 / len;
-    return new g.Vector(this.x * c, this.y * c, this.z * c);
+    return new g.Vec3(this.x * c, this.y * c, this.z * c);
 };
 
 // Create a new vector that is the addition of this vector and the given vector.
-g.Vector.prototype.add = function (o) {
-    return new g.Vector(this.x + o.x, this.y + o.y, this.z + o.z);
+g.Vec3.prototype.add = function (o) {
+    return new g.Vec3(this.x + o.x, this.y + o.y, this.z + o.z);
 };
 
 // Create a new vector that is the subtraction of this vector and the given vector.
-g.Vector.prototype.subtract = function (o) {
-    return new g.Vector(this.x - o.x, this.y - o.y, this.z - o.z);
+g.Vec3.prototype.subtract = function (o) {
+    return new g.Vec3(this.x - o.x, this.y - o.y, this.z - o.z);
 };
 
 // Transform the vector according to the matrix and return the result.
 // A new vector is created, nothing is modified.
-g.Vector.prototype.transform = function (matrix4) {
+g.Vec3.prototype.transform = function (matrix4) {
     var x, y, z, w, matrix;
 
     matrix = matrix4;
@@ -1704,7 +1704,7 @@ g.Vector.prototype.transform = function (matrix4) {
     z = (this.x * matrix.m[2]) + (this.y * matrix.m[6]) + (this.z * matrix.m[10]) + matrix.m[14];
     w = (this.x * matrix.m[3]) + (this.y * matrix.m[7]) + (this.z * matrix.m[11]) + matrix.m[15];
 
-    return new g.Vector(x / w, y / w, z / w);
+    return new g.Vec3(x / w, y / w, z / w);
 };
 
 
@@ -1883,12 +1883,12 @@ g.Matrix4.lookAt = function (eye, target, up) {
     var m, zAxis, xAxis, yAxis, ex, ey, ez;
     m = new Float32Array(16);
     zAxis = target.subtract(eye).normalize();
-    xAxis = g.Vector.cross(up, zAxis).normalize();
-    yAxis = g.Vector.cross(zAxis, xAxis).normalize();
+    xAxis = g.Vec3.cross(up, zAxis).normalize();
+    yAxis = g.Vec3.cross(zAxis, xAxis).normalize();
 
-    ex = -g.Vector.dot(xAxis, eye);
-    ey = -g.Vector.dot(yAxis, eye);
-    ez = -g.Vector.dot(zAxis, eye);
+    ex = -g.Vec3.dot(xAxis, eye);
+    ey = -g.Vec3.dot(yAxis, eye);
+    ez = -g.Vec3.dot(zAxis, eye);
 
     m[0] = xAxis.x;
     m[1] = yAxis.x;
