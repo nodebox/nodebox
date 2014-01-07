@@ -127,6 +127,7 @@ math.sample = function (amount, start, end) {
     if (amount === 0) return [];
     if (amount === 1) return [start + (end - start) / 2];
 
+    amount = Math.floor(amount);
     var step = (end - start) / (amount - 1);
     var values = [];
     for (var i=0;i<amount;i++) {
