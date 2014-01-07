@@ -27,6 +27,7 @@ public class DataSheet extends JPanel implements OutputView {
     public DataSheet() {
         super(new BorderLayout());
         table = new DataTable();
+        table.setAutoCreateRowSorter(true);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         table.addColumn(new TableColumn(0));
         tableModel = new DataTableModel();
