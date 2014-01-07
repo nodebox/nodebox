@@ -2,6 +2,27 @@
 
 var data = {};
 
+data.getCSVParser = function () {
+    if (data._csv === undefined) {
+        var jQuery = {};
+        (function f() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'jquery.csv.js', false);
+            xhr.onreadystatechange = function(){
+                if (xhr.readyState === 4) {
+                    if(window.location.protocol === "file:" || xhr.status === 200) {
+                        eval(xhr.response);
+                        //onCompleteFunction(assetURL, xhr.response);
+                    }
+                }
+            };
+            xhr.send(null);
+        })();
+        data._csv = jQuery.csv;
+    }
+    return data._csv;
+}
+
 data.separators = {"period": '.',
                    "comma": ',',
                    "semicolon": ';',
@@ -14,44 +35,39 @@ data.separators = {"period": '.',
 // will serve as keys for the maps we return.
 //
 // url                 - The url of the file to read in.
-// delimiter           - The name of the character delimiting column values.
+// separator           - The name of the character separating column values.
 // quotationCharacter  - The name of the character acting as the quotation separator.
 // numberSeparator     - The character used to separate the fractional part.
 //
 // Returns A list of maps.
-data.importCSV = function (url, delimiter, quotationCharacter, numberSeparator) {
-    delimiter = delimiter || ',';
+data.importCSV = function (url, separator, quotationCharacter, numberSeparator) {
+    separator = data.separators[separator] || ',';
     quotationCharacter = quotationCharacter || '"';
     numberSeparator = numberSeparator || '.';
 
-    var d = ndbx.assets['data/' + url];
-    var sep = data.separators[delimiter];
-    var nanCols = {};
-    // Split by rows
-    var rows = d.split("\n");
-    var headerRow = rows[0].split(sep);
-    for (var i = 0; i < headerRow.length; i += 1) {
-        nanCols[headerRow[i]] = false;
-    }
-    var dd= _.map(rows.slice(1), function (row) {
-        var obj = {};
-        row = row.split(sep);
-        for (var i = 0; i < row.length; i++) {
-            if (isNaN(row[i])) {
-                nanCols[headerRow[i]] = true;
-            }
-            obj[headerRow[i]] = row[i];
-        }
-        return obj;
-    });
-    for (var i = 0; i < headerRow.length; i += 1) {
-        if (!nanCols[headerRow[i]]) {
-            _.each(dd, function (obj) {
-              obj[headerRow[i]] = parseFloat(obj[headerRow[i]]);
+    var d = ndbx.assets['data/' + url],
+        options = {separator: separator, delimiter: quotationCharacter},
+        csv = data.getCSVParser(),
+        objects = csv.toObjects(d);
+
+    if (!_.isEmpty(objects)) {
+        _.each(Object.keys(objects[0]), function(name) {
+            var nan = false;
+            _.each(objects, function(obj) {
+                if (isNaN(obj[name])) {
+                    nan = true;
+                }
             });
-        }
+            if (!nan) {
+                _.each(objects, function(obj) {
+                    obj[name] = parseFloat(obj[name]);
+                });
+            }
+        });
+
     }
-    return dd;
+
+    return objects;
 };
 
 // Lookup a key in an object.

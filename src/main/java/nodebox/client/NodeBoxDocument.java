@@ -1538,7 +1538,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
 
         // Copy core JavaScript libraries.
-        copyResourceToDirectory("/jquery.js", exportDirectory);
+        copyResourceToDirectory("/jquery.csv.js", exportDirectory);
         copyResourceToDirectory("/underscore.js", exportDirectory);
         copyResourceToDirectory("/graphics.js", exportDirectory);
         copyResourceToDirectory("/nodecore.js", exportDirectory);
@@ -1551,9 +1551,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         try {
             PrintWriter out = new PrintWriter(htmlFile);
             out.write("<html><head>\n");
-            out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>");
+            out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>\n");
             out.write("<script src=\"underscore.js\"></script>\n");
-            out.write("<script src=\"jquery.js\"></script>\n");
             out.write("<script src=\"graphics.js\"></script>\n");
             out.write("<script src=\"nodecore.js\"></script>\n");
             for (File f : javaScriptLibraries) {
