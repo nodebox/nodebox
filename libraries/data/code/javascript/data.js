@@ -2,13 +2,13 @@
 
 var data = {};
 
-data.separators = {period: '.',
-                   comma: ',',
-                   semicolon: ';',
-                   tab: '\t',
-                   space: ' ',
-                   double: '"',
-                   single: '\''};
+data.separators = {"period": '.',
+                   "comma": ',',
+                   "semicolon": ';',
+                   "tab": '\t',
+                   "space": ' ',
+                   "double": '\"',
+                   "single": '\''};
 
 // Import a CSV file from a file and return a list of maps. The first row is parsed as the header row: its names
 // will serve as keys for the maps we return.
