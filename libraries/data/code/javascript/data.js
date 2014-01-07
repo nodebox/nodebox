@@ -2,6 +2,14 @@
 
 var data = {};
 
+data.separators = {period: '.',
+                   comma: ',',
+                   semicolon: ';',
+                   tab: '\t',
+                   space: ' ',
+                   double: '"',
+                   single: '\''};
+
 // Import a CSV file from a file and return a list of maps. The first row is parsed as the header row: its names
 // will serve as keys for the maps we return.
 //
@@ -16,26 +24,34 @@ data.importCSV = function (url, delimiter, quotationCharacter, numberSeparator) 
     quotationCharacter = quotationCharacter || '"';
     numberSeparator = numberSeparator || '.';
 
-    if (/^http(s)?::\//.test(url)) {
-        // TODO Importing a file should happen using an asynchronous request.
-    } else {
-        // TODO The parsing doesn't take quotation into account.
-        // Assume the url is the actual data of the CSV file to import.
-        var data = url;
-
-        // Split by rows
-        var rows = data.split("\n");
-        var headerRow = rows[0].split(delimiter);
-
-        return _.map(rows.slice(1), function (row) {
-            var obj = {};
-            row = row.split(delimiter);
-            for (var i = 0; i < row.length; i++) {
-                obj[headerRow[i]] = row[i];
-            }
-            return obj;
-        });
+    var d = ndbx.assets['data/' + url];
+    var sep = data.separators[delimiter];
+    var nanCols = {};
+    // Split by rows
+    var rows = d.split("\n");
+    var headerRow = rows[0].split(sep);
+    for (var i = 0; i < headerRow.length; i += 1) {
+        nanCols[headerRow[i]] = false;
     }
+    var dd= _.map(rows.slice(1), function (row) {
+        var obj = {};
+        row = row.split(sep);
+        for (var i = 0; i < row.length; i++) {
+            if (isNaN(row[i])) {
+                nanCols[headerRow[i]] = true;
+            }
+            obj[headerRow[i]] = row[i];
+        }
+        return obj;
+    });
+    for (var i = 0; i < headerRow.length; i += 1) {
+        if (!nanCols[headerRow[i]]) {
+            _.each(dd, function (obj) {
+              obj[headerRow[i]] = parseFloat(obj[headerRow[i]]);
+            });
+        }
+    }
+    return dd;
 };
 
 // Lookup a key in an object.
@@ -44,7 +60,7 @@ data.lookup = function (obj, key) {
     if (key === null) return null;
     var keys = key.split(".");
     for (var i = 0; i < keys.length; i++) {
-        obj = data._fastLookup(obj, key[i]);
+        obj = data._fastLookup(obj, keys[i]);
         if (obj === null) break;
     }
     return obj;
