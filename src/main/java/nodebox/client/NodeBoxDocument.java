@@ -1553,7 +1553,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             out.write("<html><head>\n");
             out.write("<link rel=\"stylesheet\" href=\"ndbx.css\"/>\n");
             out.write("<script src=\"underscore.js\"></script>\n");
-            out.write("<script src=\"jquery.csv.js\"></script>\n");
             out.write("<script src=\"graphics.js\"></script>\n");
             out.write("<script src=\"nodecore.js\"></script>\n");
             for (File f : javaScriptLibraries) {
