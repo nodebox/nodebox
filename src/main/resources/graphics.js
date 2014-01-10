@@ -1209,8 +1209,15 @@ g.Group.prototype.draw = function (ctx) {
     }
 };
 
-g.makeGroup = function (shapes) {
+g.makeGroup = g.group = function (shapes) {
     return new g.Group(shapes);
+};
+
+// Combine all given shape arguments into a new group.
+// This function works like makeGroup, except that this can take any number
+// of arguments.
+g.merge = function () {
+    return g.makeGroup(arguments);
 };
 
 g.combinePaths = function (shape) {
@@ -3357,8 +3364,6 @@ g.sort = function (shapes, orderBy, point) {
     });
     return newShapes;
 };
-
-g.group = g.makeGroup;
 
 g.ungroup = function (shape) {
     if (shape.shapes) {
