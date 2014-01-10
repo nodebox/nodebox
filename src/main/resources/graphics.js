@@ -1126,8 +1126,9 @@ g.makePath = function (pe, fill, stroke, strokeWidth) {
 };
 
 g.Group = function (shapes) {
-    this.shapes = [];
-    if (shapes.shapes || shapes.elements) {
+    if (!shapes) {
+        this.shapes = [];
+    } else if (shapes.shapes || shapes.elements) {
         this.shapes = [shapes];
     } else if (shapes) {
         this.shapes = shapes;
