@@ -875,7 +875,7 @@ g.Path.prototype.curveTo = function (c1x, c1y, c2x, c2y, x, y) {
     return this.extend(g.curveto(c1x, c1y, c2x, c2y, x, y));
 };
 
-g.Path.prototype.closePath = function () {
+g.Path.prototype.closePath = g.Path.prototype.close = function () {
     return this.extend(g.closePath());
 };
 
