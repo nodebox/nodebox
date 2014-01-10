@@ -2907,6 +2907,7 @@ g.copy = function (shape, copies, order, translate, rotate, scale) {
 
 g.fit = function (shape, position, width, height, keepProportions) {
     if (shape === null) { return null; }
+    keepProportions = keepProportions !== undefined ? keepProportions : true;
     var t, sx, sy,
         bounds = shape.bounds(),
         bx = bounds.x,
