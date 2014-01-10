@@ -2845,7 +2845,7 @@ g.skew = function (shape, skew, origin) {
 };
 
 g.copy = function (shape, copies, order, translate, rotate, scale) {
-    var i, t,
+    var i, t, j, op,
         shapes = [],
         tx = 0,
         ty = 0,
@@ -2854,7 +2854,8 @@ g.copy = function (shape, copies, order, translate, rotate, scale) {
         sy = 1.0;
     for (i = 0; i < copies; i += 1) {
         t = new g.Transform();
-        _.each(order, function (op) {
+        for (j = 0; j < order.length; j += 1) {
+            op = order[j];
             if (op === 't') {
                 t = t.translate(tx, ty);
             } else if (op === 'r') {
@@ -2862,7 +2863,7 @@ g.copy = function (shape, copies, order, translate, rotate, scale) {
             } else if (op === 's') {
                 t = t.scale(sx, sy);
             }
-        });
+        }
         shapes.push(t.transformShape(shape));
 
         tx += translate.x;
