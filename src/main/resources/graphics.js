@@ -566,6 +566,10 @@ g.Point.prototype.add = function (v) {
     return new g.Point(this.x + v.x, this.y + v.y);
 };
 
+g.Point.prototype.subtract = g.Point.prototype.sub = function (v) {
+    return new g.Point(this.x - v.x, this.y - v.y);
+};
+
 g.Point.prototype.divide = function (n) {
     return new g.Point(this.x / n, this.y / n);
 };
@@ -578,17 +582,43 @@ g.Point.prototype.magnitude = function () {
     return Math.sqrt(this.x * this.x + this.y * this.y);
 };
 
+g.Point.prototype.magnitudeSquared = function () {
+    return this.x * this.x + this.y * this.y;
+};
+
+g.Point.prototype.heading = function () {
+    return Math.atan2(this.y, this.x);
+};
+
+g.Vec2.prototype.distanceTo = function (v) {
+    var dx = this.x - v.x,
+        dy = this.y - v.y;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
 g.Point.prototype.normalize = function () {
     var m = this.magnitude();
     if (m !== 0) {
         return this.divide(m);
     } else {
-        return 0;
+        return g.Point.ZERO;
     }
+};
+
+g.Point.prototype.limit = function (speed) {
+    if (this.magnitudeSquared() > speed * speed) {
+        return this.normalize().multiply(speed);
+    }
+    return this;
 };
 
 g.Point.prototype.translate = function (tx, ty) {
     return new g.Point(this.x + tx, this.y + ty);
+};
+
+g.Point.prototype.scale = function (sx, sy) {
+    sy = sy !== undefined ? sy : sx;
+    return new g.Point(this.x * sx, this.y * sy);
 };
 
 g.Point.prototype.toString = function () {
@@ -600,9 +630,9 @@ g.makePoint = function (x, y) {
 };
 
 g.Particle = function (position, velocity, acceleration, mass, lifespan) {
-    this.position = position !== undefined ? position : g.Vec2.ZERO;
-    this.velocity = velocity !== undefined ? velocity : g.Vec2.ZERO;
-    this.acceleration = acceleration !== undefined ? acceleration : g.Vec2.ZERO;
+    this.position = position !== undefined ? position : g.Point.ZERO;
+    this.velocity = velocity !== undefined ? velocity : g.Point.ZERO;
+    this.acceleration = acceleration !== undefined ? acceleration : g.Point.ZERO;
     this.mass = mass !== undefined ? mass : 1;
     this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;
     g.deepFreeze(this);
