@@ -557,7 +557,7 @@ g.bezier.extrema = function (p1, p2, p3, p4) {
 g.Point = g.Vec2 = function (x, y) {
     this.x = x;
     this.y = y;
-    g.deepFreeze(this);
+    Object.freeze(this);
 };
 
 g.Point.ZERO = new g.Point(0, 0);
