@@ -2026,6 +2026,7 @@ g.drawCommand = function (ctx, command) {
 g._getColor = function (c) {
     if (c === null) { return "none"; }
     if (c === undefined) { return "black"; }
+    if (typeof c === 'string') { return c; }
     if (c instanceof g.Color) { return c._get(); }
     return new g.Color(c)._get();
 };
