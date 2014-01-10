@@ -2771,30 +2771,31 @@ g.freehand = function (pathString) {
     return g.makePath(elements, null, {"r": 0, "g": 0, "b": 0, "a": 1}, 1);
 };
 
+// Create a grid of points.
 g.grid = function (columns, rows, width, height, position) {
-    // Create a grid of points.
-    var column_size, left, row_size, top, x, y,
+    var columnSize, left, rowSize, top, rowIndex, colIndex, x, y,
         points = [];
+    position = position !== undefined ? position : g.Point.ZERO;
     if (columns > 1) {
-        column_size = width / (columns - 1);
+        columnSize = width / (columns - 1);
         left = position.x - width / 2;
     } else {
-        column_size = left = position.x;
+        columnSize = left = position.x;
     }
     if (rows > 1) {
-        row_size = height / (rows - 1);
+        rowSize = height / (rows - 1);
         top = position.y - height / 2;
     } else {
-        row_size = top = position.y;
+        rowSize = top = position.y;
     }
 
-    _.each(_.range(rows), function (ri) {
-        _.each(_.range(columns), function (ci) {
-            x = left + ci * column_size;
-            y = top + ri * row_size;
+    for (rowIndex = 0; rowIndex < rows; rowIndex += 1) {
+        for (colIndex = 0; colIndex < columns; colIndex += 1) {
+            x = left + colIndex * columnSize;
+            y = top + rowIndex * rowSize;
             points.push(g.makePoint(x, y));
-        });
-    });
+        }
+    }
     return Object.freeze(points);
 };
 
