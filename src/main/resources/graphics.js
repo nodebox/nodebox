@@ -1,4 +1,4 @@
-/*jslint sloppy:true, nomen:true, bitwise:true */
+/*jslint sloppy:true, nomen:true, bitwise:true, regexp:true */
 /*global _,Uint8Array,Float32Array,console  */
 
 /*---  Based on: canvas.js, https://github.com/clips/pattern/blob/master/pattern/canvas.js (BSD)
