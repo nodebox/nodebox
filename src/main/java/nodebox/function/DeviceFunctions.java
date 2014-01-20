@@ -165,12 +165,12 @@ public class DeviceFunctions {
     }
 
     public static List<Double> audioAnalysis(String deviceName, long averages, NodeContext context) {
-        AudioPlayer player = (AudioPlayer) context.getData().get(deviceName + ".player");
-        if (player == null) return ImmutableList.of();
-        FFT fft = new FFT( player.bufferSize(), player.sampleRate() );
+        AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
+        if (source == null) return ImmutableList.of();
+        FFT fft = new FFT( source.bufferSize(), source.sampleRate() );
         if (averages > 0)
             fft.linAverages((int) averages);
-        fft.forward( player.mix );
+        fft.forward( source.mix );
         ImmutableList.Builder<Double> b = new ImmutableList.Builder<Double>();
         if (averages == 0) {
             for (int i = 0; i < fft.specSize(); i++)

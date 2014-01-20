@@ -9,6 +9,8 @@ public class DeviceHandlerFactory {
             return createOSCDeviceHandler(device);
         else if (device.getType().equals(Device.TYPE_AUDIOPLAYER))
             return createAudioPlayerDeviceHandler(device);
+        else if (device.getType().equals(Device.TYPE_AUDIOINPUT))
+            return createAudioInputDeviceHandler(device);
         return null;
     }
 
@@ -24,6 +26,11 @@ public class DeviceHandlerFactory {
     private static DeviceHandler createAudioPlayerDeviceHandler(Device device) {
         String fileName = device.getProperty("filename", "");
         AudioPlayerDeviceHandler handler = new AudioPlayerDeviceHandler(device.getName(), fileName);
+        return handler;
+    }
+
+    private static DeviceHandler createAudioInputDeviceHandler(Device device) {
+        AudioInputDeviceHandler handler = new AudioInputDeviceHandler(device.getName());
         return handler;
     }
 }

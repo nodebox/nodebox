@@ -14,7 +14,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class Device {
     public static final String TYPE_OSC = "osc";
     public static final String TYPE_AUDIOPLAYER = "audioplayer";
-    public static final ImmutableList<String> deviceTypes = ImmutableList.of(TYPE_OSC, TYPE_AUDIOPLAYER);
+    public static final String TYPE_AUDIOINPUT = "audioinput";
+
+    public static final ImmutableList<String> deviceTypes = ImmutableList.of(TYPE_OSC, TYPE_AUDIOPLAYER, TYPE_AUDIOINPUT);
 
     private final String name;
     private final String type;
@@ -90,6 +92,7 @@ public class Device {
 
     private boolean isValidProperty(String name) {
         checkNotNull(name);
+        if (!validPropertyNames.containsKey(getType())) return false;
         return validPropertyNames.get(getType()).matcher(name).matches();
     }
 
