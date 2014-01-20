@@ -549,6 +549,53 @@ def resample(shape, method, length, points, per_contour=False):
     else:
         return shape.resampleByAmount(points, per_contour)
 
+def _construct_path(path, points):
+    segments = []
+    d = {}
+    i = 0
+    for pt in points:
+        if i == 0:
+            d["in"] = pt
+        elif i == 1:
+            d["pt"] = pt
+        elif i == 2:
+            d["out"] = pt
+        i += 1
+        if i == 3:
+            segments.append(d)
+            i = 0
+            d = {}
+    stuff = []
+    for i in range(len(segments) + 1):
+        seg = segments[i % len(segments)]
+        if i == 0:
+            stuff.append({"cmd": "moveto", "pt": seg["pt"]})
+        else:
+            d = {"cmd": "curveto", "pt": seg["pt"], "ctrl1": segments[i-1]["out"], "ctrl2": seg["in"]}
+            stuff.append(d)
+    for el in stuff:
+        if el["cmd"] == "moveto":
+            path.moveto(el["pt"].x, el["pt"].y)
+        elif el["cmd"] == "curveto":
+            path.curveto(el["ctrl1"].x, el["ctrl1"].y, el["ctrl2"].x, el["ctrl2"].y, el["pt"].x, el["pt"].y)
+
+@_map_geo_to_paths
+def round_segments(path, d):
+    points = path.points
+    new_points = []
+    for i, pt in enumerate(points):
+        prev = points[i - 1]
+        next = points[(i + 1) % len(points)]
+        a = angle(prev.x, prev.y, next.x, next.y)
+        c1 = coordinates(pt.x, pt.y, -d, a)
+        c2 = coordinates(pt.x, pt.y, d, a)
+        new_points.append(Point(c1[0], c1[1]))
+        new_points.append(pt)
+        new_points.append(Point(c2[0], c2[1]))
+    new_path = path.cloneAndClear()
+    _construct_path(new_path, new_points)
+    return new_path
+
 def scatter(shape, amount, seed):
     """Generate points within the boundaries of a shape."""
     if shape is None: return None

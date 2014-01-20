@@ -194,6 +194,9 @@
             <port name="angle" range="value" type="float" value="0.0" widget="float" description="The rotation angle (in degrees)."/>
             <port name="origin" range="value" type="point" value="0.0,0.0" widget="point" description="The point around which to rotate."/>
         </node>
+        <node description="Transform the straight corners of a shape into curvy ones." function="pyvector/round_segments" name="round_segments" position="16.00,11.00" prototype="filter">
+            <port name="d" range="value" type="float" value="10.0" widget="float" description="The distance from the control points to the corner point."/>
+        </node>
         <node description="Resize the shape by scaling it." function="pyvector/scale" handle="pyvector/handle_scale" image="scale.png" name="scale" position="13.00,16.00" prototype="filter">
             <port name="scale" range="value" type="point" value="100.00,100.00" widget="point" description="The scale factor."/>
             <port name="origin" range="value" type="point" value="0.0,0.0" widget="point" description="The point around which to scale."/>
