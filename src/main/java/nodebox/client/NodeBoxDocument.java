@@ -1606,7 +1606,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
         final JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());
-        frame.setSize(600, 600);
+        frame.setSize(getCanvasWidth(), getCanvasHeight());
         frame.setTitle("Exporting...");
         frame.add(viewer, BorderLayout.CENTER);
         frame.setLocationRelativeTo(null);
