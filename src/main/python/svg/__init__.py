@@ -9,11 +9,11 @@ __version__   = "1.9.4.4"
 __copyright__ = "Copyright (c) 2007 Tom De Smedt"
 __license__   = "GPL"
 
-import arc
 import xml.dom.minidom as parser
 import re
 import md5
-from nodebox.graphics import Path, Color
+from math import sin, cos, pi, ceil, atan2, sqrt
+from nodebox.graphics import Path, Color, Point, Transform, Geometry
 
 #### CACHE ###########################################################################################
 
@@ -206,193 +206,241 @@ def parse_polygon(e):
 
 #--- PATH --------------------------------------------------------------------------------------------
 
+class PathParser(object):
+    def __init__(self, d):
+        self.tokens = [el for el in d.split(" ") if el]
+
+    def reset(self):
+        self.i = -1
+        self.command = ''
+        self.previousCommand = ''
+        self.start = Point.ZERO
+        self.control = Point.ZERO
+        self.current = Point.ZERO
+        self.points = []
+        self.angles = []
+
+    def isEnd(self):
+        return self.i >= len(self.tokens) - 1
+
+    def isCommandOrEnd(self):
+        if self.isEnd(): return True
+        return re.match("^[A-Za-z]$", self.tokens[self.i + 1]) != None
+
+    def isRelativeCommand(self):
+        return self.command in ['m', 'l', 'h', 'v', 'c', 's', 'q', 't', 'a', 'z']
+
+    def getToken(self):
+        self.i += 1
+        return self.tokens[self.i]
+
+    def getScalar(self):
+        t = self.getToken()
+        return float(t)
+#        return float(self.getToken())
+
+    def nextCommand(self):
+        self.previousCommand = self.command
+        self.command = self.getToken()
+
+    def getPoint(self):
+        pt = Point(self.getScalar(), self.getScalar())
+        return self.makeAbsolute(pt)
+
+    def getAsControlPoint(self):
+        pt = self.getPoint()
+        self.control = pt
+        return pt
+
+    def getAsCurrentPoint(self):
+        pt = self.getPoint()
+        self.current = pt
+        return pt
+
+    def getReflectedControlPoint(self):
+        if self.previousCommand.lower() != 'c' and\
+                self.previousCommand.lower() != 's' and\
+                self.previousCommand.lower() != 'q' and\
+                self.previousCommand.lower() != 't':
+            return self.current
+
+        # reflect point
+        pt = Point(2 * self.current.x - self.control.x, 2 * self.current.y - self.control.y)
+        return pt
+
+    def makeAbsolute(self, p):
+        if self.isRelativeCommand():
+            return Point(p.x + self.current.x, p.y + self.current.y)
+        return p
+
+
+# Arc construction, code ported from fabric.js: http://fabricjs.com
+def arcToSegments(x, y, rx, ry, large, sweep, rotateX, ox, oy):
+    th = rotateX * (pi / 180)
+    sin_th = sin(th)
+    cos_th = cos(th)
+    rx = abs(rx)
+    ry = abs(ry)
+    px = cos_th * (ox - x) * 0.5 + sin_th * (oy - y) * 0.5
+    py = cos_th * (oy - y) * 0.5 - sin_th * (ox - x) * 0.5
+    pl = (px * px) / (rx * rx) + (py * py) / (ry * ry)
+    if pl > 1:
+        pl = sqrt(pl)
+        rx *= pl
+        ry *= pl
+
+    a00 = cos_th / rx
+    a01 = sin_th / rx
+    a10 = (-sin_th) / ry
+    a11 = cos_th / ry
+    x0 = a00 * ox + a01 * oy
+    y0 = a10 * ox + a11 * oy
+    x1 = a00 * x + a01 * y
+    y1 = a10 * x + a11 * y
+
+    d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)
+    sfactor_sq = 1 / d - 0.25
+    if (sfactor_sq < 0): sfactor_sq = 0
+    sfactor = sqrt(sfactor_sq)
+    if (sweep == large): sfactor = -sfactor
+    xc = 0.5 * (x0 + x1) - sfactor * (y1 - y0)
+    yc = 0.5 * (y0 + y1) + sfactor * (x1 - x0)
+
+    th0 = atan2(y0 - yc, x0 - xc)
+    th1 = atan2(y1 - yc, x1 - xc)
+
+    th_arc = th1 - th0
+    if th_arc < 0 and sweep == 1:
+        th_arc += 2 * pi
+    elif th_arc > 0 and sweep == 0:
+        th_arc -= 2 * pi
+
+    segments = ceil(abs(th_arc / (pi * 0.5 + 0.001)))
+    result = []
+    for i in range(segments):
+        th2 = th0 + i * th_arc / segments
+        th3 = th0 + (i + 1) * th_arc / segments
+        result.append([xc, yc, th2, th3, rx, ry, sin_th, cos_th])
+
+    return result
+
+def segmentToBezier(cx, cy, th0, th1, rx, ry, sin_th, cos_th):
+    a00 = cos_th * rx
+    a01 = -sin_th * ry
+    a10 = sin_th * rx
+    a11 = cos_th * ry
+
+    th_half = 0.5 * (th1 - th0)
+    t = (8 / 3) * sin(th_half * 0.5) * sin(th_half * 0.5) / sin(th_half)
+    x1 = cx + cos(th0) - t * sin(th0)
+    y1 = cy + sin(th0) + t * cos(th0)
+    x3 = cx + cos(th1)
+    y3 = cy + sin(th1)
+    x2 = x3 + t * sin(th1)
+    y2 = y3 - t * cos(th1)
+
+    return [
+        a00 * x1 + a01 * y1, a10 * x1 + a11 * y1,
+        a00 * x2 + a01 * y2, a10 * x2 + a11 * y2,
+        a00 * x3 + a01 * y3, a10 * x3 + a11 * y3
+    ]
+
+# Individual path construction ported from canvg library: https://code.google.com/p/canvg/
 def parse_path(e):
 
     d = get_attribute(e, "d", default="")
-    
-    # Divide the path data string into segments.
-    # Each segment starts with a path command,
-    # usually followed by coordinates.
-    segments = []
-    i = 0
-    for j in range(len(d)):
-        commands = ["M", "m", "Z", "z", "L", "l", "H", "h", "V", "v", "C","c", "S", "s", "A"]
-        if d[j] in commands:
-            segments.append(d[i:j].strip())
-            i = j
-    segments.append(d[i:].strip())
-    segments.remove("")
-    
-    previous_command = ""
-    
-    # Path origin (moved by MOVETO).
-    x0 = 0
-    y0 = 0
-    
-    # The current point in the path.
-    dx = 0
-    dy = 0
-    
-    # The previous second control handle.
-    dhx = 0
-    dhy = 0
-    
+    d = re.sub(r",", r" ", d) # get rid of all commas
+    d = re.sub(r"([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])", r"\1 \2", d) # separate commands from commands
+    d = re.sub(r"([MmZzLlHhVvCcSsQqTtAa])([MmZzLlHhVvCcSsQqTtAa])", r"\1 \2", d) # separate commands from commands
+    d = re.sub(r"([MmZzLlHhVvCcSsQqTtAa])([^\s])", r"\1 \2", d) # separate commands from points
+    d = re.sub(r"([^\s])([MmZzLlHhVvCcSsQqTtAa])", r"\1 \2", d) # separate commands from points
+    d = re.sub(r"([0-9])([+\-])", r"\1 \2", d) # separate digits when no comma
+    d = re.sub(r"(\.[0-9]*)(\.)", r"\1 \2", d) # separate digits when no comma
+    d = re.sub(r"([Aa](\s+[0-9]+){3})\s+([01])\s*([01])", r"\1 \3 \4 ", d) # shorthand elliptical arc path syntax
+    d = re.sub(r"[\s\r\t\n]+", r" ", d)
+    d = d.strip()
+
     path = Path()
+    pp = PathParser(d)
+    pp.reset()
 
-    for segment in segments:
-        
-        command = segment[0]
-
-        if command in ["Z", "z"]:
+    while not pp.isEnd():
+        pp.nextCommand()
+        command = pp.command.lower()
+        if command == 'm':
+            p = pp.getAsCurrentPoint()
+            path.moveto(p.x, p.y)
+            pp.start = pp.current
+            while not pp.isCommandOrEnd():
+                p = pp.getAsCurrentPoint()
+                path.lineto(p.x, p.y)
+        elif command == 'l':
+            while not pp.isCommandOrEnd():
+                p = pp.getAsCurrentPoint()
+                path.lineto(p.x, p.y)
+        elif command == 'h':
+            while not pp.isCommandOrEnd():
+                newP = Point((pp.isRelativeCommand() and pp.current.x or 0) + pp.getScalar(), pp.current.y)
+                pp.current = newP
+                path.lineto(pp.current.x, pp.current.y)
+        elif command == 'v':
+            while not pp.isCommandOrEnd():
+                newP = Point(pp.current.x, (pp.isRelativeCommand() and pp.current.y or 0) + pp.getScalar())
+                pp.current = newP
+                path.lineto(pp.current.x, pp.current.y)
+        elif command == 'c':
+            while not pp.isCommandOrEnd():
+                curr = pp.current
+                p1 = pp.getPoint()
+                cntrl = pp.getAsControlPoint()
+                cp = pp.getAsCurrentPoint()
+                path.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y)
+        elif command == 's':
+            while not pp.isCommandOrEnd():
+                curr = pp.current
+                p1 = pp.getReflectedControlPoint()
+                cntrl = pp.getAsControlPoint()
+                cp = pp.getAsCurrentPoint()
+                path.curveto(p1.x, p1.y, cntrl.x, cntrl.y, cp.x, cp.y)
+        elif command == 'q':
+            while not pp.isCommandOrEnd():
+                curr = pp.current
+                cntrl = pp.getAsControlPoint()
+                cp = pp.getAsCurrentPoint()
+                cp1x = curr.x + 2 / 3.0 * (cntrl.x - curr.x) # CP1 = QP0 + 2 / 3 *(QP1-QP0)
+                cp1y = curr.y + 2 / 3.0 * (cntrl.y - curr.y) # CP1 = QP0 + 2 / 3 *(QP1-QP0)
+                cp2x = cp1x + 1 / 3.0 * (cp.x - curr.x) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
+                cp2y = cp1y + 1 / 3.0 * (cp.y - curr.y) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
+                g.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y)
+        elif command == 't':
+            while not pp.isCommandOrEnd():
+                curr = pp.current
+                cntrl = pp.getReflectedControlPoint()
+                pp.control = cntrl
+                cp = pp.getAsCurrentPoint()
+                cp1x = curr.x + 2 / 3.0 * (cntrl.x - curr.x) # CP1 = QP0 + 2 / 3 *(QP1-QP0)
+                cp1y = curr.y + 2 / 3.0 * (cntrl.y - curr.y) # CP1 = QP0 + 2 / 3 *(QP1-QP0)
+                cp2x = cp1x + 1 / 3.0 * (cp.x - curr.x) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
+                cp2y = cp1y + 1 / 3.0 * (cp.y - curr.y) # CP2 = CP1 + 1 / 3 *(QP2-QP0)
+                path.curveto(cp1x, cp1y, cp2x, cp2y, cp.x, cp.y)
+        elif command == 'a':
+            while not pp.isCommandOrEnd():
+                curr = pp.current
+                rx = pp.getScalar()
+                ry = pp.getScalar()
+                rot = pp.getScalar() # * (math.pi / 180.0)
+                large = pp.getScalar()
+                sweep = pp.getScalar()
+                cp = pp.getAsCurrentPoint()
+                ex = cp.x
+                ey = cp.y
+                segs = arcToSegments(ex, ey, rx, ry, large, sweep, rot, curr.x, curr.y)
+                for seg in segs:
+                    bez = segmentToBezier(*seg)
+                    path.curveto(*bez)
+        elif command == 'z':
             path.close()
-        else:
-            # The command is a pen move, line or curve.
-            # Get the coordinates.
-            points = segment[1:].strip()
-            points = points.replace("-", ",-")
-            points = points.replace(" ", ",")
-            points = re.sub(",+", ",", points)
-            points = points.strip(",")
-            points = [float(i) for i in points.split(",")]
-        
-        # Absolute MOVETO.
-        # Move the current point to the new coordinates.
-        if command == "M":
-            for i in range(len(points)/2):
-                path.moveto(points[i*2], points[i*2+1])
-                dx = points[i*2]
-                dy = points[i*2+1]
-                x0 = dx
-                y0 = dy
-
-        # Relative MOVETO.
-        # Offset from the current point.
-        elif command == "m":
-            for i in range(len(points)/2):
-                path.moveto(dx+points[i*2], dy+points[i*2+1])
-                dx += points[i*2]
-                dy += points[i*2+1]
-                x0 = dx
-                y0 = dy
-        
-        # Absolute LINETO.
-        # Draw a line from the current point to the new coordinate.
-        elif command == "L":
-            for i in range(len(points)/2):
-                path.lineto(points[i*2], points[i*2+1])
-                dx = points[i*2]
-                dy = points[i*2+1]
-
-        # Relative LINETO.
-        # Offset from the current point.
-        elif command == "l":
-            for i in range(len(points)/2):
-                path.lineto(dx+points[i*2], dy+points[i*2+1])
-                dx += points[i*2]
-                dy += points[i*2+1]
-
-        # Absolute horizontal LINETO.
-        # Only the vertical coordinate is supplied.
-        elif command == "H":
-            for i in range(len(points)):
-                path.lineto(points[i], dy)
-                dx = points[i]
-
-        # Relative horizontal LINETO.
-        # Offset from the current point.
-        elif command == "h":
-            for i in range(len(points)):
-                path.lineto(dx+points[i], dy)
-                dx += points[i]
-
-        # Absolute vertical LINETO.
-        # Only the horizontal coordinate is supplied.
-        if command == "V":
-            for i in range(len(points)):
-                path.lineto(dx, points[i])
-                dy = points[i]
-
-        # Relative vertical LINETO.
-        # Offset from the current point.
-        elif command == "v":
-            for i in range(len(points)):
-                path.lineto(dx, dy+points[i])
-                dy += points[i]
-
-        # Absolute CURVETO.
-        # Draw a bezier with given control handles and destination.
-        elif command == "C":
-            for i in range(len(points)/6):
-                path.curveto(points[i*6],   points[i*6+1], 
-                             points[i*6+2], points[i*6+3], 
-                             points[i*6+4], points[i*6+5])
-                dhx = points[i*6+2]
-                dhy = points[i*6+3]
-                dx = points[i*6+4]
-                dy = points[i*6+5]
-        
-        # Relative CURVETO.
-        # Offset from the current point.
-        elif command == "c":
-            for i in range(len(points)/6):
-                path.curveto(dx+points[i*6],   dy+points[i*6+1], 
-                             dx+points[i*6+2], dy+points[i*6+3], 
-                             dx+points[i*6+4], dy+points[i*6+5])
-                dhx = dx+points[i*6+2]
-                dhy = dy+points[i*6+3]
-                dx += points[i*6+4]
-                dy += points[i*6+5]
-
-        # Absolute reflexive CURVETO.
-        # Only the second control handle is given,
-        # the first is the reflexion of the previous handle.
-        elif command == "S":
-            for i in range(len(points)/4):
-                if previous_command not in ["C", "c", "S", "s"]:
-                    dhx = dx
-                    dhy = dy
-                else:
-                    dhx = dx-dhx
-                    dhy = dy-dhy
-                path.curveto(dx+dhx, dy+dhy, 
-                             points[i*4],   points[i*4+1], 
-                             points[i*4+2], points[i*4+3])
-                dhx = points[i*4]
-                dhy = points[i*4+1]
-                dx = points[i*4+2]
-                dy = points[i*4+3]
-                
-        # Relative reflexive CURVETO.
-        # Offset from the current point.
-        elif command == "s":
-            for i in range(len(points)/4):
-                if previous_command not in ["C", "c", "S", "s"]:
-                    dhx = dx
-                    dhy = dy
-                else:
-                    dhx = dx-dhx
-                    dhy = dy-dhy
-                path.curveto(dx+dhx, dy+dhy, 
-                             dx+points[i*4],   dy+points[i*4+1], 
-                             dx+points[i*4+2], dy+points[i*4+3])
-                dhx = dx+points[i*4]
-                dhy = dy+points[i*4+1]
-                dx += points[i*4+2]
-                dy += points[i*4+3]
-        
-        # Absolute elliptical arc.
-        elif command == "A":
-            rx, ry, phi, large_arc_flag, sweep_flag, x2, y2 = points
-            for p in arc.elliptical_arc_to(dx, dy, rx, ry, phi, large_arc_flag, sweep_flag, x2, y2):
-                if len(p) == 2: 
-                    path.lineto(*p)
-                elif len(p) == 6: 
-                    path.curveto(*p)
-            dx = p[-2]
-            dy = p[-1]
-
-        previous_command = command
-        
+            pp.current = pp.start
     return path
 
 def path_from_string(path_string):
