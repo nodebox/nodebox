@@ -57,7 +57,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final float MAX_ZOOM = 1.0f;
 
     public static final Map<String, Color> PORT_COLORS = Maps.newHashMap();
-    public static final Color DEFAULT_PORT_COLOR = Color.WHITE;
+    public static final Color DEFAULT_PORT_COLOR = new Color(52, 85, 52);
     public static final Color PORT_HOVER_COLOR = Color.YELLOW;
     public static final Color TOOLTIP_BACKGROUND_COLOR = new Color(254, 255, 215);
     public static final Color TOOLTIP_STROKE_COLOR = Color.DARK_GRAY;
