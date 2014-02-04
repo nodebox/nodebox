@@ -135,4 +135,12 @@ public class MathFunctionsTest {
         assertEquals(0.25, convertRange(75, 0, 100, 1, 0, OVERFLOW_IGNORE), 0.001);
     }
 
+    @Test
+    public void testRound() {
+        assertEquals(5L, round(5.0));
+        assertEquals(5L, round(5.4));
+        assertEquals(6L, round(5.5));
+        assertEquals(6L, round(5.9));
+    }
+
 }

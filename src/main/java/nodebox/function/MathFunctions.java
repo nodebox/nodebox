@@ -228,7 +228,7 @@ public class MathFunctions {
     }
 
     public static long round(double a) {
-        return (long) a;
+        return Math.round(a);
     }
 
     public static List<Double> sample(final long amount, final double start, final double end) {
