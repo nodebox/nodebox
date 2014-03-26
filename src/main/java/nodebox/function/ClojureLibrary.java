@@ -1,6 +1,6 @@
 package nodebox.function;
 
-import clojure.lang.Compiler;
+import clojure.java.api.Clojure;
 import clojure.lang.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -12,10 +12,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 
 final class ClojureLibrary extends FunctionLibrary {
-
-    private static final Keyword NAME = Keyword.intern("name");
-    private static final Keyword FN = Keyword.intern("fn");
-
 
     /**
      * Run the Clojure register-nodes function in the library.
@@ -49,7 +45,8 @@ final class ClojureLibrary extends FunctionLibrary {
     private static ClojureLibrary loadScript(File file) {
         Object returnValue;
         try {
-            returnValue = Compiler.loadFile(file.getCanonicalPath());
+            IFn loadFile = Clojure.var("clojure.core", "load-file");
+            returnValue = loadFile.invoke(file.getCanonicalPath());
         } catch (IOException e) {
             throw new LoadException(file, e);
         }
