@@ -7,7 +7,7 @@ import nodebox.node.Port;
 import nodebox.util.LoadException;
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 import static nodebox.util.Assertions.assertResultsEqual;
 
 public class PythonLibraryTest {

@@ -10,7 +10,7 @@ import java.io.FileNotFoundException;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 
 public class UpdaterTest {
 

@@ -2,7 +2,7 @@ package nodebox.function;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.*;
 import static nodebox.function.StringFunctions.makeStrings;
 import static nodebox.util.Assertions.assertResultsEqual;
 

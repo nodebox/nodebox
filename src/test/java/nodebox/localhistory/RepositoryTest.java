@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.io.File;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 
 public class RepositoryTest {
 

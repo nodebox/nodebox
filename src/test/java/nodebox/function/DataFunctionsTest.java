@@ -7,7 +7,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 import static nodebox.function.DataFunctions.importCSV;
 import static nodebox.function.DataFunctions.lookup;
 import static nodebox.util.Assertions.assertResultsEqual;

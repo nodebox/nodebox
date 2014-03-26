@@ -20,7 +20,7 @@ package nodebox.graphics;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 
 public class RectTest {
 

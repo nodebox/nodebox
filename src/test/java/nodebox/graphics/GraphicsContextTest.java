@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.util.Iterator;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 
 public class GraphicsContextTest {
 

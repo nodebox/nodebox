@@ -2,12 +2,11 @@ package nodebox.function;
 
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.TestCase.*;
 
 public class FunctionRepositoryTest {
 

@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.List;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 

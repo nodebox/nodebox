@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import static junit.framework.Assert.*;
+import static junit.framework.TestCase.*;
 import static nodebox.util.Assertions.assertResultsEqual;
 
 public class NodeLibraryTest {

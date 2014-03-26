@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.*;
 import static nodebox.util.Assertions.assertNoResults;
 import static nodebox.util.Assertions.assertResultsEqual;
 

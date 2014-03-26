@@ -2,7 +2,7 @@ package nodebox.graphics;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.*;
 
 public class PointTest {
 

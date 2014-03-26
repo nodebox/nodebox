@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertSame;
+import static junit.framework.TestCase.*;
 import static nodebox.util.ListUtils.listClass;
 
 public class ListUtilsTest {

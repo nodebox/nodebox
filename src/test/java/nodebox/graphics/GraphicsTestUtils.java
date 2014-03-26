@@ -1,6 +1,6 @@
 package nodebox.graphics;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.*;
 
 public class GraphicsTestUtils {
 

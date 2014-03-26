@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.lang.reflect.Method;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.TestCase.*;
 
 public class FunctionsTest {
 

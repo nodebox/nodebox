@@ -6,8 +6,7 @@ import com.google.common.collect.Iterables;
 import nodebox.node.polygraph.Point;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.TestCase.*;
 
 public class ListFunctionsTest {
 
