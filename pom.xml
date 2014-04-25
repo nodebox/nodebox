@@ -85,6 +85,11 @@
             <version>0.9.9</version>
         </dependency>
 
+		<dependency>
+			<groupId>com.jidesoft</groupId>
+			<artifactId>jide-oss</artifactId>
+			<version>3.5.14</version>
+		</dependency>
     </dependencies>
 
     <repositories>
