@@ -227,6 +227,12 @@
             <port max="100.0" min="0.0" name="strength" range="value" type="float" value="100.0" widget="float" description="The strength of attraction to the grid (0=no influence, 100=all points are strictly on the grid)."/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The position of the grid."/>
         </node>
+        <node description="Create a triangular grid of points." function="corevector/triGrid" handle="corevector/pointHandle" image="trigrid.png" name="tri_grid" outputRange="list" outputType="point" position="7.00,5.00" prototype="generator">
+            <port min="1.0" name="columns" range="value" type="int" value="10" widget="int" description="The amount of columns in the grid."/>
+            <port min="1.0" name="rows" range="value" type="int" value="10" widget="int" description="The amount of rows in the grid."/>
+            <port name="edgeLength" range="value" type="float" value="10.0" widget="float" description="The total width of the grid."/>
+            <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the grid."/>
+        </node>
         <node description="Sort points or shapes using different sorting methods." function="pyvector/sort" handle="corevector/pointHandle" image="sort.png" name="sort" position="7.00,14.00" outputRange="list" category="geometry">
             <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to sort."/>
             <port name="order_by" range="value" type="string" value="none" widget="menu" description="The sort method.">

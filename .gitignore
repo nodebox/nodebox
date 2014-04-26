@@ -20,3 +20,6 @@ Thumbs.db
 lib/cachedir
 *$py.class
 /testfiles
+/.settings
+.classpath
+.project
