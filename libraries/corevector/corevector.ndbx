@@ -298,5 +298,11 @@
             <port name="offset" range="value" type="point" value="10.00,10.00" widget="point" description="The maximum amount of translation."/>
             <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
         </node>
+        <node description="Get width of bounding box of geometry." function="pyvector/width" image="width.png" name="width" position="4.00,10.00" outputType="float">
+            <port name="shape" range="value" type="geometry" description="The input shape."/>
+        </node>
+        <node description="Get height of bounding box of geometry." function="pyvector/height" image="height.png" name="height" position="4.00,10.00" outputType="float">
+            <port name="shape" range="value" type="geometry" description="The input shape."/>
+        </node>
     </node>
 </ndbx>

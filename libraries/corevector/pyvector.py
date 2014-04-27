@@ -267,6 +267,12 @@ def bottom(shape):
     x, y, width, height = shape.bounds
     return y + height
 
+def width(shape):
+    return shape.bounds.width
+
+def height(shape):
+    return shape.bounds.height
+
 def cmpfactory(fn):
     def _cmp(shape1, shape2):
         return cmp(fn(shape1), fn(shape2))
