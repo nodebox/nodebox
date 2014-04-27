@@ -342,9 +342,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 		AffineTransform originalTransform = g2.getTransform();
 		g2.transform(getViewTransform());
 
-		paintNodes(g2);
 		paintConnections(g2);
 		paintCurrentConnection(g2);
+		paintNodes(g2);
 		paintPortTooltip(g2);
 		paintDragSelection(g2);
 		paintCommentBox(g2);
@@ -424,15 +424,19 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 	private void paintNodes(Graphics2D g) {
 		g.setColor(Theme.NETWORK_NODE_NAME_COLOR);
 		Node renderedNode = getActiveNetwork().getRenderedChild();
+		
 		for (Node node : getNodes()) {
+			BufferedImage icon = getCachedImageForNode(node);
+			
+			paintNode(g, getActiveNetwork(), node, icon, commentIcon,
+					isSelected(node), renderedNode == node);
+
 			Port hoverInputPort = overInput != null
 					&& overInput.node.equals(node.getName()) ? findNodeWithName(
 					overInput.node).getInput(overInput.port)
 					: null;
-			BufferedImage icon = getCachedImageForNode(node);
-			paintNode(g, getActiveNetwork(), node, icon, commentIcon,
-					isSelected(node), renderedNode == node, connectionOutput,
-					hoverInputPort, overOutput == node);
+
+			paintPorts(g, getActiveNetwork(), node, connectionOutput, hoverInputPort, overOutput == node);
 		}
 	}
 
@@ -468,8 +472,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
 	private void paintNode(Graphics2D g, Node network, Node node,
 			BufferedImage icon, BufferedImage commentIcon, boolean selected,
-			boolean rendered, Node connectionOutput, Port hoverInputPort,
-			boolean hoverOutput) {
+			boolean rendered) {
 		Rectangle r = nodeRect(node);
 		String outputType = node.getOutputType();
 
@@ -496,6 +499,25 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 			gp.lineTo(r.x + NODE_WIDTH - 20, r.y + NODE_HEIGHT - 2);
 			g.fill(gp);
 		}
+
+		// Draw icon
+		g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING,
+				NODE_ICON_SIZE, NODE_ICON_SIZE, null);
+		g.setColor(Color.WHITE);
+		g.setFont(Theme.NETWORK_FONT);
+		g.drawString(getShortenedName(node.getName(), 7), r.x + NODE_ICON_SIZE
+				+ NODE_PADDING * 2 + 2, r.y + 22);
+
+		// Draw comment icon
+		if (node.hasComment()) {
+			g.drawImage(commentIcon, r.x + NODE_WIDTH - 13, r.y + 5, null);
+		}
+	}
+
+	private void paintPorts(Graphics2D g, Node network, Node node,
+			Node connectionOutput, Port hoverInputPort, boolean hoverOutput) {
+		Rectangle r = nodeRect(node);
+		String outputType = node.getOutputType();
 
 		// Draw input ports
 		g.setColor(Color.WHITE);
@@ -545,19 +567,6 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 			g.setColor(portTypeColor(outputType));
 		}
 		g.fillRect(r.x, r.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
-
-		// Draw icon
-		g.drawImage(icon, r.x + NODE_PADDING, r.y + NODE_PADDING,
-				NODE_ICON_SIZE, NODE_ICON_SIZE, null);
-		g.setColor(Color.WHITE);
-		g.setFont(Theme.NETWORK_FONT);
-		g.drawString(getShortenedName(node.getName(), 7), r.x + NODE_ICON_SIZE
-				+ NODE_PADDING * 2 + 2, r.y + 22);
-
-		// Draw comment icon
-		if (node.hasComment()) {
-			g.drawImage(commentIcon, r.x + NODE_WIDTH - 13, r.y + 5, null);
-		}
 	}
 
 	private void paintPortTooltip(Graphics2D g) {
