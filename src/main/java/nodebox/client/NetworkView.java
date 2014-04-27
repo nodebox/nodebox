@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -36,6 +37,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import nodebox.node.Connection;
 import nodebox.node.InvalidNameException;
@@ -1043,7 +1045,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			grabFocus();
+			if (SwingUtilities.getWindowAncestor((Component)e.getSource()).isActive()) {
+				grabFocus();
+			}
 		}
 
 		@Override
@@ -1114,13 +1118,15 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			Point2D pt = inverseViewTransformPoint(e.getPoint());
-			overOutput = getNodeWithOutputPortAt(pt);
-			overInput = getInputPortAt(pt);
-			overComment = getNodeWithCommentAt(pt);
-			// It is probably very inefficient to repaint the view every time
-			// the mouse moves.
-			repaint();
+			if (SwingUtilities.getWindowAncestor((Component)e.getSource()).isActive()) {
+				Point2D pt = inverseViewTransformPoint(e.getPoint());
+				overOutput = getNodeWithOutputPortAt(pt);
+				overInput = getInputPortAt(pt);
+				overComment = getNodeWithCommentAt(pt);
+				// It is probably very inefficient to repaint the view every time
+				// the mouse moves.
+				repaint();
+			}
 		}
 	}
 
