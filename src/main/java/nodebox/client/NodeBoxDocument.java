@@ -20,6 +20,10 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -34,6 +38,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.*;
@@ -47,7 +52,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private static final String WINDOW_MODIFIED = "windowModified";
     public static String lastFilePath;
     public static String lastExportPath;
-    private static NodeClipboard nodeClipboard;
     private static Image APPLICATION_ICON_IMAGE;
 
     static {
@@ -98,6 +102,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<Zoom> zoomListeners = new ArrayList<Zoom>();
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
     private DevicesDialog devicesDialog;
+    
+    private final Clipboard clipboard;
 
     public NodeBoxDocument() {
         this(createNewLibrary());
@@ -113,6 +119,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (!nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
 
+        clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -1690,12 +1698,27 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void copy() {
         // When copying, save a reference to the nodes and the parent network.
         // Since the model is immutable, we don't need to make defensive copies.
-        nodeClipboard = new NodeClipboard(getActiveNetwork(), networkView.getSelectedNodes());
+        NodeClipboard nodeClipboard = new NodeClipboard(getActiveNetwork(), networkView.getSelectedNodes());
+        
+        clipboard.setContents(new NodeClipboardSelection(nodeClipboard), null);
     }
 
     public void paste() {
         addEdit("Paste node");
-        if (nodeClipboard == null) return;
+        
+        NodeClipboard nodeClipboard = null;
+        
+        try {
+			DataFlavor dataFlavor = new DataFlavor(NodeClipboardSelection.FLAVOR);
+			if (clipboard.isDataFlavorAvailable(dataFlavor)) {
+				nodeClipboard = (NodeClipboard) clipboard.getData(dataFlavor);
+			}
+		} catch (Exception e) {
+			LOG.log(Level.WARNING, e.getLocalizedMessage(), e);
+			return;
+		}
+        
+		if (nodeClipboard == null) return;
         List<Node> newNodes = controller.pasteNodes(activeNetworkPath, nodeClipboard.network, nodeClipboard.nodes);
 
         networkView.updateAll();
@@ -1855,14 +1878,38 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    private class NodeClipboard {
-        private final Node network;
-        private final ImmutableList<Node> nodes;
+    private class NodeClipboardSelection implements Transferable {
+    	public final static String FLAVOR = DataFlavor.javaJVMLocalObjectMimeType + ";class=nodebox.client.NodeClipboard";
+    	
+    	private NodeClipboard nodeClipboard;
+    	
+    	public NodeClipboardSelection(NodeClipboard nclip) {
+			nodeClipboard = nclip; 
+		}
+    	
+		@Override
+		public Object getTransferData(DataFlavor flavor)
+				throws UnsupportedFlavorException, IOException {
+			 if (!isDataFlavorSupported(flavor)) throw new UnsupportedFlavorException(flavor);
+			 return nodeClipboard;
+		}
 
-        private NodeClipboard(Node network, Iterable<Node> nodes) {
-            this.network = network;
-            this.nodes = ImmutableList.copyOf(nodes);
-        }
+		@Override
+		public DataFlavor[] getTransferDataFlavors() {
+			try {
+				DataFlavor flavor = new DataFlavor(FLAVOR);
+				return new DataFlavor[] { flavor };
+			} catch (ClassNotFoundException e) {
+				LOG.log(Level.WARNING, e.getLocalizedMessage(), e);
+				return null;
+			}
+		}
+
+		@Override
+		public boolean isDataFlavorSupported(DataFlavor flavor) {
+			return flavor.getRepresentationClass().isAssignableFrom(NodeClipboard.class);
+		}
+    	
     }
 
     private class ZoomInHandler implements ActionListener {
