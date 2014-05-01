@@ -23,3 +23,4 @@ lib/cachedir
 /.settings
 .classpath
 .project
+.pydevproject

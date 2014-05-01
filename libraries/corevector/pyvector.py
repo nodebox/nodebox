@@ -428,6 +428,20 @@ def grid(rows, columns, width, height, position):
             points.append(Point(x, y))
     return points
 
+def polar_grid(distance, angle, radial, polar, full, position):
+    if full:
+        alpha = 360 / polar
+    else:
+        alpha = angle
+        
+    points = []
+    for p in xrange(polar):
+        for r in xrange(radial):
+            point = coordinates(position.x, position.y, r * distance, p * alpha)
+            points.append(Point(point[0], point[1]))
+    
+    return points
+
 def to_points(shape):
     if shape is None: return None
     return shape.points
