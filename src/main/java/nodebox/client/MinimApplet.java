@@ -1,12 +1,14 @@
 package nodebox.client;
 
 import ddf.minim.*;
+import ddf.minim.analysis.BeatDetect;
 import processing.core.PApplet;
 
 public class MinimApplet extends PApplet {
     private Minim minim;
     private AudioPlayer player = null;
     private String fileName;
+    private BeatDetect beat;
     private boolean loop;
 
     public MinimApplet(String fileName, boolean loop) {
@@ -17,6 +19,7 @@ public class MinimApplet extends PApplet {
     public void setup() {
         minim = new Minim(this);
         player = minim.loadFile(fileName, 1024);
+        beat = new BeatDetect(player.bufferSize(), player.sampleRate());
         if (loop)
             player.loop();
     }
@@ -26,7 +29,12 @@ public class MinimApplet extends PApplet {
         return player;
     }
 
+    public BeatDetect getBeatDetect() {
+        return beat;
+    }
+
     public void draw() {
+        beat.detect(player.mix);
     }
 
     @Override

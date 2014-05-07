@@ -21,7 +21,7 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "audioAnalysis");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "audioAnalysis", "audioWave", "beatDetect");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -180,6 +180,31 @@ public class DeviceFunctions {
                b.add((double) fft.getAvg(i));
         }
         return b.build();
+    }
+
+    public static List<Map<String, Double>> audioWave(String deviceName, NodeContext context) {
+        AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
+        if (source == null) return ImmutableList.of();
+        ImmutableList.Builder<Map<String, Double>> b = ImmutableList.builder();
+        for (int i = 0; i < source.bufferSize(); i++) {
+            ImmutableMap.Builder<String, Double> mb = ImmutableMap.builder();
+            mb.put("left", (double) source.left.get(i));
+            mb.put("right", (double) source.right.get(i));
+            mb.put("mix", (double) source.mix.get(i));
+            b.add(mb.build());
+        }
+        return b.build();
+    }
+
+    public static Map<String, Boolean> beatDetect(String deviceName, NodeContext context) {
+        BeatDetect beat = (BeatDetect) context.getData().get(deviceName + ".beat");
+        if (beat == null) return ImmutableMap.of();
+        ImmutableMap.Builder<String, Boolean> mb = ImmutableMap.builder();
+        mb.put("beat", beat.isOnset());
+        mb.put("kick", beat.isKick());
+        mb.put("snare", beat.isSnare());
+        mb.put("hat", beat.isHat());
+        return mb.build();
     }
 }
 

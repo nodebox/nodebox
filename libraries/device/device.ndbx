@@ -36,5 +36,19 @@
             <port name="context" type="context"
                   description="The internal execution context."/>
         </node>
+        <node category="device" description="Audio wave with Minim" function="device/audioWave"
+              image="audio_wave.png" name="audio_wave" position="1.00,1.00" outputType="float" outputRange="list">
+            <port name="device_name" type="string"
+                  description="The audio device." value="audioplayer1"/>
+            <port name="context" type="context"
+                  description="The internal execution context."/>
+        </node>
+        <node category="device" description="Beat Detect with Minim" function="device/beatDetect"
+              image="beat_detect.png" name="beat_detect" position="1.00,1.00" outputType="data">
+            <port name="device_name" type="string"
+                  description="The audio device." value="audioplayer1"/>
+            <port name="context" type="context"
+                  description="The internal execution context."/>
+        </node>
     </node>
 </ndbx>

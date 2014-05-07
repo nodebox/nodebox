@@ -64,8 +64,10 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
     @Override
     public void addData(Map<String, Object> map) {
-        if (applet != null && applet.getPlayer() != null)
+        if (applet != null && applet.getPlayer() != null) {
             map.put(getName() + ".source", applet.getPlayer());
+            map.put(getName() + ".beat", applet.getBeatDetect());
+        }
     }
 
     public AbstractDeviceControl createControl() {
