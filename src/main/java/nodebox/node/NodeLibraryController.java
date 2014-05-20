@@ -394,7 +394,11 @@ public class NodeLibraryController {
     }
 
     public Device addDevice(String deviceType) {
-        String deviceName = nodeLibrary.uniqueName(deviceType);
+        return addDevice(deviceType, deviceType);
+    }
+
+    public Device addDevice(String deviceType, String name) {
+        String deviceName = nodeLibrary.uniqueName(name);
         Device device = Device.deviceForType(deviceName, deviceType);
         nodeLibrary = nodeLibrary.withDeviceAdded(device);
         return device;

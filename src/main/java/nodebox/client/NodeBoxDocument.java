@@ -809,9 +809,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         requestRender();
     }
 
-    public void addDevice(String deviceType) {
+    public void addDevice(String deviceType, String deviceName) {
         // todo: undo / redo
-        Device device = controller.addDevice(deviceType);
+        Device device = controller.addDevice(deviceType, deviceName);
         DeviceHandler handler = DeviceHandlerFactory.createDeviceHandler(device);
         if (handler != null)
             deviceHandlers.add(handler);

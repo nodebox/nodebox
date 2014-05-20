@@ -654,6 +654,19 @@ public class NodeLibraryTest {
         assertEquals("true", upgradedLibrary.getDevices().get(0).getProperties().get("autostart"));
     }
 
+    @Test
+    public void testUpgrade18to19() {
+        File version18File = new File("src/test/files/upgrade-v18.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version18File);
+        NodeLibrary devicesLibrary = NodeLibrary.load(new File("libraries/device/device.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version18File, NodeRepository.of(devicesLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertEquals("audioplayer1", root.getChild("audio_analysis1").getInput("device_name").getValue());
+        assertEquals("audioplayer2", root.getChild("audio_analysis2").getInput("device_name").getValue());
+        assertEquals("audioplayer1", root.getChild("audio_wave1").getInput("device_name").getValue());
+        assertEquals("audioplayer1", root.getChild("beat_detect1").getInput("device_name").getValue());
+    }
+
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.
      */

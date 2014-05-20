@@ -70,6 +70,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("15", upgradeMethod("upgrade15to16"));
         upgradeMap.put("16", upgradeMethod("upgrade16to17"));
         upgradeMap.put("17", upgradeMethod("upgrade17to18"));
+        upgradeMap.put("18", upgradeMethod("upgrade18to19"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -296,6 +297,17 @@ public class NodeLibraryUpgrades {
         // but does make the files backward-incompatible.
         UpgradeOp convertOSCPropertyOp = new ConvertOSCPropertyFormatOp();
         return transformXml(inputXml, "18");
+    }
+
+    public static UpgradeStringResult upgrade18to19(String inputXml) throws LoadException {
+        // Version 19: audioplayer devices previously had their default device name set to "audioplayer1".
+        // This has changed to "audio1", so to have backward compatibility we have to make sure the
+        // old name is set explicitly and not derived from the prototype.
+
+        UpgradeOp renameDeviceNameOp1 = new SetOldDefaultAudioDeviceNameOp("device.audio_analysis", "device_name", "audioplayer1");
+        UpgradeOp renameDeviceNameOp2 = new SetOldDefaultAudioDeviceNameOp("device.audio_wave", "device_name", "audioplayer1");
+        UpgradeOp renameDeviceNameOp3 = new SetOldDefaultAudioDeviceNameOp("device.beat_detect", "device_name", "audioplayer1");
+        return transformXml(inputXml, "19", renameDeviceNameOp1, renameDeviceNameOp2, renameDeviceNameOp3);
     }
 
     private static List<Node> childNodes(Node parent) {
@@ -557,6 +569,31 @@ public class NodeLibraryUpgrades {
             if (isNodeWithPrototype(e, oldPrototype)) {
                 Attr prototype = e.getAttributeNode("prototype");
                 prototype.setValue(newPrototype);
+            }
+        }
+    }
+
+    private static class SetOldDefaultAudioDeviceNameOp extends UpgradeOp {
+        private String prototype;
+        private String portName;
+        private String deviceName;
+
+        private SetOldDefaultAudioDeviceNameOp(String prototype, String portName, String deviceName) {
+            this.prototype = prototype;
+            this.portName = portName;
+            this.deviceName = deviceName;
+        }
+
+        public void apply(Element e) {
+            if (isNodeWithPrototype(e, prototype)) {
+                Element port = portWithName(e, portName);
+                if (port == null) {
+                    port = e.getOwnerDocument().createElement("port");
+                    port.setAttribute("name", portName);
+                    port.setAttribute("type", "string");
+                    port.setAttribute("value", deviceName);
+                    e.appendChild(port);
+                }
             }
         }
     }

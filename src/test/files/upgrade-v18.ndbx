@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="18" type="file">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <property name="canvasX" value="0"/>
+    <property name="canvasY" value="0"/>
+    <device name="audioplayer1" type="audioplayer"/>
+    <device name="audioplayer2" type="audioplayer"/>
+    <node name="root" prototype="core.network" renderedChild="audio_wave1">
+        <node name="audio_analysis1" prototype="device.audio_analysis"/>
+        <node name="audio_analysis2" prototype="device.audio_analysis">
+            <port name="device_name" type="string" value="audioplayer2"/>
+        </node>
+        <node name="audio_wave1" prototype="device.audio_wave"/>
+        <node name="beat_detect1" prototype="device.beat_detect"/>
+    </node>
+</ndbx>

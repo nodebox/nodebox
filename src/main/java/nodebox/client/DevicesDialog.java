@@ -110,22 +110,24 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
 
     private class DevicesPopupMenu extends JPopupMenu {
         private DevicesPopupMenu() {
-            add(new AddDeviceHandlerAction("osc", "OSC"));
-            add(new AddDeviceHandlerAction("audioplayer", "Audio Player"));
-            add(new AddDeviceHandlerAction("audioinput", "Audio Input"));
+            add(new AddDeviceHandlerAction("osc", "osc", "OSC"));
+            add(new AddDeviceHandlerAction("audioplayer", "audio", "Audio Player"));
+            add(new AddDeviceHandlerAction("audioinput", "audio", "Audio Input"));
         }
     }
 
     private class AddDeviceHandlerAction extends AbstractAction {
         private String type;
+        private String name;
 
-        private AddDeviceHandlerAction(String type, String label) {
+        private AddDeviceHandlerAction(String type, String name, String label) {
             super(label);
             this.type = type;
+            this.name = name;
         }
 
         public void actionPerformed(ActionEvent actionEvent) {
-            document.addDevice(type);
+            document.addDevice(type, name);
             rebuildInterface();
         }
     }
