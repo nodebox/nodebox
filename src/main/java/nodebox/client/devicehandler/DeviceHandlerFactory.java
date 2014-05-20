@@ -25,12 +25,18 @@ public class DeviceHandlerFactory {
 
     private static DeviceHandler createAudioPlayerDeviceHandler(Device device) {
         String fileName = device.getProperty("filename", "");
-        AudioPlayerDeviceHandler handler = new AudioPlayerDeviceHandler(device.getName(), fileName);
+        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
+        AudioPlayerDeviceHandler handler = new AudioPlayerDeviceHandler(device.getName(), fileName, autostart);
+        if (autostart)
+            handler.start();
         return handler;
     }
 
     private static DeviceHandler createAudioInputDeviceHandler(Device device) {
-        AudioInputDeviceHandler handler = new AudioInputDeviceHandler(device.getName());
+        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
+        AudioInputDeviceHandler handler = new AudioInputDeviceHandler(device.getName(), autostart);
+        if (autostart)
+            handler.start();
         return handler;
     }
 }

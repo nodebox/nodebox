@@ -8,22 +8,34 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Map;
 
 public class AudioInputDeviceHandler implements DeviceHandler {
 
     private String name;
+    private boolean autostart;
     private JFrame frame = null;
 
     private MinimInputApplet applet = null;
 
     public AudioInputDeviceHandler(String name) {
+        this(name, false);
+    }
+
+    public AudioInputDeviceHandler(String name, boolean autostart) {
         this.name = name;
+        this.autostart = autostart;
     }
 
     @Override
     public String getName() {
         return name;
+    }
+
+    public boolean isAutoStart() {
+        return autostart;
     }
 
     public void start() {
@@ -58,6 +70,7 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
     private class AudioInputDeviceControl extends AbstractDeviceControl {
         private JLabel deviceNameLabel;
+        private JCheckBox autoStartCheck;
         private JButton startButton;
         private JButton stopButton;
 
@@ -76,6 +89,16 @@ public class AudioInputDeviceHandler implements DeviceHandler {
             add(deviceNameLabel);
             add(Box.createHorizontalStrut(5));
 
+            autoStartCheck = new JCheckBox("autostart");
+            autoStartCheck.setSelected(isAutoStart());
+            autoStartCheck.addItemListener(new ItemListener() {
+                @Override
+                public void itemStateChanged(ItemEvent itemEvent) {
+                    autostart = autoStartCheck.isSelected();
+                    setPropertyValue("autostart", String.valueOf(autostart));
+                }
+            });
+
             startButton = new JButton("Start");
             startButton.addActionListener(new ActionListener() {
                 @Override
@@ -93,6 +116,8 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
+            startStopPanel.add(autoStartCheck);
+            startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(startButton);
             startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(stopButton);

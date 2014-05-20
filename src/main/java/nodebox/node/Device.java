@@ -24,6 +24,7 @@ public class Device {
 
     private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|autostart)$");
     private static final Pattern AUDIOPLAYER_PROPERTY_NAMES_PATTERN = Pattern.compile("^(filename|autostart|loop)$");
+    private static final Pattern AUDIOINPUT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(autostart)$");
 
     private final transient int hashCode;
 
@@ -33,6 +34,7 @@ public class Device {
         ImmutableMap.Builder<String, Pattern> builder = new ImmutableMap.Builder<String, Pattern>();
         builder.put(TYPE_OSC, OSC_PROPERTY_NAMES_PATTERN);
         builder.put(TYPE_AUDIOPLAYER, AUDIOPLAYER_PROPERTY_NAMES_PATTERN);
+        builder.put(TYPE_AUDIOINPUT, AUDIOINPUT_PROPERTY_NAMES_PATTERN);
         validPropertyNames = builder.build();
     }
 
