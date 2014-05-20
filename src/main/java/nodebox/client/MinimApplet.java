@@ -29,6 +29,21 @@ public class MinimApplet extends PApplet {
         return player;
     }
 
+    public void mute() {
+        if (player == null) return;
+        player.mute();
+    }
+
+    public void unmute() {
+        if (player == null) return;
+        player.unmute();
+    }
+
+    public boolean isMuted() {
+        if (player == null) return false;
+        return player.isMuted();
+    }
+
     public BeatDetect getBeatDetect() {
         return beat;
     }

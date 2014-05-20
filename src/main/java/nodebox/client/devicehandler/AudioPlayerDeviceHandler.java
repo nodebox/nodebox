@@ -68,6 +68,16 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         }
     }
 
+    public void toggleMute() {
+        if (frame != null) {
+            if (applet.isMuted()) {
+                applet.unmute();
+            } else {
+                applet.mute();
+            }
+        }
+    }
+
     @Override
     public void addData(Map<String, Object> map) {
         if (applet != null && applet.getPlayer() != null) {
@@ -88,6 +98,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         private JButton fileButton;
         private JButton startButton;
         private JButton stopButton;
+        private JButton muteButton;
 
         public AudioPlayerDeviceControl(AudioPlayerDeviceHandler deviceHandler) {
             super(deviceHandler);
@@ -162,6 +173,18 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                 }
             });
 
+            muteButton = new JButton("Mute");
+            muteButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent actionEvent) {
+                    if (frame != null) {
+                        toggleMute();
+                        setMuteButtonLabel();
+                    }
+                }
+            });
+            setMuteButtonLabel();
+
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
             startStopPanel.add(autoStartCheck);
@@ -169,6 +192,8 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             startStopPanel.add(startButton);
             startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(stopButton);
+            startStopPanel.add(Box.createHorizontalGlue());
+            startStopPanel.add(muteButton);
             startStopPanel.add(Box.createHorizontalGlue());
 
             JPanel mainPanel = new JPanel();
@@ -178,6 +203,12 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
 
             add(mainPanel);
             add(Box.createHorizontalGlue());
+        }
+
+        private void setMuteButtonLabel() {
+            if (frame != null) {
+                muteButton.setText(applet.isMuted() ? "Unmute" : "Mute");
+            }
         }
     }
 }
