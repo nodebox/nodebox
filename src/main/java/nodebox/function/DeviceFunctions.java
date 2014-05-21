@@ -21,7 +21,8 @@ public class DeviceFunctions {
     public static final FunctionLibrary LIBRARY;
 
     static {
-        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC", "audioAnalysis", "audioWave", "beatDetect");
+        LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC",
+                "audioAnalysis", "audioWave", "beatDetect");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -164,13 +165,21 @@ public class DeviceFunctions {
         c.send(message.getBytes());
     }
 
-    public static List<Double> audioAnalysis(String deviceName, long averages, NodeContext context) {
+    public static List<Double> audioAnalysis(String deviceName, String channel, long averages, NodeContext context) {
         AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
         if (source == null) return ImmutableList.of();
         FFT fft = new FFT( source.bufferSize(), source.sampleRate() );
         if (averages > 0)
             fft.linAverages((int) averages);
-        fft.forward( source.mix );
+
+        if (channel.equals("left")) {
+            fft.forward(source.left);
+        } else if (channel.equals("right")) {
+            fft.forward(source.right);
+        } else {
+            fft.forward(source.mix);
+        }
+
         ImmutableList.Builder<Double> b = new ImmutableList.Builder<Double>();
         if (averages == 0) {
             for (int i = 0; i < fft.specSize(); i++)

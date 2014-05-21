@@ -31,6 +31,11 @@
               image="audio_analysis.png" name="audio_analysis" position="1.00,1.00" outputType="float" outputRange="list">
             <port name="device_name" type="string"
                   description="The audio device." value="audio1"/>
+        	<port name="channel" label="Channel" range="value" type="string" value="mix" widget="menu" description="The channel to return values from.">
+		        <menu key="left" label="Left"/>
+		        <menu key="right" label="Right"/>
+		        <menu key="mix" label="Mix"/>
+		    </port>
             <port name="averages" type="int"
                   description="The number of averages to take." value="0"/>
             <port name="context" type="context"
