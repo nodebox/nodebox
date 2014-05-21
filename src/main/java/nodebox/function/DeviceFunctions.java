@@ -22,7 +22,7 @@ public class DeviceFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("device", DeviceFunctions.class, "mousePosition", "bufferPoints", "receiveOSC", "sendOSC",
-                "audioAnalysis", "audioWave", "beatDetect");
+                "audioAnalysis", "audioLogAvg", "audioWave", "beatDetect");
     }
 
     public static Point mousePosition(NodeContext context) {
@@ -188,6 +188,26 @@ public class DeviceFunctions {
            for(int i = 0; i < fft.avgSize(); i++)
                b.add((double) fft.getAvg(i));
         }
+        return b.build();
+    }
+
+    public static List<Double> audioLogAvg(String deviceName, String channel, long baseFreq, long bandsPerOctave, NodeContext context) {
+        AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
+        if (source == null) return ImmutableList.of();
+        FFT fft = new FFT( source.bufferSize(), source.sampleRate() );
+        fft.logAverages((int) baseFreq, (int) bandsPerOctave);
+
+        if (channel.equals("left")) {
+            fft.forward(source.left);
+        } else if (channel.equals("right")) {
+            fft.forward(source.right);
+        } else {
+            fft.forward(source.mix);
+        }
+
+        ImmutableList.Builder<Double> b = new ImmutableList.Builder<Double>();
+        for(int i = 0; i < fft.avgSize(); i++)
+            b.add((double) fft.getAvg(i));
         return b.build();
     }
 
