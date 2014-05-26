@@ -828,13 +828,17 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    public void startDeviceHandlers() {
+    public boolean startDeviceHandlers() {
+        boolean autostart = false;
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
-                if (handler.isAutoStart())
+                if (handler.isAutoStart()) {
                     handler.start();
+                    autostart = true;
+                }
             }
         }
+        return autostart;
     }
 
     public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {

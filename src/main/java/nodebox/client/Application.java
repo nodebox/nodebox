@@ -410,7 +410,8 @@ public class Application implements Host {
             NodeBoxDocument doc = NodeBoxDocument.load(file);
             addDocument(doc);
             NodeBoxMenuBar.addRecentFile(file);
-            doc.startDeviceHandlers();
+            if (doc.startDeviceHandlers())
+                doc.toggleAnimation();
             return doc;
         } catch (RuntimeException e) {
             logger.log(Level.SEVERE, "Error while loading " + file, e);
