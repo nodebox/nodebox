@@ -169,6 +169,8 @@ public class DeviceFunctions {
         AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
         if (source == null) return ImmutableList.of();
         FFT fft = new FFT( source.bufferSize(), source.sampleRate() );
+        fft.window(FFT.HANN);
+
         if (averages > 0)
             fft.linAverages((int) averages);
 
@@ -195,6 +197,8 @@ public class DeviceFunctions {
         AudioSource source = (AudioSource) context.getData().get(deviceName + ".source");
         if (source == null) return ImmutableList.of();
         FFT fft = new FFT( source.bufferSize(), source.sampleRate() );
+        fft.window(FFT.HANN);
+
         fft.logAverages((int) baseFreq, (int) bandsPerOctave);
 
         if (channel.equals("left")) {
