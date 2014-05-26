@@ -17,26 +17,17 @@ public class DeviceHandlerFactory {
     private static DeviceHandler createOSCDeviceHandler(Device device) {
         int port = Integer.parseInt(device.getProperty("port", "-1"));
         boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        OSCDeviceHandler handler = new OSCDeviceHandler(device.getName(), port, autostart);
-        if (autostart)
-            handler.start();
-        return handler;
+        return new OSCDeviceHandler(device.getName(), port, autostart);
     }
 
     private static DeviceHandler createAudioPlayerDeviceHandler(Device device) {
         String fileName = device.getProperty("filename", "");
         boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        AudioPlayerDeviceHandler handler = new AudioPlayerDeviceHandler(device.getName(), fileName, autostart);
-        if (autostart)
-            handler.start();
-        return handler;
+        return new AudioPlayerDeviceHandler(device.getName(), fileName, autostart);
     }
 
     private static DeviceHandler createAudioInputDeviceHandler(Device device) {
         boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        AudioInputDeviceHandler handler = new AudioInputDeviceHandler(device.getName(), autostart);
-        if (autostart)
-            handler.start();
-        return handler;
+        return new AudioInputDeviceHandler(device.getName(), autostart);
     }
 }

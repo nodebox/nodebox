@@ -45,6 +45,7 @@ public class OSCDeviceHandler implements DeviceHandler {
         return oscPort;
     }
 
+    @Override
     public boolean isAutoStart() {
         return autostart;
     }
@@ -65,6 +66,7 @@ public class OSCDeviceHandler implements DeviceHandler {
         return 1024 + (int) Math.round(Math.random() * 10000);
     }
 
+    @Override
     public void start() {
         if (oscP5 != null)
             stop();

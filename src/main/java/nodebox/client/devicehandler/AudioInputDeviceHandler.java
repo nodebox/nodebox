@@ -34,10 +34,12 @@ public class AudioInputDeviceHandler implements DeviceHandler {
         return name;
     }
 
+    @Override
     public boolean isAutoStart() {
         return autostart;
     }
 
+    @Override
     public void start() {
         if (frame != null) stop();
         frame = new JFrame();

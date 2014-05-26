@@ -29,6 +29,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         this.autostart = autostart;
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -41,10 +42,12 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         this.fileName = fileName;
     }
 
+    @Override
     public boolean isAutoStart() {
         return autostart;
     }
 
+    @Override
     public void start() {
         if (frame != null) stop();
         frame = new JFrame();

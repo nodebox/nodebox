@@ -828,6 +828,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    public void startDeviceHandlers() {
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            for (DeviceHandler handler : deviceHandlers) {
+                if (handler.isAutoStart())
+                    handler.start();
+            }
+        }
+    }
+
     public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
         checkNotNull(deviceName, "Device name cannot be null.");
         checkArgument(getNodeLibrary().hasDevice(deviceName));
