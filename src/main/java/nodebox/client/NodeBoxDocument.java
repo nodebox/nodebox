@@ -828,17 +828,24 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    public boolean startDeviceHandlers() {
-        boolean autostart = false;
+    public void startDeviceHandlers() {
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
                 if (handler.isAutoStart()) {
                     handler.start();
-                    autostart = true;
                 }
             }
         }
-        return autostart;
+    }
+
+    public void stopDeviceHandlers() {
+        if (Application.ENABLE_DEVICE_SUPPORT) {
+            for (DeviceHandler handler : deviceHandlers) {
+                if (handler.isAutoStart()) {
+                    handler.stop();
+                }
+            }
+        }
     }
 
     public void setDeviceProperty(String deviceName, String propertyName, String propertyValue) {
@@ -1126,10 +1133,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void playAnimation() {
+        startDeviceHandlers();
         animationTimer.start();
     }
 
     public void stopAnimation() {
+        stopDeviceHandlers();
         animationTimer.stop();
     }
 
