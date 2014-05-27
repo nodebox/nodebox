@@ -53,7 +53,7 @@ public class AnimationBar extends JPanel implements ChangeListener {
         playButton = new NButton("Play", getImageStream("/animation-play.png"), getImageStream("/animation-stop.png"));
         playButton.setToolTipText("Play Animation");
         playButton.setActionMethod(this, "playAnimation");
-        forcePlayButtonWidth(45);
+        forcePlayButtonWidth(52);
         NButton rewindButton = new NButton("Rewind", getImageStream("/animation-rewind.png"));
         rewindButton.setToolTipText("Rewind Animation");
         rewindButton.setActionMethod(this, "rewindAnimation");
@@ -86,10 +86,10 @@ public class AnimationBar extends JPanel implements ChangeListener {
     public void playAnimation() {
         if (!playButton.isChecked()) playButton.setChecked(true);
         document.playAnimation();
-        playButton.setText("Stop");
-        playButton.setToolTipText("Stop Animation");
+        playButton.setText("Pause");
+        playButton.setToolTipText("Pause Animation");
         playButton.setActionMethod(this, "stopAnimation");
-        forcePlayButtonWidth(45);
+        forcePlayButtonWidth(52);
     }
 
     public void stopAnimation() {
@@ -98,7 +98,7 @@ public class AnimationBar extends JPanel implements ChangeListener {
         playButton.setText("Play");
         playButton.setToolTipText("Play Animation");
         playButton.setActionMethod(this, "playAnimation");
-        forcePlayButtonWidth(45);
+        forcePlayButtonWidth(52);
     }
 
     public void rewindAnimation() {
