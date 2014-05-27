@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ndbx formatVersion="19" type="file">
+    <property name="canvasHeight" value="1000"/>
+    <property name="canvasWidth" value="1000"/>
+    <property name="canvasX" value="0"/>
+    <property name="canvasY" value="0"/>
+    <device name="audioplayer1" type="audioplayer">
+        <property name="autostart" value="true"/>
+    </device>
+    <device name="audioinput1" type="audioinput">
+        <property name="autostart" value="false"/>
+    </device>
+    <device name="osc1" type="osc">
+        <property name="autostart" value="true"/>
+    </device>
+    <node name="root" prototype="core.network">
+    </node>
+</ndbx>

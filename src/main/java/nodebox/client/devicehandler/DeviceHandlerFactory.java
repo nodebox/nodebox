@@ -14,20 +14,21 @@ public class DeviceHandlerFactory {
         return null;
     }
 
+    private static boolean isSyncedWithTimeline(Device device) {
+        return Boolean.parseBoolean(device.getProperty(Device.TIMELINE_SYNC, "false"));
+    }
+
     private static DeviceHandler createOSCDeviceHandler(Device device) {
         int port = Integer.parseInt(device.getProperty("port", "-1"));
-        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        return new OSCDeviceHandler(device.getName(), port, autostart);
+        return new OSCDeviceHandler(device.getName(), port, isSyncedWithTimeline(device));
     }
 
     private static DeviceHandler createAudioPlayerDeviceHandler(Device device) {
         String fileName = device.getProperty("filename", "");
-        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        return new AudioPlayerDeviceHandler(device.getName(), fileName, autostart);
+        return new AudioPlayerDeviceHandler(device.getName(), fileName, isSyncedWithTimeline(device));
     }
 
     private static DeviceHandler createAudioInputDeviceHandler(Device device) {
-        boolean autostart = Boolean.parseBoolean(device.getProperty("autostart", "false"));
-        return new AudioInputDeviceHandler(device.getName(), autostart);
+        return new AudioInputDeviceHandler(device.getName(), isSyncedWithTimeline(device));
     }
 }

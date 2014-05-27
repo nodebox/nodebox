@@ -16,15 +16,17 @@ public class Device {
     public static final String TYPE_AUDIOPLAYER = "audioplayer";
     public static final String TYPE_AUDIOINPUT = "audioinput";
 
+    public static final String TIMELINE_SYNC = "sync_with_timeline";
+
     public static final ImmutableList<String> deviceTypes = ImmutableList.of(TYPE_OSC, TYPE_AUDIOPLAYER, TYPE_AUDIOINPUT);
 
     private final String name;
     private final String type;
     private final ImmutableMap<String, String> properties;
 
-    private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|autostart)$");
-    private static final Pattern AUDIOPLAYER_PROPERTY_NAMES_PATTERN = Pattern.compile("^(filename|autostart|loop)$");
-    private static final Pattern AUDIOINPUT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(autostart)$");
+    private static final Pattern OSC_PROPERTY_NAMES_PATTERN = Pattern.compile("^(port|sync_with_timeline)$");
+    private static final Pattern AUDIOPLAYER_PROPERTY_NAMES_PATTERN = Pattern.compile("^(filename|sync_with_timeline|loop)$");
+    private static final Pattern AUDIOINPUT_PROPERTY_NAMES_PATTERN = Pattern.compile("^(sync_with_timeline)$");
 
     private final transient int hashCode;
 
@@ -38,8 +40,8 @@ public class Device {
         validPropertyNames = builder.build();
     }
 
-    public static Device oscDevice(String name, long port, boolean autostart) {
-        return new Device(name, TYPE_OSC, ImmutableMap.<String, String>of("port", String.valueOf(port), "autostart", String.valueOf(autostart)));
+    public static Device oscDevice(String name, long port, boolean syncWithTimeline) {
+        return new Device(name, TYPE_OSC, ImmutableMap.<String, String>of("port", String.valueOf(port), TIMELINE_SYNC, String.valueOf(syncWithTimeline)));
     }
 
     public static Device deviceForType(String name, String type) {

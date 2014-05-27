@@ -19,7 +19,7 @@ public class OSCDeviceHandler implements DeviceHandler {
     private String name;
     private OscP5 oscP5;
     private int oscPort;
-    private boolean autostart;
+    private boolean syncWithTimeline;
     private Map<String, List<Object>> oscMessages = new HashMap<String, List<Object>>();
     private boolean paused;
 
@@ -27,10 +27,10 @@ public class OSCDeviceHandler implements DeviceHandler {
         this(name, -1, false);
     }
 
-    public OSCDeviceHandler(String name, int oscPort, boolean autostart) {
+    public OSCDeviceHandler(String name, int oscPort, boolean syncWithTimeline) {
         this.name = name;
         this.oscPort = oscPort;
-        this.autostart = autostart;
+        this.syncWithTimeline = syncWithTimeline;
         oscP5 = null;
         oscMessages.clear();
         paused = false;
@@ -46,8 +46,8 @@ public class OSCDeviceHandler implements DeviceHandler {
     }
 
     @Override
-    public boolean isAutoStart() {
-        return autostart;
+    public boolean isSyncedWithTimeline() {
+        return syncWithTimeline;
     }
 
     public boolean isPaused() {
@@ -118,7 +118,7 @@ public class OSCDeviceHandler implements DeviceHandler {
 
         private JLabel deviceNameLabel;
         private JTextField portNumberField;
-        private JCheckBox autoStartCheck;
+        private JCheckBox syncWithTimelineCheck;
         private JButton startButton;
         private JButton stopButton;
         private JButton clearButton;
@@ -151,13 +151,13 @@ public class OSCDeviceHandler implements DeviceHandler {
             portNumberField.setPreferredSize(new Dimension(70, portNumberField.getHeight()));
             portNumberField.setMinimumSize(new Dimension(70, portNumberField.getHeight()));
 
-            autoStartCheck = new JCheckBox("autostart");
-            autoStartCheck.setSelected(isAutoStart());
-            autoStartCheck.addItemListener(new ItemListener() {
+            syncWithTimelineCheck = new JCheckBox("syncWithTimeline");
+            syncWithTimelineCheck.setSelected(isSyncedWithTimeline());
+            syncWithTimelineCheck.addItemListener(new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent itemEvent) {
-                    autostart = autoStartCheck.isSelected();
-                    setPropertyValue("autostart", String.valueOf(autostart));
+                    syncWithTimeline = syncWithTimelineCheck.isSelected();
+                    setPropertyValue(Device.TIMELINE_SYNC, String.valueOf(syncWithTimeline));
                 }
             });
             startButton = new JButton();
@@ -198,7 +198,7 @@ public class OSCDeviceHandler implements DeviceHandler {
             add(Box.createHorizontalStrut(5));
             add(portNumberField);
             add(Box.createHorizontalStrut(5));
-            add(autoStartCheck);
+            add(syncWithTimelineCheck);
             add(Box.createHorizontalStrut(5));
             add(startButton);
             add(Box.createHorizontalStrut(5));

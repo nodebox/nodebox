@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface DeviceHandler {
     public String getName();
-    public boolean isAutoStart();
+    public boolean isSyncedWithTimeline();
     public void start();
     public void stop();
     public AbstractDeviceControl createControl();

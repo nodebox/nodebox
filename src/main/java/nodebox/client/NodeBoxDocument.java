@@ -831,7 +831,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void startDeviceHandlers() {
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
-                if (handler.isAutoStart()) {
+                if (handler.isSyncedWithTimeline()) {
                     handler.start();
                 }
             }
@@ -841,7 +841,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     public void stopDeviceHandlers() {
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
-                if (handler.isAutoStart()) {
+                if (handler.isSyncedWithTimeline()) {
                     handler.stop();
                 }
             }

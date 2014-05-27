@@ -71,6 +71,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("16", upgradeMethod("upgrade16to17"));
         upgradeMap.put("17", upgradeMethod("upgrade17to18"));
         upgradeMap.put("18", upgradeMethod("upgrade18to19"));
+        upgradeMap.put("19", upgradeMethod("upgrade19to20"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -308,6 +309,13 @@ public class NodeLibraryUpgrades {
         UpgradeOp renameDeviceNameOp2 = new SetOldDefaultAudioDeviceNameOp("device.audio_wave", "device_name", "audioplayer1");
         UpgradeOp renameDeviceNameOp3 = new SetOldDefaultAudioDeviceNameOp("device.beat_detect", "device_name", "audioplayer1");
         return transformXml(inputXml, "19", renameDeviceNameOp1, renameDeviceNameOp2, renameDeviceNameOp3);
+    }
+
+    public static UpgradeStringResult upgrade19to20(String inputXml) throws LoadException {
+        UpgradeOp renameDevicePropertyOp1 = new ConvertDevicePropertyNameOp("osc", "autostart", "sync_with_timeline");
+        UpgradeOp renameDevicePropertyOp2 = new ConvertDevicePropertyNameOp("audioplayer", "autostart", "sync_with_timeline");
+        UpgradeOp renameDevicePropertyOp3 = new ConvertDevicePropertyNameOp("audioinput", "autostart", "sync_with_timeline");
+        return transformXml(inputXml, "20", renameDevicePropertyOp1, renameDevicePropertyOp2, renameDevicePropertyOp3);
     }
 
     private static List<Node> childNodes(Node parent) {
@@ -641,6 +649,33 @@ public class NodeLibraryUpgrades {
                         } else {
                             parent.removeChild(e);
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private static class ConvertDevicePropertyNameOp extends UpgradeOp {
+        private String deviceType;
+        private String oldPropertyName;
+        private String newPropertyName;
+
+        private ConvertDevicePropertyNameOp(String deviceType, String oldPropertyName, String newPropertyName) {
+            this.deviceType = deviceType;
+            this.oldPropertyName = oldPropertyName;
+            this.newPropertyName = newPropertyName;
+        }
+
+        @Override
+        public void apply(Element e) {
+            if (e.getTagName().equals("property")) {
+                Element parent = (Element) e.getParentNode();
+                if (parent != null && parent.getTagName().equals("device")) {
+                    Attr type = parent.getAttributeNode("type");
+                    if (type != null && type.getValue().equals(this.deviceType)) {
+                        Attr name = e.getAttributeNode("name");
+                        if (name != null && name.getValue().equals(oldPropertyName))
+                            name.setValue(newPropertyName);
                     }
                 }
             }

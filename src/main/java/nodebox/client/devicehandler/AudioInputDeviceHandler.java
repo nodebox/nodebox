@@ -1,8 +1,7 @@
 package nodebox.client.devicehandler;
 
 import nodebox.client.MinimInputApplet;
-import nodebox.client.NodeBoxDocument;
-import nodebox.node.NodeLibrary;
+import nodebox.node.Device;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +14,7 @@ import java.util.Map;
 public class AudioInputDeviceHandler implements DeviceHandler {
 
     private String name;
-    private boolean autostart;
+    private boolean syncWithTimeline;
     private JFrame frame = null;
 
     private MinimInputApplet applet = null;
@@ -24,9 +23,9 @@ public class AudioInputDeviceHandler implements DeviceHandler {
         this(name, false);
     }
 
-    public AudioInputDeviceHandler(String name, boolean autostart) {
+    public AudioInputDeviceHandler(String name, boolean syncWithTimeline) {
         this.name = name;
-        this.autostart = autostart;
+        this.syncWithTimeline = syncWithTimeline;
     }
 
     @Override
@@ -35,8 +34,8 @@ public class AudioInputDeviceHandler implements DeviceHandler {
     }
 
     @Override
-    public boolean isAutoStart() {
-        return autostart;
+    public boolean isSyncedWithTimeline() {
+        return syncWithTimeline;
     }
 
     @Override
@@ -72,7 +71,7 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
     private class AudioInputDeviceControl extends AbstractDeviceControl {
         private JLabel deviceNameLabel;
-        private JCheckBox autoStartCheck;
+        private JCheckBox syncWithTimelineCheck;
         private JButton startButton;
         private JButton stopButton;
 
@@ -91,13 +90,13 @@ public class AudioInputDeviceHandler implements DeviceHandler {
             add(deviceNameLabel);
             add(Box.createHorizontalStrut(5));
 
-            autoStartCheck = new JCheckBox("autostart");
-            autoStartCheck.setSelected(isAutoStart());
-            autoStartCheck.addItemListener(new ItemListener() {
+            syncWithTimelineCheck = new JCheckBox("Sync with Timeline");
+            syncWithTimelineCheck.setSelected(isSyncedWithTimeline());
+            syncWithTimelineCheck.addItemListener(new ItemListener() {
                 @Override
                 public void itemStateChanged(ItemEvent itemEvent) {
-                    autostart = autoStartCheck.isSelected();
-                    setPropertyValue("autostart", String.valueOf(autostart));
+                    syncWithTimeline = syncWithTimelineCheck.isSelected();
+                    setPropertyValue(Device.TIMELINE_SYNC, String.valueOf(syncWithTimeline));
                 }
             });
 
@@ -118,7 +117,7 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
-            startStopPanel.add(autoStartCheck);
+            startStopPanel.add(syncWithTimelineCheck);
             startStopPanel.add(Box.createHorizontalStrut(5));
             startStopPanel.add(startButton);
             startStopPanel.add(Box.createHorizontalStrut(5));
