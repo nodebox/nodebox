@@ -458,22 +458,32 @@ def parse_transform(e, path):
     Transforms the path accordingly.
     
     """
+
+    from nodebox.graphics import Transform
+
+    def parse_command(cmd):
+        """Parse a transformation command, which looks like 'translate(0.000, 739.000)'.
+        Returns the command and a list of arguments, or None."""
+        m = re.match("(\w+)\((.*?)\)", cmd)
+        if m is not None:
+            command, args = m.groups()
+            args = [float(v) for v in args.split(",")]
+            return command, args
     
     t = get_attribute(e, "transform", default="")
-    
-    for mode in ("matrix", "translate"):
-        if t.startswith(mode):
-            v = t.replace(mode, "").lstrip("(").rstrip(")")
-            v = v.replace(", ", ",").replace(" ", ",")
-            v = [float(x) for x in v.split(",")]
-            from nodebox.graphics import Transform
-            if mode == "matrix":
-                t = Transform(*v)
-            elif mode == "translate":
-                t = Transform()            
-                t.translate(*v)
-            path = t.map(path)
-            break
+    commands = [parse_command(cmd) for cmd in t.split()]
+    commands = [c for c in commands if c is not None]
+    if len(commands) > 0:
+        t = Transform()
+        for cmd, args in commands:
+            if cmd == "matrix":
+                # The matrix command stands alone, replace the existing transform.
+                t = Transform(*args)
+            elif cmd == "translate":
+                t.translate(*args)
+            elif cmd == "scale":
+                t.scale(*args)
+        path = t.map(path)
 
     # Transformations can also be defined as <g transform="matrix()"><path /><g>
     # instead of <g><path transform="matrix() /></g>.
