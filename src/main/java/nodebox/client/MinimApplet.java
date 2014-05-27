@@ -29,6 +29,21 @@ public class MinimApplet extends PApplet {
         return player;
     }
 
+    public boolean isPaused() {
+        if (player == null) return false;
+        return !player.isPlaying();
+    }
+
+    public void pause() {
+        if (player == null) return;
+        player.pause();
+    }
+
+    public void play() {
+        if (player == null) return;
+        player.play();
+    }
+
     public void mute() {
         if (player == null) return;
         player.mute();

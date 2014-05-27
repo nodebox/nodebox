@@ -63,12 +63,30 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
         frame.add(applet);
     }
 
+    @Override
+    public void resume() {
+        if (frame == null) {
+            start();
+        } else {
+            applet.play();
+        }
+    }
+
+    @Override
+    public void pause() {
+        if (frame != null) {
+            applet.pause();
+        }
+    }
+
+    @Override
     public void stop() {
         if (frame != null) {
             applet.stop();
             applet.dispose();
             frame.dispose();
             frame = null;
+            applet = null;
         }
     }
 
@@ -108,7 +126,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             super(deviceHandler);
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-            Dimension d = new Dimension(450, 60);
+            Dimension d = new Dimension(500, 60);
             setPreferredSize(d);
             setMaximumSize(d);
             setSize(d);
@@ -162,11 +180,18 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             filePanel.add(fileButton);
             add(Box.createHorizontalGlue());
 
-            startButton = new JButton("Start");
+            startButton = new JButton("Play");
             startButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
-                    start();
+                    if (frame == null) {
+                        start();
+                    } else if (applet.isPaused()) {
+                        resume();
+                    } else {
+                        pause();
+                    }
+                    setButtons();
                 }
             });
             stopButton = new JButton("Stop");
@@ -174,6 +199,7 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     stop();
+                    setButtons();
                 }
             });
 
@@ -188,6 +214,8 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
                 }
             });
             setMuteButtonLabel();
+
+            setButtons();
 
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
@@ -209,9 +237,18 @@ public class AudioPlayerDeviceHandler implements DeviceHandler {
             add(Box.createHorizontalGlue());
         }
 
+        private void setButtons() {
+            startButton.setText(frame == null ? "Play" : applet.isPaused() ? "Resume" : "Pause");
+            stopButton.setEnabled(frame != null);
+            setMuteButtonLabel();
+            muteButton.setEnabled(frame != null);
+        }
+
         private void setMuteButtonLabel() {
             if (frame != null) {
                 muteButton.setText(applet.isMuted() ? "Unmute" : "Mute");
+            } else {
+                muteButton.setText("Mute");
             }
         }
     }

@@ -832,19 +832,27 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
                 if (handler.isSyncedWithTimeline()) {
-                    handler.start();
+                    handler.resume();
                 }
             }
+            if (devicesDialog.isVisible())
+                devicesDialog.rebuildInterface();
         }
     }
 
-    public void stopDeviceHandlers() {
+    public void stopDeviceHandlers(boolean pause) {
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (DeviceHandler handler : deviceHandlers) {
                 if (handler.isSyncedWithTimeline()) {
-                    handler.stop();
+                    if (pause) {
+                        handler.pause();
+                    } else {
+                        handler.stop();
+                    }
                 }
             }
+            if (devicesDialog.isVisible())
+                devicesDialog.rebuildInterface();
         }
     }
 
@@ -1138,12 +1146,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void stopAnimation() {
-        stopDeviceHandlers();
+        stopDeviceHandlers(true);
         animationTimer.stop();
     }
 
     public void rewindAnimation() {
         stopAnimation();
+        stopDeviceHandlers(false);
         resetRenderResults();
         setFrame(1);
     }

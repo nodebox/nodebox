@@ -60,12 +60,12 @@ public class DevicesDialog extends JDialog implements DeviceControl.OnPropertyCh
         buttonPanel.add(closeButton);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        setSize(500, 400);
+        setSize(560, 400);
         setLocationRelativeTo(document);
         rebuildInterface();
     }
 
-    private void rebuildInterface() {
+    public void rebuildInterface() {
         controlPanel.removeAll();
         int rowIndex = 0;
 

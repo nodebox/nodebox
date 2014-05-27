@@ -88,12 +88,16 @@ public class OSCDeviceHandler implements DeviceHandler {
         });
     }
 
+    @Override
     public void pause() {
         paused = true;
     }
 
+    @Override
     public void resume() {
         paused = false;
+        if (oscP5 == null)
+            start();
     }
 
     @Override
@@ -127,7 +131,7 @@ public class OSCDeviceHandler implements DeviceHandler {
             super(deviceHandler);
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-            Dimension d = new Dimension(450, 30);
+            Dimension d = new Dimension(550, 30);
             setPreferredSize(d);
             setMaximumSize(d);
             setSize(d);
@@ -151,7 +155,7 @@ public class OSCDeviceHandler implements DeviceHandler {
             portNumberField.setPreferredSize(new Dimension(70, portNumberField.getHeight()));
             portNumberField.setMinimumSize(new Dimension(70, portNumberField.getHeight()));
 
-            syncWithTimelineCheck = new JCheckBox("syncWithTimeline");
+            syncWithTimelineCheck = new JCheckBox("Sync with Timeline");
             syncWithTimelineCheck.setSelected(isSyncedWithTimeline());
             syncWithTimelineCheck.addItemListener(new ItemListener() {
                 @Override
@@ -186,6 +190,7 @@ public class OSCDeviceHandler implements DeviceHandler {
                     stopOSC();
                 }
             });
+            stopButton.setEnabled(oscP5 != null);
             clearButton = new JButton("Clear");
             clearButton.addActionListener(new ActionListener() {
                 @Override
@@ -212,21 +217,25 @@ public class OSCDeviceHandler implements DeviceHandler {
             start();
             if (isRunning())
             startButton.setText(isRunning() ? "Pause" : "Start");
+            stopButton.setEnabled(oscP5 != null);
         }
 
         private void resumeOSC() {
             resume();
             startButton.setText(isRunning() ? "Pause" : "Start");
+            stopButton.setEnabled(true);
         }
 
         private void pauseOSC() {
             pause();
             startButton.setText(isRunning() ? "Resume" : "Start");
+            stopButton.setEnabled(true);
         }
 
         private void stopOSC() {
             stop();
             startButton.setText("Start");
+            stopButton.setEnabled(false);
         }
 
         private void changePortNumber() {

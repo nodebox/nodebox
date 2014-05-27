@@ -48,6 +48,16 @@ public class AudioInputDeviceHandler implements DeviceHandler {
     }
 
     @Override
+    public void resume() {
+        if (frame == null) start();
+    }
+
+    @Override
+    public void pause() {
+        // Do nothing.
+    }
+
+    @Override
     public void stop() {
         if (frame != null) {
             applet.stop();
@@ -79,7 +89,7 @@ public class AudioInputDeviceHandler implements DeviceHandler {
             super(deviceHandler);
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-            Dimension d = new Dimension(450, 60);
+            Dimension d = new Dimension(500, 60);
             setPreferredSize(d);
             setMaximumSize(d);
             setSize(d);
@@ -105,6 +115,7 @@ public class AudioInputDeviceHandler implements DeviceHandler {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     start();
+                    setButtons();
                 }
             });
             stopButton = new JButton("Stop");
@@ -112,8 +123,11 @@ public class AudioInputDeviceHandler implements DeviceHandler {
                 @Override
                 public void actionPerformed(ActionEvent actionEvent) {
                     stop();
+                    setButtons();
                 }
             });
+
+            setButtons();
 
             JPanel startStopPanel = new JPanel();
             startStopPanel.setLayout(new BoxLayout(startStopPanel, BoxLayout.X_AXIS));
@@ -130,6 +144,11 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
             add(mainPanel);
             add(Box.createHorizontalGlue());
+        }
+
+        private void setButtons() {
+            startButton.setEnabled(frame == null);
+            stopButton.setEnabled(frame != null);
         }
 
     }
