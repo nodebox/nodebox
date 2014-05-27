@@ -15,7 +15,7 @@ public class FullScreenFrame extends JFrame {
         this.document = document;
         setLayout(new BorderLayout(0, 0));
 
-        viewer = new Viewer();
+        viewer = new Viewer(document);
         document.addZoomListener(viewer);
         add(viewer, BorderLayout.CENTER);
 

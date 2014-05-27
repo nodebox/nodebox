@@ -154,9 +154,6 @@ public final class Color implements Cloneable {
     }
 
     public Color(String colorName) {
-        if (!colorName.startsWith("#")) {
-            throw new IllegalArgumentException("The given value '" + colorName + "' is not of the format #112233.");
-        }
         int r255, g255, b255, a255 = 255;
         if (colorName.length() == 4) { // #123
             r255 = Integer.parseInt(colorName.substring(1, 2) + colorName.substring(1, 2), 16);
@@ -176,6 +173,11 @@ public final class Color implements Cloneable {
             g255 = Integer.parseInt(colorName.substring(3, 5), 16);
             b255 = Integer.parseInt(colorName.substring(5, 7), 16);
             a255 = Integer.parseInt(colorName.substring(7, 9), 16);
+        } else if (colorName.equals("transparent")) {
+            r255 = 0;
+            g255 = 0;
+            b255 = 0;
+            a255 = 0;
         } else {
             throw new IllegalArgumentException("The given value '" + colorName + "' is not of the format #112233.");
         }

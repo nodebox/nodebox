@@ -112,6 +112,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             nodeLibrary = nodeLibrary.withProperty("canvasWidth", "1000");
         if (!nodeLibrary.hasProperty("canvasHeight"))
             nodeLibrary = nodeLibrary.withProperty("canvasHeight", "1000");
+        if (!nodeLibrary.hasProperty("canvasBackground"))
+            nodeLibrary = nodeLibrary.withProperty("canvasBackground", "transparent");
 
         controller = NodeLibraryController.withLibrary(nodeLibrary);
         invalidateFunctionRepository = true;
@@ -1602,7 +1604,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final NodeLibrary exportLibrary = getNodeLibrary();
         final FunctionRepository exportFunctionRepository = getFunctionRepository();
         final Node exportNetwork = library.getRoot();
-        final Viewer viewer = new Viewer();
+        final Viewer viewer = new Viewer(this);
 
         final JFrame frame = new JFrame();
         frame.setLayout(new BorderLayout());

@@ -28,6 +28,7 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
 
     private nodebox.graphics.Point lastMousePosition = nodebox.graphics.Point.ZERO;
 
+    private NodeBoxDocument document;
     private Handle handle;
     private boolean showHandle = true;
     private boolean showPoints = false;
@@ -41,8 +42,9 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     private Class valuesClass;
     private Visualizer currentVisualizer = VisualizerFactory.getDefaultVisualizer();
 
-    public Viewer() {
+    public Viewer(NodeBoxDocument document) {
         super(MIN_ZOOM, MAX_ZOOM);
+        this.document = document;
         addMouseListener(this);
         addMouseMotionListener(this);
         setFocusable(true);
@@ -269,7 +271,8 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 
         // Draw background
-        g2.setColor(getBackground());
+        nodebox.graphics.Color backgroundColor = new nodebox.graphics.Color(document.getNodeLibrary().getProperty("canvasBackground", "transparent"));
+        g2.setColor(backgroundColor.getAwtColor());
         g2.fill(g.getClipBounds());
 
         // Set the view transform
