@@ -651,7 +651,7 @@ public class NodeLibraryTest {
         assertTrue(upgradedLibrary.hasDevice("osc1"));
         assertEquals(1, upgradedLibrary.getDevices().size());
         assertEquals("2084", upgradedLibrary.getDevices().get(0).getProperties().get("port"));
-        assertEquals("true", upgradedLibrary.getDevices().get(0).getProperties().get("autostart"));
+        assertEquals("true", upgradedLibrary.getDevices().get(0).getProperties().get("sync_with_timeline")); // was: autostart
     }
 
     @Test
