@@ -1,5 +1,7 @@
 package nodebox.ui;
 
+import nodebox.client.Application;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -46,7 +48,8 @@ public class ExceptionDialog extends JDialog implements ClipboardOwner {
             JButton quitButton = new JButton("Quit");
             quitButton.addActionListener(new AbstractAction() {
                 public void actionPerformed(ActionEvent e) {
-                    System.exit(-1);
+                    setVisible(false);
+                    Application.getInstance().quit();
                 }
             });
             buttonPanel.add(quitButton);
