@@ -232,6 +232,7 @@ public class NodeSelectionDialog extends JDialog {
     }
 
     private void selectAndClose() {
+        if (nodeList.getModel().getSize() == 0) return;
         selectedNode = (Node) nodeList.getSelectedValue();
         closeDialog();
     }
