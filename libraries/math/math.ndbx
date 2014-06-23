@@ -26,12 +26,12 @@
             <port name="value1" range="value" type="float" value="0.0" widget="float"/>
             <port name="value2" range="value" type="float" value="0.0" widget="float"/>
             <port name="comparator" range="value" type="string" value="&lt;" widget="menu">
-                <menu key="&lt;" label="&lt; smaller than"/>
+                <menu key="&lt;" label="&lt; less than"/>
                 <menu key="&gt;" label="&gt; greater than"/>
-                <menu key="&lt;=" label="&lt;= smaller or even than"/>
-                <menu key="&gt;=" label="&gt;= greater or even than"/>
-                <menu key="==" label="== equals"/>
-                <menu key="!=" label="!= not equals"/>
+                <menu key="&lt;=" label="&lt;= less than or equal to"/>
+                <menu key="&gt;=" label="&gt;= greater than or equal to"/>
+                <menu key="==" label="== equal"/>
+                <menu key="!=" label="!= not equal"/>
             </port>
         </node>
         <node category="math" description="Create a logical or operator." function="math/logicOperator" image="boolean.png" name="logical" outputType="boolean" position="1.00,5.00">
