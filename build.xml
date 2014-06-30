@@ -143,7 +143,11 @@
 
     <target name="jar" depends="compile">
         <mkdir dir="${dist}/lib"/>
-        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
+        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}">
+            <manifest>
+                <attribute name="Main-Class" value="nodebox.NodeBox"/>
+            </manifest>
+        </jar>
     </target>
 
     <target name="nodeboxlibs" depends="init">
