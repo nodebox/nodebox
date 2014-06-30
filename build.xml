@@ -144,6 +144,7 @@
     <target name="jar" depends="compile">
         <mkdir dir="${dist}/lib"/>
         <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}">
+            <zipgroupfileset refid="maven.fileset"/>
             <manifest>
                 <attribute name="Main-Class" value="nodebox.NodeBox"/>
             </manifest>
