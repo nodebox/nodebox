@@ -328,6 +328,11 @@
         </exec>
     </target>
 
+    <target name="classpath" depends="properties" description="Print the runtime classpath">
+        <pathconvert property="prop.classpath" refid="maven.runtime.classpath"/>
+        <echo message="${prop.classpath}:${dist}/lib/nodebox.jar"/>
+    </target>
+
     <target name="javadoc" depends="properties" description="Generates API documentation">
         <javadoc destdir="${build.doc}">
             <packageset dir="${src}">
