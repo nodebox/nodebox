@@ -179,7 +179,6 @@
         <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <!-- Copy library and program archives-->
         <copy todir="${dist.windows.nodebox.lib}">
-            <fileset refid="maven.fileset"/>
             <mapper type="flatten"/>
             <file file="${lib}/python.zip"/>
             <fileset dir="${dist}/lib">
@@ -202,21 +201,10 @@
         <copy todir="${dist.windows.nodebox.jre}">
             <fileset dir="${windows.jre}"/>
         </copy>
-        <pathconvert property="dist.windows.classpath">
-            <path refid="runtime.classpath"/>
-            <path path="${dist}/lib/nodebox.jar"/>
-            <chainedmapper>
-                <flattenmapper/>
-                <globmapper from="*.jar" to="lib\\*.jar"/>
-            </chainedmapper>
-        </pathconvert>
-        <replace file="makelauncher.nsi" token="@@CLASSPATH@@" value="${dist.windows.classpath}"/>
         <taskdef name="nsis" classname="net.sf.nsisant.Task">
             <classpath location="${lib}/nsisant-1.2.jar"/>
         </taskdef>
-        <nsis script="makelauncher.nsi" path="${windows.nsis}">
-            <define name="CLASSPATH" value="${dist.windows.classpath}"/>
-        </nsis>
+        <nsis script="makelauncher.nsi" path="${windows.nsis}"/>
         <nsis script="makeinstaller.nsi" path="${windows.nsis}">
             <define name="APPVERSION" value="${nodebox.version}"/>
         </nsis>
