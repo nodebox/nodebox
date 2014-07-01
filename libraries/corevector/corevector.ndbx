@@ -227,6 +227,20 @@
             <port max="100.0" min="0.0" name="strength" range="value" type="float" value="100.0" widget="float" description="The strength of attraction to the grid (0=no influence, 100=all points are strictly on the grid)."/>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The position of the grid."/>
         </node>
+        <node description="Creates a triangular grid of points." function="corevector/triGrid" handle="corevector/pointHandle" image="trigrid.png" name="tri_grid" outputRange="list" outputType="point" position="7.00,5.00" prototype="generator">
+            <port min="1.0" name="columns" range="value" type="int" value="10" widget="int" description="The amount of columns in the grid."/>
+            <port min="1.0" name="rows" range="value" type="int" value="10" widget="int" description="The amount of rows in the grid."/>
+            <port name="edgeLength" range="value" type="float" value="10.0" widget="float" description="The total width of the grid."/>
+            <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the grid."/>
+        </node>
+		<node description="Creates a polar grid of points." category="geometry" function="pyvector/polar_grid" image="polar_grid.png" name="polarGrid" outputRange="list" outputType="point" position="1.00,1.00">
+            <port description="" label="" name="distance" range="value" type="float" value="25.0" widget="float"/>
+            <port description="" label="" max="360.0" min="0.0" name="angle" range="value" type="float" value="25.0" widget="float"/>
+            <port description="" label="" min="1.0" name="radial" range="value" type="int" value="5" widget="int"/>
+            <port description="" label="" min="1.0" name="polar" range="value" type="int" value="5" widget="int"/>
+            <port description="" label="" name="full" range="value" type="boolean" value="false" widget="toggle"/>
+            <port description="" label="" name="position" range="value" type="point" value="0.00,0.00" widget="point"/>
+        </node>
         <node description="Sort points or shapes using different sorting methods." function="pyvector/sort" handle="corevector/pointHandle" image="sort.png" name="sort" position="7.00,14.00" outputRange="list" category="geometry">
             <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to sort."/>
             <port name="order_by" range="value" type="string" value="none" widget="menu" description="The sort method.">
@@ -291,6 +305,12 @@
             </port>
             <port name="offset" range="value" type="point" value="10.00,10.00" widget="point" description="The maximum amount of translation."/>
             <port name="seed" range="value" type="int" value="0" widget="int" description="The random variation."/>
+        </node>
+        <node  category="geometry" description="Get width of bounding box of geometry." function="pyvector/width" image="width.png" name="width" position="4.00,10.00" outputType="float">
+            <port name="shape" range="value" type="geometry" description="The input shape."/>
+        </node>
+        <node  category="geometry" description="Get height of bounding box of geometry." function="pyvector/height" image="height.png" name="height" position="4.00,10.00" outputType="float">
+            <port name="shape" range="value" type="geometry" description="The input shape."/>
         </node>
     </node>
 </ndbx>

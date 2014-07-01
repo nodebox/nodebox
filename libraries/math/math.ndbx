@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ndbx type="file" uuid="b299e4dc-c763-4008-b8cb-d631e03c5c0a">
+    <link href="python:pymath.py" rel="functions"/>
     <link href="java:nodebox.function.MathFunctions" rel="functions"/>
     <node description="Calculate using numbers." name="root" prototype="core.network" renderedChild="abs">
         <node category="math" description="Convert every number to a positive number." function="math/abs" image="abs.png" name="abs" position="1.00,1.00">
@@ -175,6 +176,10 @@
                 <menu key="triangle" label="Triangle"/>
                 <menu key="sawtooth" label="Sawtooth"/>
             </port>
+        </node>
+        <node category="math" description="Evaluate python expression." function="pymath/evaluate" name="evaluate" image="evaluate.png" position="3.00,2.00">
+            <port description="" label="" name="func" range="value" type="string" value="x" widget="string"/>
+            <port description="" label="" name="value" range="value" type="float" value="0.0" widget="float"/>
         </node>
     </node>
 </ndbx>

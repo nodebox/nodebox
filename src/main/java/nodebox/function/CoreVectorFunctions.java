@@ -28,7 +28,7 @@ public class CoreVectorFunctions {
                 "freehand", "grid", "group", "line", "lineAngle", "link", "makePoint", "point", "pointOnPath", "rect",
                 "snap", "skew", "toPoints", "ungroup", "textpath",
                 "fourPointHandle", "freehandHandle", "lineAngleHandle", "lineHandle", "pointHandle", "snapHandle",
-                "translateHandle");
+                "translateHandle", "triGrid");
     }
 
     /**
@@ -366,6 +366,41 @@ public class CoreVectorFunctions {
         return builder.build();
     }
 
+    /**
+     * Creates a triangular grid.
+     * 
+     * The grid has row * columns triangles.
+     * 
+     * @param columns triangles in x-direction
+     * @param rows triangles in y-direction
+     * @param edgeLength length of a triangle edge
+     * @param position center position of the grid
+     * @return list of Points
+     */
+	public static List<Point> triGrid(long columns, long rows,
+			double edgeLength, Point position) {
+		double left = position.x;
+		double top = position.y;
+		double rowHeight = Math.sqrt(3) / 2 * edgeLength;
+
+		ImmutableList.Builder<Point> builder = new ImmutableList.Builder<Point>();
+
+		double offset = 0;
+		for (long rowIndex = 0; rowIndex < rows+1; rowIndex++) {
+			for (long colIndex = 0; colIndex < columns+1; colIndex++) {
+				double x = left + offset + colIndex * edgeLength;
+				double y = top + rowIndex * rowHeight;
+				builder.add(new Point(x, y));
+			}
+			if (offset == 0) {
+				offset = edgeLength / 2;
+			} else {
+				offset = 0;
+			}
+		}
+
+		return builder.build();
+	}
 
     /**
      * Combine multiple shapes together into one Geometry.

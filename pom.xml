@@ -85,6 +85,11 @@
             <version>0.9.9</version>
         </dependency>
 
+		<dependency>
+			<groupId>com.jidesoft</groupId>
+			<artifactId>jide-oss</artifactId>
+			<version>3.5.14</version>
+		</dependency>
     </dependencies>
 
     <repositories>
@@ -108,7 +113,86 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
+            
+			<plugin>
+	            <groupId>com.akathist.maven.plugins.launch4j</groupId>
+	            <artifactId>launch4j-maven-plugin</artifactId>
+	            <version>1.5.1</version>
+	            <executions>
+	                <execution>
+	                    <id>l4j-clui</id>
+	                    <phase>package</phase>
+	                    <goals>
+	                        <goal>launch4j</goal>
+	                    </goals>
+	                    <configuration>
+	                        <headerType>gui</headerType>
+	                        <jar>${project.build.directory}/${artifactId}-${version}.jar</jar>
+	                        <outfile>${project.build.directory}/NodeBox.exe</outfile>
+	                        <downloadUrl>http://java.com/download</downloadUrl>
+	                        <chdir>.</chdir>
+	                        <maxHeapSize>1024</maxHeapSize>
+	                        <classPath>
+	                            <mainClass>nodebox.client.Application</mainClass>
+	                            <jarLocation>lib/</jarLocation>
+	                            <preCp>.</preCp>
+	                        </classPath>
+	                        <icon>platform/windows/installer/nodebox.ico</icon>
+	                        <jre>
+	                            <minVersion>1.6.0</minVersion>
+	                            <jdkPreference>preferJre</jdkPreference>
+	                        </jre>
+	                        <versionInfo>
+	                            <fileVersion>3.0.40.0</fileVersion>
+	                            <txtFileVersion>${project.version}</txtFileVersion>
+	                            <fileDescription>${project.name}</fileDescription>
+	                            <copyright>2014</copyright>
+	                            <productVersion>3.0.40.0</productVersion>
+	                            <txtProductVersion>3.0.40.0</txtProductVersion>
+	                            <productName>${project.name}</productName>
+	                            <companyName>nodebox.net</companyName>
+	                            <internalName>NodeBox</internalName>
+	                            <originalFilename>NodeBox.exe</originalFilename>
+	                        </versionInfo>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>
         </plugins>
+        <pluginManagement>
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									org.apache.maven.plugins
+        								</groupId>
+        								<artifactId>
+        									maven-dependency-plugin
+        								</artifactId>
+        								<versionRange>[2.6,)</versionRange>
+        								<goals>
+        									<goal>copy-dependencies</goal>
+        									<goal>sources</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<ignore></ignore>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
     </build>
 
     <properties>

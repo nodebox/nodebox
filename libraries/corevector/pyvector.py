@@ -267,6 +267,12 @@ def bottom(shape):
     x, y, width, height = shape.bounds
     return y + height
 
+def width(shape):
+    return shape.bounds.width
+
+def height(shape):
+    return shape.bounds.height
+
 def cmpfactory(fn):
     def _cmp(shape1, shape2):
         return cmp(fn(shape1), fn(shape2))
@@ -420,6 +426,20 @@ def grid(rows, columns, width, height, position):
             x = left + ci * column_size
             y = top + ri * row_size
             points.append(Point(x, y))
+    return points
+
+def polar_grid(distance, angle, radial, polar, full, position):
+    if full:
+        alpha = 360 / polar
+    else:
+        alpha = angle
+        
+    points = []
+    for p in xrange(polar):
+        for r in xrange(radial):
+            point = coordinates(position.x, position.y, r * distance, p * alpha)
+            points.append(Point(point[0], point[1]))
+    
     return points
 
 def to_points(shape):

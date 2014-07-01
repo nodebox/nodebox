@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import nodebox.graphics.Point;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +16,10 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.*;
 
-public final class Node {
+public final class Node implements Serializable {
+	private static final long serialVersionUID = 1L;
 
-    public static String path(String parentPath, Node node) {
+	public static String path(String parentPath, Node node) {
         checkNotNull(node);
         return path(parentPath, node.getName());
     }
