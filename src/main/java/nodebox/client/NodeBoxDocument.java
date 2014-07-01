@@ -770,6 +770,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public Object getValue(String portName) {
+        if (getActiveNode() == null) {
+            return null;
+        }
         Port port = checkValidPort(portName);
         return port.getValue();
     }
