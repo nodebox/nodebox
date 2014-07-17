@@ -479,7 +479,7 @@ public class Application implements Host {
         b.append("?v=");
         b.append(getVersion().toString());
         b.append("&p=");
-        b.append(PlatformUtils.current_platform);
+        b.append(Platform.current_platform);
         return b.toString();
     }
 
