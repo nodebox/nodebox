@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import nodebox.ui.Platform;
 import static nodebox.ui.SwingUtils.drawShadowText;
 
 public class ExamplesBrowser extends JFrame {
@@ -64,7 +65,7 @@ public class ExamplesBrowser extends JFrame {
         mainPanel.add(examplesScroll, BorderLayout.CENTER);
 
         setContentPane(mainPanel);
-        if (PlatformUtils.onMac()) {
+        if (Platform.onMac()) {
             setJMenuBar(new NodeBoxMenuBar());
         }
 
@@ -75,7 +76,7 @@ public class ExamplesBrowser extends JFrame {
             }
         });
 
-        mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(PlatformUtils.getKeyStroke(KeyEvent.VK_R), "Reload");
+        mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Platform.getKeyStroke(KeyEvent.VK_R), "Reload");
 
         reload();
     }

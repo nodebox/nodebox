@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
+import nodebox.ui.Platform;
+
 public class NodeAttributesDialog  extends JDialog {
 
     private NodeBoxDocument document;
@@ -169,7 +171,7 @@ public class NodeAttributesDialog  extends JDialog {
         onChanged();
         document.movePortMenuItemUp(port, itemIndex);
     }
-    
+
     public void updatePortMenuItem(String port, int itemIndex, String key, String label) {
         onChanged();
         document.updatePortMenuItem(port, itemIndex, key, label);
@@ -185,7 +187,7 @@ public class NodeAttributesDialog  extends JDialog {
     public class OKAction extends AbstractAction {
         public OKAction() {
             putValue(NAME, "Ok");
-            putValue(ACCELERATOR_KEY, PlatformUtils.getKeyStroke(KeyEvent.VK_ENTER));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_ENTER));
         }
 
         public void actionPerformed(ActionEvent e) {
