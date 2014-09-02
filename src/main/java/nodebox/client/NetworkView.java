@@ -743,7 +743,11 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     }
 
     public void deleteSelection() {
+        // Delete the nodes from the document
         document.removeNodes(getSelectedNodes());
+
+        // Remove the deleted nodes from the current selection
+        selectedNodes.clear();
     }
 
     private void moveSelectedNodes(int dx, int dy) {

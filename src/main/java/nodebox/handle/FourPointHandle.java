@@ -35,6 +35,9 @@ public class FourPointHandle extends AbstractHandle {
 
     public void draw(GraphicsContext ctx) {
         Point cp = (Point) getValue(positionName);
+        if (cp == null) {
+            return;
+        }
         double cx = cp.x;
         double cy = cp.y;
         double width = (Double) getValue(widthName);

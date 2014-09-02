@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.graphics.Point;
+import nodebox.graphics.Rect;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
@@ -222,8 +223,27 @@ public class NodeLibrary {
         }
     }
 
+    public int getIntProperty(String name, int defaultValue) {
+        if (hasProperty(name)) {
+            try {
+                return Integer.parseInt(properties.get(name));
+            } catch (NumberFormatException e) {
+                return defaultValue;
+            }
+        } else {
+            return defaultValue;
+        }
+    }
+
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public Rect getBounds() {
+        return Rect.centeredRect(getIntProperty("canvasX", 0),
+                getIntProperty("canvasY", 0),
+                getIntProperty("canvasWidth", 0),
+                getIntProperty("canvasHeight", 0));
     }
 
     public boolean isValidPropertyName(String name) {

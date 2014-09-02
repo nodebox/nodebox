@@ -16,10 +16,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import nodebox.client.Application;
+
 public class Platform {
-
-    public static final String APPLICATION_NAME = "NodeBox";
-
     public static final int WIN = 1;
     public static final int MAC = 2;
     public static final int OTHER = 3;
@@ -74,7 +73,7 @@ public class Platform {
      * <ul>
      * <li>Mac: <code>/Users/username/Library/NodeBox</code></li>
      * <li>Windows: <code>/Documents And Settings/username/Local Settings/Application Data/NodeBox</code></li>
-     * <li>Other: <code>~/nodebox</code></li>
+     * <li>Linux/BSD/Other: <code>~/.local/share/nodebox</code></li>
      * </ul>
      *
      * @return the user's library directory.
@@ -83,7 +82,7 @@ public class Platform {
         if (userDataDirectory != null)
             return userDataDirectory;
         if (onMac()) {
-            userDataDirectory = new File(getHomeDirectory(), "Library/" + APPLICATION_NAME);
+            userDataDirectory = new File(getHomeDirectory(), "Library/" + Application.NAME);
         } else if (onWindows()) {
             String localAppData;
             HWND hwndOwner = null;
@@ -100,9 +99,9 @@ public class Platform {
                 // If the native call fails, use the home directory.
                 localAppData = getHomeDirectory().getPath();
             }
-            userDataDirectory = new File(localAppData, APPLICATION_NAME);
+            userDataDirectory = new File(localAppData, Application.NAME);
         } else {
-            userDataDirectory = new File(getHomeDirectory(), APPLICATION_NAME.toLowerCase(Locale.US));
+            userDataDirectory = new File(getHomeDirectory(), ".local/share/" + Application.NAME.toLowerCase(Locale.US));
         }
         return userDataDirectory;
     }
@@ -113,7 +112,7 @@ public class Platform {
      * <ul>
      * <li>Mac: <code>/Users/username/Library/NodeBox/Scripts</code></li>
      * <li>Windows: <code>/Users/username/Application Data/NodeBox/Scripts</code></li>
-     * <li>Other: <code>~/nodebox/scripts</code></li>
+     * <li>Linux/BSD/Other: <code>~/.local/share/nodebox/scripts</code></li>
      * </ul>
      *
      * @return the user's NodeBox scripts directory.
@@ -133,7 +132,7 @@ public class Platform {
      * <ul>
      * <li>Mac: <code>/Users/username/Library/NodeBox/Python</code></li>
      * <li>Windows: <code>/Users/username/Application Data/NodeBox/Python</code></li>
-     * <li>Other: <code>~/nodebox/python</code></li>
+     * <li>Linux/BSD/Other: <code>~/.local/share/nodebox/python</code></li>
      * </ul>
      *
      * @return the user's Python directory.

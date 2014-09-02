@@ -143,7 +143,12 @@
 
     <target name="jar" depends="compile">
         <mkdir dir="${dist}/lib"/>
-        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}"/>
+        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}">
+            <zipgroupfileset refid="maven.fileset"/>
+            <manifest>
+                <attribute name="Main-Class" value="nodebox.NodeBox"/>
+            </manifest>
+        </jar>
     </target>
 
     <target name="nodeboxlibs" depends="init">
@@ -174,7 +179,6 @@
         <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <!-- Copy library and program archives-->
         <copy todir="${dist.windows.nodebox.lib}">
-            <fileset refid="maven.fileset"/>
             <mapper type="flatten"/>
             <file file="${lib}/python.zip"/>
             <fileset dir="${dist}/lib">
@@ -197,21 +201,10 @@
         <copy todir="${dist.windows.nodebox.jre}">
             <fileset dir="${windows.jre}"/>
         </copy>
-        <pathconvert property="dist.windows.classpath">
-            <path refid="runtime.classpath"/>
-            <path path="${dist}/lib/nodebox.jar"/>
-            <chainedmapper>
-                <flattenmapper/>
-                <globmapper from="*.jar" to="lib\\*.jar"/>
-            </chainedmapper>
-        </pathconvert>
-        <replace file="makelauncher.nsi" token="@@CLASSPATH@@" value="${dist.windows.classpath}"/>
         <taskdef name="nsis" classname="net.sf.nsisant.Task">
             <classpath location="${lib}/nsisant-1.2.jar"/>
         </taskdef>
-        <nsis script="makelauncher.nsi" path="${windows.nsis}">
-            <define name="CLASSPATH" value="${dist.windows.classpath}"/>
-        </nsis>
+        <nsis script="makelauncher.nsi" path="${windows.nsis}"/>
         <nsis script="makeinstaller.nsi" path="${windows.nsis}">
             <define name="APPVERSION" value="${nodebox.version}"/>
         </nsis>
@@ -228,7 +221,6 @@
         <mkdir dir="${mac.application.res}"/>
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
-            <fileset refid="maven.fileset"/>
             <mapper type="flatten"/>
             <file file="${lib}/python.zip"/>
             <fileset dir="${dist}/lib">
@@ -264,17 +256,6 @@
         </copy>
         <!-- Replace version number -->
         <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
-        <!-- Replace class path -->
-        <pathconvert property="mac.application.classpath">
-            <path refid="runtime.classpath"/>
-            <path path="${dist}/lib/nodebox.jar"/>
-            <chainedmapper>
-                <flattenmapper/>
-                <globmapper from="*.jar" to="$APP_PACKAGE/Contents/Resources/Java/lib/*.jar"/>
-            </chainedmapper>
-        </pathconvert>
-        <replace file="${mac.application.contents}/Info.plist" token="@@CLASSPATH@@"
-                 value="${mac.application.classpath}"/>
         <!-- Copy version number -->
         <copy file="version.properties" todir="${mac.application.resources.java}"/>
     </target>
@@ -322,6 +303,11 @@
         <exec dir="${dist.mac}" executable="/usr/bin/open" os="Mac OS X">
             <arg line="${ant.project.name}.app"/>
         </exec>
+    </target>
+
+    <target name="classpath" depends="properties" description="Print the runtime classpath">
+        <pathconvert property="prop.classpath" refid="maven.runtime.classpath"/>
+        <echo message="${prop.classpath}:${dist}/lib/nodebox.jar"/>
     </target>
 
     <target name="javadoc" depends="properties" description="Generates API documentation">

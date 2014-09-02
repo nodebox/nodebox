@@ -10,10 +10,7 @@ SilentInstall silent
 AutoCloseWindow true
 ShowInstDetails nevershow
 
-!ifndef CLASSPATH
-  !error "CLASSPATH needs to be defined. Run this script from Ant."
-!endif
-
+!define CLASSPATH "lib\nodebox.jar"
 !define CLASS "nodebox.client.Application"
 
 !include "FileFunc.nsh"
