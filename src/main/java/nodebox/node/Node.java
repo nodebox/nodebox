@@ -117,6 +117,7 @@ public final class Node {
     private final ImmutableList<Connection> connections;
     private final String handle;
     private final boolean isAlwaysRendered;
+    private final int hashCode;
 
     //// Constructors ////
 
@@ -158,6 +159,7 @@ public final class Node {
         connections = ImmutableList.of();
         handle = "";
         isAlwaysRendered = false;
+        hashCode = calcHashCode();
     }
 
     private void checkAllNotNull(Object... args) {
@@ -192,6 +194,12 @@ public final class Node {
         this.connections = connections;
         this.handle = handle;
         this.isAlwaysRendered = isAlwaysRendered;
+        this.hashCode = calcHashCode();
+    }
+
+    private int calcHashCode() {
+        return Objects.hashCode(prototype, name, comment, category, description, image, function, position,
+                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle, isAlwaysRendered);
     }
 
     //// Getters ////
@@ -1375,8 +1383,7 @@ public final class Node {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(prototype, name, comment, category, description, image, function, position,
-                inputs, outputType, outputRange, isNetwork, children, renderedChildName, connections, handle, isAlwaysRendered);
+        return hashCode;
     }
 
     @Override
