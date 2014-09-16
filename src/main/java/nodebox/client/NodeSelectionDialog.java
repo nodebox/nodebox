@@ -71,7 +71,9 @@ public class NodeSelectionDialog extends JDialog {
 
             for (Node node : nodes) {
                 if (node.getName().equals(searchString))
-                    sortedNodes.add(node);
+                    sortedNodes.add(0, node);
+                else if (node.getName().startsWith(searchString))
+                    firstLettersNodes.add(node);
                 else if (findFirstLettersPattern.matcher(node.getName()).matches())
                     firstLettersNodes.add(node);
                 else if (findConsecutiveLettersPattern.matcher(node.getName()).matches())
