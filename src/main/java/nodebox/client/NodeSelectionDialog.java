@@ -64,6 +64,7 @@ public class NodeSelectionDialog extends JDialog {
             Pattern findNonConsecutiveLettersPattern = Pattern.compile(".*" + StringUtils.join(searchString, "\\w*") + ".*");
 
             java.util.List<Node> sortedNodes = new ArrayList<Node>();
+            java.util.List<Node> startsWithNodes = new ArrayList<Node>();
             java.util.List<Node> firstLettersNodes = new ArrayList<Node>();
             java.util.List<Node> consecutiveLettersNodes = new ArrayList<Node>();
             java.util.List<Node> nonConsecutiveLettersNodes = new ArrayList<Node>();
@@ -73,7 +74,7 @@ public class NodeSelectionDialog extends JDialog {
                 if (node.getName().equals(searchString))
                     sortedNodes.add(0, node);
                 else if (node.getName().startsWith(searchString))
-                    firstLettersNodes.add(node);
+                    startsWithNodes.add(node);
                 else if (findFirstLettersPattern.matcher(node.getName()).matches())
                     firstLettersNodes.add(node);
                 else if (findConsecutiveLettersPattern.matcher(node.getName()).matches())
@@ -83,6 +84,8 @@ public class NodeSelectionDialog extends JDialog {
                 else if (node.getDescription().contains(searchString))
                     descriptionNodes.add(node);
             }
+            Collections.sort(startsWithNodes, new NodeNameComparator());
+            sortedNodes.addAll(startsWithNodes);
             Collections.sort(firstLettersNodes, new NodeNameComparator());
             sortedNodes.addAll(firstLettersNodes);
             Collections.sort(consecutiveLettersNodes, new NodeNameComparator());
