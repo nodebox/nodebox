@@ -135,17 +135,8 @@ public class CoreVectorFunctions {
      */
     public static Point centroid(IGeometry shape) {
         if (shape == null) return Point.ZERO;
-        List<Point> points = shape.getPoints();
-        if (points.isEmpty()) return Point.ZERO;
-        Point firstPoint = points.get(0);
-        double xs = firstPoint.x;
-        double ys = firstPoint.y;
-
-        for (Point pt : Iterables.skip(points, 1)) {
-            xs += pt.x;
-            ys += pt.y;
-        }
-        return new Point(xs / points.size(), ys / points.size());
+        Rect bounds = shape.getBounds();
+        return new Point(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
     }
 
     /**
