@@ -34,9 +34,10 @@ public class ExportDialog extends JDialog {
         JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         formatPanel.add(new JLabel("Format:"));
         formatBox = new JComboBox();
-        formatBox.addItem("PDF");
+        formatBox.addItem("SVG");
         formatBox.addItem("PNG");
-        formatBox.setSelectedItem("PDF");
+        formatBox.addItem("PDF");
+        formatBox.setSelectedItem("SVG");
         formatPanel.add(formatBox);
         mainPanel.add(formatPanel);
 

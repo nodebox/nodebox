@@ -4,6 +4,7 @@ import nodebox.client.visualizer.Visualizer;
 import nodebox.client.visualizer.VisualizerFactory;
 import nodebox.graphics.Drawable;
 import nodebox.graphics.PDFRenderer;
+import nodebox.graphics.SVGRenderer;
 import nodebox.util.FileUtils;
 import nodebox.util.ListUtils;
 
@@ -23,6 +24,8 @@ public class ObjectsRenderer {
         if (file.getName().toLowerCase().endsWith(".pdf")) {
             LinkedVisualizer linkedVisualizer = new LinkedVisualizer(v, objects);
             PDFRenderer.render(linkedVisualizer, bounds, file);
+        } else if (file.getName().toLowerCase().endsWith(".svg")) {
+            SVGRenderer.renderToFile(objects, bounds, file);
         } else {
             try {
                 ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);
