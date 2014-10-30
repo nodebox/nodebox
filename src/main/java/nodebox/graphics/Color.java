@@ -20,7 +20,6 @@
 package nodebox.graphics;
 
 import java.awt.*;
-import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static nodebox.graphics.MathUtils.clamp;
@@ -406,5 +405,23 @@ public final class Color implements Cloneable {
                 + paddedHexString(g256)
                 + paddedHexString(b256)
                 + paddedHexString(a256);
+    }
+
+    public String toCSS() {
+        if (!isVisible()) {
+            return "none";
+        }
+        StringBuilder sb = new StringBuilder();
+        int r256 = (int) Math.round(r * 255);
+        int g256 = (int) Math.round(g * 255);
+        int b256 = (int) Math.round(b * 255);
+        if (a == 1.0) {
+            return "#"
+                    + paddedHexString(r256)
+                    + paddedHexString(g256)
+                    + paddedHexString(b256);
+        } else {
+            return String.format("rgba(%d,%d,%d,%.2f)", r256, g256, b256, a);
+        }
     }
 }

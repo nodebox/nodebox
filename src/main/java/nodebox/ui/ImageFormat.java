@@ -8,6 +8,7 @@ public final class ImageFormat {
 
     public static final ImageFormat PDF = new ImageFormat("PDF", "pdf");
     public static final ImageFormat PNG = new ImageFormat("PNG", "png");
+    public static final ImageFormat SVG = new ImageFormat("SVG", "svg");
 
     private static final Map<String, ImageFormat> FORMAT_MAP;
 
@@ -15,6 +16,7 @@ public final class ImageFormat {
         FORMAT_MAP = new HashMap<String, ImageFormat>();
         FORMAT_MAP.put("PDF", PDF);
         FORMAT_MAP.put("PNG", PNG);
+        FORMAT_MAP.put("SVG", SVG);
     }
 
     public static ImageFormat of(String name) {

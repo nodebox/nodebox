@@ -1530,7 +1530,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         d.setVisible(true);
         if (!d.isDialogSuccessful()) return;
         nodebox.ui.ImageFormat chosenFormat = d.getFormat();
-        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf", "Image file");
+        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf,svg", "Image file");
         if (chosenFile == null) return;
         lastExportPath = chosenFile.getParentFile().getAbsolutePath();
         exportToFile(chosenFile, chosenFormat);
