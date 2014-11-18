@@ -367,7 +367,7 @@ public class ListFunctions {
             key = key.trim().isEmpty() ? null : key;
         }
         Set<Integer> distinctKeys = new HashSet<Integer>();
-        ImmutableList.Builder<?> b = ImmutableList.builder();
+        ImmutableList.Builder<Object> b = ImmutableList.builder();
         for (Object object : iterable) {
             final Integer hashCode;
             if (key == null) {
