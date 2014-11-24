@@ -9,8 +9,9 @@
 
     <target name="properties">
         <property file="build.properties"/>
-        <property file="version.properties"/>
+        <property file="src/main/resources/version.properties"/>
         <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
+        <property name="identifier" value="be.emrg.nodebox"/>
         <property name="src" value="src/main/java"/>
         <property name="res" value="res"/>
         <property name="resources" value="src/main/resources"/>
@@ -31,18 +32,19 @@
         <property name="dist.windows.nodebox.examples" value="${dist.windows.nodebox}/examples"/>
         <property name="apple.appstub"
                   location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
+        <property name="mac.java.runtime" location="/Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home"/>
         <property name="mac.application" location="${dist.mac}/${ant.project.name}.app/"/>
         <property name="mac.application.contents" location="${mac.application}/Contents"/>
         <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
         <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
         <property name="mac.application.resources" location="${mac.application.contents}/Resources"/>
-        <property name="mac.application.resources.java" location="${mac.application.resources}/Java"/>
-        <property name="mac.application.examples" location="${mac.application.resources.java}/examples"/>
-        <property name="mac.application.plugins" location="${mac.application.resources.java}/plugins"/>
-        <property name="mac.application.lib" location="${mac.application.resources.java}/lib"/>
-        <property name="mac.application.libraries" location="${mac.application.resources.java}/libraries"/>
-        <property name="mac.application.res" location="${mac.application.resources.java}/res"/>
-        <property name="mac.application.bin" location="${mac.application.resources.java}/bin"/>
+        <property name="mac.application.java" location="${mac.application.contents}/Java"/>
+        <property name="mac.application.examples" location="${mac.application.java}/examples"/>
+        <property name="mac.application.lib" location="${mac.application.java}/lib"/>
+        <property name="mac.application.libraries" location="${mac.application.java}/libraries"/>
+        <property name="mac.application.res" location="${mac.application.java}/res"/>
+        <property name="mac.application.bin" location="${mac.application.java}/bin"/>
+        <property name="mac.application.plugins" location="${mac.application.contents}/PlugIns"/>
         <property name="dist.windows.nodebox.lib" location="${dist.windows.nodebox}/lib"/>
         <property name="dist.windows.nodebox.res" location="${dist.windows.nodebox}/res"/>
         <property name="dist.windows.nodebox.libraries" location="${dist.windows.nodebox}/libraries"/>
@@ -175,8 +177,6 @@
         <mkdir dir="${dist.windows.nodebox.res}"/>
         <mkdir dir="${dist.windows.nodebox.libraries}"/>
         <mkdir dir="${dist.windows.nodebox.bin}"/>
-        <!-- Copy version number -->
-        <copy file="version.properties" todir="${dist.windows.nodebox}"/>
         <!-- Copy library and program archives-->
         <copy todir="${dist.windows.nodebox.lib}">
             <mapper type="flatten"/>
@@ -210,15 +210,44 @@
         </nsis>
     </target>
 
-    <target name="dist-mac" depends="archives" description="Make a double-clickable Mac OS X application">
+    <target name="dist-mac" depends="archives">
         <mkdir dir="${dist.mac}"/>
-        <mkdir dir="${mac.application.resources.java}"/>
+        <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+                 classpath="${lib}/appbundler-1.0ea.jar"/>
+        <bundleapp outputdirectory="${dist.mac}"
+                   name="${ant.project.name}"
+                   displayname="${ant.project.name}"
+                   executableName="${ant.project.name}"
+                   identifier="${identifier}"
+                   shortversion="${nodebox.version}"
+                   version="${nodebox.version}"
+                   icon="platform/mac/res/Resources/nodebox.icns"
+                   mainclassname="nodebox.client.Application"
+                   copyright="Copyright EMRG, (c) 2004-2014">
+            <classpath file="dist/lib/nodebox.jar"/>
+            <runtime dir="${mac.java.runtime}"/>
+            <arch name="x86_64"/>
+            <arch name="i386"/>
+            <bundledocument extensions="ndbx"
+                            icon="platform/mac/res/Resources/nodeboxfile.icns"
+                            name="NodeBox Document"
+                            role="editor">
+            </bundledocument>
+            <option value="-Xdock:icon=Contents/Resources/nodebox.icns"/>
+            <option value="-Dapple.laf.useScreenMenuBar=true"/>
+            <option value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
+            <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
+            <option value="-Dcom.apple.mrj.application.apple.menu.about.name=${ant.project.name}"/>
+            <option value="-Dcom.apple.smallTabs=true"/>
+            <option value="-Dfile.encoding=UTF-8"/>
+            <option value="-Xmx1024M"/>
+        </bundleapp>
         <mkdir dir="${mac.application.examples}"/>
-        <mkdir dir="${mac.application.macos}"/>
         <mkdir dir="${mac.application.lib}"/>
         <mkdir dir="${mac.application.plugins}"/>
         <mkdir dir="${mac.application.libraries}"/>
         <mkdir dir="${mac.application.res}"/>
+
         <!-- Copy library and program archives-->
         <copy todir="${mac.application.lib}">
             <mapper type="flatten"/>
@@ -228,36 +257,24 @@
                 <include name="*.zip"/>
             </fileset>
         </copy>
+
         <!-- Copy resources-->
         <copy todir="${mac.application.res}">
             <fileset dir="${res}"/>
         </copy>
         <exec executable="cp">
-            <arg line="-p -R ${platform.bin} ${mac.application.resources.java}"/>
+            <arg line="-p -R ${platform.bin} ${mac.application.java}"/>
         </exec>
-
-        <!-- Copy examples -->
-        <copy todir="${mac.application.examples}">
-            <fileset dir="${examples}"/>
-        </copy>
 
         <!-- Copy bundled libraries -->
         <copy todir="${mac.application.libraries}">
             <fileset dir="${libraries}"/>
         </copy>
 
-        <!-- Copy application stub -->
-        <copy file="${apple.appstub}" toFile="${mac.application.macos}/${ant.project.name}"/>
-        <!-- fix stub permissions -->
-        <chmod file="${mac.application.macos}/${ant.project.name}" perm="755"/>
-        <!-- copy additional Mac contents -->
+        <!-- Copy additional Mac contents -->
         <copy todir="${mac.application.contents}">
             <fileset dir="${platform.res}"/>
         </copy>
-        <!-- Replace version number -->
-        <replace file="${mac.application.contents}/Info.plist" token="@@VERSION@@" value="${nodebox.version}"/>
-        <!-- Copy version number -->
-        <copy file="version.properties" todir="${mac.application.resources.java}"/>
     </target>
 
     <target name="dist-mac-signed" depends="dist-mac" description="Make a signed OS X application">

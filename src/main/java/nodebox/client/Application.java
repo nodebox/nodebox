@@ -33,6 +33,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -205,7 +206,9 @@ public class Application implements Host {
     private void setNodeBoxVersion() throws RuntimeException {
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream("version.properties"));
+            InputStream in = Application.class.getResourceAsStream("/version.properties");
+            properties.load(in);
+            in.close();
             version = new Version(properties.getProperty("nodebox.version"));
         } catch (IOException e) {
             throw new RuntimeException("Could not read NodeBox version file. Please re-install NodeBox.", e);

@@ -21,7 +21,7 @@ Windows
 4. If you use the command line, download and install the latest Apache Ant from http://ant.apache.org/bindownload.cgi . Configure JDK_HOME and ANT_HOME under System Properties > Advanced > Environment Variables.
 5. If you use an IDE, configure it to use the build.xml file in the root.
 6. Configure the path to NSIS and the Java JRE in build.properties.
-7. Set the version number in version.properties.
+7. Set the version number in src/main/resources/version.properties.
 8. Run the dist-win Ant target. This will create an installer with the given version number under "dist".
 
 Linux
