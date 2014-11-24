@@ -265,8 +265,8 @@
         <exec executable="git" outputproperty="apple.developer.name">
             <arg line="config --get user.name"/>
         </exec>
-        <exec executable="codesign">
-            <arg line="-s 'Mac Developer: ${apple.developer.name}' -f -vvv ${mac.application}"/>
+        <exec executable="codesign" failonerror="true">
+            <arg line="--identifier be.emrg.nodebox --sign 'Mac Developer: ${apple.developer.name}' --timestamp=none --force --verbose=4 ${mac.application}"/>
         </exec>
     </target>
 
