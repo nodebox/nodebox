@@ -80,21 +80,17 @@
         </dependency>
 
         <dependency>
-            <groupId>oscP5</groupId>
-            <artifactId>oscP5</artifactId>
-            <version>0.9.9</version>
+            <groupId>de.sojamo</groupId>
+            <artifactId>oscp5</artifactId>
+            <version>0.9.8</version>
         </dependency>
 
     </dependencies>
 
     <repositories>
         <repository>
-          <id>emrg</id>
-          <url>http://repo.emrg.be</url>
-        </repository>
-        <repository>
-          <id>clojars.org</id>
-          <url>http://clojars.org/repo</url>
+            <id>clojars.org</id>
+            <url>https://clojars.org/repo</url>
         </repository>
     </repositories>
 
