@@ -23,13 +23,13 @@ public class NodeBox {
 
     public static NodeRepository getSystemRepository(String systemLibraryDir) {
         List<NodeLibrary> libraries = new ArrayList<NodeLibrary>();
-        libraries.add(systemLibrary(systemLibraryDir, "math"));
-        libraries.add(systemLibrary(systemLibraryDir, "string"));
-        libraries.add(systemLibrary(systemLibraryDir, "color"));
-        libraries.add(systemLibrary(systemLibraryDir, "list"));
-        libraries.add(systemLibrary(systemLibraryDir, "data"));
-        libraries.add(systemLibrary(systemLibraryDir, "corevector"));
-        libraries.add(systemLibrary(systemLibraryDir, "network"));
+        libraries.add(NodeLibrary.loadSystemLibrary("math"));
+        libraries.add(NodeLibrary.loadSystemLibrary("string"));
+        libraries.add(NodeLibrary.loadSystemLibrary("color"));
+        libraries.add(NodeLibrary.loadSystemLibrary("list"));
+        libraries.add(NodeLibrary.loadSystemLibrary("data"));
+        libraries.add(NodeLibrary.loadSystemLibrary("corevector"));
+        libraries.add(NodeLibrary.loadSystemLibrary("network"));
         return NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
     }
 

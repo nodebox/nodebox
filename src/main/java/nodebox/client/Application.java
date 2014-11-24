@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,7 +84,7 @@ public class Application implements Host {
 
     /**
      * Starts a SwingWorker that loads the application in the background.
-     * <p/>
+     * <p>
      * Called in the event dispatch thread using invokeLater.
      */
     private void run() {
@@ -167,7 +168,7 @@ public class Application implements Host {
 
     /**
      * Sets a handler for uncaught exceptions that pops up a message dialog with the exception.
-     * <p/>
+     * <p>
      * Called from the constructor, in the main thread.
      */
     private void initLastResortHandler() {
@@ -190,7 +191,7 @@ public class Application implements Host {
 
     /**
      * Shows the progress dialog.
-     * <p/>
+     * <p>
      * Called from the run() method (which is called in invokeLater).
      */
     private void showProgressDialog() {
@@ -269,23 +270,19 @@ public class Application implements Host {
     }
 
     private void lookForLibraries() {
+
         List<NodeLibrary> libraries = new ArrayList<NodeLibrary>();
-        libraries.add(systemLibrary("math"));
-        libraries.add(systemLibrary("string"));
-        libraries.add(systemLibrary("color"));
-        libraries.add(systemLibrary("list"));
-        libraries.add(systemLibrary("data"));
-        libraries.add(systemLibrary("corevector"));
-        libraries.add(systemLibrary("network"));
+        libraries.add(NodeLibrary.loadSystemLibrary("math"));
+        libraries.add(NodeLibrary.loadSystemLibrary("string"));
+        libraries.add(NodeLibrary.loadSystemLibrary("color"));
+        libraries.add(NodeLibrary.loadSystemLibrary("list"));
+        libraries.add(NodeLibrary.loadSystemLibrary("data"));
+        libraries.add(NodeLibrary.loadSystemLibrary("corevector"));
+        libraries.add(NodeLibrary.loadSystemLibrary("network"));
         if (Application.ENABLE_DEVICE_SUPPORT) {
-            libraries.add(systemLibrary("device"));
+            libraries.add(NodeLibrary.loadSystemLibrary("device"));
         }
         systemRepository = NodeRepository.of(libraries.toArray(new NodeLibrary[]{}));
-    }
-
-    private NodeLibrary systemLibrary(String name) {
-        String fileName = String.format("libraries/%s/%s.ndbx", name, name);
-        return NodeLibrary.load(new File(fileName), NodeRepository.of());
     }
 
     //// Application events ////

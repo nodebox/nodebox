@@ -16,6 +16,8 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,13 +26,31 @@ import static com.google.common.base.Preconditions.*;
 
 public class NodeLibrary {
 
+    public static final File systemLibrariesDir;
+
+    static {
+        final File defaultDir = new File("libraries");
+        if (defaultDir.isDirectory()) {
+            systemLibrariesDir = defaultDir;
+        } else {
+            final URL url = NodeLibrary.class.getProtectionDomain().getCodeSource().getLocation();
+            final File jarFile;
+            try {
+                jarFile = new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            systemLibrariesDir = new File(jarFile.getParentFile(), "libraries");
+        }
+    }
+
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
 
     public static final String CURRENT_FORMAT_VERSION = "20";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 
-    public static final NodeLibrary coreLibrary = NodeLibrary.load(new File("libraries/core/core.ndbx"), NodeRepository.empty());
+    public static final NodeLibrary coreLibrary = NodeLibrary.loadSystemLibrary("core");
 
     public static NodeLibrary create(String libraryName, Node root) {
         return create(libraryName, root, NodeRepository.of(), FunctionRepository.of(), UUID.randomUUID());
@@ -46,6 +66,12 @@ public class NodeLibrary {
 
     private static NodeLibrary create(String libraryName, Node root, NodeRepository nodeRepository, FunctionRepository functionRepository, UUID uuid) {
         return new NodeLibrary(libraryName, null, root, nodeRepository, functionRepository, ImmutableMap.<String, String>of(), ImmutableList.<Device>of(), uuid);
+    }
+
+    public static NodeLibrary loadSystemLibrary(String libraryName) throws LoadException {
+        File libraryFile = new File(systemLibrariesDir, String.format("%s/%s.ndbx", libraryName, libraryName));
+        NodeRepository repository = libraryName.equals("core") ? NodeRepository.empty() : NodeRepository.of();
+        return load(libraryFile, repository);
     }
 
     public static NodeLibrary load(String libraryName, String xml, NodeRepository nodeRepository) throws LoadException {
