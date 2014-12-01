@@ -271,6 +271,11 @@
             <fileset dir="${libraries}"/>
         </copy>
 
+        <!-- Copy examples -->
+        <copy todir="${mac.application.examples}">
+            <fileset dir="${examples}"/>
+        </copy>
+
         <!-- Copy additional Mac contents -->
         <copy todir="${mac.application.contents}">
             <fileset dir="${platform.res}"/>

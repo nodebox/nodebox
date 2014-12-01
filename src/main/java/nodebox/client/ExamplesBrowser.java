@@ -1,6 +1,7 @@
 package nodebox.client;
 
 import nodebox.node.NodeLibrary;
+import nodebox.ui.Platform;
 import nodebox.ui.Theme;
 
 import javax.imageio.ImageIO;
@@ -10,21 +11,35 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import nodebox.ui.Platform;
 import static nodebox.ui.SwingUtils.drawShadowText;
 
 public class ExamplesBrowser extends JFrame {
 
     private static final Image DEFAULT_EXAMPLE_IMAGE;
-    private static final File examplesFolder = new File("examples");
+    private static final File examplesDir;
     private static final Pattern NUMBERS_PREFIX_PATTERN = Pattern.compile("^[0-9]+\\s");
 
     static {
+        final File localDir = new File("examples");
+        if (localDir.isDirectory()) {
+            examplesDir = localDir;
+        } else {
+            final URL url = ExamplesBrowser.class.getProtectionDomain().getCodeSource().getLocation();
+            final File jarFile;
+            try {
+                jarFile = new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            examplesDir = new File(jarFile.getParentFile(), "examples");
+        }
         try {
             DEFAULT_EXAMPLE_IMAGE = ImageIO.read(ExamplesBrowser.class.getResourceAsStream("/default-example.png"));
         } catch (IOException e) {
@@ -85,7 +100,7 @@ public class ExamplesBrowser extends JFrame {
      * Refresh the examples browser by loading everything from disk.
      */
     private void reload() {
-        final List<Category> categories = parseCategories(examplesFolder);
+        final List<Category> categories = parseCategories(examplesDir);
 
         categoriesPanel.removeAll();
         for (final Category category : categories) {
@@ -489,6 +504,7 @@ public class ExamplesBrowser extends JFrame {
 
         /**
          * Given a fixed width, what should be the height of this container?
+         *
          * @param containerWidth The width of the parent component.
          * @return The height in pixels.
          */
