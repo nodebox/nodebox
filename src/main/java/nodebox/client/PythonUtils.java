@@ -6,10 +6,30 @@ import org.python.core.PyString;
 import org.python.core.PySystemState;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class PythonUtils {
+
+    public static final File libDir;
+
+    static {
+        final File localDir = new File("lib");
+        if (localDir.isDirectory()) {
+            libDir = localDir;
+        } else {
+            final URL url = PythonUtils.class.getProtectionDomain().getCodeSource().getLocation();
+            final File jarFile;
+            try {
+                jarFile = new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            libDir = new File(jarFile.getParentFile(), "lib");
+        }
+    }
 
     static AtomicBoolean isInitialized = new AtomicBoolean(false);
 
@@ -25,9 +45,8 @@ public final class PythonUtils {
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
 
         // Add the built-in Python libraries.
-        String workingDirectory = System.getProperty("user.dir");
-        File pythonLibraries = new File(workingDirectory, "lib" + Platform.SEP + "python.zip");
-        File nodeBoxLibraries = new File(workingDirectory, "lib" + Platform.SEP + "nodeboxlibs.zip");
+        File pythonLibraries = new File(libDir, "python.zip");
+        File nodeBoxLibraries = new File(libDir, "nodeboxlibs.zip");
         Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
         Py.getSystemState().path.add(new PyString(nodeBoxLibraries.getAbsolutePath()));
 
