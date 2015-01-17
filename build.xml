@@ -288,7 +288,7 @@
             <arg line="config --get user.name"/>
         </exec>
         <exec executable="codesign" failonerror="true">
-            <arg line="--identifier be.emrg.nodebox --sign 'Mac Developer: ${apple.developer.name}' --timestamp=none --force --verbose=4 ${mac.application}"/>
+            <arg line="--identifier be.emrg.nodebox --sign 'Developer ID Application: ${apple.developer.name}' --timestamp=none --deep --verbose=4 ${mac.application}"/>
         </exec>
     </target>
 
