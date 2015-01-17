@@ -49,9 +49,22 @@ From the command prompt, run:
     # To create a full app (the EXE will be in dist):
     ant dist-win
 
-## Building on Ubuntu Linux
+## Building on Linux
+
+### Ubuntu Linux
+
+Or other distributions based on APT package system:
 
     sudo apt-get install git-core openjdk-6-jdk ant
+    git clone git://github.com/nodebox/nodebox.git
+    cd nodebox
+    ant run
+    
+### Fedora Linux
+
+Or other distributions based on YUM package system:
+
+    sudo yum install git java-1.8.0-openjdk ant
     git clone git://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
