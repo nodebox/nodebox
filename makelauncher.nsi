@@ -21,7 +21,7 @@ Section ""
 
   ; change for your purpose (-jar etc.)
   ${GetParameters} $0
-  StrCpy $0 '"$R0" -classpath "${CLASSPATH}" ${CLASS} $0'
+  StrCpy $0 '"$R0" -Xms128m -Xmx1024m -classpath "${CLASSPATH}" ${CLASS} $0'
 
   SetOutPath $EXEDIR
   Exec $0
