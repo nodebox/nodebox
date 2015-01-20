@@ -489,19 +489,14 @@ public class Application implements Host {
 
     public static void main(String[] args) {
         final Application app = new Application();
-        if (args.length == 2 && args[0].equals("--screenshot")) {
-            String fileName = args[1];
-            app.initApplication();
-            app.takeScreenshotOfDocument(fileName);
-            app.quit();
-        } else {
-            if (args.length == 1)
-                app.filesToLoad.add(new File(args[0]));
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    app.run();
-                }
-            });
+        // Ignore OS X's weird launch parameter.
+        if (args.length == 1 && !args[0].startsWith("-psn")) {
+            app.filesToLoad.add(new File(args[0]));
         }
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                app.run();
+            }
+        });
     }
 }
