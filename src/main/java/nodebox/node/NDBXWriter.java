@@ -191,7 +191,7 @@ public class NDBXWriter {
 
         // Write output range
         if (shouldWriteAttribute(node, Node.Attribute.OUTPUT_RANGE))
-            el.setAttribute("outputRange", node.getOutputRange().toString().toLowerCase());
+            el.setAttribute("outputRange", node.getOutputRange().toString().toLowerCase(Locale.US));
 
         // Write image
         if (shouldWriteAttribute(node, Node.Attribute.IMAGE))
@@ -323,9 +323,9 @@ public class NDBXWriter {
         if (shouldWriteAttribute(node, port, Port.Attribute.CHILD_REFERENCE) && port.getChildReference() != null)
             el.setAttribute("childReference", port.getChildReference());
         if (shouldWriteAttribute(node, port, Port.Attribute.WIDGET))
-            el.setAttribute("widget", port.getWidget().toString().toLowerCase());
+            el.setAttribute("widget", port.getWidget().toString().toLowerCase(Locale.US));
         if (shouldWriteAttribute(node, port, Port.Attribute.RANGE))
-            el.setAttribute("range", port.getRange().toString().toLowerCase());
+            el.setAttribute("range", port.getRange().toString().toLowerCase(Locale.US));
         if (port.isStandardType())
             el.setAttribute("value", port.stringValue());
         if (shouldWriteAttribute(node, port, Port.Attribute.DESCRIPTION))

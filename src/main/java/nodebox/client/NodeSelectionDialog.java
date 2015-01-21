@@ -42,7 +42,7 @@ public class NodeSelectionDialog extends JDialog {
         }
 
         public void setSearchString(String searchString) {
-            this.searchString = searchString = searchString.trim().toLowerCase();
+            this.searchString = searchString = searchString.trim().toLowerCase(Locale.US);
             java.util.List<Node> nodes = new ArrayList<Node>();
             filteredNodes.clear();
             // Add all the nodes from the repository.

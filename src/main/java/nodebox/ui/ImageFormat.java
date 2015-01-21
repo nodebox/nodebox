@@ -2,6 +2,7 @@ package nodebox.ui;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public final class ImageFormat {
@@ -20,7 +21,7 @@ public final class ImageFormat {
     }
 
     public static ImageFormat of(String name) {
-        return FORMAT_MAP.get(name.toUpperCase());
+        return FORMAT_MAP.get(name.toUpperCase(Locale.US));
     }
 
     private final String label;
@@ -44,7 +45,7 @@ public final class ImageFormat {
     }
 
     public String ensureFileExtension(String file) {
-        if (file.toLowerCase().endsWith("." + getExtension()))
+        if (file.toLowerCase(Locale.US).endsWith("." + getExtension()))
             return file;
         return file + "." + getExtension();
     }

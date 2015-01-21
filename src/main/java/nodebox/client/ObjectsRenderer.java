@@ -15,16 +15,17 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 public class ObjectsRenderer {
 
     public static void render(Iterable<?> objects, Rectangle2D bounds, File file) {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
-        if (file.getName().toLowerCase().endsWith(".pdf")) {
+        if (file.getName().toLowerCase(Locale.US).endsWith(".pdf")) {
             LinkedVisualizer linkedVisualizer = new LinkedVisualizer(v, objects);
             PDFRenderer.render(linkedVisualizer, bounds, file);
-        } else if (file.getName().toLowerCase().endsWith(".svg")) {
+        } else if (file.getName().toLowerCase(Locale.US).endsWith(".svg")) {
             SVGRenderer.renderToFile(objects, bounds, file);
         } else {
             try {

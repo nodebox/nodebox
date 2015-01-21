@@ -542,7 +542,7 @@ public class NodeLibrary {
         if (outputType != null)
             node = node.withOutputType(outputType);
         if (outputRange != null)
-            node = node.withOutputRange(Port.Range.valueOf(outputRange.toUpperCase()));
+            node = node.withOutputRange(Port.Range.valueOf(outputRange.toUpperCase(Locale.US)));
         if (position != null)
             node = node.withPosition(Point.valueOf(position));
         if (handle != null)

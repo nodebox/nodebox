@@ -26,10 +26,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -1519,7 +1517,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     //// Export ////
 
     private ImageFormat imageFormatForFile(File file) {
-        if (file.getName().toLowerCase().endsWith(".pdf"))
+        if (file.getName().toLowerCase(Locale.US).endsWith(".pdf"))
             return ImageFormat.PDF;
         return ImageFormat.PNG;
     }

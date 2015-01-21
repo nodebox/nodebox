@@ -84,7 +84,7 @@ public class ColorDialog extends JDialog implements ChangeListener {
         hexField.setBounds(0, 10, 110, 22);
         hexField.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String s = hexField.getText().toLowerCase();
+                String s = hexField.getText().toLowerCase(Locale.US);
                 if (! s.startsWith("#"))
                     s = "#" + s;
                 if (s.length() == 7)

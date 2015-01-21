@@ -10,6 +10,7 @@ import nodebox.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -162,7 +163,7 @@ public final class Port {
      */
 
     public static Port parsedPort(String name, String type, String stringValue) {
-        return parsedPort(name, type, "", "", DEFAULT_RANGE.toString().toLowerCase(), stringValue, "", null, null, ImmutableList.<MenuItem>of());
+        return parsedPort(name, type, "", "", DEFAULT_RANGE.toString().toLowerCase(Locale.US), stringValue, "", null, null, ImmutableList.<MenuItem>of());
     }
 
     /**
@@ -661,7 +662,7 @@ public final class Port {
     }
 
     private static Widget parseWidget(String valueString) {
-        return Widget.valueOf(valueString.toUpperCase());
+        return Widget.valueOf(valueString.toUpperCase(Locale.US));
     }
 
     private static Range parseRange(String valueString) {
