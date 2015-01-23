@@ -68,3 +68,12 @@ Or other distributions based on YUM package system:
     git clone git://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
+
+## Building on FreeBSD/PC-BSD
+
+Just use pkg:
+
+    sudo pkg install git openjdk-7 apache-ant
+    git clone git://github.com/nodebox/nodebox.git
+    cd nodebox
+    ant run
