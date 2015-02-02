@@ -799,7 +799,8 @@ public final class Port {
                 && Objects.equal(type, other.type)
                 && Objects.equal(label, other.label)
                 && Objects.equal(value, other.value)
-                && Objects.equal(description, other.description);
+                && Objects.equal(description, other.description)
+                && Objects.equal(range, other.range);
     }
 
     @Override

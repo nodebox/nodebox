@@ -191,6 +191,16 @@ public class NodeLibraryTest {
     }
 
     @Test
+    public void testPortRangeOverride() {
+        NodeLibrary listLibrary = NodeLibrary.load(new File("libraries/list/list.ndbx"), NodeRepository.of());
+        Node slicePrototype = listLibrary.getRoot().getChild("slice");
+        Node slice1 = slicePrototype.extend().withName("slice1").withInputChanged("list", slicePrototype.getInput("list").withRange(Port.Range.VALUE));
+        NodeLibrary originalLibrary = NodeLibrary.create("test", slice1, NodeRepository.of(listLibrary), functions);
+        NodeLibrary library = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of(listLibrary));
+        assertEquals(Port.Range.VALUE, library.getRoot().getInput("list").getRange());
+    }
+
+    @Test
     public void testPrototypeOverridePersistence() {
         NodeLibrary mathLibrary = NodeLibrary.load(new File("libraries/math/math.ndbx"), NodeRepository.of());
         Node rangePrototype = mathLibrary.getRoot().getChild("range");
