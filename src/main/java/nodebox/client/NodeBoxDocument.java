@@ -529,12 +529,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private void removeNodeImpl(Node node) {
         checkNotNull(node, "Node to remove cannot be null.");
         checkArgument(getActiveNetwork().hasChild(node), "Node to remove is not in active network.");
-        controller.removeNode(activeNetworkPath, node.getName());
 
-        // If the removed node was the active one, reset the port view.
+        // If the removed node is the active one, reset the port view and handles.
         if (node == getActiveNode()) {
             setActiveNode((Node) null);
         }
+
+        controller.removeNode(activeNetworkPath, node.getName());
+
     }
 
     /**
