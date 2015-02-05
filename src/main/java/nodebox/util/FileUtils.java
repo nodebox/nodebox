@@ -3,6 +3,8 @@ package nodebox.util;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
@@ -240,5 +242,18 @@ public class FileUtils {
         } else {
             return getRelativePath(target, base);
         }
+    }
+
+    public static File getApplicationFile(String path) {
+        File f = new File(path);
+        if (f.exists()) return f;
+        final URL url = FileUtils.class.getProtectionDomain().getCodeSource().getLocation();
+        final File jarFile;
+        try {
+            jarFile = new File(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+        return new File(jarFile.getParentFile(), path);
     }
 }

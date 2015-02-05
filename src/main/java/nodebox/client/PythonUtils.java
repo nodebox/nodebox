@@ -20,14 +20,7 @@ public final class PythonUtils {
         if (localDir.isDirectory()) {
             libDir = localDir;
         } else {
-            final URL url = PythonUtils.class.getProtectionDomain().getCodeSource().getLocation();
-            final File jarFile;
-            try {
-                jarFile = new File(url.toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-            libDir = new File(jarFile.getParentFile(), "lib");
+            libDir = nodebox.util.FileUtils.getApplicationFile("lib");
         }
     }
 

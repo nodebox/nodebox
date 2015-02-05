@@ -16,8 +16,6 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,14 +31,7 @@ public class NodeLibrary {
         if (defaultDir.isDirectory()) {
             systemLibrariesDir = defaultDir;
         } else {
-            final URL url = NodeLibrary.class.getProtectionDomain().getCodeSource().getLocation();
-            final File jarFile;
-            try {
-                jarFile = new File(url.toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-            systemLibrariesDir = new File(jarFile.getParentFile(), "libraries");
+            systemLibrariesDir = nodebox.util.FileUtils.getApplicationFile("libraries");
         }
     }
 

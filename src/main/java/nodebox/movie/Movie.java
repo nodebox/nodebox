@@ -16,7 +16,6 @@ public class Movie {
     public static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
     public static final ArrayList<VideoFormat> VIDEO_FORMATS;
     public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.MP4Format;
-    ;
 
     static {
         String osName = System.getProperty("os.name").split("\\s")[0];
@@ -25,6 +24,10 @@ public class Movie {
         if (osName.equals("Windows"))
             binaryName = "ffmpeg.exe";
         File packagedBinary = new File(String.format("bin/%s", binaryName));
+        if (!packagedBinary.exists()) {
+            packagedBinary = nodebox.util.FileUtils.getApplicationFile(String.format("bin/%s", binaryName));
+        }
+
         if (packagedBinary.exists()) {
             FFMPEG_BINARY = packagedBinary;
         } else {

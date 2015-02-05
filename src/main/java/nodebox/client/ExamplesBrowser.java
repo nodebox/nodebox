@@ -11,8 +11,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,14 +29,7 @@ public class ExamplesBrowser extends JFrame {
         if (localDir.isDirectory()) {
             examplesDir = localDir;
         } else {
-            final URL url = ExamplesBrowser.class.getProtectionDomain().getCodeSource().getLocation();
-            final File jarFile;
-            try {
-                jarFile = new File(url.toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-            examplesDir = new File(jarFile.getParentFile(), "examples");
+            examplesDir = nodebox.util.FileUtils.getApplicationFile("examples");
         }
         try {
             DEFAULT_EXAMPLE_IMAGE = ImageIO.read(ExamplesBrowser.class.getResourceAsStream("/default-example.png"));
