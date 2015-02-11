@@ -37,5 +37,8 @@
             </port>
             <port name="value" range="value" type="string" value="Bob" widget="string"/>
         </node>
+        <node description="Get the headers off a csv file." function="data/getCSVHeaders" name="csv_headers" outputRange="list" outputType="string" position="2.00,5.00" category="data">
+            <port name="data" range="list" type="data" widget="none"/>
+        </node>
     </node>
 </ndbx>
