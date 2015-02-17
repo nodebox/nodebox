@@ -159,7 +159,7 @@
 
     <target name="archives" depends="jar,nodeboxlibs"/>
 
-    <target name="dist-win" depends="archives">
+    <target name="dist-win" depends="clean,archives">
         <!-- Check JRE -->
         <available file="${windows.jre}/bin/javaw.exe" property="windows.javaw.exists"/>
         <fail unless="windows.javaw.exists"
@@ -210,7 +210,7 @@
         </nsis>
     </target>
 
-    <target name="dist-mac" depends="archives">
+    <target name="dist-mac" depends="clean,archives">
         <mkdir dir="${dist.mac}"/>
         <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
                  classpath="${lib}/appbundler-1.0ea.jar"/>
