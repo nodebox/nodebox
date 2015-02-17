@@ -1,6 +1,12 @@
 package nodebox.util;
 
+import com.google.common.collect.ImmutableList;
+
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Locale.ENGLISH;
@@ -28,6 +34,26 @@ public final class ReflectionUtils {
         try {
             return c.getMethod(getterMethod(field));
         } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Get the list of public properties for the object, that is, those that can be retrieved using getter methods.
+     * @param o The object to lookup. Cannot be null.
+     * @return A list of properties
+     */
+    public static List<String> getProperties(Object o) {
+        checkNotNull(o, "The given object cannot be null.");
+        Class c = o.getClass();
+        try {
+            PropertyDescriptor[] descriptors = Introspector.getBeanInfo(c).getPropertyDescriptors();
+            ImmutableList.Builder<String> b = ImmutableList.builder();
+            for (PropertyDescriptor descriptor : descriptors) {
+                b.add(descriptor.getName());
+            }
+            return b.build();
+        } catch (IntrospectionException e) {
             throw new RuntimeException(e);
         }
     }

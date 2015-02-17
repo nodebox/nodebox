@@ -4,6 +4,7 @@ package nodebox.function;
 import com.google.common.base.Predicates;
 import com.google.common.collect.*;
 import nodebox.util.MathUtils;
+import nodebox.util.ReflectionUtils;
 
 import java.util.*;
 
@@ -410,6 +411,8 @@ public class ListFunctions {
             if (o instanceof Map) {
                 Map m = (Map) o;
                 b.addAll(m.keySet());
+            } else {
+                b.addAll(ReflectionUtils.getProperties(o));
             }
         }
         return b.build().asList();
