@@ -4,7 +4,6 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import nodebox.util.ReflectionUtils;
 
 import java.io.FileInputStream;
@@ -24,7 +23,7 @@ public class DataFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
-                "lookup", "importCSV", "getCSVHeaders", "filterData");
+                "lookup", "importCSV", "filterData");
 
         separators = new HashMap<String, Character>();
         separators.put("period", '.');
@@ -188,17 +187,6 @@ public class DataFunctions {
         } catch (IOException e) {
             throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);
         }
-    }
-
-    public static List<String> getCSVHeaders(List<Object> rows) {
-        ImmutableSet.Builder<String> b = ImmutableSet.builder();
-        for (Object o: rows) {
-            if (o instanceof Map) {
-                Map m = (Map) o;
-                b.addAll(m.keySet());
-            }
-        }
-        return b.build().asList();
     }
 
     public static List<Object> filterData(List<Object> rows, String key, String op, Object value) {
