@@ -27,9 +27,9 @@ TARGET_DIRECTORY = 'libraries'
 LIBRARIES = ['color', 'core', 'corevector', 'data', 'device', 'list', 'math', 'string']
 
 if sys.platform == 'darwin':
-    SVG2PNG_COMMAND = 'svg2png -w 26 -h 26 %s %s'
+    SVG2PNG_COMMAND = 'svg2png -w 52 -h 52 %s %s'
 else:
-    SVG2PNG_COMMAND = "inkscape -w 26 -h 26 -f %s -e %s"
+    SVG2PNG_COMMAND = "inkscape -w 52 -h 52 -f %s -e %s"
 
 def png_file(svg_file, target_directory):
     base, ext = os.path.splitext(os.path.basename(svg_file))
