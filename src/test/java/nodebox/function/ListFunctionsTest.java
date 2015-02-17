@@ -6,6 +6,7 @@ import com.google.common.collect.Iterables;
 import nodebox.node.polygraph.Point;
 import org.junit.Test;
 
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.TestCase.*;
 
 public class ListFunctionsTest {
@@ -185,6 +186,14 @@ public class ListFunctionsTest {
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 1), 1, 2, 3, 4, 5);
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 2), 1, 3, 5);
         assertElements(ListFunctions.takeEvery(ImmutableList.of(1, 2, 3, 4, 5), 3), 1, 4);
+    }
+
+    @Test
+    public void testKeys() {
+        assertEquals(ImmutableList.of(), ListFunctions.keys(null));
+        assertEquals(ImmutableList.of("a"), ListFunctions.keys(ImmutableList.of(ImmutableMap.of("a", 1))));
+        assertEquals(ImmutableList.of("a"), ListFunctions.keys(ImmutableList.of(ImmutableMap.of("a", 1), ImmutableMap.of("a", 2))));
+        assertEquals(ImmutableList.of("a", "b"), ListFunctions.keys(ImmutableList.of(ImmutableMap.of("a", 1), ImmutableMap.of("b", 2))));
     }
 
     @Test

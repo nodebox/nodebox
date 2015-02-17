@@ -9,13 +9,13 @@ import java.util.*;
 
 /**
  * Operations on lists.
- * <p/>
+ * <p>
  * When we say lists, we really mean Iterables, the most generic type of lists.
  * We do this because some functions return infinite Iterables.
- * <p/>
+ * <p>
  * Functions return the most specific type: for example, sort needs to build up a list from the input Iterable,
  * so it will return this list, avoiding the consumer to create another copy for processing.
- * <p/>
+ * <p>
  * Functions here are not concerned what is inside the  items of the list.
  * They operate on the lists themselves, not on the contents of the list elements.
  */
@@ -29,12 +29,12 @@ public class ListFunctions {
                 "first", "second", "rest", "last",
                 "combine", "slice", "shift", "doSwitch",
                 "distinct", "repeat", "reverse", "sort", "shuffle", "pick", "cull", "takeEvery",
-                "zipMap");
+                "keys", "zipMap");
     }
 
     /**
      * Count the number of items in the list.
-     * <p/>
+     * <p>
      * If the list is infinite, this function will keep on running forever.
      *
      * @param iterable The list items.
@@ -254,7 +254,7 @@ public class ListFunctions {
      * Sort items in the list.
      * If a key is provided, sort according to this key,
      * otherwise perform sorting by natural sort order.
-     * <p/>
+     * <p>
      *
      * @param iterable The list items.
      * @param key      The key by which to order.
@@ -292,7 +292,7 @@ public class ListFunctions {
 
     /**
      * Shuffle the items in the list.
-     * <p/>
+     * <p>
      * Shuffling is stable: using the same seed will always return items in the same sort order.
      *
      * @param iterable The items to shuffle.
@@ -308,7 +308,7 @@ public class ListFunctions {
 
     /**
      * Pick a number of items from the list.
-     * <p/>
+     * <p>
      * Shuffling is stable: using the same seed will always return items in the same sort order.
      *
      * @param iterable The items to pick from.
@@ -396,6 +396,23 @@ public class ListFunctions {
             i++;
         }
         return b.build();
+    }
+
+    /**
+     * Return a list of distinct keys found in the given maps.
+     * @param iterable The list of maps.
+     * @return A list of keys.
+     */
+    public static List<?> keys(Iterable<?> iterable) {
+        if (iterable == null) return ImmutableList.of();
+        ImmutableSet.Builder<String> b = ImmutableSet.builder();
+        for (Object o : iterable) {
+            if (o instanceof Map) {
+                Map m = (Map) o;
+                b.addAll(m.keySet());
+            }
+        }
+        return b.build().asList();
     }
 
     public static <K, V> Map<K, V> zipMap(Iterable<K> keys, Iterable<V> values) {
