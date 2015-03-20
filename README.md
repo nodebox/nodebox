@@ -16,11 +16,16 @@ For downloads, documentation and the forum, visit the website:
 
 ## Building on Mac
 
-If you're on Mac OS X Lion or higher, Git is already installed. For older versions, install Git first (<http://git-scm.com/>).
+NodeBox requires [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html), [Xcode](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh/) (for Ant and Maven)
+
+NodeBox uses Ant and Maven to build a running version. Install these first:
+
+    brew update
+    brew install ant maven
 
 Then from the Terminal, run:
 
-    git clone git://github.com/nodebox/nodebox.git
+    git clone https://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
 
