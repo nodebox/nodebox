@@ -143,20 +143,25 @@ public class CoreVectorFunctions {
      * Change the color of a shape.
      *
      * @param shape       The input shape.
+     * @param changeFill  If true, the fill color will be set to the given color.
      * @param fill        The new fill color.
+     * @param changeStroke  If true, the stroke color and stroke width will be set to the given color.
      * @param stroke      The new stroke color.
      * @param strokeWidth The new stroke width.
      * @return The new colored shape.
      */
-    public static Colorizable colorize(Colorizable shape, Color fill, Color stroke, double strokeWidth) {
+    public static Colorizable colorize(Colorizable shape, boolean changeFill, Color fill, boolean changeStroke, Color stroke, double strokeWidth) {
         if (shape == null) return null;
         Colorizable newShape = shape.clone();
-        newShape.setFill(fill);
-        if (strokeWidth > 0) {
-            newShape.setStrokeColor(stroke);
-            newShape.setStrokeWidth(strokeWidth);
-        } else {
-            newShape.setStrokeColor(null);
+        if (changeFill)
+            newShape.setFill(fill);
+        if (changeStroke) {
+            if (strokeWidth > 0) {
+                newShape.setStrokeColor(stroke);
+                newShape.setStrokeWidth(strokeWidth);
+            } else {
+                newShape.setStrokeColor(null);
+            }
         }
         return newShape;
     }
