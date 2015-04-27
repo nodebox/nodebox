@@ -37,7 +37,7 @@ public class NodeLibrary {
 
     private static final Pattern NUMBER_AT_THE_END = Pattern.compile("^(.*?)(\\d*)$");
 
-    public static final String CURRENT_FORMAT_VERSION = "20";
+    public static final String CURRENT_FORMAT_VERSION = "21";
 
     public static final Splitter PORT_NAME_SPLITTER = Splitter.on(".");
 

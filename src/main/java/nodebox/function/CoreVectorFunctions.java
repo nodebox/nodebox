@@ -211,8 +211,8 @@ public class CoreVectorFunctions {
             tx += translate.x;
             ty += translate.y;
             r += rotate;
-            sx += scale.x;
-            sy += scale.y;
+            sx += scale.x / 100 - 1;
+            sy += scale.y / 100 - 1;
         }
         return builder.build();
     }

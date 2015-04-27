@@ -687,6 +687,17 @@ public class NodeLibraryTest {
         assertEquals("true", upgradedLibrary.getDevice("audioplayer1").getProperty("sync_with_timeline"));
         assertEquals("true", upgradedLibrary.getDevice("osc1").getProperty("sync_with_timeline"));
     }
+
+    @Test
+    public void testUpgrade20to21() {
+        File version20File = new File("src/test/files/upgrade-v20.ndbx");
+        UpgradeResult result = NodeLibraryUpgrades.upgrade(version20File);
+        NodeLibrary corevectorLibrary = NodeLibrary.load(new File("libraries/corevector/corevector.ndbx"), NodeRepository.of());
+        NodeLibrary upgradedLibrary = result.getLibrary(version20File, NodeRepository.of(corevectorLibrary));
+        Node root = upgradedLibrary.getRoot();
+        assertEquals(new Point(200, 150), root.getChild("copy1").getInput("scale").getValue());
+        assertEquals(new Point(100, 100), root.getChild("copy2").getInput("scale").getValue());
+    }
     
     /**
      * Test upgrading from 0.9 files, which should fail since we don't support those conversions.

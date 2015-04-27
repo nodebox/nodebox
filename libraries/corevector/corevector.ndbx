@@ -66,7 +66,7 @@
             </port>
             <port name="translate" range="value" type="point" value="0.00,0.00" widget="point" description="The amount to move each copy."/>
             <port name="rotate" range="value" type="float" value="0.0" widget="float" description="The amount to rotate each copy."/>
-            <port name="scale" range="value" type="point" value="0.00,0.00" widget="point" description="The amount to scale each copy."/>
+            <port name="scale" range="value" type="point" value="100.00,100.00" widget="point" description="The amount to scale each copy."/>
         </node>
         <node description="Delete points or paths that lie within the given bounding shape." function="pyvector/delete" image="delete.png" name="delete" position="10.00,14.00" prototype="filter">
             <port name="bounding" range="value" type="geometry" widget="none" description="The bounding shape."/>

@@ -72,6 +72,7 @@ public class NodeLibraryUpgrades {
         upgradeMap.put("17", upgradeMethod("upgrade17to18"));
         upgradeMap.put("18", upgradeMethod("upgrade18to19"));
         upgradeMap.put("19", upgradeMethod("upgrade19to20"));
+        upgradeMap.put("20", upgradeMethod("upgrade20to21"));
     }
 
     public static String parseFormatVersion(String xml) {
@@ -316,6 +317,27 @@ public class NodeLibraryUpgrades {
         UpgradeOp renameDevicePropertyOp2 = new ConvertDevicePropertyNameOp("audioplayer", "autostart", "sync_with_timeline");
         UpgradeOp renameDevicePropertyOp3 = new ConvertDevicePropertyNameOp("audioinput", "autostart", "sync_with_timeline");
         return transformXml(inputXml, "20", renameDevicePropertyOp1, renameDevicePropertyOp2, renameDevicePropertyOp3);
+    }
+
+    public static UpgradeStringResult upgrade20to21(String inputXml) throws LoadException {
+        // Version 21: Use percentages for the scale parameter in the copy node, like in the scale node.
+        UpgradeOp copyScaleValueOp = new UpgradeOp() {
+            @Override
+            public void apply(Element e) {
+                if (!e.getTagName().equals("node")) return;
+                if (isNodeWithPrototype(e, "corevector.copy")) {
+                    Element scalePort = portWithName(e, "scale");
+                    if (scalePort != null) {
+                        Attr scaleValue = scalePort.getAttributeNode("value");
+                        if (scaleValue == null) { return; }
+                        Point pt = Point.valueOf(scaleValue.getValue());
+                        pt = new Point((pt.x + 1) * 100, (pt.y + 1) * 100);
+                        scaleValue.setValue(String.valueOf(pt));
+                    }
+                }
+            }
+        };
+        return transformXml(inputXml, "21", copyScaleValueOp);
     }
 
     private static List<Node> childNodes(Node parent) {
