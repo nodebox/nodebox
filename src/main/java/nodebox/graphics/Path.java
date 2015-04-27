@@ -31,7 +31,7 @@ public class Path extends AbstractGeometry implements Colorizable, Iterable<Poin
     public Path() {
         fillColor = Color.BLACK;
         strokeColor = null;
-        strokeWidth = 1;
+        strokeWidth = 0;
         contours = new ArrayList<Contour>();
         currentContour = null;
     }

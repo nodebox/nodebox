@@ -157,6 +157,7 @@ public class CoreVectorFunctions {
             newShape.setStrokeWidth(strokeWidth);
         } else {
             newShape.setStrokeColor(null);
+            newShape.setStrokeWidth(0);
         }
         return newShape;
     }
