@@ -52,6 +52,7 @@ public class ViewerPane extends Pane {
         handlesCheck = new NButton(NButton.Mode.CHECK, "Handles");
         handlesCheck.setChecked(true);
         handlesCheck.setActionMethod(this, "toggleHandles");
+        handlesCheck.setToolTipText("Show/Hide handles");
         pointsCheck = new NButton(NButton.Mode.CHECK, "Points");
         pointsCheck.setActionMethod(this, "togglePoints");
         pointNumbersCheck = new NButton(NButton.Mode.CHECK, "Point Numbers");

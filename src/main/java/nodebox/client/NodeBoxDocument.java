@@ -1188,6 +1188,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         fullScreenFrame.setVisible(true);
         fullScreenFrame.setOutputValues(lastRenderResult);
         fullScreenFrame.getViewer().setHandle(viewerPane.getHandle());
+        fullScreenFrame.getViewer().setShowHandle(viewerPane.getViewer().hasVisibleHandle());
     }
 
     public void closeFullScreenWindow() {
