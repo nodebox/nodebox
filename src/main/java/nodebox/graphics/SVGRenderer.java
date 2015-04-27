@@ -5,10 +5,7 @@ import org.python.google.common.collect.ImmutableMap;
 
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -21,7 +18,7 @@ public class SVGRenderer {
         if ((long) v == v) {
             return String.valueOf((long) v);
         } else {
-            return String.format("%.2f", v);
+            return String.format(Locale.US, "%.2f", v);
         }
     }
 
