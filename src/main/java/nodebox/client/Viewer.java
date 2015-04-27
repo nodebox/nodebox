@@ -163,54 +163,63 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
     public void mouseClicked(MouseEvent e) {
         // We register the mouse click as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
-        handle.mouseClicked(pointForEvent(e));
+        if (handle != null)
+            handle.mouseClicked(pointForEvent(e));
     }
 
     public void mousePressed(MouseEvent e) {
         // We register the mouse press as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
-        handle.mousePressed(pointForEvent(e));
+        if (handle != null)
+            handle.mousePressed(pointForEvent(e));
     }
 
     public void mouseReleased(MouseEvent e) {
         // We register the mouse release as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
-        handle.mouseReleased(pointForEvent(e));
+        if (handle != null)
+            handle.mouseReleased(pointForEvent(e));
     }
 
     public void mouseEntered(MouseEvent e) {
         // Entering the viewer with your mouse should not change the node, so we do not register an edit.
         if (e.isPopupTrigger()) return;
-        handle.mouseEntered(pointForEvent(e));
+        if (handle != null)
+            handle.mouseEntered(pointForEvent(e));
     }
 
     public void mouseExited(MouseEvent e) {
         // Exiting the viewer with your mouse should not change the node, so we do not register an edit.
         if (e.isPopupTrigger()) return;
-        handle.mouseExited(pointForEvent(e));
+        if (handle != null)
+            handle.mouseExited(pointForEvent(e));
     }
 
     public void mouseDragged(MouseEvent e) {
         // We register the mouse drag as an edit since it can trigger a change to the node.
         if (e.isPopupTrigger()) return;
         if (isPanning()) return;
-        handle.mouseDragged(pointForEvent(e));
+        if (handle != null)
+            handle.mouseDragged(pointForEvent(e));
         lastMousePosition = pointForEvent(e);
     }
 
     public void mouseMoved(MouseEvent e) {
         // Moving the mouse in the viewer area should not change the node, so we do not register an edit.
         if (e.isPopupTrigger()) return;
-        handle.mouseMoved(pointForEvent(e));
+        if (handle != null)
+            handle.mouseMoved(pointForEvent(e));
         lastMousePosition = pointForEvent(e);
     }
 
     public void keyTyped(KeyEvent e) {
-        handle.keyTyped(e.getKeyCode(), e.getModifiersEx());
+        if (handle != null)
+            handle.keyTyped(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyPressed(KeyEvent e) {
-        handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
+        if (handle != null)
+            handle.keyPressed(e.getKeyCode(), e.getModifiersEx());
     }
 
     public void keyReleased(KeyEvent e) {
@@ -229,7 +238,8 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             }
         }
 
-        handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
+        if (handle != null)
+            handle.keyReleased(e.getKeyCode(), e.getModifiersEx());
     }
 
     @Override
