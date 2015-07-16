@@ -223,7 +223,7 @@
                    version="${nodebox.version}"
                    icon="platform/mac/res/Resources/nodebox.icns"
                    mainclassname="nodebox.client.Application"
-                   copyright="Copyright EMRG, (c) 2004-2014">
+                   copyright="Copyright EMRG, (c) 2004-2015">
             <classpath file="dist/lib/nodebox.jar"/>
             <runtime dir="${mac.java.runtime}"/>
             <arch name="x86_64"/>
