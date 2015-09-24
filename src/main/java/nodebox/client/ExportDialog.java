@@ -14,9 +14,7 @@ import java.awt.event.ActionListener;
 public class ExportDialog extends JDialog {
 
     private boolean dialogSuccessful = false;
-    private JComboBox formatBox;
-
-    private JButton nextButton;
+    private JComboBox<String> formatBox;
 
     public ExportDialog(Frame frame) {
         super(frame, "Export");
@@ -33,7 +31,7 @@ public class ExportDialog extends JDialog {
         // Format
         JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         formatPanel.add(new JLabel("Format:"));
-        formatBox = new JComboBox();
+        formatBox = new JComboBox<>();
         formatBox.addItem("SVG");
         formatBox.addItem("PNG");
         formatBox.addItem("PDF");
@@ -47,18 +45,10 @@ public class ExportDialog extends JDialog {
         mainPanel.add(Box.createVerticalStrut(10));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 0));
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                doCancel();
-            }
-        });
+        cancelButton.addActionListener(e -> doCancel());
         buttonPanel.add(cancelButton);
-        nextButton = new JButton("Next");
-        nextButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-                doNext();
-            }
-        });
+        JButton nextButton = new JButton("Next");
+        nextButton.addActionListener(e -> doNext());
         buttonPanel.add(nextButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         pack();

@@ -6,7 +6,7 @@ import com.google.common.collect.Iterables;
 import nodebox.node.polygraph.Point;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 import static junit.framework.TestCase.*;
 
 public class ListFunctionsTest {
@@ -123,12 +123,12 @@ public class ListFunctionsTest {
     public void testCull() {
         assertElements(ListFunctions.cull(ImmutableList.of(), ImmutableList.<Boolean>of()));
         assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.<Boolean>of()), 1, 2, 3);
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.<Boolean>of(true)), 1, 2, 3);
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.<Boolean>of(false)));
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.<Boolean>of(false, true)), 2, 4);
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.<Boolean>of(true, false)), 1, 3);
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.<Boolean>of(true, true, false)), 1, 2, 4);
-        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.<Boolean>of(true, false, true, true, true)), 1, 3, 4);
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.of(true)), 1, 2, 3);
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3), ImmutableList.of(false)));
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.of(false, true)), 2, 4);
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.of(true, false)), 1, 3);
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.of(true, true, false)), 1, 2, 4);
+        assertElements(ListFunctions.cull(ImmutableList.of(1, 2, 3, 4), ImmutableList.of(true, false, true, true, true)), 1, 3, 4);
     }
 
     @Test

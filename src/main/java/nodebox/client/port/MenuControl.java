@@ -14,13 +14,13 @@ import java.util.List;
 public class MenuControl extends AbstractPortControl implements ActionListener {
 
     private String value;
-    private JComboBox menuBox;
+    private JComboBox<MenuItem> menuBox;
     private MenuDataModel menuModel;
 
     public MenuControl(String nodePath, Port port) {
         super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        menuBox = new JComboBox();
+        menuBox = new JComboBox<>();
         menuModel = new MenuDataModel(port);
         MenuItemRenderer menuItemRenderer = new MenuItemRenderer();
         menuBox.setModel(menuModel);
@@ -57,7 +57,7 @@ public class MenuControl extends AbstractPortControl implements ActionListener {
         }
     }
 
-    private class MenuDataModel implements ComboBoxModel {
+    private class MenuDataModel implements ComboBoxModel<MenuItem> {
 
         List<MenuItem> menuItems;
         MenuItem selectedItem;
@@ -86,7 +86,7 @@ public class MenuControl extends AbstractPortControl implements ActionListener {
             return menuItems.size();
         }
 
-        public Object getElementAt(int index) {
+        public MenuItem getElementAt(int index) {
             return menuItems.get(index);
         }
 

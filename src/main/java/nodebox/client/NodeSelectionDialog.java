@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class NodeSelectionDialog extends JDialog {
 
-    private class FilteredNodeListModel implements ListModel {
+    private class FilteredNodeListModel implements ListModel<Node> {
 
         private NodeLibrary library;
         private NodeRepository repository;
@@ -101,7 +101,7 @@ public class NodeSelectionDialog extends JDialog {
             return filteredNodes.size();
         }
 
-        public Object getElementAt(int index) {
+        public Node getElementAt(int index) {
             return filteredNodes.get(index);
         }
 
@@ -114,11 +114,9 @@ public class NodeSelectionDialog extends JDialog {
         }
     }
 
-    private class NodeRenderer extends JLabel implements ListCellRenderer {
+    private class NodeRenderer extends JLabel implements ListCellRenderer<Node> {
 
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            assert (value instanceof Node);
-            Node node = (Node) value;
+        public Component getListCellRendererComponent(JList<? extends Node> list, Node node, int index, boolean isSelected, boolean cellHasFocus) {
             String html = "<html><b>" + StringUtils.humanizeName(node.getName()) + "</b> - " + node.getDescription() + "</html>";
             setText(html);
             if (isSelected) {
@@ -145,7 +143,7 @@ public class NodeSelectionDialog extends JDialog {
     private NodeRepository repository;
     private JTextField searchField;
     private CategoryList categoryList;
-    private JList nodeList;
+    private JList<Node> nodeList;
     private Node selectedNode;
     private FilteredNodeListModel filteredNodeListModel;
 
@@ -170,7 +168,7 @@ public class NodeSelectionDialog extends JDialog {
         searchField.addKeyListener(arrowKeysListener);
         SearchFieldChangeListener searchFieldChangeListener = new SearchFieldChangeListener();
         searchField.getDocument().addDocumentListener(searchFieldChangeListener);
-        nodeList = new JList(filteredNodeListModel);
+        nodeList = new JList<>(filteredNodeListModel);
         DoubleClickListener doubleClickListener = new DoubleClickListener();
         nodeList.addMouseListener(doubleClickListener);
         nodeList.addKeyListener(escapeListener);

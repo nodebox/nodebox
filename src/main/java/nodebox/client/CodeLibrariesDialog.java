@@ -2,6 +2,7 @@ package nodebox.client;
 
 import com.google.common.collect.ImmutableMap;
 import nodebox.function.CoreFunctions;
+import nodebox.function.Function;
 import nodebox.function.FunctionLibrary;
 import nodebox.function.FunctionRepository;
 import nodebox.ui.ActionHeader;
@@ -31,7 +32,7 @@ public class CodeLibrariesDialog extends JDialog {
             "python", pythonIcon,
             "clojure", clojureIcon);
 
-    private class FunctionLibraryListModel implements ListModel {
+    private class FunctionLibraryListModel implements ListModel<FunctionLibrary> {
         private java.util.List<FunctionLibrary> functionLibraries;
 
         private FunctionLibraryListModel() {
@@ -39,7 +40,7 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
         public void updateFunctionLibraries() {
-            functionLibraries = new ArrayList<FunctionLibrary>();
+            functionLibraries = new ArrayList<>();
             functionLibraries.addAll(functionRepository.getLibraries());
             functionLibraries.remove(CoreFunctions.LIBRARY);
         }
@@ -48,7 +49,7 @@ public class CodeLibrariesDialog extends JDialog {
             return functionLibraries.size();
         }
 
-        public Object getElementAt(int index) {
+        public FunctionLibrary getElementAt(int index) {
             return functionLibraries.get(index);
         }
 
@@ -59,7 +60,7 @@ public class CodeLibrariesDialog extends JDialog {
         }
     }
 
-    private class FunctionLibraryRenderer extends JLabel implements ListCellRenderer {
+    private class FunctionLibraryRenderer extends JLabel implements ListCellRenderer<FunctionLibrary> {
 
         private FunctionLibraryRenderer() {
             setEnabled(true);
@@ -70,9 +71,7 @@ public class CodeLibrariesDialog extends JDialog {
             setPreferredSize(new Dimension(300, 40));
         }
 
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            assert (value instanceof FunctionLibrary);
-            FunctionLibrary library = (FunctionLibrary) value;
+        public Component getListCellRendererComponent(JList<? extends FunctionLibrary> list, FunctionLibrary library, int index, boolean isSelected, boolean cellHasFocus) {
             setText(library.getSimpleIdentifier());
             setIcon(ICON_LANGUAGE_MAP.get(library.getLanguage()));
             if (isSelected) {
@@ -86,7 +85,7 @@ public class CodeLibrariesDialog extends JDialog {
 
     private final NodeBoxDocument document;
     private FunctionRepository functionRepository;
-    private JList functionLibraryList;
+    private JList<FunctionLibrary> functionLibraryList;
     private FunctionLibraryListModel functionLibraryListModel;
     private boolean repositoryChanged = false;
 
@@ -133,7 +132,7 @@ public class CodeLibrariesDialog extends JDialog {
         }
 
 
-        functionLibraryList = new JList(functionLibraryListModel);
+        functionLibraryList = new JList<>(functionLibraryListModel);
         JScrollPane libraryScroll = new JScrollPane(functionLibraryList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         libraryScroll.setBorder(null);
         functionLibraryList.setCellRenderer(new FunctionLibraryRenderer());

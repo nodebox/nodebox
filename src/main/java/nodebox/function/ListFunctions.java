@@ -207,7 +207,7 @@ public class ListFunctions {
                 throw new AssertionError();
         }
         if (returnList == null) return ImmutableList.of();
-        return ImmutableList.<Object>copyOf(returnList);
+        return ImmutableList.copyOf(returnList);
     }
 
     /**
@@ -367,12 +367,13 @@ public class ListFunctions {
         if (key != null) {
             key = key.trim().isEmpty() ? null : key;
         }
-        Set<Integer> distinctKeys = new HashSet<Integer>();
+        Set<Integer> distinctKeys = new HashSet<>();
         ImmutableList.Builder<Object> b = ImmutableList.builder();
         for (Object object : iterable) {
+            if (object == null) continue;
             final Integer hashCode;
             if (key == null) {
-                hashCode = object == null ? null : object.hashCode();
+                hashCode = object.hashCode();
             } else {
                 Object v = DataFunctions.lookup(object, key);
                 hashCode = v == null ? null : v.hashCode();
@@ -406,10 +407,11 @@ public class ListFunctions {
      */
     public static List<?> keys(Iterable<?> iterable) {
         if (iterable == null) return ImmutableList.of();
-        ImmutableSet.Builder<String> b = ImmutableSet.builder();
+        ImmutableSet.Builder<String> b = ImmutableSet.<String>builder();
         for (Object o : iterable) {
             if (o instanceof Map) {
-                Map m = (Map) o;
+                @SuppressWarnings("unchecked")
+                Map<String,?> m = (Map<String,?>) o;
                 b.addAll(m.keySet());
             } else {
                 b.addAll(ReflectionUtils.getProperties(o));

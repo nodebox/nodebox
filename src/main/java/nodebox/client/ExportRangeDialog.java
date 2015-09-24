@@ -19,7 +19,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
     private JTextField fromField;
     private JTextField toField;
     private JTextField directoryField;
-    private JComboBox formatBox;
+    private JComboBox<String> formatBox;
 
     private String exportPrefix;
     private File exportDirectory;
@@ -80,7 +80,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         // Format
         JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         formatPanel.add(new JLabel("Format:"));
-        formatBox = new JComboBox();
+        formatBox = new JComboBox<>();
         formatBox.addItem("SVG");
         formatBox.addItem("PNG");
         formatBox.addItem("PDF");

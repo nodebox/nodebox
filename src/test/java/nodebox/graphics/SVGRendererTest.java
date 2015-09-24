@@ -6,8 +6,8 @@ import org.junit.Test;
 
 import java.awt.geom.Rectangle2D;
 
-import static junit.framework.Assert.assertEquals;
 import static nodebox.graphics.SVGRenderer.*;
+import static org.junit.Assert.assertEquals;
 
 public class SVGRendererTest {
 

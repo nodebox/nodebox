@@ -20,7 +20,7 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
     private JTextField fromField;
     private JTextField toField;
     private JTextField fileField;
-    private JComboBox formatBox;
+    private JComboBox<VideoFormat> formatBox;
 
     private File exportPath;
     private int fromValue;
@@ -60,9 +60,8 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
         formatPanel.add(new JLabel("Format/Device: "));
         mainPanel.add(formatPanel);
-        formatBox = new JComboBox();
-        for (VideoFormat format : Movie.VIDEO_FORMATS)
-            formatBox.addItem(format);
+        formatBox = new JComboBox<>();
+        Movie.VIDEO_FORMATS.forEach(formatBox::addItem);
         formatBox.setSelectedItem(Movie.DEFAULT_FORMAT);
         formatPanel.add(formatBox);
 

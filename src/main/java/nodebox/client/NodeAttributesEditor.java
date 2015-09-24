@@ -1,19 +1,17 @@
 package nodebox.client;
 
 import nodebox.Icons;
-import nodebox.node.*;
+import nodebox.node.Node;
+import nodebox.node.Port;
 import nodebox.ui.SingleLineSplitPane;
 import nodebox.ui.SwingUtils;
 import nodebox.ui.Theme;
 
 import javax.swing.*;
-import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.MouseInputAdapter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
@@ -31,7 +29,6 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     private JPanel editorPanel;
 
     private JButton removeButton;
-    private JButton addButton;
     private JPanel leftPanel;
 
     public NodeAttributesEditor(NodeAttributesDialog dialog) {
@@ -44,31 +41,15 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         reloadPortList();
         //portList.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 5));
-        addButton = new JButton(new Icons.PlusIcon());
-        addButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                addPort();
-            }
-        });
+        JButton addButton = new JButton(new Icons.PlusIcon());
+        addButton.addActionListener(e -> addPort());
         removeButton = new JButton(new Icons.MinusIcon());
-        removeButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                removeSelectedPort();
-            }
-        });
+        removeButton.addActionListener(e -> removeSelectedPort());
 
         JButton upButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.NORTH));
-        upButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                moveUp();
-            }
-        });
+        upButton.addActionListener(e -> moveUp());
         JButton downButton = new JButton(new Icons.ArrowIcon(Icons.ArrowIcon.SOUTH));
-        downButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                moveDown();
-            }
-        });
+        downButton.addActionListener(e -> moveDown());
         buttonPanel.add(addButton);
         buttonPanel.add(removeButton);
         //buttonPanel.add(upButton);
@@ -164,37 +145,6 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
         //parameterPanel.revalidate();
     }
 
-    private class PortListModel implements ListModel {
-
-        public PortListModel() {
-        }
-
-        public int getSize() {
-            return getNode().getInputs().size();
-        }
-
-        public Object getElementAt(int index) {
-            return getNode().getInputs().get(index);
-        }
-
-        public void addListDataListener(ListDataListener l) {
-            // Not implemented
-        }
-
-        public void removeListDataListener(ListDataListener l) {
-            // Not implemented
-        }
-    }
-
-    private class PortCellRenderer extends DefaultListCellRenderer {
-        @Override
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            Port port = (Port) value;
-            String displayValue = port.getDisplayLabel() + " (" + port.getName() + ")";
-            return super.getListCellRendererComponent(list, displayValue, index, isSelected, cellHasFocus);
-        }
-    }
-
     private class SourceLabel extends JComponent {
 
         private String text;
@@ -240,7 +190,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
     private class PortList extends JPanel {
 
         private SourceLabel selectedLabel;
-        private Map<Object, SourceLabel> labelMap = new HashMap<Object, SourceLabel>();
+        private Map<Object, SourceLabel> labelMap = new HashMap<>();
 
         private PortList() {
             super(null);
@@ -350,7 +300,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             String[] types = new String[Port.STANDARD_TYPES.size() + 1];
             Port.STANDARD_TYPES.toArray(types);
             types[types.length - 1] = "custom";
-            final JComboBox box = new JComboBox(types);
+            final JComboBox<String> box = new JComboBox<>(types);
             typePanel.add(box);
 
             // custom type
@@ -360,31 +310,21 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             customTypeField.setEnabled(false);
             customTypePanel.add(customTypeField);
 
-            box.addActionListener (new ActionListener () {
-                public void actionPerformed(ActionEvent e) {
-                    customTypeField.setEnabled(box.getSelectedItem().equals("custom"));
-                }
-            });
+            box.addActionListener(e -> customTypeField.setEnabled(box.getSelectedItem().equals("custom")));
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
             buttonPanel.add(Box.createHorizontalGlue());
 
             JButton cancelButton = new JButton("Cancel");
-            cancelButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent actionEvent) {
-                    dispose();
-                }
-            });
+            cancelButton.addActionListener(e -> dispose());
             buttonPanel.add(cancelButton);
             JButton okButton = new JButton("OK");
-            okButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent actionEvent) {
-                    portName = nameField.getText();
-                    String selectedType = (String) box.getSelectedItem();
-                    portType = selectedType.equals("custom") ? customTypeField.getText().toLowerCase(Locale.US) : selectedType;
-                    dispose();
-                }
+            okButton.addActionListener(e -> {
+                portName = nameField.getText();
+                String selectedType = (String) box.getSelectedItem();
+                portType = selectedType.equals("custom") ? customTypeField.getText().toLowerCase(Locale.US) : selectedType;
+                dispose();
             });
             buttonPanel.add(okButton);
 
@@ -398,11 +338,7 @@ public class NodeAttributesEditor extends JPanel implements ListSelectionListene
             pack();
             getRootPane().setDefaultButton(okButton);
             KeyStroke escapeStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-            getRootPane().registerKeyboardAction(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    dispose();
-                }
-            }, escapeStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+            getRootPane().registerKeyboardAction(e -> dispose(), escapeStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
             SwingUtils.centerOnScreen(this);
         }

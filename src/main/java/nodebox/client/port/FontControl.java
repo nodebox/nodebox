@@ -16,14 +16,14 @@ import java.awt.event.ActionListener;
  */
 public class FontControl extends AbstractPortControl implements ActionListener {
 
-    private JComboBox fontChooser;
+    private JComboBox<Font> fontChooser;
     private FontDataModel fontModel;
     private String value;
 
     public FontControl(String nodePath, Port port) {
         super(nodePath, port);
         setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
-        fontChooser = new JComboBox();
+        fontChooser = new JComboBox<>();
         fontModel = new FontDataModel();
         FontCellRenderer fontCellRenderer = new FontCellRenderer();
         fontChooser.setModel(fontModel);
@@ -54,11 +54,10 @@ public class FontControl extends AbstractPortControl implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Font font = (Font) fontChooser.getSelectedItem();
         if (font == null) return;
-        String fontName = font.getFontName();
         setPortValue(font.getFontName());
     }
 
-    private class FontDataModel implements ComboBoxModel {
+    private class FontDataModel implements ComboBoxModel<Font> {
 
         private Font[] fonts;
         private Font selectedFont;
@@ -87,7 +86,7 @@ public class FontControl extends AbstractPortControl implements ActionListener {
             return fonts.length;
         }
 
-        public Object getElementAt(int index) {
+        public Font getElementAt(int index) {
             return fonts[index];
         }
 

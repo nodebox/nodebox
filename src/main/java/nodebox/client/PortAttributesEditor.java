@@ -2,8 +2,8 @@ package nodebox.client;
 
 import com.google.common.collect.ImmutableList;
 import nodebox.Icons;
-import nodebox.node.Port;
 import nodebox.node.MenuItem;
+import nodebox.node.Port;
 import nodebox.ui.Theme;
 import nodebox.util.HumanizedObject;
 
@@ -19,28 +19,11 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
     // TODO: Don't update immediately, use save/cancel buttons.
 
-    private JTextField nameField;
-    private JTextField labelField;
-    private JTextField typeField;
-    private JTextField descriptionField;
-    private JComboBox widgetBox;
-    private JComboBox rangeBox;
-    private JTextField valueField;
-    private JTextField minimumValueField;
-    private JCheckBox minimumValueCheck;
-    private JTextField maximumValueField;
-    private JCheckBox maximumValueCheck;
-    private JTable menuItemsTable;
-    private JButton addButton;
-    private JButton removeButton;
-    private JButton upButton;
-    private JButton downButton;
-
     private static Map<String, HumanizedObject[]> humanizedWidgetsMap;
     private static HumanizedObject[] humanizedRanges;
 
     static {
-        humanizedWidgetsMap = new HashMap<String, HumanizedObject[]>();
+        humanizedWidgetsMap = new HashMap<>();
         for (String key : Port.WIDGET_MAPPING.keySet()) {
             ImmutableList<Port.Widget> widgets = Port.WIDGET_MAPPING.get(key);
             HumanizedObject[] humanizedWidgets = new HumanizedObject[widgets.size()];
@@ -55,6 +38,22 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         }
     }
 
+    private JTextField nameField;
+    private JTextField labelField;
+    private JTextField typeField;
+    private JTextField descriptionField;
+    private JComboBox<HumanizedObject> widgetBox;
+    private JComboBox<HumanizedObject> rangeBox;
+    private JTextField valueField;
+    private JTextField minimumValueField;
+    private JCheckBox minimumValueCheck;
+    private JTextField maximumValueField;
+    private JCheckBox maximumValueCheck;
+    private JTable menuItemsTable;
+    private JButton addButton;
+    private JButton removeButton;
+    private JButton upButton;
+    private JButton downButton;
     private int y = 0;
 
     private boolean focusLostEvents = true;
@@ -108,12 +107,12 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
 
         // Widget
         if (getPort().isStandardType()) {
-            widgetBox = new JComboBox(humanizedWidgetsMap.get(getPort().getType()));
+            widgetBox = new JComboBox<>(humanizedWidgetsMap.get(getPort().getType()));
             widgetBox.addActionListener(this);
             addRow("Widget", widgetBox);
         }
 
-        rangeBox = new JComboBox(humanizedRanges);
+        rangeBox = new JComboBox<>(humanizedRanges);
         rangeBox.addActionListener(this);
         addRow("Range", rangeBox);
 
@@ -327,7 +326,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
         // TODO: Changing the selection doesn't have any effect on Mac.
         menuItemsTable.changeSelection(index - 1, 1, false, false);
     }
-    
+
     private void updateMenuItem() {
         int index = menuItemsTable.getSelectedRow();
         if (index == -1) return;
@@ -450,11 +449,7 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
             content.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 20));
             getRootPane().setDefaultButton(okButton);
             // Close window when escape key is pressed.
-            getRootPane().registerKeyboardAction(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    setVisible(false);
-                }
-            }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+            getRootPane().registerKeyboardAction(e -> setVisible(false), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
             pack();
         }
 

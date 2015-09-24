@@ -18,7 +18,7 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
     private JTextField descriptionField;
     private JTextField imageField;
     private JTextField outputTypeField;
-    private JComboBox outputRangeBox;
+    private JComboBox<HumanizedObject> outputRangeBox;
     private JTextField functionField;
     private JTextField handleField;
 
@@ -83,7 +83,7 @@ public class NodeSettingsEditor extends JPanel implements ActionListener, FocusL
         addRow("Output Type", outputTypeField);
 
         // Output Range
-        outputRangeBox = new JComboBox(humanizedRanges);
+        outputRangeBox = new JComboBox<>(humanizedRanges);
         outputRangeBox.addActionListener(this);
         addRow("Output Range", outputRangeBox);
 
