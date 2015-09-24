@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant" xmlns:fx="javafx:com.sun.javafx.tools.ant">
     <description>Builds and tests NodeBox.</description>
 
     <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar"/>
     <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
              uri="antlib:org.apache.maven.artifact.ant"
              classpathref="maven-ant-tasks.classpath"/>
+
+    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml"
+        uri="javafx:com.sun.javafx.tools.ant"
+        classpath="${java.home}/../lib/ant-javafx.jar"/>
+
 
     <target name="properties">
         <property file="build.properties"/>
@@ -25,6 +30,8 @@
         <property name="build.test" location="${build}/test"/>
         <property name="build.doc" location="${build}/doc"/>
         <property name="dist" value="dist"/>
+        <property name="dist.res" value="${dist}/resources"/>
+        <property name="dist.lib" value="${dist}/lib"/>
         <property name="dist.mac" value="${dist}/mac"/>
         <property name="dist.windows" value="${dist}/windows"/>
         <property name="dist.windows.nodebox" value="${dist.windows}/NodeBox"/>
@@ -32,7 +39,7 @@
         <property name="dist.windows.nodebox.examples" value="${dist.windows.nodebox}/examples"/>
         <property name="apple.appstub"
                   location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
-        <property name="mac.java.runtime" location="/Library/Java/JavaVirtualMachines/jdk1.8.0_25.jdk/Contents/Home"/>
+        <property name="mac.java.runtime" location="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home"/>
         <property name="mac.application" location="${dist.mac}/${ant.project.name}.app/"/>
         <property name="mac.application.contents" location="${mac.application}/Contents"/>
         <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
@@ -101,10 +108,11 @@
         <mkdir dir="${build.test}"/>
         <mkdir dir="${build.doc}"/>
         <mkdir dir="${dist}"/>
+        <mkdir dir="${dist.res}"/>
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod}" source="1.6" target="1.6" includeantruntime="false" deprecation="yes">
+        <javac destdir="${build.prod}" source="1.8" target="1.8" includeantruntime="false" deprecation="yes">
             <src path="${src}"/>
             <classpath refid="compile.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
@@ -115,7 +123,7 @@
     </target>
 
     <target name="compile-tests" depends="compile">
-        <javac srcdir="${test}" destdir="${build.test}" source="1.6" target="1.6" includeantruntime="false"
+        <javac srcdir="${test}" destdir="${build.test}" source="1.8" target="1.8" includeantruntime="false"
                deprecation="yes">
             <classpath refid="test.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
@@ -144,17 +152,18 @@
     </target>
 
     <target name="jar" depends="compile">
-        <mkdir dir="${dist}/lib"/>
-        <jar jarfile="${dist}/lib/nodebox.jar" basedir="${build.prod}">
+        <mkdir dir="${dist.lib}"/>
+        <jar jarfile="${dist.lib}/nodebox.jar" basedir="${build.prod}">
             <zipgroupfileset refid="maven.fileset"/>
             <manifest>
-                <attribute name="Main-Class" value="nodebox.NodeBox"/>
+                <attribute name="Main-Class" value="nodebox.client.Application"/>
+                <attribute name="Implementation-Version" value="${nodebox.version}"/>
             </manifest>
         </jar>
     </target>
 
     <target name="nodeboxlibs" depends="init">
-        <zip zipfile="${dist}/lib/nodeboxlibs.zip" basedir="src/main/python"/>
+        <zip zipfile="${dist.lib}/nodeboxlibs.zip" basedir="src/main/python"/>
     </target>
 
     <target name="archives" depends="jar,nodeboxlibs"/>
@@ -181,7 +190,7 @@
         <copy todir="${dist.windows.nodebox.lib}">
             <mapper type="flatten"/>
             <file file="${lib}/python.zip"/>
-            <fileset dir="${dist}/lib">
+            <fileset dir="${dist.lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
             </fileset>
@@ -210,11 +219,12 @@
         </nsis>
     </target>
 
-    <target name="dist-mac" depends="clean,archives">
+    <target name="old-dist-mac" depends="clean,archives">
         <mkdir dir="${dist.mac}"/>
         <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
                  classpath="${lib}/appbundler-1.0ea.jar"/>
         <bundleapp outputdirectory="${dist.mac}"
+                   jvmrequired="1.8"
                    name="${ant.project.name}"
                    displayname="${ant.project.name}"
                    executableName="${ant.project.name}"
@@ -252,7 +262,7 @@
         <copy todir="${mac.application.lib}">
             <mapper type="flatten"/>
             <file file="${lib}/python.zip"/>
-            <fileset dir="${dist}/lib">
+            <fileset dir="${dist.lib}">
                 <include name="*.jar"/>
                 <include name="*.zip"/>
             </fileset>
@@ -292,9 +302,46 @@
         </exec>
     </target>
 
-    <target name="zip-mac" depends="dist-mac-signed" description="Make ZIP file of the application.">
+    <target name="dist-mac" depends="clean,archives">
+        <copy todir="${dist.res}/libraries">
+            <fileset dir="${libraries}"/>
+        </copy>
+        <copy todir="${dist.res}/examples">
+            <fileset dir="${examples}"/>
+        </copy>
+        <copy todir="${dist.res}/res">
+            <fileset dir="${res}"/>
+        </copy>
+        <copy todir="${dist.res}/bin">
+            <fileset dir="${platform.bin}"/>
+        </copy>
+        <copy todir="${dist.res}/lib">
+            <fileset dir="lib" includes="python.zip"/>
+            <fileset dir="${dist.lib}" includes="nodeboxlibs.zip"/>
+        </copy>
+
+        <fx:deploy
+           nativeBundles="image"
+           outdir="${dist.mac}" outfile="${ant.project.name}">
+            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
+            <fx:resources>
+                <fx:fileset dir="${dist.lib}" includes="*.jar"/>
+                <fx:fileset dir="${dist.res}"/>
+            </fx:resources>
+            <fx:info title="${ant.project.name}" vendor="EMRG">
+                <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>
+                <fx:association description="NodeBox Document" extension="ndbx" icon="platform/mac/res/Resources/nodeboxfile.icns"/>
+            </fx:info>
+        </fx:deploy>
+
+        <exec dir="${dist.mac}/bundles" executable="chmod" os="Mac OS X">
+            <arg line="755 ${ant.project.name}.app/Contents/Java/bin/ffmpeg"/>
+        </exec>
+    </target>
+
+    <target name="zip-mac" depends="dist-mac" description="Make ZIP file of the application.">
         <zip destfile="${dist}/NodeBox-${nodebox.version}.zip" level="9">
-            <zipfileset filemode="755" dir="${dist.mac}" includes="${ant.project.name}.app/**/*"/>
+            <zipfileset filemode="755" dir="${dist.mac}/bundles" includes="${ant.project.name}.app/**/*"/>
         </zip>
     </target>
 
@@ -329,7 +376,7 @@
 
     <target name="classpath" depends="properties" description="Print the runtime classpath">
         <pathconvert property="prop.classpath" refid="maven.runtime.classpath"/>
-        <echo message="${prop.classpath}:${dist}/lib/nodebox.jar"/>
+        <echo message="${prop.classpath}:${dist.lib}/nodebox.jar"/>
     </target>
 
     <target name="javadoc" depends="properties" description="Generates API documentation">
