@@ -13,7 +13,6 @@
 
 
     <target name="properties">
-        <property file="build.properties"/>
         <property file="src/main/resources/version.properties"/>
         <fail unless="nodebox.version" message="File version.properties should specify nodebox.version."/>
         <property name="identifier" value="be.emrg.nodebox"/>
@@ -191,55 +190,17 @@
         </fx:resources>
     </target>
 
-    <target name="dist-win" depends="clean,archives">
-        <!-- Check JRE -->
-        <available file="${windows.jre}/bin/javaw.exe" property="windows.javaw.exists"/>
-        <fail unless="windows.javaw.exists"
-              message="JRE not found. Please set the location of Java JRE in build.properties."/>
-        <!-- Check NSIS -->
-        <available file="${windows.nsis}/makensis.exe" property="windows.nsis.exists"/>
-        <fail unless="windows.nsis.exists"
-              message="NSIS not found. Please install NSIS and set the location in build.properties."/>
-
-        <mkdir dir="${dist.windows}"/>
-        <mkdir dir="${dist.windows.nodebox}"/>
-        <mkdir dir="${dist.windows.nodebox.examples}"/>
-        <mkdir dir="${dist.windows.nodebox.jre}"/>
-        <mkdir dir="${dist.windows.nodebox.lib}"/>
-        <mkdir dir="${dist.windows.nodebox.res}"/>
-        <mkdir dir="${dist.windows.nodebox.libraries}"/>
-        <mkdir dir="${dist.windows.nodebox.bin}"/>
-        <!-- Copy library and program archives-->
-        <copy todir="${dist.windows.nodebox.lib}">
-            <mapper type="flatten"/>
-            <file file="${lib}/python.zip"/>
-            <fileset dir="${dist.lib}">
-                <include name="*.jar"/>
-                <include name="*.zip"/>
-            </fileset>
-        </copy>
-        <copy todir="${dist.windows.nodebox.res}">
-            <fileset dir="${res}"/>
-        </copy>
-        <copy todir="${dist.windows.nodebox.libraries}">
-            <fileset dir="${libraries}"/>
-        </copy>
-        <copy todir="${dist.windows.nodebox.examples}">
-            <fileset dir="${examples}"/>
-        </copy>
-        <copy todir="${dist.windows.nodebox.bin}">
-            <fileset dir="${platform.bin}"/>
-        </copy>
-        <copy todir="${dist.windows.nodebox.jre}">
-            <fileset dir="${windows.jre}"/>
-        </copy>
-        <taskdef name="nsis" classname="net.sf.nsisant.Task">
-            <classpath location="${lib}/nsisant-1.2.jar"/>
-        </taskdef>
-        <nsis script="makelauncher.nsi" path="${windows.nsis}"/>
-        <nsis script="makeinstaller.nsi" path="${windows.nsis}">
-            <define name="APPVERSION" value="${nodebox.version}"/>
-        </nsis>
+    <target name="dist-win" depends="clean,resources">
+        <fx:deploy
+           nativeBundles="exe"
+           outdir="${dist.windows}" outfile="${ant.project.name}">
+            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
+            <fx:resources refid="dist.fxres"/>
+            <fx:info title="${ant.project.name}" vendor="EMRG">
+                <fx:icon href="platform/windows/installer/nodebox.ico"/>
+                <fx:association description="NodeBox Document" mimetype="application/xml" extension="ndbx" icon="platform/windows/installer/nodebox.ico"/>
+            </fx:info>
+        </fx:deploy>
     </target>
 
     <target name="old-dist-mac" depends="clean,archives">
@@ -330,7 +291,7 @@
            nativeBundles="image"
            outdir="${dist.mac}" outfile="${ant.project.name}">
             <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
-            <fx:resources refid="dist.fxres"></fx:resources>
+            <fx:resources refid="dist.fxres"/>
             <fx:info title="${ant.project.name}" vendor="EMRG">
                 <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>
                 <fx:association description="NodeBox Document" extension="ndbx" icon="platform/mac/res/Resources/nodeboxfile.icns"/>
