@@ -168,6 +168,29 @@
 
     <target name="archives" depends="jar,nodeboxlibs"/>
 
+    <target name="resources" depends="archives">
+        <copy todir="${dist.res}/libraries">
+            <fileset dir="${libraries}"/>
+        </copy>
+        <copy todir="${dist.res}/examples">
+            <fileset dir="${examples}"/>
+        </copy>
+        <copy todir="${dist.res}/res">
+            <fileset dir="${res}"/>
+        </copy>
+        <copy todir="${dist.res}/bin">
+            <fileset dir="${platform.bin}"/>
+        </copy>
+        <copy todir="${dist.res}/lib">
+            <fileset dir="lib" includes="python.zip"/>
+            <fileset dir="${dist.lib}" includes="nodeboxlibs.zip"/>
+        </copy>
+        <fx:resources id="dist.fxres">
+            <fx:fileset dir="${dist.lib}" includes="*.jar"/>
+            <fx:fileset dir="${dist.res}"/>
+        </fx:resources>
+    </target>
+
     <target name="dist-win" depends="clean,archives">
         <!-- Check JRE -->
         <available file="${windows.jre}/bin/javaw.exe" property="windows.javaw.exists"/>
@@ -302,38 +325,17 @@
         </exec>
     </target>
 
-    <target name="dist-mac" depends="clean,archives">
-        <copy todir="${dist.res}/libraries">
-            <fileset dir="${libraries}"/>
-        </copy>
-        <copy todir="${dist.res}/examples">
-            <fileset dir="${examples}"/>
-        </copy>
-        <copy todir="${dist.res}/res">
-            <fileset dir="${res}"/>
-        </copy>
-        <copy todir="${dist.res}/bin">
-            <fileset dir="${platform.bin}"/>
-        </copy>
-        <copy todir="${dist.res}/lib">
-            <fileset dir="lib" includes="python.zip"/>
-            <fileset dir="${dist.lib}" includes="nodeboxlibs.zip"/>
-        </copy>
-
+    <target name="dist-mac" depends="clean,resources">
         <fx:deploy
            nativeBundles="image"
            outdir="${dist.mac}" outfile="${ant.project.name}">
             <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
-            <fx:resources>
-                <fx:fileset dir="${dist.lib}" includes="*.jar"/>
-                <fx:fileset dir="${dist.res}"/>
-            </fx:resources>
+            <fx:resources refid="dist.fxres"></fx:resources>
             <fx:info title="${ant.project.name}" vendor="EMRG">
                 <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>
                 <fx:association description="NodeBox Document" extension="ndbx" icon="platform/mac/res/Resources/nodeboxfile.icns"/>
             </fx:info>
         </fx:deploy>
-
         <exec dir="${dist.mac}/bundles" executable="chmod" os="Mac OS X">
             <arg line="755 ${ant.project.name}.app/Contents/Java/bin/ffmpeg"/>
         </exec>
