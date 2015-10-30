@@ -252,6 +252,7 @@
                 <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>
                 <fx:association description="NodeBox Document" extension="ndbx" icon="platform/mac/res/Resources/nodeboxfile.icns"/>
             </fx:info>
+            <fx:platform basedir="${java.home}"/>
         </fx:deploy>
         <exec dir="${dist.mac}/bundles" executable="chmod" os="Mac OS X">
             <arg line="755 ${ant.project.name}.app/Contents/Java/bin/ffmpeg"/>
