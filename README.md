@@ -34,16 +34,19 @@ Then from the Terminal, run:
 
 ## Building on Windows
 
-- Install [Git](<http://git-scm.com/>).
-- Install the [Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+- Install [Git](http://git-scm.com/).
+- Install the [Java 8 SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 - Install [Unicode NSIS](http://www.scratchpaper.com/).
 - Install [Ant](http://ant.apache.org/).
+- Install [Inno Setup (Unicode)](http://www.jrsoftware.org/isdl.php)
 
 From the command prompt, run:
 
     # Setup the correct environment variables
-    set PATH=%PATH%;c:\java\apache-ant-1.8.2\bin
-    set JAVA_HOME=c:\java\jdk6
+    # (Modify these paths to your installation directories.)
+    set JAVA_HOME=c:\java\jdk8
+    set ANT_HOME=c:\java\ant
+    set PATH=%PATH%;%ANT_HOME%\bin
 
     git clone git://github.com/nodebox/nodebox.git
     # Modify build.properties to point to the correct installation paths of the JRE and NSIS.
@@ -51,7 +54,7 @@ From the command prompt, run:
     cd nodebox
     ant run
 
-    # To create a full app (the EXE will be in dist):
+    # To create a full app (the MSI will be in dist/windows/bundles):
     ant dist-win
 
 ## Building on Linux
