@@ -37,13 +37,8 @@
         <property name="dist.windows.nodebox" value="${dist.windows}/NodeBox"/>
         <property name="dist.windows.nodebox.jre" value="${dist.windows.nodebox}/jre"/>
         <property name="dist.windows.nodebox.examples" value="${dist.windows.nodebox}/examples"/>
-        <property name="apple.appstub"
-                  location="/System/Library/Frameworks/JavaVM.framework/Resources/MacOS/JavaApplicationStub"/>
-        <property name="mac.java.runtime" location="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home"/>
         <property name="mac.application" location="${dist.mac}/${ant.project.name}.app/"/>
         <property name="mac.application.contents" location="${mac.application}/Contents"/>
-        <property name="mac.application.macos" location="${mac.application.contents}/MacOS"/>
-        <property name="mac.application.macos.stub" location="${mac.application.macos}/${ant.project.name}"/>
         <property name="mac.application.resources" location="${mac.application.contents}/Resources"/>
         <property name="mac.application.java" location="${mac.application.contents}/Java"/>
         <property name="mac.application.examples" location="${mac.application.java}/examples"/>
