@@ -61,7 +61,9 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         formatPanel.add(new JLabel("Format/Device: "));
         mainPanel.add(formatPanel);
         formatBox = new JComboBox<>();
-        Movie.VIDEO_FORMATS.forEach(formatBox::addItem);
+        for (VideoFormat format : Movie.VIDEO_FORMATS) {
+            formatBox.addItem(format);
+        }
         formatBox.setSelectedItem(Movie.DEFAULT_FORMAT);
         formatPanel.add(formatBox);
 
@@ -104,6 +106,11 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
 
         if (this.exportPath != null && this.exportPath.isFile())
             setExportPath(this.exportPath);
+    }
+
+    public static void main(String[] args) {
+        ExportMovieDialog d = new ExportMovieDialog(null, null);
+        d.setVisible(true);
     }
 
     private void doCancel() {
@@ -163,10 +170,5 @@ public class ExportMovieDialog extends JDialog implements ActionListener {
         String path = exportPath == null ? null : exportPath.getAbsolutePath();
         File chosenFile = FileUtils.showSaveDialog(NodeBoxDocument.getCurrentDocument(), path, "mov,avi,mp4", "Movie files");
         setExportPath(chosenFile != null ? chosenFile : this.exportPath);
-    }
-
-    public static void main(String[] args) {
-        ExportMovieDialog d = new ExportMovieDialog(null, null);
-        d.setVisible(true);
     }
 }

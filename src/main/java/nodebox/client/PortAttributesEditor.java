@@ -449,7 +449,12 @@ public class PortAttributesEditor extends JPanel implements ActionListener, Focu
             content.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 20));
             getRootPane().setDefaultButton(okButton);
             // Close window when escape key is pressed.
-            getRootPane().registerKeyboardAction(e -> setVisible(false), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+            getRootPane().registerKeyboardAction(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    setVisible(false);
+                }
+            }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
             pack();
         }
 

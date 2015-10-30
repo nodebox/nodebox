@@ -45,10 +45,20 @@ public class ExportDialog extends JDialog {
         mainPanel.add(Box.createVerticalStrut(10));
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 10, 0));
         JButton cancelButton = new JButton("Cancel");
-        cancelButton.addActionListener(e -> doCancel());
+        cancelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doCancel();
+            }
+        });
         buttonPanel.add(cancelButton);
         JButton nextButton = new JButton("Next");
-        nextButton.addActionListener(e -> doNext());
+        nextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                doNext();
+            }
+        });
         buttonPanel.add(nextButton);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         pack();
