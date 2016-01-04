@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant" xmlns:fx="javafx:com.sun.javafx.tools.ant">
+<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+         xmlns:fx="javafx:com.sun.javafx.tools.ant">
     <description>Builds and tests NodeBox.</description>
 
     <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar"/>
@@ -8,8 +9,8 @@
              classpathref="maven-ant-tasks.classpath"/>
 
     <taskdef resource="com/sun/javafx/tools/ant/antlib.xml"
-        uri="javafx:com.sun.javafx.tools.ant"
-        classpath="${java.home}/../lib/ant-javafx.jar"/>
+             uri="javafx:com.sun.javafx.tools.ant"
+             classpath="${java.home}/../lib/ant-javafx.jar"/>
 
 
     <target name="properties">
@@ -187,26 +188,30 @@
 
     <target name="dist-win" depends="clean,resources">
         <fx:deploy
-           nativeBundles="exe"
-           outdir="${dist.windows}" outfile="${ant.project.name}">
-            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
+                nativeBundles="exe"
+                outdir="${dist.windows}" outfile="${ant.project.name}">
+            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application"
+                            version="${nodebox.version}"/>
             <fx:resources refid="dist.fxres"/>
             <fx:info title="${ant.project.name}" vendor="EMRG">
                 <fx:icon href="platform/windows/installer/nodebox.ico"/>
-                <fx:association description="NodeBox Document" mimetype="application/xml" extension="ndbx" icon="platform/windows/installer/nodebox.ico"/>
+                <fx:association description="NodeBox Document" mimetype="application/xml" extension="ndbx"
+                                icon="platform/windows/installer/nodebox.ico"/>
             </fx:info>
         </fx:deploy>
     </target>
 
     <target name="dist-mac" depends="clean,resources">
         <fx:deploy
-           nativeBundles="image"
-           outdir="${dist.mac}" outfile="${ant.project.name}">
-            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application" version="${nodebox.version}"/>
+                nativeBundles="image"
+                outdir="${dist.mac}" outfile="${ant.project.name}">
+            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application"
+                            version="${nodebox.version}"/>
             <fx:resources refid="dist.fxres"/>
             <fx:info title="${ant.project.name}" vendor="EMRG">
                 <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>
-                <fx:association description="NodeBox Document" extension="ndbx" icon="platform/mac/res/Resources/nodeboxfile.icns"/>
+                <fx:association description="NodeBox Document" extension="ndbx"
+                                icon="platform/mac/res/Resources/nodeboxfile.icns"/>
             </fx:info>
             <fx:platform basedir="${java.home}"/>
         </fx:deploy>
@@ -220,7 +225,7 @@
             <zipfileset filemode="755" dir="${dist.mac}/bundles" includes="${ant.project.name}.app/**/*"/>
         </zip>
     </target>
-    
+
     <target name="bindir-unix" depends="properties" unless="platform.windows">
         <exec executable="cp">
             <arg line="-p -R ${platform.bin} ."/>
