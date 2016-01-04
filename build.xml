@@ -220,11 +220,7 @@
             <zipfileset filemode="755" dir="${dist.mac}/bundles" includes="${ant.project.name}.app/**/*"/>
         </zip>
     </target>
-
-    <!-- Install target, for building the actual product -->
-    <target name="install" depends="dist-mac" description="Create application">
-    </target>
-
+    
     <target name="bindir-unix" depends="properties" unless="platform.windows">
         <exec executable="cp">
             <arg line="-p -R ${platform.bin} ."/>
@@ -243,9 +239,9 @@
         </java>
     </target>
 
-    <target name="run-mac" depends="install" description="Run the double-clickable application">
+    <target name="run-mac" depends="dist-mac" description="Run the double-clickable application">
         <!-- Use the exec task to open the application -->
-        <exec dir="${dist.mac}" executable="/usr/bin/open" os="Mac OS X">
+        <exec dir="${dist.mac}/bundles" executable="/usr/bin/open" os="Mac OS X">
             <arg line="${ant.project.name}.app"/>
         </exec>
     </target>
