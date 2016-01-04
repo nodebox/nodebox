@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.client.devicehandler.DeviceHandler;
@@ -26,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -160,6 +162,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setIconImage(APPLICATION_ICON_IMAGE);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(this);
+        if (Platform.onMac()) {
+            enableOSXFullscreen(this);
+        }
         updateTitle();
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
@@ -219,6 +224,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 .withChildAdded(rect1)
                 .withRenderedChild(rect1);
         return NodeLibrary.create("untitled", root, nodeRepository, FunctionRepository.of());
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void enableOSXFullscreen(Window window) {
+        Preconditions.checkNotNull(window);
+        try {
+            Class util = Class.forName("com.apple.eawt.FullScreenUtilities");
+            Class params[] = new Class[]{Window.class, Boolean.TYPE};
+            Method method = util.getMethod("setWindowCanFullScreen", params);
+            method.invoke(util, window, true);
+        } catch (ClassNotFoundException e1) {
+        } catch (Exception e) {
+            System.err.println("OS X: Cannot set fullscreen mode.");
+        }
     }
 
     /**
