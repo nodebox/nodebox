@@ -565,9 +565,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * @param inputNode  The input node.
      * @param inputPort  The input port.
      */
-    public void connect(String outputNode, String inputNode, String inputPort) {
+    public void connect(String outputNode, String inputNode, String inputPort, Connection.Type connectionType) {
         addEdit("Connect");
-        controller.connect(activeNetworkPath, outputNode, inputNode, inputPort);
+        controller.connect(activeNetworkPath, outputNode, inputNode, inputPort, connectionType);
 
         portView.updateAll();
         viewerPane.updateHandle();
@@ -1254,7 +1254,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             @Override
             protected List<?> doInBackground() throws Exception {
                 List<?> results = context.renderNode(renderNetwork);
-                context.renderAlwaysRenderedNodes(renderNetwork);
                 renderResults = context.getRenderResults();
                 return results;
             }

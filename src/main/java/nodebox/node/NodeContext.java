@@ -87,16 +87,6 @@ public final class NodeContext {
         return renderNode(node, Collections.<Port, Object>emptyMap());
     }
 
-    public void renderAlwaysRenderedNodes(Node node) throws NodeRenderException {
-        if (!node.isNetwork()) return;
-        for (Node child : node.getChildren()) {
-            if (child.isAlwaysRendered()) {
-                if (!renderResults.containsKey(child))
-                    renderNode(child);
-            }
-        }
-    }
-
     public List<?> renderNode(Node node, Map<Port, ?> argumentMap) {
         checkNotNull(node);
         checkNotNull(functionRepository);
@@ -113,6 +103,16 @@ public final class NodeContext {
         }
         List<?> results = postProcessResult(node, result);
         renderResults.put(node, results);
+
+        if (node.isNetwork()) {
+            for (Node child : node.getChildren()) {
+                if (child.isAlwaysRendered() || node.usesChildInputForNextFrame(child)) {
+                    if (!renderResults.containsKey(child))
+                        renderChild(node, child, argumentMap);
+                }
+            }
+        }
+
         return results;
     }
 
@@ -189,6 +189,7 @@ public final class NodeContext {
             }
         }
         nodeArgumentsResults.put(nodeArguments, resultsList);
+        renderResults.put(nodeArguments.node, resultsList);
         return resultsList;
     }
 
@@ -238,30 +239,51 @@ public final class NodeContext {
         return b.build();
     }
 
-    private Node findOutputNode(Node network, Node inputNode, Port inputPort) {
+    private Connection findOutputConnection(Node network, Node inputNode, Port inputPort, boolean checkFeedback) {
+        if (checkFeedback) {
+            for (Connection c : network.getConnections()) {
+                if (c.isFeedbackLoop() && c.getInputNode().equals(inputNode.getName()) && c.getInputPort().equals(inputPort.getName())) {
+                    return c;
+                }
+            }
+        }
         for (Connection c : network.getConnections()) {
-            if (c.getInputNode().equals(inputNode.getName()) && c.getInputPort().equals(inputPort.getName())) {
-                return network.getChild(c.getOutputNode());
+            if ((! c.isFeedbackLoop()) && c.getInputNode().equals(inputNode.getName()) && c.getInputPort().equals(inputPort.getName())) {
+                return c;
             }
         }
         return null;
     }
 
     private List<?> evaluatePort(Node network, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
-        Node outputNode = findOutputNode(network, child, childPort);
-        if (outputNode != null) {
-            List<?> result = renderChild(network, outputNode, networkArgumentMap);
-            if (childPort.isFileWidget()) {
-                return convertToFileNames(result);
+        Connection conn = findOutputConnection(network, child, childPort, true);
+        if (conn != null) {
+            Node outputNode = network.getChild(conn.getOutputNode());
+            if (conn.isFeedbackLoop()) {
+                List<?> previousResults = previousRenderResults.get(outputNode);
+                if (previousResults != null) {
+                    return previousResults;
+                } else {
+                    conn = findOutputConnection(network, child, childPort, false);
+                    if (conn == null)
+                        outputNode = null;
+                    else
+                        outputNode = network.getChild(conn.getOutputNode());
+                }
             }
-            return result;
+            if (outputNode != null) {
+                List<?> result = renderChild(network, outputNode, networkArgumentMap);
+                if (childPort.isFileWidget()) {
+                    return convertToFileNames(result);
+                }
+                return result;
+            }
+        }
+        Object value = getPortValue(child, childPort);
+        if (value == null) {
+            return ImmutableList.of();
         } else {
-            Object value = getPortValue(child, childPort);
-            if (value == null) {
-                return ImmutableList.of();
-            } else {
-                return ImmutableList.of(value);
-            }
+            return ImmutableList.of(value);
         }
     }
 

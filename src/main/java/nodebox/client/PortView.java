@@ -152,6 +152,8 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             Class widgetClass = CONTROL_MAP.get(p.getWidget());
             JComponent control;
             if (getDocument().isConnected(portName)) {
+                // todo in case of feedback mechanism (and no regular connection present) we dont want to show just
+                // "connected" but be able to set the initial value. Also something to trigger the initial value again.
                 control = new JLabel("<connected>");
                 control.setMinimumSize(new Dimension(10, 35));
                 control.setFont(Theme.SMALL_FONT);

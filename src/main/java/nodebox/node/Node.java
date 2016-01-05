@@ -252,6 +252,14 @@ public final class Node {
         return !children.isEmpty();
     }
 
+    public boolean usesChildInputForNextFrame(Node child) {
+        for (Connection conn : getConnections()) {
+            if (conn.isFeedbackLoop() && child.getName().equals(conn.getOutputNode()))
+                return true;
+        }
+        return false;
+    }
+
     public ImmutableList<Node> getChildren() {
         return children;
     }
@@ -631,9 +639,9 @@ public final class Node {
 
         for (Connection c : getConnections()) {
             if (c.getInputNode().equals(childName)) {
-                newParent = newParent.connect(c.getOutputNode(), newName, c.getInputPort());
+                newParent = newParent.connect(c.getOutputNode(), newName, c.getInputPort(), c.getType());
             } else if (c.getOutputNode().equals(childName)) {
-                newParent = newParent.connect(newName, c.getInputNode(), c.getInputPort());
+                newParent = newParent.connect(newName, c.getInputNode(), c.getInputPort(), c.getType());
             }
         }
 
@@ -1095,16 +1103,31 @@ public final class Node {
      * @return A new Node.
      */
     public Node connect(String outputNode, String inputNode, String inputPort) {
+        return connect(outputNode, inputNode, inputPort, Connection.Type.STANDARD);
+    }
+
+    /**
+     * Create a new node that connects the given child nodes.
+     *
+     * @param outputNode     The name of the output (upstream) Node.
+     * @param inputNode      The name of the input (downstream) Node.
+     * @param inputPort      The name of the input (downstream) Port.
+     * @param connectionType The type of connection (regular connection or feedback).
+     * @return A new Node.
+     */
+    public Node connect(String outputNode, String inputNode, String inputPort, Connection.Type connectionType) {
         checkArgument(isNetwork(), "Node %s is not a network node.", this);
         checkArgument(hasChild(outputNode), "Node %s does not have a child named %s.", this, outputNode);
         checkArgument(hasChild(inputNode), "Node %s does not have a child named %s.", this, inputNode);
         Node input = getChild(inputNode);
         checkArgument(input.hasInput(inputPort), "Node %s does not have an input port %s.", inputNode, inputPort);
         checkArgument(!hasPublishedInput(inputNode, inputPort), "Node %s has a published input for port %s of child %s.", this, inputNode, inputPort);
-        Connection newConnection = new Connection(outputNode, inputNode, inputPort);
+        Connection newConnection = new Connection(outputNode, inputNode, inputPort, connectionType);
         ImmutableList.Builder<Connection> b = ImmutableList.builder();
         for (Connection c : getConnections()) {
-            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort)) {
+            if  (c.getInputNode().equals(inputNode)
+              && c.getInputPort().equals(inputPort)
+              && c.getType().equals(connectionType)) {
                 // There was already a connection, on this input port.
                 // We "disconnect" it by not including it in the new list.
             } else {
@@ -1177,7 +1200,7 @@ public final class Node {
     }
 
     public Node withConnectionAdded(Connection connection) {
-        return connect(connection.getOutputNode(), connection.getInputNode(), connection.getInputPort());
+        return connect(connection.getOutputNode(), connection.getInputNode(), connection.getInputPort(), connection.getType());
     }
 
     public boolean isConnected(String node) {
@@ -1235,7 +1258,7 @@ public final class Node {
                     Node outputNode = newParent.getChild(outputNodeName);
                     Node inputNode = newParent.getChild(inputNodeName);
                     Port inputPort = inputNode.getInput(c.getInputPort());
-                    newParent = newParent.connect(outputNode.getName(), inputNode.getName(), inputPort.getName());
+                    newParent = newParent.connect(outputNode.getName(), inputNode.getName(), inputPort.getName(), c.getType());
                 }
             }
         }
@@ -1250,9 +1273,21 @@ public final class Node {
      * @return the Connection object, or null if the connection could not be found.
      */
     public Connection getConnection(String inputNode, String inputPort) {
+        return getConnection(inputNode, inputPort, Connection.Type.STANDARD);
+    }
+
+    /**
+     * Find the connection with the given inputNode and port.
+     *
+     * @param inputNode      The child input node
+     * @param inputPort      The child input port
+     * @param connectionType The type of connection (regular or feedback)
+     * @return the Connection object, or null if the connection could not be found.
+     */
+    public Connection getConnection(String inputNode, String inputPort, Connection.Type connectionType) {
         if (!isNetwork()) return null;
         for (Connection c : getConnections()) {
-            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort))
+            if (c.getInputNode().equals(inputNode) && c.getInputPort().equals(inputPort) && c.getType().equals(connectionType))
                 return c;
 
         }
