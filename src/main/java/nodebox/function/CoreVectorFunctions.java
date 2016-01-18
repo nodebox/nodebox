@@ -179,6 +179,7 @@ public class CoreVectorFunctions {
             p.close();
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p.setStrokeWidth(1);
         return p;
     }
 
@@ -316,6 +317,7 @@ public class CoreVectorFunctions {
         Path p = parsePath(pathString);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p.setStrokeWidth(1);
         return p;
     }
 
@@ -393,6 +395,7 @@ public class CoreVectorFunctions {
         p.line(p1.x, p1.y, p2.x, p2.y);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p.setStrokeWidth(1);
         p = p.resampleByAmount((int) points, true);
         return p;
     }
@@ -412,6 +415,7 @@ public class CoreVectorFunctions {
         p.line(point.x, point.y, p2.x, p2.y);
         p.setFill(null);
         p.setStroke(Color.BLACK);
+        p.setStrokeWidth(1);
         p = p.resampleByAmount((int) points, true);
         return p;
     }
