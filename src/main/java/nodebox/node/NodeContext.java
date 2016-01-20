@@ -17,6 +17,7 @@ import static com.google.common.base.Preconditions.checkState;
 public final class NodeContext {
 
     private final NodeLibrary nodeLibrary;
+    private final Map<String, Node> nodeMap;
     private final FunctionRepository functionRepository;
     private final ImmutableMap<String, ?> data;
     private final ImmutableMap<Node, List<?>> previousRenderResults;
@@ -40,6 +41,7 @@ public final class NodeContext {
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<Node, List<?>> previousRenderResults, Map<String, ?> portOverrides) {
         this.nodeLibrary = nodeLibrary;
+        this.nodeMap = nodeLibrary.getFlattenedNodeMap();
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.data = ImmutableMap.copyOf(data);
         this.renderResults = new HashMap<Node, List<?>>();

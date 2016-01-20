@@ -218,6 +218,24 @@ public class NodeLibrary {
         return functionRepository;
     }
 
+    public ImmutableMap<String, Node> getFlattenedNodeMap() {
+        Map<String, Node> map = getFlattenedNodeMap("/", root);
+        map.put("/", root);
+        return ImmutableMap.copyOf(map);
+    }
+
+    private Map<String, Node> getFlattenedNodeMap(String path, Node network) {
+        Map<String, Node> map = new HashMap<String, Node>();
+        for (Node n : network.getChildren()) {
+            map.put(path + n.getName(), n);
+            if (n.isNetwork()) {
+                Map<String, Node> childMap = getFlattenedNodeMap(path + n.getName() + "/", n);
+                map.putAll(childMap);
+            }
+        }
+        return map;
+    }
+
     //// Properties ////
 
     public boolean hasProperty(String name) {
