@@ -3,7 +3,6 @@ package nodebox.function;
 import com.google.common.collect.ImmutableList;
 import nodebox.node.*;
 import nodebox.util.Assertions;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
@@ -17,11 +16,9 @@ public class MathFunctionsTest {
     private final FunctionLibrary mathLibrary = MathFunctions.LIBRARY;
     private final FunctionRepository functions = FunctionRepository.of(mathLibrary);
     private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
-    private NodeContext context;
 
-    @Before
-    public void setUp() {
-        context = new NodeContext(testLibrary);
+    private List<?> renderNode(Node node) {
+        return new NodeContext(testLibrary.withRoot(node)).renderNode("/");
     }
 
     @Test
@@ -35,7 +32,7 @@ public class MathFunctionsTest {
     @Test(expected = NodeRenderException.class)
     public void testCallInvertWithNoArguments() {
         Node invertNode = Node.ROOT.withFunction("math/negate");
-        context.renderNode(invertNode);
+        renderNode(invertNode);
     }
 
     @Test
@@ -43,7 +40,7 @@ public class MathFunctionsTest {
         Node invertNode = Node.ROOT
                 .withFunction("math/negate")
                 .withInputAdded(Port.floatPort("value", 5));
-        assertEquals(ImmutableList.of(-5.0), context.renderNode(invertNode));
+        assertEquals(ImmutableList.of(-5.0), renderNode(invertNode));
     }
 
     /**
@@ -57,13 +54,14 @@ public class MathFunctionsTest {
                 .withFunction("math/subtract")
                 .withInputAdded(Port.floatPort("a", 10))
                 .withInputAdded(Port.floatPort("b", 3));
-        assertEquals(ImmutableList.of(7.0), context.renderNode(subtract1));
+        assertEquals(ImmutableList.of(7.0), renderNode(subtract1));
 
         Node subtract2 = Node.ROOT
+                .withName("subtract2")
                 .withFunction("math/subtract")
                 .withInputAdded(Port.floatPort("b", 3))
                 .withInputAdded(Port.floatPort("a", 10));
-        assertEquals(ImmutableList.of(-7.0), context.renderNode(subtract2));
+        assertEquals(ImmutableList.of(-7.0), renderNode(subtract2));
     }
 
     @Test

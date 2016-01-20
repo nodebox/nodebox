@@ -7,6 +7,8 @@ import nodebox.node.Port;
 import nodebox.util.LoadException;
 import org.junit.Test;
 
+import java.util.List;
+
 import static nodebox.util.Assertions.assertResultsEqual;
 
 public class ClojureLibraryTest {
@@ -14,7 +16,10 @@ public class ClojureLibraryTest {
     private final FunctionLibrary mathLibrary = ClojureLibrary.loadScript("src/test/clojure/math.clj");
     private final FunctionRepository functions = FunctionRepository.of(mathLibrary);
     private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
-    private final NodeContext context = new NodeContext(testLibrary);
+
+    private List<?> renderNode(Node node) {
+        return new NodeContext(testLibrary.withRoot(node)).renderNode("/");
+    }
 
     @Test
     public void testAdd() {
@@ -22,7 +27,7 @@ public class ClojureLibraryTest {
                 .withName("add")
                 .withOutputType("int")
                 .withFunction("clojure-math/add");
-        Iterable<?> results = context.renderNode(addNode);
+        Iterable<?> results = renderNode(addNode);
         assertResultsEqual(results, 0L);
     }
 
@@ -35,7 +40,7 @@ public class ClojureLibraryTest {
                 .withInputAdded(Port.intPort("v1", 1))
                 .withInputAdded(Port.intPort("v2", 2))
                 .withInputAdded(Port.intPort("v3", 3));
-        Iterable<?> results = context.renderNode(addNode);
+        Iterable<?> results = renderNode(addNode);
         assertResultsEqual(results, 6L);
     }
 

@@ -20,8 +20,8 @@ public final class NodeContext {
     private final Map<String, Node> nodeMap;
     private final FunctionRepository functionRepository;
     private final ImmutableMap<String, ?> data;
-    private final ImmutableMap<Node, List<?>> previousRenderResults;
-    private final Map<Node, List<?>> renderResults;
+    private final ImmutableMap<String, List<?>> previousRenderResults;
+    private final Map<String, List<?>> renderResults;
     private final Map<NodeArguments, List<?>> nodeArgumentsResults;
     private final Map<String, ?> portOverrides;
 
@@ -32,19 +32,19 @@ public final class NodeContext {
     }
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository) {
-        this(nodeLibrary, functionRepository, DEFAULT_CONTEXT_DATA, ImmutableMap.<Node, List<?>>of(), ImmutableMap.<String,Object>of());
+        this(nodeLibrary, functionRepository, DEFAULT_CONTEXT_DATA, ImmutableMap.<String, List<?>>of(), ImmutableMap.<String,Object>of());
     }
 
     public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data) {
-        this(nodeLibrary, functionRepository, data, ImmutableMap.<Node, List<?>>of(), ImmutableMap.<String,Object>of());
+        this(nodeLibrary, functionRepository, data, ImmutableMap.<String, List<?>>of(), ImmutableMap.<String,Object>of());
     }
 
-    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<Node, List<?>> previousRenderResults, Map<String, ?> portOverrides) {
+    public NodeContext(NodeLibrary nodeLibrary, FunctionRepository functionRepository, Map<String, ?> data, Map<String, List<?>> previousRenderResults, Map<String, ?> portOverrides) {
         this.nodeLibrary = nodeLibrary;
         this.nodeMap = nodeLibrary.getFlattenedNodeMap();
         this.functionRepository = functionRepository != null ? functionRepository : nodeLibrary.getFunctionRepository();
         this.data = ImmutableMap.copyOf(data);
-        this.renderResults = new HashMap<Node, List<?>>();
+        this.renderResults = new HashMap<String, List<?>>();
         this.nodeArgumentsResults = new HashMap<NodeArguments, List<?>>();
         this.previousRenderResults = ImmutableMap.copyOf(previousRenderResults);
         this.portOverrides = ImmutableMap.copyOf(portOverrides);
@@ -72,8 +72,12 @@ public final class NodeContext {
         return data;
     }
 
-    public Map<Node, List<?>> getRenderResults() {
+    public Map<String, List<?>> getRenderResults() {
         return renderResults;
+    }
+
+    private Node getNodeForPath(String nodePath) {
+        return nodeMap.get(nodePath);
     }
 
     /**
@@ -81,44 +85,48 @@ public final class NodeContext {
      * Because it can't look at what network it is in, this function does not evaluate dependencies
      * of the node. However, if this node is a network, the whole child node is evaluated.
      *
-     * @param node The node to render.
+     * @param nodePath The path of the node to render.
      * @return The list of results.
      * @throws NodeRenderException If processing fails.
      */
-    public List<?> renderNode(Node node) throws NodeRenderException {
-        return renderNode(node, Collections.<Port, Object>emptyMap());
+    public List<?> renderNode(String nodePath) throws NodeRenderException {
+        return renderNode(nodePath, Collections.<Port, Object>emptyMap());
     }
 
-    public void renderAlwaysRenderedNodes(Node node) throws NodeRenderException {
-        if (!node.isNetwork()) return;
-        for (Node child : node.getChildren()) {
+    public void renderAlwaysRenderedNodes(String networkPath) throws NodeRenderException {
+        Node network = getNodeForPath(networkPath);
+        if (!network.isNetwork()) return;
+        for (Node child : network.getChildren()) {
             if (child.isAlwaysRendered()) {
-                if (!renderResults.containsKey(child))
-                    renderNode(child);
+                String childPath = getChildPath(networkPath, child.getName());
+                if (!renderResults.containsKey(childPath))
+                    renderNode(childPath);
             }
         }
     }
 
-    public List<?> renderNode(Node node, Map<Port, ?> argumentMap) {
-        checkNotNull(node);
+    public List<?> renderNode(String nodePath, Map<Port, ?> argumentMap) {
+        checkNotNull(getNodeForPath(nodePath));
         checkNotNull(functionRepository);
 
         // If the node has children, forgo the operation of the current node and evaluate the child.
         Object result;
+        Node node = getNodeForPath(nodePath);
         if (node.isNetwork()) {
-            if (node.hasRenderedChild())
-                result = renderChild(node, node.getRenderedChild(), argumentMap);
-            else
+            if (node.hasRenderedChild()) {
+                result = renderChild(nodePath, node.getRenderedChild(), argumentMap);
+            } else
                 result = ImmutableList.of();
         } else {
-            result = invokeNode(node, argumentMap);
+            result = invokeNode(nodePath, argumentMap);
         }
-        List<?> results = postProcessResult(node, result);
-        renderResults.put(node, results);
+        List<?> results = postProcessResult(nodePath, result);
+        renderResults.put(nodePath, results);
         return results;
     }
 
-    private List<?> postProcessResult(Node node, Object result) {
+    private List<?> postProcessResult(String nodePath, Object result) {
+        Node node = getNodeForPath(nodePath);
         if (node.hasListOutputRange()) {
             // TODO This is a temporary fix for networks that have no rendered nodes.
             // They execute the "core/zero" function which returns a single value, not a list.
@@ -138,12 +146,20 @@ public final class NodeContext {
         return result == null ? ImmutableList.of() : ImmutableList.of(result);
     }
 
-    public List<?> renderChild(Node network, Node child) throws NodeRenderException {
-        return renderChild(network, child, Collections.<Port, Object>emptyMap());
+    private String getChildPath(String networkPath, String childName) {
+        if (!networkPath.endsWith("/")) {
+            return networkPath + "/" + childName;
+        }
+        return networkPath + childName;
     }
 
-    public List<?> renderChild(Node network, Node child, Map<Port, ?> networkArgumentMap) {
-        NodeArguments nodeArguments = new NodeArguments(network, child, networkArgumentMap);
+    public List<?> renderChild(String networkPath, Node child) throws NodeRenderException {
+        return renderChild(networkPath, child, Collections.<Port, Object>emptyMap());
+    }
+
+    public List<?> renderChild(String networkPath, Node child, Map<Port, ?> networkArgumentMap) {
+        Node network = nodeMap.get(networkPath);
+        NodeArguments nodeArguments = new NodeArguments(networkPath, child.getName(), networkArgumentMap);
 
         List<?> storedResults = nodeArgumentsResults.get(nodeArguments);
         if (storedResults != null) return storedResults;
@@ -152,14 +168,15 @@ public final class NodeContext {
         List<Object> resultsList = new ArrayList<Object>();
         // If the node has no input ports, execute the node once for its side effects.
         if (child.getInputs().isEmpty()) {
-            return renderNode(child);
+            String childPath = getChildPath(networkPath, child.getName());
+            return renderNode(childPath);
         } else {
             // The list of values that need to be processed for this port.
             Map<Port, List<?>> portArguments = new LinkedHashMap<Port, List<?>>();
 
             // Evaluate the port data.
             for (Port port : child.getInputs()) {
-                List<?> result = evaluatePort(network, child, port, networkArgumentMap);
+                List<?> result = evaluatePort(networkPath, child, port, networkArgumentMap);
                 result = convertResultsForPort(port, result);
                 result = clampResultsForPort(port, result);
                 portArguments.put(port, result);
@@ -185,8 +202,9 @@ public final class NodeContext {
             // A prepared list of argument lists, each for one invocation of the child node.
             Iterable<Map<Port, ?>> argumentMaps = buildArgumentMaps(portArguments);
 
+            String childPath = getChildPath(networkPath, child.getName());
             for (Map<Port, ?> argumentMap : argumentMaps) {
-                List<?> results = renderNode(child, argumentMap);
+                List<?> results = renderNode(childPath, argumentMap);
                 resultsList.addAll(results);
             }
         }
@@ -194,8 +212,8 @@ public final class NodeContext {
         return resultsList;
     }
 
-    private Object invokeNode(Node node, Map<Port, ?> argumentMap) {
-        List<Port> inputs = node.getInputs();
+    private Object invokeNode(String nodePath, Map<Port, ?> argumentMap) {
+        List<Port> inputs = nodeMap.get(nodePath).getInputs();
         Object[] arguments = new Object[inputs.size()];
         int i = 0;
         for (Port port : inputs) {
@@ -203,7 +221,7 @@ public final class NodeContext {
             if (argumentMap.containsKey(port)) {
                 argument = argumentMap.get(port);
             } else if (port.hasValueRange()) {
-                argument = getPortValue(node, port);
+                argument = getPortValue(nodePath, port);
             } else {
                 // The port expects a list but nothing is connected. Evaluate with an empty list.
                 argument = ImmutableList.of();
@@ -211,10 +229,11 @@ public final class NodeContext {
             arguments[i] = argument;
             i++;
         }
-        return invokeNode(node, arguments);
+        return invokeNode(nodePath, arguments);
     }
 
-    private Object invokeNode(Node node, Object[] arguments) {
+    private Object invokeNode(String nodePath, Object[] arguments) {
+        Node node = getNodeForPath(nodePath);
         Function function = functionRepository.getFunction(node.getFunction());
         return invokeFunction(node, function, arguments);
     }
@@ -249,16 +268,17 @@ public final class NodeContext {
         return null;
     }
 
-    private List<?> evaluatePort(Node network, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
-        Node outputNode = findOutputNode(network, child, childPort);
+    private List<?> evaluatePort(String networkPath, Node child, Port childPort, Map<Port, ?> networkArgumentMap) {
+        Node outputNode = findOutputNode(nodeMap.get(networkPath), child, childPort);
         if (outputNode != null) {
-            List<?> result = renderChild(network, outputNode, networkArgumentMap);
+            List<?> result = renderChild(networkPath, outputNode, networkArgumentMap);
             if (childPort.isFileWidget()) {
                 return convertToFileNames(result);
             }
             return result;
         } else {
-            Object value = getPortValue(child, childPort);
+            String childPath = getChildPath(networkPath, child.getName());
+            Object value = getPortValue(childPath, childPort);
             if (value == null) {
                 return ImmutableList.of();
             } else {
@@ -296,7 +316,8 @@ public final class NodeContext {
      * <li>If the port is a file widget, convert relative to absolute paths.</li>
      * </ul>
      */
-    private Object getPortValue(Node node, Port port) {
+    private Object getPortValue(String nodePath, Port port) {
+        Node node = getNodeForPath(nodePath);
         String portKey = node.getName() + "." + port.getName();
         Object overrideValue = portOverrides.get(portKey);
         Object portValue = overrideValue == null ? port.getValue() : overrideValue;
@@ -304,7 +325,7 @@ public final class NodeContext {
             return this;
         } else if (port.getType().equals(Port.TYPE_STATE)) {
             // The state of the node is the output value of the previous render of that node.
-            Object previousState = previousRenderResults.get(node);
+            Object previousState = previousRenderResults.get(nodePath);
             if (previousState != null) {
                 return previousState;
             } else {
@@ -415,11 +436,11 @@ public final class NodeContext {
     }
 
     private class NodeArguments {
-        private Node network;
-        private Node node;
+        private String network;
+        private String node;
         private Map<Port, ?> argumentMap;
 
-        public NodeArguments(Node network, Node node, Map<Port, ?> argumentMap) {
+        public NodeArguments(String network, String node, Map<Port, ?> argumentMap) {
             this.network = network;
             this.node = node;
             this.argumentMap = argumentMap;
