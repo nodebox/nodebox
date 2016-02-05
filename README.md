@@ -77,6 +77,20 @@ Or other distributions based on YUM package system:
     cd nodebox
     ant run
 
+### Arch Linux
+Nodebox has an aur package for distributions based on Arch linux : nodebox-git
+
+    yaourt -S nodebox-git
+
+or
+
+    git clone https://aur.archlinux.org/nodebox-git.git
+    cd nodebox-git
+    makepkg
+    sudo pacman -U nodebox-git-[version-number]-any.pkg.tar.xz
+
+you can then launch nodebox as any desktop application, or by running the ```nodebox``` command on terminal
+
 ## Building on FreeBSD/PC-BSD
 
 Just use pkg:
