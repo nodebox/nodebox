@@ -278,6 +278,7 @@
             </port>
             <port name="position" range="value" type="point" value="0.00,0.00" widget="point" description="The center point of the text."/>
             <port min="0.0" name="width" range="value" type="float" value="0.0" widget="float" description="The maximum width of the text."/>
+            <port name="line_height" range="value" type="float" value="1.2" widget="float" description="The height of the line."/>
         </node>
         <node description="Move the shape, changing its position." function="pyvector/translate" handle="corevector/translateHandle" image="translate.png" name="translate" position="7.00,12.00" prototype="filter">
             <port name="translate" range="value" type="point" value="0.00,0.00" widget="point" description="The amount of translation."/>

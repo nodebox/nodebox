@@ -849,10 +849,10 @@ def text_on_path(text, shape, font_name, font_size, alignment, margin, baseline_
             p.add(contour)
     
     return p
-    
-def textpath(text, font_name="Verdana", font_size=24, align="CENTER", position=Point.ZERO, width=0, height=0):
+
+def textpath(text, font_name="Verdana", font_size=24, line_height=1.2, align="CENTER", position=Point.ZERO, width=0, height=0):
     """Create a path out of text."""
-    t = Text(unicode(text), position.x, position.y, width, height)
+    t = Text(unicode(text), position.x, position.y, width, height, line_height)
     t.fontName = font_name
     t.fontSize = font_size
     # valueOf requires a correct value: LEFT, CENTER, RIGHT or JUSTIFY. Anything else will
