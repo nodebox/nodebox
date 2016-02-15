@@ -549,7 +549,7 @@ def resample(shape, method, length, points, per_contour=False):
     else:
         return shape.resampleByAmount(points, per_contour)
 
-def _construct_path(path, points):
+def _construct_path(path, points, closed):
     segments = []
     d = {}
     i = 0
@@ -566,7 +566,10 @@ def _construct_path(path, points):
             i = 0
             d = {}
     stuff = []
-    for i in range(len(segments) + 1):
+    length = len(segments)
+    if closed:
+        length += 1
+    for i in range(length):
         seg = segments[i % len(segments)]
         if i == 0:
             stuff.append({"cmd": "moveto", "pt": seg["pt"]})
@@ -593,7 +596,7 @@ def round_segments(path, d):
         new_points.append(pt)
         new_points.append(Point(c2[0], c2[1]))
     new_path = path.cloneAndClear()
-    _construct_path(new_path, new_points)
+    _construct_path(new_path, new_points, path.closed)
     return new_path
 
 def scatter(shape, amount, seed):
