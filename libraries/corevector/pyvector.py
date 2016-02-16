@@ -721,41 +721,42 @@ def stack(shapes, direction, margin):
     if len(shapes) <= 1:
         return shapes
     first_bounds = shapes[0].bounds
+    new_shapes = []
     if direction == 'e':
-        new_shapes = []
-        tx = -(first_bounds.width / 2)
+        tx = first_bounds.x
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(tx - shape.bounds.x, 0)
+            t.translate(tx - bounds.x, 0)
             new_shapes.append(t.map(shape))
-            tx += shape.bounds.width + margin
+            tx += bounds.width + margin
         return new_shapes
     elif direction == 'w':
-        new_shapes = []
-        tx = first_bounds.width / 2
+        tx = first_bounds.x + first_bounds.width
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(tx + shape.bounds.x, 0)
+            t.translate(tx - (bounds.x + bounds.width), 0)
             new_shapes.append(t.map(shape))
-            tx -= shape.bounds.width + margin
+            tx -= bounds.width + margin
         return new_shapes
     elif direction == 'n':
-        new_shapes = []
-        ty = first_bounds.width / 2
+        ty = first_bounds.y + first_bounds.height
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(0, ty + shape.bounds.y)
+            t.translate(0, ty - (bounds.y + bounds.height))
             new_shapes.append(t.map(shape))
-            ty -= shape.bounds.height + margin
+            ty -= bounds.height + margin
         return new_shapes
     elif direction == 's':
-        new_shapes = []
-        ty = -(first_bounds.height / 2)
+        ty = first_bounds.y
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(0, ty - shape.bounds.y)
+            t.translate(0, ty - bounds.y)
             new_shapes.append(t.map(shape))
-            ty += shape.bounds.height + margin
+            ty += bounds.height + margin
         return new_shapes
     else:
         raise ValueError('Invalid direction "%s."' % direction)
