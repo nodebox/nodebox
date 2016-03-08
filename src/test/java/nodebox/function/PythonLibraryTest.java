@@ -1,11 +1,10 @@
 package nodebox.function;
 
-import nodebox.node.Node;
-import nodebox.node.NodeContext;
-import nodebox.node.NodeLibrary;
-import nodebox.node.Port;
+import nodebox.node.*;
 import nodebox.util.LoadException;
 import org.junit.Test;
+
+import java.util.List;
 
 import static junit.framework.TestCase.*;
 import static nodebox.util.Assertions.assertResultsEqual;
@@ -15,7 +14,10 @@ public class PythonLibraryTest {
     private final FunctionLibrary pyLibrary = PythonLibrary.loadScript("py-functions", "src/test/python/functions.py");
     private final FunctionRepository functions = FunctionRepository.of(pyLibrary);
     private final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
-    private final NodeContext context = new NodeContext(testLibrary);
+
+    private List<?> renderNode(Node node) {
+        return new NodeContext(testLibrary.withRoot(node)).renderNode("/");
+    }
 
     @Test
     public void testNamespaceForFile() {
@@ -42,7 +44,8 @@ public class PythonLibraryTest {
         Node addNode = Node.ROOT
                 .withName("add")
                 .withFunction("py-functions/add");
-        Iterable<?> results = context.renderNode(addNode);
+
+        Iterable<?> results = renderNode(addNode);
         assertResultsEqual(results, 0L);
     }
 
@@ -54,7 +57,7 @@ public class PythonLibraryTest {
                 .withInputAdded(Port.intPort("v1", 1))
                 .withInputAdded(Port.intPort("v2", 2))
                 .withInputAdded(Port.intPort("v3", 3));
-        Iterable<?> results = context.renderNode(addNode);
+        Iterable<?> results = renderNode(addNode);
         assertResultsEqual(results, 6L);
     }
 
@@ -65,7 +68,7 @@ public class PythonLibraryTest {
                 .withFunction("py-functions/multiply")
                 .withInputAdded(Port.floatPort("v1", 10))
                 .withInputAdded(Port.floatPort("v2", 2));
-        Iterable<?> results = context.renderNode(multiplyNode);
+        Iterable<?> results = renderNode(multiplyNode);
         assertResultsEqual(results, 20.0);
     }
 
@@ -76,7 +79,7 @@ public class PythonLibraryTest {
                 .withFunction("py-functions/multiply")
                 .withInputAdded(Port.stringPort("v1", "spam"))
                 .withInputAdded(Port.intPort("v2", 3));
-        Iterable<?> results = context.renderNode(multiplyNode);
+        Iterable<?> results = renderNode(multiplyNode);
         assertResultsEqual(results, "spamspamspam");
     }
 

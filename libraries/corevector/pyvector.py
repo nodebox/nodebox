@@ -549,7 +549,7 @@ def resample(shape, method, length, points, per_contour=False):
     else:
         return shape.resampleByAmount(points, per_contour)
 
-def _construct_path(path, points):
+def _construct_path(path, points, closed):
     segments = []
     d = {}
     i = 0
@@ -566,7 +566,10 @@ def _construct_path(path, points):
             i = 0
             d = {}
     stuff = []
-    for i in range(len(segments) + 1):
+    length = len(segments)
+    if closed:
+        length += 1
+    for i in range(length):
         seg = segments[i % len(segments)]
         if i == 0:
             stuff.append({"cmd": "moveto", "pt": seg["pt"]})
@@ -593,7 +596,7 @@ def round_segments(path, d):
         new_points.append(pt)
         new_points.append(Point(c2[0], c2[1]))
     new_path = path.cloneAndClear()
-    _construct_path(new_path, new_points)
+    _construct_path(new_path, new_points, path.closed)
     return new_path
 
 def scatter(shape, amount, seed):
@@ -718,41 +721,42 @@ def stack(shapes, direction, margin):
     if len(shapes) <= 1:
         return shapes
     first_bounds = shapes[0].bounds
+    new_shapes = []
     if direction == 'e':
-        new_shapes = []
-        tx = -(first_bounds.width / 2)
+        tx = first_bounds.x
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(tx - shape.bounds.x, 0)
+            t.translate(tx - bounds.x, 0)
             new_shapes.append(t.map(shape))
-            tx += shape.bounds.width + margin
+            tx += bounds.width + margin
         return new_shapes
     elif direction == 'w':
-        new_shapes = []
-        tx = first_bounds.width / 2
+        tx = first_bounds.x + first_bounds.width
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(tx + shape.bounds.x, 0)
+            t.translate(tx - (bounds.x + bounds.width), 0)
             new_shapes.append(t.map(shape))
-            tx -= shape.bounds.width + margin
+            tx -= bounds.width + margin
         return new_shapes
     elif direction == 'n':
-        new_shapes = []
-        ty = first_bounds.width / 2
+        ty = first_bounds.y + first_bounds.height
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(0, ty + shape.bounds.y)
+            t.translate(0, ty - (bounds.y + bounds.height))
             new_shapes.append(t.map(shape))
-            ty -= shape.bounds.height + margin
+            ty -= bounds.height + margin
         return new_shapes
     elif direction == 's':
-        new_shapes = []
-        ty = -(first_bounds.height / 2)
+        ty = first_bounds.y
         for shape in shapes:
+            bounds = shape.bounds
             t = Transform()
-            t.translate(0, ty - shape.bounds.y)
+            t.translate(0, ty - bounds.y)
             new_shapes.append(t.map(shape))
-            ty += shape.bounds.height + margin
+            ty += bounds.height + margin
         return new_shapes
     else:
         raise ValueError('Invalid direction "%s."' % direction)

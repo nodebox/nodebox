@@ -71,17 +71,23 @@ public class NodeContextTest {
 
     public static final FunctionRepository functions = FunctionRepository.of(CoreVectorFunctions.LIBRARY, MathFunctions.LIBRARY, ListFunctions.LIBRARY, StringFunctions.LIBRARY, SideEffects.LIBRARY, TestFunctions.LIBRARY);
     public static final NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
-    private NodeContext context;
+
+    private List<?> renderNode(Node node) {
+        return new NodeContext(testLibrary.withRoot(node)).renderNode("/");
+    }
+
+    private List<?> renderChild(Node network, Node child) {
+        return new NodeContext(testLibrary.withRoot(network)).renderChild("/", child);
+    }
 
     @Before
     public void setUp() throws Exception {
-        context = new NodeContext(testLibrary);
         SideEffects.reset();
     }
 
     @Test
     public void testSingleOutput() {
-        List<?> results = context.renderNode(valuesToPointNode);
+        List<?> results = renderNode(valuesToPointNode);
         assertEquals(1, results.size());
         assertResultsEqual(results, Point.ZERO);
     }
@@ -98,20 +104,20 @@ public class NodeContextTest {
     public void testSameOutputPort() {
         Node invert1 = invertNode.extend().withName("invert1").withInputValue("value", 1.0);
         Node invert2 = invertNode.extend().withName("invert2").withInputValue("value", 10.0);
-        assertResultsEqual(context.renderNode(invert1), -1.0);
-        assertResultsEqual(context.renderNode(invert2), -10.0);
+        assertResultsEqual(renderNode(invert1), -1.0);
+        assertResultsEqual(renderNode(invert2), -10.0);
     }
 
     @Test
     public void testListAwareProcessing() {
         Node makeNumbers1 = makeNumbersNode.extend().withInputValue("string", "1 2 3 4");
-        assertResultsEqual(context.renderNode(makeNumbers1), 1.0, 2.0, 3.0, 4.0);
+        assertResultsEqual(renderNode(makeNumbers1), 1.0, 2.0, 3.0, 4.0);
     }
 
     @Test
     public void testListUnawareProcessing() {
         Node invert1 = invertNode.extend().withName("invert1").withInputValue("value", 42.0);
-        assertResultsEqual(context.renderNode(invert1), -42.0);
+        assertResultsEqual(renderNode(invert1), -42.0);
     }
 
     @Test
@@ -123,7 +129,7 @@ public class NodeContextTest {
                 .withChildAdded(invert1)
                 .connect("makeNumbers1", "invert1", "value")
                 .withRenderedChildName("invert1");
-        assertResultsEqual(context.renderChild(net, invert1), -1.0, -2.0, -3.0, -4.0);
+        assertResultsEqual(renderChild(net, invert1), -1.0, -2.0, -3.0, -4.0);
     }
 
     @Test
@@ -146,7 +152,7 @@ public class NodeContextTest {
         Node getNumberNode = Node.ROOT
                 .withFunction("side-effects/getNumber");
         SideEffects.theInput = 42;
-        assertResultsEqual(context.renderNode(getNumberNode), 42L);
+        assertResultsEqual(renderNode(getNumberNode), 42L);
     }
 
     @Test
@@ -154,7 +160,7 @@ public class NodeContextTest {
         Node setNumberNode = Node.ROOT
                 .withFunction("side-effects/setNumber")
                 .withInputAdded(Port.intPort("number", 42));
-        context.renderNode(setNumberNode);
+        renderNode(setNumberNode);
         assertEquals(SideEffects.theOutput, 42L);
     }
 
@@ -166,7 +172,7 @@ public class NodeContextTest {
                 .withChildAdded(invert1Node)
                 .withChildAdded(invert2Node)
                 .connect("invert1", "invert2", "value");
-        assertResultsEqual(context.renderChild(net, invert2Node), 42.0);
+        assertResultsEqual(renderChild(net, invert2Node), 42.0);
     }
 
     /**
@@ -198,7 +204,7 @@ public class NodeContextTest {
                 .withChildAdded(makeNumbers1)
                 .withChildAdded(add1)
                 .connect("makeNumbers1", "add1", "v1");
-        assertResultsEqual(context.renderChild(net, add1), 101.0, 102.0, 103.0);
+        assertResultsEqual(renderChild(net, add1), 101.0, 102.0, 103.0);
     }
 
     @Test
@@ -209,7 +215,7 @@ public class NodeContextTest {
                 .withChildAdded(addNode)
                 .connect("threeNumbers", addNode.getName(), "v1")
                 .connect("fiveNumbers", addNode.getName(), "v2");
-        assertResultsEqual(context.renderChild(net, addNode), 101.0, 202.0, 303.0, 401.0, 502.0);
+        assertResultsEqual(renderChild(net, addNode), 101.0, 202.0, 303.0, 401.0, 502.0);
     }
 
     @Test
@@ -223,7 +229,7 @@ public class NodeContextTest {
                 .withChildAdded(sum)
                 .withChildAdded(threeNumbers)
                 .connect("threeNumbers", sum.getName(), "numbers");
-        assertResultsEqual(context.renderChild(net, sum), 6.0);
+        assertResultsEqual(renderChild(net, sum), 6.0);
     }
 
     @Test
@@ -485,8 +491,8 @@ public class NodeContextTest {
                 .withFunction("core/frame")
                 .withInputAdded(Port.customPort("context", "context"));
         Node frameNet = Node.NETWORK.withChildAdded(frame).withRenderedChild(frame);
-        NodeContext c = new NodeContext(testLibrary, FunctionRepository.of(), ImmutableMap.of("frame", 42.0));
-        List<?> results = c.renderNode(frameNet);
+        NodeContext c = new NodeContext(testLibrary.withRoot(frameNet), FunctionRepository.of(), ImmutableMap.of("frame", 42.0));
+        List<?> results = c.renderNode("/");
         assertResultsEqual(results, 42.0);
     }
 
@@ -699,9 +705,9 @@ public class NodeContextTest {
                 .withRenderedChildName("add");
         // With no overrides, the add node returns 8.0
         assertResultsEqual(net, addNode, 8.0);
-        ImmutableMap<String,?> overrides = ImmutableMap.of("number3.number", 10.0);
-        NodeContext ctx = new NodeContext(testLibrary, null, ImmutableMap.<String,Object>of(), ImmutableMap.<Node,List<?>>of(), overrides);
-        Iterable<?> values = ctx.renderChild(net, addNode);
+        ImmutableMap<String, ?> overrides = ImmutableMap.of("number3.number", 10.0);
+        NodeContext ctx = new NodeContext(testLibrary.withRoot(net), null, ImmutableMap.<String, Object>of(), ImmutableMap.<String, List<?>>of(), overrides);
+        Iterable<?> values = ctx.renderChild("/", addNode);
         assertResultsEqual(values, 15.0);
     }
 

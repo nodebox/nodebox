@@ -99,12 +99,12 @@ public class NodeLibraryTest {
         NodeLibrary originalLibrary = NodeLibrary.create("test", net, FunctionRepository.of(MathFunctions.LIBRARY));
         // Assert the original library returns the correct result.
         NodeContext context = new NodeContext(originalLibrary);
-        assertResultsEqual(context.renderNode(net), -42.0);
+        assertResultsEqual(context.renderNode("/"), -42.0);
 
         // Persist / load the library and assert it still returns the correct result.
         NodeLibrary restoredLibrary = NodeLibrary.load("test", originalLibrary.toXml(), NodeRepository.of());
         context = new NodeContext(restoredLibrary);
-        assertResultsEqual(context.renderNode(restoredLibrary.getRoot()), -42.0);
+        assertResultsEqual(context.renderNode("/"), -42.0);
     }
 
     @Test
@@ -339,7 +339,7 @@ public class NodeLibraryTest {
     public void testRelativePathsInWidgets() {
         NodeLibrary library = NodeLibrary.load(new File("src/test/files/relative-file.ndbx"), NodeRepository.of());
         NodeContext context = new NodeContext(library);
-        Iterable<?> results = context.renderNode(library.getRoot());
+        Iterable<?> results = context.renderNode("/");
         Object firstResult = results.iterator().next();
         assertEquals(true, firstResult);
     }
@@ -762,9 +762,9 @@ public class NodeLibraryTest {
     }
 
     private void assertSingleResult(Double expected, Node node, FunctionRepository functionRepository) {
-        NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functionRepository);
+        NodeLibrary testLibrary = NodeLibrary.create("test", node, functionRepository);
         NodeContext context = new NodeContext(testLibrary);
-        List<Object> values = ImmutableList.copyOf(context.renderNode(node));
+        List<Object> values = ImmutableList.copyOf(context.renderNode("/"));
         assertEquals(1, values.size());
         assertEquals(expected, values.get(0));
     }

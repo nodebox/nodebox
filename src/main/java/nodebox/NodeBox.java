@@ -84,7 +84,7 @@ public class NodeBox {
         FunctionRepository functionRepository = FunctionRepository.combine(systemRepository.getFunctionRepository(), library.getFunctionRepository());
         library.getRoot();
         NodeContext ctx = new NodeContext(library, functionRepository);
-        List<?> result = ctx.renderNode(library.getRoot());
+        List<?> result = ctx.renderNode("/");
         Rect bounds = library.getBounds();
         BufferedImage img = new BufferedImage(
                 (int) Math.ceil(bounds.getWidth()),

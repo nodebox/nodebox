@@ -91,7 +91,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private Map<String, double[]> networkPanZoomValues = new HashMap<String, double[]>();
     private SwingWorker<List<?>, Node> currentRender = null;
     private Iterable<?> lastRenderResult = null;
-    private Map<Node, List<?>> renderResults = ImmutableMap.of();
+    private Map<String, List<?>> renderResults = ImmutableMap.of();
     private JSplitPane parameterNetworkSplit;
     private JSplitPane topSplit;
     private FullScreenFrame fullScreenFrame = null;
@@ -991,9 +991,9 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         return activeNetworkPath;
     }
 
-    private Node getRenderedNode() {
-        if (viewerPane.shouldAlwaysRenderRoot()) return getNodeLibrary().getRoot();
-        return getActiveNetwork();
+    private String getRenderedNode() {
+        if (viewerPane.shouldAlwaysRenderRoot()) return "/";
+        return activeNetworkPath;
     }
 
     /**
@@ -1240,7 +1240,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         checkState(currentRender == null);
         progressPanel.setInProgress(true);
         final NodeLibrary renderLibrary = getNodeLibrary();
-        final Node renderNetwork = getRenderedNode();
+        final String renderNetwork = getRenderedNode();
 
         Map<String, Object> dataMap = new HashMap<String, Object>();
         dataMap.put("frame", frame);
@@ -1656,7 +1656,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
         final NodeLibrary exportLibrary = getNodeLibrary();
         final FunctionRepository exportFunctionRepository = getFunctionRepository();
-        final Node exportNetwork = library.getRoot();
         final Viewer viewer = new Viewer();
 
         final JFrame frame = new JFrame();
@@ -1669,7 +1668,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try {
-                    Map<Node, List<?>> renderResults = ImmutableMap.of();
+                    Map<String, List<?>> renderResults = ImmutableMap.of();
                     for (int frame = fromValue; frame <= toValue; frame++) {
                         if (Thread.currentThread().isInterrupted())
                             break;
@@ -1678,7 +1677,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         data.put("mouse.position", viewer.getLastMousePosition());
                         NodeContext context = new NodeContext(exportLibrary, exportFunctionRepository, data, renderResults, ImmutableMap.<String, Object>of());
 
-                        List<?> results = context.renderNode(exportNetwork);
+                        List<?> results = context.renderNode("/");
                         renderResults = context.getRenderResults();
                         viewer.setOutputValues((List<?>) results);
                         exportDelegate.frameDone(frame, results);

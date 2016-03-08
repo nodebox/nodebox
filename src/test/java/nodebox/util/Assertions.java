@@ -20,8 +20,8 @@ public final class Assertions {
     }
 
     public static void assertResultsEqual(Node network, Node child, Object... args) {
-        NodeContext context = new NodeContext(testLibrary);
-        Iterable<?> values = context.renderChild(network, child);
+        NodeContext context = new NodeContext(testLibrary.withRoot(network));
+        Iterable<?> values = context.renderChild("/", child);
         assertResultsEqual(values, args);
     }
 
@@ -30,8 +30,8 @@ public final class Assertions {
     }
 
     public static void assertResultsEqual(Node node, Object... args) {
-        NodeContext context = new NodeContext(testLibrary);
-        Iterable<?> values = context.renderNode(node);
+        NodeContext context = new NodeContext(testLibrary.withRoot(node));
+        Iterable<?> values = context.renderNode("/");
         assertResultsEqual(values, args);
     }
 

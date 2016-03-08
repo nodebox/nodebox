@@ -1,8 +1,5 @@
 package nodebox.node;
 
-import nodebox.function.FunctionRepository;
-import nodebox.function.MathFunctions;
-import org.junit.Before;
 import org.junit.Test;
 
 import static nodebox.util.Assertions.assertResultsEqual;
@@ -32,15 +29,6 @@ public class ConnectionTest {
             .withChildAdded(number5Node)
             .withChildAdded(addNode)
             .withRenderedChildName("add");
-
-    private FunctionRepository functions = FunctionRepository.of(MathFunctions.LIBRARY);
-    private NodeLibrary testLibrary = NodeLibrary.create("test", Node.ROOT, functions);
-    private NodeContext context;
-
-    @Before
-    public void setUp() throws Exception {
-        context = new NodeContext(testLibrary);
-    }
 
     @Test
     public void testBasicConnection() {
