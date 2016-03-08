@@ -63,7 +63,7 @@
         <string>false</string>
       </dict>
       <key>VMOptions</key>
-      <string>-Xms512m -Xmx2048m -XX:MaxPermSize=512m</string>
+      <string>-Xms1024m -Xmx4096m</string>
       <key>WorkingDirectory</key>
       <string>$APP_PACKAGE/Contents/Resources/Java</string>
    </dict>
