@@ -16,13 +16,10 @@ import java.util.List;
 
 public class NodeBox {
 
-    private static NodeLibrary systemLibrary(String systemLibraryDir, String name) {
-        String fileName = String.format("%s/%s/%s.ndbx", systemLibraryDir, name, name);
-        return NodeLibrary.load(new File(fileName), NodeRepository.of());
-    }
+    private NodeBox() {}
 
     public static NodeRepository getSystemRepository(String systemLibraryDir) {
-        List<NodeLibrary> libraries = new ArrayList<NodeLibrary>();
+        List<NodeLibrary> libraries = new ArrayList<>();
         libraries.add(NodeLibrary.loadSystemLibrary("math"));
         libraries.add(NodeLibrary.loadSystemLibrary("string"));
         libraries.add(NodeLibrary.loadSystemLibrary("color"));
