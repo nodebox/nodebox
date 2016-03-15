@@ -44,14 +44,14 @@ public class CanvasVisualizer implements Visualizer {
         GrobVisualizer.drawGrobs(g, (Iterable<Grob>) objects);
     }
 
-    private void drawCanvasBounds(Graphics2D g, Canvas canvas) {
+    private static void drawCanvasBounds(Graphics2D g, Canvas canvas) {
         Rectangle2D canvasBounds = canvas.getBounds().getRectangle2D();
         g.setColor(Color.DARK_GRAY);
         g.setStroke(new BasicStroke(1f));
         g.draw(canvasBounds);
     }
 
-    private Canvas getFirstCanvas(Iterable<?> objects) {
+    private static Canvas getFirstCanvas(Iterable<?> objects) {
         Canvas c = (Canvas) Iterables.getFirst(objects, null);
         return c != null ? c : new Canvas();
     }
