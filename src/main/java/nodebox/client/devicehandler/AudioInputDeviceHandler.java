@@ -40,7 +40,9 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
     @Override
     public void start() {
-        if (frame != null) stop();
+        if (frame != null) {
+            stop();
+        }
         frame = new JFrame();
         applet = new MinimInputApplet();
         applet.init();
@@ -49,7 +51,9 @@ public class AudioInputDeviceHandler implements DeviceHandler {
 
     @Override
     public void resume() {
-        if (frame == null) start();
+        if (frame == null) {
+            start();
+        }
     }
 
     @Override
