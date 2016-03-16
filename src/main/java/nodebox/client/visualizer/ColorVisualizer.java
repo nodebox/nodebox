@@ -40,7 +40,6 @@ public final class ColorVisualizer implements Visualizer {
 
     @SuppressWarnings("unchecked")
     public void draw(Graphics2D g, Iterable<?> objects) {
-        AffineTransform t = g.getTransform();
         int x = 0;
         int y = 0;
 
@@ -55,7 +54,7 @@ public final class ColorVisualizer implements Visualizer {
         }
     }
 
-    private void drawColor(Graphics2D g, Color c, int x, int y) {
+    private static void drawColor(Graphics2D g, Color c, int x, int y) {
         g.setColor(java.awt.Color.WHITE);
         g.fillRoundRect(x, y, COLOR_SIZE + 6, COLOR_SIZE + 6, 3, 3);
         g.setColor(java.awt.Color.LIGHT_GRAY);
