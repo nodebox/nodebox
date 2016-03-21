@@ -323,23 +323,26 @@ public class StringFunctions {
 
     /**
      * Output a portion of a string
-     * start and end values will wrap
-     * endOffset controls how the value wraps and if zero length strings are allowed
+     * start and end values are indices of the characters
+     * endOffset controls whether the character at the end position should be included or not
      */
     public static String subString(String s, long start, long end, boolean endOffset) {
-        if (s==null) {
+        if (s == null) {
             return s;
         }
-        start--; // input is indexed from 1 not 0
-        end--;
-        start = start % s.length(); // wrap values
-        
-        if (endOffset) {
-            end = (end % s.length()) +1;
-        } else {
-            end = end % (s.length() +1);
+
+        if (end < start) { return ""; }
+
+        if (start < 0 && end < 0) {
+            start = s.length() + start;
+            end = s.length() + end;
         }
-        return s.substring((int)start, (int)end);
+
+        if (endOffset) {
+            end++;
+        }
+
+        return s.substring((int) Math.max(0, start), (int) Math.min(s.length(), end));
     }
     
     /**

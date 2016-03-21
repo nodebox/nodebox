@@ -79,8 +79,8 @@
         </node>
         <node category="string" description="Take a portion of a string" function="string/subString" name="sub_string" outputType="string" position="7.00,7.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
-            <port min="1.0" name="start" range="value" type="int" value="1" widget="int"/>
-            <port min="1.0" name="end" range="value" type="int" value="2" widget="int"/>
+            <port name="start" range="value" type="int" value="0" widget="int"/>
+            <port name="end" range="value" type="int" value="4" widget="int"/>
             <port name="end_offset" range="value" type="boolean" value="false" widget="toggle"/>
         </node>
         <node category="string" description="Remove white space from the start and end" function="string/trim" image="trim.png" name="trim" outputType="string" position="7.00,8.00">
