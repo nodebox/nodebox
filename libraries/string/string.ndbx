@@ -25,7 +25,7 @@
         </node>
         <node category="string" description="Output the character at a given index" function="string/characterAt" image="character_at.png" name="character_at" outputRange="list" outputType="string" position="7.00,1.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>
-            <port min="1.0" name="index" range="value" type="int" value="1" widget="int"/>
+            <port name="index" range="value" type="int" value="0" widget="int"/>
         </node>
         <node category="string" description="Create a list of characters from a string" function="string/characters" image="characters.png" name="characters" outputRange="list" outputType="string" position="4.00,1.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>

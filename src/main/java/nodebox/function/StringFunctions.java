@@ -245,16 +245,19 @@ public class StringFunctions {
 
     /**
      * output the character at a given index
-     * value will wrap to the beginning
      */
     public static String characterAt(String s, long index) {
-        if (s==null) {
+        if (s == null || s.isEmpty()) {
             return s;
         }
-        index--; // input is indexed from 1 not 0
-        index = index % s.length(); // wrap value
-        
-        return String.valueOf(s.charAt( (int)index));
+
+        if (index < 0) {
+            index = s.length() + index;
+        }
+
+        if (index >= s.length() || index < 0) { return ""; }
+
+        return String.valueOf(s.charAt((int) index));
     }
 
     /**
