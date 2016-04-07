@@ -13,7 +13,7 @@ public interface HandleDelegate {
      * Get the value from the port on the node.
      *
      * @param portName the name of the port.
-     * @return
+     * @return the value from the port.
      */
     public Object getValue(String portName);
 
