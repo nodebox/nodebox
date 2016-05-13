@@ -38,9 +38,7 @@ public final class PythonUtils {
         PySystemState.initialize(System.getProperties(), jythonProperties, new String[]{""});
 
         // Add the built-in Python libraries.
-        File pythonLibraries = new File(libDir, "python.zip");
         File nodeBoxLibraries = new File(libDir, "nodeboxlibs.zip");
-        Py.getSystemState().path.add(new PyString(pythonLibraries.getAbsolutePath()));
         Py.getSystemState().path.add(new PyString(nodeBoxLibraries.getAbsolutePath()));
 
         // This folder contains unarchived NodeBox libraries.

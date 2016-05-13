@@ -177,7 +177,6 @@
             <fileset dir="${platform.bin}"/>
         </copy>
         <copy todir="${dist.res}/lib">
-            <fileset dir="lib" includes="python.zip"/>
             <fileset dir="${dist.lib}" includes="nodeboxlibs.zip"/>
         </copy>
         <fx:resources id="dist.fxres">
