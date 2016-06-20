@@ -3,7 +3,7 @@
     <link href="python:pyvector.py" rel="functions"/>
     <link href="java:nodebox.function.CoreVectorFunctions" rel="functions"/>
     <node description="Generate and manipulate vector graphics." name="root" renderedChild="align">
-        <node description="Template for creating nodes that generator vector data." function="corevector/generator" image="generator.png" name="generator" outputType="geometry" position="1.00,1.00" category="geometry"/>
+        <node description="Template for creating nodes that generate vector data." function="corevector/generator" image="generator.png" name="generator" outputType="geometry" position="1.00,1.00" category="geometry"/>
         <node description="Template for creating nodes that manipulate vector data." function="corevector/filter" image="filter.png" name="filter" position="1.00,10.00" prototype="generator">
             <port name="shape" range="value" type="geometry" widget="none" description="The input shape."/>
         </node>
