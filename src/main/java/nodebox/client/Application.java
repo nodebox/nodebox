@@ -78,6 +78,8 @@ public class Application implements Host {
 
         initLastResortHandler();
         initLookAndFeel();
+
+        System.setProperty("line.separator", "\n");
     }
 
     //// Application Load ////
