@@ -506,7 +506,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class PlayPauseAction extends AbstractDocumentAction {
         public PlayPauseAction() {
             putValue(NAME, "Play/Pause");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P));
         }
 
         @Override
@@ -518,7 +518,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class RewindAction extends  AbstractDocumentAction {
         public RewindAction() {
             putValue(NAME, "Rewind");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK | Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.SHIFT_MASK));
         }
 
         @Override

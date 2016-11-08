@@ -12,6 +12,7 @@ public class PreferencePanel extends JDialog implements ActionListener {
     private final Application application;
     private final Preferences preferences;
     private JCheckBox enableDeviceSupportCheck;
+    private JCheckBox enableSocketsSupportCheck;
 
     public PreferencePanel(Application application, Window owner) {
         super(owner, "Preferences");
@@ -31,6 +32,10 @@ public class PreferencePanel extends JDialog implements ActionListener {
         enableDeviceSupportCheck = new JCheckBox("Device Support");
         enableDeviceSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(enableDeviceSupportCheck);
+
+        enableSocketsSupportCheck = new JCheckBox("Use Sockets");
+        enableSocketsSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(enableSocketsSupportCheck);
 
         rootPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -66,8 +71,19 @@ public class PreferencePanel extends JDialog implements ActionListener {
         preferences.put(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, Boolean.toString(enabled));
     }
 
+    private boolean isSocketSupportEnabled() {
+        return Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, "false"));
+    }
+
+    private void setEnableSocketSupport(boolean enabled) {
+        application.ENABLE_SOCKET_SUPPORT = enabled;
+        preferences.put(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, Boolean.toString(enabled));
+    }
+
+
     private void readPreferences() {
         enableDeviceSupportCheck.setSelected(isDeviceSupportEnabled());
+        enableSocketsSupportCheck.setSelected(isSocketSupportEnabled());
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
@@ -77,6 +93,12 @@ public class PreferencePanel extends JDialog implements ActionListener {
             setEnableDeviceSupport(enableDeviceSupportCheck.isSelected());
             changed = true;
         }
+
+        if (isSocketSupportEnabled() != enableSocketsSupportCheck.isSelected()) {
+            setEnableSocketSupport(enableSocketsSupportCheck.isSelected());
+            changed = true;
+        }
+
         if (changed) {
             JOptionPane.showMessageDialog(this, "Please restart NodeBox for the changes to take effect.");
             try {

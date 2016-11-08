@@ -24,6 +24,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.net.*;
+import java.io.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -98,6 +100,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<Zoom> zoomListeners = new ArrayList<Zoom>();
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
     private DevicesDialog devicesDialog;
+
+
 
     public NodeBoxDocument() {
         this(createNewLibrary());
@@ -179,6 +183,16 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             devicesDialog = new DevicesDialog(this);
 //            addressBar.setMessage("OSC Port " + getOSCPort());
         }
+
+        if (Application.ENABLE_SOCKET_SUPPORT) {
+            boolean success = initSockets();
+            //Application.console.addMessage("Initializing Sockets...");
+
+            if(success) {
+                //Application.getInstance().console.addMessage("Success!");
+            }
+        }
+
     }
 
     public static NodeBoxDocument getCurrentDocument() {
@@ -1870,6 +1884,36 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         double[] pz = new double[]{viewX, viewY, viewScale};
         networkPanZoomValues.put(getActiveNetworkPath(), pz);
     }
+
+    private Socket socket = null;
+    private String SOCKET_HOSTNAME = "127.0.0.1";
+    private int SOCKET_PORT = 6666;
+
+    private SocketClient socketClient;
+    private Thread socketThread;
+    // Socket functions
+    public boolean initSockets() {
+        //this.socketClient = new SocketClient();
+        //this.socketClient.connect("172.0.0.1", 6666, 3000);
+        //return(true);
+
+        System.out.println("Socket Class: connect");
+        this.socketThread = new Thread(new SocketClientThread("127.0.0.1", 6666, 3000));
+        this.socketThread.start();
+        return(true);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
     public void windowOpened(WindowEvent e) {
         //viewEditorSplit.setDividerLocation(0.5);

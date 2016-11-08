@@ -50,6 +50,9 @@ public class Application implements Host {
     public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
     public static boolean ENABLE_DEVICE_SUPPORT = false;
 
+    public static final String PREFERENCE_ENABLE_SOCKET_SUPPORT = "NBEnableSocketSupport";
+    public static boolean ENABLE_SOCKET_SUPPORT = false;
+
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -235,6 +238,7 @@ public class Application implements Host {
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
         ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
+        ENABLE_SOCKET_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, "false"));
     }
 
     /**
@@ -325,6 +329,7 @@ public class Application implements Host {
 
         console.setLocationRelativeTo(getCurrentDocument());
         console.setVisible(true);
+        console.addMessage("Nodebox console initialized");
 
         for (NodeBoxDocument document : documents) {
             //document.onConsoleVisibleEvent(true);
