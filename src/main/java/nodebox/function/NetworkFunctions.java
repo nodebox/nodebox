@@ -1,5 +1,6 @@
 package nodebox.function;
 
+import nodebox.network.WebSocketMessaging;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -15,20 +16,36 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+//import java.io.IOException;
+//import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
+import java.io.*;
+import java.net.*;
+
+import nodebox.network.*;
 
 public class NetworkFunctions {
 
     public static final Map<Integer, Response> responseCache = new HashMap<Integer, Response>();
     public static final FunctionLibrary LIBRARY;
+    //private boolean isConnected = false;
+
+    private static Socket socket = null;
+    private static DataOutputStream outToServer;
+    private static BufferedReader inFromServer;
+    private static boolean isConnected = false;
+    private static String strInFromServer = "";
+
+   // private static SocketClient socketClient = null;
+    //private static Thread socketThread;
 
     static {
         LIBRARY = JavaLibrary.ofClass("network", NetworkFunctions.class,
-                "httpGet", "queryJSON", "encodeURL");
+                "httpGet", "queryJSON", "encodeURL", "socketClientSendData", "socketClientConnectToServer");
     }
 
     public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
@@ -74,6 +91,93 @@ public class NetworkFunctions {
             return s;
         }
     }
+
+
+    public static boolean socketClientConnectToServer(final String server, final long port)
+    {
+        /*
+        if(socket == null)
+        {
+            try {
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(server, (int)port), 1000);
+                System.out.println("Connected: " + socket);
+
+                outToServer = new DataOutputStream(socket.getOutputStream());
+                inFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                isConnected = true;
+
+                return true;
+            }
+            catch(IOException e) {
+                System.out.println("Socket Cannot Connect to server: " + e.getMessage());
+                return false;
+            }
+
+            //socketThread = new Thread(new SocketClientThread(server, (int)port, 1000));
+            //socketThread.start();
+        }
+        */
+        WebSocketMessaging.startSystem("ws://localhost:9001/");
+
+
+
+        return true;
+    }
+
+
+    public static String socketClientSendData(final boolean connected, final String data, final long timeOut)
+    {
+        UUID id = WebSocketMessaging.sendMessage(data);
+
+        String retMsg = WebSocketMessaging.getMessage(id);
+        while(retMsg == null)
+        {
+            retMsg = WebSocketMessaging.getMessage(id);
+        }
+
+
+        /*
+        if(connected && isConnected) {
+            try {
+                outToServer.writeBytes(data + '\n');
+            }
+            catch(IOException e)
+            {
+                System.out.println("Error sending to server: " + e.getMessage());
+                return "";
+            }
+            try{
+                socket.setSoTimeout((int)timeOut);
+
+                try{
+                    strInFromServer = inFromServer.readLine();
+
+                    if(strInFromServer == null) {
+                        socket = null;
+                        isConnected = false;
+                    }
+
+                    return strInFromServer;
+                }
+                catch(IOException e)
+                {
+                    System.out.println("Error reading from server: " + e.getMessage());
+                    return "";
+                }
+
+            }
+            catch(SocketException e){
+                return "";
+            }
+        }
+        else {
+            return "";
+        }*/
+
+        return(retMsg);
+    }
+
 
     private static Map<String, Object> _httpGet(final String url, final String username, final String password) {
         HttpGet request = new HttpGet(url);

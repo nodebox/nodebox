@@ -484,7 +484,10 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class NewNodeAction extends AbstractDocumentAction {
         public NewNodeAction() {
             putValue(NAME, "Create New Node...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            //putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('\t'));
+
+
         }
 
         public void actionPerformed(ActionEvent e) {

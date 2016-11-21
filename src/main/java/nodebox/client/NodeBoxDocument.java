@@ -11,6 +11,8 @@ import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;
 import nodebox.movie.VideoFormat;
+import nodebox.network.SocketClient;
+import nodebox.network.SocketClientThread;
 import nodebox.node.*;
 import nodebox.node.MenuItem;
 import nodebox.ui.*;
@@ -25,7 +27,6 @@ import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.net.*;
-import java.io.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -185,12 +186,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
 
         if (Application.ENABLE_SOCKET_SUPPORT) {
-            boolean success = initSockets();
+            //boolean success = initSockets();
             //Application.console.addMessage("Initializing Sockets...");
 
-            if(success) {
+            //if(success) {
                 //Application.getInstance().console.addMessage("Success!");
-            }
+           // }
         }
 
     }
@@ -1884,7 +1885,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         double[] pz = new double[]{viewX, viewY, viewScale};
         networkPanZoomValues.put(getActiveNetworkPath(), pz);
     }
-
+/*
     private Socket socket = null;
     private String SOCKET_HOSTNAME = "127.0.0.1";
     private int SOCKET_PORT = 6666;
@@ -1905,7 +1906,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
 
 
-
+*/
 
 
 
