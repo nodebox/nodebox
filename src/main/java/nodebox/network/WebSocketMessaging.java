@@ -5,6 +5,7 @@ package nodebox.network;
 import com.google.common.collect.ImmutableList;
 import nodebox.client.NodeBoxDocument;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.HashMap;
 
@@ -17,7 +18,11 @@ import java.net.URISyntaxException;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonArray;
+import javax.websocket.DeploymentException;
 import java.io.StringReader;
+
+import java.util.concurrent.CompletableFuture;
+import java.io.IOException;
 /**
  * Created by Gear on 11/13/2016.
  */
@@ -108,6 +113,38 @@ public class WebSocketMessaging {
 
         return(msghm);
     }*/
+    public static synchronized boolean isEndPointUserSessionValid() {
+        if(clientEndpoint == null) return false;
+        if(clientEndpoint.userSession == null) return false;
+        return true;
+    }
+
+
+    public static synchronized void setEndpoint(webSocketClientEndpoint ep) {
+        System.out.println("Connected!");
+        clientEndpoint = ep;
+
+        clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
+            public void handleMessage(String message) {
+                JsonObject jsonObj = Json.createReader(new StringReader(message)).readObject();
+                String type = jsonObj.getString("type").trim();
+                String idStr = jsonObj.getString("id").trim();
+                JsonObject msg = jsonObj.getJsonObject("msg");
+
+                if(type.equals("dta")) {
+                    UUID id = UUID.fromString(idStr);
+                    INMap.put(id, msg);
+                }
+                else if(type.equals("cmd") || type.equals("req")) {
+                    processSocketAppMessage(idStr, msg);
+                }
+                else if(type.equals("rly")) {
+
+                }
+
+            }
+        });
+    }
 
 
     public static void startSystem(final NodeBoxDocument inDocument, String webSockServer){
@@ -115,41 +152,46 @@ public class WebSocketMessaging {
         //webSockCon.run();
         document = inDocument;
 
-        try{
+        class createEndpointTask implements Runnable {
+            String str;
+            createEndpointTask(String s) { str = s; }
+            public void run() {
+                // Try connecting to the server forever
+                while(true) {
 
-            clientEndpoint = new webSocketClientEndpoint(new URI(webSockServer));
+                    // needs java 9
+                    /*
+                    CompletableFuture<Void> cf = new CompletableFuture<>();
+                    Thread t = Thread.currentThread();
 
-            clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
-                public void handleMessage(String message) {
-                    JsonObject jsonObj = Json.createReader(new StringReader(message)).readObject();
-                    String type = jsonObj.getString("type").trim();
-                    String idStr = jsonObj.getString("id").trim();
-                    JsonObject msg = jsonObj.getJsonObject("msg");
+                    cf.orTimeout(time, unit).handle((v, tt) -> {
+                        if (tt instanceof TimeoutException) {
+                            LOGGER.error("Connect timed out after " + time + " " + unit);
+                            t.interrupt();
+                        }
+                        return v;
+                    });*/
 
-                    if(type.equals("dta")) {
-                        UUID id = UUID.fromString(idStr);
-                        INMap.put(id, msg);
+                    if(!WebSocketMessaging.isEndPointUserSessionValid()) {
+                        System.out.println("Trying to connect...");
+                        try{
+                            WebSocketMessaging.setEndpoint(new webSocketClientEndpoint(new URI(str)));
+                        }catch (URISyntaxException  | IllegalStateException  ee) {
+
+                        }
                     }
-                    else if(type.equals("cmd") || type.equals("req")) {
-                        processSocketAppMessage(idStr, msg);
-                    }
-                    else if(type.equals("rly")) {
+
+                    try {
+                        Thread.sleep(100);
+                    } catch(java.lang.InterruptedException e){
 
                     }
 
                 }
-            });
-
-            // Block til open
-            while(!clientEndpoint.isConnected){
-                //Thread.sleep(100);
             }
-
-
-        }catch (URISyntaxException e) {
-
         }
-
+        Thread t = new Thread(new createEndpointTask(webSockServer));
+        t.start();
 
     }
 }

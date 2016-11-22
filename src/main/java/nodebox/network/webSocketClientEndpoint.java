@@ -10,7 +10,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import javax.websocket.DeploymentException;
 
+import java.io.IOException;
 
 //import java.util.UUID;
 //import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,11 +51,10 @@ public class webSocketClientEndpoint {
         //this.map = map;
         this.endpointURI = endpointURI;
         try {
-            WebSocketContainer container = ContainerProvider
-                    .getWebSocketContainer();
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(this, endpointURI);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (DeploymentException | IOException | IllegalStateException  e) {
+            //throw new RuntimeException(e);
         }
     }
 
@@ -69,6 +70,7 @@ public class webSocketClientEndpoint {
     public void onClose(Session userSession, CloseReason reason) {
         this.userSession = null;
         this.isConnected = false;
+        System.out.println("Disconnected from server.");
     }
 
     // Callback hook for Message Events. This method will be invoked when a client send a message.
