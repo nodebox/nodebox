@@ -28,6 +28,9 @@ import java.net.*;
 
 import nodebox.network.*;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+
 public class NetworkFunctions {
 
     public static final Map<Integer, Response> responseCache = new HashMap<Integer, Response>();
@@ -95,30 +98,6 @@ public class NetworkFunctions {
 
     public static boolean socketClientConnectToServer(final String server, final long port)
     {
-        /*
-        if(socket == null)
-        {
-            try {
-                socket = new Socket();
-                socket.connect(new InetSocketAddress(server, (int)port), 1000);
-                System.out.println("Connected: " + socket);
-
-                outToServer = new DataOutputStream(socket.getOutputStream());
-                inFromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                isConnected = true;
-
-                return true;
-            }
-            catch(IOException e) {
-                System.out.println("Socket Cannot Connect to server: " + e.getMessage());
-                return false;
-            }
-
-            //socketThread = new Thread(new SocketClientThread(server, (int)port, 1000));
-            //socketThread.start();
-        }
-        */
-        WebSocketMessaging.startSystem("ws://localhost:9001/");
 
 
 
@@ -128,54 +107,22 @@ public class NetworkFunctions {
 
     public static String socketClientSendData(final boolean connected, final String data, final long timeOut)
     {
-        UUID id = WebSocketMessaging.sendMessage(data);
+        JsonObject model = Json.createObjectBuilder()
+                .add("text", data)
+                .build();
 
-        String retMsg = WebSocketMessaging.getMessage(id);
+        UUID id = WebSocketMessaging.sendData(model);
+
+        JsonObject retMsg = WebSocketMessaging.getMessage(id);
         while(retMsg == null)
         {
             retMsg = WebSocketMessaging.getMessage(id);
         }
 
+        String retStr = retMsg.getString("text");
 
-        /*
-        if(connected && isConnected) {
-            try {
-                outToServer.writeBytes(data + '\n');
-            }
-            catch(IOException e)
-            {
-                System.out.println("Error sending to server: " + e.getMessage());
-                return "";
-            }
-            try{
-                socket.setSoTimeout((int)timeOut);
 
-                try{
-                    strInFromServer = inFromServer.readLine();
-
-                    if(strInFromServer == null) {
-                        socket = null;
-                        isConnected = false;
-                    }
-
-                    return strInFromServer;
-                }
-                catch(IOException e)
-                {
-                    System.out.println("Error reading from server: " + e.getMessage());
-                    return "";
-                }
-
-            }
-            catch(SocketException e){
-                return "";
-            }
-        }
-        else {
-            return "";
-        }*/
-
-        return(retMsg);
+        return(retStr);
     }
 
 

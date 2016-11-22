@@ -53,6 +53,9 @@ public class Application implements Host {
     public static final String PREFERENCE_ENABLE_SOCKET_SUPPORT = "NBEnableSocketSupport";
     public static boolean ENABLE_SOCKET_SUPPORT = false;
 
+    public static final String PREFERENCE_SOCKET_CLIENT_SERVERADDRESS = "ws://localhost:9001/";
+    public static String SOCKET_CLIENT_SERVERADDRESS = PREFERENCE_SOCKET_CLIENT_SERVERADDRESS;
+
     private static Application instance;
 
     private JFrame hiddenFrame;
@@ -239,6 +242,7 @@ public class Application implements Host {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
         ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
         ENABLE_SOCKET_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, "false"));
+        SOCKET_CLIENT_SERVERADDRESS = preferences.get(Application.PREFERENCE_SOCKET_CLIENT_SERVERADDRESS, "ws://localhost:9001/");
     }
 
     /**

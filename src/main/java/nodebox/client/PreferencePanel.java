@@ -13,6 +13,8 @@ public class PreferencePanel extends JDialog implements ActionListener {
     private final Preferences preferences;
     private JCheckBox enableDeviceSupportCheck;
     private JCheckBox enableSocketsSupportCheck;
+    private JLabel socketClientServerLabel;
+    private JTextField socketClientServer;
 
     public PreferencePanel(Application application, Window owner) {
         super(owner, "Preferences");
@@ -33,9 +35,18 @@ public class PreferencePanel extends JDialog implements ActionListener {
         enableDeviceSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(enableDeviceSupportCheck);
 
-        enableSocketsSupportCheck = new JCheckBox("Use Sockets");
+        enableSocketsSupportCheck = new JCheckBox("Enable WebSocket Client");
         enableSocketsSupportCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
         contentPanel.add(enableSocketsSupportCheck);
+
+        socketClientServerLabel = new JLabel("WebSocket Server Address:");
+        socketClientServerLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(socketClientServerLabel);
+
+        socketClientServer = new JTextField();
+        socketClientServer.setAlignmentX(Component.LEFT_ALIGNMENT);
+        contentPanel.add(socketClientServer);
+
 
         rootPanel.add(contentPanel, BorderLayout.CENTER);
 
@@ -80,10 +91,19 @@ public class PreferencePanel extends JDialog implements ActionListener {
         preferences.put(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, Boolean.toString(enabled));
     }
 
+    private String getSocketClientServerAddress() {
+         return preferences.get(Application.PREFERENCE_SOCKET_CLIENT_SERVERADDRESS, "ws://localhost:9001/");
+    }
+
+    private void setSocketClientServerAddress(String svrAdr) {
+        application.SOCKET_CLIENT_SERVERADDRESS = svrAdr;
+        preferences.put(Application.PREFERENCE_SOCKET_CLIENT_SERVERADDRESS, svrAdr);
+    }
 
     private void readPreferences() {
         enableDeviceSupportCheck.setSelected(isDeviceSupportEnabled());
         enableSocketsSupportCheck.setSelected(isSocketSupportEnabled());
+        socketClientServer.setText(getSocketClientServerAddress());
     }
 
     public void actionPerformed(ActionEvent actionEvent) {
@@ -97,6 +117,10 @@ public class PreferencePanel extends JDialog implements ActionListener {
         if (isSocketSupportEnabled() != enableSocketsSupportCheck.isSelected()) {
             setEnableSocketSupport(enableSocketsSupportCheck.isSelected());
             changed = true;
+        }
+
+        if(getSocketClientServerAddress() != socketClientServer.getText()) {
+            setSocketClientServerAddress(socketClientServer.getText());
         }
 
         if (changed) {

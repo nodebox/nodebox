@@ -7,12 +7,14 @@ import nodebox.client.devicehandler.DeviceHandler;
 import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
+import nodebox.network.WebSocketMessaging;
 import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;
 import nodebox.movie.VideoFormat;
 //import nodebox.network.SocketClient;
 //import nodebox.network.SocketClientThread;
+import nodebox.network.webSocketClientEndpoint;
 import nodebox.node.*;
 import nodebox.node.MenuItem;
 import nodebox.ui.*;
@@ -20,12 +22,15 @@ import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
 import javax.imageio.ImageIO;
+import javax.json.Json;
+import javax.json.JsonObject;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.StringReader;
 import java.net.*;
 import java.io.File;
 import java.io.IOException;
@@ -186,15 +191,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
 
         if (Application.ENABLE_SOCKET_SUPPORT) {
-            //boolean success = initSockets();
-            //Application.console.addMessage("Initializing Sockets...");
+            WebSocketMessaging.startSystem(this, Application.SOCKET_CLIENT_SERVERADDRESS);
 
-            //if(success) {
-                //Application.getInstance().console.addMessage("Success!");
-           // }
+            // Adding message handler
+            /*
+            WebSocketMessaging.clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
+                public void handleMessage(String message) {
+                    JsonObject jsonObj = Json.createReader(new StringReader(message)).readObject();
+                    String idStr = jsonObj.getString("id");
+                    //String msg = jsonObj.getString("msg");
+                    if(idStr == "APP")
+                    {
+                        WebSocketMessaging.processSocketAppMessage(jsonObj);
+                    }
+                }
+            });*/
+
         }
-
     }
+
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -1885,36 +1900,6 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         double[] pz = new double[]{viewX, viewY, viewScale};
         networkPanZoomValues.put(getActiveNetworkPath(), pz);
     }
-/*
-    private Socket socket = null;
-    private String SOCKET_HOSTNAME = "127.0.0.1";
-    private int SOCKET_PORT = 6666;
-
-    private SocketClient socketClient;
-    private Thread socketThread;
-    // Socket functions
-    public boolean initSockets() {
-        //this.socketClient = new SocketClient();
-        //this.socketClient.connect("172.0.0.1", 6666, 3000);
-        //return(true);
-
-        System.out.println("Socket Class: connect");
-        this.socketThread = new Thread(new SocketClientThread("127.0.0.1", 6666, 3000));
-        this.socketThread.start();
-        return(true);
-    }
-
-
-
-*/
-
-
-
-
-
-
-
-
 
     public void windowOpened(WindowEvent e) {
         //viewEditorSplit.setDividerLocation(0.5);
