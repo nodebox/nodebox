@@ -17,13 +17,8 @@
             <port name="query" range="value" type="string" value="$.name.firstName" description="The JSON path query."/>
         </node>
          <node name="socketClientSendData" category="network" description="Send data to a remote server" function="network/socketClientSendData" outputType="string" position="2.00,1.00" >
-            <port name="connected"  type="boolean" value="false" widget="toggle"/>
             <port name="data" range="value" type="string" value="data from client" description="Data to send to remote server.  Sever will return data."/>
-            <port name="timeOut" range="value" type="int" value="10" description="Amount of seconds allowed for server to return data."/>
-        </node>
-        <node name="socketClientConnectToServer" category="network" description="Connect to a remote server" function="network/socketClientConnectToServer" position="2.00,1.00" >
-            <port name="server" range="value" type="string" value="127.0.0.1" description="Server name, usually leave as local host or 127.0.0.1."/>
-            <port name="port" range="value" type="int" value="6666" description="Connection port for server."/>
+            <port name="timeOut" range="value" type="int" value="2000" description="Amount of seconds allowed for server to return data."/>
         </node>
     </node>
 </ndbx>

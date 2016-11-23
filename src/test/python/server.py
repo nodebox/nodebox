@@ -15,6 +15,10 @@ def client_left(client, server):
 
 # Called when a client sends a message
 def message_received(client, server, message):
+	if message == "ping":
+		server.send_message(client, "pong")
+		return()
+
 	jsonData = json.loads(message)
 	#idStr = jsonData["id"]
 	print("id: " + jsonData["id"])
@@ -23,7 +27,8 @@ def message_received(client, server, message):
 	# Test function, assumes msg has as text field
 	if jsonData["type"] == "dta":
 		jsonData["msg"]["text"] += "_SERVER"
-		server.send_message_to_all(json.dumps(jsonData))
+		#server.send_message_to_all(json.dumps(jsonData))
+		server.send_message(client, json.dumps(jsonData))
 	elif jsonData["type"] == "rly":
 		if jsonData["id"] == "play":
 			msgPlay()

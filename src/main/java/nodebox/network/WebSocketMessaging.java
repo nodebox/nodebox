@@ -1,13 +1,11 @@
 package nodebox.network;
 
-
-
-import com.google.common.collect.ImmutableList;
+//import com.google.common.collect.ImmutableList;
 import nodebox.client.NodeBoxDocument;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.HashMap;
+//import java.io.IOException;
+//import java.util.List;
+//import java.util.HashMap;
 
 //import java.util.HashMap;
 //import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,23 +15,20 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.json.JsonArray;
-import javax.websocket.DeploymentException;
+//import javax.json.JsonArray;
+//import javax.websocket.DeploymentException;
 import java.io.StringReader;
 
-import java.util.concurrent.CompletableFuture;
-import java.io.IOException;
-/**
- * Created by Gear on 11/13/2016.
- */
+//import java.util.concurrent.CompletableFuture;
+//import java.io.IOException;
+
 public class WebSocketMessaging {
 
-    //private static ConcurrentLinkedQueue<UUID> OUTQueue = new ConcurrentLinkedQueue<UUID>();
-    //private static ConcurrentHashMap<UUID, String> OUTMap = new ConcurrentHashMap<UUID, String>(1000); // Messages going out to the server
     private static ConcurrentHashMap<UUID, JsonObject> INMap = new ConcurrentHashMap<UUID, JsonObject>(1000);  // Messages coming in from the server
     public static webSocketClientEndpoint clientEndpoint = null;
     private static Thread webSockCon;
     private static NodeBoxDocument document = null;
+
 
     public static UUID sendData(JsonObject msg){
         if(clientEndpoint != null){
@@ -45,12 +40,13 @@ public class WebSocketMessaging {
                     .add("id", id.toString())
                     .add("msg", msg)
                     .build();
-
-            clientEndpoint.sendMessage(model.toString());
+            System.out.println("sendMessage");
+            if(!clientEndpoint.sendMessage(model.toString())) return(null);
             return(id);
         }
         return(null);
     }
+
 
     public static JsonObject getMessage(UUID id){
         if(clientEndpoint != null){
@@ -64,55 +60,39 @@ public class WebSocketMessaging {
     }
 
 
-
-    public static void processSocketAppMessage(String cmd, JsonObject jsonObj)
+    public static synchronized void processSocketAppMessage(String cmd, JsonObject jsonObj)
     {
         if(document != null && clientEndpoint != null) {
-            //JsonArray msgObj = jsonObj.getJsonArray("msg");
 
-
-            // Building map
-            //HashMap<String, JsonObject> msghm = buildMapFromJSONArray(msgObj);
-
-            if(cmd.equals("play")) {
+            if(cmd.toLowerCase().equals("play")) {
                 document.playAnimation();
             }
 
-            if(cmd.equals("stop")) {
+            if(cmd.toLowerCase().equals("stop")) {
                 document.stopAnimation();
             }
-            if(cmd.equals("rewind")) {
-                document.rewindAnimation();
+            if(cmd.toLowerCase().equals("rewind")) {
+                //document.blockTillStoppedRendering();
+
+               document.setAnimationFrame(1);
             }
 
-            if(cmd.equals("setframe")) {
-                //JsonObject val = msghm.get("ACTION_SETFRAME");
-                //document.setFrame((long)java.lang.Integer.parseInt(val.toString()));
-                document.setFrame((long)jsonObj.getInt("frameNumber"));
+            if(cmd.toLowerCase().equals("setframe")) {
+                //document.blockTillStoppedRendering();
+                document.setAnimationFrame((long)jsonObj.getInt("frameNumber"));
             }
 
-            if(cmd.equals("reload")) {
+            if(cmd.toLowerCase().equals("reload")) {
                 document.reload();
             }
 
-            if(cmd.equals("getframe")) {
+            if(cmd.toLowerCase().equals("getframe")) {
 
 
             }
         }
     }
-/*
-    public static HashMap<String, JsonObject> buildMapFromJSONArray(JsonArray jsonArrayObj)
-    {
-        HashMap<String, JsonObject> msghm = new HashMap<String, JsonObject>();
 
-        for(int c = 0; c < jsonArrayObj.size(); c++) {
-            JsonObject curArrayVal = jsonArrayObj.getJsonObject(c);
-            msghm.put(curArrayVal.getString("key"), curArrayVal.getJsonObject("value"));
-        }
-
-        return(msghm);
-    }*/
     public static synchronized boolean isEndPointUserSessionValid() {
         if(clientEndpoint == null) return false;
         if(clientEndpoint.userSession == null) return false;
@@ -121,13 +101,16 @@ public class WebSocketMessaging {
 
 
     public static synchronized void setEndpoint(webSocketClientEndpoint ep) {
-        System.out.println("Connected!");
+
         clientEndpoint = ep;
+        if(ep == null) return;
 
         clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
             public void handleMessage(String message) {
+                if(message.toLowerCase().equals("pong")) return;
+
                 JsonObject jsonObj = Json.createReader(new StringReader(message)).readObject();
-                String type = jsonObj.getString("type").trim();
+                String type = jsonObj.getString("type").trim().toLowerCase();
                 String idStr = jsonObj.getString("id").trim();
                 JsonObject msg = jsonObj.getJsonObject("msg");
 
@@ -141,15 +124,13 @@ public class WebSocketMessaging {
                 else if(type.equals("rly")) {
 
                 }
-
             }
         });
     }
 
 
     public static void startSystem(final NodeBoxDocument inDocument, String webSockServer){
-        //webSockCon = new Thread(new webSocketConnector(webSockServer, OUTQueue, OUTMap));
-        //webSockCon.run();
+
         document = inDocument;
 
         class createEndpointTask implements Runnable {
@@ -159,39 +140,27 @@ public class WebSocketMessaging {
                 // Try connecting to the server forever
                 while(true) {
 
-                    // needs java 9
-                    /*
-                    CompletableFuture<Void> cf = new CompletableFuture<>();
-                    Thread t = Thread.currentThread();
-
-                    cf.orTimeout(time, unit).handle((v, tt) -> {
-                        if (tt instanceof TimeoutException) {
-                            LOGGER.error("Connect timed out after " + time + " " + unit);
-                            t.interrupt();
-                        }
-                        return v;
-                    });*/
-
                     if(!WebSocketMessaging.isEndPointUserSessionValid()) {
                         System.out.println("Trying to connect...");
                         try{
-                            WebSocketMessaging.setEndpoint(new webSocketClientEndpoint(new URI(str)));
+                            webSocketClientEndpoint cep = new webSocketClientEndpoint(new URI(str), 2000);
+                            WebSocketMessaging.setEndpoint(cep);
                         }catch (URISyntaxException  | IllegalStateException  ee) {
 
                         }
+                    } else {
+                        //clientEndpoint.ping();
                     }
 
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(2000);
                     } catch(java.lang.InterruptedException e){
 
                     }
-
                 }
             }
         }
         Thread t = new Thread(new createEndpointTask(webSockServer));
         t.start();
-
     }
 }

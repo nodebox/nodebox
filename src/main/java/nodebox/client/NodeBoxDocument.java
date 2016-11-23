@@ -22,16 +22,12 @@ import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
 
 import javax.imageio.ImageIO;
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.StringReader;
-import java.net.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -41,6 +37,7 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,7 +66,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     // State
     private final NodeLibraryController controller;
     // Rendering
-    private final AtomicBoolean isRendering = new AtomicBoolean(false);
+    public final AtomicBoolean isRendering = new AtomicBoolean(false);
     private final AtomicBoolean shouldRender = new AtomicBoolean(false);
     // GUI components
     private final NodeBoxMenuBar menuBar;
@@ -1168,16 +1165,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
 
     //// Animation ////
-
     public double getFrame() {
-        return frame;
+            return(frame);
     }
 
-    public void setFrame(double frame) {
-        this.frame = frame;
 
-        animationBar.setFrame(frame);
-        requestRender();
+    public void setFrame(double frame) {
+            this.frame = frame;
+            animationBar.setFrame(frame);
+            requestRender();
+
+    }
+
+    // Used by other threads to avoid racing conditions
+    public void setAnimationFrame(double frame) {
+        animationTimer.setFrame(frame);
     }
 
     public void nextFrame() {
@@ -1201,6 +1203,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         stopDeviceHandlers(true);
         animationTimer.stop();
     }
+
+
 
     public void rewindAnimation() {
         stopAnimation();
@@ -1259,7 +1263,13 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Ask the document to stop the active rendering.
      */
-    public synchronized void stopRendering() {
+    public void blockTillStoppedRendering(){
+        shouldRender.set(false);
+        stopRendering();
+        while(!currentRender.isDone()) {}
+    }
+
+    public void stopRendering() {
         if (currentRender != null) {
             currentRender.cancel(true);
         }
@@ -1273,7 +1283,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         final String renderNetwork = getRenderedNode();
 
         Map<String, Object> dataMap = new HashMap<String, Object>();
-        dataMap.put("frame", frame);
+        dataMap.put("frame", getFrame());
         dataMap.put("mouse.position", viewerPane.getViewer().getLastMousePosition());
         for (DeviceHandler handler : deviceHandlers)
             handler.addData(dataMap);
@@ -1292,7 +1302,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             @Override
             protected void done() {
                 networkPane.clearError();
-                isRendering.set(false);
+
                 currentRender = null;
                 List<?> results;
                 try {
@@ -1323,6 +1333,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                         }
                     });
                 }
+                isRendering.set(false);
             }
         };
         currentRender.execute();

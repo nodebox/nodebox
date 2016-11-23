@@ -48,7 +48,7 @@ public class NetworkFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("network", NetworkFunctions.class,
-                "httpGet", "queryJSON", "encodeURL", "socketClientSendData", "socketClientConnectToServer");
+                "httpGet", "queryJSON", "encodeURL", "socketClientSendData");
     }
 
     public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
@@ -95,34 +95,25 @@ public class NetworkFunctions {
         }
     }
 
-
-    public static boolean socketClientConnectToServer(final String server, final long port)
-    {
-
-
-
-        return true;
-    }
-
-
-    public static String socketClientSendData(final boolean connected, final String data, final long timeOut)
+    public static String socketClientSendData(final String data, final long timeOut)
     {
         JsonObject model = Json.createObjectBuilder()
                 .add("text", data)
                 .build();
 
         UUID id = WebSocketMessaging.sendData(model);
+        if(id == null) return(data);
 
-        JsonObject retMsg = WebSocketMessaging.getMessage(id);
-        while(retMsg == null)
+        // Since we're running a loop we can do poor persons timeout
+        JsonObject retMsg = null;
+        long curTime = nowMiliSeconds();
+        while(retMsg == null && (nowMiliSeconds() - curTime) < timeOut)
         {
             retMsg = WebSocketMessaging.getMessage(id);
         }
 
-        String retStr = retMsg.getString("text");
-
-
-        return(retStr);
+        if(retMsg == null) return(data);
+        return(retMsg.getString("text"));
     }
 
 
@@ -185,6 +176,7 @@ public class NetworkFunctions {
     private static long nowSeconds() {
         return System.currentTimeMillis() / 1000;
     }
+    private static long nowMiliSeconds() { return System.currentTimeMillis();    }
 
     private static class Response {
         private final long timeFetched;

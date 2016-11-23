@@ -73,7 +73,7 @@ public class AnimationBar extends JPanel implements ChangeListener {
 
     public void stateChanged(ChangeEvent changeEvent) {
         frame = frameNumber.getValue();
-        document.setFrame(frame);
+        document.setFrame((int)frame);
     }
 
     public void toggleAnimation() {
