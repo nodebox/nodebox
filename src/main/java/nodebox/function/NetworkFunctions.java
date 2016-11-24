@@ -1,9 +1,12 @@
 package nodebox.function;
 
+import com.sun.org.apache.xerces.internal.impl.dv.xs.BooleanDV;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import nodebox.network.WebSocketMessaging;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -20,16 +23,20 @@ import org.apache.http.util.EntityUtils;
 //import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
+import java.util.Iterator;
 import java.io.*;
 import java.net.*;
 
 import nodebox.network.*;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.json.*;
+import javax.json.stream.*;
+//import javax.json.JsonObject;
+//import javax.json.JsonReader ;
+import javax.json.JsonObjectBuilder;
 
 public class NetworkFunctions {
 
@@ -95,14 +102,35 @@ public class NetworkFunctions {
         }
     }
 
-    public static String socketClientSendData(final String data, final long timeOut)
-    {
-        JsonObject model = Json.createObjectBuilder()
-                .add("text", data)
-                .build();
+    public static Map<String, ?> socketClientSendData(Iterable<String> keys, Iterable<Object> values, final long timeOut) {
+        if (keys == null || values == null || Iterables.size(keys) != Iterables.size(values)) return ImmutableMap.of();
 
-        UUID id = WebSocketMessaging.sendData(model);
-        if(id == null) return(data);
+        ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
+        ImmutableMap.Builder<String, String> bs = ImmutableMap.builder();
+        ImmutableMap.Builder<String, Number> bn = ImmutableMap.builder();
+
+        Iterator<String> keyIterator = keys.iterator();
+        Iterator<Object> valueIterator = values.iterator();
+
+        // Converting to json
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        while (keyIterator.hasNext() && valueIterator.hasNext()) {
+            String key = keyIterator.next().toString();
+            Object value = valueIterator.next();
+
+            if(value instanceof Number) {
+                builder.add(key, (float)value);
+            } else if(value instanceof String) {
+                builder.add(key, value.toString());
+            } else if(value instanceof Boolean) {
+                builder.add(key, (boolean)value);
+            }
+        }
+
+        JsonObject object = builder.build();
+
+        UUID id = WebSocketMessaging.sendData(object);
+        if(id == null) return(ImmutableMap.of());
 
         // Since we're running a loop we can do poor persons timeout
         JsonObject retMsg = null;
@@ -111,9 +139,20 @@ public class NetworkFunctions {
         {
             retMsg = WebSocketMessaging.getMessage(id);
         }
+        System.out.println(retMsg == null);
+        System.out.println("Out of timeout loop");
+        if(retMsg == null) return(ImmutableMap.of());
 
-        if(retMsg == null) return(data);
-        return(retMsg.getString("text"));
+
+
+        for (Map.Entry<String, ?> entry : retMsg.entrySet())
+        {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            bs.put(key, value.toString());
+        }
+
+        return bs.build();
     }
 
 

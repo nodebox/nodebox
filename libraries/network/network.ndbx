@@ -16,8 +16,9 @@
             <port name="json" range="value" type="string" value="{&quot;name&quot;: {&quot;firstName&quot;: &quot;Lois&quot;, &quot;lastName&quot;: &quot;Lane&quot;}}" description="The JSON data, as a string."/>
             <port name="query" range="value" type="string" value="$.name.firstName" description="The JSON path query."/>
         </node>
-         <node name="socketClientSendData" category="network" description="Send data to a remote server" function="network/socketClientSendData" outputType="string" position="2.00,1.00" >
-            <port name="data" range="value" type="string" value="data from client" description="Data to send to remote server.  Sever will return data."/>
+         <node name="sockSendData" category="network" description="Send data to a remote server" function="network/socketClientSendData" outputType="data" position="2.00,1.00" >
+            <port name="keys" range="list" type="string" description="A list of keys."/>
+            <port name="values" range="list" type="list" description="A list of values."/>
             <port name="timeOut" range="value" type="int" value="2000" description="Amount of seconds allowed for server to return data."/>
         </node>
     </node>

@@ -300,6 +300,7 @@ public class Application implements Host {
     public boolean quit() {
         // Because documents will disappear from the list once they are closed,
         // make a copy of the list.
+
         java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
         for (NodeBoxDocument d : documents) {
             if (!d.close())

@@ -1464,6 +1464,12 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public boolean close() {
+
+        // Closing sockets if needed
+        if (Application.ENABLE_SOCKET_SUPPORT) {
+            WebSocketMessaging.close();
+        }
+
         stopAnimation();
         if (shouldClose()) {
             Application.getInstance().removeDocument(this);

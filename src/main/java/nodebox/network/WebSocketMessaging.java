@@ -9,6 +9,7 @@ import nodebox.client.NodeBoxDocument;
 
 //import java.util.HashMap;
 //import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import java.net.URI;
@@ -53,6 +54,7 @@ public class WebSocketMessaging {
             if(INMap.containsKey(id)){
                 JsonObject retVal = INMap.get(id);
                 INMap.remove(id);
+                System.out.println("Received message");
                 return(retVal);
             }
         }
@@ -128,6 +130,17 @@ public class WebSocketMessaging {
         });
     }
 
+    public static synchronized boolean close() {
+        if(clientEndpoint == null) return false;
+        if(clientEndpoint.userSession == null) return false;
+        try {
+            clientEndpoint.userSession.close();
+        } catch(IOException e) {
+
+        }
+
+        return true;
+    }
 
     public static void startSystem(final NodeBoxDocument inDocument, String webSockServer){
 

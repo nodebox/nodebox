@@ -22,11 +22,11 @@ def message_received(client, server, message):
 	jsonData = json.loads(message)
 	#idStr = jsonData["id"]
 	print("id: " + jsonData["id"])
-	#print("msg: " + jsonData["msg"])
+	print("msg: " + json.dumps(jsonData["msg"]))
 
-	# Test function, assumes msg has as text field
+	# Test function, assumes msg has as 'string' field
 	if jsonData["type"] == "dta":
-		jsonData["msg"]["text"] += "_SERVER"
+		jsonData["msg"]["string"] += "_SERVER"
 		#server.send_message_to_all(json.dumps(jsonData))
 		server.send_message(client, json.dumps(jsonData))
 	elif jsonData["type"] == "rly":
