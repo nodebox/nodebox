@@ -8,8 +8,6 @@ public class AnimationTimer implements ActionListener {
 
     private NodeBoxDocument document;
     private Timer timer;
-    private boolean doingAction = false;
-    private double frame;
 
     public AnimationTimer(NodeBoxDocument document) {
         this.document = document;
@@ -24,22 +22,8 @@ public class AnimationTimer implements ActionListener {
         timer.stop();
     }
 
-    public void setFrame(double frame) {
-        this.doingAction = true;
-        this.frame = frame;
-        timer.start();
-    }
-
     public void actionPerformed(ActionEvent e) {
         // Timer has fired.
-        if(this.doingAction) {
-            this.doingAction = false;
-            document.setFrame(this.frame);
-            timer.stop();
-        }
-        else {
-            document.nextFrame();
-        }
-
+        document.nextFrame();
     }
 }

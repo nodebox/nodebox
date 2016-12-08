@@ -56,7 +56,19 @@ public class ZoomableView extends JComponent {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
-                SwingUtilities.getWindowAncestor(ZoomableView.this).addWindowFocusListener(fh);
+                // TODO: Need to check on the real reason SwingUtilities.getWindowAncestor is returning null.  Doesnt seem to affect the app though.
+                try {
+                    Window win = SwingUtilities.getWindowAncestor(ZoomableView.this);
+                    if(win != null) {
+                        win.addWindowFocusListener(fh);
+                    }
+
+                    //SwingUtilities.getWindowAncestor(ZoomableView.this).addWindowFocusListener(fh);
+                }
+                catch (Exception e){
+                    throw new RuntimeException(e);
+                }
+
             }
         });
     }

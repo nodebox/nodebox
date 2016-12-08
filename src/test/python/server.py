@@ -26,9 +26,16 @@ def message_received(client, server, message):
 
 	# Test function, assumes msg has as 'string' field
 	if jsonData["type"] == "dta":
-		jsonData["msg"]["string"] += "_SERVER"
-		#server.send_message_to_all(json.dumps(jsonData))
+		if hasattr(jsonData["msg"], 'string'):
+			jsonData["msg"]["string"] += "_SERVER"
+
+		if hasattr(jsonData["msg"], 'geometry'):
+			print("Num Geos: " + len(jsonData["msg"]["geometry"]))
 		server.send_message(client, json.dumps(jsonData))
+
+	elif jsonData["type"] == "rsp":
+		print(jsonData["msg"])
+
 	elif jsonData["type"] == "rly":
 		if jsonData["id"] == "play":
 			msgPlay()
@@ -44,7 +51,17 @@ def message_received(client, server, message):
 			print("relay: Reload")
 		elif jsonData["id"] == "setframe":
 			msgSetframe(jsonData["msg"])
-			print("relay: Reload")
+			print("relay: setframe")
+		elif jsonData["id"] == "load":
+			msgLoad(jsonData["msg"])
+			print("relay: Load")
+		elif jsonData["id"] == "exportrange":
+			msgExportRange(jsonData["msg"])
+			print("relay: exportrange")
+		elif jsonData["id"] == "getframe":
+			msgGetframe(jsonData["msg"])
+			print("relay: msgGetframe")
+
 
 def msgPlay():
 	msgData = {
@@ -82,6 +99,30 @@ def msgSetframe(msg):
 	msgData = {
 		'type': "cmd",
 		'id': 'setframe',
+		'msg': msg
+	}
+	server.send_message_to_all(json.dumps(msgData))
+
+def msgGetframe(msg):
+	msgData = {
+		'type': "req",
+		'id': 'getframe',
+		'msg': msg
+	}
+	server.send_message_to_all(json.dumps(msgData))
+
+def msgLoad(msg):
+	msgData = {
+		'type': "cmd",
+		'id': 'load',
+		'msg': msg
+	}
+	server.send_message_to_all(json.dumps(msgData))
+
+def msgExportRange(msg):
+	msgData = {
+		'type': "cmd",
+		'id': 'exportrange',
 		'msg': msg
 	}
 	server.send_message_to_all(json.dumps(msgData))

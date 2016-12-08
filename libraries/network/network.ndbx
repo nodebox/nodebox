@@ -16,10 +16,16 @@
             <port name="json" range="value" type="string" value="{&quot;name&quot;: {&quot;firstName&quot;: &quot;Lois&quot;, &quot;lastName&quot;: &quot;Lane&quot;}}" description="The JSON data, as a string."/>
             <port name="query" range="value" type="string" value="$.name.firstName" description="The JSON path query."/>
         </node>
-         <node name="sockSendData" category="network" description="Send data to a remote server" function="network/socketClientSendData" outputType="data" position="2.00,1.00" >
-            <port name="keys" range="list" type="string" description="A list of keys."/>
-            <port name="values" range="list" type="list" description="A list of values."/>
+        <node name="sockSendData" category="network" description="Send data to a remote server" function="network/socketClientSendData" outputType="string" position="2.00,1.00" >
+            <port name="JsonString" range="value" type="string" description="Json data to send over Websocket"/>
             <port name="timeOut" range="value" type="int" value="2000" description="Amount of seconds allowed for server to return data."/>
+        </node>
+        <node description="Describe Geometry in Json format." function="network/geometrySuperToJson" image="group.png" name="geometryToJson" position="4.00,12.00" outputType="string" category="network">
+            <port name="shapes" range="list" type="geometry" widget="none" description="The list of shapes to group."/>
+        </node>
+        <node description="Describe Geometry in Json format." function="network/cookGraph" image="group.png" name="cookGraph" position="4.00,12.00" category="network">
+            <port name="shapes" range="list" type="geometry" widget="none" description="Pass through shapes."/>
+            <port name="graphInput" range="list" type="list" widget="none" description="Graph to be cooked"/>
         </node>
     </node>
 </ndbx>

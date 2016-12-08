@@ -2,6 +2,12 @@ package nodebox.function;
 
 import com.sun.org.apache.xerces.internal.impl.dv.xs.BooleanDV;
 import com.sun.org.apache.xpath.internal.operations.Bool;
+import nodebox.graphics.Geometry;
+import nodebox.graphics.IGeometry;
+import nodebox.graphics.Path;
+import nodebox.graphics.Point;
+import nodebox.graphics.Rect;
+import nodebox.graphics.Color;
 import nodebox.network.WebSocketMessaging;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -22,11 +28,7 @@ import org.apache.http.util.EntityUtils;
 //import java.io.IOException;
 //import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Iterator;
+import java.util.*;
 import java.io.*;
 import java.net.*;
 
@@ -55,7 +57,7 @@ public class NetworkFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("network", NetworkFunctions.class,
-                "httpGet", "queryJSON", "encodeURL", "socketClientSendData");
+                "httpGet", "queryJSON", "encodeURL", "socketClientSendData", "geometrySuperToJson", "cookGraph");
     }
 
     public static synchronized Map<String, Object> httpGet(final String url, final String username, final String password, final long refreshTimeSeconds) {
@@ -102,12 +104,146 @@ public class NetworkFunctions {
         }
     }
 
-    public static Map<String, ?> socketClientSendData(Iterable<String> keys, Iterable<Object> values, final long timeOut) {
-        if (keys == null || values == null || Iterables.size(keys) != Iterables.size(values)) return ImmutableMap.of();
+    private static JsonObjectBuilder pointToJson(JsonBuilderFactory factory, Point p) {
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        rootObj.add(WSDefs.TAGS.CLASS, WSDefs.TAGS.POINT);
+        rootObj.add(WSDefs.TAGS.X, p.getX());
+        rootObj.add(WSDefs.TAGS.Y, p.getY());
+        return(rootObj);
+    }
+
+    private static JsonArrayBuilder pointListToJson(JsonBuilderFactory factory, List<Point> ps) {
+        JsonArrayBuilder rootObj = factory.createArrayBuilder();
+        for (Point p : ps) {
+            rootObj.add(pointToJson(factory,  p));
+        }
+        return(rootObj);
+    }
+
+    private static JsonObjectBuilder rectToJson(JsonBuilderFactory factory, Rect r) {
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        rootObj.add(WSDefs.TAGS.CLASS, WSDefs.TAGS.RECT);
+        rootObj.add(WSDefs.TAGS.HEIGHT, r.getHeight());
+        rootObj.add(WSDefs.TAGS.WIDTH, r.getWidth());
+        rootObj.add(WSDefs.TAGS.POSITION, pointToJson(factory, r.getPosition()));
+        return(rootObj);
+    }
+
+    private static JsonObjectBuilder colorToJson(JsonBuilderFactory factory, Color c) {
+        if(c == null) return null;
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        rootObj.add(WSDefs.TAGS.CLASS, WSDefs.TAGS.COLOR);
+        rootObj.add(WSDefs.TAGS.R, c.getRed());
+        rootObj.add(WSDefs.TAGS.G, c.getGreen());
+        rootObj.add(WSDefs.TAGS.B, c.getBlue());
+        rootObj.add(WSDefs.TAGS.A, c.getAlpha());
+        return(rootObj);
+    }
+
+    private static JsonObjectBuilder pathToJson(JsonBuilderFactory factory, Path p) {
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        rootObj.add(WSDefs.TAGS.CLASS, WSDefs.TAGS.PATH);
+        rootObj.add(WSDefs.TAGS.POINTCOUNT, p.getPointCount());
+        rootObj.add(WSDefs.TAGS.POINTS, pointListToJson(factory, p.getPoints()));
+        rootObj.add(WSDefs.TAGS.BOUNDS, rectToJson(factory, p.getBounds()));
+        Color fc = p.getFillColor();
+
+        if(fc == null) rootObj.addNull(WSDefs.TAGS.FILLCOLOR);
+        else rootObj.add(WSDefs.TAGS.FILLCOLOR, colorToJson(factory, p.getFillColor()));
+        Color sc = p.getStrokeColor();
+        if(sc == null) rootObj.addNull(WSDefs.TAGS.STROKECOLOR);
+        else rootObj.add(WSDefs.TAGS.STROKECOLOR, colorToJson(factory, p.getStrokeColor()));
+
+        rootObj.add(WSDefs.TAGS.STROKEWIDTH, p.getStrokeWidth());
+        rootObj.add(WSDefs.TAGS.STROKECLOSED, p.isClosed());
+        return(rootObj);
+    }
+
+    private static JsonArrayBuilder pathListToJson(JsonBuilderFactory factory, List<Path> ps) {
+        JsonArrayBuilder rootObj = factory.createArrayBuilder();
+        for (Path p : ps) {
+            rootObj.add(pathToJson(factory,  p));
+        }
+        return(rootObj);
+    }
+
+    public static JsonObjectBuilder geometryToJson(JsonBuilderFactory factory, IGeometry shape) {
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        rootObj.add(WSDefs.TAGS.CLASS, WSDefs.TAGS.GEOMETRY);
+        rootObj.add(WSDefs.TAGS.PATHS, pathListToJson(factory, ((Geometry)shape).getPaths()));
+        return(rootObj);
+    }
+
+
+    public static String geometrySuperToJson(List<IGeometry> shapes) {
+        if (shapes == null) return null;
+
+        JsonBuilderFactory factory = Json.createBuilderFactory(null);
+        JsonObjectBuilder rootObj = factory.createObjectBuilder();
+        JsonArrayBuilder rootArray = factory.createArrayBuilder();
+
+        for (IGeometry shape : shapes) {
+            if (shape instanceof Path) {
+                rootArray.add(pathToJson(factory, (Path)shape));
+            }
+            else if (shape instanceof Geometry) {
+                JsonObjectBuilder curGeoRoot = factory.createObjectBuilder();
+                rootArray.add(geometryToJson(factory, shape));
+                rootArray.add(curGeoRoot);
+            }
+            else {
+                System.out.println(shape.getClass().toString());
+                throw new RuntimeException("Unable to generate json for " + shape + ": I can only process paths or geometry objects.");
+            }
+        }
+
+        rootObj.add("geometry", rootArray);
+        JsonObject finalVal =rootObj.build();
+        return finalVal.toString();
+    }
+
+    private static JsonObject JsonObjectFromString(String str) {
+        JsonReader jsonReader = Json.createReader(new StringReader(str));
+        JsonObject object = jsonReader.readObject();
+        //jsonReader.close();
+        return object;
+    }
+
+    public static String socketClientSendData(String jsonData, final long timeOut) {
+        if(jsonData == null) return null;
+        if(jsonData.isEmpty()) return null;
+
+        return socketClientSendDataJson(jsonData, timeOut);
+    }
+
+    private static String socketClientSendDataJson(String jsonData, final long timeOut) {
+
+        JsonObject object = JsonObjectFromString(jsonData);
+        UUID id = WebSocketMessaging.sendData(object);
+        if(id == null) return null;
+
+        // Since we're running a loop we can do poor persons timeout
+        JsonObject retMsg = null;
+        long curTime = nowMiliSeconds();
+        while(retMsg == null && (nowMiliSeconds() - curTime) < timeOut)
+        {
+            retMsg = WebSocketMessaging.getMessage(id);
+        }
+
+        if(retMsg == null) return null;
+        return retMsg.toString();
+    }
+
+    public static List<IGeometry> cookGraph(List<IGeometry> shapes, Object cookObj) {
+        return shapes;
+    }
+
+    /*
+    private static Object socketClientSendData(Iterable<String> keys, Iterable<Object> values, final long timeOut, boolean retJson) {
+        if (keys == null || values == null ) return ImmutableMap.of();
+        if (Iterables.size(keys) != Iterables.size(values)) throw new IllegalArgumentException("Key and Value Lists must be the same size.");
 
         ImmutableMap.Builder<String, Object> b = ImmutableMap.builder();
-        ImmutableMap.Builder<String, String> bs = ImmutableMap.builder();
-        ImmutableMap.Builder<String, Number> bn = ImmutableMap.builder();
 
         Iterator<String> keyIterator = keys.iterator();
         Iterator<Object> valueIterator = values.iterator();
@@ -139,22 +275,22 @@ public class NetworkFunctions {
         {
             retMsg = WebSocketMessaging.getMessage(id);
         }
-        System.out.println(retMsg == null);
-        System.out.println("Out of timeout loop");
+
         if(retMsg == null) return(ImmutableMap.of());
 
+        if(retJson) return retMsg.toString();
 
-
-        for (Map.Entry<String, ?> entry : retMsg.entrySet())
+        for (Map.Entry<String, JsonValue> entry : retMsg.entrySet())
         {
             String key = entry.getKey();
-            Object value = entry.getValue();
-            bs.put(key, value.toString());
+            JsonValue value = entry.getValue();
+            b.put(key, value);
         }
-
-        return bs.build();
+        b.put("testNumber", 5);
+        b.put("testBool", true);
+        return b.build();
     }
-
+    */
 
     private static Map<String, Object> _httpGet(final String url, final String username, final String password) {
         HttpGet request = new HttpGet(url);

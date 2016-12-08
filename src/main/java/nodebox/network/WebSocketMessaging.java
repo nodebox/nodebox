@@ -1,7 +1,10 @@
 package nodebox.network;
 
 //import com.google.common.collect.ImmutableList;
+import nodebox.NodeBox;
+import nodebox.client.Application;
 import nodebox.client.NodeBoxDocument;
+import nodebox.ui.ImageFormat;
 
 //import java.io.IOException;
 //import java.util.List;
@@ -9,27 +12,35 @@ import nodebox.client.NodeBoxDocument;
 
 //import java.util.HashMap;
 //import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import java.util.UUID;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.json.*;
 //import javax.json.JsonArray;
 //import javax.websocket.DeploymentException;
 import java.io.StringReader;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 //import java.util.concurrent.CompletableFuture;
 //import java.io.IOException;
 
 public class WebSocketMessaging {
 
-    private static ConcurrentHashMap<UUID, JsonObject> INMap = new ConcurrentHashMap<UUID, JsonObject>(1000);  // Messages coming in from the server
+    //public enum msgTypes{DATA, COMMAND, REQUEST, RESPONSE};
+
+    private static ConcurrentHashMap<UUID, JsonObject> INMap = new ConcurrentHashMap<UUID, JsonObject>(1000);  // Graph messages coming in from the server
+    private static ConcurrentLinkedQueue<JsonObject> INCmdMap = new ConcurrentLinkedQueue<JsonObject>();  // Command messages coming in from the server
+
     public static webSocketClientEndpoint clientEndpoint = null;
     private static Thread webSockCon;
     private static NodeBoxDocument document = null;
 
+    private static final ReentrantReadWriteLock rrwl = new ReentrantReadWriteLock();
 
     public static UUID sendData(JsonObject msg){
         if(clientEndpoint != null){
@@ -37,11 +48,28 @@ public class WebSocketMessaging {
             UUID id = UUID.randomUUID();
 
             JsonObject model = Json.createObjectBuilder()
-                    .add("type", "dta")
-                    .add("id", id.toString())
-                    .add("msg", msg)
+                    .add(WSDefs.TYPE, WSDefs.DATA)
+                    .add(WSDefs.ID, id.toString())
+                    .add(WSDefs.MESSAGE, msg)
                     .build();
-            System.out.println("sendMessage");
+            //System.out.println("sendMessage");
+            if(!clientEndpoint.sendMessage(model.toString())) return(null);
+            return(id);
+        }
+        return(null);
+    }
+
+    private static UUID sendResponse(JsonObject msg){
+        if(clientEndpoint != null){
+            // Need to add an entry in the map and queue
+            UUID id = UUID.randomUUID();
+
+            JsonObject model = Json.createObjectBuilder()
+                    .add(WSDefs.TYPE, WSDefs.RESPONSE)
+                    .add(WSDefs.ID, id.toString())
+                    .add(WSDefs.MESSAGE, msg)
+                    .build();
+            //System.out.println("sendMessage");
             if(!clientEndpoint.sendMessage(model.toString())) return(null);
             return(id);
         }
@@ -54,7 +82,7 @@ public class WebSocketMessaging {
             if(INMap.containsKey(id)){
                 JsonObject retVal = INMap.get(id);
                 INMap.remove(id);
-                System.out.println("Received message");
+                //System.out.println("Received message");
                 return(retVal);
             }
         }
@@ -62,69 +90,136 @@ public class WebSocketMessaging {
     }
 
 
-    public static synchronized void processSocketAppMessage(String cmd, JsonObject jsonObj)
-    {
+    private static void respondGetFrame() {
+        JsonObject model = Json.createObjectBuilder().add(WSDefs.TAGS.FRAME, document.getFrame()).build();;
+        sendResponse(model);
+    }
+
+    private static void respondGetDocs() {
+        JsonBuilderFactory factory = Json.createBuilderFactory(null);
+        JsonObjectBuilder rootObjB = factory.createObjectBuilder();
+        JsonArrayBuilder rootArrayB = factory.createArrayBuilder();
+
+        for (NodeBoxDocument doc : Application.getInstance().getDocuments()) {
+            JsonObjectBuilder curObjB = factory.createObjectBuilder();
+            curObjB.add(WSDefs.ID, doc.id.toString());
+            curObjB.add(WSDefs.TAGS.FILENAME, doc.getDocumentFile().getAbsolutePath());
+            rootArrayB.add(curObjB);
+        }
+
+        rootObjB.add(WSDefs.TAGS.DOCUMENTS, rootArrayB);
+        sendResponse(rootObjB.build());
+    }
+
+    private static void processSocketAppRequest(String cmd, JsonObject jsonObj) {
         if(document != null && clientEndpoint != null) {
-
-            if(cmd.toLowerCase().equals("play")) {
-                document.playAnimation();
+            if(cmd.toLowerCase().equals(WSDefs.TAGS.GETFRAME)) {
+                respondGetFrame();
             }
-
-            if(cmd.toLowerCase().equals("stop")) {
-                document.stopAnimation();
-            }
-            if(cmd.toLowerCase().equals("rewind")) {
-                //document.blockTillStoppedRendering();
-
-               document.setAnimationFrame(1);
-            }
-
-            if(cmd.toLowerCase().equals("setframe")) {
-                //document.blockTillStoppedRendering();
-                document.setAnimationFrame((long)jsonObj.getInt("frameNumber"));
-            }
-
-            if(cmd.toLowerCase().equals("reload")) {
-                document.reload();
-            }
-
-            if(cmd.toLowerCase().equals("getframe")) {
-
-
+            else if(cmd.toLowerCase().equals(WSDefs.TAGS.GETDOCS)) {
+                respondGetDocs();
             }
         }
     }
 
-    public static synchronized boolean isEndPointUserSessionValid() {
-        if(clientEndpoint == null) return false;
-        if(clientEndpoint.userSession == null) return false;
-        return true;
+    private static void processSocketAppCommand(String cmd, JsonObject jsonObj)
+    {
+        // Detecting if
+        if(jsonObj.containsKey(WSDefs.DOCID)) {
+
+        }
+
+        if(document != null && clientEndpoint != null) {
+
+            // Using if instead of case because I want to use .equals
+            if(cmd.toLowerCase().equals(WSDefs.CMDS.PLAY)) {
+                document.playAnimation();
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.STOP)) {
+                document.stopAnimation();
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.REWIND)) {
+                document.setFrame(1);
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.SETFRAME)) {
+                document.setFrame((long)jsonObj.getInt(WSDefs.TAGS.FRAMENUMBER));
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.RELOAD)) {
+                document.reload();
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.LOAD)) {
+
+                File f = new File(jsonObj.getString(WSDefs.TAGS.FILENAME));
+                if(Application.canLoadFile(f)) {
+                    Application.getInstance().openDocument(f);
+                }
+            }
+            else if(cmd.toLowerCase().equals(WSDefs.CMDS.EXPORTRANGE)) {
+                String docFileName = document.getDocumentFile().getName();
+                String fileName = docFileName + "-" + jsonObj.getString(WSDefs.TAGS.FILENAME);
+                File d = new File(jsonObj.getString(WSDefs.TAGS.EXPORTPATH));
+                int start = jsonObj.getInt(WSDefs.TAGS.STARTFRAME);
+                int end = jsonObj.getInt(WSDefs.TAGS.ENDFRAME);
+                String formatStr = jsonObj.getString(WSDefs.TAGS.EXPORTFORMAT);
+                ImageFormat format = ImageFormat.of(formatStr);
+
+                document.exportRange(fileName, d, start, end, format);
+            }
+        }
+    }
+
+    public static boolean isEndPointUserSessionValid() {
+        rrwl.readLock().lock();
+        boolean retVal = false;
+        try {
+            if(clientEndpoint != null) {
+                if(clientEndpoint.userSession != null) {
+                    retVal = true;
+                }
+            }
+        }
+        finally {
+            rrwl.readLock().unlock();
+        }
+
+        return retVal;
     }
 
 
-    public static synchronized void setEndpoint(webSocketClientEndpoint ep) {
+    public static void setEndpoint(webSocketClientEndpoint ep) {
 
-        clientEndpoint = ep;
+        rrwl.writeLock().lock();
+        try {
+            clientEndpoint = ep;
+        }
+        finally {
+            rrwl.writeLock().unlock();
+        }
+
         if(ep == null) return;
+
 
         clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
             public void handleMessage(String message) {
                 if(message.toLowerCase().equals("pong")) return;
 
                 JsonObject jsonObj = Json.createReader(new StringReader(message)).readObject();
-                String type = jsonObj.getString("type").trim().toLowerCase();
-                String idStr = jsonObj.getString("id").trim();
-                JsonObject msg = jsonObj.getJsonObject("msg");
+                String type = jsonObj.getString(WSDefs.TYPE).trim().toLowerCase();
+                String idStr = jsonObj.getString(WSDefs.ID).trim();
+                JsonObject msg = jsonObj.getJsonObject(WSDefs.MESSAGE);
 
-                if(type.equals("dta")) {
+                if(type.equals(WSDefs.DATA)) {
                     UUID id = UUID.fromString(idStr);
                     INMap.put(id, msg);
                 }
-                else if(type.equals("cmd") || type.equals("req")) {
-                    processSocketAppMessage(idStr, msg);
+                else if(type.equals(WSDefs.COMMAND)) {
+                    INCmdMap.add(jsonObj);
                 }
-                else if(type.equals("rly")) {
-
+                else if(type.equals(WSDefs.REQUEST)) {
+                    processSocketAppRequest(idStr, msg);
+                }
+                else if(type.equals(WSDefs.RESPONSE)) {
+                    // Client should never receive a RESPONSE
                 }
             }
         });
@@ -142,10 +237,11 @@ public class WebSocketMessaging {
         return true;
     }
 
-    public static void startSystem(final NodeBoxDocument inDocument, String webSockServer){
 
-        document = inDocument;
+    public static void startSystem(String webSockServer){
 
+
+        // Async server connection and reconection
         class createEndpointTask implements Runnable {
             String str;
             createEndpointTask(String s) { str = s; }
@@ -175,5 +271,133 @@ public class WebSocketMessaging {
         }
         Thread t = new Thread(new createEndpointTask(webSockServer));
         t.start();
+
+        class processCommandQueue implements Runnable {
+            NodeBoxDocument doc;
+            final JsonObject empty = Json.createReader(new StringReader("{}")).readObject();
+            processCommandQueue(NodeBoxDocument d) { doc = d; }
+
+            public void run() {
+                while(true) {
+
+                    if(!Application.getInstance().openingDoc.get()) {
+
+                        // Getting COMMAND
+                        JsonObject cmd = INCmdMap.peek();
+                        if(cmd != null) {
+                            String idStr = cmd.getString("id").trim();
+                            if(idStr == WSDefs.CMDS.STOP || idStr == WSDefs.CMDS.SETFRAME || idStr == WSDefs.CMDS.REWIND) {
+                                processSocketAppCommand(idStr, cmd.getJsonObject("msg"));
+                                INCmdMap.poll();
+                            }
+                            else {
+                                // Send STOP command before other command
+                                processSocketAppCommand(WSDefs.CMDS.STOP, empty);
+                                while(doc.isRendering.get() || doc.isExporting.get()) {}
+
+                                cmd = INCmdMap.poll();
+                                if(cmd != null) {
+                                    processSocketAppCommand(cmd.getString("id").trim(), cmd.getJsonObject("msg"));
+                                }
+
+
+                            }
+                        }
+
+                        try {
+                            Thread.sleep(100);
+                        } catch(java.lang.InterruptedException e){
+
+                        }
+                    }
+                }
+            }
+        }
+
+        Thread pt = new Thread(new processCommandQueue(document));
+        pt.start();
+
+    }
+
+    public static void startSystemOld(final NodeBoxDocument inDocument, String webSockServer){
+
+        document = inDocument;
+
+        // Async server connection and reconection
+        class createEndpointTask implements Runnable {
+            String str;
+            createEndpointTask(String s) { str = s; }
+            public void run() {
+                // Try connecting to the server forever
+                while(true) {
+
+                    if(!WebSocketMessaging.isEndPointUserSessionValid()) {
+                        System.out.println("Trying to connect...");
+                        try{
+                            webSocketClientEndpoint cep = new webSocketClientEndpoint(new URI(str), 2000);
+                            WebSocketMessaging.setEndpoint(cep);
+                        }catch (URISyntaxException  | IllegalStateException  ee) {
+
+                        }
+                    } else {
+                        //clientEndpoint.ping();
+                    }
+
+                    try {
+                        Thread.sleep(2000);
+                    } catch(java.lang.InterruptedException e){
+
+                    }
+                }
+            }
+        }
+        Thread t = new Thread(new createEndpointTask(webSockServer));
+        t.start();
+
+        class processCommandQueue implements Runnable {
+            NodeBoxDocument doc;
+            final JsonObject empty = Json.createReader(new StringReader("{}")).readObject();
+            processCommandQueue(NodeBoxDocument d) { doc = d; }
+
+            public void run() {
+                while(true) {
+
+                    if(!Application.getInstance().openingDoc.get()) {
+
+                        // Getting COMMAND
+                        JsonObject cmd = INCmdMap.peek();
+                        if(cmd != null) {
+                            String idStr = cmd.getString("id").trim();
+                            if(idStr == WSDefs.CMDS.STOP || idStr == WSDefs.CMDS.SETFRAME || idStr == WSDefs.CMDS.REWIND) {
+                                processSocketAppCommand(idStr, cmd.getJsonObject("msg"));
+                                INCmdMap.poll();
+                            }
+                            else {
+                                // Send STOP command before other command
+                                processSocketAppCommand(WSDefs.CMDS.STOP, empty);
+                                while(doc.isRendering.get() || doc.isExporting.get()) {}
+
+                                cmd = INCmdMap.poll();
+                                if(cmd != null) {
+                                    processSocketAppCommand(cmd.getString("id").trim(), cmd.getJsonObject("msg"));
+                                }
+
+
+                            }
+                        }
+
+                        try {
+                            Thread.sleep(100);
+                        } catch(java.lang.InterruptedException e){
+
+                        }
+                    }
+                }
+            }
+        }
+
+        Thread pt = new Thread(new processCommandQueue(document));
+        pt.start();
+
     }
 }

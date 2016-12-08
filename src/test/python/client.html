@@ -81,7 +81,7 @@
       output("send: " + input.value);
     }
 
-      function setframe() {
+     function setframe() {
       var msgData =
       {
         "type":"rly",
@@ -90,11 +90,52 @@
             "frameNumber": 333
         }
       };
-
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+      
+    function loadDoc() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"load",
+        "msg":{
+            "fileName": "C:/Users/Gear/SkyDrive/Projects/NodeBoxAE/nodeBoxAETest.ndbx"
+        }
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+	
+	function exportRange() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"exportrange",
+        "msg":{
+			"exportPath": "C:/temp/export",
+            "fileName": "testExport",
+			"start": 10,
+			"end": 20,
+			"format": "svg"
+        }
+      };
       ws.send(JSON.stringify(msgData));
       output("send: " + input.value);
     }
 
+	function getframe() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"getframe",
+        "msg":{}
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+	
+	
     function onCloseClick() {
       ws.close();
     }
@@ -114,6 +155,9 @@
   <button onclick="rewind()">Rewind</button>
   <button onclick="reload()">Reload</button>
   <button onclick="setframe()">Set Frame = 333</button>
+  <button onclick="getframe()">Get Frame</button>
+  <button onclick="loadDoc()">Load Doc</button>
+  <button onclick="exportRange()">Export Rage 10-20</button>
   </form>
   <div id="log"></div>
 </body>

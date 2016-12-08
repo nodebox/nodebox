@@ -8,6 +8,7 @@ import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
 import nodebox.function.FunctionRepository;
 import nodebox.network.WebSocketMessaging;
+import nodebox.network.webSocketDocumentMessaging;
 import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;
@@ -37,7 +38,8 @@ import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
+import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -63,11 +65,18 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
+    // Sockets
+    public final UUID id;
+    private final webSocketDocumentMessaging msgDoc;
+
     // State
     private final NodeLibraryController controller;
     // Rendering
     public final AtomicBoolean isRendering = new AtomicBoolean(false);
     private final AtomicBoolean shouldRender = new AtomicBoolean(false);
+    // Exporting
+    public final AtomicBoolean isExporting = new AtomicBoolean(false);
+
     // GUI components
     private final NodeBoxMenuBar menuBar;
     private final AnimationBar animationBar;
@@ -104,13 +113,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     private List<DeviceHandler> deviceHandlers = new ArrayList<DeviceHandler>();
     private DevicesDialog devicesDialog;
 
-
+    private static final ReentrantReadWriteLock rrwl = new ReentrantReadWriteLock();
 
     public NodeBoxDocument() {
         this(createNewLibrary());
     }
 
     public NodeBoxDocument(NodeLibrary nodeLibrary) {
+        this.id = UUID.randomUUID();
+
         if (!nodeLibrary.hasProperty("canvasX"))
             nodeLibrary = nodeLibrary.withProperty("canvasX", "0");
         if (!nodeLibrary.hasProperty("canvasY"))
@@ -172,10 +183,20 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         if (Platform.onMac()) {
             enableOSXFullscreen(this);
         }
+
+        /*SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        });*/
+
+
         updateTitle();
         menuBar = new NodeBoxMenuBar(this);
         setJMenuBar(menuBar);
         loaded = true;
+
 
         if (Application.ENABLE_DEVICE_SUPPORT) {
             for (Device device : getNodeLibrary().getDevices()) {
@@ -188,8 +209,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
 
         if (Application.ENABLE_SOCKET_SUPPORT) {
-            WebSocketMessaging.startSystem(this, Application.SOCKET_CLIENT_SERVERADDRESS);
-
+            //WebSocketMessaging.startSystem(this, Application.SOCKET_CLIENT_SERVERADDRESS);
+            this.msgDoc = new webSocketDocumentMessaging(this, Application.SOCKET_CLIENT_SERVERADDRESS);
             // Adding message handler
             /*
             WebSocketMessaging.clientEndpoint.addMessageHandler(new webSocketClientEndpoint.MessageHandler() {
@@ -205,8 +226,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             });*/
 
         }
+        else {
+            this.msgDoc = null;
+        }
     }
-
 
     public static NodeBoxDocument getCurrentDocument() {
         return Application.getInstance().getCurrentDocument();
@@ -1166,20 +1189,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     //// Animation ////
     public double getFrame() {
-            return(frame);
+        double retVal;
+        rrwl.readLock().lock();
+        retVal = frame;
+        rrwl.readLock().unlock();
+        return(frame);
     }
 
 
     public void setFrame(double frame) {
+        rrwl.writeLock().lock();
+        try {
             this.frame = frame;
-            animationBar.setFrame(frame);
-            requestRender();
+        }
+        finally {
+            rrwl.writeLock().unlock();
+        }
 
-    }
-
-    // Used by other threads to avoid racing conditions
-    public void setAnimationFrame(double frame) {
-        animationTimer.setFrame(frame);
+        animationBar.setFrame(frame);
+        requestRender();
     }
 
     public void nextFrame() {
@@ -1213,6 +1241,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         setFrame(1);
     }
 
+
+
     //// Rendering ////
 
     /**
@@ -1223,15 +1253,21 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
      * The renderer could already be running.
      * <p/>
      * If all checks pass, a renderNetwork request is made.
-     */
+     *
+     * * */
     public void requestRender() {
-        // If we're already rendering, request the next renderNetwork.
-        if (isRendering.compareAndSet(false, true)) {
-            // If we're not rendering, start rendering.
-            render();
-        } else {
-            shouldRender.set(true);
-        }
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // If we're already rendering, request the next renderNetwork.
+                if (isRendering.compareAndSet(false, true)) {
+                    // If we're not rendering, start rendering.
+                    render();
+                } else {
+                    shouldRender.set(true);
+                }
+            }
+         });
     }
 
     public void renderFullScreen() {
@@ -1263,18 +1299,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     /**
      * Ask the document to stop the active rendering.
      */
-    public void blockTillStoppedRendering(){
-        shouldRender.set(false);
-        stopRendering();
-        while(!currentRender.isDone()) {}
-    }
-
     public void stopRendering() {
         if (currentRender != null) {
             currentRender.cancel(true);
         }
     }
 
+
+
+//http://java-buddy.blogspot.com/2012/09/swingutilitiesiseventdispatchthread.html
     private void render() {
         checkState(SwingUtilities.isEventDispatchThread());
         checkState(currentRender == null);
@@ -1326,13 +1359,15 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     viewerPane.setOutputValues(results);
 
                 if (shouldRender.getAndSet(false)) {
-                    SwingUtilities.invokeLater(new Runnable() {
+                    /*SwingUtilities.invokeLater(new Runnable() {
                         @Override
                         public void run() {
                             requestRender();
                         }
-                    });
+                    });*/
+                    requestRender();
                 }
+
                 isRendering.set(false);
             }
         };
@@ -1450,11 +1485,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     //// Document actions ////
 
     public File getDocumentFile() {
-        return documentFile;
+        rrwl.readLock().lock();
+        File retVal = null;
+        try {
+            retVal = documentFile;
+        }
+        finally {
+           rrwl.readLock().unlock();
+        }
+        return retVal;
     }
 
     public void setDocumentFile(File documentFile) {
-        this.documentFile = documentFile;
+        rrwl.writeLock().lock();
+        try {
+            this.documentFile = documentFile;
+        } finally {
+            rrwl.writeLock().unlock();
+        }
+
         controller.setNodeLibraryFile(documentFile);
         updateTitle();
     }
@@ -1467,7 +1516,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
         // Closing sockets if needed
         if (Application.ENABLE_SOCKET_SUPPORT) {
-            WebSocketMessaging.close();
+            //WebSocketMessaging.close();
+            this.msgDoc.close();
         }
 
         stopAnimation();
@@ -1638,6 +1688,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ImageFormat format) {
+
         exportThreadedRange(getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             int count = 1;
 
@@ -1648,6 +1699,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 count += 1;
             }
         });
+
     }
 
     public boolean exportMovie() {
@@ -1695,6 +1747,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     private void exportThreadedRange(final NodeLibrary library, final int fromValue, final int toValue, final ExportDelegate exportDelegate) {
+        isExporting.set(true);
         int frameCount = toValue - fromValue;
         final InterruptibleProgressDialog d = new InterruptibleProgressDialog(this, "Exporting " + frameCount + " frames...");
         d.setTaskCount(toValue - fromValue + 1);
@@ -1745,6 +1798,8 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                             frame.setVisible(false);
                         }
                     });
+
+                    isExporting.set(false);
                 }
             }
         });
