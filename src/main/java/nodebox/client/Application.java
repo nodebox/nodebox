@@ -155,6 +155,7 @@ public class Application implements Host {
         applyPreferences();
         registerForMacOSXEvents();
         initPython();
+        initGraphWebSockets();
     }
 
     private void installDefaultExceptionHandler() {
@@ -277,7 +278,7 @@ public class Application implements Host {
     }
 
     private void initGraphWebSockets() {
-        WebSocketMessaging.startSystem(Application.SOCKET_CLIENT_SERVERADDRESS);
+        if(Application.ENABLE_SOCKET_SUPPORT) WebSocketMessaging.startSystem(Application.SOCKET_CLIENT_SERVERADDRESS);
     }
 
     private void initPython() {

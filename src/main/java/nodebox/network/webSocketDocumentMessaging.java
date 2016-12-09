@@ -118,23 +118,6 @@ public class webSocketDocumentMessaging {
         return true;
     }
 
-    public UUID sendData(JsonObject msg){
-        if(this.clientEndpoint != null){
-            // Need to add an entry in the map and queue
-            UUID id = UUID.randomUUID();
-
-            JsonObject model = Json.createObjectBuilder()
-                    .add(WSDefs.TYPE, WSDefs.DATA)
-                    .add(WSDefs.ID, id.toString())
-                    .add(WSDefs.MESSAGE, msg)
-                    .build();
-            //System.out.println("sendMessage");
-            if(!clientEndpoint.sendMessage(model.toString())) return(null);
-            return(id);
-        }
-        return(null);
-    }
-
     private UUID sendResponse(JsonObject msg){
         if(this.clientEndpoint != null){
             // Need to add an entry in the map and queue
@@ -193,16 +176,14 @@ public class webSocketDocumentMessaging {
             else if(cmd.toLowerCase().equals(WSDefs.TAGS.GETDOCS)) {
                 this.respondGetDocs();
             }
+            else if(cmd.toLowerCase().equals(WSDefs.TAGS.GETDOC)) {
+                this.respondGetDocs();
+            }
         }
     }
 
     private void processSocketAppCommand(String cmd, JsonObject jsonObj)
     {
-        // Detecting if
-        if(jsonObj.containsKey(WSDefs.DOCID)) {
-
-        }
-
         if(this.document != null && this.clientEndpoint != null) {
 
             // Using if instead of case because I want to use .equals
@@ -280,11 +261,6 @@ public class webSocketDocumentMessaging {
                 String type = jsonObj.getString(WSDefs.TYPE).trim().toLowerCase();
                 String idStr = jsonObj.getString(WSDefs.ID).trim();
                 JsonObject msg = jsonObj.getJsonObject(WSDefs.MESSAGE);
-                /*
-                if(type.equals(WSDefs.DATA)) {
-                    UUID id = UUID.fromString(idStr);
-                    INMap.put(id, msg);
-                }*/
 
                 if(type.equals(WSDefs.COMMAND)) {
                     INCmdMap.add(jsonObj);
