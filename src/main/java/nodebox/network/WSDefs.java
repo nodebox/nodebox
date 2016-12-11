@@ -64,8 +64,8 @@ public class WSDefs {
         public static final String GEOMETRY =       "geometry";
         public static final String FRAME =          "frame";
         public static final String GETFRAME =       "getframe";
-        public static final String GETDOCS =       "getdocs";
-        public static final String GETDOC =       "getdoc";
-        public static final String DOCUMENTS =       "docs";
+        public static final String GETDOCS =        "getdocs";
+        public static final String GETDOC =         "getdoc";
+        public static final String DOCUMENTS =      "docs";
     }
 }

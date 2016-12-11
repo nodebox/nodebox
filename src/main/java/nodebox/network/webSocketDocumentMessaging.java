@@ -118,21 +118,22 @@ public class webSocketDocumentMessaging {
         return true;
     }
 
-    private UUID sendResponse(JsonObject msg){
+    private void sendResponse(String cmd, JsonObject msg){
         if(this.clientEndpoint != null){
             // Need to add an entry in the map and queue
-            UUID id = UUID.randomUUID();
+            //UUID id = UUID.randomUUID();
 
             JsonObject model = Json.createObjectBuilder()
                     .add(WSDefs.TYPE, WSDefs.RESPONSE)
-                    .add(WSDefs.ID, id.toString())
+                    .add(WSDefs.ID, cmd)
                     .add(WSDefs.MESSAGE, msg)
                     .build();
             //System.out.println("sendMessage");
-            if(!this.clientEndpoint.sendMessage(model.toString())) return(null);
-            return(id);
+            this.clientEndpoint.sendMessage(model.toString());
+            //if(!this.clientEndpoint.sendMessage(model.toString())) return(null);
+            //return(id);
         }
-        return(null);
+        //return(null);
     }
 
     public JsonObject getMessage(UUID id){
@@ -149,7 +150,7 @@ public class webSocketDocumentMessaging {
 
     private void respondGetFrame() {
         JsonObject model = Json.createObjectBuilder().add(WSDefs.TAGS.FRAME, this.document.getFrame()).build();;
-        this.sendResponse(model);
+        this.sendResponse(WSDefs.TAGS.GETFRAME, model);
     }
 
     private void respondGetDocs() {
@@ -165,7 +166,16 @@ public class webSocketDocumentMessaging {
         }
 
         rootObjB.add(WSDefs.TAGS.DOCUMENTS, rootArrayB);
-        this.sendResponse(rootObjB.build());
+        this.sendResponse(WSDefs.TAGS.GETDOCS, rootObjB.build());
+    }
+
+    private void respondGetDoc() {
+        JsonBuilderFactory factory = Json.createBuilderFactory(null);
+        JsonObjectBuilder rootObjB = factory.createObjectBuilder();
+        rootObjB.add(WSDefs.ID, this.document.id.toString());
+        rootObjB.add(WSDefs.TAGS.FILENAME, this.document.getDocumentFile().getAbsolutePath());
+
+        this.sendResponse(WSDefs.TAGS.GETDOC, rootObjB.build());
     }
 
     private void processSocketAppRequest(String cmd, JsonObject jsonObj) {
@@ -177,7 +187,7 @@ public class webSocketDocumentMessaging {
                 this.respondGetDocs();
             }
             else if(cmd.toLowerCase().equals(WSDefs.TAGS.GETDOC)) {
-                this.respondGetDocs();
+                this.respondGetDoc();
             }
         }
     }
