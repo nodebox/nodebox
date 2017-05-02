@@ -63,8 +63,8 @@ From the command prompt, run:
 
 Or other distributions based on APT package system:
 
-    sudo apt-get install git-core openjdk-6-jdk ant
-    git clone git://github.com/nodebox/nodebox.git
+    sudo apt install git openjdk-8-jdk ant
+    git clone https://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
 
@@ -73,7 +73,7 @@ Or other distributions based on APT package system:
 Or other distributions based on YUM package system:
 
     sudo yum install git java-1.8.0-openjdk ant
-    git clone git://github.com/nodebox/nodebox.git
+    git clone https://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
 
@@ -95,7 +95,7 @@ you can then launch nodebox as any desktop application, or by running the ```nod
 
 Just use pkg:
 
-    sudo pkg install git openjdk-7 apache-ant
-    git clone git://github.com/nodebox/nodebox.git
+    sudo pkg install git openjdk-8 apache-ant
+    git clone https://github.com/nodebox/nodebox.git
     cd nodebox
     ant run
