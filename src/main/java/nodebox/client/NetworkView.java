@@ -941,7 +941,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 startDragging = false;
                 Node pressedNode = getNodeAt(pt);
                 if (pressedNode != null) {
-                    if (selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
+                    if (selectedNodes == null || selectedNodes.isEmpty() || !selectedNodes.contains(pressedNode.getName())) {
                         singleSelect(pressedNode);
                     }
                     if (isAltPressed) {
