@@ -1539,10 +1539,10 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
 
     //// Export ////
 
-    private ImageFormat imageFormatForFile(File file) {
+    private ExportFormat imageFormatForFile(File file) {
         if (file.getName().toLowerCase(Locale.US).endsWith(".pdf"))
-            return ImageFormat.PDF;
-        return ImageFormat.PNG;
+            return ExportFormat.PDF;
+        return ExportFormat.PNG;
     }
 
     public void doExport() {
@@ -1550,14 +1550,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         d.setLocationRelativeTo(this);
         d.setVisible(true);
         if (!d.isDialogSuccessful()) return;
-        nodebox.ui.ImageFormat chosenFormat = d.getFormat();
-        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf,svg", "Image file");
+        ExportFormat chosenFormat = d.getFormat();
+        File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf,svg,csv", "Image file");
         if (chosenFile == null) return;
         lastExportPath = chosenFile.getParentFile().getAbsolutePath();
         exportToFile(chosenFile, chosenFormat);
     }
 
-    private void exportToFile(File file, ImageFormat format) {
+    private void exportToFile(File file, ExportFormat format) {
         // get data from last export.
         if (lastRenderResult == null) {
             JOptionPane.showMessageDialog(this, "There is no last render result.");
@@ -1566,7 +1566,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         }
     }
 
-    private void exportToFile(File file, Iterable<?> objects, ImageFormat format) {
+    private void exportToFile(File file, Iterable<?> objects, ExportFormat format) {
         file = format.ensureFileExtension(file);
         ObjectsRenderer.render(objects, getCanvasBounds().getBounds2D(), file);
     }
@@ -1583,14 +1583,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         File directory = d.getExportDirectory();
         int fromValue = d.getFromValue();
         int toValue = d.getToValue();
-        nodebox.ui.ImageFormat format = d.getFormat();
+        ExportFormat format = d.getFormat();
         if (directory == null) return false;
         lastExportPath = directory.getAbsolutePath();
         exportRange(exportPrefix, directory, fromValue, toValue, format);
         return true;
     }
 
-    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ImageFormat format) {
+    public void exportRange(final String exportPrefix, final File directory, final int fromValue, final int toValue, final ExportFormat format) {
         exportThreadedRange(getNodeLibrary(), fromValue, toValue, new ExportDelegate() {
             int count = 1;
 

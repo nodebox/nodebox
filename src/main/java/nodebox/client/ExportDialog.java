@@ -1,6 +1,6 @@
 package nodebox.client;
 
-import nodebox.ui.ImageFormat;
+import nodebox.ui.ExportFormat;
 import nodebox.ui.Theme;
 
 import javax.swing.*;
@@ -35,6 +35,7 @@ public class ExportDialog extends JDialog {
         formatBox.addItem("SVG");
         formatBox.addItem("PNG");
         formatBox.addItem("PDF");
+        formatBox.addItem("CSV");
         formatBox.setSelectedItem("SVG");
         formatPanel.add(formatBox);
         mainPanel.add(formatPanel);
@@ -78,8 +79,8 @@ public class ExportDialog extends JDialog {
         return dialogSuccessful;
     }
 
-    public ImageFormat getFormat() {
-        return ImageFormat.of(formatBox.getSelectedItem().toString());
+    public ExportFormat getFormat() {
+        return ExportFormat.of(formatBox.getSelectedItem().toString());
     }
 
     public static void main(String[] args) {

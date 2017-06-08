@@ -1,6 +1,6 @@
 package nodebox.client;
 
-import nodebox.ui.ImageFormat;
+import nodebox.ui.ExportFormat;
 import nodebox.ui.Platform;
 import nodebox.ui.Theme;
 
@@ -25,7 +25,7 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
     private File exportDirectory;
     private int fromValue;
     private int toValue;
-    private ImageFormat format;
+    private ExportFormat format;
     private JTextField prefixField;
     private JButton exportButton;
 
@@ -166,8 +166,8 @@ public class ExportRangeDialog extends JDialog implements ActionListener {
         return toValue;
     }
 
-    public ImageFormat getFormat() {
-        return ImageFormat.of(formatBox.getSelectedItem().toString());
+    public ExportFormat getFormat() {
+        return ExportFormat.of(formatBox.getSelectedItem().toString());
     }
 
     /**

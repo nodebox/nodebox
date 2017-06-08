@@ -5,29 +5,31 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public final class ImageFormat {
+public final class ExportFormat {
 
-    public static final ImageFormat PDF = new ImageFormat("PDF", "pdf");
-    public static final ImageFormat PNG = new ImageFormat("PNG", "png");
-    public static final ImageFormat SVG = new ImageFormat("SVG", "svg");
+    public static final ExportFormat PDF = new ExportFormat("PDF", "pdf");
+    public static final ExportFormat PNG = new ExportFormat("PNG", "png");
+    public static final ExportFormat SVG = new ExportFormat("SVG", "svg");
+    public static final ExportFormat CSV = new ExportFormat("CSV", "csv");
 
-    private static final Map<String, ImageFormat> FORMAT_MAP;
+    private static final Map<String, ExportFormat> FORMAT_MAP;
 
     static {
-        FORMAT_MAP = new HashMap<String, ImageFormat>();
+        FORMAT_MAP = new HashMap<>();
         FORMAT_MAP.put("PDF", PDF);
         FORMAT_MAP.put("PNG", PNG);
         FORMAT_MAP.put("SVG", SVG);
+        FORMAT_MAP.put("CSV", CSV);
     }
 
-    public static ImageFormat of(String name) {
+    public static ExportFormat of(String name) {
         return FORMAT_MAP.get(name.toUpperCase(Locale.US));
     }
 
     private final String label;
     private final String extension;
 
-    public ImageFormat(String label, String extension) {
+    public ExportFormat(String label, String extension) {
         this.label = label;
         this.extension = extension;
     }

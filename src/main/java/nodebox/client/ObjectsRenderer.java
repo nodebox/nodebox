@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.client.visualizer.Visualizer;
 import nodebox.client.visualizer.VisualizerFactory;
+import nodebox.graphics.CSVRenderer;
 import nodebox.graphics.Drawable;
 import nodebox.graphics.PDFRenderer;
 import nodebox.graphics.SVGRenderer;
@@ -27,6 +28,8 @@ public class ObjectsRenderer {
             PDFRenderer.render(linkedVisualizer, bounds, file);
         } else if (file.getName().toLowerCase(Locale.US).endsWith(".svg")) {
             SVGRenderer.renderToFile(objects, bounds, file);
+        } else if (file.getName().toLowerCase(Locale.US).endsWith(".csv")) {
+            CSVRenderer.renderToFile(objects, file, ';');
         } else {
             try {
                 ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);
