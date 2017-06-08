@@ -27,6 +27,7 @@ import nodebox.ui.ProgressDialog;
 import nodebox.versioncheck.Host;
 import nodebox.versioncheck.Updater;
 import nodebox.versioncheck.Version;
+import nodebox.network.WebSocketMessaging;
 
 import javax.swing.*;
 import java.awt.*;
@@ -44,11 +45,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
-
+import nodebox.network.WebSocketMessaging;
 public class Application implements Host {
 
     public static final String PREFERENCE_ENABLE_DEVICE_SUPPORT = "NBEnableDeviceSupport";
     public static boolean ENABLE_DEVICE_SUPPORT = false;
+
+    public static final String PREFERENCE_ENABLE_SOCKET_SUPPORT = "NBEnableSocketSupport";
+    public static boolean ENABLE_SOCKET_SUPPORT = false;
+
+    public static final String PREFERENCE_SOCKET_CLIENT_SERVERADDRESS = "ws://localhost:9001/";
+    public static String SOCKET_CLIENT_SERVERADDRESS = PREFERENCE_SOCKET_CLIENT_SERVERADDRESS;
 
     private static Application instance;
 
@@ -60,6 +67,7 @@ public class Application implements Host {
     }
 
     private AtomicBoolean startingUp = new AtomicBoolean(true);
+    public AtomicBoolean openingDoc = new AtomicBoolean(false);
     private SwingWorker<Throwable, String> startupWorker;
     private Updater updater;
     private List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>();
@@ -147,6 +155,7 @@ public class Application implements Host {
         applyPreferences();
         registerForMacOSXEvents();
         initPython();
+        initGraphWebSockets();
     }
 
     private void installDefaultExceptionHandler() {
@@ -235,6 +244,8 @@ public class Application implements Host {
     private void applyPreferences() {
         Preferences preferences = Preferences.userNodeForPackage(Application.class);
         ENABLE_DEVICE_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_DEVICE_SUPPORT, "false"));
+        ENABLE_SOCKET_SUPPORT = Boolean.valueOf(preferences.get(Application.PREFERENCE_ENABLE_SOCKET_SUPPORT, "false"));
+        SOCKET_CLIENT_SERVERADDRESS = preferences.get(Application.PREFERENCE_SOCKET_CLIENT_SERVERADDRESS, "ws://localhost:9001/");
     }
 
     /**
@@ -266,6 +277,10 @@ public class Application implements Host {
         hiddenFrame.setVisible(true);
     }
 
+    private void initGraphWebSockets() {
+        if(Application.ENABLE_SOCKET_SUPPORT) WebSocketMessaging.startSystem(Application.SOCKET_CLIENT_SERVERADDRESS);
+    }
+
     private void initPython() {
         // Actually initializing Python happens in the library.
         lookForLibraries();
@@ -292,6 +307,7 @@ public class Application implements Host {
     public boolean quit() {
         // Because documents will disappear from the list once they are closed,
         // make a copy of the list.
+
         java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
         for (NodeBoxDocument d : documents) {
             if (!d.close())
@@ -325,6 +341,7 @@ public class Application implements Host {
 
         console.setLocationRelativeTo(getCurrentDocument());
         console.setVisible(true);
+        console.addMessage("Nodebox console initialized");
 
         for (NodeBoxDocument document : documents) {
             //document.onConsoleVisibleEvent(true);
@@ -385,7 +402,22 @@ public class Application implements Host {
         return doc;
     }
 
+    public static boolean canLoadFile(File file) {
+        boolean retVal = false;
+        if(file.exists()) {
+            if(file.isFile()) {
+                // TODO: work out how to tell if file is a nodebox file on OSX
+                if(file.getAbsolutePath().endsWith(".ndbx")) {
+                    retVal = true;
+                }
+            }
+        }
+
+        return retVal;
+    }
+
     public NodeBoxDocument openDocument(File file) {
+        this.openingDoc.set(true);
         // Check if the document is already open.
         String path;
         try {
@@ -398,13 +430,16 @@ public class Application implements Host {
                         doc.toFront();
                         doc.requestFocus();
                         NodeBoxMenuBar.addRecentFile(file);
+                        this.openingDoc.set(false);
                         return doc;
                     }
                 } catch (IOException e) {
+                    this.openingDoc.set(false);
                     logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
                 }
             }
         } catch (IOException e) {
+            this.openingDoc.set(false);
             logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
         }
 
@@ -412,12 +447,16 @@ public class Application implements Host {
             NodeBoxDocument doc = NodeBoxDocument.load(file);
             addDocument(doc);
             NodeBoxMenuBar.addRecentFile(file);
+            this.openingDoc.set(false);
             return doc;
         } catch (RuntimeException e) {
+
             logger.log(Level.SEVERE, "Error while loading " + file, e);
             ExceptionDialog d = new ExceptionDialog(null, e);
             d.setVisible(true);
+            this.openingDoc.set(false);
             return null;
+
         }
     }
 

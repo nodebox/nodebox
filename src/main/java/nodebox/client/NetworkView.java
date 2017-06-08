@@ -124,6 +124,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
      * @param nodeRepository the list of nodes to look for the icon
      * @return an Image object.
      */
+
+
+
     public static BufferedImage getImageForNode(Node node, NodeRepository nodeRepository) {
         for (NodeLibrary library : nodeRepository.getLibraries()) {
             BufferedImage img = findNodeImage(library, node);

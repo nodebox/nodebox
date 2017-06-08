@@ -1,0 +1,164 @@
+<html>
+<head>
+  <title>Simple client</title>
+
+  <script type="text/javascript">
+
+    var ws;
+    
+    function init() {
+
+      // Connect to Web Socket
+      ws = new WebSocket("ws://localhost:9001/");
+
+      // Set event handlers.
+      ws.onopen = function() {
+        output("onopen");
+      };
+      
+      ws.onmessage = function(e) {
+        // e.data contains received string.
+        output("onmessage: " + e.data);
+      };
+      
+      ws.onclose = function() {
+        output("onclose");
+      };
+
+      ws.onerror = function(e) {
+        output("onerror");
+        console.log(e)
+      };
+
+    }
+    
+    function play() {
+
+      var msgData =
+      {
+        "type":"rly",
+        "id":"play",
+        "msg":{}
+      };
+
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+
+    function stop() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"stop",
+        "msg":{}
+      };
+
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+
+     function rewind() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"rewind",
+        "msg":{}
+      };
+
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+
+     function reload() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"reload",
+        "msg":{}
+      };
+
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+
+     function setframe() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"setframe",
+        "msg":{
+            "frameNumber": 333
+        }
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+      
+    function loadDoc() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"load",
+        "msg":{
+            "fileName": "C:/Users/Gear/SkyDrive/Projects/NodeBoxAE/nodeBoxAETest.ndbx"
+        }
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+	
+	function exportRange() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"exportrange",
+        "msg":{
+			"exportPath": "C:/temp/export",
+            "fileName": "testExport",
+			"start": 10,
+			"end": 20,
+			"format": "svg"
+        }
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+
+	function getframe() {
+      var msgData =
+      {
+        "type":"rly",
+        "id":"getframe",
+        "msg":{}
+      };
+      ws.send(JSON.stringify(msgData));
+      output("send: " + input.value);
+    }
+	
+	
+    function onCloseClick() {
+      ws.close();
+    }
+    
+    function output(str) {
+      var log = document.getElementById("log");
+      var escaped = str.replace(/&/, "&amp;").replace(/</, "&lt;").
+        replace(/>/, "&gt;").replace(/"/, "&quot;"); // "
+      log.innerHTML = escaped + "<br>" + log.innerHTML;
+    }
+
+  </script>
+</head>
+<body onload="init();">
+  <button onclick="play()">Play</button>
+  <button onclick="stop()">Stop</button>
+  <button onclick="rewind()">Rewind</button>
+  <button onclick="reload()">Reload</button>
+  <button onclick="setframe()">Set Frame = 333</button>
+  <button onclick="getframe()">Get Frame</button>
+  <button onclick="loadDoc()">Load Doc</button>
+  <button onclick="exportRange()">Export Rage 10-20</button>
+  </form>
+  <div id="log"></div>
+</body>
+</html>

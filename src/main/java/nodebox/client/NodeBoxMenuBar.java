@@ -484,7 +484,10 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class NewNodeAction extends AbstractDocumentAction {
         public NewNodeAction() {
             putValue(NAME, "Create New Node...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            //putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke('\t'));
+
+
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -506,7 +509,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class PlayPauseAction extends AbstractDocumentAction {
         public PlayPauseAction() {
             putValue(NAME, "Play/Pause");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P));
         }
 
         @Override
@@ -518,7 +521,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class RewindAction extends  AbstractDocumentAction {
         public RewindAction() {
             putValue(NAME, "Rewind");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK | Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.SHIFT_MASK));
         }
 
         @Override

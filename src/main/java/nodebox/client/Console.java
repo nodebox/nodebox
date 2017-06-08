@@ -81,7 +81,7 @@ public class Console extends JFrame implements WindowListener, FocusListener {
         }
     }
 
-    private void addMessage(String s) {
+    public void addMessage(String s) {
         addMessage(s, ATTRIBUTES_REGULAR);
     }
 
