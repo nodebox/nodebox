@@ -1,12 +1,16 @@
 package nodebox.client;
 
-import nodebox.ui.ImageFormat;
+import com.google.common.collect.ImmutableMap;
+import nodebox.ui.ExportFormat;
 import nodebox.ui.Theme;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Map;
 
 /**
  * Dialog presented when exporting a single image.
@@ -15,6 +19,21 @@ public class ExportDialog extends JDialog {
 
     private boolean dialogSuccessful = false;
     private JComboBox<String> formatBox;
+    private JComboBox<Delimiter> delimiterBox;
+
+    private class Delimiter {
+        private char delimiter;
+        private String label;
+
+        public Delimiter(char delimiter, String label) {
+            this.delimiter = delimiter;
+            this.label = label;
+        }
+
+        public String toString() {
+            return label;
+        }
+    }
 
     public ExportDialog(Frame frame) {
         super(frame, "Export");
@@ -23,21 +42,36 @@ public class ExportDialog extends JDialog {
 
         // Main
         setLayout(new BorderLayout(5, 5));
-        JPanel mainPanel = new JPanel();
+        final JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));
         mainPanel.setBorder(new Theme.InsetsBorder(10, 10, 10, 10));
         add(mainPanel, BorderLayout.CENTER);
 
         // Format
-        JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
+        final JPanel formatPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 10));
         formatPanel.add(new JLabel("Format:"));
         formatBox = new JComboBox<>();
         formatBox.addItem("SVG");
         formatBox.addItem("PNG");
         formatBox.addItem("PDF");
+        formatBox.addItem("CSV");
         formatBox.setSelectedItem("SVG");
         formatPanel.add(formatBox);
+
+        final JPanel delimiterPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 10));
+        delimiterPanel.add(new JLabel("Delimiter:"));
+        delimiterBox = new JComboBox<>();
+        delimiterBox.addItem(new Delimiter(',', ","));
+        delimiterBox.addItem(new Delimiter(';', ";"));
+        delimiterBox.addItem(new Delimiter(':', ":"));
+        delimiterBox.addItem(new Delimiter('\t', "Tab"));
+        delimiterBox.addItem(new Delimiter(' ', "Space"));
+        delimiterBox.setSelectedIndex(1);
+        delimiterPanel.add(delimiterBox);
+
         mainPanel.add(formatPanel);
+        mainPanel.add(delimiterPanel);
+        delimiterPanel.setVisible(false);
 
         mainPanel.add(Box.createVerticalGlue());
 
@@ -63,6 +97,19 @@ public class ExportDialog extends JDialog {
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         pack();
         getRootPane().setDefaultButton(nextButton);
+
+
+        formatBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    boolean visible = e.getItem().toString().equals("CSV");
+                    delimiterPanel.setVisible(visible);
+                    mainPanel.validate();
+                    ExportDialog.this.pack();
+                }
+            }
+        });
     }
 
     private void doCancel() {
@@ -78,8 +125,17 @@ public class ExportDialog extends JDialog {
         return dialogSuccessful;
     }
 
-    public ImageFormat getFormat() {
-        return ImageFormat.of(formatBox.getSelectedItem().toString());
+    public ExportFormat getFormat() {
+        return ExportFormat.of(formatBox.getSelectedItem().toString());
+    }
+
+    public Map<String, ?> getExportOptions() {
+        if (formatBox.getSelectedItem().equals("CSV")) {
+            Delimiter d = (Delimiter) delimiterBox.getSelectedItem();
+            return ImmutableMap.of("delimiter", d.delimiter);
+        } else {
+            return ImmutableMap.of();
+        }
     }
 
     public static void main(String[] args) {

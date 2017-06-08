@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.client.visualizer.Visualizer;
 import nodebox.client.visualizer.VisualizerFactory;
+import nodebox.graphics.CSVRenderer;
 import nodebox.graphics.Drawable;
 import nodebox.graphics.PDFRenderer;
 import nodebox.graphics.SVGRenderer;
@@ -16,10 +17,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 public class ObjectsRenderer {
 
-    public static void render(Iterable<?> objects, Rectangle2D bounds, File file) {
+    public static void render(Iterable<?> objects, Rectangle2D bounds, File file, Map<String,?> options) {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         if (file.getName().toLowerCase(Locale.US).endsWith(".pdf")) {
@@ -27,6 +29,12 @@ public class ObjectsRenderer {
             PDFRenderer.render(linkedVisualizer, bounds, file);
         } else if (file.getName().toLowerCase(Locale.US).endsWith(".svg")) {
             SVGRenderer.renderToFile(objects, bounds, file);
+        } else if (file.getName().toLowerCase(Locale.US).endsWith(".csv")) {
+            char delimiter = ';';
+            if (options.containsKey("delimiter")) {
+                delimiter = (Character) options.get("delimiter");
+            }
+            CSVRenderer.renderToFile(objects, file, delimiter);
         } else {
             try {
                 ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);
