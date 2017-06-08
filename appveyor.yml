@@ -1,0 +1,4 @@
+configuration: release
+image: Visual Studio 2015
+build_script:
+  - ant dist-win
