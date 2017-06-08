@@ -1,4 +1,16 @@
 configuration: release
 image: Visual Studio 2015
+install:
+  - ps: |
+      Add-Type -AssemblyName System.IO.Compression.FileSystem
+      if (!(Test-Path -Path "C:\ant" )) {
+        (new-object System.Net.WebClient).DownloadFile(
+          'https://www-us.apache.org/dist/ant/binaries/apache-ant-1.10.1-bin.zip',
+          'C:\ant-bin.zip'
+        )
+        [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\ant-bin.zip", "C:\Java")
+      }
+  - cmd: SET PATH=C:\Java\apache-ant-1.10.1\bin;%JAVA_HOME%\bin;%PATH%
+  - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
   - ant dist-win
