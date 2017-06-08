@@ -17,10 +17,11 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Map;
 
 public class ObjectsRenderer {
 
-    public static void render(Iterable<?> objects, Rectangle2D bounds, File file) {
+    public static void render(Iterable<?> objects, Rectangle2D bounds, File file, Map<String,?> options) {
         // TODO Remove reference to Viewer.getVisualizer.
         Visualizer v = VisualizerFactory.getVisualizer(objects, ListUtils.listClass(objects));
         if (file.getName().toLowerCase(Locale.US).endsWith(".pdf")) {
@@ -29,7 +30,11 @@ public class ObjectsRenderer {
         } else if (file.getName().toLowerCase(Locale.US).endsWith(".svg")) {
             SVGRenderer.renderToFile(objects, bounds, file);
         } else if (file.getName().toLowerCase(Locale.US).endsWith(".csv")) {
-            CSVRenderer.renderToFile(objects, file, ';');
+            char delimiter = ';';
+            if (options.containsKey("delimiter")) {
+                delimiter = (Character) options.get("delimiter");
+            }
+            CSVRenderer.renderToFile(objects, file, delimiter);
         } else {
             try {
                 ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);

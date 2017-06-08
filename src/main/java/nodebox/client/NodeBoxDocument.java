@@ -1551,24 +1551,25 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         d.setVisible(true);
         if (!d.isDialogSuccessful()) return;
         ExportFormat chosenFormat = d.getFormat();
+        Map<String, ?> options = d.getExportOptions();
         File chosenFile = FileUtils.showSaveDialog(this, lastExportPath, "png,pdf,svg,csv", "Image file");
         if (chosenFile == null) return;
         lastExportPath = chosenFile.getParentFile().getAbsolutePath();
-        exportToFile(chosenFile, chosenFormat);
+        exportToFile(chosenFile, chosenFormat, options);
     }
 
-    private void exportToFile(File file, ExportFormat format) {
+    private void exportToFile(File file, ExportFormat format, Map<String, ?> options) {
         // get data from last export.
         if (lastRenderResult == null) {
             JOptionPane.showMessageDialog(this, "There is no last render result.");
         } else {
-            exportToFile(file, lastRenderResult, format);
+            exportToFile(file, lastRenderResult, format, options);
         }
     }
 
-    private void exportToFile(File file, Iterable<?> objects, ExportFormat format) {
+    private void exportToFile(File file, Iterable<?> objects, ExportFormat format, Map<String, ?> options) {
         file = format.ensureFileExtension(file);
-        ObjectsRenderer.render(objects, getCanvasBounds().getBounds2D(), file);
+        ObjectsRenderer.render(objects, getCanvasBounds().getBounds2D(), file, options);
     }
 
     public boolean exportRange() {
@@ -1597,7 +1598,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             @Override
             public void frameDone(double frame, Iterable<?> results) {
                 File exportFile = new File(directory, exportPrefix + "-" + String.format("%05d", count));
-                exportToFile(exportFile, results, format);
+                exportToFile(exportFile, results, format, ImmutableMap.<String, Object>of());
                 count += 1;
             }
         });
