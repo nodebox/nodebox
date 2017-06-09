@@ -1,4 +1,5 @@
 configuration: release
+version: 3.0.47.{build}
 image: Visual Studio 2015
 install:
   - ps: |
@@ -14,6 +15,9 @@ install:
   - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
   - ant dist-win
+after_build:
+  - cmd:
+
 artifacts:
 - path: dist\windows\bundles\*.exe
   name: winstaller
