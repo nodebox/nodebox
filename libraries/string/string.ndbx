@@ -35,6 +35,9 @@
             <port name="string2" range="value" type="string" value="" widget="string"/>
             <port name="string3" range="value" type="string" value="" widget="string"/>
             <port name="string4" range="value" type="string" value="" widget="string"/>
+            <port name="string5" range="value" type="string" value="" widget="string"/>
+            <port name="string6" range="value" type="string" value="" widget="string"/>
+            <port name="string7" range="value" type="string" value="" widget="string"/>
         </node>
         <node category="string" description="Determine if the string contains a given string" function="string/contains" name="contains" outputType="boolean" position="7.00,2.00">
             <port name="string" range="value" type="string" value="default" widget="string"/>

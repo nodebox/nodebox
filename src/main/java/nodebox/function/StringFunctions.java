@@ -62,12 +62,30 @@ public class StringFunctions {
         return Iterables.size(split) - 1;
     }
 
-    public static String concatenate(String s1, String s2, String s3, String s4) {
-        s1 = s1 != null ? s1 : "";
-        s2 = s2 != null ? s2 : "";
-        s3 = s3 != null ? s3 : "";
-        s4 = s4 != null ? s4 : "";
-        return s1 + s2 + s3 + s4;
+    public static String concatenate(String s1, String s2, String s3, String s4, String s5, String s6, String s7) {
+        StringBuilder sb = new StringBuilder();
+        if (s1 != null) {
+            sb.append(s1);
+        }
+        if (s2 != null) {
+            sb.append(s2);
+        }
+        if (s3 != null) {
+            sb.append(s3);
+        }
+        if (s4 != null) {
+            sb.append(s4);
+        }
+        if (s5 != null) {
+            sb.append(s5);
+        }
+        if (s6 != null) {
+            sb.append(s6);
+        }
+        if (s7 != null) {
+            sb.append(s7);
+        }
+        return sb.toString();
     }
 
     public static String changeCase(String value, String caseMethod) {

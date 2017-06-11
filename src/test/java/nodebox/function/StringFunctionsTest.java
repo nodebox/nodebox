@@ -42,11 +42,11 @@ public class StringFunctionsTest {
 
     @Test
     public void testConcatenate() {
-        assertEquals("a", StringFunctions.concatenate("a", null, null, null));
-        assertEquals("ab", StringFunctions.concatenate("a", "b", null, null));
-        assertEquals("ad", StringFunctions.concatenate("a", null, null, "d"));
-        assertEquals("cd", StringFunctions.concatenate(null, null, "c", "d"));
-        assertEquals("", StringFunctions.concatenate(null, null, null, null));
+        assertEquals("a", StringFunctions.concatenate("a", null, null, null, null, null, null));
+        assertEquals("ab", StringFunctions.concatenate("a", "b", null, null, null, null, null));
+        assertEquals("ad", StringFunctions.concatenate("a", null, null, "d", null, null, null));
+        assertEquals("cd", StringFunctions.concatenate(null, null, "c", "d", null, null, null));
+        assertEquals("", StringFunctions.concatenate(null, null, null, null, null, null, null));
     }
 
     @Test
