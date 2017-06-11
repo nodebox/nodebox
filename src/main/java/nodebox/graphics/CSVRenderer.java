@@ -6,6 +6,7 @@ import nodebox.util.FileUtils;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class CSVRenderer {
         } else if (o instanceof Point) {
             return ImmutableSet.of("x", "y");
         } else if (o instanceof Map) {
-            Set<String> keys = new HashSet<>();
+            Set<String> keys = new LinkedHashSet<>();
             for (Object key : ((Map) o).keySet()) {
                 keys.add(key.toString());
             }
@@ -81,7 +82,7 @@ public class CSVRenderer {
     public static String renderToString(Iterable<?> objects, char delimiter) {
         checkArgument(objects != null);
 
-        HashSet<String> keySet = new HashSet<>();
+        Set<String> keySet = new LinkedHashSet<>();
 
         for (Object o : objects) {
             keySet.addAll(keySet(o));
