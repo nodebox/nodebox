@@ -66,7 +66,6 @@ public class ExportDialog extends JDialog {
         delimiterBox.addItem(new Delimiter(':', ":"));
         delimiterBox.addItem(new Delimiter('\t', "Tab"));
         delimiterBox.addItem(new Delimiter(' ', "Space"));
-        delimiterBox.setSelectedIndex(1);
         delimiterPanel.add(delimiterBox);
 
         mainPanel.add(formatPanel);
