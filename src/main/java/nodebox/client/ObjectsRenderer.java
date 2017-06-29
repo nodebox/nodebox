@@ -34,7 +34,11 @@ public class ObjectsRenderer {
             if (options.containsKey("delimiter")) {
                 delimiter = (Character) options.get("delimiter");
             }
-            CSVRenderer.renderToFile(objects, file, delimiter);
+            boolean quotes = true;
+            if (options.containsKey("quotes")) {
+                quotes = (Boolean) options.get("quotes");
+            }
+            CSVRenderer.renderToFile(objects, file, delimiter, quotes);
         } else {
             try {
                 ImageIO.write(createImage(objects, v, bounds, null), FileUtils.getExtension(file), file);

@@ -20,6 +20,7 @@ public class ExportDialog extends JDialog {
     private boolean dialogSuccessful = false;
     private JComboBox<String> formatBox;
     private JComboBox<Delimiter> delimiterBox;
+    private JCheckBox quotesBox;
 
     private class Delimiter {
         private char delimiter;
@@ -68,9 +69,16 @@ public class ExportDialog extends JDialog {
         delimiterBox.addItem(new Delimiter(' ', "Space"));
         delimiterPanel.add(delimiterBox);
 
+        final JPanel quotesPanel = new JPanel(new FlowLayout(FlowLayout.LEADING, 10, 10));
+        quotesPanel.add(new JLabel("Quotes:"));
+        quotesBox = new JCheckBox("Escape output using quotes", true);
+        quotesPanel.add(quotesBox);
+
         mainPanel.add(formatPanel);
         mainPanel.add(delimiterPanel);
+        mainPanel.add(quotesPanel);
         delimiterPanel.setVisible(false);
+        quotesPanel.setVisible(false);
 
         mainPanel.add(Box.createVerticalGlue());
 
@@ -104,6 +112,7 @@ public class ExportDialog extends JDialog {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
                     boolean visible = e.getItem().toString().equals("CSV");
                     delimiterPanel.setVisible(visible);
+                    quotesPanel.setVisible(visible);
                     mainPanel.validate();
                     ExportDialog.this.pack();
                 }
@@ -131,7 +140,7 @@ public class ExportDialog extends JDialog {
     public Map<String, ?> getExportOptions() {
         if (formatBox.getSelectedItem().equals("CSV")) {
             Delimiter d = (Delimiter) delimiterBox.getSelectedItem();
-            return ImmutableMap.of("delimiter", d.delimiter);
+            return ImmutableMap.of("delimiter", d.delimiter, "quotes", quotesBox.isSelected());
         } else {
             return ImmutableMap.of();
         }

@@ -79,7 +79,7 @@ public class CSVRenderer {
         return sb.toString();
     }
 
-    public static String renderToString(Iterable<?> objects, char delimiter) {
+    public static String renderToString(Iterable<?> objects, char delimiter, boolean quotes) {
         checkArgument(objects != null);
 
         Set<String> keySet = new LinkedHashSet<>();
@@ -98,7 +98,7 @@ public class CSVRenderer {
             } else {
                 sb.append(delimiter);
             }
-            sb.append(valueInQuotes(k));
+            sb.append(quotes ? valueInQuotes(k) : k);
         }
         sb.append('\n');
 
@@ -113,16 +113,16 @@ public class CSVRenderer {
                     sb.append(delimiter);
                 }
                 String v = m.get(k).toString();
-                sb.append(valueInQuotes(v));
+                sb.append(quotes ? valueInQuotes(v) : v);
             }
             sb.append('\n');
         }
         return sb.toString();
     }
 
-    public static void renderToFile(Iterable<?> objects, File file, char delimiter) {
+    public static void renderToFile(Iterable<?> objects, File file, char delimiter, boolean quotes) {
         checkArgument(objects != null);
-        FileUtils.writeFile(file, renderToString(objects, delimiter));
+        FileUtils.writeFile(file, renderToString(objects, delimiter, quotes));
     }
 
 }
