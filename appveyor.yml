@@ -1,5 +1,5 @@
 configuration: release
-version: 3.0.47.{build}
+version: 3.0.48.{build}
 image: Visual Studio 2015
 install:
   - ps: |
