@@ -45,7 +45,7 @@ public class CSVRenderTest {
         assertEquals(ImmutableSet.of("alpha", "beta", "gamma"), CSVRenderer.keySet(data));
         assertEquals(data, CSVRenderer.objectAsMap(data));
         List<Map<String, Integer>> objects = ImmutableList.of(data);
-        String s = CSVRenderer.renderToString(objects, ';');
+        String s = CSVRenderer.renderToString(objects, ';', true);
         assertEquals("\"alpha\";\"beta\";\"gamma\"\n\"1\";\"2\";\"3\"\n", s);
     }
 
@@ -53,8 +53,10 @@ public class CSVRenderTest {
     public void testEscaping() {
         List<String> objects = ImmutableList.of("How \"are\" you?");
         assertEquals(ImmutableSet.of("value"), CSVRenderer.keySet(objects.get(0)));
-        String s = CSVRenderer.renderToString(objects, ';');
-        assertEquals("\"value\"\n\"How \"\"are\"\" you?\"\n", s);
+        String s1 = CSVRenderer.renderToString(objects, ';', true);
+        assertEquals("\"value\"\n\"How \"\"are\"\" you?\"\n", s1);
+        String s2 = CSVRenderer.renderToString(objects, ';', false);
+        assertEquals("value\nHow \"are\" you?\n", s2);
     }
 
 }
