@@ -32,6 +32,7 @@ public class CSVRenderer {
         }
     }
 
+    @SuppressWarnings("unchecked")
     static Map<String, ?> objectAsMap(Object o) {
         if (o instanceof Geometry) {
             Geometry geo = (Geometry) o;
