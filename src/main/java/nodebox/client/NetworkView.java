@@ -4,10 +4,7 @@ import com.google.common.base.Splitter;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
+import com.google.common.collect.*;
 import nodebox.node.*;
 import nodebox.ui.PaneView;
 import nodebox.ui.Platform;
@@ -960,10 +957,18 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 Point2D offset = minPoint(pt, dragStartPoint);
                 int gridX = (int) Math.round(offset.getX() / GRID_CELL_SIZE);
                 int gridY = (int) Math.round(offset.getY() / (float) GRID_CELL_SIZE);
-                for (String name : selectedNodes) {
-                    nodebox.graphics.Point originalPosition = dragPositions.get(name);
+                for (Map.Entry<String, nodebox.graphics.Point> entry : dragPositions.entrySet()) {
+                    nodebox.graphics.Point originalPosition = entry.getValue();
+                    if (originalPosition == null) {
+                        // Just in case...
+                        originalPosition = nodebox.graphics.Point.ZERO;
+                    }
                     nodebox.graphics.Point newPosition = originalPosition.moved(gridX, gridY);
-                    getDocument().setNodePosition(findNodeWithName(name), newPosition);
+                    Node node = findNodeWithName(entry.getKey());
+                    if (node != null) {
+                        // This avoids an issue where you delete a node while dragging.
+                        getDocument().setNodePosition(node, newPosition);
+                    }
                 }
             }
 
