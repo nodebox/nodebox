@@ -45,7 +45,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
     public static final String SELECT_PROPERTY = "NetworkView.select";
-    public static final int COMMENT_BOX_MARGIN_HORIZONTAL = 5;
+    public static final int COMMENT_OR_DESCRIPTION_BOX_MARGIN_HORIZONTAL = 5;
 
     private static Map<String, BufferedImage> fileImageCache = new HashMap<String, BufferedImage>();
     private static BufferedImage nodeGeneric, commentIcon, commentBox;
@@ -82,13 +82,15 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     private ImmutableMap<String, nodebox.graphics.Point> dragPositions = ImmutableMap.of();
     private NodePort overInput;
     private Node overOutput;
-    private Node overComment;
+    private Node overCommentOrDescription;
     private Node connectionOutput;
     private NodePort connectionInput;
     private Point2D connectionPoint;
     private boolean startDragging;
     private Point2D dragStartPoint;
     private Point2D dragCurrentPoint;
+    
+    private ShowCommentOrDescriptionTask showCommOrDescrTask;
 
     static {
         try {
@@ -300,7 +302,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         paintCurrentConnection(g2);
         paintPortTooltip(g2);
         paintDragSelection(g2);
-        paintCommentBox(g2);
+        paintCommentOrDescriptionBox(g2);
 
         // Restore original transform
         g2.setTransform(originalTransform);
@@ -517,20 +519,55 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         g.drawString(text, (float) point.getX(), (float) point.getY() + fontMetrics.getAscent() + verticalOffset);
     }
 
-    private void paintCommentBox(Graphics2D g) {
-        if (overComment != null) {
-            Rectangle r = nodeRect(overComment);
-            FontMetrics fontMetrics = g.getFontMetrics();
-            int commentWidth = fontMetrics.stringWidth(overComment.getComment());
-            int x = r.x + 16;
-            int y = r.y + GRID_CELL_SIZE - 5;
-            g.setColor(Color.DARK_GRAY);
-            g.fillRect(x + 1, y + 1, commentWidth + COMMENT_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight());
-            g.drawImage(commentBox, x, y, commentWidth + COMMENT_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight(), null);
-            g.setColor(Color.DARK_GRAY);
-            g.drawString(overComment.getComment(), x + COMMENT_BOX_MARGIN_HORIZONTAL, y + 14);
-        }
+    private void paintCommentOrDescriptionBox(Graphics2D g) {
+    	if (showCommOrDescrTask != null) {
+			if (showCommOrDescrTask.isDone()) {
+				// shows comment/description because appropriate show task was completed successfully 
+    			try {
+					Node currentNode = showCommOrDescrTask.get();
+					drawCommentOrDescriptionBox(g, currentNode);
+	    		    showCommOrDescrTask = null;
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+    		} else {
+    			// interrupts completion of show task (e.g. user moves mouse)
+    			showCommOrDescrTask.cancel(true);
+    			showCommOrDescrTask = null;
+    			// starts new show task
+    			startShowCommentOrDescriptionTask(overCommentOrDescription);
+    		}
+    	} else {
+    		startShowCommentOrDescriptionTask(overCommentOrDescription);
+    	}
     }
+
+	private void drawCommentOrDescriptionBox(Graphics2D g, Node currentNode) {
+		Rectangle r = nodeRect(currentNode);
+		FontMetrics fontMetrics = g.getFontMetrics();
+		// if node has comment, shows it, otherwise, shows its description
+		String tooltipText; 
+		if (currentNode.hasComment()) {
+			tooltipText = currentNode.getComment();
+		} else {
+			tooltipText = currentNode.getDescription();
+		}
+		int tooltipWidth = fontMetrics.stringWidth(tooltipText);
+		int x = r.x + 16;
+		int y = r.y + GRID_CELL_SIZE - 5;
+		g.setColor(Color.DARK_GRAY);
+		g.fillRect(x + 1, y + 1, tooltipWidth + COMMENT_OR_DESCRIPTION_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight());
+		g.drawImage(commentBox, x, y, tooltipWidth + COMMENT_OR_DESCRIPTION_BOX_MARGIN_HORIZONTAL * 2, commentBox.getHeight(), null);
+		g.setColor(Color.DARK_GRAY);
+		g.drawString(tooltipText, x + COMMENT_OR_DESCRIPTION_BOX_MARGIN_HORIZONTAL, y + 14);
+	}
+
+	private void startShowCommentOrDescriptionTask(Node currentNode) {
+		if (overCommentOrDescription != null) {
+			showCommOrDescrTask = new ShowCommentOrDescriptionTask(currentNode);
+			showCommOrDescrTask.execute();
+		}
+	}
 
     private void paintDragSelection(Graphics2D g) {
         if (isDragSelecting) {
@@ -648,11 +685,9 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
      */
     public Node getNodeWithCommentAt(Point2D point) {
         for (Node node : getNodesReversed()) {
-            if (node.hasComment()) {
-                Rectangle r = nodeRect(node);
-                if (r.contains(point)) {
-                    return node;
-                }
+        	Rectangle r = nodeRect(node);
+            if (r.contains(point)) {
+            	return node;
             }
         }
         return null;
@@ -989,7 +1024,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             Point2D pt = inverseViewTransformPoint(e.getPoint());
             overOutput = getNodeWithOutputPortAt(pt);
             overInput = getInputPortAt(pt);
-            overComment = getNodeWithCommentAt(pt);
+            overCommentOrDescription = getNodeWithCommentAt(pt);
             // It is probably very inefficient to repaint the view every time the mouse moves.
             repaint();
         }
@@ -1227,7 +1262,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             if (node != null) {
                 getDocument().setNodeComment(node, "");
                 // Since this node no longer has a comment, we're no longer over a comment node.
-                overComment = null;
+                overCommentOrDescription = null;
                 repaint();
             }
         }
@@ -1280,4 +1315,28 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
             JOptionPane.showMessageDialog(NetworkView.this, "There is no reference documentation for node " + prototype, Application.NAME, JOptionPane.WARNING_MESSAGE);
         }
     }
+    
+    /**
+     * Task for showing comment/description of the node after some delay.
+     *
+     */
+    private class ShowCommentOrDescriptionTask extends SwingWorker<Node, Void> {
+
+		private static final int SHOW_COMMENT_OR_DESCRIPTION_DELAY = 1500;
+		
+		private Node currentNode;
+
+		public ShowCommentOrDescriptionTask(Node currentNode) {
+			this.currentNode = currentNode;
+		}
+
+		@Override
+		protected Node doInBackground() throws Exception {
+			Thread.sleep(SHOW_COMMENT_OR_DESCRIPTION_DELAY);
+			repaint();
+			return currentNode;
+		}
+
+    }
+    
 }
