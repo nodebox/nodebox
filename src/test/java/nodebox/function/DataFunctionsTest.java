@@ -1,6 +1,8 @@
 package nodebox.function;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
 import java.awt.*;
@@ -10,6 +12,7 @@ import java.util.Map;
 import static junit.framework.TestCase.*;
 import static nodebox.function.DataFunctions.importCSV;
 import static nodebox.function.DataFunctions.lookup;
+import static nodebox.function.DataFunctions.makeTable;
 import static nodebox.util.Assertions.assertResultsEqual;
 
 public class DataFunctionsTest {
@@ -104,7 +107,7 @@ public class DataFunctionsTest {
         List<Map<String, Object>> l = importSimpleCSV("src/test/files/duplicate-headers.csv");
         assertEquals(2, l.size());
         Map<String, Object> row1 = l.get(0);
-        assertResultsEqual(row1.keySet(), "Strings" , "Numbers 1", "Integers", "Numbers 2", "Floats");
+        assertResultsEqual(row1.keySet(), "Strings", "Numbers 1", "Integers", "Numbers 2", "Floats");
         assertResultsEqual(row1.values(), 1.0, 2.0, 3.0, 4.0, 5.0);
     }
 
@@ -127,6 +130,62 @@ public class DataFunctionsTest {
         assertResultsEqual(l.get(1).values(), 255.0, "100", "0", 255.0);
         assertResultsEqual(l.get(2).values(), 0.0, "100 k", "0", 255.0);
         assertResultsEqual(l.get(3).values(), 100.0, "200", "255.0", 0.0);
+    }
+
+    @Test
+    public void testMakeTable() {
+        List<String> alphaList = ImmutableList.of("a0", "a1");
+        List<String> betaList = ImmutableList.of("b0", "b1");
+        List<Map<String, Object>> l = makeTable("alpha,beta", alphaList, betaList, null, null, null, null);
+        assertEquals(2, l.size());
+        assertEquals(l.get(0).keySet(), ImmutableSet.of("alpha", "beta"));
+        assertResultsEqual(l.get(0).values(), "a0", "b0");
+        assertResultsEqual(l.get(1).values(), "a1", "b1");
+    }
+
+    @Test
+    public void testMakeTableWithNoData() {
+        List<Map<String, Object>> l = makeTable("alpha,beta", null, null, null, null, null, null);
+        assertEquals(0, l.size());
+    }
+
+    @Test
+    public void testMakeTableAutoHeaders() {
+        List<String> alphaList = ImmutableList.of("a0", "a1");
+        List<String> betaList = ImmutableList.of("b0", "b1");
+        List<Map<String, Object>> l = makeTable("alpha", alphaList, betaList, null, null, null, null);
+        assertEquals(2, l.size());
+        assertEquals(l.get(0).keySet(), ImmutableSet.of("alpha", "list2"));
+    }
+
+    @Test
+    public void testMakeTableHeadersWithSpaces() {
+        List<String> alphaList = ImmutableList.of("a0", "a1");
+        List<String> betaList = ImmutableList.of("b0", "b1");
+        List<Map<String, Object>> l = makeTable("alpha; beta ", alphaList, betaList, null, null, null, null);
+        assertEquals(l.get(0).keySet(), ImmutableSet.of("alpha", "beta"));
+    }
+
+    @Test
+    public void testMakeTableDifferentSizedLists() {
+        List<String> alphaList = ImmutableList.of("a0", "a1");
+        List<String> betaList = ImmutableList.of("b0");
+        List<Map<String, Object>> l = makeTable("alpha", alphaList, betaList, null, null, null, null);
+        assertEquals(2, l.size());
+        assertEquals(l.get(0).keySet(), ImmutableSet.of("alpha", "list2"));
+        assertResultsEqual(l.get(0).values(), "a0", "b0");
+        assertResultsEqual(l.get(1).values(), "a1", "");
+    }
+
+    @Test
+    public void testMakeTableWithNoDataForColumn() {
+        List<String> alphaList = ImmutableList.of("a0", "a1");
+        List<String> gammaList = ImmutableList.of("c0", "c1");
+        List<Map<String, Object>> l = makeTable("alpha,beta,gamma", alphaList, ImmutableList.of(), gammaList, null, null, null);
+        assertEquals(2, l.size());
+        assertEquals(l.get(0).keySet(), ImmutableSet.of("alpha", "gamma"));
+        assertResultsEqual(l.get(0).values(), "a0", "c0");
+        assertResultsEqual(l.get(1).values(), "a1", "c1");
     }
 
     private List<Map<String, Object>> importSimpleCSV(String fileName) {

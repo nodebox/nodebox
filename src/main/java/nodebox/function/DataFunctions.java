@@ -23,7 +23,7 @@ public class DataFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
-                "lookup", "importCSV", "filterData");
+                "lookup", "importCSV", "filterData", "makeTable");
 
         separators = new HashMap<String, Character>();
         separators.put("period", '.');
@@ -194,13 +194,13 @@ public class DataFunctions {
         ImmutableList.Builder<Object> b = ImmutableList.builder();
         try {
             double floatValue = Double.parseDouble(value.toString());
-            for (Object o: rows) {
+            for (Object o : rows) {
                 if (doubleMatches(o, key, op, floatValue)) {
                     b.add(o);
                 }
             }
         } catch (NumberFormatException e) {
-            for (Object o: rows) {
+            for (Object o : rows) {
                 if (objectMatches(o, key, op, value)) {
                     b.add(o);
                 }
@@ -261,6 +261,65 @@ public class DataFunctions {
         }
     }
 
+    public static List<Map<String, Object>> makeTable(String headers, List<?> l1, List<?> l2, List<?> l3, List<?> l4, List<?> l5, List<?> l6) {
+        List<String> dirtyHeaderList = Arrays.asList(headers.split("[,;]"));
+        ArrayList<String> headerList = new ArrayList<>(6);
+        int dirtyHeaderListSize = dirtyHeaderList.size();
+        for (int i = 0; i < 6; i++) {
+            String key = i < dirtyHeaderListSize ? dirtyHeaderList.get(i) : null;
+            if (key == null) {
+                key = "list" + (i + 1);
+            } else {
+                key = key.trim();
+                if (key.length() == 0) {
+                    key = "list" + (i + 1);
+                }
+            }
+            headerList.add(key);
+        }
 
+        ArrayList<List<?>> lists = new ArrayList<>(6);
+        lists.add(l1);
+        lists.add(l2);
+        lists.add(l3);
+        lists.add(l4);
+        lists.add(l5);
+        lists.add(l6);
+        int colCount = nonEmptyListSize(lists);
+        int rowCount = maxListSize(lists);
+        ImmutableList.Builder<Map<String, Object>> result = new ImmutableList.Builder<>();
+        for (int rowIndex = 0; rowIndex < rowCount; rowIndex++) {
+            ImmutableMap.Builder<String, Object> row = ImmutableMap.builder();
+            for (int colIndex = 0; colIndex < colCount; colIndex++) {
+                String key = headerList.get(colIndex);
+                List<?> l = lists.get(colIndex);
+                if (l != null && !l.isEmpty()) {
+                    row.put(key, rowIndex < l.size() ? l.get(rowIndex) : "");
+                }
+            }
+            result.add(row.build());
+        }
+        return result.build();
+    }
+
+    private static int nonEmptyListSize(List<List<?>> lists) {
+        int index = -1;
+        for (int i = 0; i < lists.size(); i++) {
+            if (lists.get(i) != null && !lists.get(i).isEmpty()) {
+                index = i;
+            }
+        }
+        return index + 1;
+    }
+
+    private static int maxListSize(List<List<?>> lists) {
+        int maxSize = 0;
+        for (List<?> l : lists) {
+            if (l != null) {
+                maxSize = Math.max(maxSize, l.size());
+            }
+        }
+        return maxSize;
+    }
 
 }
