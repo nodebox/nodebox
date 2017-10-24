@@ -41,6 +41,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
     public static final int GRID_OFFSET = 6;
     public static final int PORT_WIDTH = 10;
     public static final int PORT_HEIGHT = 3;
+    public static final int PORT_MARGIN = 6;
     public static final int PORT_SPACING = 10;
     public static final Dimension NODE_DIMENSION = new Dimension(NODE_WIDTH, NODE_HEIGHT);
 
@@ -489,7 +490,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         if (overInput != null) {
             Node overInputNode = findNodeWithName(overInput.node);
             Port overInputPort = overInputNode.getInput(overInput.port);
-            Rectangle r = inputPortRect(overInputNode, overInputPort);
+            Rectangle r = inputPortRect(overInputNode, overInputPort, false);
             Point2D pt = new Point2D.Double(r.getX(), r.getY() + 11);
             String text = String.format("%s (%s)", overInput.port, overInputPort.getType());
             paintTooltip(g, pt, text);
@@ -560,10 +561,12 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         return new Rectangle(nodePoint(node), NODE_DIMENSION);
     }
 
-    private static Rectangle inputPortRect(Node node, Port port) {
+    private static Rectangle inputPortRect(Node node, Port port, boolean isConnecting) {
         if (isHiddenPort(port)) return new Rectangle();
         Point pt = nodePoint(node);
-        Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        int portWidth = !isConnecting ? PORT_WIDTH : PORT_WIDTH + PORT_MARGIN;
+        int portHeight = !isConnecting ? PORT_HEIGHT : PORT_HEIGHT + NODE_HEIGHT;
+        Rectangle portRect = new Rectangle(pt.x + portOffset(node, port), pt.y - PORT_HEIGHT, portWidth, portHeight);
         growHitRectangle(portRect);
         return portRect;
     }
@@ -628,10 +631,10 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         return null;
     }
 
-    public NodePort getInputPortAt(Point2D point) {
+    public NodePort getInputPortAt(Point2D point, boolean isConnecting) {
         for (Node node : getNodesReversed()) {
             for (Port port : node.getInputs()) {
-                Rectangle r = inputPortRect(node, port);
+                Rectangle r = inputPortRect(node, port, isConnecting);
                 if (r.contains(point)) {
                     return NodePort.of(node.getName(), port.getName());
                 }
@@ -870,7 +873,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                 if (connectionOutput != null) return;
 
                 // Check if we're over a connected input port.
-                connectionInput = getInputPortAt(pt);
+                connectionInput = getInputPortAt(pt, false);
                 if (connectionInput != null) {
                     // We're over a port, but is it connected?
                     Connection c = getActiveNetwork().getConnection(connectionInput.node, connectionInput.port);
@@ -928,10 +931,13 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
             if (connectionOutput != null) {
                 repaint();
-                connectionInput = getInputPortAt(pt);
+                connectionInput = getInputPortAt(pt, true);
                 connectionPoint = pt;
                 overOutput = getNodeWithOutputPortAt(pt);
-                overInput = getInputPortAt(pt);
+                overInput = getInputPortAt(pt, true);
+                if (overInput != null && connectionOutput.getName().equals(overInput.node)) {
+                    overInput = null;
+                }
             }
 
             if (startDragging) {
@@ -988,7 +994,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         public void mouseMoved(MouseEvent e) {
             Point2D pt = inverseViewTransformPoint(e.getPoint());
             overOutput = getNodeWithOutputPortAt(pt);
-            overInput = getInputPortAt(pt);
+            overInput = getInputPortAt(pt, false);
             overComment = getNodeWithCommentAt(pt);
             // It is probably very inefficient to repaint the view every time the mouse moves.
             repaint();
@@ -1006,7 +1012,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
     private void showPopup(MouseEvent e) {
         Point pt = e.getPoint();
-        NodePort nodePort = getInputPortAt(inverseViewTransformPoint(pt));
+        NodePort nodePort = getInputPortAt(inverseViewTransformPoint(pt), false);
         if (nodePort != null) {
             JPopupMenu pMenu = new JPopupMenu();
             pMenu.add(new PublishAction(nodePort));
