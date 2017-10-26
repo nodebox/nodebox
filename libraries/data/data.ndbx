@@ -20,7 +20,7 @@
                 <menu key="comma" label=","/>
             </port>
         </node>
-        <node description="Make a data table out of lists." function="data/makeTable" image="import_csv.png" name="make_table" outputRange="list" outputType="data" position="1.00,2.00" category="data">
+        <node description="Make a data table out of lists." function="data/makeTable" image="make_table.png" name="make_table" outputRange="list" outputType="data" position="1.00,2.00" category="data">
             <port name="headers" type="string" value="alpha;beta" description="The names of the headers separated by semicolons or commas."/>
             <port name="list1" range="list" type="list" description="The first list."/>
             <port name="list2" range="list" type="list" description="The second list."/>

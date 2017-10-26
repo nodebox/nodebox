@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64px" height="64px" viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 47.1 (45422) - http://www.bohemiancoding.com/sketch -->
+    <title>make_table</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="make_table" fill="#000000">
+            <path d="M0,0 L64,0 L64,64 L0,64 L0,0 Z M3,2 L3,10 L21,10 L21,2 L3,2 Z M3,14 L3,22 L21,22 L21,14 L3,14 Z M3,24 L3,32 L21,32 L21,24 L3,24 Z M3,34 L3,42 L21,42 L21,34 L3,34 Z M3,44 L3,52 L21,52 L21,44 L3,44 Z M3,54 L3,62 L21,62 L21,54 L3,54 Z M23,2 L23,10 L41,10 L41,2 L23,2 Z M23,14 L23,22 L41,22 L41,14 L23,14 Z M23,24 L23,32 L41,32 L41,24 L23,24 Z M23,34 L23,42 L41,42 L41,34 L23,34 Z M23,44 L23,52 L41,52 L41,44 L23,44 Z M23,54 L23,62 L41,62 L41,54 L23,54 Z M43,2 L43,10 L61,10 L61,2 L43,2 Z M43,14 L43,22 L61,22 L61,14 L43,14 Z M43,24 L43,32 L61,32 L61,24 L43,24 Z M43,34 L43,42 L61,42 L61,34 L43,34 Z M43,44 L43,52 L61,52 L61,44 L43,44 Z M43,54 L43,62 L61,62 L61,54 L43,54 Z" id="Combined-Shape"></path>
+        </g>
+    </g>
+</svg>
