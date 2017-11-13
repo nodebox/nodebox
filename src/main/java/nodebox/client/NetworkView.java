@@ -573,7 +573,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
 
     private static Rectangle outputPortRect(Node node) {
         Point pt = nodePoint(node);
-        Rectangle portRect = new Rectangle(pt.x, pt.y + NODE_HEIGHT, PORT_WIDTH, PORT_HEIGHT);
+        Rectangle portRect = new Rectangle(pt.x, pt.y + NODE_HEIGHT - 10, PORT_WIDTH + 10, PORT_HEIGHT + 10);
         growHitRectangle(portRect);
         return portRect;
     }
