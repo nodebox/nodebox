@@ -6,9 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import nodebox.util.ReflectionUtils;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
@@ -23,7 +21,7 @@ public class DataFunctions {
 
     static {
         LIBRARY = JavaLibrary.ofClass("data", DataFunctions.class,
-                "lookup", "importCSV", "filterData", "makeTable");
+                "lookup", "importText", "importCSV", "filterData", "makeTable");
 
         separators = new HashMap<String, Character>();
         separators.put("period", '.');
@@ -82,6 +80,34 @@ public class DataFunctions {
             return ReflectionUtils.get(o, key, null);
         }
     }
+
+    /**
+     * Import a text file as a list of strings, separated by lines.
+     *
+     * @param fileName The file to read in.
+     * @return A list of lines.
+     */
+    public static List<String> importText(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) return ImmutableList.of();
+        try {
+            ImmutableList.Builder<String> lines = ImmutableList.builder();
+            InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
+            BufferedReader br = new BufferedReader(in);
+            for (; ; ) {
+                String line = br.readLine();
+                if (line == null) {
+                    break;
+                }
+                lines.add(line);
+            }
+            return lines.build();
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Could not decode file " + fileName + ": " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);
+        }
+    }
+
 
     /**
      * Import the CSV from a file.
