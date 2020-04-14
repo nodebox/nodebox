@@ -36,14 +36,6 @@ public abstract class AbstractVideoFormat implements VideoFormat {
         return height;
     }
 
-    protected String getPresetLocation(String preset) {
-        String format = String.format(Movie.FFMPEG_PRESET_TEMPLATE, preset);
-        if (!new File(format).exists()) {
-            format = nodebox.util.FileUtils.getApplicationFile(format).getAbsolutePath();
-        }
-        return format;
-    }
-
     public ArrayList<String> getArgumentList() {
         return getArgumentList(null);
     }

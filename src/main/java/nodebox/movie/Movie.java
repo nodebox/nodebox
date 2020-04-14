@@ -13,9 +13,8 @@ public class Movie {
     private static final File FFMPEG_BINARY;
     private static final String TEMPORARY_FILE_PREFIX = "sme";
 
-    public static final String FFMPEG_PRESET_TEMPLATE = "res/ffpresets/libx264-%s.ffpreset";
     public static final ArrayList<VideoFormat> VIDEO_FORMATS;
-    public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.MP4Format;
+    public static final VideoFormat DEFAULT_FORMAT = MP4VideoFormat.HighFormat;
 
     static {
         String osName = System.getProperty("os.name").split("\\s")[0];
@@ -34,14 +33,10 @@ public class Movie {
             FFMPEG_BINARY = new File("/usr/bin/ffmpeg");
         }
         VIDEO_FORMATS = new ArrayList<VideoFormat>();
-        VIDEO_FORMATS.add(AndroidVideoFormat.DefaultFormat);
-        VIDEO_FORMATS.add(AndroidVideoFormat.NexusFormat);
-        VIDEO_FORMATS.add(AndroidVideoFormat.DroidFormat);
-        VIDEO_FORMATS.add(AppleVideoFormat.DefaultFormat);
-        VIDEO_FORMATS.add(AppleVideoFormat.IpadFormat);
-        //VIDEO_FORMATS.add(PSPVideoFormat.PSPFormat);
-        VIDEO_FORMATS.add(MP4VideoFormat.MP4Format);
-        VIDEO_FORMATS.add(WebmVideoFormat.WebmFormat);
+        VIDEO_FORMATS.add(MP4VideoFormat.LosslessFormat);
+        VIDEO_FORMATS.add(MP4VideoFormat.HighFormat);
+        VIDEO_FORMATS.add(MP4VideoFormat.MediumFormat);
+        VIDEO_FORMATS.add(MP4VideoFormat.LowFormat);
     }
 
     private String movieFilename;
@@ -135,9 +130,9 @@ public class Movie {
      */
     public void save(StringWriter sw) {
         PrintWriter out = new PrintWriter(sw, true);
-
         ArrayList<String> commandList = new ArrayList<String>();
         commandList.add(FFMPEG_BINARY.getAbsolutePath());
+        commandList.add("-hide_banner"); // Hide the FFMPEG compilation banner
         commandList.add("-y"); // Overwrite target if exists
         commandList.add("-i");
         commandList.add(temporaryFileTemplate); // Input images
@@ -164,9 +159,7 @@ public class Movie {
             if (verbose) {
                 System.out.println(sw.toString());
             }
-        } catch (IOException e) {
-            cleanupAndThrowException(e);
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             cleanupAndThrowException(e);
         }
         cleanup();
@@ -196,7 +189,7 @@ public class Movie {
         int width = 640;
         int height = 480;
         // Create a new movie.
-        Movie movie = new Movie("test.mov", MP4VideoFormat.MP4Format, width, height);
+        Movie movie = new Movie("test.mp4", MP4VideoFormat.LosslessFormat, width, height);
         movie.setVerbose(true);
         /// Initialize an image to draw on.
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
