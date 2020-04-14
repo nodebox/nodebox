@@ -254,6 +254,7 @@ public class FileUtils {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        return new File(jarFile.getParentFile(), path);
+        File resourcesDir = new File(jarFile.getParentFile().getParentFile(), "resources");
+        return new File(resourcesDir, path);
     }
 }
