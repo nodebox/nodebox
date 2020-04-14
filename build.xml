@@ -216,8 +216,8 @@
 <!--        </fx:deploy>-->
         <exec executable="/Library/Java/JavaVirtualMachines/jdk-14.jdk/Contents/Home/bin/jpackage" os="Mac OS X">
             <arg line="-i dist" />
-            <arg line="-d dist" />
             <arg line="-n NodeBox" />
+            <arg line="--app-version ${nodebox.version}" />
             <arg line="--main-class nodebox.client.Application" />
             <arg line="--main-jar lib/nodebox.jar" />
             <arg line="--mac-package-identifier be.emrg.nodebox" />
