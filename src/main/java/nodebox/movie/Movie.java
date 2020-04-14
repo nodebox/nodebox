@@ -30,7 +30,17 @@ public class Movie {
         if (packagedBinary.exists()) {
             FFMPEG_BINARY = packagedBinary;
         } else {
-            FFMPEG_BINARY = new File("/usr/bin/ffmpeg");
+            File systemBinary = new File("/usr/bin/ffmpeg");
+            if (systemBinary.exists()) {
+                FFMPEG_BINARY = systemBinary;
+            } else {
+                systemBinary = new File("/usr/local/bin/ffmpeg");
+                if (systemBinary.exists()) {
+                    FFMPEG_BINARY = systemBinary;
+                } else {
+                    FFMPEG_BINARY = new File("ffmpeg");
+                }
+            }
         }
         VIDEO_FORMATS = new ArrayList<VideoFormat>();
         VIDEO_FORMATS.add(MP4VideoFormat.LosslessFormat);
