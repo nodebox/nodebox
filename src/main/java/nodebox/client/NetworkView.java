@@ -702,6 +702,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         selectedNodes.clear();
         for (Node node : nodes) {
             selectedNodes.add(node.getName());
+            document.setActiveNode(node);
         }
     }
 
@@ -954,6 +955,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
                     isDraggingNodes = true;
                     dragPositions = selectedNodePositions();
                     dragStartPoint = pt;
+                    // Change selection here.
                 } else {
                     isDraggingNodes = false;
                 }
