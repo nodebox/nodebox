@@ -8,9 +8,9 @@
              uri="antlib:org.apache.maven.artifact.ant"
              classpathref="maven-ant-tasks.classpath"/>
 
-<!--    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml"-->
-<!--             uri="javafx:com.sun.javafx.tools.ant"-->
-<!--             classpath="${java.home}/../lib/ant-javafx.jar"/>-->
+    <!--    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml"-->
+    <!--             uri="javafx:com.sun.javafx.tools.ant"-->
+    <!--             classpath="${java.home}/../lib/ant-javafx.jar"/>-->
 
 
     <target name="properties">
@@ -107,7 +107,8 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod}" source="1.7" target="1.7" includeantruntime="false" deprecation="yes" debug="true" debuglevel="lines,vars,source">
+        <javac destdir="${build.prod}" source="1.7" target="1.7" includeantruntime="false" deprecation="yes"
+               debug="true" debuglevel="lines,vars,source">
             <src path="${src}"/>
             <classpath refid="compile.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>
@@ -179,10 +180,10 @@
         <copy todir="${dist.res}/lib">
             <fileset dir="${dist.lib}" includes="nodeboxlibs.zip"/>
         </copy>
-<!--        <fx:resources id="dist.fxres">-->
-<!--            <fx:fileset dir="${dist.lib}" includes="*.jar"/>-->
-<!--            <fx:fileset dir="${dist.res}"/>-->
-<!--        </fx:resources>-->
+        <!--        <fx:resources id="dist.fxres">-->
+        <!--            <fx:fileset dir="${dist.lib}" includes="*.jar"/>-->
+        <!--            <fx:fileset dir="${dist.res}"/>-->
+        <!--        </fx:resources>-->
     </target>
 
     <target name="dist-win" depends="clean,resources">
@@ -201,31 +202,21 @@
     </target>
 
     <target name="dist-mac" depends="resources">
-<!--        <fx:deploy-->
-<!--                nativeBundles="image"-->
-<!--                outdir="${dist.mac}" outfile="${ant.project.name}">-->
-<!--            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application"-->
-<!--                            version="${nodebox.version}"/>-->
-<!--            <fx:resources refid="dist.fxres"/>-->
-<!--            <fx:info title="${ant.project.name}" vendor="EMRG">-->
-<!--                <fx:icon href="platform/mac/res/Resources/nodebox.icns"/>-->
-<!--                <fx:association description="NodeBox Document" extension="ndbx"-->
-<!--                                icon="platform/mac/res/Resources/nodeboxfile.icns"/>-->
-<!--            </fx:info>-->
-<!--            <fx:platform basedir="${java.home}"/>-->
-<!--        </fx:deploy>-->
         <exec executable="/Library/Java/JavaVirtualMachines/jdk-14.jdk/Contents/Home/bin/jpackage" os="Mac OS X">
-            <arg line="-i dist" />
-            <arg line="-n NodeBox" />
-            <arg line="--app-version ${nodebox.version}" />
-            <arg line="--main-class nodebox.client.Application" />
-            <arg line="--main-jar lib/nodebox.jar" />
-            <arg line="--mac-package-identifier be.emrg.nodebox" />
-            <arg line="--resource-dir dist/resources" />
-            <arg line="--icon platform/mac/res/Resources/nodebox.icns" />
+            <arg line="-i dist"/>
+            <arg line="-d out"/>
+            <arg line="-n NodeBox"/>
+            <arg line="--app-version ${nodebox.version}"/>
+            <arg line="--main-class nodebox.client.Application"/>
+            <arg line="--main-jar lib/nodebox.jar"/>
+            <arg line="--type app-image"/> <!-- Don't build a DMG -->
+            <arg line="--mac-package-identifier be.emrg.nodebox"/>
+            <arg line="--mac-package-name NodeBox"/>
+            <arg line="--resource-dir dist/resources"/>
+            <arg line="--icon platform/mac/res/Resources/nodebox.icns"/>
         </exec>
-        <exec dir="${dist.mac}/bundles" executable="chmod" os="Mac OS X">
-            <arg line="755 ${ant.project.name}.app/Contents/Java/bin/ffmpeg"/>
+        <exec dir="out" executable="chmod" os="Mac OS X">
+            <arg line="755 ${ant.project.name}.app/Contents/app/resources/bin/ffmpeg"/>
         </exec>
     </target>
 
