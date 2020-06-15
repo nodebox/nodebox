@@ -702,7 +702,7 @@ public class NetworkView extends ZoomableView implements PaneView, Zoom {
         selectedNodes.clear();
         for (Node node : nodes) {
             selectedNodes.add(node.getName());
-            document.setActiveNode(node);
+            document.setActiveNodeKeepSelection(node.getName());
         }
     }
 

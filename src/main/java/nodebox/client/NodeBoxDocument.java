@@ -1035,7 +1035,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
     }
 
     public void setActiveNode(String nodeName) {
-        if (!restoring && getActiveNodeName().equals(nodeName)) return;
+        Node n = setActiveNodeKeepSelection(nodeName);
+        if (n != null) {
+            networkView.singleSelect(n);
+        }
+    }
+
+    public Node setActiveNodeKeepSelection(String nodeName) {
+        if (!restoring && getActiveNodeName().equals(nodeName)) return null;
         stopCombiningEdits();
         if (nodeName.isEmpty()) {
             activeNodeName = "";
@@ -1051,7 +1058,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         //viewerPane.repaint(); // For the handle
         portView.updateAll();
         restoring = false;
-        networkView.singleSelect(n);
+        return n;
     }
 
     /**
