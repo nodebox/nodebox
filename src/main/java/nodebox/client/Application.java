@@ -246,14 +246,13 @@ public class Application implements Host {
     private void registerForMacOSXEvents() throws RuntimeException {
         if (!Platform.onMac()) return;
         try {
-            // Generate and register the OSXAdapter, passing it a hash of all the methods we wish to
-            // use as delegates for various com.apple.eawt.ApplicationListener methods
-            OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("quit", (Class[]) null));
-            OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showAbout", (Class[]) null));
-            OSXAdapter.setPreferencesHandler(this, getClass().getDeclaredMethod("showPreferences", (Class[]) null));
-            OSXAdapter.setFileHandler(this, getClass().getDeclaredMethod("readFromFile", String.class));
+			OSXEventsHandler handler = new OSXEventsHandler();
+			Desktop.getDesktop().setQuitHandler(handler);
+			Desktop.getDesktop().setAboutHandler(handler);
+			Desktop.getDesktop().setPreferencesHandler(handler);
+			//Desktop.getDesktop().setOpenFileHandler(handler); // Unsure how to deal properly with this one, opening files works without setting a handler?
         } catch (Exception e) {
-            throw new RuntimeException("Error while loading the OS X Adapter.", e);
+            throw new RuntimeException("Error while setting the OS X events.", e);
         }
         // On the Mac, if all windows are closed the menu bar will be empty.
         // To solve this, we create an off-screen window with the same menu bar as visible windows.
@@ -265,7 +264,33 @@ public class Application implements Host {
         hiddenFrame.pack();
         hiddenFrame.setVisible(true);
     }
+	
+	private class OSXEventsHandler implements java.awt.desktop.AboutHandler, java.awt.desktop.PreferencesHandler, java.awt.desktop.QuitHandler {
+		public void handleAbout(java.awt.desktop.AboutEvent e) {
+			showAbout();
+		}
+	
+	  	public void handlePreferences(java.awt.desktop.PreferencesEvent e) {
+	    	showPreferences();
+	  	}
 
+		public void handleQuitRequestWith(java.awt.desktop.QuitEvent e, java.awt.desktop.QuitResponse response) {
+	        java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
+	        for (NodeBoxDocument d : documents) {
+	            if (!d.close()) {
+	                response.cancelQuit();
+					return;
+				}
+	        }
+			response.performQuit();
+		}
+
+		/*public void openFiles​(java.awt.desktop.OpenFilesEvent e) {
+			List<File> files = e.getFiles();
+			readFromFile(files.get(0).getAbsolutePath());
+		}*/
+	}
+	
     private void initPython() {
         // Actually initializing Python happens in the library.
         lookForLibraries();
