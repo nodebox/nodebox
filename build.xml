@@ -222,6 +222,7 @@
             <arg line="--mac-package-name NodeBox"/>
             <arg line="--resource-dir dist/resources"/>
             <arg line="--icon platform/mac/res/Resources/nodebox.icns"/>
+            <arg line="--file-associations platform/fa-ndbx.properties"/>
         </exec>
     </target>
 

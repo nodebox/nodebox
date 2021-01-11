@@ -30,6 +30,7 @@ import nodebox.versioncheck.Version;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.desktop.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -246,11 +247,12 @@ public class Application implements Host {
     private void registerForMacOSXEvents() throws RuntimeException {
         if (!Platform.onMac()) return;
         try {
-			OSXEventsHandler handler = new OSXEventsHandler();
-			Desktop.getDesktop().setQuitHandler(handler);
-			Desktop.getDesktop().setAboutHandler(handler);
-			Desktop.getDesktop().setPreferencesHandler(handler);
-			//Desktop.getDesktop().setOpenFileHandler(handler); // Unsure how to deal properly with this one, opening files works without setting a handler?
+            OSXEventsHandler handler = new OSXEventsHandler();
+            Desktop.getDesktop().setQuitHandler(handler);
+            Desktop.getDesktop().setAboutHandler(handler);
+            Desktop.getDesktop().setPreferencesHandler(handler);
+
+            Desktop.getDesktop().setOpenFileHandler(handler); // Unsure how to deal properly with this one, opening files works without setting a handler?
         } catch (Exception e) {
             throw new RuntimeException("Error while setting the OS X events.", e);
         }
@@ -264,33 +266,35 @@ public class Application implements Host {
         hiddenFrame.pack();
         hiddenFrame.setVisible(true);
     }
-	
-	private class OSXEventsHandler implements java.awt.desktop.AboutHandler, java.awt.desktop.PreferencesHandler, java.awt.desktop.QuitHandler {
-		public void handleAbout(java.awt.desktop.AboutEvent e) {
-			showAbout();
-		}
-	
-	  	public void handlePreferences(java.awt.desktop.PreferencesEvent e) {
-	    	showPreferences();
-	  	}
 
-		public void handleQuitRequestWith(java.awt.desktop.QuitEvent e, java.awt.desktop.QuitResponse response) {
-	        java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
-	        for (NodeBoxDocument d : documents) {
-	            if (!d.close()) {
-	                response.cancelQuit();
-					return;
-				}
-	        }
-			response.performQuit();
-		}
+    private class OSXEventsHandler implements AboutHandler, PreferencesHandler, QuitHandler, OpenFilesHandler {
+        public void handleAbout(java.awt.desktop.AboutEvent e) {
+            showAbout();
+        }
 
-		/*public void openFiles​(java.awt.desktop.OpenFilesEvent e) {
-			List<File> files = e.getFiles();
-			readFromFile(files.get(0).getAbsolutePath());
-		}*/
-	}
-	
+        public void handlePreferences(java.awt.desktop.PreferencesEvent e) {
+            showPreferences();
+        }
+
+        public void handleQuitRequestWith(java.awt.desktop.QuitEvent e, java.awt.desktop.QuitResponse response) {
+            java.util.List<NodeBoxDocument> documents = new ArrayList<NodeBoxDocument>(getDocuments());
+            for (NodeBoxDocument d : documents) {
+                if (!d.close()) {
+                    response.cancelQuit();
+                    return;
+                }
+            }
+            response.performQuit();
+        }
+
+        @Override
+        public void openFiles(OpenFilesEvent e) {
+            for (File f : e.getFiles()) {
+                readFromFile(f);
+            }
+        }
+    }
+
     private void initPython() {
         // Actually initializing Python happens in the library.
         lookForLibraries();
@@ -372,13 +376,13 @@ public class Application implements Host {
         return console.isVisible();
     }
 
-    public void readFromFile(String path) {
-        // This method looks unused, but is actually called using reflection by the OS X adapter.
+    public void readFromFile(File file) {
+        // This method is called in the Desktop handler.
         // If the application is still starting up, don't open the document immediately but place it in a file loading queue.
         if (startingUp.get()) {
-            filesToLoad.add(new File(path));
+            filesToLoad.add(file);
         } else {
-            openDocument(new File(path));
+            openDocument(file);
         }
     }
 
