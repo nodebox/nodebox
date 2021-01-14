@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.Log;
 import nodebox.client.port.*;
 import nodebox.node.Node;
 import nodebox.node.Port;
@@ -9,15 +10,11 @@ import nodebox.ui.Theme;
 import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.ArrayList;
 
 public class PortView extends JComponent implements PaneView, PortControl.OnValueChangeListener {
-
-    private static Logger logger = Logger.getLogger("nodebox.client.PortView");
 
     private static final Map<Port.Widget, Class> CONTROL_MAP;
 
@@ -199,7 +196,7 @@ public class PortView extends JComponent implements PaneView, PortControl.OnValu
             Constructor constructor = controlClass.getConstructor(String.class, Port.class);
             return (PortControl) constructor.newInstance(activeNodePath, p);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Cannot construct control", e);
+            Log.error("Cannot construct control", e);
             throw new AssertionError("Cannot construct control:" + e);
         }
     }

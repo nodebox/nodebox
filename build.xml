@@ -193,19 +193,23 @@
         </exec>
     </target>
 
-    <target name="dist-win" depends="clean,resources">
-        <!--        <fx:deploy-->
-        <!--                nativeBundles="exe"-->
-        <!--                outdir="${dist.windows}" outfile="${ant.project.name}">-->
-        <!--            <fx:application name="${ant.project.name}" mainClass="nodebox.client.Application"-->
-        <!--                            version="${nodebox.version}"/>-->
-        <!--            <fx:resources refid="dist.fxres"/>-->
-        <!--            <fx:info title="${ant.project.name}" vendor="EMRG">-->
-        <!--                <fx:icon href="platform/windows/installer/nodebox.ico"/>-->
-        <!--                <fx:association description="NodeBox Document" mimetype="application/xml" extension="ndbx"-->
-        <!--                                icon="platform/windows/installer/nodebox.ico"/>-->
-        <!--            </fx:info>-->
-        <!--        </fx:deploy>-->
+    <target name="dist-win" depends="resources" description="Final build on Windows">
+        <mkdir dir="${dist.windows}" />
+        <exec executable="jpackage">
+            <arg line="-i ${dist.unpacked}"/>
+            <arg line="-d ${dist.windows}"/>
+            <arg line="-n NodeBox"/>
+            <arg line="--app-version ${nodebox.version}"/>
+            <arg line="--main-class nodebox.client.Application"/>
+            <arg line="--main-jar lib/nodebox.jar"/>
+            <arg line="--type msi"/>
+            <arg line="--resource-dir ${dist.res}"/>
+            <arg line="--icon platform/windows/installer/nodebox.ico"/>
+            <arg line="--file-associations platform/fa-ndbx.properties"/>
+            <arg line="--win-menu"/>
+            <arg line="--win-shortcut"/>
+            <arg line="--win-upgrade-uuid a3ddd262-9f4c-4e48-a027-5df45387c447"/>
+        </exec>
     </target>
 
 
@@ -261,7 +265,8 @@
         </copy>
     </target>
     <target name="bindir" depends="bindir-unix,bindir-win"/>
-    <target name="run" depends="compile,bindir">
+
+    <target name="run" depends="compile,bindir" description="Run the application">
         <java classname="nodebox.client.Application" fork="true">
             <classpath refid="runtime.classpath"/>
         </java>

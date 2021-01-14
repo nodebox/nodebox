@@ -3,6 +3,7 @@ package nodebox.client;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import nodebox.Log;
 import nodebox.client.devicehandler.DeviceHandler;
 import nodebox.client.devicehandler.DeviceHandlerFactory;
 import nodebox.function.Function;
@@ -43,7 +44,6 @@ import static com.google.common.base.Preconditions.*;
  */
 public class NodeBoxDocument extends JFrame implements WindowListener, HandleDelegate {
 
-    private static final Logger LOG = Logger.getLogger(NodeBoxDocument.class.getName());
     private static final String WINDOW_MODIFIED = "windowModified";
     public static String lastFilePath;
     public static String lastExportPath;
@@ -146,14 +146,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         rootPanel.add(animationBar, BorderLayout.SOUTH);
 
         // Zoom in / out shortcuts.
-        KeyStroke zoomInStroke1 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK);
-        KeyStroke zoomInStroke2 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-        KeyStroke zoomInStroke3 = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        KeyStroke zoomInStroke1 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+        KeyStroke zoomInStroke2 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.META_DOWN_MASK);
+        KeyStroke zoomInStroke3 = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, InputEvent.META_DOWN_MASK);
         ActionListener zoomInHandler = new ZoomInHandler();
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke1, JComponent.WHEN_IN_FOCUSED_WINDOW);
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke2, JComponent.WHEN_IN_FOCUSED_WINDOW);
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke3, JComponent.WHEN_IN_FOCUSED_WINDOW);
-        KeyStroke zoomOutStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+        KeyStroke zoomOutStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.META_DOWN_MASK);
         getRootPane().registerKeyboardAction(new ZoomOutHandler(), zoomOutStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         setContentPane(rootPanel);
@@ -1093,7 +1093,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                 try {
                     handle = (Handle) handleFunction.invoke();
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Error while creating handle for " + activeNode, e);
+                    Log.warn("Error while creating handle for " + activeNode, e);
                 }
             }
 
@@ -1510,7 +1510,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
             getNodeLibrary().store(file);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "An error occurred while saving the file.", "NodeBox", JOptionPane.ERROR_MESSAGE);
-            LOG.log(Level.SEVERE, "An error occurred while saving the file.", e);
+            Log.error("An error occurred while saving the file.", e);
             return false;
         }
         documentChanged = false;
@@ -1699,7 +1699,7 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
                     }
                     exportDelegate.exportDone();
                 } catch (Exception e) {
-                    LOG.log(Level.WARNING, "Error while exporting", e);
+                    Log.warn("Error while exporting", e);
                 } finally {
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {

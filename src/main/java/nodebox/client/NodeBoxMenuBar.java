@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
@@ -249,7 +250,7 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public OpenExamplesAction() {
             putValue(NAME, "Open Examples...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_O, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_O, InputEvent.SHIFT_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -283,7 +284,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class SaveAsAction extends AbstractDocumentAction {
         public SaveAsAction() {
             putValue(NAME, "Save As...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_S, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_S, InputEvent.SHIFT_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -345,7 +346,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class ExportRangeAction extends AbstractDocumentAction {
         public ExportRangeAction() {
             putValue(NAME, "Export Range...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_E, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_E, InputEvent.SHIFT_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -405,7 +406,7 @@ public class NodeBoxMenuBar extends JMenuBar {
 
         public RedoAction() {
             putValue(NAME, redoText);
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_Z, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_Z, InputEvent.SHIFT_DOWN_MASK));
             setEnabled(false);
         }
 
@@ -484,7 +485,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class NewNodeAction extends AbstractDocumentAction {
         public NewNodeAction() {
             putValue(NAME, "Create New Node...");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {
@@ -506,7 +507,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class PlayPauseAction extends AbstractDocumentAction {
         public PlayPauseAction() {
             putValue(NAME, "Play/Pause");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, InputEvent.META_DOWN_MASK));
         }
 
         @Override
@@ -518,7 +519,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class RewindAction extends  AbstractDocumentAction {
         public RewindAction() {
             putValue(NAME, "Rewind");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, Event.META_MASK | Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
         }
 
         @Override
@@ -530,7 +531,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class FullScreenAction extends  AbstractDocumentAction {
         public FullScreenAction() {
             putValue(NAME, "Full Screen");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, Event.META_MASK | Event.SHIFT_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
         }
 
         @Override
@@ -555,7 +556,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class MinimizeAction extends AbstractDocumentAction {
         public MinimizeAction() {
             putValue(NAME, "Minimize");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_M, KeyEvent.META_MASK));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.META_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {

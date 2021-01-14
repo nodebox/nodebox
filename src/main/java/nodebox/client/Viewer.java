@@ -229,11 +229,11 @@ public class Viewer extends ZoomableView implements OutputView, Zoom, MouseListe
             if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
                 frame.close();
             } else if (e.getKeyCode() == KeyEvent.VK_P) {
-                int metaMask = KeyEvent.META_MASK;
-                int metaShiftMask = KeyEvent.META_MASK | KeyEvent.SHIFT_MASK;
-                if (e.getModifiers() == metaMask)
+                int metaMask = InputEvent.META_DOWN_MASK;
+                int metaShiftMask = InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK;
+                if (e.getModifiersEx() == metaMask)
                     frame.toggleAnimation();
-                else if (e.getModifiers() == metaShiftMask)
+                else if (e.getModifiersEx() == metaShiftMask)
                     frame.rewindAnimation();
             }
         }

@@ -18,6 +18,7 @@
  */
 package nodebox.client;
 
+import nodebox.Log;
 import nodebox.node.NodeLibrary;
 import nodebox.node.NodeRepository;
 import nodebox.ui.ExceptionDialog;
@@ -32,18 +33,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.desktop.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 
 public class Application implements Host {
@@ -72,7 +69,6 @@ public class Application implements Host {
     private Console console = null;
 
     public static final String NAME = "NodeBox";
-    private static Logger logger = Logger.getLogger("nodebox.client.Application");
 
     private Application() {
         instance = this;
@@ -430,11 +426,11 @@ public class Application implements Host {
                         return doc;
                     }
                 } catch (IOException e) {
-                    logger.log(Level.WARNING, "The document " + doc.getDocumentFile() + " refers to path with errors", e);
+                    Log.warn("The document " + doc.getDocumentFile() + " refers to path with errors", e);
                 }
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING, "The document " + file + " refers to path with errors", e);
+            Log.warn("The document " + file + " refers to path with errors", e);
         }
 
         try {
@@ -443,7 +439,7 @@ public class Application implements Host {
             NodeBoxMenuBar.addRecentFile(file);
             return doc;
         } catch (RuntimeException e) {
-            logger.log(Level.SEVERE, "Error while loading " + file, e);
+            Log.error("Error while loading " + file, e);
             ExceptionDialog d = new ExceptionDialog(null, e);
             d.setVisible(true);
             return null;
@@ -519,6 +515,7 @@ public class Application implements Host {
     }
 
     public static void main(String[] args) {
+        Log.info("Starting NodeBox");
         final Application app = new Application();
         // Ignore OS X's weird launch parameter.
         if (args.length == 1 && !args[0].startsWith("-psn")) {

@@ -1,5 +1,6 @@
 package nodebox.client;
 
+import nodebox.Log;
 import nodebox.ui.Theme;
 import org.python.util.PythonInterpreter;
 
@@ -10,8 +11,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -29,7 +28,6 @@ public class Console extends JFrame implements WindowListener, FocusListener {
         ATTRIBUTES_ERROR.addAttribute(StyleConstants.ColorConstants.Foreground, ERROR_COLOR);
     }
 
-    private static Logger logger = Logger.getLogger("nodebox.client.Console");
     private PythonInterpreter interpreter;
     private ArrayList<String> history = new ArrayList<String>();
     private int historyOffset = 0;
@@ -77,7 +75,7 @@ public class Console extends JFrame implements WindowListener, FocusListener {
         try {
             messagesDocument.insertString(messagesDocument.getLength(), s, attributes);
         } catch (BadLocationException e) {
-            logger.log(Level.WARNING, "addMessage: bad location (" + s + ")", e);
+            Log.warn("addMessage: bad location (" + s + ")", e);
         }
     }
 

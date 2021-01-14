@@ -1,5 +1,7 @@
 package nodebox.versioncheck;
 
+import nodebox.Log;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -176,7 +178,7 @@ public class Updater {
             if (delegate.checkerEncounteredError(checker, t))
                 return;
         if (checker.isSilent()) {
-            Logger.getLogger(getClass().getName()).log(Level.WARNING, "Update checker encountered error.", t);
+            Log.warn("Update checker encountered error.", t);
         } else {
             throw new RuntimeException(t);
         }

@@ -1,5 +1,7 @@
 package nodebox.movie;
 
+import nodebox.Log;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -22,14 +24,12 @@ public class Movie {
         String binaryName = "ffmpeg";
         if (osName.equals("Windows"))
             binaryName = "ffmpeg.exe";
-        File packagedBinary = new File(String.format("bin/%s", binaryName));
-        if (!packagedBinary.exists()) {
-            packagedBinary = nodebox.util.FileUtils.getApplicationFile(String.format("bin/%s", binaryName));
-        }
-
+        File packagedBinary = nodebox.util.FileUtils.getApplicationFile(String.format("bin/%s", binaryName));
         if (packagedBinary.exists()) {
             FFMPEG_BINARY = packagedBinary;
         } else {
+            Log.warn(String.format("Could not find packaged ffmpeg %s", packagedBinary));
+
             File systemBinary = new File("/usr/bin/ffmpeg");
             if (systemBinary.exists()) {
                 FFMPEG_BINARY = systemBinary;
@@ -139,6 +139,7 @@ public class Movie {
      * Finishes the export and save the movie.
      */
     public void save(StringWriter sw) {
+        Log.info(String.format("Exporting movie %s with inputs %s (ffmpeg %s)", movieFilename, temporaryFileTemplate, FFMPEG_BINARY.getAbsolutePath()));
         PrintWriter out = new PrintWriter(sw, true);
         ArrayList<String> commandList = new ArrayList<String>();
         commandList.add(FFMPEG_BINARY.getAbsolutePath());
@@ -192,6 +193,7 @@ public class Movie {
 
     private void cleanupAndThrowException(Throwable t) {
         cleanup();
+        Log.error("Error while exporting movie", t);
         throw new RuntimeException(t);
     }
 

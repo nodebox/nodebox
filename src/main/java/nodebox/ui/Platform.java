@@ -9,6 +9,7 @@ import com.sun.jna.win32.W32APITypeMapper;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -32,11 +33,7 @@ public class Platform {
     private static Map<String, Object> JNA_OPTIONS = new HashMap<String, Object>();
 
     static {
-        if (!GraphicsEnvironment.isHeadless()) {
-            platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        } else {
-            platformSpecificModifier = Event.CTRL_MASK;
-        }
+        platformSpecificModifier = InputEvent.META_DOWN_MASK;
         if (com.sun.jna.Platform.isWindows()) {
             current_platform = WIN;
             JNA_OPTIONS.put(Library.OPTION_TYPE_MAPPER, W32APITypeMapper.UNICODE);
