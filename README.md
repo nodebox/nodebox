@@ -12,7 +12,7 @@ For downloads, documentation and the forum, visit the website:
 
 <https://nodebox.net/>
 
-[![Build Status](https://secure.travis-ci.org/nodebox/nodebox.png)](https://travis-ci.org/nodebox/nodebox)
+![Build Status](https://github.com/nodebox/nodebox/workflows/Build%20and%20run%20tests/badge.svg)
 
 ## Building on Mac
 
