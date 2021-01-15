@@ -124,7 +124,7 @@ public class Playground extends JFrame {
     private class RunAction extends AbstractAction {
         private RunAction() {
             super("Run");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()));
         }
 
         @Override
