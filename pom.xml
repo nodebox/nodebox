@@ -1,6 +1,7 @@
 <project>
     <modelVersion>4.0.0</modelVersion>
 
+
     <groupId>net.nodebox</groupId>
     <artifactId>nodebox</artifactId>
     <version>3.0.44</version>
@@ -130,6 +131,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
 </project>
