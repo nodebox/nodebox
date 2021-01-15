@@ -83,7 +83,7 @@ public class NodeLibraryUpgrades {
 
     private static String readFile(File file) {
         try {
-            return Files.toString(file, Charsets.UTF_8);
+            return Files.asCharSource(file, Charsets.UTF_8).read();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
