@@ -111,7 +111,7 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod}" source="1.7" target="1.7" includeantruntime="false" deprecation="yes"
+        <javac destdir="${build.prod}" source="11" target="11" includeantruntime="false" deprecation="yes"
                debug="true" debuglevel="lines,vars,source">
             <src path="${src}"/>
             <classpath refid="compile.classpath"/>
