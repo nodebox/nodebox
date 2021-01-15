@@ -118,12 +118,12 @@ public class NodeLibraryUpgrades {
         // Avoid upgrades getting stuck in an infinite loop.
         int tries = 0;
         if (currentVersion.equals("0.9")) {
-            throw new LoadException(file, "This is a NodeBox 2 file. Download NodeBox 2 from http://beta.nodebox.net/");
+            throw new LoadException(file, "This is a NodeBox 2 file and is no longer supported.");
         }
         while (!currentVersion.equals(targetVersion) && tries < 100) {
             Method upgradeMethod = upgradeMap.get(currentVersion);
             if (upgradeMethod == null) {
-                throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too new. Try downloading a new version of NodeBox from http://nodebox.net/download/");
+                throw new LoadException(file, "Unsupported version " + currentVersion + ": this file is too new. Try downloading a new version of NodeBox from https://nodebox.net/download/");
             }
             try {
                 UpgradeStringResult result = (UpgradeStringResult) upgradeMethod.invoke(null, currentXml);

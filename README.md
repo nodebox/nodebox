@@ -12,11 +12,11 @@ For downloads, documentation and the forum, visit the website:
 
 <https://nodebox.net/>
 
-[![Build Status](https://secure.travis-ci.org/nodebox/nodebox.png)](http://travis-ci.org/nodebox/nodebox)
+[![Build Status](https://secure.travis-ci.org/nodebox/nodebox.png)](https://travis-ci.org/nodebox/nodebox)
 
 ## Building on Mac
 
-NodeBox requires the [Java JDK](http://jdk.java.net/15/), and [Homebrew](http://brew.sh/) (for Ant and Maven)
+NodeBox requires the [Java JDK](https://jdk.java.net/15/), and [Homebrew](https://brew.sh/) (for Ant and Maven)
 
 NodeBox uses Ant and Maven to build a running version. Install these first:
 
@@ -37,9 +37,9 @@ ant dist-mac
 
 ## Building on Windows
 
-- Install [Git](http://git-scm.com/).
-- Install a recent [Java SDK](http://openjdk.java.net/).
-- Install [Ant](http://ant.apache.org/).
+- Install [Git](https://git-scm.com/).
+- Install a recent [Java SDK](https://openjdk.java.net/).
+- Install [Ant](https://ant.apache.org/).
 - Install [Wix Toolset](https://wixtoolset.org/).
 
 From the command prompt, run:
