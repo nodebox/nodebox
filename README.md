@@ -10,52 +10,57 @@ Highlights:
 
 For downloads, documentation and the forum, visit the website:
 
-<http://nodebox.net/>
+<https://nodebox.net/>
 
 [![Build Status](https://secure.travis-ci.org/nodebox/nodebox.png)](http://travis-ci.org/nodebox/nodebox)
 
 ## Building on Mac
 
-NodeBox requires [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html), [Xcode](https://developer.apple.com/xcode/downloads/) and [Homebrew](http://brew.sh/) (for Ant and Maven)
+NodeBox requires the [Java JDK](http://jdk.java.net/15/), and [Homebrew](http://brew.sh/) (for Ant and Maven)
 
 NodeBox uses Ant and Maven to build a running version. Install these first:
 
-    brew update
-    brew install ant maven
+```shell
+brew install ant maven
+```
 
 Then from the Terminal, run:
 
-    git clone https://github.com/nodebox/nodebox.git
-    cd nodebox
-    ant run
+```shell
+git clone https://github.com/nodebox/nodebox.git
+cd nodebox
+ant run
 
-    # To create a full app (the build will be in dist/mac):
-    ant dist-mac
+# To create a full app (the build will be in dist/mac):
+ant dist-mac
+```
 
 ## Building on Windows
 
 - Install [Git](http://git-scm.com/).
-- Install the [Java 8 SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
-- Install [Unicode NSIS](http://www.scratchpaper.com/).
+- Install a recent [Java SDK](http://openjdk.java.net/).
 - Install [Ant](http://ant.apache.org/).
-- Install [Inno Setup (Unicode)](http://www.jrsoftware.org/isdl.php)
+- Install [Wix Toolset](https://wixtoolset.org/).
 
 From the command prompt, run:
 
-    # Setup the correct environment variables
-    # (Modify these paths to your installation directories.)
-    set JAVA_HOME=c:\java\jdk8
-    set ANT_HOME=c:\java\ant
-    set PATH=%PATH%;%ANT_HOME%\bin
+```shell
+# Setup the correct environment variables
+# (Modify these paths to your installation directories.)
+set JAVA_HOME=c:\java\jdk
+set ANT_HOME=c:\java\ant
+set WIX_HOME=c:\java\wix
+set PATH=%PATH%;%ANT_HOME%\bin;%WIX_HOME%\bin
 
-    git clone git://github.com/nodebox/nodebox.git
-    # Modify build.properties to point to the correct installation paths of the JRE and NSIS.
+git clone https://github.com/nodebox/nodebox.git
 
-    cd nodebox
-    ant run
+cd nodebox
+ant run
 
-    # To create a full app (the MSI will be in dist/windows/bundles):
-    ant dist-win
+# To create a full app (the MSI will be in dist/windows):
+# Set the correct version in src/main/resources/version.properties
+ant dist-win
+```
 
 ## Building on Linux
 
@@ -63,39 +68,49 @@ From the command prompt, run:
 
 Or other distributions based on APT package system:
 
-    sudo apt install git openjdk-8-jdk ant
-    git clone https://github.com/nodebox/nodebox.git
-    cd nodebox
-    ant run
+```shell
+sudo apt install git openjdk-11-jdk ant
+git clone https://github.com/nodebox/nodebox.git
+cd nodebox
+ant run
+```
 
 ### Fedora Linux
 
 Or other distributions based on YUM package system:
 
-    sudo yum install git java-1.8.0-openjdk ant
-    git clone https://github.com/nodebox/nodebox.git
-    cd nodebox
-    ant run
+```shell
+sudo yum install git java-11-openjdk ant
+git clone https://github.com/nodebox/nodebox.git
+cd nodebox
+ant run
+```
 
 ### Arch Linux
 Nodebox has an aur package for distributions based on Arch linux : nodebox-git
 
-    yaourt -S nodebox-git
+```shell
+yaourt -S nodebox-git
+```
 
 or
 
-    git clone https://aur.archlinux.org/nodebox-git.git
-    cd nodebox-git
-    makepkg
-    sudo pacman -U nodebox-git-[version-number]-any.pkg.tar.xz
+```shell
+git clone https://aur.archlinux.org/nodebox-git.git
+cd nodebox-git
+makepkg
+sudo pacman -U nodebox-git-[version-number]-any.pkg.tar.xz
+```
 
-you can then launch nodebox as any desktop application, or by running the ```nodebox``` command on terminal
+You can then launch nodebox as any desktop application, or by running the ```nodebox``` command on terminal.
 
 ## Building on FreeBSD/PC-BSD
 
 Just use pkg:
 
-    sudo pkg install git openjdk-8 apache-ant
-    git clone https://github.com/nodebox/nodebox.git
-    cd nodebox
-    ant run
+```shell
+sudo pkg install git openjdk-11 apache-ant
+git clone https://github.com/nodebox/nodebox.git
+cd nodebox
+ant run
+```
