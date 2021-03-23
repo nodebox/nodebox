@@ -33,7 +33,7 @@ public class Platform {
     private static Map<String, Object> JNA_OPTIONS = new HashMap<String, Object>();
 
     static {
-        platformSpecificModifier = InputEvent.META_DOWN_MASK;
+        platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         if (com.sun.jna.Platform.isWindows()) {
             current_platform = WIN;
             JNA_OPTIONS.put(Library.OPTION_TYPE_MAPPER, W32APITypeMapper.UNICODE);
