@@ -2,7 +2,8 @@ language: java
 install: mvn install -DskipTests=true -Dgpg.skip=true
 jdk:
   - oraclejdk8
-
+git:
+  depth: 1
 cache:
   directories:
   - $HOME/.m2
