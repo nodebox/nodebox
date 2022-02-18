@@ -2,6 +2,7 @@ package nodebox.client;
 
 import nodebox.ui.Platform;
 import nodebox.util.FileUtils;
+import static nodebox.ui.Platform.COMMAND_DOWN_MASK;
 
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
@@ -507,7 +508,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class PlayPauseAction extends AbstractDocumentAction {
         public PlayPauseAction() {
             putValue(NAME, "Play/Pause");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, InputEvent.META_DOWN_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, COMMAND_DOWN_MASK));
         }
 
         @Override
@@ -519,7 +520,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class RewindAction extends  AbstractDocumentAction {
         public RewindAction() {
             putValue(NAME, "Rewind");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_P, COMMAND_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
         }
 
         @Override
@@ -531,7 +532,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class FullScreenAction extends  AbstractDocumentAction {
         public FullScreenAction() {
             putValue(NAME, "Full Screen");
-            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
+            putValue(ACCELERATOR_KEY, Platform.getKeyStroke(KeyEvent.VK_F, COMMAND_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK));
         }
 
         @Override
@@ -556,7 +557,7 @@ public class NodeBoxMenuBar extends JMenuBar {
     public class MinimizeAction extends AbstractDocumentAction {
         public MinimizeAction() {
             putValue(NAME, "Minimize");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.META_DOWN_MASK));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_M, COMMAND_DOWN_MASK));
         }
 
         public void actionPerformed(ActionEvent e) {

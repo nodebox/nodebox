@@ -6,6 +6,7 @@ import com.sun.jna.NativeMapped;
 import com.sun.jna.PointerType;
 import com.sun.jna.win32.W32APIFunctionMapper;
 import com.sun.jna.win32.W32APITypeMapper;
+import nodebox.client.Application;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,8 +17,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-
-import nodebox.client.Application;
 
 public class Platform {
     public static final int WIN = 1;
@@ -31,6 +30,7 @@ public class Platform {
 
     private static File userDataDirectory = null;
     private static Map<String, Object> JNA_OPTIONS = new HashMap<String, Object>();
+    public static int COMMAND_DOWN_MASK = 0;
 
     static {
         platformSpecificModifier = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
@@ -38,10 +38,13 @@ public class Platform {
             current_platform = WIN;
             JNA_OPTIONS.put(Library.OPTION_TYPE_MAPPER, W32APITypeMapper.UNICODE);
             JNA_OPTIONS.put(Library.OPTION_FUNCTION_MAPPER, W32APIFunctionMapper.UNICODE);
+            COMMAND_DOWN_MASK = InputEvent.CTRL_DOWN_MASK;
         } else if (com.sun.jna.Platform.isMac()) {
             current_platform = MAC;
+            COMMAND_DOWN_MASK = InputEvent.META_DOWN_MASK;
         } else {
             current_platform = OTHER;
+            COMMAND_DOWN_MASK = InputEvent.META_DOWN_MASK;
         }
     }
 

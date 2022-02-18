@@ -3,6 +3,8 @@ package nodebox.graphics;
 
 import clojure.lang.RT;
 
+import static nodebox.ui.Platform.COMMAND_DOWN_MASK;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.Color;
@@ -125,7 +127,7 @@ public class Playground extends JFrame {
     private class RunAction extends AbstractAction {
         private RunAction() {
             super("Run");
-            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.META_DOWN_MASK));
+            putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, COMMAND_DOWN_MASK));
         }
 
         @Override

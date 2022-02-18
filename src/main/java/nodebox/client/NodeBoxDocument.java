@@ -12,11 +12,12 @@ import nodebox.handle.Handle;
 import nodebox.handle.HandleDelegate;
 import nodebox.movie.Movie;
 import nodebox.movie.VideoFormat;
-import nodebox.node.*;
 import nodebox.node.MenuItem;
+import nodebox.node.*;
 import nodebox.ui.*;
 import nodebox.util.FileUtils;
 import nodebox.util.LoadException;
+import static nodebox.ui.Platform.COMMAND_DOWN_MASK;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -29,13 +30,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -146,14 +145,14 @@ public class NodeBoxDocument extends JFrame implements WindowListener, HandleDel
         rootPanel.add(animationBar, BorderLayout.SOUTH);
 
         // Zoom in / out shortcuts.
-        KeyStroke zoomInStroke1 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.META_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
-        KeyStroke zoomInStroke2 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, InputEvent.META_DOWN_MASK);
-        KeyStroke zoomInStroke3 = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, InputEvent.META_DOWN_MASK);
+        KeyStroke zoomInStroke1 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, COMMAND_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
+        KeyStroke zoomInStroke2 = KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, COMMAND_DOWN_MASK);
+        KeyStroke zoomInStroke3 = KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, COMMAND_DOWN_MASK);
         ActionListener zoomInHandler = new ZoomInHandler();
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke1, JComponent.WHEN_IN_FOCUSED_WINDOW);
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke2, JComponent.WHEN_IN_FOCUSED_WINDOW);
         getRootPane().registerKeyboardAction(zoomInHandler, zoomInStroke3, JComponent.WHEN_IN_FOCUSED_WINDOW);
-        KeyStroke zoomOutStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.META_DOWN_MASK);
+        KeyStroke zoomOutStroke = KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, COMMAND_DOWN_MASK);
         getRootPane().registerKeyboardAction(new ZoomOutHandler(), zoomOutStroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         setContentPane(rootPanel);
