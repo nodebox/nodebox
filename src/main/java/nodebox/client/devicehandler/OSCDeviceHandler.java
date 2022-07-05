@@ -20,7 +20,7 @@ public class OSCDeviceHandler implements DeviceHandler {
     private OscP5 oscP5;
     private int oscPort;
     private boolean syncWithTimeline;
-    private Map<String, List<Object>> oscMessages = new HashMap<String, List<Object>>();
+    private Map<String, List<Object>> oscMessages = new HashMap<>();
     private boolean paused;
 
     public OSCDeviceHandler(String name) {
@@ -62,15 +62,13 @@ public class OSCDeviceHandler implements DeviceHandler {
         return oscMessages;
     }
 
-    private static int randomOSCPort() {
-        return 1024 + (int) Math.round(Math.random() * 10000);
-    }
-
     @Override
     public void start() {
         if (oscP5 != null)
             stop();
-        if (oscPort == -1) return;
+        if (oscPort == -1) { 
+            return;
+        }
         oscMessages.clear();
         oscP5 = new OscP5(new Object(), oscPort);
         oscP5.addListener(new OscEventListener() {
@@ -120,6 +118,9 @@ public class OSCDeviceHandler implements DeviceHandler {
 
     private class OSCDeviceControl extends AbstractDeviceControl {
 
+        private static final String RESUME = "Resume";
+        private static final String PAUSE = "Pause";
+        private static final String START = "Start";
         private JLabel deviceNameLabel;
         private JTextField portNumberField;
         private JCheckBox syncWithTimelineCheck;
@@ -167,9 +168,9 @@ public class OSCDeviceHandler implements DeviceHandler {
             startButton = new JButton();
 
             if (isRunning()) {
-                startButton.setText(isPaused() ? "Start" : "Pause");
+                startButton.setText(isPaused() ? START : PAUSE);
             } else {
-                startButton.setText("Start");
+                startButton.setText(START);
             }
             startButton.addActionListener(new ActionListener() {
                 @Override
@@ -216,25 +217,25 @@ public class OSCDeviceHandler implements DeviceHandler {
         private void startOSC() {
             start();
             if (isRunning())
-            startButton.setText(isRunning() ? "Pause" : "Start");
+            startButton.setText(isRunning() ? PAUSE : START);
             stopButton.setEnabled(oscP5 != null);
         }
 
         private void resumeOSC() {
             resume();
-            startButton.setText(isRunning() ? "Pause" : "Start");
+            startButton.setText(isRunning() ? PAUSE : START);
             stopButton.setEnabled(true);
         }
 
         private void pauseOSC() {
             pause();
-            startButton.setText(isRunning() ? "Resume" : "Start");
+            startButton.setText(isRunning() ? RESUME : START);
             stopButton.setEnabled(true);
         }
 
         private void stopOSC() {
             stop();
-            startButton.setText("Start");
+            startButton.setText(START);
             stopButton.setEnabled(false);
         }
 
