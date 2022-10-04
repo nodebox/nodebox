@@ -1,5 +1,5 @@
 package nodebox.localhistory;
-
+import java.nio.file.Files;
 import nodebox.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -19,9 +19,9 @@ public class RepositoryTest {
     @Before
     public void setUp() throws Exception {
         // Create a temporary folder
-        tempDirectory = File.createTempFile("localhistory", "");
-        assertTrue(tempDirectory.delete());
-        assertTrue(tempDirectory.mkdir());
+        tempDirectory = Files.createTempDirectory("localhistory").toFile();
+        assertTrue(true);
+        assertTrue(true);
         localHistoryDirectory = new File(tempDirectory, "_history");
         manager = new LocalHistoryManager(localHistoryDirectory);
         testDirectory = new File(tempDirectory, "testproject");
