@@ -1,0 +1,429 @@
+{
+    "title": "d2soccer",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "foot2014.csv": "bfdf6205ee36a76fcb5bef6a9eb9a8b47ce72cad"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "text2",
+            "nodes": [
+                {
+                    "name": "import1",
+                    "x": 33,
+                    "y": 44,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "foot2014.csv"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 33,
+                    "y": 87,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "club"
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": 86,
+                    "y": 131,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "team1",
+                    "x": 35,
+                    "y": 205,
+                    "fn": "d2soccer.team",
+                    "values": {}
+                },
+                {
+                    "name": "text1",
+                    "x": 88,
+                    "y": 551,
+                    "fn": "g.text",
+                    "values": {},
+                    "masterList": "text"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 51,
+                    "y": 267,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2.5
+                    }
+                },
+                {
+                    "name": "accumulate1",
+                    "x": 116,
+                    "y": 366,
+                    "fn": "g.accumulate",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 105,
+                    "y": 500,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "subtract1",
+                    "x": 128,
+                    "y": 453,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 365
+                    }
+                },
+                {
+                    "name": "toCharacters1",
+                    "x": 241,
+                    "y": 478,
+                    "fn": "g.toCharacters",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 353,
+                    "y": 383,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sqrt1",
+                    "x": 353,
+                    "y": 426,
+                    "fn": "g.sqrt",
+                    "values": {}
+                },
+                {
+                    "name": "ceil1",
+                    "x": 353,
+                    "y": 470,
+                    "fn": "g.ceil",
+                    "values": {}
+                },
+                {
+                    "name": "grid1",
+                    "x": 349,
+                    "y": 536,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 700,
+                        "height": 700,
+                        "columnWidth": 10,
+                        "rowHeight": 10
+                    }
+                },
+                {
+                    "name": "text2",
+                    "x": 238,
+                    "y": 613,
+                    "fn": "g.text",
+                    "values": {},
+                    "masterList": "text"
+                },
+                {
+                    "name": "stringLength1",
+                    "x": 265,
+                    "y": 337,
+                    "fn": "g.stringLength",
+                    "values": {}
+                },
+                {
+                    "name": "letterweight1",
+                    "x": 255,
+                    "y": 405,
+                    "fn": "d2soccer.letterweight",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": 254,
+                    "y": 260,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMin": 10,
+                        "outMax": 24
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 265,
+                    "y": 145,
+                    "fn": "g.min",
+                    "values": {}
+                },
+                {
+                    "name": "max1",
+                    "x": 285,
+                    "y": 187,
+                    "fn": "g.max",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "team1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "team1",
+                    "parameter": "club"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "team1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "text1",
+                    "parameter": "fontSize"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "accumulate1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "toCharacters1",
+                    "parameter": "s"
+                },
+                {
+                    "output": "toCharacters1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sqrt1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sqrt1",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "stringLength1",
+                    "parameter": "s"
+                },
+                {
+                    "output": "stringLength1",
+                    "input": "letterweight1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "toCharacters1",
+                    "input": "text2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "grid1",
+                    "input": "text2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "letterweight1",
+                    "input": "text2",
+                    "parameter": "fontSize"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "convert1",
+                    "input": "letterweight1",
+                    "parameter": "weight"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "team",
+            "type": "network",
+            "renderedNode": "count1",
+            "nodes": [
+                {
+                    "name": "cull1",
+                    "x": 92,
+                    "y": 240,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 91,
+                    "y": 315,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "stringEquals1",
+                    "x": 109,
+                    "y": 168,
+                    "fn": "g.stringEquals"
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "list",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "cull1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "list",
+                    "input": "stringEquals1",
+                    "parameter": "string1"
+                },
+                {
+                    "inlet": "club",
+                    "input": "stringEquals1",
+                    "parameter": "string2"
+                },
+                {
+                    "output": "stringEquals1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "string",
+                    "value": true,
+                    "takesList": true
+                },
+                {
+                    "name": "club",
+                    "type": "string",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "letterweight",
+            "type": "network",
+            "renderedNode": "repeat1",
+            "nodes": [
+                {
+                    "name": "repeat1",
+                    "x": 62,
+                    "y": 102,
+                    "fn": "g.repeat",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "weight",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "repeat1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "weight",
+                    "type": "float",
+                    "value": 10
+                },
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 3
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "d2soccer"
+}

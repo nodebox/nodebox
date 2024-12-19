@@ -1,0 +1,137 @@
+{
+  "items": [
+    {
+      "projectId": "scatter",
+      "itemId": "0:1",
+      "name": "Basic scatter plot",
+      "description": "A scatter plot displays individual data points as symbols. It is typically showing relationships or patterns between two data attributes that are mapped to the X- and the Y-position. ",
+      "keyword": "scatter",
+      "subKeyword": "Basic scatter plot"
+    },
+    {
+      "projectId": "scatter",
+      "itemId": "eR6PwFsJIvZ:0",
+      "name": "Color scale",
+      "description": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X- and the Y-positions and the fill color. ",
+      "category": "",
+      "keyword": "scatter",
+      "subKeyword": "Scales"
+    },
+    {
+      "projectId": "scatter",
+      "itemId": "eR62oaHjoIE:0",
+      "name": "Shape scale",
+      "description": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X and Y position, the fill color and the shape. ",
+      "category": "",
+      "keyword": "scatter",
+      "subKeyword": "Scales"
+    },
+    {
+      "projectId": "scatter",
+      "itemId": "eSGkJPVCc3f:1",
+      "name": "Data labels",
+      "description": "Data labels are annotations that provide additional information about individual data points. ",
+      "category": "",
+      "keyword": "scatter",
+      "subKeyword": "Data labels"
+    },
+    {
+      "projectId": "bubble",
+      "itemId": "eSG3nwOjv6b:0",
+      "name": "Basic bubble plot",
+      "description": "A bubble plot is a scatter plot with an additional dimension. The size of the circle marks are scaled, based on a numeric data attribute. ",
+      "keyword": "bubble",
+      "subKeyword": "Basic bubble plot"
+    },
+    {
+      "projectId": "bubble",
+      "itemId": "0:1",
+      "name": "Custom bubble plot",
+      "description": "Each part of a default plot can be customized using specialized nodes, which provide access to detailed parameters of the plot components and the plot style. ",
+      "category": "",
+      "keyword": "bubble",
+      "subKeyword": "Customizing plots"
+    },
+    {
+      "projectId": "connected-scatter",
+      "itemId": "0:1",
+      "name": "Basic connected scatter",
+      "description": "A connected scatter plot is a scatter plot where data points are connected by a line. It is often used to show the variation of a data attribute over time or as a sequence.",
+      "keyword": "connected-scatter",
+      "subKeyword": "Basic connected scatter plot"
+    },
+    {
+      "projectId": "connected-scatter",
+      "itemId": "eSHSvnzctqk:4",
+      "name": "Grouped connected scatter",
+      "description": "A grouped connected scatter plot is a scatter plot where groups of data points are connected by lines. It is used to compare trends or relationships between groups.",
+      "category": "",
+      "keyword": "connected-scatter",
+      "subKeyword": "Grouped connected scatter plot"
+    },
+    {
+      "projectId": "line",
+      "itemId": "0:1",
+      "name": "Basic line plot",
+      "description": "A line plot displays a line connecting data points. It is often used to show the variation of a data attribute over time or as a sequence.",
+      "keyword": "line",
+      "subKeyword": "Basic line plot"
+    },
+    {
+      "projectId": "line",
+      "itemId": "eSI5SEQkv3e:0",
+      "name": "Grouped line plot",
+      "description": "A grouped line plot displays a separate line for each group of data points. It is used to compare trends or relationships between groups.",
+      "category": "",
+      "keyword": "line",
+      "subKeyword": "Grouped line plot"
+    },
+    {
+      "projectId": "area",
+      "itemId": "0:1",
+      "name": "Basic area plot",
+      "description": "An area plot displays an area outlined by connected data points. It is often used to show evolutions or cumulative data over time.",
+      "keyword": "area",
+      "subKeyword": "Basic area plot"
+    },
+    {
+      "projectId": "area",
+      "itemId": "eWAUVGTsjj8:0",
+      "name": "Stacked area plot",
+      "description": "A stacked area plot displays a separate area for each group of data points. The areas are stacked on top of each other. ",
+      "category": "",
+      "keyword": "area",
+      "subKeyword": "Stacked area plot"
+    },
+    {
+      "projectId": "bar",
+      "itemId": "0:1",
+      "name": "Basic bar plot",
+      "description": "A bar plot represents categorical data on one axis with rectangular bars. The length of each bar is proportional to the numeric data on the other axis. ",
+      "keyword": "bar",
+      "subKeyword": "Basic bar plot"
+    },
+    {
+      "projectId": "lollipop",
+      "itemId": "0:1",
+      "name": "Basic lollipop plot",
+      "description": "A lollipop plot displays data points as symbols (like a scatter plot), and connects them to a baseline by vertical or horizontal segments. Lollipop plots are often used as a visually cleaner alternative to bar plots. "
+    },
+    {
+      "projectId": "waffle",
+      "itemId": "0:1",
+      "name": "Basic waffle plot",
+      "description": "A waffle plot displays categorical data as colored rectangles on a grid. Each grid unit represents a proportional ratio of the total data count. A waffle plot is often used to visualize proportions or percentages. ",
+      "keyword": "waffle",
+      "subKeyword": "Basic waffle plot"
+    },
+    {
+      "projectId": "heatmap",
+      "itemId": "0:1",
+      "name": "Heatmap",
+      "description": "A heatmap displays data values as colors in a matrix. It provides an intuitive way to visualize patterns, correlations, or density across two dimensions. ",
+      "keyword": "heatmap",
+      "subKeyword": "Heatmap"
+    }
+  ]
+}

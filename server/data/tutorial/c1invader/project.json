@@ -1,0 +1,277 @@
+{
+    "title": "c1invader",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "one1",
+            "nodes": [
+                {
+                    "name": "one1",
+                    "x": 107,
+                    "y": 253,
+                    "fn": "c1invader.one",
+                    "values": {
+                        "position": {
+                            "x": 20,
+                            "y": 5
+                        },
+                        "seed": -1,
+                        "amount": 22
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 95,
+                    "y": 38,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 800,
+                        "height": 300,
+                        "columns": 8,
+                        "rows": 5,
+                        "rowHeight": 80,
+                        "columnWidth": 120
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 160,
+                    "y": 105,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 160,
+                    "y": 164,
+                    "fn": "g.randomNumbers",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "one1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "one1",
+                    "parameter": "seed"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "one",
+            "type": "network",
+            "renderedNode": "translate2",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 296,
+                    "y": 138,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 10,
+                        "height": 10,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 219,
+                    "y": 89,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 4,
+                        "rows": 5,
+                        "width": 65,
+                        "height": 90,
+                        "columnWidth": 10,
+                        "rowHeight": 10,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 139,
+                    "y": 243,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "pick1",
+                    "x": 141,
+                    "y": 184,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 18,
+                        "seed": 5
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 140,
+                    "y": 296,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 140,
+                    "y": 352,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "right",
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "mirror1",
+                    "x": 139,
+                    "y": 402,
+                    "fn": "g.mirror",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 140,
+                    "y": 454,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1,
+                            "y": 1
+                        }
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 100,
+                    "y": 510,
+                    "fn": "g.translate",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pick1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rect1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "seed",
+                    "input": "pick1",
+                    "parameter": "seed"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "pick1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "seed",
+                    "type": "int",
+                    "value": 1
+                },
+                {
+                    "name": "amount",
+                    "type": "int",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "c1invader"
+}

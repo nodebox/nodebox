@@ -1,0 +1,359 @@
+{
+    "title": "b8metaballs",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev",
+        "core/data": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "multiply3",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": 252,
+                    "y": 104,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 150,
+                        "height": 150
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 164,
+                    "y": 283,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 278,
+                    "y": 282,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 176,
+                    "y": 343,
+                    "fn": "math.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 256,
+                    "y": 419,
+                    "fn": "math.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 397,
+                    "y": 283,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 515,
+                    "y": 283,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 489,
+                    "y": 343,
+                    "fn": "math.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "multiply2",
+                    "x": 409,
+                    "y": 420,
+                    "fn": "math.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "add2",
+                    "x": 338,
+                    "y": 468,
+                    "fn": "math.add",
+                    "values": {}
+                },
+                {
+                    "name": "lookup5",
+                    "x": 252,
+                    "y": 165,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "bounds.width"
+                    }
+                },
+                {
+                    "name": "divide3",
+                    "x": 307,
+                    "y": 513,
+                    "fn": "math.divide",
+                    "values": {
+                        "a": 4366
+                    }
+                },
+                {
+                    "name": "multiply3",
+                    "x": 309,
+                    "y": 561,
+                    "fn": "math.multiply",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "centroid1",
+                    "x": 364,
+                    "y": 166,
+                    "fn": "g.centroid",
+                    "values": {}
+                },
+                {
+                    "name": "grid1",
+                    "x": 79,
+                    "y": 175,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 300,
+                        "height": 300
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "subtract1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add2",
+                    "input": "divide3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "divide3",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "centroid1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "position",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "inlet": "size",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "size",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "inlet": "grid",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "inlet": "grid",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "grid1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "grid1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "grid",
+                    "type": "float",
+                    "value": 10
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": 0
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": true
+                }
+            ],
+            "returnsList": true,
+            "returnType": "",
+            "stateful": false
+        },
+        {
+            "type": "code",
+            "name": "bounds",
+            "source": "b8metaballs.bounds = function (shape) {\n     bounds = shape.bounds(),\n     bx = bounds.x,\n     by = bounds.y,\n     bw = bounds.width,\n     bh = bounds.height;\npoints = [];\n     point1 = g.makePoint(bx, by+bh/2);\n     point2 = g.makePoint(bx+bw, by+bh/2);\npoints[0]= point1;\npoints[1]= point2;\n\n     return points\n};",
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "returnType": "point"
+        },
+        {
+            "name": "tPixl",
+            "type": "network",
+            "renderedNode": "sum1",
+            "nodes": [
+                {
+                    "name": "takeEvery1",
+                    "x": 34,
+                    "y": 172,
+                    "fn": "list.takeEvery",
+                    "values": {}
+                },
+                {
+                    "name": "sum1",
+                    "x": 34,
+                    "y": 220,
+                    "fn": "math.sum",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "values",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "which",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "sum1",
+                    "parameter": "values"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "values",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "which",
+                    "type": "float",
+                    "value": 100
+                }
+            ],
+            "returnsList": true,
+            "returnType": "float"
+        }
+    ],
+    "id": "b8metaballs"
+}

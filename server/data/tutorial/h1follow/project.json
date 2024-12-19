@@ -1,0 +1,409 @@
+{
+    "title": "h1follow",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "obama.png": "c667791a803af85ec3b4e99f7de2189e9699aafc",
+        "appie.png": "b86ae971729e78e4432f29250f2548df6630bd5d"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "slice2",
+            "nodes": [
+                {
+                    "name": "positionContainer1",
+                    "x": 185,
+                    "y": 115,
+                    "fn": "h1follow.positionContainer",
+                    "values": {
+                        "num": 52
+                    }
+                },
+                {
+                    "name": "init1",
+                    "x": 185,
+                    "y": 25,
+                    "fn": "h1follow.init"
+                },
+                {
+                    "name": "range1",
+                    "x": 387,
+                    "y": 324,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 39
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 354,
+                    "y": 266,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "max1",
+                    "x": 235,
+                    "y": 317,
+                    "fn": "g.max"
+                },
+                {
+                    "name": "subtract1",
+                    "x": 289,
+                    "y": 396,
+                    "fn": "g.subtract",
+                    "masterList": "b"
+                },
+                {
+                    "name": "subtract2",
+                    "x": 437,
+                    "y": 472,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 162,
+                    "y": 667,
+                    "fn": "g.translate",
+                    "masterList": "translate"
+                },
+                {
+                    "name": "scale1",
+                    "x": 128,
+                    "y": 608,
+                    "fn": "g.scale",
+                    "masterList": "shape"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 230,
+                    "y": 528,
+                    "fn": "g.makePoint",
+                    "masterList": "x"
+                },
+                {
+                    "name": "slice2",
+                    "x": 201,
+                    "y": 761,
+                    "fn": "g.slice"
+                },
+                {
+                    "name": "divide1",
+                    "x": 290,
+                    "y": 442,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 8
+                    }
+                },
+                {
+                    "name": "colorize5",
+                    "x": 9,
+                    "y": 266,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "red",
+                        "strokeWidth": 3
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": -48,
+                    "y": 308,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "maxLength": 20
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": -73,
+                    "y": 351,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "angle1",
+                    "x": 92,
+                    "y": 318,
+                    "fn": "g.angle",
+                    "values": {
+                        "point2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 97,
+                    "y": 374,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": -60
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": -76,
+                    "y": 429,
+                    "fn": "g.line",
+                    "masterList": "point1"
+                },
+                {
+                    "name": "group2",
+                    "x": 2,
+                    "y": 563,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "combine1",
+                    "x": -49,
+                    "y": 521,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "rect1",
+                    "x": 9,
+                    "y": 218,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 90,
+                        "roundness": 29,
+                        "width": 120
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -56,
+                    "y": 474,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "rgba(250,50,0,.2)",
+                        "strokeWidth": 7
+                    }
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 185,
+                    "y": 75,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "points"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 195,
+                    "y": 165,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "points"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "count1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "count1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "max1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range1",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "count1",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "translate2",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "slice2",
+                    "parameter": "size"
+                },
+                {
+                    "output": "scale1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "positionContainer1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "angle1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "angle1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "group2",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "init1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "positionContainer1",
+                    "parameter": "po"
+                },
+                {
+                    "output": "positionContainer1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "count1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 317,
+                    "y": 6,
+                    "width": 71,
+                    "height": 48,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "positionContainer",
+            "source": "h1follow.positionContainer = function (po) {\nvar wave = g.sineWave(ndbx._currentFrame, -200,200,69);\nvar swave = g.sineWave(ndbx._currentFrame,-120.0,120.0,75);\nvar awave = g.sineWave(ndbx._currentFrame,-200.0,200.0,50);\n\nvar fwave = g.sineWave(ndbx._currentFrame,-100+awave,100+awave,100);\n    var pos = po;\n    if (pos.length < 120) {\n        pos.push(new g.Point(fwave,wave));\n    } else {\n        pos.splice(0,1);\n    }\n    return pos;\n};",
+            "parameters": [
+                {
+                    "name": "po",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                }
+            ],
+            "stateful": true,
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "h1follow.init = function () {\n    var pos = [];\n    return pos;\n};",
+            "parameters": [],
+            "returnsList": true,
+            "outputType": "point"
+        },
+        {
+            "name": "oneRing",
+            "type": "network",
+            "renderedNode": null,
+            "nodes": [],
+            "connections": [],
+            "parameters": [],
+            "returnsList": false,
+            "outputType": "image"
+        }
+    ],
+    "id": "h1follow"
+}

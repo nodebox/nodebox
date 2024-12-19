@@ -1,0 +1,231 @@
+{
+    "title": "b3hair",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "distance1",
+                    "x": 224,
+                    "y": 214,
+                    "fn": "g.distance",
+                    "values": {}
+                },
+                {
+                    "name": "angle1",
+                    "x": 116,
+                    "y": 214,
+                    "fn": "g.angle",
+                    "values": {}
+                },
+                {
+                    "name": "add1",
+                    "x": 224,
+                    "y": 313,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 93
+                    }
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 116,
+                    "y": 418,
+                    "fn": "g.coordinates",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 244,
+                    "y": 265,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 20
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 99,
+                    "y": 109,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 150,
+                        "height": 150
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 224,
+                    "y": 365,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 1.6
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 95,
+                    "y": 588,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize3",
+                    "x": 153,
+                    "y": 540,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "fill": "transparent",
+                        "strokeWidth": 0.8
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 40,
+                    "y": 539,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(100,100,100,.5)"
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 3,
+                    "y": 346,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "min": -15,
+                        "max": 15
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 3,
+                    "y": 293,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 98,
+                    "y": 160,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 1000
+                    }
+                },
+                {
+                    "name": "curve1",
+                    "x": 73,
+                    "y": 474,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 15
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "distance1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "angle1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "distance1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "coordinates1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "curve1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "b3hair"
+}

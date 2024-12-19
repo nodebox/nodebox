@@ -1,0 +1,212 @@
+{
+    "title": "a0shapes",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "copy1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 27,
+                    "y": 144,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 450,
+                        "height": 450
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 27,
+                    "y": 238,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 136,
+                    "y": 240,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 40,
+                        "height": 40
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 73,
+                    "y": 308,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "count1",
+                    "x": -44,
+                    "y": 376,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "range1",
+                    "x": -44,
+                    "y": 419,
+                    "fn": "g.range",
+                    "values": {}
+                },
+                {
+                    "name": "star1",
+                    "x": 191,
+                    "y": 378,
+                    "fn": "g.star",
+                    "values": {
+                        "outer": 20,
+                        "inner": 12,
+                        "points": 7
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 97,
+                    "y": 446,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 97,
+                    "y": 499,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 74,
+                    "y": 570,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "copy1",
+                    "x": 71,
+                    "y": 632,
+                    "fn": "g.copy",
+                    "values": {
+                        "scale": {
+                            "x": -0.1,
+                            "y": -0.1
+                        },
+                        "rotate": 10,
+                        "order": "trs",
+                        "translate": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 28,
+                    "y": 193,
+                    "fn": "g.resampleByLength"
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 82,
+                    "y": 379,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 2
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "topoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "star1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "combine1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "range1",
+                    "input": "scatterPoints1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "translate1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a0shapes"
+}

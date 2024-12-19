@@ -1,0 +1,338 @@
+{
+    "title": "c5flower",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev",
+        "core/data": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "c5flower.main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "line1",
+                    "x": 28,
+                    "y": 274,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "point2": {
+                            "x": 0,
+                            "y": 120
+                        }
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 84,
+                    "y": 358,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "top"
+                    }
+                },
+                {
+                    "name": "calc",
+                    "x": 87,
+                    "y": 44,
+                    "fn": "c5flower.calc",
+                    "values": {
+                        "v": 1000
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": 514,
+                    "y": 185,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 37
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 356,
+                    "y": 413,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 3
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 356,
+                    "y": 462,
+                    "fn": "math.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "compare1",
+                    "x": 550,
+                    "y": 284,
+                    "fn": "math.compare",
+                    "values": {
+                        "v2": 5,
+                        "comparator": ">"
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 476,
+                    "y": 464,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 0
+                    }
+                },
+                {
+                    "name": "switch1",
+                    "x": 426,
+                    "y": 560,
+                    "fn": "list.switch",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint1",
+                    "x": -19,
+                    "y": 172,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "count2",
+                    "x": 238,
+                    "y": 78,
+                    "fn": "data.count",
+                    "values": {}
+                },
+                {
+                    "name": "sample1",
+                    "x": 237,
+                    "y": 137,
+                    "fn": "math.sample",
+                    "values": {
+                        "max": 40,
+                        "min": 150
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 88,
+                    "y": 461,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 6,
+                        "origin": {
+                            "x": 0,
+                            "y": -100
+                        }
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": -106,
+                    "y": 278,
+                    "fn": "list.shift",
+                    "values": {}
+                },
+                {
+                    "name": "reverse1",
+                    "x": 144,
+                    "y": 226,
+                    "fn": "list.reverse",
+                    "values": {}
+                },
+                {
+                    "name": "rotate2",
+                    "x": 204,
+                    "y": 460,
+                    "fn": "g.rotate",
+                    "values": {
+                        "origin": {
+                            "x": 0,
+                            "y": -100
+                        }
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 345,
+                    "y": 250,
+                    "fn": "math.negate",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 100,
+                    "y": 560,
+                    "fn": "list.combine",
+                    "values": {}
+                },
+                {
+                    "name": "merge1",
+                    "x": -21,
+                    "y": 553,
+                    "fn": "g.merge",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 371,
+                    "y": 92,
+                    "fn": "g.makePoint",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "line1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "number1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "number1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "switch1",
+                    "parameter": "l2"
+                },
+                {
+                    "output": "number2",
+                    "input": "switch1",
+                    "parameter": "l1"
+                },
+                {
+                    "output": "compare1",
+                    "input": "switch1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "calc",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "count2",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "count2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sample1",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "sample1",
+                    "input": "rotate1",
+                    "parameter": "rotate"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "align1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "rotate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sample1",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "rotate2",
+                    "parameter": "rotate"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "merge1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "merge1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "rotate1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "rotate2",
+                    "parameter": "origin"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stateful": false
+        },
+        {
+            "type": "code",
+            "name": "c5flower.calc",
+            "source": "c5flower.calc = function (v) {\n \n   var list = [v];\n    do {\n       v = v/3 * 2;\n       list.push(v);\n    } while(v > 1);\n\n return list;\n};",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "stateful": false,
+            "returnsList": true
+        }
+    ]
+}

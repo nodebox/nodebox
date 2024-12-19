@@ -1,0 +1,440 @@
+{
+    "title": "c3stylevader",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "unit",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 154,
+                    "y": 53,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 100,
+                        "height": 100,
+                        "roundness": {
+                            "x": 20,
+                            "y": 20
+                        }
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 83,
+                    "y": 149,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "points": 3,
+                        "length": 3
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 84,
+                    "y": 193,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 94,
+                    "y": 241,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 69,
+                        "startIndex": 16
+                    }
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 100,
+                    "y": 286,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 101,
+                    "y": 383,
+                    "fn": "g.rotate",
+                    "values": {},
+                    "masterList": "angle"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 101,
+                    "y": 334,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "fill": "darkorange",
+                        "strokeWidth": 3
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 221,
+                    "y": 285,
+                    "fn": "g.range",
+                    "values": {
+                        "end": 360,
+                        "step": 90,
+                        "max": 360
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 175,
+                    "y": 458,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "scale1",
+                    "x": 265,
+                    "y": 160,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.75,
+                            "y": 0.75
+                        }
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 333,
+                    "y": 104,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 3,
+                        "fill": "darkorange"
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 265,
+                    "y": 208,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white",
+                        "stroke": "black",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 335,
+                    "y": 264,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 447,
+                    "y": 104,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 20,
+                        "height": 20
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 335,
+                    "y": 333,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "slice2",
+                    "x": 256,
+                    "y": 531,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1,
+                        "startIndex": 4
+                    },
+                    "masterList": "l"
+                },
+                {
+                    "name": "translate1",
+                    "x": 207,
+                    "y": 607,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rect1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine2",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "combine2",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "pick",
+                    "input": "slice2",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "range1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "pick",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "mirror1",
+            "nodes": [
+                {
+                    "name": "unit1",
+                    "x": 121,
+                    "y": 358,
+                    "fn": "c3stylevader.unit",
+                    "values": {},
+                    "masterList": "position"
+                },
+                {
+                    "name": "grid1",
+                    "x": 94,
+                    "y": 77,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 2,
+                        "height": 200
+                    }
+                },
+                {
+                    "name": "pick1",
+                    "x": 111,
+                    "y": 168,
+                    "fn": "g.pick",
+                    "values": {
+                        "method": "shuffle",
+                        "seed": 2,
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 223,
+                    "y": 225,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 223,
+                    "y": 266,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "end": 5,
+                        "max": 5,
+                        "seed": 1
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 223,
+                    "y": 308,
+                    "fn": "g.integer",
+                    "values": {}
+                },
+                {
+                    "name": "group1",
+                    "x": 119,
+                    "y": 414,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 119,
+                    "y": 458,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "right"
+                    }
+                },
+                {
+                    "name": "mirror1",
+                    "x": 120,
+                    "y": 499,
+                    "fn": "g.mirror",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pick1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "pick1",
+                    "input": "unit1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "integer1",
+                    "input": "unit1",
+                    "parameter": "pick"
+                },
+                {
+                    "output": "unit1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "c3stylevader"
+}

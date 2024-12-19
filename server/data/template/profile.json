@@ -1,0 +1,11 @@
+{
+  "login": "template",
+  "email": "template@emrg.be",
+  "projects": [
+    {
+      "id": "graphics",
+      "title": "Graphics",
+      "color": "teal"
+    }
+  ]
+}

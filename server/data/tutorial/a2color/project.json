@@ -1,0 +1,250 @@
+{
+    "title": "a2color",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "align1",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 53,
+                    "y": 311,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": 0.1,
+                        "max": 0.9
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 33,
+                    "y": 162,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 20
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 34,
+                    "y": 222,
+                    "fn": "g.copy",
+                    "values": {
+                        "copies": 25,
+                        "rotate": 0,
+                        "order": "trs",
+                        "translate": {
+                            "x": 0,
+                            "y": 22
+                        }
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 53,
+                    "y": 267,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 57,
+                    "y": 367,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 37,
+                    "y": 433,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "group1",
+                    "x": 132,
+                    "y": 539,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 132,
+                    "y": 584,
+                    "fn": "g.align",
+                    "values": {}
+                },
+                {
+                    "name": "colorize2",
+                    "x": 176,
+                    "y": 436,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 176,
+                    "y": 311,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 102,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 132,
+                    "y": 494,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "grayColor1",
+                    "x": 330,
+                    "y": 385,
+                    "fn": "g.grayColor",
+                    "values": {}
+                },
+                {
+                    "name": "translate2",
+                    "x": 302,
+                    "y": 311,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 204,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 302,
+                    "y": 439,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 187,
+                    "y": 379,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.7,
+                        "saturation": 0.74
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample1",
+                    "input": "rgbColor1",
+                    "parameter": "green"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "copy1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sample1",
+                    "input": "grayColor1",
+                    "parameter": "gray"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "grayColor1",
+                    "input": "colorize3",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a2color"
+}

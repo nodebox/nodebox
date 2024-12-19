@@ -1,0 +1,410 @@
+{
+    "title": "g7networkthree",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "closest1",
+            "nodes": [
+                {
+                    "name": "init1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g7networkthree.init"
+                },
+                {
+                    "name": "structure1",
+                    "x": 45,
+                    "y": 125,
+                    "fn": "g7networkthree.structure",
+                    "values": {
+                        "s": 10,
+                        "move": 5
+                    }
+                },
+                {
+                    "name": "addN1",
+                    "x": 45,
+                    "y": 165,
+                    "fn": "g7networkthree.addN"
+                },
+                {
+                    "name": "closest1",
+                    "x": 45,
+                    "y": 405,
+                    "fn": "g7networkthree.closest",
+                    "masterList": "index"
+                },
+                {
+                    "name": "range1",
+                    "x": 85,
+                    "y": 285,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "count1",
+                    "x": 85,
+                    "y": 245,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 205,
+                    "y": 285,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 5,
+                        "min": 2
+                    }
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "points"
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "points"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "structure1",
+                    "input": "addN1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "closest1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "closest1",
+                    "parameter": "sec"
+                },
+                {
+                    "output": "init1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "structure1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "addN1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "closest1",
+                    "parameter": "points"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "init",
+            "source": "g7networkthree.init = function () {\n    var points = [];\n    for (var i = 0; i < 2; i++) {\n        var x = (Math.random() - 0.5) * 200;\n        var y = (Math.random() - 0.5) * 200;\n        var pt = new g.Point(x, y);\n        points.push(pt);\n    }\n    return points;\n};",
+            "parameters": [],
+            "returnsList": true,
+            "outputType": "point"
+        },
+        {
+            "type": "code",
+            "name": "structure",
+            "source": "g7networkthree.structure = function (n, move) {\n    for (var i = 0; i < n.length; i++) {\n        var np = n[i];\n        np.x += (Math.random() - 0.5) * move;\n        np.y += (Math.random() - 0.5) * move;\n    }\n    return n;\n};\n",
+            "parameters": [
+                {
+                    "name": "n",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "move",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "addN",
+            "source": "g7networkthree.addN = function (l) {\n    if (ndbx._currentFrame % 60 == 1) {\n        var np = new g.Point((Math.random()-0.5)*200, (Math.random()-0.5)*200);\n        l.push(np);\n    }\n    return l\n};",
+            "parameters": [
+                {
+                    "name": "l",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "structuretoo",
+            "source": "g7networkthree.structuretoo = function (n,limit) {\n    for (var i = 0; i < n.length; i++) {\n        var np = n[i];\n        for (var j = 0; j < n.length; j++) {\n            var np2 = n[j];\n            var d = g.distance(np, np2);\n            if ((np != np2) && d < limit) {\n                np.x += (Math.random()-0.5)*5.0;\n                np.y += (Math.random()-0.5)*5.0;\n            }\n        }\n    }\n    return n;\n};",
+            "parameters": [
+                {
+                    "name": "n",
+                    "type": "",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "limit",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "name": "closest",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "line1",
+                    "x": 240,
+                    "y": 407,
+                    "fn": "g.line"
+                },
+                {
+                    "name": "second1",
+                    "x": 164,
+                    "y": 290,
+                    "fn": "g.second"
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 163,
+                    "y": 213,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "distance"
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 268,
+                    "y": 159,
+                    "fn": "g.slice"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 358,
+                    "y": 407,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 15,
+                        "height": 15
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 279,
+                    "y": 665,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "mix1",
+                    "x": 80.6362320100153,
+                    "y": 433.306511476222,
+                    "fn": "g.mix",
+                    "values": {
+                        "t": 0
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 15.203511377812136,
+                    "y": 348.04569368274514,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": 0,
+                        "period": 4
+                    }
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": 23.134750242321612,
+                    "y": 281.62156819247826,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 79,
+                    "y": 490,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 71,
+                    "y": 543,
+                    "fn": "g.colorize",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "second1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "second1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "points",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "points",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "index",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "slice1",
+                    "input": "shapeSort1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "slice1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "slice1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "second1",
+                    "input": "mix1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "slice1",
+                    "input": "mix1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "mix1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "mix1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "line1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "inlet": "sec",
+                    "input": "sineWave1",
+                    "parameter": "period"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "sec",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "g7networkthree"
+}

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }} | NodeBox</title>
+    <style>
+      :root {
+        --nb-font-family-base: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol", "Noto Color Emoji";
+        --sidebar-width: 250px;
+        --zinc-100: #f4f4f5;
+        --zinc-200: #e4e4e7;
+        --zinc-300: #d4d4d8;
+        --zinc-400: #a1a1aa;
+        --zinc-500: #71717a;
+        --zinc-600: #52525b;
+        --zinc-700: #3f3f46;
+        --zinc-800: #27272a;
+        --zinc-900: #18181b;
+      }
+      *,
+      ::before,
+      ::after {
+        box-sizing: border-box;
+      }
+      html {
+        line-height: 1.4;
+        font-size: 16px;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-width: 320px;
+        line-height: 24px;
+        font-family: var(--nb-font-family-base);
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--zinc-100);
+        background-color: var(--zinc-800);
+        font-synthesis: style;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        background-color: var(--zinc-800);
+        transition: box-shadow 0.3s;
+        padding: 0 16px;
+        z-index: 10;
+      }
+
+      header.shadow {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      header .header-layout {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px 0 0 0;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+      }
+
+      @media (min-width: 768px) {
+        header {
+          height: 56px;
+        }
+
+        header .header-layout {
+          margin: 0 auto;
+          /* max-width: 960px; */
+          flex-direction: row;
+          gap: 48px;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        header .header-layout {
+          padding: 0 32px;
+        }
+      }
+
+      header a {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        color: inherit;
+        width: var(--sidebar-width);
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.2rem;
+        padding: 16px 0;
+      }
+
+      .menu-button {
+        background: none;
+        border: none;
+        color: var(--zinc-100);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 16px;
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 30;
+      }
+
+      .overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 10;
+        pointer-events: none;
+        animation: fade-in 0.3s ease-out forwards;
+      }
+
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .menu-open .overlay {
+        display: block;
+      }
+
+      .layout {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        min-height: calc(100vh - 56px);
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+
+      aside {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: calc(100vw - 50px);
+        height: 100vh;
+        background-color: var(--zinc-800);
+        transition: left 0.3s ease-out;
+        overflow-y: auto;
+        z-index: 20;
+      }
+
+      .menu-open aside {
+        left: 0;
+      }
+
+      @media (min-width: 768px) {
+        aside {
+          top: 56px;
+          height: calc(100vh - 56px);
+        }
+      }
+
+      nav {
+        padding: 16px;
+      }
+
+      group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 24px;
+        border-top: 1px solid var(--zinc-700);
+        padding-top: 16px;
+        letter-spacing: -0.02em;
+        line-height: 32px;
+      }
+      .group-title {
+        color: var(--zinc-100);
+        font-weight: bold;
+        display: inline-block;
+        height: 32px;
+      }
+      .group-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .group-items a {
+        display: inline-block;
+        height: 32px;
+        color: var(--zinc-400);
+        text-decoration: none;
+      }
+      .content {
+        flex: 1;
+        padding: 16px 0;
+      }
+      main {
+        color: var(--zinc-200);
+        padding-bottom: 5rem;
+      }
+      main h2 {
+        margin: 48px 0 16px;
+        border-top: 1px solid var(--zinc-700);
+        padding-top: 24px;
+        letter-spacing: -0.02em;
+        line-height: 32px;
+        font-size: 24px;
+      }
+      main a {
+        color: inherit;
+      }
+      main code {
+        background-color: var(--zinc-700);
+        padding: 0.2em 0.4em;
+        margin: 0;
+        font-size: 85%;
+        white-space: break-spaces;
+        border-radius: 6px;
+      }
+      main pre {
+        background-color: var(--zinc-700);
+        color: var(--zinc-200);
+        padding: 16px;
+        border-radius: 4px;
+        overflow-x: auto;
+      }
+      main pre code {
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+      }
+      main img,
+      main video {
+        display: block;
+        margin: 32px auto;
+        max-width: 100%;
+        height: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+        border-radius: 4px;
+      }
+
+      main .video-wrapper {
+        position: relative;
+        padding-bottom: 56.25%;
+        height: 0;
+        overflow: hidden;
+      }
+
+      main .video-wrapper iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      @media (min-width: 768px) {
+        .menu-button {
+          display: none;
+        }
+        .layout {
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 48px;
+        }
+        aside {
+          position: sticky;
+          top: 56px;
+          left: 0;
+          width: var(--sidebar-width);
+          height: calc(100vh - 56px);
+        }
+        nav {
+          padding: 16px 0;
+        }
+      }
+
+      @media (min-width: 1024px) {
+        header {
+          padding: 0 32px;
+        }
+        .layout {
+          padding: 0 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-layout">
+        <a href="/"><img src="/guide/media/logo.svg" alt="NodeBox Logo" width="24" />NodeBox</a>
+        <h1>{{ title }}</h1>
+        <button class="menu-button" aria-label="Toggle menu">☰</button>
+      </div>
+    </header>
+    <div class="layout">
+      <aside>
+        <nav>
+          <group>
+            <div class="group-title">Getting Started</div>
+            <div class="group-items">
+              <a href="/guide/welcome">Welcome</a>
+              <a href="/guide/interface-overview">The NodeBox Interface</a>
+              <a href="/guide/help-support">Getting Help and Support</a>
+            </div>
+          </group>
+          <group>
+            <div class="group-title">Creating Visualizations</div>
+            <div class="group-items">
+              <a href="/guide/preparing-data-for-visualization">Preparing Your Data</a>
+              <a href="/guide/creating-basic-visualization">Basic Visualizations</a>
+              <a href="/guide/creating-waffle-chart">Waffle Chart</a>
+              <a href="/guide/customizing-visualizations">Customizing Visualizations</a>
+            </div>
+          </group>
+          <group>
+            <div class="group-title">Coding Nodes</div>
+            <div class="group-items">
+              <a href="/guide/coding-tutorial">Coding your First Node</a>
+              <a href="/guide/coding-libraries">Using External Libraries</a>
+              <a href="/guide/coding-shared-code">Sharing Code Across Functions</a>
+              <a href="/guide/graphics-api">Graphics API</a>
+              <a href="/guide/embedding-nodebox">Embedding NodeBox</a>
+            </div>
+          </group>
+          <group>
+            <div class="group-title">Reference</div>
+            <div class="group-items">
+              <a href="/guide/node-reference">Node Overview</a>
+            </div>
+          </group>
+          <group>
+            <div class="group-title">Advanced</div>
+            <div class="group-items">
+              <a href="/guide/publishing">Publishing a Project</a>
+              <a href="/guide/dependencies">Managing Dependencies</a>
+              <a href="/guide/raw-mode">Raw Mode</a>
+            </div>
+          </group>
+        </nav>
+      </aside>
+      <div class="content">
+        <main>{{ content }}</main>
+      </div>
+      <div class="overlay"></div>
+    </div>
+    <script>
+      const header = document.querySelector("header");
+      const menuButton = document.querySelector(".menu-button");
+      const aside = document.querySelector("aside");
+
+      window.addEventListener("scroll", () => {
+        if (window.scrollY > 0) {
+          header.classList.add("shadow");
+        } else {
+          header.classList.remove("shadow");
+        }
+      });
+
+      menuButton.addEventListener("click", () => {
+        document.body.classList.toggle("menu-open");
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener("click", (event) => {
+        if (!aside.contains(event.target) && !menuButton.contains(event.target)) {
+          document.body.classList.remove("menu-open");
+        }
+      });
+
+      // Close menu when resizing to desktop view
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 768) {
+          document.body.classList.remove("menu-open");
+        }
+      });
+    </script>
+  </body>
+</html>

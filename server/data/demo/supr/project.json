@@ -1,0 +1,469 @@
+{
+    "title": "Supershape",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "shape1",
+                    "x": 41,
+                    "y": 67,
+                    "fn": "supr.shape",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": -20,
+                        "height": 200,
+                        "m": 400,
+                        "n1": 90,
+                        "n2": 237,
+                        "n3": -242
+                    }
+                },
+                {
+                    "name": "iterate1",
+                    "x": 56,
+                    "y": 131,
+                    "fn": "supr.iterate",
+                    "outputType": "shape",
+                    "returnsList": true,
+                    "values": {
+                        "path": null,
+                        "amount": 75,
+                        "seed": 185
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 90,
+                    "y": 204,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "rgba(255, 255, 255, 0.8)",
+                        "stroke": "rgba(0, 23, 74, 0.9)",
+                        "strokeWidth": 0.3
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shape1",
+                    "input": "iterate1",
+                    "parameter": "path"
+                },
+                {
+                    "output": "iterate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "example": "supr.main()",
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "filter",
+            "source": "// Transform the points of a path according to the supershape.\nsupr.filter = function (path, m, n1, n2, n3) {\n    var TWO_PI, newPath, i, el, percentage, calc, pt, dx, dy, phi;\n    if (!path) {\n        return null;\n    }\n\n    TWO_PI = Math.PI * 2;\n    percentage = TWO_PI / path.commands.length;\n    calc = supr.point;\n  \n    newPath = new g.Path();\n    for (i = 0; i < path.commands.length; i += 1) {\n        el = path.commands[i];\n        phi = i * percentage;\n        pt = calc(m, n1, n2, n3, phi);\n        if (el.x !== undefined && el.y !== undefined) {\n            dx = el.x + pt.x;\n            dy = el.y + pt.y;\n            if (i === 0) {\n                newPath.moveTo(dx, dy);\n            } else {\n                newPath.lineTo(dx, dy);\n            }\n        }\n    }\n    newPath.closePath();\n    return newPath.colorize('transparent', 'black', 0.5);\n};",
+            "example": "supr.filter(null, 4, 1, 1, 1)",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "shape",
+                    "value": null
+                },
+                {
+                    "name": "m",
+                    "type": "float",
+                    "value": 4
+                },
+                {
+                    "name": "n1",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "n2",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "n3",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "iterate",
+            "outputType": "shape",
+            "returnsList": true,
+            "source": "supr.iterate = function (path, amount, seed) {\n    var p = path, i, paths = [];\n    var rand = ndbx.randomGenerator(seed);\n    for (i = 0; i < amount; i += 1) {\n        var m, n1, n2, n3;\n        m = rand(1, 50);\n        n1 = rand(0.01, 20.0);\n        n2 = rand(0.01, 20.0);\n        n3 = rand(0.01, 20.0);\n        p = supr.filter(p, m, n1, n2, n3);\n        paths.push(p);\n    }\n    return paths.reverse();\n};",
+            "example": "supr.iterate(42)",
+            "parameters": [
+                {
+                    "name": "path",
+                    "type": "shape",
+                    "value": null
+                },
+                {
+                    "name": "amount",
+                    "type": "int",
+                    "value": 1
+                },
+                {
+                    "name": "seed",
+                    "type": "int",
+                    "value": 42
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "point",
+            "outputType": "point",
+            "source": "supr.point = function (m, n1, n2, n3, phi) {\n    var a, b, t1, t2, r\n    a = 1.0\n    b = 1.0\n\n    t1 = Math.cos(m * phi / 4) / a;\n    t1 = Math.abs(t1);\n    t1 = Math.pow(t1, n2);\n\n    t2 = Math.sin(m * phi / 4) / b;\n    t2 = Math.abs(t2);\n    t2 = Math.pow(t2, n3);\n\n    r = Math.pow(t1 + t2, 1 / n1);\n    if (Math.abs(r) === 0) {\n        return g.Point.ZERO;\n    } else {\n        r = 1 / r;\n        return new g.Point(r * Math.cos(phi), r * Math.sin(phi));\n    }\n}",
+            "example": "supr.point(4, 1, 1, 1, 0.1)",
+            "parameters": [
+                {
+                    "name": "m",
+                    "type": "float",
+                    "value": 4
+                },
+                {
+                    "name": "n1",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "n2",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "n3",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "shape",
+            "outputType": "shape",
+            "source": "supr.shape = function (position, width, height, m, n1, n2, n3, points) {\n    var TWO_PI, path, i, percentage, range, calc;\n\n    TWO_PI = Math.PI * 2;\n    percentage = 1.0;\n    range = TWO_PI;\n    calc = supr.point;\n\n    n1 /= 100;\n    n2 /= 100;\n    n3 /= 100;\n\n    path = new g.Path();\n    path.fill = null;\n    path.stroke = 'black';\n    path.strokeWidth = 0.5;\n    for (i = 0; i < points; i += 1) {\n        var phi = i * range / points;\n        var pt = calc(m, n1, n2, n3, phi);\n        var dx = (pt.x * width / 2) + position.x;\n        var dy = (pt.y * height / 2) + position.y;\n        if (i === 0) {\n            path.moveTo(dx, dy);\n        } else {\n            path.lineTo(dx, dy);\n        }\n    }\n    path.close();\n    return path;\n};",
+            "example": "supr.shape({x: 0, y: 0}, 300, 300, 4.0, 1.0, 1.0, 1.0, 1000)",
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "width",
+                    "type": "float",
+                    "value": 300
+                },
+                {
+                    "name": "height",
+                    "type": "float",
+                    "value": 300
+                },
+                {
+                    "name": "m",
+                    "type": "float",
+                    "value": 10
+                },
+                {
+                    "name": "n1",
+                    "type": "float",
+                    "value": 30
+                },
+                {
+                    "name": "n2",
+                    "type": "float",
+                    "value": 30
+                },
+                {
+                    "name": "n3",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "points",
+                    "type": "int",
+                    "value": 1000
+                }
+            ]
+        },
+        {
+            "name": "test",
+            "type": "network",
+            "renderedNode": "iterate1",
+            "nodes": [
+                {
+                    "name": "shape1",
+                    "x": 13,
+                    "y": 16,
+                    "fn": "supr.shape",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 1000,
+                        "height": 1000,
+                        "m": 2,
+                        "n1": 15,
+                        "n2": 7,
+                        "n3": 11,
+                        "points": 1000
+                    }
+                },
+                {
+                    "name": "iterate1",
+                    "x": 13,
+                    "y": 137,
+                    "fn": "supr.iterate",
+                    "outputType": "shape",
+                    "returnsList": true,
+                    "values": {
+                        "path": null,
+                        "amount": 2,
+                        "seed": 6653
+                    }
+                },
+                {
+                    "name": "iterate2",
+                    "x": 127,
+                    "y": 80,
+                    "fn": "supr.iterate",
+                    "outputType": "shape",
+                    "returnsList": true,
+                    "values": {
+                        "path": null,
+                        "amount": 2,
+                        "seed": 144
+                    }
+                },
+                {
+                    "name": "merge1",
+                    "x": 463,
+                    "y": 103,
+                    "fn": "g.merge",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "p1": null,
+                        "p2": null,
+                        "p3": null,
+                        "p4": null,
+                        "p5": null
+                    }
+                },
+                {
+                    "name": "iterate3",
+                    "x": 99,
+                    "y": 180,
+                    "fn": "supr.iterate",
+                    "outputType": "shape",
+                    "returnsList": true,
+                    "values": {
+                        "path": null,
+                        "amount": 1,
+                        "seed": 94
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 14,
+                    "y": 268,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": null,
+                        "tag": "",
+                        "fill": "rgba(240, 240, 245, 0.8)",
+                        "stroke": "none",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 259,
+                    "y": 103,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": null,
+                        "tag": "",
+                        "fill": "rgba(232, 235, 172, 0.8)",
+                        "stroke": "rgba(232, 235, 172, 0.8)",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 184,
+                    "y": 180,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": null,
+                        "tag": "",
+                        "fill": "rgba(0, 43, 94, 1)",
+                        "stroke": "none",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 183,
+                    "y": 104,
+                    "fn": "g.scale",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": "",
+                        "tag": "",
+                        "scale": 1024
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 13,
+                    "y": 195,
+                    "fn": "g.scale",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": "",
+                        "tag": "",
+                        "scale": 1934
+                    }
+                },
+                {
+                    "name": "scale3",
+                    "x": 540,
+                    "y": 105,
+                    "fn": "g.scale",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": "",
+                        "tag": "",
+                        "scale": 80
+                    }
+                },
+                {
+                    "name": "reflect1",
+                    "x": 14,
+                    "y": 337,
+                    "fn": "g.mirror",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": ""
+                    }
+                },
+                {
+                    "name": "scale4",
+                    "x": 263,
+                    "y": 179,
+                    "fn": "g.scale",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": "",
+                        "tag": "",
+                        "scale": 1226
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shape1",
+                    "input": "iterate1",
+                    "parameter": "path"
+                },
+                {
+                    "output": "shape1",
+                    "input": "iterate3",
+                    "parameter": "path"
+                },
+                {
+                    "output": "shape1",
+                    "input": "iterate2",
+                    "parameter": "path"
+                },
+                {
+                    "output": "iterate2",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "merge1",
+                    "input": "scale3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "iterate1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "reflect1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "iterate3",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "scale4",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "example": "supr.test()",
+            "returnsList": true
+        }
+    ],
+    "color": "#0a2050",
+    "id": "supr"
+}

@@ -1,0 +1,566 @@
+{
+    "title": "f01time",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine2",
+            "nodes": [
+                {
+                    "name": "timer1",
+                    "x": 50,
+                    "y": 97,
+                    "fn": "f01time.timer"
+                },
+                {
+                    "name": "first1",
+                    "x": 52,
+                    "y": 152,
+                    "fn": "g.first"
+                },
+                {
+                    "name": "second1",
+                    "x": 168,
+                    "y": 154,
+                    "fn": "g.second"
+                },
+                {
+                    "name": "last1",
+                    "x": 286,
+                    "y": 151,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 29,
+                    "y": 287,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "distance": 50
+                    }
+                },
+                {
+                    "name": "convert1",
+                    "x": 52,
+                    "y": 199,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 24,
+                        "outMax": 360
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 47,
+                    "y": 332,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "red",
+                        "strokeWidth": 16
+                    }
+                },
+                {
+                    "name": "lineAngle2",
+                    "x": 163,
+                    "y": 288,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "distance": 75
+                    }
+                },
+                {
+                    "name": "convert2",
+                    "x": 168,
+                    "y": 198,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 60,
+                        "outMax": 360
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 163,
+                    "y": 332,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "green",
+                        "strokeWidth": 10
+                    }
+                },
+                {
+                    "name": "convert3",
+                    "x": 286,
+                    "y": 199,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 60,
+                        "outMax": 360
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 286,
+                    "y": 335,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "blue",
+                        "strokeWidth": 5
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 134,
+                    "y": 697,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "lineAngle4",
+                    "x": 287,
+                    "y": 287,
+                    "fn": "g.lineAngle"
+                },
+                {
+                    "name": "subtract1",
+                    "x": 286,
+                    "y": 242,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 90
+                    }
+                },
+                {
+                    "name": "string1",
+                    "x": 264,
+                    "y": 530,
+                    "fn": "g.string"
+                },
+                {
+                    "name": "text1",
+                    "x": 264,
+                    "y": 581,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 15
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 168,
+                    "y": 240,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 90
+                    }
+                },
+                {
+                    "name": "subtract3",
+                    "x": 52,
+                    "y": 240,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": -150
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 28,
+                    "y": 393,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 50,
+                        "height": 50
+                    }
+                },
+                {
+                    "name": "colorize4",
+                    "x": 30,
+                    "y": 441,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white",
+                        "stroke": "black",
+                        "strokeWidth": 3
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 31,
+                    "y": 487,
+                    "fn": "g.copy",
+                    "values": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        },
+                        "copies": 8
+                    }
+                },
+                {
+                    "name": "takeEvery1",
+                    "x": 31,
+                    "y": 572,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 2
+                    }
+                },
+                {
+                    "name": "reverse1",
+                    "x": 31,
+                    "y": 530,
+                    "fn": "g.reverse"
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 374,
+                    "y": 488,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "last2",
+                    "x": 374,
+                    "y": 534,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 562,
+                    "y": 337,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "last3",
+                    "x": 562,
+                    "y": 383,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "string2",
+                    "x": 452,
+                    "y": 379,
+                    "fn": "g.string"
+                },
+                {
+                    "name": "text2",
+                    "x": 452,
+                    "y": 430,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 15
+                    }
+                },
+                {
+                    "name": "toPoints3",
+                    "x": 564,
+                    "y": 187,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "last4",
+                    "x": 564,
+                    "y": 233,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "string3",
+                    "x": 454,
+                    "y": 229,
+                    "fn": "g.string"
+                },
+                {
+                    "name": "text3",
+                    "x": 454,
+                    "y": 280,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 15
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 268,
+                    "y": 779,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "add1",
+                    "x": -80,
+                    "y": 231,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "divide1",
+                    "x": -74,
+                    "y": 184,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 60
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "timer1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "timer1",
+                    "input": "second1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "timer1",
+                    "input": "last1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lineAngle2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "second1",
+                    "input": "convert2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "last1",
+                    "input": "convert3",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert3",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "lineAngle4",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "string1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "lineAngle4",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "convert2",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "lineAngle2",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "convert1",
+                    "input": "subtract3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract3",
+                    "input": "lineAngle1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "copy1",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "last2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last1",
+                    "input": "string1",
+                    "parameter": "s"
+                },
+                {
+                    "output": "last2",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "string2",
+                    "input": "text2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "last3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last3",
+                    "input": "text2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "string3",
+                    "input": "text3",
+                    "parameter": "text"
+                },
+                {
+                    "output": "toPoints3",
+                    "input": "last4",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last4",
+                    "input": "text3",
+                    "parameter": "position"
+                },
+                {
+                    "output": "second1",
+                    "input": "string2",
+                    "parameter": "s"
+                },
+                {
+                    "output": "lineAngle2",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "first1",
+                    "input": "string3",
+                    "parameter": "s"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "toPoints3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "text3",
+                    "input": "combine1",
+                    "parameter": "list7"
+                },
+                {
+                    "output": "combine1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "text2",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "second1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "first1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list6"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 286,
+                    "y": 12,
+                    "width": 95,
+                    "height": 49,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "timer",
+            "source": "f01time.timer  = function (v) {\n    var d = new Date();\n    var all = [];\n    all.push(d.getHours());\n    all.push(d.getMinutes());\n    all.push(d.getSeconds());\n    return all;\n};\n",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "f01time"
+}

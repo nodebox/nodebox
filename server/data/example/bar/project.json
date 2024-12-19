@@ -1,0 +1,647 @@
+{
+  "title": "Bar",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic bar plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSOBMBVKTue:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "bar"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "group"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Nitrogen"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "group"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSOBMBVKTue:2",
+          "x": 240,
+          "y": 237,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eZ713aVJ8pj:1",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/nitrogenStress.csv"
+            }
+          }
+        },
+        {
+          "id": "eZ713aVJ8pj:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A bar plot represents categorical data on one axis with rectangular bars. The length of each bar is proportional to the numeric data on the other axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ713aVJ8pj:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ713aVJ8pj:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ713aVJ8pj:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Bar Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Select the plot type and specify which data attributes you want to map to the X- and the Y-position. Add a color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ713aVJ8pj:1",
+          "outPort": "out",
+          "inNode": "eSOBMBVKTue:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSOBMBVKTue:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eSOBMBVKTue:2",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSOBMBVKTue:2",
+      "outputPorts": [],
+      "description": "A bar plot represents categorical data on one axis with rectangular bars. The length of each bar is proportional to the numeric data on the other axis. ",
+      "__gallery": {
+        "keyword": "bar",
+        "subKeyword": "Basic bar plot"
+      },
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 480,
+      "height": 480
+    },
+    {
+      "type": "NETWORK",
+      "id": "eSODIhVxnTQ:1",
+      "name": "Stacked bar plot",
+      "category": "",
+      "description": "",
+      "width": 500,
+      "height": 480,
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSODIhVxnTQ:3",
+          "x": 240,
+          "y": 177,
+          "name": "Pivot Data 1",
+          "fn": "core/g/Pivot Data",
+          "values": {
+            "name": {
+              "type": "VALUE",
+              "value": "condition"
+            },
+            "value": {
+              "type": "VALUE",
+              "value": "Nitrogen,normal,stress"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "Longer"
+            },
+            "pivotAttrs": {
+              "type": "VALUE",
+              "value": "Nitrogen,normal,stress"
+            },
+            "namesTo": {
+              "type": "VALUE",
+              "value": "Condition"
+            },
+            "valuesTo": {
+              "type": "VALUE",
+              "value": "Value"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSODIhVxnTQ:5",
+          "x": 240,
+          "y": 357,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSODIhVxnTQ:6",
+          "x": 240,
+          "y": 297,
+          "name": "Set Plot Type 1",
+          "fn": "core/plot/Set Plot Type",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "bar"
+            },
+            "stacked": {
+              "type": "VALUE",
+              "value": true
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": "zero"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "X"
+            }
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A stacked bar plot is a bar plot where bars of different groups are stacked. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:8",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Stacked Bar Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position. Add a color scale for the groups. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "We need tidy data to plot. This data is not tidy because it has multiple observations in attributes of one record. Use Pivot Data to move the attributes to separate records. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:12",
+          "type": "STICKY",
+          "x": 50,
+          "y": 400,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "In tidy data:",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:13",
+          "type": "STICKY",
+          "x": 50,
+          "y": 430,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "1. Each variable must have its own column.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:14",
+          "type": "STICKY",
+          "x": 50,
+          "y": 360,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Tidy data",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:15",
+          "type": "STICKY",
+          "x": 50,
+          "y": 460,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "2. Each observation must have its own row.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:16",
+          "type": "STICKY",
+          "x": 50,
+          "y": 490,
+          "width": 150,
+          "height": 40,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "3. Each value must have its own cell.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eaCjDd1VpjK:17",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Change the plot type. Switch the direction to X. Select stack. Use normalize to display the values as ratios. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eaCjDd1VpjK:18",
+          "x": 240,
+          "y": 237,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "scatter"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "Value"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Condition"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "group"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eaCjDd1VpjK:19",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/nitrogenStress.csv"
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSODIhVxnTQ:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eSODIhVxnTQ:5",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSODIhVxnTQ:3",
+          "outPort": "dataOut",
+          "inNode": "eaCjDd1VpjK:18",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eaCjDd1VpjK:18",
+          "outPort": "plotSpecOut",
+          "inNode": "eSODIhVxnTQ:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eaCjDd1VpjK:19",
+          "outPort": "out",
+          "inNode": "eSODIhVxnTQ:3",
+          "inPort": "dataIn"
+        }
+      ],
+      "renderedNode": "eSODIhVxnTQ:5",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "bar",
+        "subKeyword": "Stacked bar plot"
+      }
+    }
+  ],
+  "id": "bar",
+  "formatVersion": 4,
+  "__gallery": {}
+}

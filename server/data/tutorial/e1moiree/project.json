@@ -1,0 +1,224 @@
+{
+    "title": "e1moiree",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "copy1",
+            "nodes": [
+                {
+                    "name": "grid1",
+                    "x": 57,
+                    "y": 102,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 500,
+                        "height": 500,
+                        "columns": 30,
+                        "rows": 30,
+                        "columnWidth": 12,
+                        "rowHeight": 12
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 55,
+                    "y": 417,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 99,
+                    "y": 488,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "copy1",
+                    "x": 98,
+                    "y": 535,
+                    "fn": "g.copy",
+                    "values": {
+                        "rotate": 60,
+                        "copies": 3
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 221,
+                    "y": 373,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 57,
+                    "y": 197,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 600,
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 220,
+                    "y": 468,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 1.1
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": 89,
+                    "y": 245,
+                    "fn": "g.distance",
+                    "values": {
+                        "p2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 152,
+                    "y": 308,
+                    "fn": "g.min",
+                    "values": {}
+                },
+                {
+                    "name": "max1",
+                    "x": 257,
+                    "y": 310,
+                    "fn": "g.max",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": 79,
+                    "y": 367,
+                    "fn": "g.convert",
+                    "values": {
+                        "inMax": 1,
+                        "outMin": 6,
+                        "outMax": 10
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 220,
+                    "y": 424,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 56,
+                    "y": 153,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "distance"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "slice1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "divide1",
+                    "input": "copy1",
+                    "parameter": "rotate"
+                },
+                {
+                    "output": "distance1",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "distance1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "distance1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "convert1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "convert1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "grid1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "e1moiree"
+}

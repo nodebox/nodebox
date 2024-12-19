@@ -1,0 +1,2071 @@
+{
+    "title": "lsystem",
+    "color": "#aabbaa",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "lsystemDraw1",
+                    "x": 125,
+                    "y": 345,
+                    "fn": "lsystem.lsystemDraw",
+                    "values": {
+                        "generations": 7,
+                        "scale": 0.9,
+                        "time": 11,
+                        "ease": 0.8
+                    }
+                },
+                {
+                    "name": "lsystem2",
+                    "x": 55,
+                    "y": 195,
+                    "fn": "lsystem.lsystem",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 135,
+                    "y": 285,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "lsystemDraw2",
+                    "x": -115,
+                    "y": 345,
+                    "fn": "lsystem.lsystemDraw",
+                    "values": {
+                        "generations": 7,
+                        "scale": 1,
+                        "time": 11,
+                        "ease": 0.8
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": -115,
+                    "y": 285,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "angle": -90,
+                        "point": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 65,
+                    "y": 625,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "frame1",
+                    "x": 215,
+                    "y": 105,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 215,
+                    "y": 185,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.1
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -113.67099699625847,
+                    "y": 405,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(255, 0, 136, 0.7925925925925926)",
+                        "stroke": "rgba(24, 78, 64, 0.6370370370370371)",
+                        "strokeWidth": 4
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 125,
+                    "y": 395,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 125,
+                    "y": 495,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0.99,
+                        "blue": 0.19000000000000006,
+                        "green": 0.060000000000000366,
+                        "alpha": 0.6600000000000001
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 125,
+                    "y": 445,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 1.5,
+                        "min": 0.1,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 85,
+                    "y": 565,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "add1",
+                    "x": 215,
+                    "y": 145,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "gnarledTree",
+                    "x": -75,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: FF[--FF[2][-FF2]][+FF3]\n2: F+F+F-[2]F-F-F-F->[2]\n3: F-F-F+[2]F+F+F+F+>[2]"
+                    }
+                },
+                {
+                    "name": "tallTree",
+                    "x": 45,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: FF[+2][3][-3]\n2: FF-F+F+F[FFF3][-3]+F+F3\n3: FF+F-F-F[2][+2]-F-F2"
+                    }
+                },
+                {
+                    "name": "greatTree",
+                    "x": 165,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: F+F-F[--2][F-2][F+2][++2]\n2: F-FF+F[--3][-3][+4][++4]\n3: +[4]F+FF+FF+FF+F[4]\n4: -[3]F-FF-FF-FF-F[3]"
+                    }
+                },
+                {
+                    "name": "switch1",
+                    "x": 56,
+                    "y": 154,
+                    "fn": "g.switch",
+                    "values": {
+                        "index": 1
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 65,
+                    "y": 675,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 205,
+                    "y": 675,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "y": 103,
+                        "x": 46
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 65,
+                    "y": 735,
+                    "fn": "g.translate"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lsystem2",
+                    "input": "lsystemDraw1",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "lsystemDraw1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lsystem2",
+                    "input": "lsystemDraw2",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "lsystemDraw2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lsystemDraw1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "sample1",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "lsystemDraw1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "lsystemDraw2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "lsystemDraw1",
+                    "parameter": "time"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "lsystemDraw2",
+                    "parameter": "time"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "gnarledTree",
+                    "input": "switch1",
+                    "parameter": "l1"
+                },
+                {
+                    "output": "tallTree",
+                    "input": "switch1",
+                    "parameter": "l2"
+                },
+                {
+                    "output": "greatTree",
+                    "input": "switch1",
+                    "parameter": "l3"
+                },
+                {
+                    "output": "switch1",
+                    "input": "lsystem2",
+                    "parameter": "rules"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "background": "#ddd",
+            "stickies": [
+                {
+                    "x": 235,
+                    "y": 225,
+                    "width": 105,
+                    "height": 35,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "name": "example1",
+            "type": "network",
+            "renderedNode": "translate2",
+            "nodes": [
+                {
+                    "name": "lsystem1",
+                    "x": 65,
+                    "y": 185,
+                    "fn": "lsystem.lsystem",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 145,
+                    "y": 675,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 275,
+                    "y": 445,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "green": 0.6700000000000004,
+                        "alpha": 0.8600000000000001,
+                        "blue": 0.1299999999999999,
+                        "red": 0.98
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 225,
+                    "y": 505,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "lsystemData1",
+                    "x": 65,
+                    "y": 235,
+                    "fn": "lsystem.lsystemData",
+                    "values": {
+                        "generations": 7,
+                        "ease": 0.8
+                    }
+                },
+                {
+                    "name": "lookupLength",
+                    "x": 145,
+                    "y": 295,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "length"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 145,
+                    "y": 345,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.95
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 145,
+                    "y": 395,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "lookupMatrix",
+                    "x": -55,
+                    "y": 295,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "transform"
+                    }
+                },
+                {
+                    "name": "applyMatrix1",
+                    "x": 145,
+                    "y": 445,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": -75,
+                    "y": 395,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "angle": -90
+                    }
+                },
+                {
+                    "name": "applyMatrix2",
+                    "x": -15,
+                    "y": 445,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "switch1",
+                    "x": 65,
+                    "y": 135,
+                    "fn": "g.switch",
+                    "values": {}
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": 455,
+                    "y": 135,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "multiply3",
+                    "x": 455,
+                    "y": 185,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 195,
+                    "y": 135,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.1,
+                        "a": 106
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 275,
+                    "y": 395,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 1
+                    }
+                },
+                {
+                    "name": "lookupRelLength",
+                    "x": 275,
+                    "y": 295,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "rel_length"
+                    }
+                },
+                {
+                    "name": "multiply4",
+                    "x": 275,
+                    "y": 345,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 1.2
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 325,
+                    "y": 85,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "add1",
+                    "x": 325,
+                    "y": 135,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 13
+                    }
+                },
+                {
+                    "name": "multiply5",
+                    "x": 325,
+                    "y": 185,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.05
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -15,
+                    "y": 505,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(215, 140, 22, 0.6877314814814814)",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 365,
+                    "y": 555,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(24, 35, 4, 0.2616898148148148)"
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 225,
+                    "y": 605,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 2,
+                            "y": 3
+                        }
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 145,
+                    "y": 725,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "hslAdjust1",
+                    "x": 155,
+                    "y": 555,
+                    "fn": "g.hslAdjust"
+                },
+                {
+                    "name": "subtract2",
+                    "x": 405,
+                    "y": 395,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 0.4
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 145,
+                    "y": 785,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 295,
+                    "y": 725,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "y": 90,
+                        "x": 45
+                    }
+                },
+                {
+                    "name": "gnarledTree",
+                    "x": -75,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: FF[--FF[2][-FF2]][+FF3]\n2: F+F+F-[2]F-F-F-F->[2]\n3: F-F-F+[2]F+F+F+F+>[2]"
+                    }
+                },
+                {
+                    "name": "tallTree",
+                    "x": 45,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: FF[+2][3][-3]\n2: FF-F+F+F[FFF3][-3]+F+F3\n3: FF+F-F-F[2][+2]-F-F2"
+                    }
+                },
+                {
+                    "name": "greatTree",
+                    "x": 165,
+                    "y": 55,
+                    "fn": "g.string",
+                    "values": {
+                        "s": "1: F+F-F[--2][F-2][F+2][++2]\n2: F-FF+F[--3][-3][+4][++4]\n3: +[4]F+FF+FF+FF+F[4]\n4: -[3]F-FF-FF-FF-F[3]"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "lsystem1",
+                    "input": "lsystemData1",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookupLength",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookupLength",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookupMatrix",
+                    "parameter": "table"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "applyMatrix1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookupMatrix",
+                    "input": "applyMatrix1",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "applyMatrix1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookupLength",
+                    "input": "lineAngle1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "lookupMatrix",
+                    "input": "applyMatrix2",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "applyMatrix2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "switch1",
+                    "input": "lsystem1",
+                    "parameter": "rules"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookupRelLength",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookupRelLength",
+                    "input": "multiply4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "multiply5",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply5",
+                    "input": "lsystemData1",
+                    "parameter": "time"
+                },
+                {
+                    "output": "applyMatrix2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "rgbColor1",
+                    "parameter": "green"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "hslAdjust1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "hslAdjust1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "hslAdjust1",
+                    "parameter": "lightness"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "gnarledTree",
+                    "input": "switch1",
+                    "parameter": "l1"
+                },
+                {
+                    "output": "tallTree",
+                    "input": "switch1",
+                    "parameter": "l2"
+                },
+                {
+                    "output": "greatTree",
+                    "input": "switch1",
+                    "parameter": "l3"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "background": "#ddd",
+            "stickies": [
+                {
+                    "x": -55,
+                    "y": 235,
+                    "width": 85,
+                    "height": 25,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "name": "example2",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "lsystem1",
+                    "x": 65,
+                    "y": 185,
+                    "fn": "lsystem.lsystem",
+                    "values": {
+                        "rules": "1: [+F+FF1][-FFF--FF1]"
+                    }
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 315,
+                    "y": 475,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0.99,
+                        "blue": 0.3999999999999999,
+                        "green": 0.3400000000000001,
+                        "alpha": 0.6
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 143.3898549078249,
+                    "y": 535,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "lsystemData1",
+                    "x": 65,
+                    "y": 235,
+                    "fn": "lsystem.lsystemData",
+                    "values": {
+                        "ease": 10,
+                        "generations": 9
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 145,
+                    "y": 295,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "length"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 145,
+                    "y": 345,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.9
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 5,
+                    "y": 305,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "transform"
+                    }
+                },
+                {
+                    "name": "applyMatrix1",
+                    "x": 145,
+                    "y": 485,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": 215,
+                    "y": 85,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "multiply2",
+                    "x": 215,
+                    "y": 185,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 145,
+                    "y": 585,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "lookup4",
+                    "x": 315,
+                    "y": 245,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "time"
+                    }
+                },
+                {
+                    "name": "clamp1",
+                    "x": 315,
+                    "y": 345,
+                    "fn": "g.clamp",
+                    "values": {
+                        "max": 1
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 325,
+                    "y": 296,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 7
+                    }
+                },
+                {
+                    "name": "multiply6",
+                    "x": 315,
+                    "y": 395,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.85
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 315,
+                    "y": 435,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 1
+                    }
+                },
+                {
+                    "name": "polygon1",
+                    "x": 145,
+                    "y": 385,
+                    "fn": "g.polygon"
+                },
+                {
+                    "name": "clamp2",
+                    "x": 215,
+                    "y": 135,
+                    "fn": "g.clamp",
+                    "values": {
+                        "max": 4.7
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 145,
+                    "y": 435,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.7,
+                            "y": 1
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 145,
+                    "y": 645,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 15,
+                            "y": 60
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lsystem1",
+                    "input": "lsystemData1",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "applyMatrix1",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "applyMatrix1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "lsystemData1",
+                    "parameter": "time"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "clamp1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "clamp1",
+                    "input": "multiply6",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply6",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "polygon1",
+                    "parameter": "radius"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "clamp2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "clamp2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "polygon1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "applyMatrix1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "background": "#abb",
+            "stickies": [
+                {
+                    "x": 355,
+                    "y": 185,
+                    "width": 85,
+                    "height": 35,
+                    "text": "Press Play"
+                }
+            ]
+        },
+        {
+            "name": "example3",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "lsystem1",
+                    "x": 55,
+                    "y": 325,
+                    "fn": "lsystem.lsystem",
+                    "values": {
+                        "rules": "1: FFF\nX: 1+[[X]-X]-1[-1X]+X",
+                        "root": "X",
+                        "angle": -27.5,
+                        "segmentLength": 70,
+                        "decrease": 0.65,
+                        "premise": "X"
+                    }
+                },
+                {
+                    "name": "lsystemData1",
+                    "x": 55,
+                    "y": 385,
+                    "fn": "lsystem.lsystemData",
+                    "values": {
+                        "generations": 6,
+                        "position": {
+                            "x": 0,
+                            "y": 77
+                        }
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": -115,
+                    "y": 605,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "transform"
+                    }
+                },
+                {
+                    "name": "applyMatrix1",
+                    "x": -75,
+                    "y": 845,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "lineAngle2",
+                    "x": -255,
+                    "y": 685,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "angle": -90,
+                        "distance": 24
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": -255,
+                    "y": 605,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "length"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -205,
+                    "y": 785,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(0, 0, 0, 1)"
+                    }
+                },
+                {
+                    "name": "makeNumbers2",
+                    "x": 85,
+                    "y": 565,
+                    "fn": "g.makeNumbers",
+                    "values": {
+                        "s": "0.5;3;7;8;12"
+                    }
+                },
+                {
+                    "name": "lookup3",
+                    "x": 215,
+                    "y": 565,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "generation"
+                    }
+                },
+                {
+                    "name": "get1",
+                    "x": 105,
+                    "y": 665,
+                    "fn": "g.get"
+                },
+                {
+                    "name": "filterData1",
+                    "x": 345,
+                    "y": 455,
+                    "fn": "g.filterData",
+                    "values": {
+                        "key": "generation",
+                        "value": "0"
+                    }
+                },
+                {
+                    "name": "lookup5",
+                    "x": 455,
+                    "y": 645,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "transform"
+                    }
+                },
+                {
+                    "name": "applyMatrix2",
+                    "x": 385,
+                    "y": 715,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "takeEvery1",
+                    "x": 465,
+                    "y": 565,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "offset": 6,
+                        "n": 7
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 135,
+                    "y": 1035,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "takeEvery2",
+                    "x": 385,
+                    "y": 825,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 2,
+                        "offset": 1
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 386.32900300374155,
+                    "y": 885,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 11,
+                        "height": 11
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 385,
+                    "y": 765,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "colorize2",
+                    "x": 385,
+                    "y": 945,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(233, 195, 32, 0.04664351851851852)"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 345,
+                    "y": 565,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "length"
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 315,
+                    "y": 635,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "angle": -90
+                    }
+                },
+                {
+                    "name": "hslColor2",
+                    "x": -33.67099699625846,
+                    "y": 566.3290030037415,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "saturation": 0.91,
+                        "hue": 0.05,
+                        "alpha": 0.6800000000000002
+                    }
+                },
+                {
+                    "name": "get2",
+                    "x": -15,
+                    "y": 665,
+                    "fn": "g.get"
+                },
+                {
+                    "name": "sample1",
+                    "x": -5,
+                    "y": 505,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 5,
+                        "min": 0.55,
+                        "max": 0.3
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 135,
+                    "y": 1085,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "translate1",
+                    "x": 135,
+                    "y": 1135,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 255,
+                    "y": 1085,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "y": 218
+                    }
+                },
+                {
+                    "name": "text1",
+                    "x": 225,
+                    "y": 695,
+                    "fn": "g.text",
+                    "values": {
+                        "text": "☘️",
+                        "fontSize": 10
+                    }
+                },
+                {
+                    "name": "applyMatrix3",
+                    "x": 225,
+                    "y": 795,
+                    "fn": "lsystem.applyMatrix"
+                },
+                {
+                    "name": "rotate1",
+                    "x": 225,
+                    "y": 745,
+                    "fn": "g.rotate",
+                    "values": {
+                        "angle": 22
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lsystem1",
+                    "input": "lsystemData1",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "applyMatrix1",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "lineAngle2",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "lineAngle2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "applyMatrix1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "makeNumbers2",
+                    "input": "get1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "get1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "get1",
+                    "input": "colorize1",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "lsystemData1",
+                    "input": "filterData1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "applyMatrix2",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "filterData1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "applyMatrix2",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "takeEvery2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "filterData1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "lineAngle1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "takeEvery2",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "get2",
+                    "parameter": "index"
+                },
+                {
+                    "output": "hslColor2",
+                    "input": "get2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "get2",
+                    "input": "colorize1",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor2",
+                    "parameter": "lightness"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "applyMatrix3",
+                    "parameter": "matrix"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "applyMatrix2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "applyMatrix1",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "applyMatrix3",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "text1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "applyMatrix3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "background": "#ded"
+        },
+        {
+            "name": "abop",
+            "type": "network",
+            "renderedNode": "abopDraw12",
+            "nodes": [
+                {
+                    "name": "abopDraw1",
+                    "x": 275,
+                    "y": 165,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: F+FF-FF-F-F+F+FF-F-F+F+FF+FF-F",
+                        "premise": "F-F-F-F",
+                        "generations": 2
+                    }
+                },
+                {
+                    "name": "abopDraw2",
+                    "x": 395,
+                    "y": 165,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: F+F-F-F+F",
+                        "premise": "-F",
+                        "generations": 4
+                    }
+                },
+                {
+                    "name": "abopDraw3",
+                    "x": 515,
+                    "y": 165,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: F+f-FF+F+FF+Ff+FF-f+FF-F-FF-Ff-FFF\nf: ffffff",
+                        "premise": "F+F+F+F",
+                        "generations": 2
+                    }
+                },
+                {
+                    "name": "abopDraw4",
+                    "x": 275,
+                    "y": 215,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: FF-F-F-F-FF",
+                        "premise": "F-F-F-F",
+                        "generations": 4
+                    }
+                },
+                {
+                    "name": "abopDraw7",
+                    "x": 275,
+                    "y": 265,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: F[+F]F[-F]F",
+                        "premise": "F",
+                        "generations": 5,
+                        "angle": 25.7
+                    }
+                },
+                {
+                    "name": "abopDraw8",
+                    "x": 395,
+                    "y": 265,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: F[+F]F[-F][F]",
+                        "premise": "F",
+                        "generations": 5,
+                        "angle": 20
+                    }
+                },
+                {
+                    "name": "abopDraw9",
+                    "x": 515,
+                    "y": 265,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "F: FF-[-F+F+F]+[+F-F-F]",
+                        "premise": "F",
+                        "generations": 4,
+                        "angle": 22.5
+                    }
+                },
+                {
+                    "name": "abopDraw10",
+                    "x": 275,
+                    "y": 315,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "X: F[+X]F[-X]+X\nF: FF",
+                        "premise": "X",
+                        "generations": 7,
+                        "angle": 20
+                    }
+                },
+                {
+                    "name": "abopDraw11",
+                    "x": 395,
+                    "y": 315,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "X: F[+X][-X]FX\nF: FF",
+                        "premise": "X",
+                        "generations": 7,
+                        "angle": 25.7
+                    }
+                },
+                {
+                    "name": "abopDraw12",
+                    "x": 515,
+                    "y": 315,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "X: F-[[X]+X]+F[+FX]-X\nF: FF",
+                        "premise": "X",
+                        "generations": 5,
+                        "angle": 22.5
+                    }
+                },
+                {
+                    "name": "abopDraw5",
+                    "x": 395,
+                    "y": 215,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "L: LF+RFR+FL-F-LFLFL-FRFR+\nR: -LFLF+RFRFR+F+RF-LFL-FR",
+                        "premise": "-L",
+                        "generations": 3,
+                        "decrease": 1
+                    }
+                },
+                {
+                    "name": "abopDraw6",
+                    "x": 515,
+                    "y": 215,
+                    "fn": "lsystem.abopDraw",
+                    "values": {
+                        "rules": "L: FL+FR++FR-FL--FLFL-FR+\nR: -FL+FRFR++FR+FL--FL-FR\n",
+                        "premise": "L",
+                        "generations": 4,
+                        "angle": 60
+                    }
+                }
+            ],
+            "connections": [],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "abopDraw",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "lsystem1",
+                    "x": 625,
+                    "y": 155,
+                    "fn": "lsystem.lsystem",
+                    "values": {
+                        "premise": "F-F-F-F",
+                        "angle": 90,
+                        "rules": "F: FF-F-F-F-FF",
+                        "segmentLength": 10,
+                        "decrease": 1
+                    }
+                },
+                {
+                    "name": "lsystemDraw1",
+                    "x": 675,
+                    "y": 225,
+                    "fn": "lsystem.lsystemDraw",
+                    "values": {
+                        "generations": 4,
+                        "scale": 1
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 745,
+                    "y": 155,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "distance": 10,
+                        "angle": -90
+                    }
+                },
+                {
+                    "name": "fit1",
+                    "x": 675,
+                    "y": 325,
+                    "fn": "g.fit",
+                    "values": {
+                        "width": 200,
+                        "height": 200
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 675,
+                    "y": 275,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "mirror1",
+                    "x": 675,
+                    "y": 375,
+                    "fn": "g.mirror",
+                    "values": {
+                        "keepOriginal": false
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 545,
+                    "y": 325,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 215,
+                        "height": 215
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 655,
+                    "y": 565,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(0, 0, 0, 1)",
+                        "fill": "rgba(255, 0, 0, 0)",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 645,
+                    "y": 445,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "group2",
+                    "x": 645,
+                    "y": 505,
+                    "fn": "g.group"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lsystem1",
+                    "input": "lsystemDraw1",
+                    "parameter": "lsystem"
+                },
+                {
+                    "output": "lsystemDraw1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "fit1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "fit1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "rules",
+                    "input": "lsystem1",
+                    "parameter": "rules"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "lsystem1",
+                    "parameter": "angle"
+                },
+                {
+                    "inlet": "premise",
+                    "input": "lsystem1",
+                    "parameter": "premise"
+                },
+                {
+                    "inlet": "generations",
+                    "input": "lsystemDraw1",
+                    "parameter": "generations"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group2",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "decrease",
+                    "input": "lsystem1",
+                    "parameter": "decrease"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "lsystemDraw1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "group2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "rules",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "premise",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "generations",
+                    "type": "int",
+                    "value": 1
+                },
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 90
+                },
+                {
+                    "name": "decrease",
+                    "type": "float",
+                    "value": 1000
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "lsystem",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "rules",
+                    "type": "string",
+                    "value": "1: FF-[1]++F+F+1"
+                },
+                {
+                    "name": "premise",
+                    "type": "string",
+                    "value": "1"
+                },
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 20
+                },
+                {
+                    "name": "segmentLength",
+                    "type": "float",
+                    "value": 40
+                },
+                {
+                    "name": "decrease",
+                    "type": "float",
+                    "value": 0.7
+                },
+                {
+                    "name": "threshold",
+                    "type": "float",
+                    "value": 3
+                },
+                {
+                    "name": "cost",
+                    "type": "float",
+                    "value": 0.25
+                }
+            ],
+            "source": "const maxint = Number.MAX_SAFE_INTEGER / 10000;\n\nclass LSystem {\n    constructor() {\n        this.angle = 20;\n        this.segmentLength = 40;\n        this.decrease = 0.7;\n        this.threshold = 3.0;\n        this.rules = {\n            '1': 'FFF[++2][+2][-2][--2]',\n            '2': 'FFF[++3][+3][-4][--4]',\n            '3': 'FFF[++5][+5][-5][--5]',\n            '4': 'FFF[++5][+5][-5][--5]',\n            '5': 'FFFFF[++5][--5]'\n        };\n        this.premise = '1';\n        this._timed = false;\n        this.cost = 0.25;\n        this.shape = g.rect(0, 0, 100, 100);\n        this.scale = 1;\n        this.time = null;\n        this.ease = null;\n        this.outputAsData = false;\n        this.reset();\n    }\n\n    reset() {\n        this._segments = 0;\n        this._duration = 0;\n        this._transform = g.Transform.IDENTITY;\n        this._transformStack = [];\n        this._shapes = [];\n        this._data = [];\n    }\n\n    _grow(generation, rule, angle, length, time = maxint, draw = true) {\n        if (generation === 0) {\n            this._duration = 1 + maxint - time\n        }\n\n        if (length <= this.threshold) {\n            this._duration = 1 + maxint - time\n            return;\n        }\n\n        if (draw) {\n            let transform = this._transform;\n            if (rule === 'f') {\n                this._transform = transform.translate(0, -Math.min(length, length * time));\n            } else if (rule === '-') {\n                this._transform = transform.rotate(Math.max(-angle, -angle * time));\n            } else if (rule === '+') {\n                this._transform = transform.rotate(Math.min(angle, angle * time));\n            } else if (rule === '|') {\n                this._transform = transform.rotate(180);\n            } else if (rule === '[') {\n                this._transformStack.push(this._transform);\n            } else if (rule === ']') {\n                this._transform = this._transformStack.pop();\n            }\n        }\n\n        if (this.rules[rule] !== undefined && generation > 0 && time > 0) {\n            for (let i = 0; i < this.rules[rule].length; i += 1) {\n                let cmd = this.rules[rule][i];\n                if (cmd === 'F') {\n                    time -= this.cost;\n                } else if (cmd === '!') {\n                    angle = -angle;\n                } else if (cmd === '(') {\n                    angle *= 1.1;\n                } else if (cmd === ')') {\n                    angle *= 0.9;\n                } else if (cmd === '<') {\n                    length *= 0.9;\n                } else if (cmd === '>') {\n                    length *= 1.1;\n                }\n                this._grow(generation - 1, cmd, angle, length * this.decrease, time, draw);\n            }\n        } else if (rule === 'F' || (this.rules[rule] === '')) {\n            this._segments += 1;\n            if (draw && time >= 0) {\n                length = Math.min(length, length * time);\n                if (this._timed) {\n                    this.segment(length, generation, time, this._segments);\n                } else {\n                    this.segment(length, generation, null, this._segments);\n                }\n                let transform = this._transform;\n                this._transform = transform.translate(0, -length);\n            }\n        }\n    }\n\n    segment(length, generation, time = null, id = null) {\n        let transform = this._transform;\n        if (this.scale !== 1) {\n            transform = transform.scale(this.scale);\n        }\n        if (this.outputAsData) {\n            this._data.push({\n                generation,\n                length,\n                rel_length: length / this.segmentLength,\n                time,\n                id,\n                transform\n            });\n        } else {\n            const height = g.bounds(this.shape).height;\n            transform = transform.scale(length / height);\n            const shape = transform.transformShape(this.shape);\n            this._shapes.push(shape);\n        }\n    }\n\n    draw(x, y, generation) {\n        let angle = this.angle;\n        if (this.time && this.ease) {\n            angle = Math.min(this.angle, this.angle * this.time / this.ease);\n        }\n        this._timed = true;\n        let time = this.time;\n        if (!time) {\n            this._timed = false;\n            time = maxint;\n        }\n        this._transform = this._transform.translate(x, y);\n        for (let i = 0; i < this.premise.length; i += 1) {\n            let cmd = this.premise[i];\n            this._grow(generation, cmd, angle, this.segmentLength, time, true);\n        }\n    }\n}\n\nlsystem.LSystem = LSystem;\nlsystem.maxint = maxint;\n\nlsystem.lsystem = function (rules, premise, angle, segmentLength, decrease, threshold, cost) {\n    const lines = rules.split('\\n');\n    rules = {};\n    lines.forEach(l => {\n        if (l.length === 0) {\n            return;\n        }\n        let m = l.split(':');\n        if (m.length !== 2) {\n            throw new Error('Invalid rule: ' + l);\n        }\n        let name = m[0].trim();\n        if (rules[name] !== undefined) {\n            throw new Error('Rule ' + name + ' already exists.');\n        }\n        rules[name] = m[1].trim();\n    });\n    return {\n        rules,\n        premise,\n        angle,\n        segmentLength,\n        decrease,\n        threshold,\n        cost\n    };\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "lsystemDraw",
+            "type": "code",
+            "outputType": "shape",
+            "parameters": [
+                {
+                    "name": "lsystem",
+                    "type": "data",
+                    "value": ""
+                },
+                {
+                    "name": "shape",
+                    "type": "shape",
+                    "value": ""
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 0.65
+                },
+                {
+                    "name": "generations",
+                    "type": "int",
+                    "value": 5,
+                    "minimum": 0,
+                    "enforceMinimum": "true"
+                },
+                {
+                    "name": "time",
+                    "type": "float",
+                    "value": -1
+                },
+                {
+                    "name": "ease",
+                    "type": "float",
+                    "value": -1
+                }
+            ],
+            "source": "lsystem.createLSystem = function (lsystemData, shape, scale, time, ease) {\n    const ls = new lsystem.LSystem();\n    Object.keys(lsystemData).forEach(k => { ls[k] = lsystemData[k]; });\n    if (shape) {\n        ls.shape = shape;\n    }\n    ls.scale = scale;\n    ls.time = time <= 0 ? lsystem.maxint : time;\n    ls.ease = ease > 0 ? ease : null;\n    return ls;\n};\n\nlsystem.lsystemDraw = function (lsystemData, shape, position, scale, generations, time, ease) {\n    const ls = lsystem.createLSystem(lsystemData, shape, scale, time, ease);\n    ls.draw(position.x, position.y, generations);\n    return ls._shapes;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "lsystemData",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "lsystem",
+                    "type": "data",
+                    "value": ""
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "generations",
+                    "type": "int",
+                    "value": 5,
+                    "minimum": 0,
+                    "enforceMinimum": "true"
+                },
+                {
+                    "name": "time",
+                    "type": "float",
+                    "value": -1
+                },
+                {
+                    "name": "ease",
+                    "type": "float",
+                    "value": -1
+                }
+            ],
+            "source": "lsystem.lsystemData = function (lsystemData, position, generations, time, ease) {\n    const ls = lsystem.createLSystem(lsystemData, null, 1, time, ease);\n    ls.outputAsData = true;\n    ls.draw(position.x, position.y, generations);\n    return ls._data;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "applyMatrix",
+            "type": "code",
+            "outputType": "shape",
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "shape",
+                    "value": ""
+                },
+                {
+                    "name": "matrix",
+                    "type": "data",
+                    "value": ""
+                }
+            ],
+            "source": "lsystem.applyMatrix = function (shape, matrix) {\n    return matrix.transformShape(shape);\n};",
+            "ref": "",
+            "category": ""
+        }
+    ],
+    "id": "lsystem"
+}

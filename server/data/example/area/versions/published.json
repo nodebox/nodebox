@@ -1,0 +1,884 @@
+{
+  "title": "Area",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic area plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eV8iUW4f5Ep:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/bitcoin.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eV8iUW4f5Ep:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "Start"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Open"
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "area"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:11",
+          "x": 240,
+          "y": 237,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "eZ7wimMok2d:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "An area plot displays an area outlined by connected data points. It is often used to show evolutions or cumulative data over time. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7wimMok2d:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7wimMok2d:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Select the plot type and specify which data attributes you want to map to the X- and the Y-position.  ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7wimMok2d:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ7wimMok2d:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Area Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8iUW4f5Ep:0",
+          "outPort": "out",
+          "inNode": "eV8iUW4f5Ep:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8iUW4f5Ep:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eV8iUW4f5Ep:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eV8iUW4f5Ep:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:11",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eWF09BIEK3o:11",
+      "outputPorts": [],
+      "description": "An area plot displays an area outlined by connected data points. It is often used to show evolutions or cumulative data over time.",
+      "__gallery": {
+        "keyword": "area",
+        "subKeyword": "Basic area plot"
+      },
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 500,
+      "height": 500
+    },
+    {
+      "type": "NETWORK",
+      "id": "eWAUVGTsjj8:0",
+      "name": "Stacked area plot",
+      "category": "",
+      "description": "A stacked area plot displays a separate area for each group of data points. The areas are stacked on top of each other. ",
+      "width": 500,
+      "height": 520,
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/statbel-leeftijdsgroepen-2014-2024.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:1",
+          "x": 240,
+          "y": 357,
+          "name": "Pivot Data 1",
+          "fn": "core/g/Pivot Data",
+          "values": {
+            "direction": {
+              "type": "VALUE",
+              "value": "Longer"
+            },
+            "name": {
+              "type": "VALUE",
+              "value": "Jaar"
+            },
+            "value": {
+              "type": "EXPRESSION",
+              "expression": "2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024"
+            },
+            "pivotAttrs": {
+              "type": "VALUE",
+              "value": "2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024"
+            },
+            "namesTo": {
+              "type": "VALUE",
+              "value": "Jaar"
+            },
+            "valuesTo": {
+              "type": "VALUE",
+              "value": "Inwoners"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:2",
+          "x": 240,
+          "y": 297,
+          "name": "Apply Expression 1",
+          "fn": "core/g/Apply Expression",
+          "values": {
+            "source": {
+              "type": "VALUE",
+              "value": "return {\nLeeftijdsgroep:d.Leeftijdsgroep,\n2014:d[\"Bevolking op 01 januari 2014\"],\n2015:d[\"Bevolking op 01 januari 2015\"],\n2016:d[\"Bevolking op 01 januari 2016\"],\n2017:d[\"Bevolking op 01 januari 2017\"],\n2018:d[\"Bevolking op 01 januari 2018\"],\n2019:d[\"Bevolking op 01 januari 2019\"],\n2020:d[\"Bevolking op 01 januari 2020\"],\n2021:d[\"Bevolking op 01 januari 2021\"],\n2022:d[\"Bevolking op 01 januari 2022\"],\n2023:d[\"Bevolking op 01 januari 2023\"],\n2024:d[\"Bevolking op 01 Januari 2024\"] };"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:3",
+          "x": 240,
+          "y": 417,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "area"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "Jaar"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "Inwoners"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "Leeftijdsgroep"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:4",
+          "x": 240,
+          "y": 597,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:6",
+          "x": 240,
+          "y": 477,
+          "name": "Set Plot Type 1",
+          "fn": "core/plot/Set Plot Type",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "area"
+            },
+            "stacked": {
+              "type": "VALUE",
+              "value": true
+            },
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "Leeftijdsgroep"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "Y"
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": "normalize"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:9",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "Geslacht"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "\"Vrouwen\",\"Mannen\""
+            },
+            "not": {
+              "type": "VALUE",
+              "value": true
+            },
+            "operator": {
+              "type": "VALUE",
+              "value": "in"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:10",
+          "x": 240,
+          "y": 237,
+          "name": "Filter Data 2",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "Leeftijdsgroep"
+            },
+            "operator": {
+              "type": "VALUE",
+              "value": "greater than"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eWF09BIEK3o:12",
+          "x": 240,
+          "y": 537,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "horizontal"
+            },
+            "columns": {
+              "type": "VALUE",
+              "value": 1
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "padding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Leeftijdsgroep"
+            },
+            "rowPadding": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 37
+            },
+            "markName": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A stacked area plot displays a separate area for each group of data points. The areas are stacked on top of each other. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. Original source: https://bestat.statbel.fgov.be/bestat/crosstable.xhtml?\nview=5fee32f5-29b0-40df-9fb9-af43d1ac9032",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Rename attributes using an expression. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 600,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Stacked Area Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Keep only relevant records. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Keep only relevant records. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "We need tidy data to plot. This data is not tidy because it has multiple observations in attributes of one record. Use Pivot Data to move the attributes to separate records. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:11",
+          "type": "STICKY",
+          "x": 50,
+          "y": 400,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "In tidy data:",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:12",
+          "type": "STICKY",
+          "x": 50,
+          "y": 430,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "1. Each variable must have its own column.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:13",
+          "type": "STICKY",
+          "x": 50,
+          "y": 360,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Tidy data",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:14",
+          "type": "STICKY",
+          "x": 50,
+          "y": 460,
+          "width": 150,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "2. Each observation must have its own row.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:15",
+          "type": "STICKY",
+          "x": 50,
+          "y": 490,
+          "width": 150,
+          "height": 40,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "3. Each value must have its own cell.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:16",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Create an area plot. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:17",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Use the Group by parameter to group data points with the same value in separate areas. Select stack and normalize to display the areas as ratios. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ712wDZ0K0:18",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 350,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:2",
+          "outPort": "out",
+          "inNode": "eWF09BIEK3o:1",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:5",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:7",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:12",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:9",
+          "outPort": "dataOut",
+          "inNode": "eWF09BIEK3o:10",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:0",
+          "outPort": "out",
+          "inNode": "eWF09BIEK3o:9",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:10",
+          "outPort": "dataOut",
+          "inNode": "eWF09BIEK3o:2",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:1",
+          "outPort": "dataOut",
+          "inNode": "eWF09BIEK3o:3",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eWF09BIEK3o:12",
+          "outPort": "plotSpecOut",
+          "inNode": "eWF09BIEK3o:4",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eWF09BIEK3o:4",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "area",
+        "subKeyword": "Stacked area plot"
+      }
+    }
+  ],
+  "id": "area",
+  "formatVersion": 4,
+  "__gallery": {}
+}

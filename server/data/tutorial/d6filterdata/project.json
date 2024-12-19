@@ -1,0 +1,749 @@
+{
+    "title": "d6filterdata",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/data": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev",
+        "core/time": "dev"
+    },
+    "assets": {
+        "foot2014.csv": "bfdf6205ee36a76fcb5bef6a9eb9a8b47ce72cad"
+    },
+    "functions": [
+        {
+            "name": "d6filterdata.arcfirst",
+            "type": "network",
+            "renderedNode": "last1",
+            "nodes": [
+                {
+                    "name": "topoints1",
+                    "x": 188,
+                    "y": 113,
+                    "fn": "d6filterdata.topoints",
+                    "values": {}
+                },
+                {
+                    "name": "first1",
+                    "x": 331,
+                    "y": 134,
+                    "fn": "list.first",
+                    "values": {}
+                },
+                {
+                    "name": "last1",
+                    "x": 188,
+                    "y": 196,
+                    "fn": "list.last",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "shape",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "last1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": false
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "d6filterdata.arcresample",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "topoints1",
+                    "x": 199,
+                    "y": 125,
+                    "fn": "d6filterdata.topoints",
+                    "values": {}
+                },
+                {
+                    "name": "first1",
+                    "x": 291,
+                    "y": 168,
+                    "fn": "list.first",
+                    "values": {}
+                },
+                {
+                    "name": "last1",
+                    "x": 210,
+                    "y": 236,
+                    "fn": "list.last",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 230,
+                    "y": 355,
+                    "fn": "list.combine",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "shape",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "last1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "last1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "d6filterdata.filter",
+            "source": "d6filterdata.filter = function (data, key, op, value) {\n    if (_.isEmpty(value)) return data;\n    return _.filter(data, function (row) {\n        var obj = fastLookup(row, key);\n        if (op === '==' && obj == value) {\n            return true;\n        } else if (op === '!=' && obj != value) {\n            return true;\n        } else if (op === '>' && obj > value) {\n            return true;\n        } else if (op === '>=' && obj >= value) {\n            return true;\n        } else if (op === '<' && obj < value) {\n            return true;\n        } else if (op === '<=' && obj <= value) {\n            return true;\n        } else {\n            return false;\n        }\n    });\n};\n\nfastLookup = function (obj, key) {\n    if (obj === null || key === null) return null;\n    return obj[key];\n};",
+            "example": "d6filterdata.filter(42)",
+            "parameters": [
+                {
+                    "name": "data",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "key",
+                    "type": "string",
+                    "value": "club"
+                },
+                {
+                    "name": "op",
+                    "type": "string",
+                    "value": "=="
+                },
+                {
+                    "name": "value",
+                    "type": "string",
+                    "value": "Arsenal"
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "d6filterdata.main",
+            "type": "network",
+            "renderedNode": "importCSV1",
+            "nodes": [
+                {
+                    "name": "importCSV1",
+                    "x": 17,
+                    "y": 82,
+                    "fn": "data.importCSV",
+                    "values": {
+                        "file": "foot2014.csv"
+                    }
+                },
+                {
+                    "name": "filter1",
+                    "x": 114,
+                    "y": 83,
+                    "fn": "d6filterdata.filter",
+                    "values": {
+                        "key": "country",
+                        "value": "Iran"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 210,
+                    "y": 79,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "club"
+                    }
+                },
+                {
+                    "name": "filter2",
+                    "x": 291,
+                    "y": 144,
+                    "fn": "d6filterdata.filter",
+                    "values": {}
+                },
+                {
+                    "name": "distinct1",
+                    "x": 267,
+                    "y": 68,
+                    "fn": "list.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "lookup2",
+                    "x": 380,
+                    "y": 99,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "country"
+                    }
+                },
+                {
+                    "name": "distinct2",
+                    "x": 443,
+                    "y": 99,
+                    "fn": "list.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 64,
+                    "y": 129,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "country"
+                    }
+                },
+                {
+                    "name": "distinct3",
+                    "x": 123,
+                    "y": 130,
+                    "fn": "list.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 183,
+                    "y": 133,
+                    "fn": "list.count",
+                    "values": {}
+                },
+                {
+                    "name": "resample1",
+                    "x": 125,
+                    "y": 208,
+                    "fn": "g.resample",
+                    "values": {
+                        "method": "amount"
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 64,
+                    "y": 207,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 200,
+                        "height": 200
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 136,
+                    "y": 463,
+                    "fn": "d6filterdata.topoints",
+                    "values": {}
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 152,
+                    "y": 510,
+                    "fn": "list.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup4",
+                    "x": 368,
+                    "y": 297,
+                    "fn": "data.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "lookup5",
+                    "x": 181,
+                    "y": 294,
+                    "fn": "data.lookup",
+                    "values": {
+                        "key": "country"
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 239,
+                    "y": 296,
+                    "fn": "list.first",
+                    "values": {}
+                },
+                {
+                    "name": "lookup6",
+                    "x": 237,
+                    "y": 567,
+                    "fn": "data.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "angle1",
+                    "x": 276,
+                    "y": 640,
+                    "fn": "math.angle",
+                    "values": {}
+                },
+                {
+                    "name": "angle2",
+                    "x": 439,
+                    "y": 299,
+                    "fn": "math.angle",
+                    "values": {}
+                },
+                {
+                    "name": "subtract1",
+                    "x": 536,
+                    "y": 258,
+                    "fn": "math.subtract",
+                    "values": {}
+                },
+                {
+                    "name": "arc1",
+                    "x": 643,
+                    "y": 263,
+                    "fn": "g.arc",
+                    "values": {
+                        "arcType": "open"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 810,
+                    "y": 265,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "count2",
+                    "x": 564,
+                    "y": 168,
+                    "fn": "list.count",
+                    "values": {}
+                },
+                {
+                    "name": "range1",
+                    "x": 627,
+                    "y": 166,
+                    "fn": "math.range",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 689,
+                    "y": 166,
+                    "fn": "math.multiply",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 752,
+                    "y": 167,
+                    "fn": "math.add",
+                    "values": {
+                        "b": 220
+                    }
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 942,
+                    "y": 176,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 5
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 612,
+                    "y": 696,
+                    "fn": "list.combine",
+                    "values": {}
+                },
+                {
+                    "name": "arcresample1",
+                    "x": 876,
+                    "y": 173,
+                    "fn": "d6filterdata.arcresample",
+                    "values": {}
+                },
+                {
+                    "name": "colorize2",
+                    "x": 235,
+                    "y": 418,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,.1)"
+                    }
+                },
+                {
+                    "name": "text1",
+                    "x": 553,
+                    "y": 479,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 56,
+                        "position": {
+                            "x": 0,
+                            "y": 20
+                        }
+                    }
+                },
+                {
+                    "name": "text2",
+                    "x": 102,
+                    "y": 614,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 8,
+                        "align": "left"
+                    }
+                },
+                {
+                    "name": "arcfirst1",
+                    "x": 689,
+                    "y": 430,
+                    "fn": "d6filterdata.arcfirst",
+                    "values": {}
+                },
+                {
+                    "name": "line1",
+                    "x": 1015,
+                    "y": 400,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "filterdata1",
+                    "x": 5,
+                    "y": 402,
+                    "fn": "data.d6filterdata",
+                    "values": {
+                        "value": "Real Madrid",
+                        "key": "club"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "importCSV1",
+                    "input": "filter1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "filter1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "importCSV1",
+                    "input": "filter2",
+                    "parameter": "data"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "filter2",
+                    "parameter": "value"
+                },
+                {
+                    "output": "filter2",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "distinct2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "importCSV1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "distinct3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct3",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "resample1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resample1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distinct3",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "filter1",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "lookup4",
+                    "parameter": "key"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup6",
+                    "parameter": "table"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "lookup6",
+                    "parameter": "key"
+                },
+                {
+                    "output": "count1",
+                    "input": "resample1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "angle1",
+                    "parameter": "p2"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "angle2",
+                    "parameter": "p2"
+                },
+                {
+                    "output": "angle1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "angle2",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "angle2",
+                    "input": "arc1",
+                    "parameter": "startAngle"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "arc1",
+                    "parameter": "degrees"
+                },
+                {
+                    "output": "arc1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "angle1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "range1",
+                    "parameter": "end"
+                },
+                {
+                    "output": "range1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "arc1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "add1",
+                    "input": "arc1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "arc1",
+                    "input": "arcresample1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "arcresample1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "count2",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "distinct3",
+                    "input": "text2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "text2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "arc1",
+                    "input": "arcfirst1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "arcfirst1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "text2",
+                    "input": "combine2",
+                    "parameter": "list7"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine2",
+                    "parameter": "list6"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "combine2",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "line1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "importCSV1",
+                    "input": "filterdata1",
+                    "parameter": "data"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "country",
+                    "type": "string",
+                    "value": "Belgium"
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "d6filterdata.topoints",
+            "source": "d6filterdata.topoints = function (shape) {\n  var points = [];\n  if(shape.segments){\n   for (var i = 0; i < shape.segments.length; i += 1) {\n     var seg = shape.segments[i];\n     if (seg.point) {\n         points.push(new g.Point(seg.point.x, seg.point.y));\n     }\n   }\n}\n   return points;\n};",
+            "example": "d6filterdata.topoints(42)",
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "returnType": "point"
+        }
+    ]
+}

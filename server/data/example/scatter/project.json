@@ -1,0 +1,1276 @@
+{
+  "title": "Scatter plot",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic scatter plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eR509R1DEFv:1",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR6R0s9WEBO:8",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "bill_length_mm"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "flipper_length_mm"
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "scatter"
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "fillColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeColor": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeDash": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "strokeWidth": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR61ESuECUH:0",
+          "x": 240,
+          "y": 237,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "eZRl2qkggGj:0",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A scatter plot displays individual data points as symbols. It is typically showing relationships or patterns between two data attributes that are mapped to the X- and the Y-position. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZRl2qkggGj:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZRl2qkggGj:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position. The default plot type is a scatter plot. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZRl2qkggGj:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZRl2qkggGj:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Scatter Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR5135ZZUQ8:0",
+          "outPort": "out",
+          "inNode": "eR509R1DEFv:0",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR5135ZZUQ8:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR5135ZZUQ8:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:1",
+          "outPort": "out",
+          "inNode": "eR6R0s9WEBO:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR5135ZZUQ8:0",
+          "outPort": "out",
+          "inNode": "eR6R0s9WEBO:2",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR6R0s9WEBO:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eR509R1DEFv:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR6R0s9WEBO:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eR61ESuECUH:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:1",
+          "outPort": "out",
+          "inNode": "eR6R0s9WEBO:8",
+          "inPort": "data"
+        }
+      ],
+      "renderedNode": "eR61ESuECUH:0",
+      "outputPorts": [],
+      "__gallery": {
+        "keyword": "scatter",
+        "subKeyword": "Basic scatter plot"
+      },
+      "description": "A scatter plot displays individual data points as symbols. It is typically showing relationships or patterns between two data attributes that are mapped to the X- and the Y-position. ",
+      "width": 470,
+      "height": 460
+    },
+    {
+      "type": "NETWORK",
+      "id": "eR6PwFsJIvZ:0",
+      "name": "Color scale",
+      "category": "",
+      "description": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X- and the Y-positions and the fill color. ",
+      "width": 500,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eR6R0s9WEBO:4",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "bill_length_mm"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "flipper_length_mm"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "opacity": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0.7
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR6R0s9WEBO:6",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR6R0s9WEBO:7",
+          "x": 240,
+          "y": 297,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSDcg5pjIYu:0",
+          "x": 240,
+          "y": 237,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -90
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "vertical"
+            },
+            "padding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "legend"
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": "all"
+            },
+            "type": {
+              "type": "VALUE",
+              "value": "symbol"
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": "square"
+            }
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:4",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X- and the Y-positions and the fill color. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position and the fill color of the mark. Set the fill opacity to a fixed value.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale.\nA legend, just like an axis, is a guide to understand the scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:8",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Color scale",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR5135ZZUQ8:0",
+          "outPort": "out",
+          "inNode": "eR509R1DEFv:0",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR5135ZZUQ8:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR5135ZZUQ8:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR509R1DEFv:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR509R1DEFv:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR6R0s9WEBO:4",
+          "outPort": "plotSpecOut",
+          "inNode": "eSDcg5pjIYu:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSDcg5pjIYu:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eR6R0s9WEBO:7",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR6R0s9WEBO:6",
+          "outPort": "out",
+          "inNode": "eR6R0s9WEBO:4",
+          "inPort": "data"
+        }
+      ],
+      "renderedNode": "eR6R0s9WEBO:7",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "scatter",
+        "subKeyword": "Scales"
+      }
+    },
+    {
+      "type": "NETWORK",
+      "id": "eR62oaHjoIE:0",
+      "name": "Shape scale",
+      "category": "",
+      "description": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X and Y position, the fill color and the shape. ",
+      "width": 500,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eR62oaHjoIE:1",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR62oaHjoIE:3",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "bill_length_mm"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "flipper_length_mm"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "shape": {
+              "type": "EXPRESSION",
+              "expression": "island"
+            },
+            "opacity": {
+              "type": "VALUE",
+              "value": 0.7
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 120
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "scatter"
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eR62oaHjoIE:4",
+          "x": 240,
+          "y": 357,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "eZSn0p48ycA:24",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A scale maps the value of a data attribute to a visual property of the mark, in this case the X and Y position, the fill color and the shape. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:25",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:26",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Visual properties of the marks can be based on a variable data attribute (X, Y, fill color and shape in this example) or set to a fixed value (size and opacity). ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:27",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale.\nA legend, just like an axis, is a guide to understand the scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:28",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Shape scale",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSn0p48ycA:29",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZZuFBoM263:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the shape scale.\nScales on different data attributes, need separate legends. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZZxQn9aJsG:0",
+          "x": 240,
+          "y": 237,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": -80
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Species"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ6EOJfjJDG:2",
+          "x": 240,
+          "y": 297,
+          "name": "Add Legend 2",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "shapeScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": -80
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Island"
+            },
+            "titleOrient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "padding": {
+              "type": "VALUE",
+              "value": 10
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR62oaHjoIE:2",
+          "outPort": "out",
+          "inNode": "eSDcg5pjIYu:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR62oaHjoIE:1",
+          "outPort": "out",
+          "inNode": "eR62oaHjoIE:3",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eR62oaHjoIE:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eZZxQn9aJsG:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZZxQn9aJsG:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ6EOJfjJDG:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ6EOJfjJDG:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eR62oaHjoIE:4",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eR62oaHjoIE:4",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "scatter",
+        "subKeyword": "Scales"
+      }
+    },
+    {
+      "type": "NETWORK",
+      "id": "eSGkJPVCc3f:1",
+      "name": "Data labels",
+      "category": "",
+      "description": "Data labels are annotations that provide additional information about individual data points. ",
+      "width": 500,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSGkJPVCc3f:3",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSGkJPVCc3f:5",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "bill_length_mm"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "flipper_length_mm"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0.7
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSGkJPVCc3f:6",
+          "x": 240,
+          "y": 297,
+          "name": "Add Data Labels 1",
+          "fn": "core/plot/Add Data Labels",
+          "values": {
+            "labelText": {
+              "type": "EXPRESSION",
+              "expression": "sex + \" \" + body_mass_g + \"g\""
+            },
+            "filter": {
+              "type": "VALUE",
+              "value": " d.bill_length_mm>56"
+            },
+            "align": {
+              "type": "VALUE",
+              "value": "center"
+            },
+            "vOffset": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "angle": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "mode": {
+              "type": "VALUE",
+              "value": "replace"
+            },
+            "baseline": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "xScale"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "yScale"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSGkJPVCc3f:7",
+          "x": 240,
+          "y": 357,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "eZSvcAO92z9:4",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Data labels are annotations that provide additional information about individual data points. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position and the fill color of the mark. Set the fill opacity to a fixed value.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a label to the marks, based on attribute values. Use the filter parameter to label only a subset of the marks. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZSvcAO92z9:11",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Data labels",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZZzKdopbqA:0",
+          "x": 240,
+          "y": 237,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -90
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Species"
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSGkJPVCc3f:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eSGvcUBvMeo:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSGkJPVCc3f:3",
+          "outPort": "out",
+          "inNode": "eSGkJPVCc3f:5",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSGkJPVCc3f:5",
+          "outPort": "plotSpecOut",
+          "inNode": "eZZzKdopbqA:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZZzKdopbqA:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eSGkJPVCc3f:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSGkJPVCc3f:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eSGkJPVCc3f:7",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSGkJPVCc3f:7",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "scatter",
+        "subKeyword": "Data labels"
+      }
+    }
+  ],
+  "id": "scatter",
+  "formatVersion": 4,
+  "__gallery": {}
+}

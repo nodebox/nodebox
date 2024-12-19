@@ -1,0 +1,525 @@
+{
+    "title": "d5metallica",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "Metallica_Dataset.csv": "5e5aa76693a9840cd71e8c3b322f5980382cd07b",
+        "FiraSans-Light.otf": "8462d4816e1254fb02467dde2c83e9ae4af6e87d"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "lookup1",
+                    "x": 100,
+                    "y": 123,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Word"
+                    }
+                },
+                {
+                    "name": "import1",
+                    "x": 137,
+                    "y": 64,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "Metallica_Dataset.csv"
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": 171,
+                    "y": 165,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 39,
+                    "y": 218,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "coordinates1",
+                    "x": -2,
+                    "y": 304,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": 300
+                    }
+                },
+                {
+                    "name": "angle1",
+                    "x": 297,
+                    "y": 255,
+                    "fn": "g.angle",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 234,
+                    "y": 312,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 37
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 472,
+                    "y": 199,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 400,
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 386,
+                    "y": 83,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Album"
+                    }
+                },
+                {
+                    "name": "distinct2",
+                    "x": 439,
+                    "y": 136,
+                    "fn": "g.distinct",
+                    "values": {}
+                },
+                {
+                    "name": "count2",
+                    "x": 660,
+                    "y": 295,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 471,
+                    "y": 279,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "seed": 6
+                    },
+                    "masterList": "amount"
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 361,
+                    "y": 358,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 360,
+                    "y": 420,
+                    "fn": "g.lookup",
+                    "values": {},
+                    "masterList": "key"
+                },
+                {
+                    "name": "curve1",
+                    "x": 106,
+                    "y": 520,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 54
+                    },
+                    "masterList": "point1"
+                },
+                {
+                    "name": "sample1",
+                    "x": 660,
+                    "y": 345,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 0.6
+                    }
+                },
+                {
+                    "name": "zipMap2",
+                    "x": 546,
+                    "y": 455,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup4",
+                    "x": 514,
+                    "y": 513,
+                    "fn": "g.lookup",
+                    "values": {},
+                    "masterList": "key"
+                },
+                {
+                    "name": "colorize2",
+                    "x": 120,
+                    "y": 624,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "zipMap3",
+                    "x": 44,
+                    "y": 416,
+                    "fn": "g.zipMap",
+                    "values": {}
+                },
+                {
+                    "name": "lookup5",
+                    "x": 61,
+                    "y": 461,
+                    "fn": "g.lookup",
+                    "values": {},
+                    "masterList": "key"
+                },
+                {
+                    "name": "combine1",
+                    "x": 227,
+                    "y": 678,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "text2",
+                    "x": 402,
+                    "y": 607,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 17
+                    },
+                    "masterList": "text"
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 265,
+                    "y": 512,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 10,
+                        "height": 10,
+                        "position": {
+                            "x": 0,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 268,
+                    "y": 605,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.25
+                    },
+                    "masterList": "shape"
+                },
+                {
+                    "name": "translate1",
+                    "x": 264,
+                    "y": 562,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "lookup6",
+                    "x": 186,
+                    "y": 453,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Frequency"
+                    }
+                },
+                {
+                    "name": "textPath1",
+                    "x": 193,
+                    "y": 256,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraSans-Light.otf",
+                        "align": "left",
+                        "fontSize": 12,
+                        "fontFamily": "FiraSans-Light.otf"
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 252,
+                    "y": 359,
+                    "fn": "g.translate",
+                    "masterList": "translate"
+                },
+                {
+                    "name": "sample2",
+                    "x": 39,
+                    "y": 262,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 360,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 557,
+                    "y": 364,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "import1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "distinct2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "scatterPoints1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "lookup3",
+                    "parameter": "key"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "count2",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "zipMap2",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "zipMap2",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "lookup4",
+                    "parameter": "key"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "colorize2",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "zipMap3",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "zipMap3",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "zipMap3",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "lookup5",
+                    "parameter": "key"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "distinct2",
+                    "input": "text2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "text2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "text2",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "import1",
+                    "input": "lookup6",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "colorize2",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "textPath1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample2",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "angle1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "zipMap2",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize3",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d5metallica"
+}

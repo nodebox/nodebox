@@ -1,0 +1,445 @@
+#home {
+  img,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+  a {
+    color: inherit;
+  }
+  html {
+    font-size: 14px;
+  }
+  body {
+    font-family: "Fira Sans", sans-serif;
+    font-size: 1rem;
+    line-height: 1.4;
+    background-color: #607d8b;
+    color: #f1f1f1;
+  }
+  body,
+  figure {
+    margin: 0;
+    padding: 0;
+  }
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+  .container {
+    max-width: 1200px;
+    position: relative;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  @media (max-width: 550px) {
+    html {
+      font-size: 12px;
+    }
+  }
+
+  figcaption {
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  figcaption .title {
+    color: #aaa;
+    padding-right: 5px;
+  }
+  figcaption .author {
+    color: #666;
+  }
+  figcaption .first {
+    color: rgba(175, 84, 87, 0.9);
+  }
+
+  @media (min-width: 550px) {
+    .row {
+      display: flex;
+      flex-direction: row;
+    }
+    .col-half {
+      width: 50%;
+    }
+  }
+
+  .slideshow {
+    margin: 0;
+    padding: 0;
+    margin-bottom: 40px;
+    position: relative;
+    padding-bottom: 40vh;
+  }
+  .slideshow li {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+  }
+  .slideshow li.current {
+    opacity: 1;
+  }
+  .slideshow li img {
+    width: 80vw;
+    margin: 0 auto;
+    display: block;
+  }
+  .features,
+  section.viz .vizhead {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 400px);
+    grid-gap: 40px 60px;
+    justify-content: center;
+  }
+  .feature {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    grid-template-rows: 32px 1fr;
+    grid-gap: 0 20px;
+  }
+  .featureImage {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 400px);
+    grid-gap: 20px;
+    justify-content: center;
+    margin-bottom: 4rem;
+  }
+  .feature h3 {
+    text-align: left;
+  }
+  .feature .icon {
+    fill: red;
+    grid-row: 1 / -1;
+    fill: #eee;
+    width: 30px;
+    height: 30px;
+    align-self: self-start;
+    justify-self: center;
+  }
+  .feature p {
+    padding: 0;
+  }
+
+  @media (max-width: 550px) {
+    .features,
+    section.viz .vizhead {
+      grid-template-columns: repeat(auto-fit, 300px);
+    }
+    .featureImage {
+      grid-template-columns: repeat(auto-fit, 300px);
+    }
+  }
+
+  header {
+    position: fixed;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+    transition: transform 0.3s;
+  }
+  header .container {
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  header a.logo {
+    display: block;
+    width: 30px;
+    height: 30px;
+  }
+  header a.logo svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  header nav a {
+    color: white;
+    font-weight: 300;
+    font-size: 1rem;
+    margin-right: 2rem;
+    text-decoration: none;
+  }
+  header nav a:hover {
+    text-decoration: underline;
+  }
+  header nav a:last-child {
+    margin-right: 0;
+  }
+  header.hidden {
+    transform: translate(0, -100px);
+  }
+
+  section {
+    padding: 50px 0;
+  }
+  section h2 {
+    text-align: center;
+    color: #f1f1f1;
+    margin-bottom: 4rem;
+    font-size: 2.5rem;
+  }
+
+  section.hero {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100vh;
+  }
+  section.hero figure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+  }
+  section.hero figure img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    filter: opacity(60%) hue-rotate(110deg);
+  }
+  section.hero figcaption {
+    position: absolute;
+    bottom: 2px;
+    right: 20px;
+    font-size: 0.8rem;
+  }
+  section.hero .container {
+    padding-top: 45vh;
+    color: white;
+  }
+  section.hero h1 {
+    text-transform: uppercase;
+    font-weight: 900;
+    font-size: 6vw;
+    line-height: 7vw;
+    max-width: 60vw;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.6);
+  }
+  section.hero p {
+    background: white;
+    color: #181818;
+    padding: 5px 10px;
+    font-size: 1.2rem;
+    font-weight: 300;
+    max-width: 30vw;
+  }
+  @media (max-width: 550px) {
+    section.hero .container {
+      padding-top: 25vh;
+    }
+    section.hero h1 {
+      font-size: 10vw;
+      line-height: 11vw;
+    }
+  }
+
+  section.intro {
+    background: radial-gradient(closest-side, rgba(38, 50, 56, 0.8), #263238);
+    margin-top: 100vh;
+    padding: 30vh 0;
+    position: relative;
+  }
+  section.intro canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  section.intro h2 {
+    font-size: 2.5rem;
+    text-align: center;
+    color: #f1f1f1;
+    margin-bottom: 2rem;
+  }
+  section.intro p {
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1.3rem;
+    max-width: 40rem;
+  }
+
+  section.gui {
+    background: linear-gradient(180deg, #263238 0%, rgb(0, 0, 0) 100%);
+    padding: 50px 0;
+  }
+  section.gui p.prompt {
+    margin: 80px auto 80px auto;
+    text-align: left;
+    font-size: 1.4rem;
+  }
+  section.gui img {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  }
+
+  section.viz {
+    background: linear-gradient(180deg, rgb(0, 0, 0) 0%, rgba(96, 125, 139, 0.6) 100%);
+    padding: 50px 0;
+  }
+  section.viz p.prompt {
+    justify-self: center;
+    align-self: center;
+    font-size: 1.2rem;
+    max-width: 100%;
+    text-align: right;
+    line-height: 2.4rem;
+  }
+  section.viz .vizhead {
+    margin-bottom: 4rem;
+  }
+  @media (max-width: 550px) {
+    section.viz p.prompt {
+      text-align: left;
+    }
+  }
+
+  section.gallery {
+    padding: 50px 0;
+    background: linear-gradient(180deg, rgba(96, 125, 139, 0.6) 0%, #181818 100%);
+  }
+  section.gallery .images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-gap: 20px;
+  }
+
+  section.emrg {
+    background: #181818;
+  }
+  section.emrg .emrggrid {
+    display: grid;
+    grid-gap: 5px;
+    justify-content: center;
+    text-align: center;
+  }
+  section.emrg svg {
+    display: block;
+    height: 200px;
+    margin: 0 auto;
+  }
+  section.emrg p.prompt {
+    font-size: 1.2rem;
+    line-height: 2.4rem;
+    max-width: 40rem;
+    margin-bottom: 2rem;
+  }
+  section.emrg a {
+    color: #b1d4ef;
+  }
+  section.emrg a:hover {
+    color: #fff;
+  }
+
+  section.signup {
+    background: #132d40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  section.signup h2 {
+    margin-bottom: 0rem;
+  }
+  section.signup p.prompt {
+    margin: 60px auto;
+    text-align: center;
+    font-size: 1.4rem;
+  }
+  section.signup input[type="email"] {
+    display: block;
+    margin: 10px auto;
+    width: 200px;
+    border: 2px solid #eee;
+    padding: 10px;
+    background: transparent;
+    font: inherit;
+    outline: none;
+    color: #f1f1f1;
+  }
+  section.signup input[type="email"]:focus {
+    border: 2px solid #f1f1f1;
+  }
+  section.signup input[type="submit"] {
+    display: block;
+    margin: 0 auto;
+    width: 200px;
+    padding: 10px 0;
+    font: inherit;
+    color: #000;
+    background: #fff;
+    border: 2px solid #666;
+    outline: none;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.07rem;
+    transition: 0.3s;
+  }
+  section.signup input[type="submit"]:hover,
+  section.signup input[type="submit"]:active {
+    background: #000;
+    color: #fff;
+  }
+  section.signup .field-shift {
+    left: -9999px;
+    position: absolute;
+  }
+  section.signup .cta {
+    text-align: center;
+    padding: 1rem;
+    background: #eee;
+    color: #333;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+
+  footer {
+    background: black;
+  }
+  footer .container {
+    background: black;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    justify-content: space-around;
+  }
+  footer h2 {
+    font-size: 1rem;
+    color: #999;
+  }
+  footer p {
+    font-size: 1rem;
+    font-weight: 300;
+    color: #999;
+  }
+  footer .about {
+    text-align: left;
+  }
+  footer .contact {
+    text-align: left;
+  }
+  footer .follow {
+    text-align: right;
+  }
+  @media (max-width: 550px) {
+    footer .container {
+      grid-template-columns: 1fr;
+      grid-gap: 30px;
+    }
+    footer .follow {
+      text-align: left;
+    }
+  }
+}

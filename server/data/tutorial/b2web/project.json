@@ -1,0 +1,202 @@
+{
+    "title": "b2web",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "BebasNeue.otf": "8fefeed1f7b1e579a5125d83b1e9e32b6e73da2e"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "line1",
+                    "x": 94,
+                    "y": 584,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "resample1",
+                    "x": 53,
+                    "y": 95,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "length": 4,
+                        "maxLength": 2
+                    }
+                },
+                {
+                    "name": "topoints1",
+                    "x": 53,
+                    "y": 144,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "repeat1",
+                    "x": 160,
+                    "y": 216,
+                    "fn": "g.repeat",
+                    "values": {
+                        "amount": 5
+                    },
+                    "masterList": "l"
+                },
+                {
+                    "name": "compare1",
+                    "x": 242,
+                    "y": 428,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 22
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 95,
+                    "y": 520,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "cull2",
+                    "x": 226,
+                    "y": 518,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "textPath1",
+                    "x": 53,
+                    "y": 47,
+                    "fn": "g.textPath",
+                    "values": {
+                        "text": "spider",
+                        "font": "BebasNeue.otf",
+                        "fontSize": 200,
+                        "fontFamily": "BebasNeue.otf"
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": 100,
+                    "y": 339,
+                    "fn": "g.distance",
+                    "masterList": "point1"
+                },
+                {
+                    "name": "shuffle1",
+                    "x": 208,
+                    "y": 274,
+                    "fn": "g.shuffle",
+                    "values": {
+                        "seed": 76
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 93,
+                    "y": 626,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "repeat2",
+                    "x": 24,
+                    "y": 215,
+                    "fn": "g.repeat",
+                    "values": {
+                        "amount": 5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "resample1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "cull1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "cull2",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull2",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "resample1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "distance1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "repeat1",
+                    "input": "shuffle1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shuffle1",
+                    "input": "cull2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shuffle1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "repeat2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat2",
+                    "input": "distance1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "repeat2",
+                    "input": "cull1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "b2web"
+}

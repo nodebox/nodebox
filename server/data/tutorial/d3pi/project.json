@@ -1,0 +1,304 @@
+{
+    "title": "d3pi",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "pi.txt": "c6f8a17e688357af6dc343963c63d3cc5090ef59",
+        "FiraMono-Bold.otf": "1a1057726324ab0d6afb09e3fee05ac43c2994b3"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "merge1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 26,
+                    "y": 454,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 6,
+                        "height": 6,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 38,
+                    "y": 132,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0,
+                        "invert": true
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 200,
+                    "y": 72,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "readtxt1",
+                    "x": 38,
+                    "y": 72,
+                    "fn": "d3pi.readtxt"
+                },
+                {
+                    "name": "sample1",
+                    "x": 267,
+                    "y": 113,
+                    "fn": "g.sample",
+                    "values": {
+                        "amount": 10,
+                        "max": 0.9,
+                        "circular": true,
+                        "min": 0.1
+                    }
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 200,
+                    "y": 233,
+                    "fn": "g.zipMap"
+                },
+                {
+                    "name": "lookup1",
+                    "x": 200,
+                    "y": 288,
+                    "fn": "g.lookup"
+                },
+                {
+                    "name": "count1",
+                    "x": 26,
+                    "y": 202,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "sqrt1",
+                    "x": 1,
+                    "y": 249,
+                    "fn": "g.sqrt"
+                },
+                {
+                    "name": "ceil1",
+                    "x": 26,
+                    "y": 290,
+                    "fn": "g.ceil"
+                },
+                {
+                    "name": "grid1",
+                    "x": 26,
+                    "y": 345,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 600,
+                        "height": 600,
+                        "columnWidth": 6,
+                        "rowHeight": 6
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 73,
+                    "y": 590,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "textPath1",
+                    "x": 181,
+                    "y": 592,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraMono-Bold.otf",
+                        "text": "3,",
+                        "fontSize": 7,
+                        "position": {
+                            "x": -295.5,
+                            "y": -298.5
+                        },
+                        "fontFamily": "FiraMono-Bold.otf"
+                    }
+                },
+                {
+                    "name": "merge1",
+                    "x": 89,
+                    "y": 659,
+                    "fn": "g.merge"
+                },
+                {
+                    "name": "slice2",
+                    "x": 112,
+                    "y": 421,
+                    "fn": "g.slice",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 134,
+                    "y": 347,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 1.75
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 26,
+                    "y": 507,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 267,
+                    "y": 163,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.4,
+                        "saturation": 0.8
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "readtxt1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "range1",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup1",
+                    "parameter": "key"
+                },
+                {
+                    "output": "slice1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sqrt1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sqrt1",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "grid1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "slice2",
+                    "parameter": "size"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "merge1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "merge1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "divide1",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "slice1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "slice2",
+                    "input": "align1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "align1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "readtxt",
+            "source": "d3pi.readtxt = function(fileName) {\n    var txtString = ndbx.findAsset(fileName);\n    var out =  String(txtString);\n    return out.split(\"\");\n}",
+            "parameters": [
+                {
+                    "name": "file",
+                    "type": "file",
+                    "value": "pi.txt"
+                }
+            ],
+            "connections": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d3pi"
+}

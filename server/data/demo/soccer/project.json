@@ -1,0 +1,936 @@
+{
+    "title": "soccer",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "foot2014.csv": "bfdf6205ee36a76fcb5bef6a9eb9a8b47ce72cad",
+        "pixie-normal.otf": "5dbf24a6131d73467642734f7579c2fb09f2a88b",
+        "Dekar.otf": "cddad80af4ef19496128aa7792c69c4929da2e6c"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "translate2",
+            "nodes": [
+                {
+                    "name": "import1",
+                    "x": 319,
+                    "y": 25,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "foot2014.csv"
+                    }
+                },
+                {
+                    "name": "filterData1",
+                    "x": 307,
+                    "y": 254,
+                    "fn": "g.filterData",
+                    "values": {
+                        "key": "club",
+                        "value": "Brazil"
+                    }
+                },
+                {
+                    "name": "sort1",
+                    "x": 419,
+                    "y": 135,
+                    "fn": "g.sort"
+                },
+                {
+                    "name": "club",
+                    "x": 419,
+                    "y": 96,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "country"
+                    }
+                },
+                {
+                    "name": "distinct1",
+                    "x": 438,
+                    "y": 175,
+                    "fn": "g.distinct"
+                },
+                {
+                    "name": "count1",
+                    "x": 563,
+                    "y": 274,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 563,
+                    "y": 323,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 0.7,
+                        "seed": 2,
+                        "min": 0.05
+                    }
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 588,
+                    "y": 572,
+                    "fn": "g.zipMap"
+                },
+                {
+                    "name": "lookup1",
+                    "x": 611,
+                    "y": 613,
+                    "fn": "g.lookup"
+                },
+                {
+                    "name": "count2",
+                    "x": 154,
+                    "y": 113,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "sqrt1",
+                    "x": 154,
+                    "y": 160,
+                    "fn": "g.sqrt"
+                },
+                {
+                    "name": "ceil1",
+                    "x": 154,
+                    "y": 205,
+                    "fn": "g.ceil"
+                },
+                {
+                    "name": "grid1",
+                    "x": 154,
+                    "y": 254,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 3000,
+                        "height": 1800,
+                        "rowHeight": 65,
+                        "columnWidth": 110
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 154,
+                    "y": 300,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 457,
+                    "y": 574,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 60,
+                        "width": 105,
+                        "roundness": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 457,
+                    "y": 661,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "translate1",
+                    "x": 457,
+                    "y": 617,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "inputQuery",
+                    "x": 528,
+                    "y": 4,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "country",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "itemCount1",
+                    "x": 317,
+                    "y": 317,
+                    "fn": "soccer.itemCount",
+                    "values": {
+                        "item": "Algeria"
+                    }
+                },
+                {
+                    "name": "accumulate1",
+                    "x": 317,
+                    "y": 360,
+                    "fn": "g.accumulate"
+                },
+                {
+                    "name": "titlePoint1",
+                    "x": 297,
+                    "y": 404,
+                    "fn": "soccer.titlePoint"
+                },
+                {
+                    "name": "combine1",
+                    "x": 207,
+                    "y": 736,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "lookup3",
+                    "x": 151,
+                    "y": 528,
+                    "fn": "g.lookup"
+                },
+                {
+                    "name": "group1",
+                    "x": 207,
+                    "y": 781,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "text1",
+                    "x": -5,
+                    "y": 582,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 8,
+                        "align": "left"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 15,
+                    "y": 440,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup5",
+                    "x": 124,
+                    "y": 440,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 15,
+                    "y": 483,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 47
+                    }
+                },
+                {
+                    "name": "makePoint3",
+                    "x": 15,
+                    "y": 529,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "subtract2",
+                    "x": 124,
+                    "y": 483,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 15
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 207,
+                    "y": 823,
+                    "fn": "g.align"
+                },
+                {
+                    "name": "text2",
+                    "x": 277,
+                    "y": 605,
+                    "fn": "g.text",
+                    "values": {
+                        "fontSize": 11,
+                        "align": "left",
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "lookup7",
+                    "x": 297,
+                    "y": 454,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup8",
+                    "x": 402,
+                    "y": 454,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "subtract3",
+                    "x": 297,
+                    "y": 497,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 47
+                    }
+                },
+                {
+                    "name": "makePoint4",
+                    "x": 297,
+                    "y": 561,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "subtract4",
+                    "x": 402,
+                    "y": 497,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": -20
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 564,
+                    "y": 370,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.6,
+                        "saturation": 0.6
+                    }
+                },
+                {
+                    "name": "keys1",
+                    "x": 493,
+                    "y": -105,
+                    "fn": "g.keys"
+                },
+                {
+                    "name": "slice2",
+                    "x": 494,
+                    "y": -54,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 3
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 207,
+                    "y": 880,
+                    "fn": "g.scale"
+                },
+                {
+                    "name": "zoom",
+                    "x": 18,
+                    "y": 770,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 100
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 24,
+                    "y": 890,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "lookup2",
+                    "x": 295,
+                    "y": 952,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.y"
+                    }
+                },
+                {
+                    "name": "lookup6",
+                    "x": 183,
+                    "y": 950,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.x"
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 184,
+                    "y": 999,
+                    "fn": "g.negate"
+                },
+                {
+                    "name": "negate2",
+                    "x": 296,
+                    "y": 999,
+                    "fn": "g.negate"
+                },
+                {
+                    "name": "moveX",
+                    "x": 89.7513334573036,
+                    "y": 1115.8576192699518,
+                    "fn": "g.convert",
+                    "values": {}
+                },
+                {
+                    "name": "moveY",
+                    "x": 225,
+                    "y": 1114,
+                    "fn": "g.convert"
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 267.6980488048002,
+                    "y": 1175.1378597414225,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "translate2",
+                    "x": 203,
+                    "y": 1229,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "divide1",
+                    "x": 22,
+                    "y": 832,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "deletePaths1",
+                    "x": 353,
+                    "y": 1411,
+                    "fn": "g.deletePaths",
+                    "values": {
+                        "invert": true
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 391,
+                    "y": 1227,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "rect2",
+                    "x": 413,
+                    "y": 1290,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 800,
+                        "height": 450
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "filterData1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "import1",
+                    "input": "club",
+                    "parameter": "table"
+                },
+                {
+                    "output": "club",
+                    "input": "sort1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "sort1",
+                    "input": "distinct1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "filterData1",
+                    "parameter": "value"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "import1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "sqrt1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sqrt1",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "grid1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "rect1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "slice1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "inputQuery",
+                    "input": "filterData1",
+                    "parameter": "key"
+                },
+                {
+                    "output": "inputQuery",
+                    "input": "club",
+                    "parameter": "key"
+                },
+                {
+                    "output": "itemCount1",
+                    "input": "accumulate1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "titlePoint1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "slice1",
+                    "input": "titlePoint1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "filterData1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "makePoint3",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint3",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "makePoint3",
+                    "parameter": "y"
+                },
+                {
+                    "output": "sort1",
+                    "input": "lookup1",
+                    "parameter": "key"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup7",
+                    "input": "subtract3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract3",
+                    "input": "makePoint4",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint4",
+                    "input": "text2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "lookup8",
+                    "input": "subtract4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract4",
+                    "input": "makePoint4",
+                    "parameter": "y"
+                },
+                {
+                    "output": "titlePoint1",
+                    "input": "lookup7",
+                    "parameter": "table"
+                },
+                {
+                    "output": "titlePoint1",
+                    "input": "lookup8",
+                    "parameter": "table"
+                },
+                {
+                    "output": "text2",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "text2",
+                    "parameter": "text"
+                },
+                {
+                    "output": "sort1",
+                    "input": "itemCount1",
+                    "parameter": "list"
+                },
+                {
+                    "output": "distinct1",
+                    "input": "itemCount1",
+                    "parameter": "item"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "import1",
+                    "input": "keys1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "keys1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "align1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "scale1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "scale1",
+                    "input": "lookup6",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "negate2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "moveX",
+                    "parameter": "outMin"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "moveX",
+                    "parameter": "outMax"
+                },
+                {
+                    "output": "negate2",
+                    "input": "moveY",
+                    "parameter": "outMin"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "moveY",
+                    "parameter": "outMax"
+                },
+                {
+                    "output": "moveX",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "moveY",
+                    "input": "makePoint2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "scale1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "zoom",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "divide1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "translate2",
+                    "input": "deletePaths1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect2",
+                    "input": "deletePaths1",
+                    "parameter": "bounding"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": []
+        },
+        {
+            "name": "itemCount",
+            "type": "network",
+            "renderedNode": "count1",
+            "nodes": [
+                {
+                    "name": "stringEquals1",
+                    "x": 125,
+                    "y": 190,
+                    "fn": "g.stringEquals",
+                    "values": {
+                        "string1": "country",
+                        "ignoreCase": true
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 105,
+                    "y": 242,
+                    "fn": "g.cull"
+                },
+                {
+                    "name": "count1",
+                    "x": 105,
+                    "y": 292,
+                    "fn": "g.count"
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "list",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "stringEquals1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "cull1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "item",
+                    "input": "stringEquals1",
+                    "parameter": "string2"
+                },
+                {
+                    "inlet": "list",
+                    "input": "stringEquals1",
+                    "parameter": "string1"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "string",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "item",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "titlePoint",
+            "type": "network",
+            "renderedNode": "slice1",
+            "nodes": [
+                {
+                    "name": "slice1",
+                    "x": 128,
+                    "y": 266,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "list",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "index",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "list",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "soccer"
+}

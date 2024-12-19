@@ -1,0 +1,267 @@
+{
+    "title": "Simple Example",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "grid1",
+                    "x": -11,
+                    "y": 53,
+                    "outputType": "point",
+                    "fn": "g.grid",
+                    "returnsList": true,
+                    "values": {
+                        "columns": 10,
+                        "rows": 10,
+                        "width": 575,
+                        "height": 343,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "columnWidth": 64,
+                        "rowHeight": 48
+                    }
+                },
+                {
+                    "name": "noise1",
+                    "x": -3,
+                    "y": 138,
+                    "outputType": "float",
+                    "fn": "simple.noise",
+                    "returnsList": false,
+                    "values": {
+                        "pt": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "scale": 38,
+                        "dx": 130,
+                        "dy": 0
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 136,
+                    "y": 59,
+                    "outputType": "float",
+                    "fn": "g.sineWave",
+                    "returnsList": false,
+                    "values": {
+                        "min": 0,
+                        "max": 905,
+                        "speed": 0.3,
+                        "type": "sine",
+                        "period": 10
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": -15,
+                    "y": 218,
+                    "outputType": "shape",
+                    "fn": "g.ellipse",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 10,
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "grid2",
+                    "x": -4,
+                    "y": 0,
+                    "outputType": "point",
+                    "fn": "g.grid",
+                    "returnsList": true,
+                    "values": {
+                        "columns": 3,
+                        "rows": 3,
+                        "width": 21,
+                        "height": 20,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "columnWidth": 8,
+                        "rowHeight": 8
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -13,
+                    "y": 343,
+                    "outputType": "shape",
+                    "fn": "g.colorize",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "red",
+                        "stroke": "white",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": 138,
+                    "y": 12,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 142,
+                    "y": 179,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 1,
+                        "amount": 285,
+                        "min": 0.2
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 126,
+                    "y": 236,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "alpha": 0.71
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 114,
+                    "y": 121,
+                    "fn": "g.count"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "noise1",
+                    "parameter": "pt"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "noise1",
+                    "parameter": "dx"
+                },
+                {
+                    "output": "grid1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "grid2",
+                    "input": "grid1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "hslColor1",
+                    "parameter": "lightness"
+                },
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "noise1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "noise1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                }
+            ],
+            "parameters": [],
+            "example": "simple.main()",
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "noise",
+            "source": "simple.noise = function (pt, scale, dx, dy) {\n    return g.math.noise(pt.x+dx*0.01, pt.y+dy*0.01, 0) * scale;\n};",
+            "example": "simple.noise({x:0, y:0}, 50, 0, 0)",
+            "parameters": [
+                {
+                    "name": "pt",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 50
+                },
+                {
+                    "name": "dx",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "dy",
+                    "type": "float",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "prism",
+            "returnsList": true,
+            "source": "simple.prism = function (word, alpha) {\n\n    function palette(colors) {\n        return _.map(colors, function (c) {\n            return {r: c[0], g: c[1], b:c[2], a:alpha};\n        });\n    }\n\n    var apple = [\n        [110,170,134],\n        [105,172,141],\n        [98,163,133],\n        [117,169,120],\n        [104,196,121],\n        [65,160,126]];\n    var smurf = [\n        [190,201,233],\n        [237,236,241],\n        [207,213,229],\n        [206,212,228],\n        [222,224,237],\n        [177,178,209]];\n    var jealousy = [\n        [203,164,1],\n        [122,94,44],\n        [141,149,30],\n        [210,167,0],\n        [137,122,37],\n        [228,243,0]];\n    var black = [\n        [0,0,0],\n        [255,255,255],\n        [255,255,255]];\n    if (word === 'apple') {\n        return palette(apple);\n    } else if (word === 'smurf') {\n        return palette(smurf);\n    } else if (word === 'black' || word === 'white') {\n        return palette(black);\n    } else {\n        return palette(jealousy);\n    }\n};",
+            "example": "simple.prism(\"apple\", 255)",
+            "parameters": [
+                {
+                    "name": "word",
+                    "type": "string",
+                    "value": "apple"
+                },
+                {
+                    "name": "alpha",
+                    "type": "float",
+                    "value": 255
+                }
+            ]
+        }
+    ],
+    "color": "#d5b400",
+    "id": "simple"
+}

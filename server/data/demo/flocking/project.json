@@ -1,0 +1,643 @@
+{
+    "title": "flocking",
+    "color": "#929999",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "flock1",
+                    "x": 195,
+                    "y": 165,
+                    "fn": "flocking.flock",
+                    "values": {
+                        "seed": 55,
+                        "amount": 100
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 395,
+                    "y": 375,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "cohesion1",
+                    "x": 195,
+                    "y": 365,
+                    "fn": "flocking.cohesion"
+                },
+                {
+                    "name": "align1",
+                    "x": 195,
+                    "y": 315,
+                    "fn": "flocking.align"
+                },
+                {
+                    "name": "separate1",
+                    "x": 195,
+                    "y": 265,
+                    "fn": "flocking.separate"
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 195,
+                    "y": 215,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "flock"
+                    }
+                },
+                {
+                    "name": "update1",
+                    "x": 195,
+                    "y": 465,
+                    "fn": "flocking.update"
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 195,
+                    "y": 565,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "flock"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 195,
+                    "y": 615,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "position"
+                    }
+                },
+                {
+                    "name": "constrain1",
+                    "x": 195,
+                    "y": 515,
+                    "fn": "flocking.constrain",
+                    "values": {}
+                },
+                {
+                    "name": "rect1",
+                    "x": 25,
+                    "y": 615,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 550,
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 25,
+                    "y": 665,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(230, 240, 240, 1)"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 185,
+                    "y": 1015,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "goal1",
+                    "x": 195,
+                    "y": 415,
+                    "fn": "flocking.goal",
+                    "values": {
+                        "strength": 0.8
+                    }
+                },
+                {
+                    "name": "mousePosition1",
+                    "x": 395,
+                    "y": 275,
+                    "fn": "g.mousePosition"
+                },
+                {
+                    "name": "rect2",
+                    "x": 195,
+                    "y": 65,
+                    "fn": "g.rect"
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 195,
+                    "y": 115,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 50
+                    }
+                },
+                {
+                    "name": "heading1",
+                    "x": 365,
+                    "y": 665,
+                    "fn": "flocking.heading"
+                },
+                {
+                    "name": "lookup2",
+                    "x": 365,
+                    "y": 615,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "velocity"
+                    }
+                },
+                {
+                    "name": "polygon1",
+                    "x": 225,
+                    "y": 715,
+                    "fn": "g.polygon",
+                    "values": {
+                        "radius": 6
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 225,
+                    "y": 865,
+                    "fn": "g.rotate"
+                },
+                {
+                    "name": "translate1",
+                    "x": 325,
+                    "y": 965,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "degrees1",
+                    "x": 365,
+                    "y": 715,
+                    "fn": "g.degrees"
+                },
+                {
+                    "name": "add1",
+                    "x": 365,
+                    "y": 765,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 180
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 225,
+                    "y": 765,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 225,
+                    "y": 815,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 95,
+                    "y": 724,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 6,
+                        "height": 6
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 385,
+                    "y": 1015,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize2",
+                    "x": 95,
+                    "y": 765,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0, 204, 255, 1)",
+                        "stroke": "rgba(113, 143, 227, 0.8814814814814815)"
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 225,
+                    "y": 915,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(255, 187, 0, 0.31851851851851853)",
+                        "stroke": "rgba(195, 97, 220, 1)"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "align1",
+                    "input": "cohesion1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "separate1",
+                    "input": "align1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "flock1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "separate1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "update1",
+                    "input": "constrain1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "cohesion1",
+                    "input": "goal1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "goal1",
+                    "input": "update1",
+                    "parameter": "flock"
+                },
+                {
+                    "output": "constrain1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                },
+                {
+                    "output": "rect2",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "flock1",
+                    "parameter": "template"
+                },
+                {
+                    "output": "frame1",
+                    "input": "constrain1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "rect1",
+                    "input": "constrain1",
+                    "parameter": "bounding"
+                },
+                {
+                    "output": "mousePosition1",
+                    "input": "goal1",
+                    "parameter": "target"
+                },
+                {
+                    "output": "stateSave1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "heading1",
+                    "parameter": "p"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "heading1",
+                    "input": "degrees1",
+                    "parameter": "radians"
+                },
+                {
+                    "output": "degrees1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "polygon1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "add1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "translate1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "boid",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "velocity",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "acceleration",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "maxspeed",
+                    "type": "float",
+                    "value": 3
+                },
+                {
+                    "name": "maxforce",
+                    "type": "float",
+                    "value": 0.05
+                }
+            ],
+            "source": "class Boid {\n    constructor(position, velocity, acceleration, maxspeed, maxforce) {\n        this.position = position !== undefined ? position : g.Vec2.ZERO;\n        this.velocity = velocity !== undefined ? velocity : g.Vec2.ZERO;\n        this.acceleration = acceleration !== undefined ? acceleration : g.Vec2.ZERO;\n        this.maxspeed = maxspeed !== undefined ? maxspeed : 3;\n        this.maxforce = maxforce !== undefined ? maxforce : 0.05;\n    }\n\n    applyForce(force) {\n        // We could add mass here if we want A = F / M\n        return new Boid(this.position, this.velocity, this.acceleration.add(force), this.maxspeed, this.maxforce);\n    }\n\n    seek(target) {\n        const desired = target\n            .subtract(this.position) // A vector pointing from the location to the target\n            .normalize()\n            .multiply(this.maxspeed);\n        return desired\n            .subtract(this.velocity) // Steering = Desired minus Velocity\n            .limit(this.maxforce); // Limit to maximum steering force\n    }\n}\n\nflocking.boid = function (position, velocity, acceleration, maxspeed, maxforce) {\n    return new Boid(position, velocity, acceleration, maxspeed, maxforce);\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "flock",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "template",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "maxspeed",
+                    "type": "float",
+                    "value": 3
+                },
+                {
+                    "name": "maxforce",
+                    "type": "float",
+                    "value": 0.05
+                }
+            ],
+            "source": "flocking.flock = function (template, maxspeed, maxforce) {\n    const boids = [];\n    if (ndbx._currentFrame === 1 && template) {\n        for (let i = 0; i < template.length; i += 1) {\n            let boid = flocking.boid(template[i], g.Vec2.ZERO, g.Vec2.ZERO, maxspeed, maxforce);\n            boids.push(boid);\n        }\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "update",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "data",
+                    "value": "",
+                    "takesList": true
+                }
+            ],
+            "source": "flocking.update = function (flock) {\n    const boids = [];\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let velocity = boid.velocity\n        \t.add(boid.acceleration)\n        \t.limit(boid.maxspeed); // Limit speed\n        let position = boid.position.add(velocity);\n        boids.push(flocking.boid(position, velocity, g.Vec2.ZERO, boid.maxspeed, boid.maxforce));\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "goal",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "float",
+                    "value": 0,
+                    "takesList": true
+                },
+                {
+                    "name": "target",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "strength",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "source": "flocking.goal = function (flock, target, strength) {\n    const boids = [];\n    target = new g.Vec2(target.x, target.y);\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let goal = boid.seek(target).multiply(strength);\n        boids.push(boid.applyForce(goal));\n    }\n    return boids;\n};\n\n\n",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "separate",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "data",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "source": "function separate(boid, boids) {\n    const desiredseparation = 25.0;\n    let steer = g.Vec2.ZERO;\n    let count = 0;\n    // For every boid in the system, check if it's too close\n    for (let i = 0; i < boids.length; i += 1) {\n        let other = boids[i];\n        let d = boid.position.distanceTo(other.position);\n        // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)\n        if (d > 0 && d < desiredseparation) {\n            // Calculate vector pointing away from neighbor\n            let diff = boid.position\n                .subtract(other.position)\n                .normalize()\n                .divide(d);        // Weight by distance\n            steer = steer.add(diff);\n            count += 1;            // Keep track of how many\n        }\n    }\n    // Average -- divide by how many\n    if (count > 0) {\n        steer = steer.divide(count);\n    }\n\n    // As long as the vector is greater than 0\n    if (steer.magnitude() > 0) {\n        // Implement Reynolds: Steering = Desired - Velocity\n        steer = steer\n            .normalize()\n            .multiply(boid.maxspeed)\n            .subtract(boid.velocity)\n            .limit(boid.maxforce);\n    }\n    return steer;\n}\n\nflocking.separate = function (flock) {\n    const boids = [];\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let sep = separate(boid, flock).multiply(1.5);\n        boids.push(boid.applyForce(sep));\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "align",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "data",
+                    "value": "",
+                    "takesList": true
+                }
+            ],
+            "source": "function align(boid, boids) {\n    const neighbordist = 50;\n    let sum = g.Vec2.ZERO;\n    let count = 0;\n    for (let i = 0; i < boids.length; i += 1) {\n        let other = boids[i];\n        let d = boid.position.distanceTo(other.position);\n        if (d > 0 && d < neighbordist) {\n            sum = sum.add(other.velocity);\n            count += 1;\n        }\n    }\n    if (count > 0) {\n      sum = sum\n          .divide(count)\n          .normalize()\n          .multiply(boid.maxspeed);\n      return sum // Steering\n          .subtract(boid.velocity)\n          .limit(boid.maxforce);\n    } else {\n        return g.Vec2.ZERO;\n    }\n}\n\nflocking.align = function (flock) {\n    const boids = [];\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let ali = align(boid, flock);\n        boids.push(boid.applyForce(ali));\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "cohesion",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "data",
+                    "value": "",
+                    "takesList": true
+                },
+                {
+                    "name": "maxspeed",
+                    "type": "float",
+                    "value": 3
+                },
+                {
+                    "name": "maxforce",
+                    "type": "float",
+                    "value": 0.05
+                }
+            ],
+            "source": "function cohesion(boid, boids) {\n    const neighbordist = 50;\n    let sum = g.Vec2.ZERO; // Start with empty vector to accumulate all locations\n    let count = 0;\n    for (let i = 0; i < boids.length; i += 1) {\n        let other = boids[i];\n        let d = boid.position.distanceTo(other.position);\n        if (d > 0 && d < neighbordist) {\n            sum = sum.add(other.position); // Add location\n            count += 1;\n        }\n    }\n    if (count > 0) {\n        sum = sum.divide(count);\n        return boid.seek(sum); // Steer towards the location\n    } else {\n        return g.Vec2.ZERO;\n    }\n}\n\nflocking.cohesion = function (flock) {\n    const boids = [];\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let coh = cohesion(boid, flock);\n        boids.push(boid.applyForce(coh));\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "constrain",
+            "type": "code",
+            "outputType": "data",
+            "parameters": [
+                {
+                    "name": "flock",
+                    "type": "data",
+                    "value": "",
+                    "takesList": true
+                },
+                {
+                    "name": "bounding",
+                    "type": "shape",
+                    "value": ""
+                },
+                {
+                    "name": "strength",
+                    "type": "ratio",
+                    "value": 1
+                },
+                {
+                    "name": "seed",
+                    "type": "float",
+                    "value": 0
+                }
+            ],
+            "source": "flocking.constrain = function (flock, bounding, strength, seed) {\n    const boids = [];\n    const random = ndbx.randomGenerator(seed);\n    let x, y, width, height;\n    if (!bounding.bounds) {\n        return flock;\n    }\n    const bounds = bounding.bounds();\n\tx = bounds.x;\n    y = bounds.y;\n    width = bounds.width;\n    height = bounds.height;\n    for (let i = 0; i < flock.length; i += 1) {\n        let boid = flock[i];\n        let pos = boid.position;\n        let vx = boid.velocity.x;\n        let vy = boid.velocity.y;\n        let dx = random(width * (1 - strength));\n        let dy = random(height * (1 - strength));\n        if (pos.x < x - dx) { vx += dx; }\n        if (pos.y < y - dy) { vy += dy; }\n        if (pos.x > x + width + dx) { vx -= dx; }\n        if (pos.y > y + height + dy) { vy -= dy; }\n        boids.push(flocking.boid(boid.position, new g.Vec2(vx, vy), g.Vec2.ZERO, boid.maxspeed, boid.maxforce));\n    }\n    return boids;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "heading",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "p",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "source": "flocking.heading = function (p) {\n    return new g.Vec2(p.x, p.y).heading();\n};",
+            "ref": "",
+            "category": ""
+        }
+    ],
+    "id": "flocking"
+}

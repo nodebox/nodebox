@@ -1,0 +1,34 @@
+{
+  "title": "New Project",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Main",
+      "background": { "r": 0.15, "g": 0.15, "b": 0.15, "a": 1 },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "0:2",
+          "name": "Rect 1",
+          "x": 85,
+          "y": 85,
+          "fn": "core/g/Rect",
+          "values": {
+            "x": { "type": "VALUE", "value": 20 },
+            "y": { "type": "VALUE", "value": 20 },
+            "fill": { "type": "VALUE", "value": { "r": 1, "g": 1, "b": 1, "a": 1 } }
+          }
+        }
+      ],
+      "connections": [],
+      "renderedNode": "0:2"
+    }
+  ]
+}
