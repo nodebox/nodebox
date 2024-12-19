@@ -12,13 +12,15 @@ export default function LoggedInHeader() {
         <NodeBoxLogo size={20} />
       </a>
       <nav className="flex gap-3 mr-4">
-        <Link
-          href="/create"
-          className="rounded bg-blue-500 hover:bg-blue-600 px-2 text-xs text-zinc-100 flex items-center gap-1"
-        >
-          <Icon name="plus" />
-          Project
-        </Link>
+        {userId && (
+          <Link
+            href="/create"
+            className="rounded bg-blue-500 hover:bg-blue-600 px-2 text-xs text-zinc-100 flex items-center gap-1"
+          >
+            <Icon name="plus" />
+            Project
+          </Link>
+        )}
         <UserMenu />
       </nav>
     </header>

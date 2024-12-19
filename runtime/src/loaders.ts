@@ -87,7 +87,6 @@ async function loadProject(
   const projectUrl = `${config.apiRoot}/api/projects/${userId}/${projectId}/${version}`;
   const result = await apiRequestGet(projectUrl);
   if (result.status !== "ok") {
-    console.log(result);
     throw new Error(`Error loading project '${userId}/${projectId}': ${result.message}`);
   }
   config.assetsRoot = result.assetsRoot || config.assetsRoot;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export function debounce<F extends (...args: any[]) => any>(
   func: F,
@@ -96,4 +97,21 @@ export function useRelativeTime(date: string | Date) {
   }, [date]);
 
   return relativeTime;
+}
+
+type ToastType = "info" | "success" | "warning" | "error";
+
+export function showToast(message: string, type: ToastType = "info") {
+  if (message) {
+    toast[type](message);
+  }
+}
+export function showToastOnce(message: string) {
+  const key = "shown_messages";
+  const shownMessages = JSON.parse(localStorage.getItem(key) || "[]");
+
+  if (message && !shownMessages.includes(message)) {
+    showToast(message);
+    localStorage.setItem(key, JSON.stringify([...shownMessages, message]));
+  }
 }

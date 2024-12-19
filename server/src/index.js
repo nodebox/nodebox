@@ -423,6 +423,11 @@ app.get("/api/projects/:userId", async (req, res) => {
   const userId = req.params.userId;
   const authUserId = req.query.userId;
   try {
+    const exists = await store.userExists(userId);
+    if (!exists) {
+      success(res, { projects: [], userId: null });
+      return;
+    }
     const profile = await store.getUserProfile(userId);
     if (authUserId === null || authUserId !== userId) {
       success(res, { projects: profile.projects.filter((project) => project?.scope !== "private") });
@@ -524,6 +529,11 @@ app.get("/api/projects/:userId/:projectId/:version", getOwnershipFromParam, asyn
   const projectId = req.params.projectId;
   const version = req.params.version;
   try {
+    // const exists = await store.userExists(userId);
+    // if (!exists) {
+    //   success(res, { projects: [], userId: null });
+    //   return;
+    // }
     const project = await store.loadProject(userId, projectId, version);
     if (project && project.scope == "private" && userId !== _authUserId) {
       error(res, "Project not accesible");

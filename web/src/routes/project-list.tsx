@@ -9,13 +9,12 @@ import { apiRoot } from "../config";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Menu, MenuItem } from "../components/menu";
 import FullscreenModal from "../components/fullscreen-modal";
-import { toast } from "react-toastify";
 import Subscription from "../components/subscription";
 import Chrome from "@uiw/react-color-chrome";
 import { HsvaColor, rgbaToHsva, hsvaToRgba } from "@uiw/color-convert";
 import { Paint } from "@ndbx/g";
 import { debounce } from "../util";
-
+import { showToast, showToastOnce } from "../util";
 interface Project {
   id: string;
   title: string;
@@ -34,16 +33,6 @@ interface ColorValue {
   g: number;
   b: number;
   a: number;
-}
-
-function showToastOnce(message: string) {
-  const key = "shown_messages";
-  const shownMessages = JSON.parse(localStorage.getItem(key) || "[]");
-
-  if (message && !shownMessages.includes(message)) {
-    toast.info(message);
-    localStorage.setItem(key, JSON.stringify([...shownMessages, message]));
-  }
 }
 
 export default function ProjectBrowser() {
@@ -80,7 +69,11 @@ export default function ProjectBrowser() {
   useEffect(() => {
     if (data) {
       if (data.projects) {
-        setProjectList(data.projects);
+        if (data.userId === null) {
+          showToast("This user does not exist.");
+        } else {
+          setProjectList(data.projects);
+        }
       }
       if (data.membership_message) {
         showToastOnce(data.membership_message);
@@ -234,7 +227,7 @@ export default function ProjectBrowser() {
       );
     } catch (error) {
       console.error("Error updating project color:", error);
-      toast.error("Failed to update project color");
+      showToast("Failed to update project color", "error");
     } finally {
       setIsUpdatingColor(false);
     }

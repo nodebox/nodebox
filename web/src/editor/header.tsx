@@ -281,12 +281,14 @@ export default function Header({ showReadOnlyWarning, userId, projectId, version
           <div className="status-wrap text-xs text-zinc-500">{statusMessage}</div>
           <div className="save-state text-xs text-zinc-500 flex justify-end">{saveStateLabel}</div>
         </div>
-        <button
-          onClick={() => (shareModalVisible.value = true)}
-          className="px-2 h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md flex items-center"
-        >
-          Share
-        </button>
+        {currentUserId && currentUserId === userId && (
+          <button
+            onClick={() => (shareModalVisible.value = true)}
+            className="px-2 h-8 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-md flex items-center"
+          >
+            Share
+          </button>
+        )}
         {isExampleUser && <IconButton name="cog" onClick={() => (projectModalVisible.value = true)} />}
         <UserMenu />
       </div>
