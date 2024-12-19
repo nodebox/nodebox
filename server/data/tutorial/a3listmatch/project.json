@@ -1,0 +1,117 @@
+{
+    "title": "a3listmatch",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 45,
+                    "y": 95,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 60,
+                        "height": 100,
+                        "roundness": 5
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 45,
+                    "y": 45,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 400,
+                        "height": 400,
+                        "rows": 12,
+                        "columns": 7,
+                        "columnWidth": 65,
+                        "rowHeight": 30
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 165,
+                    "y": 45,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": 10,
+                        "max": 40,
+                        "amount": 2
+                    }
+                },
+                {
+                    "name": "sample2",
+                    "x": 285,
+                    "y": 85,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": 0.2,
+                        "max": 0.9,
+                        "amount": 3
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 285,
+                    "y": 125,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sample1",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "grid1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sample2",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a3listmatch"
+}

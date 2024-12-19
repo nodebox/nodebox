@@ -1,0 +1,158 @@
+{
+    "title": "h2animated",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "Grey_horse1.jpg": "5d9c44f3fd82eec76941f815e8e72eb872cc7cdf",
+        "Grey_horse2.jpg": "9eec88631d84a091c716d802d2a5d1914a8f146b",
+        "Grey_horse3.jpg": "c4cf905f858ad6452a1b713600d82b80cdfb0f14",
+        "Grey_horse4.jpg": "7dc0749911ca0bd577d657f6946351ef083a9fcc",
+        "Grey_horse5.jpg": "1b8806b187d9e968dee372d1df8bf51f4042e2d3"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "scale3",
+            "nodes": [
+                {
+                    "name": "open1",
+                    "x": 193,
+                    "y": 380,
+                    "fn": "img.open",
+                    "values": {
+                        "image": "Grey_horse1.jpg"
+                    }
+                },
+                {
+                    "name": "concatenate1",
+                    "x": 193,
+                    "y": 217,
+                    "fn": "g.concatenate",
+                    "values": {
+                        "s1": "Grey_horse",
+                        "s3": ".jpg"
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 213,
+                    "y": 167,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 6,
+                        "min": 1
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 47,
+                    "y": 130,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "divide1",
+                    "x": 47,
+                    "y": 174,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "mod1",
+                    "x": 47,
+                    "y": 217,
+                    "fn": "g.mod",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 47,
+                    "y": 259,
+                    "fn": "g.integer"
+                },
+                {
+                    "name": "slice1",
+                    "x": 193,
+                    "y": 338,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0,
+                        "size": 1
+                    }
+                },
+                {
+                    "name": "scale3",
+                    "x": 193,
+                    "y": 439,
+                    "fn": "img.scale",
+                    "values": {
+                        "s": {
+                            "x": 150,
+                            "y": 150
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "range1",
+                    "input": "concatenate1",
+                    "parameter": "s2"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "mod1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "mod1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "concatenate1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "integer1",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "slice1",
+                    "input": "open1",
+                    "parameter": "image"
+                },
+                {
+                    "output": "open1",
+                    "input": "scale3",
+                    "parameter": "image"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 308,
+                    "y": 16,
+                    "width": 71,
+                    "height": 40,
+                    "text": "Press Play"
+                }
+            ]
+        }
+    ],
+    "id": "h2animated"
+}

@@ -1,0 +1,858 @@
+{
+  "title": "Heatmap",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Heatmap",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eYoGbhAEKNT:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/seattle-weather-hourly-normals.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoGbhAEKNT:1",
+          "x": 240,
+          "y": 177,
+          "name": "Apply Expression 1",
+          "fn": "core/g/Apply Expression",
+          "values": {
+            "source": {
+              "type": "VALUE",
+              "value": "return { ...d,\nhours:d.date.getHours()\n};"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:0",
+          "x": 240,
+          "y": 237,
+          "name": "Add Plot Data 1",
+          "fn": "core/plot/Add Plot Data",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:1",
+          "x": 240,
+          "y": 297,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "date"
+            },
+            "nice": {
+              "type": "VALUE",
+              "value": true
+            },
+            "scaleType": {
+              "type": "VALUE",
+              "value": "<auto>"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:2",
+          "x": 240,
+          "y": 957,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:3",
+          "x": 240,
+          "y": 357,
+          "name": "Set Plot Scale 2",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "domain": {
+              "type": "VALUE",
+              "value": "6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,1,2,3,4,5"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "scaleType": {
+              "type": "VALUE",
+              "value": "band"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:4",
+          "x": 240,
+          "y": 657,
+          "name": "Set Plot Scale 3",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "range": {
+              "type": "VALUE",
+              "value": "[\"#440154\",\"#440256\",\"#450457\",\"#450559\",\"#46075a\",\"#46085c\",\"#460a5d\",\"#460b5e\",\"#470d60\",\"#470e61\",\"#471063\",\"#471164\",\"#471365\",\"#481467\",\"#481668\",\"#481769\",\"#48186a\",\"#481a6c\",\"#481b6d\",\"#481c6e\",\"#481d6f\",\"#481f70\",\"#482071\",\"#482173\",\"#482374\",\"#482475\",\"#482576\",\"#482677\",\"#482878\",\"#482979\",\"#472a7a\",\"#472c7a\",\"#472d7b\",\"#472e7c\",\"#472f7d\",\"#46307e\",\"#46327e\",\"#46337f\",\"#463480\",\"#453581\",\"#453781\",\"#453882\",\"#443983\",\"#443a83\",\"#443b84\",\"#433d84\",\"#433e85\",\"#423f85\",\"#424086\",\"#424186\",\"#414287\",\"#414487\",\"#404588\",\"#404688\",\"#3f4788\",\"#3f4889\",\"#3e4989\",\"#3e4a89\",\"#3e4c8a\",\"#3d4d8a\",\"#3d4e8a\",\"#3c4f8a\",\"#3c508b\",\"#3b518b\",\"#3b528b\",\"#3a538b\",\"#3a548c\",\"#39558c\",\"#39568c\",\"#38588c\",\"#38598c\",\"#375a8c\",\"#375b8d\",\"#365c8d\",\"#365d8d\",\"#355e8d\",\"#355f8d\",\"#34608d\",\"#34618d\",\"#33628d\",\"#33638d\",\"#32648e\",\"#32658e\",\"#31668e\",\"#31678e\",\"#31688e\",\"#30698e\",\"#306a8e\",\"#2f6b8e\",\"#2f6c8e\",\"#2e6d8e\",\"#2e6e8e\",\"#2e6f8e\",\"#2d708e\",\"#2d718e\",\"#2c718e\",\"#2c728e\",\"#2c738e\",\"#2b748e\",\"#2b758e\",\"#2a768e\",\"#2a778e\",\"#2a788e\",\"#29798e\",\"#297a8e\",\"#297b8e\",\"#287c8e\",\"#287d8e\",\"#277e8e\",\"#277f8e\",\"#27808e\",\"#26818e\",\"#26828e\",\"#26828e\",\"#25838e\",\"#25848e\",\"#25858e\",\"#24868e\",\"#24878e\",\"#23888e\",\"#23898e\",\"#238a8d\",\"#228b8d\",\"#228c8d\",\"#228d8d\",\"#218e8d\",\"#218f8d\",\"#21908d\",\"#21918c\",\"#20928c\",\"#20928c\",\"#20938c\",\"#1f948c\",\"#1f958b\",\"#1f968b\",\"#1f978b\",\"#1f988b\",\"#1f998a\",\"#1f9a8a\",\"#1e9b8a\",\"#1e9c89\",\"#1e9d89\",\"#1f9e89\",\"#1f9f88\",\"#1fa088\",\"#1fa188\",\"#1fa187\",\"#1fa287\",\"#20a386\",\"#20a486\",\"#21a585\",\"#21a685\",\"#22a785\",\"#22a884\",\"#23a983\",\"#24aa83\",\"#25ab82\",\"#25ac82\",\"#26ad81\",\"#27ad81\",\"#28ae80\",\"#29af7f\",\"#2ab07f\",\"#2cb17e\",\"#2db27d\",\"#2eb37c\",\"#2fb47c\",\"#31b57b\",\"#32b67a\",\"#34b679\",\"#35b779\",\"#37b878\",\"#38b977\",\"#3aba76\",\"#3bbb75\",\"#3dbc74\",\"#3fbc73\",\"#40bd72\",\"#42be71\",\"#44bf70\",\"#46c06f\",\"#48c16e\",\"#4ac16d\",\"#4cc26c\",\"#4ec36b\",\"#50c46a\",\"#52c569\",\"#54c568\",\"#56c667\",\"#58c765\",\"#5ac864\",\"#5cc863\",\"#5ec962\",\"#60ca60\",\"#63cb5f\",\"#65cb5e\",\"#67cc5c\",\"#69cd5b\",\"#6ccd5a\",\"#6ece58\",\"#70cf57\",\"#73d056\",\"#75d054\",\"#77d153\",\"#7ad151\",\"#7cd250\",\"#7fd34e\",\"#81d34d\",\"#84d44b\",\"#86d549\",\"#89d548\",\"#8bd646\",\"#8ed645\",\"#90d743\",\"#93d741\",\"#95d840\",\"#98d83e\",\"#9bd93c\",\"#9dd93b\",\"#a0da39\",\"#a2da37\",\"#a5db36\",\"#a8db34\",\"#aadc32\",\"#addc30\",\"#b0dd2f\",\"#b2dd2d\",\"#b5de2b\",\"#b8de29\",\"#bade28\",\"#bddf26\",\"#c0df25\",\"#c2df23\",\"#c5e021\",\"#c8e020\",\"#cae11f\",\"#cde11d\",\"#d0e11c\",\"#d2e21b\",\"#d5e21a\",\"#d8e219\",\"#dae319\",\"#dde318\",\"#dfe318\",\"#e2e418\",\"#e5e419\",\"#e7e419\",\"#eae51a\",\"#ece51b\",\"#efe51c\",\"#f1e51d\",\"#f4e61e\",\"#f6e620\",\"#f8e621\",\"#fbe723\",\"#fde725\"]"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "temperature"
+            },
+            "scaleName": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:5",
+          "x": 240,
+          "y": 417,
+          "name": "Apply Plot Scale 1",
+          "fn": "core/plot/Apply Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "attrName": {
+              "type": "VALUE",
+              "value": "hours"
+            },
+            "band": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "propName": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:6",
+          "x": 240,
+          "y": 477,
+          "name": "Set Mark 1",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "y2": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 3
+            },
+            "markType": {
+              "type": "VALUE",
+              "value": "rect"
+            },
+            "markName": {
+              "type": "VALUE",
+              "value": "heat"
+            },
+            "dataName": {
+              "type": "VALUE",
+              "value": "table"
+            },
+            "mode": {
+              "type": "VALUE",
+              "value": "truncate_reuse"
+            },
+            "height": {
+              "type": "VALUE",
+              "value": 3
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eYoHGiyYTRD:8",
+          "x": 240,
+          "y": 777,
+          "name": "Set Axis 2",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "encode": {
+              "type": "VALUE",
+              "value": "{\"labels\": {\n  \"update\": {\n    \"text\": {\"signal\": \n\"d.value === 0 ? 'Midnight' : d.value === 12 ? 'Noon' : d.value < 12 ? d.value + ':00 am' : (d.value - 12) + ':00 pm'\"}\n          }\n        }\n      }"
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "left"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Hour"
+            },
+            "labelAlign": {
+              "type": "VALUE",
+              "value": "right"
+            }
+          }
+        },
+        {
+          "id": "eal3AVOxj1S:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A heatmap displays data values as colors in a matrix. It provides an intuitive way to visualize patterns, correlations, or density across two dimensions. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eal3AVOxj1S:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. Original source: https://vega.github.io/vega-datasets/\ndata/seattle-weather-hourly-normals.csv",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eal3AVOxj1S:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "The date is stored as a JavaScript Date object. Extract the hours of the date using the getHours() method. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eal3AVOxj1S:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add data to the plot. Keep the default name \"table\". ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eal3AVOxj1S:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Heatmap",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamHGoE00yF:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a scale to map the date to the X-position. When scale type is <auto>, NodeBox plot recognizes the date format and will set the scale type to \"time\". Inspect the scales in the Detail view. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamHGoE00yF:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add an explicit list of hours to map to the Y-positions. NodeBox Plot uses the height of the plot figure as the default range. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamHGoE00yF:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "NodeBox Plot knows a Y-scale maps to the y-property of the mark. But since an explicit domain was used, it does not know which data attribute to map. Apply the Y-scale to the hours attribute. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eamHGoE00yF:6",
+          "x": 240,
+          "y": 537,
+          "name": "Apply Plot Scale 2",
+          "fn": "core/plot/Apply Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "attrName": {
+              "type": "VALUE",
+              "value": "hours"
+            },
+            "band": {
+              "type": "VALUE",
+              "value": 1
+            },
+            "propName": {
+              "type": "VALUE",
+              "value": "y2"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eamHGoE00yF:7",
+          "x": 170,
+          "y": 597,
+          "name": "Set Mark 2",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "y2": {
+              "type": "VALUE",
+              "value": "{\"scale\":\"yScale\",\"field\":\"hours\",\"band\":1}"
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "markType": {
+              "type": "VALUE",
+              "value": "rect"
+            },
+            "markName": {
+              "type": "VALUE",
+              "value": "heat"
+            },
+            "dataName": {
+              "type": "VALUE",
+              "value": "table"
+            },
+            "mode": {
+              "type": "VALUE",
+              "value": "truncate_reuse"
+            }
+          }
+        },
+        {
+          "id": "eamHGoE00yF:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Replace all marks with a rectangle mark. Keep the style to reuse the x- and y-properties that were set by applying the X-scale (implicitly) and Y-scale (explicitly). Set the height and width. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamHGoE00yF:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "The height of the rectangle can be defined by the height property or by the secondary y-coordinate. Use the relative band position 1 to set the y2 at the end of each band of the band scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamHGoE00yF:11",
+          "type": "STICKY",
+          "x": 400,
+          "y": 600,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "A scale can also be applied directly to a property using a Vega value reference. For example: {\"scale\":\"yScale\",\"field\":\"hours\",\"band\":1} (https://vega.github.io/vega/docs/types/#Value)",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamZxWNviJz:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 660,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a fill color scale to map the temperature attribute to a custom color range. You can copy color palettes as hex codes from https://observablehq.com/@d3/color-schemes. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamZxWNviJz:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 720,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "The labels of the time scale on the X-axis can be formatted using the d3 time format syntax. (https://d3js.org/d3-time-format) Set label baseline to top. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eamZxWNviJz:3",
+          "x": 240,
+          "y": 717,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "format": {
+              "type": "VALUE",
+              "value": "%b"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Month"
+            },
+            "labelBaseline": {
+              "type": "VALUE",
+              "value": "top"
+            }
+          }
+        },
+        {
+          "id": "eamZxWNviJz:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 780,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "The (Vega) encode property allows extensive customization of the appearance and behavior of all plot components. It can be used to create conditional label formats on the axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eamZxWNviJz:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 960,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eamZxWNviJz:6",
+          "x": 240,
+          "y": 837,
+          "name": "Set Plot Title 1",
+          "fn": "core/plot/Set Plot Title",
+          "values": {
+            "titleText": {
+              "type": "VALUE",
+              "value": "Seattle Annual Temperatures"
+            },
+            "subtitle": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "anchor": {
+              "type": "VALUE",
+              "value": "middle"
+            },
+            "align": {
+              "type": "VALUE",
+              "value": "center"
+            },
+            "baseline": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "dx": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "id": "eamZxWNviJz:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 840,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a title to the plot. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eamZxWNviJz:8",
+          "x": 240,
+          "y": 897,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "type": {
+              "type": "VALUE",
+              "value": "gradient"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Avg. Temp (°C)"
+            },
+            "gradientLength": {
+              "type": "VALUE",
+              "value": "{\"signal\": \"height - 26\"}"
+            }
+          }
+        },
+        {
+          "id": "eamyGOD9xFI:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 900,
+          "width": 400,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a gradient legend. The length of the gradient can be made dynamical using a Vega signal reference. For example: {\"signal\": \"height - 26\"}. (https://vega.github.io/vega/docs/types/#Signal)",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoGbhAEKNT:0",
+          "outPort": "out",
+          "inNode": "eYoGbhAEKNT:1",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoGbhAEKNT:1",
+          "outPort": "out",
+          "inNode": "eYoHGiyYTRD:0",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:5",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eamHGoE00yF:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:4",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:5",
+          "outPort": "plotSpecOut",
+          "inNode": "eamHGoE00yF:7",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:5",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eamHGoE00yF:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:4",
+          "outPort": "plotSpecOut",
+          "inNode": "eamZxWNviJz:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eamZxWNviJz:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:8",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eYoHGiyYTRD:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eamZxWNviJz:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eamZxWNviJz:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eamZxWNviJz:8",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eamZxWNviJz:8",
+          "outPort": "plotSpecOut",
+          "inNode": "eYoHGiyYTRD:2",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eYoHGiyYTRD:2",
+      "outputPorts": [],
+      "description": "A heatmap displays data values as colors in a matrix. It provides an intuitive way to visualize patterns, correlations, or density across two dimensions. ",
+      "__gallery": {
+        "keyword": "heatmap",
+        "subKeyword": "Heatmap"
+      },
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 620,
+      "height": 500
+    }
+  ],
+  "__gallery": {},
+  "id": "heatmap",
+  "formatVersion": 4
+}

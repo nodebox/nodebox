@@ -1,0 +1,152 @@
+{
+    "title": "Game of Life",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "functions": [
+        {
+            "type": "code",
+            "name": "life",
+            "source": "life.life = function (world, width, height, fullness, seed) {\n\n    function isAlive(x, y) {\n        var cell = world[y * width + x];\n        return cell !== undefined ? cell.alive : false;\n    }\n\n    function updateCell(world, x, y){\n        var neighbors, dy, dx, alive;\n        neighbors = 0;\n        for (dy = -1; dy <= 1; dy++){\n            for (dx = -1; dx <= 1; dx++){\n                if (isAlive(x + dx, y + dy)) {\n                    neighbors += 1;\n                }\n            }\n        }\n        alive = isAlive(x, y);\n        if (alive) {\n            neighbors -= 1;\n        }\n    \n        if (alive && neighbors < 2) {\n            return false;\n        } else if (alive && neighbors > 3) {\n            return false;\n        } else if (!alive && neighbors === 3) {\n            return true;\n        } else {\n            return alive;\n        }\n    }\n\n    var rand, y, x, cell, pt, alive, newWorld;\n\n    rand = ndbx.randomGenerator(seed);\n    if (!world) {\n        world = [];\n        for (y = 0; y < height; y ++) {\n            for (x = 0; x < width; x ++) {\n                alive = rand(0, 100) < fullness;\n                pt = {x: x, y: y, alive: alive};\n                world.push(pt);\n            }\n        }\n        return world;\n    } else {\n        newWorld = [];\n        for (y = 0; y < height; y ++) {\n            for (x = 0; x < width; x ++) {\n                alive = updateCell(world, x, y);\n                pt = {x: x, y: y, alive: alive};\n                newWorld.push(pt);\n             }\n        }\n        return newWorld;\n    }\n};",
+            "example": "life.life(null, 5, 5, 50, 42)",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "point",
+                    "value": null,
+                    "takesList": true
+                },
+                {
+                    "name": "width",
+                    "type": "int",
+                    "value": 20
+                },
+                {
+                    "name": "height",
+                    "type": "int",
+                    "value": 20
+                },
+                {
+                    "name": "fullness",
+                    "type": "float",
+                    "value": 50
+                },
+                {
+                    "name": "seed",
+                    "type": "int",
+                    "value": 1
+                }
+            ],
+            "stateful": true,
+            "returnsList": true,
+            "outputType": "point"
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "scale1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 25,
+                    "y": 91,
+                    "fn": "g.rect",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 1,
+                        "height": 1
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 145,
+                    "y": 91,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "table": null,
+                        "key": "alive"
+                    }
+                },
+                {
+                    "name": "life1",
+                    "x": 23,
+                    "y": 12,
+                    "fn": "life.life",
+                    "outputType": "point",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": null,
+                        "width": 50,
+                        "height": 50,
+                        "fullness": 40,
+                        "seed": 1
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 65,
+                    "y": 233,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 10,
+                            "y": 10
+                        },
+                        "origin": {
+                            "x": 30,
+                            "y": 30
+                        }
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 66,
+                    "y": 166,
+                    "fn": "g.cull"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "life1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "life1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "rect1",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "cull1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "example": "life.main()",
+            "returnsList": true
+        }
+    ],
+    "color": "#222",
+    "id": "life"
+}

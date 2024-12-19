@@ -1,0 +1,64 @@
+{
+  "login": "example",
+  "password": "$2a$10$E3UW4ufF3nPy13VHjnVAteInHp/xKMDwKXgQ0XO37/wza3Wrue7iy",
+  "projects": [
+    {
+      "id": "scatter",
+      "title": "scatter",
+      "color": "red"
+    },
+    {
+      "id": "bubble",
+      "title": "bubble",
+      "color": "red"
+    },
+    {
+      "id": "connected-scatter",
+      "title": "connected-scatter",
+      "color": "red"
+    },
+    {
+      "id": "line",
+      "title": "line",
+      "color": "red"
+    },
+    {
+      "id": "area",
+      "title": "area",
+      "color": "red"
+    },
+    {
+      "id": "bar",
+      "title": "bar",
+      "color": "red"
+    },
+    {
+      "id": "lollipop",
+      "title": "lollipop",
+      "color": "red"
+    },
+    {
+      "id": "waffle",
+      "title": "waffle",
+      "color": "red"
+    },
+    {
+      "id": "heatmap",
+      "title": "heatmap",
+      "color": "red"
+    },
+    {
+      "id": "data-manipulation",
+      "title": "data-manipulation",
+      "color": "red"
+    },
+    {
+      "id": "map",
+      "title": "choropleth-map",
+      "color": "red"
+    }
+  ],
+  "membership_message": "",
+  "membership_type": "free",
+  "membership_until": ""
+}

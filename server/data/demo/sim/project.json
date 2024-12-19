@@ -1,0 +1,390 @@
+{
+    "title": "Particle Simulation",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "fastColor1",
+            "nodes": [
+                {
+                    "name": "grid1",
+                    "x": 25,
+                    "y": 25,
+                    "fn": "g.grid",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "stateful": false,
+                    "values": {
+                        "columns": 20,
+                        "rows": 20,
+                        "width": 600,
+                        "height": 300,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "columnWidth": 42,
+                        "rowHeight": 20
+                    }
+                },
+                {
+                    "name": "force1",
+                    "x": 54,
+                    "y": 136,
+                    "fn": "sim.force",
+                    "outputType": "particle",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": 1,
+                        "force": 1
+                    }
+                },
+                {
+                    "name": "update1",
+                    "x": 54,
+                    "y": 275,
+                    "fn": "sim.update",
+                    "outputType": "particle",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": 1
+                    }
+                },
+                {
+                    "name": "bounce1",
+                    "x": 54,
+                    "y": 229,
+                    "fn": "sim.bounce",
+                    "outputType": "particle",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": 1,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 800,
+                        "height": 400
+                    }
+                },
+                {
+                    "name": "friction1",
+                    "x": 55,
+                    "y": 183,
+                    "fn": "sim.friction",
+                    "outputType": "particle",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": 1,
+                        "friction": 0.02
+                    }
+                },
+                {
+                    "name": "birth1",
+                    "x": 51,
+                    "y": 85,
+                    "fn": "sim.birth",
+                    "outputType": "particle",
+                    "returnsList": true,
+                    "stateful": true,
+                    "values": {
+                        "world": 1,
+                        "template": 1,
+                        "velocity": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "velocityVariance": 1,
+                        "mass": 3,
+                        "massVariance": 1,
+                        "seed": 1
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 54,
+                    "y": 389,
+                    "fn": "g.ellipse",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 4,
+                        "height": 4
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 53,
+                    "y": 335,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "table": null,
+                        "key": "position"
+                    }
+                },
+                {
+                    "name": "mousePosition1",
+                    "x": 230,
+                    "y": 81,
+                    "fn": "g.mousePosition"
+                },
+                {
+                    "name": "translate1",
+                    "x": 227,
+                    "y": 169,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "fastColor1",
+                    "x": 57,
+                    "y": 454,
+                    "fn": "sim.fastColor"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "force1",
+                    "input": "friction1",
+                    "parameter": "world"
+                },
+                {
+                    "output": "friction1",
+                    "input": "bounce1",
+                    "parameter": "world"
+                },
+                {
+                    "output": "grid1",
+                    "input": "birth1",
+                    "parameter": "template"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "birth1",
+                    "input": "force1",
+                    "parameter": "world"
+                },
+                {
+                    "output": "update1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "bounce1",
+                    "input": "update1",
+                    "parameter": "world"
+                },
+                {
+                    "output": "mousePosition1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "fastColor1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "mousePosition1",
+                    "input": "force1",
+                    "parameter": "force"
+                }
+            ],
+            "parameters": [],
+            "example": "sim.main()",
+            "returnsList": true,
+            "background": "none",
+            "height": 0
+        },
+        {
+            "type": "code",
+            "name": "birth",
+            "source": "var Particle = function (position, velocity, acceleration, mass, lifespan) {\n    this.position = position !== undefined ? position : g.Vec2.ZERO;\n    this.velocity = velocity !== undefined ? velocity : g.Vec2.ZERO;\n    this.acceleration = acceleration !== undefined ? acceleration : g.Vec2.ZERO;\n    this.mass = mass !== undefined ? mass : 1;\n    this.lifespan = lifespan !== undefined ? lifespan : Number.POSITIVE_INFINITY;\n};\n\nParticle.prototype.clone = function () {\n    return new Particle(\n        this.position,\n        this.velocity,\n        this.acceleration,\n        this.mass,\n        this.lifespan\n    );\n};\n\n// Birth particles on each point of the given shape.\nsim.birth = function (world, template, velocity, velocityVariance, mass, massVariance, seed) {\n    var random, i, pt, _position, _velocity, _mass;\n    world = _.isArray(world) ? world : [];\n    random = ndbx.randomGenerator(seed);\n    if (ndbx._currentFrame === 1 && template) {\n        // Clone the world.\n        world = world.slice(0);\n        for (i = 0; i < template.length; i += 1) {\n            pt = template[i];\n            _position = new g.Vec2(pt.x, pt.y);\n            _velocity = new g.Vec2(velocity.x + random(-velocityVariance, velocityVariance), \n                                  velocity.y + random(-velocityVariance, velocityVariance));\n            _mass = mass + random(-massVariance, massVariance);\n            world.push(new Particle(_position, _velocity, g.Vec2.ZERO, _mass));\n        }\n    }\n    return world;\n};",
+            "example": "sim.birth(1, 1, {\"x\":0,\"y\":0}, 1, 1, 1, 1)",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "particle",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "template",
+                    "type": "geometry",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "velocity",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "velocityVariance",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "mass",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "massVariance",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "seed",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "outputType": "particle",
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "bounce",
+            "source": "sim.bounce = function (world, position, width, height) {\n    var newWorld, nParticles, x1, y1, x2, y2, i, p, position, cloned;\n    position = position !== undefined ? position : g.Vec2.ZERO;\n    x1 = position.x - width / 2;\n    y1 = position.y - height / 2;\n    x2 = position.x + width / 2;\n    y2 = position.y + height / 2;\n\n    newWorld = [];\n    nParticles = world.length;\n    cloned = false;\n    for (i = 0; i < nParticles; i += 1) {\n        // Don't clone immediately, only clone if the particle bounces.\n        p = world[i];\n        position = p.position;\n        if (position.x < x1) {\n            p = p.clone();\n            cloned = true;\n            p.velocity = new g.Vec2(p.velocity.x * -1, p.velocity.y);\n            p.position = new g.Vec2(x1, p.position.y);\n        } else if (position.x > x2) {\n            p = p.clone();\n            cloned = true;\n            p.velocity = new g.Vec2(p.velocity.x * -1, p.velocity.y);\n            p.position = new g.Vec2(x2, p.position.y);\n        }\n        if (position.y < y1) {\n            if (!cloned) {\n                p = p.clone();\n            }\n            p.velocity = new g.Vec2(p.velocity.x, p.velocity.y * -1);\n            p.position = new g.Vec2(p.position.x, y1);\n        } else if (position.y > y2) {\n            if (!cloned) {\n                p = p.clone();\n            }\n            p.velocity = new g.Vec2(p.velocity.x, p.velocity.y * -1);\n            p.position = new g.Vec2(p.position.x, y2);\n        }\n        newWorld.push(p);\n    }\n    return newWorld;\n};",
+            "example": "sim.bounce(1, g.Point.ZERO, 500, 500)",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "particle",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "width",
+                    "type": "float",
+                    "value": 500
+                },
+                {
+                    "name": "height",
+                    "type": "float",
+                    "value": 500
+                }
+            ],
+            "outputType": "particle",
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "force",
+            "source": "sim.force = function (world, force) {\n    var newWorld, nParticles, i, p;\n    force = force !== undefined ? new g.Vec2(force.x, force.y) : g.Vec2.ZERO;\n    force = force.divide(1000);\n    newWorld = [];\n    nParticles = world.length;\n    for (i = 0; i < nParticles; i += 1) {\n        p = world[i].clone();\n        p.acceleration = p.acceleration.add(force.divide(p.mass));\n        newWorld.push(p);\n    }\n    return newWorld;\n};",
+            "example": "sim.force(1, 1)",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "particle",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "force",
+                    "type": "point",
+                    "value": 1
+                }
+            ],
+            "outputType": "particle",
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "friction",
+            "source": "sim.friction = function (world, friction) {\n    var newWorld, nParticles, i, p, f;\n    newWorld = [];\n    nParticles = world.length;\n    for (i = 0; i < nParticles; i += 1) {\n        p = world[i].clone();\n        f = p.velocity.multiply(-1);\n        f = f.normalize();\n        f = f.multiply(friction);\n        p.acceleration = p.acceleration.add(f);\n        newWorld.push(p);\n    }\n    return newWorld;\n};",
+            "example": "sim.friction(1, 1)",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "particle",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "friction",
+                    "type": "float",
+                    "value": 0.01
+                }
+            ],
+            "outputType": "particle",
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "type": "code",
+            "name": "update",
+            "source": "sim.update = function (world) {\n    var newWorld, nParticles;\n    newWorld = [];\n    nParticles = world.length;\n    for (var i = 0; i < nParticles; i++) {\n        var p = world[i].clone();\n        p.velocity = p.velocity.add(p.acceleration);\n        p.position = p.position.add(p.velocity);\n        p.acceleration = g.Vec2.ZERO;\n        p.lifespan -= 1;\n        newWorld.push(p);\n    }\n    return newWorld;\n};",
+            "example": "sim.update([])",
+            "parameters": [
+                {
+                    "name": "world",
+                    "type": "particle",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "outputType": "particle",
+            "returnsList": true,
+            "stateful": true
+        },
+        {
+            "name": "fastColor",
+            "type": "code",
+            "outputType": "shape",
+            "parameters": [
+                {
+                    "name": "shapes",
+                    "type": "shape",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "source": "sim.fastColor = function (shapes) {\n    var time = ndbx.elapsedSeconds();\n    var rand = ndbx.randomGenerator(42);\n    var st = (Math.sin(time) + 1) * 128;\n    var ct = (Math.cos(time) + 1) * 128;\n\n    for (var i = 0, l = shapes.length; i < l; i++) {\n        var shape = shapes[i];\n        var r = Math.floor(rand(0, st))\n        var g = 150;\n        var b = Math.floor(rand(0, ct));\n        shape.fill = 'rgb(' + r + ',' + g + ',' + b + ')';\n    }\n    return shapes;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        }
+    ],
+    "color": "#89a",
+    "id": "sim"
+}

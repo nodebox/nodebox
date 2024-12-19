@@ -1,0 +1,321 @@
+{
+    "title": "c2truchet",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "tile",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "arc1",
+                    "x": 64,
+                    "y": 289,
+                    "fn": "g.arc",
+                    "values": {
+                        "position": {
+                            "x": -20,
+                            "y": -20
+                        },
+                        "width": 40,
+                        "height": 40,
+                        "arcType": "open"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 64,
+                    "y": 336,
+                    "fn": "g.colorize",
+                    "values": {
+                        "strokeWidth": 8,
+                        "stroke": "red",
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 188,
+                    "y": 291,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 40,
+                        "height": 40
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 72,
+                    "y": 478,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize2",
+                    "x": 188,
+                    "y": 338,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)",
+                        "stroke": "black",
+                        "strokeWidth": 0.2
+                    }
+                },
+                {
+                    "name": "mirror1",
+                    "x": 64,
+                    "y": 386,
+                    "fn": "g.mirror",
+                    "values": {
+                        "angle": 180
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 72,
+                    "y": 605,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "group1",
+                    "x": 72,
+                    "y": 520,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 72,
+                    "y": 563,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "rect2",
+                    "x": 298,
+                    "y": 292,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 5,
+                        "height": 5,
+                        "roundness": {
+                            "x": 3,
+                            "y": 3
+                        },
+                        "position": {
+                            "x": 13,
+                            "y": 13
+                        }
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 299,
+                    "y": 339,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "null"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "arc1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "r_angle",
+                    "input": "mirror1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "rect2",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "r_angle",
+                    "type": "float",
+                    "value": 135
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "tile1",
+            "nodes": [
+                {
+                    "name": "tile1",
+                    "x": 112,
+                    "y": 557,
+                    "fn": "c2truchet.tile",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "angle": 90
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 113,
+                    "y": 261,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 240,
+                        "height": 241,
+                        "rows": 10,
+                        "columnWidth": 40,
+                        "rowHeight": 40,
+                        "columns": 20
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 166,
+                    "y": 385,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "end": 10,
+                        "seed": 45,
+                        "max": 4
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 166,
+                    "y": 333,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "integer1",
+                    "x": 166,
+                    "y": 431,
+                    "fn": "g.integer",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 167,
+                    "y": 478,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 90
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 218,
+                    "y": 101,
+                    "fn": "g.sineWave"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "tile1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "integer1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "tile1",
+                    "parameter": "angle"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": []
+        }
+    ],
+    "id": "c2truchet"
+}

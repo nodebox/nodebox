@@ -1,0 +1,163 @@
+{
+    "title": "e2wave",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "rotate1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 36,
+                    "y": 65,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 40,
+                        "height": 40,
+                        "roundness": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 97,
+                    "y": 195,
+                    "fn": "g.copy",
+                    "values": {
+                        "scale": {
+                            "x": 0.7,
+                            "y": 0.7
+                        },
+                        "copies": 53
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 202,
+                    "y": 122,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "period": 200,
+                        "max": 4,
+                        "min": -4
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 193,
+                    "y": 41,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 230,
+                    "y": 298,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 97,
+                    "y": 265,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)",
+                        "strokeWidth": 20
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 97,
+                    "y": 338,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 234,
+                    "y": 185,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.8,
+                        "hue": 0.2
+                    }
+                },
+                {
+                    "name": "hslColor2",
+                    "x": 252,
+                    "y": 231,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "saturation": 0.08,
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "copy1",
+                    "parameter": "rotate"
+                },
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine1",
+                    "input": "colorize1",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "hslColor2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "e2wave"
+}

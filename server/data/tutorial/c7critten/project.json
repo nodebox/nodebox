@@ -1,0 +1,279 @@
+{
+    "title": "c7critten",
+    "dependencies": {
+        "core/g": "dev",
+        "demo/supr": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "scatterPoints1",
+                    "x": 192,
+                    "y": 283,
+                    "fn": "g.scatterPoints",
+                    "outputType": "shape",
+                    "returnsList": true,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "amount": 3,
+                        "seed": 9
+                    }
+                },
+                {
+                    "name": "shape1",
+                    "x": 169,
+                    "y": 124,
+                    "fn": "supr.shape",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 200,
+                        "height": 200,
+                        "m": 9,
+                        "n1": -218,
+                        "n2": 306,
+                        "n3": 4,
+                        "points": 40
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 191,
+                    "y": 229,
+                    "fn": "g.scale",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "scale": {
+                            "x": 0.6,
+                            "y": 0.6
+                        }
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 23,
+                    "y": 230,
+                    "fn": "g.ellipse",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 30,
+                        "height": 30
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 243,
+                    "y": 366,
+                    "fn": "g.scale",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "scale": {
+                            "x": 0.2,
+                            "y": 0.2
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 133,
+                    "y": 366,
+                    "fn": "g.translate",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "translate": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 244,
+                    "y": 421,
+                    "fn": "g.translate",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "translate": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 134,
+                    "y": 421,
+                    "fn": "g.colorize",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "white",
+                        "stroke": "black",
+                        "strokeWidth": 3
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 44,
+                    "y": 494,
+                    "fn": "g.colorize",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "rgba(250,130,10,.2)",
+                        "stroke": "black",
+                        "strokeWidth": 5
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 347,
+                    "y": 179,
+                    "fn": "g.sineWave",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "min": -600,
+                        "max": 600,
+                        "speed": 0.4,
+                        "type": "sine",
+                        "period": 89
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 123,
+                    "y": 618,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "frame1",
+                    "x": 347,
+                    "y": 130,
+                    "fn": "g.frame"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shape1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "scale2",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "shape1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "shape1",
+                    "parameter": "n1"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "translate2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "async": false,
+            "stateful": false,
+            "returnType": "color",
+            "stickies": [
+                {
+                    "x": 302,
+                    "y": 18,
+                    "width": 83,
+                    "height": 56,
+                    "text": "Press Play"
+                }
+            ]
+        }
+    ],
+    "id": "c7critten"
+}

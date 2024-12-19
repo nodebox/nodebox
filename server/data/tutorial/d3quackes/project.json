@@ -1,0 +1,515 @@
+{
+    "title": "d3quackes",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "quackes.csv": "694e4b51128dbbcedae7fd4d5baf366a1bfcbe89",
+        "FiraMono-Regular.otf": "b6a94d3f73709d0785a71add927c27a6e0c5412d"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "import1",
+                    "x": 329,
+                    "y": 92,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "quackes.csv"
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 198,
+                    "y": 197,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 198,
+                    "y": 331,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": 250
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 197,
+                    "y": 241,
+                    "fn": "g.divide",
+                    "values": {
+                        "a": 360
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 196,
+                    "y": 287,
+                    "fn": "g.range",
+                    "values": {
+                        "end": 360,
+                        "max": 360
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 337,
+                    "y": 199,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Depth"
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 334,
+                    "y": 288,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 2,
+                        "width": 2
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 337,
+                    "y": 336,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 337,
+                    "y": 244,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.4
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 337,
+                    "y": 486,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "angle1",
+                    "x": 367,
+                    "y": 386,
+                    "fn": "g.angle",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 287,
+                    "y": 570,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "subtract1",
+                    "x": 366,
+                    "y": 431,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 90
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 490,
+                    "y": 204,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Magnitude"
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 490,
+                    "y": 262,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 491,
+                    "y": 309,
+                    "fn": "g.ellipse",
+                    "values": {}
+                },
+                {
+                    "name": "translate2",
+                    "x": 492,
+                    "y": 357,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 492,
+                    "y": 406,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": 605,
+                    "y": 261,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMax": 1
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 601,
+                    "y": 144,
+                    "fn": "g.min",
+                    "values": {}
+                },
+                {
+                    "name": "max1",
+                    "x": 615,
+                    "y": 182,
+                    "fn": "g.max",
+                    "values": {}
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 605,
+                    "y": 309,
+                    "fn": "g.rgbColor",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 238,
+                    "y": 688,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 329,
+                    "y": 135,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0,
+                        "size": 360
+                    }
+                },
+                {
+                    "name": "compare1",
+                    "x": 91,
+                    "y": 336,
+                    "fn": "g.compare",
+                    "values": {
+                        "v2": 77,
+                        "comparator": ">"
+                    }
+                },
+                {
+                    "name": "cull1",
+                    "x": 68,
+                    "y": 397,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "lookup3",
+                    "x": 92,
+                    "y": 197,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "Region"
+                    }
+                },
+                {
+                    "name": "cull2",
+                    "x": 191,
+                    "y": 400,
+                    "fn": "g.cull",
+                    "values": {}
+                },
+                {
+                    "name": "textPath1",
+                    "x": 190,
+                    "y": 504,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraMono-Regular.otf",
+                        "fontSize": 13,
+                        "align": "left",
+                        "position": {
+                            "x": 20,
+                            "y": 5
+                        },
+                        "fontFamily": "FiraMono-Regular.otf"
+                    }
+                },
+                {
+                    "name": "rotate2",
+                    "x": 118,
+                    "y": 573,
+                    "fn": "g.rotate"
+                },
+                {
+                    "name": "translate3",
+                    "x": 139,
+                    "y": 629,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "angle2",
+                    "x": 67,
+                    "y": 447,
+                    "fn": "g.angle",
+                    "values": {
+                        "p2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "count1",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "divide1",
+                    "input": "range1",
+                    "parameter": "step"
+                },
+                {
+                    "output": "range1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "align1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "angle1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "convert1",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "import1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "compare1",
+                    "parameter": "v1"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "cull1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull1",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "slice1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "cull2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "compare1",
+                    "input": "cull2",
+                    "parameter": "booleans"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "cull2",
+                    "input": "textPath1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "rotate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "translate3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "cull1",
+                    "input": "translate3",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "cull1",
+                    "input": "angle2",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "angle2",
+                    "input": "rotate2",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d3quackes"
+}

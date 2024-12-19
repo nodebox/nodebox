@@ -1,0 +1,403 @@
+{
+    "title": "Maze",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "trail1",
+                    "x": 63,
+                    "y": 280,
+                    "fn": "maze.trail",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "seed": 42,
+                        "size": 10,
+                        "scale": 5,
+                        "width": 80,
+                        "height": 80
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 97,
+                    "y": 122,
+                    "fn": "g.frame",
+                    "outputType": "int",
+                    "returnsList": false,
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 59,
+                    "y": 380,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 205,
+                    "y": 276,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "saturation": 0.76,
+                        "lightness": 0.66,
+                        "alpha": 0.73
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 219,
+                    "y": 121,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 1
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "frame1",
+                    "input": "trail1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "trail1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "trail1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "example": "maze.main()",
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 246,
+                    "y": 49,
+                    "width": 99,
+                    "height": 37,
+                    "text": "Press Play"
+                }
+            ],
+            "background": "#223"
+        },
+        {
+            "type": "code",
+            "name": "makeMaze",
+            "returnsList": true,
+            "source": "maze.makeMaze = function (width, height, seed) {\n    var x, y, maze = [], row, trail = [];\n\n    var UP = [0, -1];\n    var DOWN = [0, 1];\n    var LEFT = [-1, 0];\n    var RIGHT = [1, 0];\n\n    for (y = 0; y < height; y++) {\n        row = [];\n        for (x = 0; x < width; x++) {\n            row.push(true);\n        }\n        maze.push(row);\n    }\n\n    var LIMIT = 5000;\n\n    function carve(x, y, dirX, dirY, seed) {\n        if (trail.length > LIMIT) return;\n        if (y < 0 || y >= height || x < 0 || x >= width) return;\n\n        // Check if the position can have a new hallway going to it.\n        if (maze[y][x]) {\n            // Make this position into a hallway.\n            maze[y][x] = false;\n            trail.push({x: x, y: y});\n\n            // Connect this position with the previous position.\n            maze[y - dirY][x - dirX] = false;\n            trail.push({x: x - dirX, y: y - dirY});\n\n            // Create a new directions list and randomize its order.\n            var directions = [UP, DOWN, LEFT, RIGHT];\n            g.shuffle(directions, seed + trail.length);\n\n            // Follow each direction.\n            for (var i = 0; i < directions.length; i++) {\n                dirX = directions[i][0];\n                dirY = directions[i][1];\n                carve(x + dirX * 2, y + dirY * 2, dirX, dirY, seed);\n            }\n        }\n\n    }\n\n    carve(Math.floor(width / 2), Math.floor(height / 2), 0, 0, seed);\n    return trail;\n};",
+            "parameters": [
+                {
+                    "name": "width",
+                    "type": "int",
+                    "value": 80
+                },
+                {
+                    "name": "height",
+                    "type": "int",
+                    "value": 80
+                },
+                {
+                    "name": "seed",
+                    "type": "int",
+                    "value": 42
+                }
+            ]
+        },
+        {
+            "name": "trail",
+            "type": "network",
+            "returnsList": true,
+            "renderedNode": "group1",
+            "nodes": [
+                {
+                    "name": "makeMaze1",
+                    "x": 175,
+                    "y": 61,
+                    "fn": "maze.makeMaze",
+                    "cached": true,
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "width": 41,
+                        "height": 31,
+                        "seed": 24
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 311,
+                    "y": 168,
+                    "fn": "g.slice",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "l": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "start": 19,
+                        "size": 132
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 16,
+                    "y": 84,
+                    "fn": "g.divide",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "a": 8,
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "divide2",
+                    "x": 103,
+                    "y": 189,
+                    "fn": "g.divide",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "a": 8,
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 46,
+                    "y": 132,
+                    "fn": "g.negate",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "v": 42
+                    }
+                },
+                {
+                    "name": "negate2",
+                    "x": 121,
+                    "y": 267,
+                    "fn": "g.negate",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "v": 42
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 269,
+                    "y": 285,
+                    "fn": "g.rect",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 0.75,
+                        "height": 0.75
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 205,
+                    "y": 516,
+                    "fn": "g.group",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "paths": []
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 235.2949622726016,
+                    "y": 400,
+                    "fn": "g.translate",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "translate": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 95,
+                    "y": 331,
+                    "fn": "g.makePoint",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 250,
+                    "y": 464,
+                    "fn": "g.scale",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": "",
+                        "scale": {
+                            "x": 10,
+                            "y": 10
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "width",
+                    "input": "makeMaze1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "height",
+                    "input": "makeMaze1",
+                    "parameter": "height"
+                },
+                {
+                    "inlet": "seed",
+                    "input": "makeMaze1",
+                    "parameter": "seed"
+                },
+                {
+                    "inlet": "width",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "height",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "makeMaze1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "divide1",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "divide2",
+                    "input": "negate2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "slice1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "inlet": "size",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "negate2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rect1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "negate1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "width",
+                    "type": "int",
+                    "value": 50
+                },
+                {
+                    "name": "height",
+                    "type": "int",
+                    "value": 50
+                },
+                {
+                    "name": "seed",
+                    "type": "int",
+                    "value": 42
+                },
+                {
+                    "name": "size",
+                    "type": "int",
+                    "value": 5000
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "example": "maze.trail(50, 50, 42, 0, 1000)",
+            "outputType": "shape"
+        }
+    ],
+    "color": "#28a",
+    "id": "maze"
+}

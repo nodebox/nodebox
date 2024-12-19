@@ -1,0 +1,248 @@
+{
+    "title": "a00order",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 176,
+                    "y": 93,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 49,
+                    "y": 175,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 200,
+                            "y": 100
+                        }
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 50,
+                    "y": 221,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 45,
+                        "angle": 45
+                    }
+                },
+                {
+                    "name": "rotate2",
+                    "x": 178,
+                    "y": 224,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 45,
+                        "angle": 45
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 178,
+                    "y": 269,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 200,
+                            "y": 100
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 158,
+                    "y": 431,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "scale1",
+                    "x": 178,
+                    "y": 178,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 1.2
+                        }
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 50,
+                    "y": 269,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 1.2
+                        }
+                    }
+                },
+                {
+                    "name": "rotate3",
+                    "x": 301,
+                    "y": 178,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": 45,
+                        "angle": 45
+                    }
+                },
+                {
+                    "name": "scale3",
+                    "x": 301,
+                    "y": 271,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 1.2
+                        }
+                    }
+                },
+                {
+                    "name": "translate3",
+                    "x": 301,
+                    "y": 224,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": 200,
+                            "y": 100
+                        }
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 50,
+                    "y": 313,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "colorize2",
+                    "x": 178,
+                    "y": 314,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "green"
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 301,
+                    "y": 318,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "blue"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "rotate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "rotate3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate3",
+                    "input": "translate3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate3",
+                    "input": "scale3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "scale3",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a00order"
+}

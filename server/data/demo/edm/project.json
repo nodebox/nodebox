@@ -1,0 +1,1921 @@
+{
+    "title": "edm",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "find-tomorrow.min.json": "416d6a99bd4fbb0ac1883cb497a5a02cd267fd8a",
+        "the-hum.min.json": "91227e51c58cf3805b81cd08e0e81a0f70b18933",
+        "tremor.min.json": "b1eb28303d695999378c6f112fcbcc022e8fb9f2"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine3",
+            "nodes": [
+                {
+                    "name": "jsonImport1",
+                    "x": 60,
+                    "y": 6,
+                    "fn": "edm.jsonImport",
+                    "values": {
+                        "file": "find-tomorrow.min.json"
+                    }
+                },
+                {
+                    "name": "sections",
+                    "x": 78,
+                    "y": 193,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "sections"
+                    }
+                },
+                {
+                    "name": "unpack1",
+                    "x": 55,
+                    "y": 233,
+                    "fn": "edm.unpack"
+                },
+                {
+                    "name": "segments",
+                    "x": 275,
+                    "y": 85,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "segments"
+                    }
+                },
+                {
+                    "name": "unpack2",
+                    "x": 299,
+                    "y": 132,
+                    "fn": "edm.unpack"
+                },
+                {
+                    "name": "lookup3",
+                    "x": 344,
+                    "y": 300,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "start"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": -51,
+                    "y": 338,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "start"
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": -43,
+                    "y": 406,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "lookup5",
+                    "x": 71,
+                    "y": 333,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "duration"
+                    }
+                },
+                {
+                    "name": "lookup6",
+                    "x": 197,
+                    "y": 308,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "loudness"
+                    }
+                },
+                {
+                    "name": "lookup7",
+                    "x": 443,
+                    "y": 347,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "duration"
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 309,
+                    "y": 965,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "lookup8",
+                    "x": 672,
+                    "y": 298,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "loudness_start"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 478,
+                    "y": 663,
+                    "fn": "g.colorize",
+                    "values": {
+                        "strokeWidth": 0.1,
+                        "stroke": "transparent",
+                        "fill": "rgba(255, 0, 0, 0.8)"
+                    }
+                },
+                {
+                    "name": "merge1",
+                    "x": -162,
+                    "y": 1534,
+                    "fn": "g.merge"
+                },
+                {
+                    "name": "v_scale",
+                    "x": 222,
+                    "y": 783,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 5
+                    }
+                },
+                {
+                    "name": "leftRect1",
+                    "x": 56,
+                    "y": 583,
+                    "fn": "edm.leftRect",
+                    "values": {
+                        "w": 0
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 219,
+                    "y": 656,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "black",
+                        "strokeWidth": 0.2
+                    }
+                },
+                {
+                    "name": "dbToIntensity1",
+                    "x": 185,
+                    "y": 387,
+                    "fn": "edm.dbToIntensity",
+                    "values": {
+                        "scale": -100
+                    }
+                },
+                {
+                    "name": "leftRect2",
+                    "x": 648,
+                    "y": 595,
+                    "fn": "edm.leftRect",
+                    "values": {
+                        "h": 52
+                    }
+                },
+                {
+                    "name": "dbToIntensity2",
+                    "x": 690,
+                    "y": 456,
+                    "fn": "edm.dbToIntensity",
+                    "values": {
+                        "scale": -50
+                    }
+                },
+                {
+                    "name": "lookup9",
+                    "x": 782,
+                    "y": 338,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "loudness_max"
+                    }
+                },
+                {
+                    "name": "dbToIntensity3",
+                    "x": 809,
+                    "y": 455,
+                    "fn": "edm.dbToIntensity",
+                    "values": {
+                        "scale": -50
+                    }
+                },
+                {
+                    "name": "lookup10",
+                    "x": 524,
+                    "y": 167,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bars"
+                    }
+                },
+                {
+                    "name": "unpack3",
+                    "x": 762,
+                    "y": 186,
+                    "fn": "edm.unpack"
+                },
+                {
+                    "name": "lookup11",
+                    "x": 848,
+                    "y": 244,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "start"
+                    }
+                },
+                {
+                    "name": "leftRect3",
+                    "x": 967,
+                    "y": 345,
+                    "fn": "edm.leftRect",
+                    "values": {
+                        "w": 0.1,
+                        "h": -43
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 570,
+                    "y": 247,
+                    "fn": "g.first"
+                },
+                {
+                    "name": "count1",
+                    "x": 238,
+                    "y": 259,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "autoLink1",
+                    "x": -41,
+                    "y": 680,
+                    "fn": "edm.autoLink"
+                },
+                {
+                    "name": "scale4",
+                    "x": -60,
+                    "y": 898,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "colorize4",
+                    "x": 30,
+                    "y": 753,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(1, 0, 0, 0.2)"
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 882.2422563845414,
+                    "y": 585.3530032750873,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "subtract1",
+                    "x": 839,
+                    "y": 516,
+                    "fn": "g.subtract"
+                },
+                {
+                    "name": "intensity_scale",
+                    "x": 889,
+                    "y": 378,
+                    "fn": "g.number",
+                    "values": {
+                        "v": -32
+                    }
+                },
+                {
+                    "name": "last1",
+                    "x": 84,
+                    "y": 422,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "add2",
+                    "x": 63,
+                    "y": 459,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "last2",
+                    "x": 78,
+                    "y": 373,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "combine1",
+                    "x": 60,
+                    "y": 499,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "combine2",
+                    "x": 184,
+                    "y": 522,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "number1",
+                    "x": 241,
+                    "y": 470,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 0
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": -247,
+                    "y": 313,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "start"
+                    }
+                },
+                {
+                    "name": "last3",
+                    "x": -97,
+                    "y": 214,
+                    "fn": "g.last"
+                },
+                {
+                    "name": "lookup2",
+                    "x": -122,
+                    "y": 333,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "duration"
+                    }
+                },
+                {
+                    "name": "song_length",
+                    "x": -288,
+                    "y": 583,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "range1",
+                    "x": -240,
+                    "y": 712,
+                    "fn": "g.range",
+                    "values": {
+                        "step": 5
+                    }
+                },
+                {
+                    "name": "leftRect4",
+                    "x": -247,
+                    "y": 909,
+                    "fn": "edm.leftRect",
+                    "values": {
+                        "w": 0.1,
+                        "y": -51
+                    }
+                },
+                {
+                    "name": "scale5",
+                    "x": 71,
+                    "y": 1153,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": -341,
+                    "y": 945,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "pointOnPath1",
+                    "x": -205,
+                    "y": 1176,
+                    "fn": "g.pointOnPath"
+                },
+                {
+                    "name": "divide1",
+                    "x": -159,
+                    "y": 1006,
+                    "fn": "g.divide"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": -238,
+                    "y": 1281,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 50,
+                        "height": 50
+                    }
+                },
+                {
+                    "name": "makePoint3",
+                    "x": 181,
+                    "y": 585,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": -111,
+                    "y": 1086,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "scale6",
+                    "x": -48,
+                    "y": 1170,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "add3",
+                    "x": -314.44620472346554,
+                    "y": 1078.5151035826398,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "range2",
+                    "x": -266,
+                    "y": 1022,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 0.35,
+                        "step": 0.01
+                    }
+                },
+                {
+                    "name": "divide2",
+                    "x": -318,
+                    "y": 1146,
+                    "fn": "g.divide"
+                },
+                {
+                    "name": "pointOnPath2",
+                    "x": -577,
+                    "y": 973,
+                    "fn": "g.pointOnPath"
+                },
+                {
+                    "name": "rect1",
+                    "x": -788,
+                    "y": 662,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 110,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "height": 60
+                    }
+                },
+                {
+                    "name": "scale7",
+                    "x": -735,
+                    "y": 1440,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.9,
+                            "y": 0.9
+                        }
+                    }
+                },
+                {
+                    "name": "lookup13",
+                    "x": -481,
+                    "y": 1065,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": -765,
+                    "y": 991,
+                    "fn": "g.align",
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "combine3",
+                    "x": -323,
+                    "y": 2063,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "count2",
+                    "x": -649,
+                    "y": 1075,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "max1",
+                    "x": -649,
+                    "y": 1179,
+                    "fn": "g.max"
+                },
+                {
+                    "name": "range3",
+                    "x": -595,
+                    "y": 1130,
+                    "fn": "g.range",
+                    "values": {}
+                },
+                {
+                    "name": "subtract2",
+                    "x": -647,
+                    "y": 1240,
+                    "fn": "g.subtract"
+                },
+                {
+                    "name": "makePoint6",
+                    "x": -646,
+                    "y": 1293,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "colorize5",
+                    "x": -732,
+                    "y": 1489,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "black",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": -574,
+                    "y": 1597,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "makePoint4",
+                    "x": -419,
+                    "y": 1421,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "smoothConnect1",
+                    "x": 133.7144483528653,
+                    "y": 1048.2740625462138,
+                    "fn": "edm.smoothConnect"
+                },
+                {
+                    "name": "scale8",
+                    "x": 317,
+                    "y": 1258,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": -506,
+                    "y": 1367,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": 650,
+                        "max": 1100,
+                        "period": 80,
+                        "offset": 26
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": -390,
+                    "y": 1219,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 920,
+                    "y": 700,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "smoothConnect2",
+                    "x": 981,
+                    "y": 753,
+                    "fn": "edm.smoothConnect"
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 628,
+                    "y": 985,
+                    "fn": "g.resampleByAmount"
+                },
+                {
+                    "name": "count3",
+                    "x": 841,
+                    "y": 811,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 627,
+                    "y": 1027,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "scale9",
+                    "x": 448,
+                    "y": 1229,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "connectPoints2",
+                    "x": 447,
+                    "y": 1317,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "scale10",
+                    "x": 980,
+                    "y": 809,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1,
+                            "y": 0.1
+                        }
+                    }
+                },
+                {
+                    "name": "addPoint1",
+                    "x": 643,
+                    "y": 1098,
+                    "fn": "edm.addPoint"
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 980,
+                    "y": 869,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "add4",
+                    "x": -497,
+                    "y": 1303,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "max2",
+                    "x": 486,
+                    "y": 1683,
+                    "fn": "g.max"
+                },
+                {
+                    "name": "lookup12",
+                    "x": 792,
+                    "y": 990,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 367,
+                    "y": 1683,
+                    "fn": "g.min"
+                },
+                {
+                    "name": "convert1",
+                    "x": -483,
+                    "y": 1143,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMax": 30000,
+                        "outMin": -30000
+                    }
+                },
+                {
+                    "name": "align3",
+                    "x": -679,
+                    "y": 1749,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "bottom",
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": -672,
+                    "y": 1684,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "rect2",
+                    "x": -404,
+                    "y": 1679,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 173
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": -403,
+                    "y": 1821,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 5,
+                            "y": 5
+                        }
+                    }
+                },
+                {
+                    "name": "fitTo1",
+                    "x": -439,
+                    "y": 1922,
+                    "fn": "g.fitTo",
+                    "values": {
+                        "stretch": true
+                    }
+                },
+                {
+                    "name": "align2",
+                    "x": -401,
+                    "y": 1739,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left",
+                        "vAlign": "bottom"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": -310,
+                    "y": 1498,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 0.4
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": -191,
+                    "y": 1922,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "rgb(120,240,0)",
+                        "strokeWidth": 5
+                    }
+                },
+                {
+                    "name": "divide3",
+                    "x": -779,
+                    "y": 1225,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 5
+                    }
+                },
+                {
+                    "name": "reverse1",
+                    "x": -777.0479822662079,
+                    "y": 1268.929320940323,
+                    "fn": "g.reverse"
+                },
+                {
+                    "name": "angle1",
+                    "x": -765,
+                    "y": 787,
+                    "fn": "g.angle"
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": -827,
+                    "y": 830,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "distance": 8
+                    }
+                },
+                {
+                    "name": "combine4",
+                    "x": -768,
+                    "y": 905,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "group2",
+                    "x": -766,
+                    "y": 948,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "toPoints4",
+                    "x": -826,
+                    "y": 736,
+                    "fn": "g.toPoints"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "jsonImport1",
+                    "input": "sections",
+                    "parameter": "table"
+                },
+                {
+                    "output": "sections",
+                    "input": "unpack1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "jsonImport1",
+                    "input": "segments",
+                    "parameter": "table"
+                },
+                {
+                    "output": "segments",
+                    "input": "unpack2",
+                    "parameter": "data"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "unpack1",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "unpack1",
+                    "input": "lookup5",
+                    "parameter": "table"
+                },
+                {
+                    "output": "unpack1",
+                    "input": "lookup6",
+                    "parameter": "table"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "lookup7",
+                    "parameter": "table"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "lookup8",
+                    "parameter": "table"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "scale1",
+                    "input": "merge1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "lookup6",
+                    "input": "dbToIntensity1",
+                    "parameter": "db"
+                },
+                {
+                    "output": "leftRect1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "leftRect2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "lookup7",
+                    "input": "leftRect2",
+                    "parameter": "w"
+                },
+                {
+                    "output": "lookup8",
+                    "input": "dbToIntensity2",
+                    "parameter": "db"
+                },
+                {
+                    "output": "leftRect2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "lookup9",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup9",
+                    "input": "dbToIntensity3",
+                    "parameter": "db"
+                },
+                {
+                    "output": "jsonImport1",
+                    "input": "lookup10",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup10",
+                    "input": "unpack3",
+                    "parameter": "data"
+                },
+                {
+                    "output": "unpack3",
+                    "input": "lookup11",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup11",
+                    "input": "leftRect3",
+                    "parameter": "x"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "unpack2",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "leftRect1",
+                    "input": "autoLink1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale4",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "scale4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale4",
+                    "input": "merge1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "dbToIntensity3",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "dbToIntensity2",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "intensity_scale",
+                    "input": "dbToIntensity2",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "intensity_scale",
+                    "input": "dbToIntensity3",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "last1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last1",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup5",
+                    "input": "last2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last2",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "add2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "leftRect1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "dbToIntensity1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "number1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine2",
+                    "input": "leftRect1",
+                    "parameter": "h"
+                },
+                {
+                    "output": "dbToIntensity3",
+                    "input": "leftRect2",
+                    "parameter": "h"
+                },
+                {
+                    "output": "dbToIntensity2",
+                    "input": "leftRect2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "unpack1",
+                    "input": "last3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "last3",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "last3",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "song_length",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "song_length",
+                    "parameter": "b"
+                },
+                {
+                    "output": "song_length",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "leftRect4",
+                    "parameter": "x"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale5",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "leftRect4",
+                    "input": "scale5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale5",
+                    "input": "merge1",
+                    "parameter": "shape3"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "song_length",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "pointOnPath1",
+                    "input": "ellipse1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "merge1",
+                    "parameter": "shape4"
+                },
+                {
+                    "output": "autoLink1",
+                    "input": "colorize4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine1",
+                    "input": "makePoint3",
+                    "parameter": "x"
+                },
+                {
+                    "output": "combine2",
+                    "input": "makePoint3",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint3",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale6",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "scale6",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale6",
+                    "input": "merge1",
+                    "parameter": "shape5"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "add3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range2",
+                    "input": "add3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "song_length",
+                    "input": "divide2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add3",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "pointOnPath2",
+                    "parameter": "t"
+                },
+                {
+                    "output": "pointOnPath2",
+                    "input": "lookup13",
+                    "parameter": "table"
+                },
+                {
+                    "output": "align1",
+                    "input": "scale7",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count2",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "count2",
+                    "input": "range3",
+                    "parameter": "max"
+                },
+                {
+                    "output": "max1",
+                    "input": "subtract2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range3",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "makePoint6",
+                    "input": "scale7",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "scale7",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "pointOnPath2",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "makePoint4",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "makePoint3",
+                    "input": "smoothConnect1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale8",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "smoothConnect1",
+                    "input": "scale8",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "divide1",
+                    "input": "pointOnPath1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "dbToIntensity2",
+                    "input": "makePoint2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "smoothConnect2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "smoothConnect1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count3",
+                    "input": "resampleByAmount1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "count3",
+                    "parameter": "l"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale9",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "scale9",
+                    "input": "connectPoints2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "pointOnPath1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "pointOnPath2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "smoothConnect2",
+                    "input": "scale10",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "addPoint1",
+                    "parameter": "pt1"
+                },
+                {
+                    "output": "scale10",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "addPoint1",
+                    "parameter": "pt2"
+                },
+                {
+                    "output": "addPoint1",
+                    "input": "scale9",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "range3",
+                    "input": "add4",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add4",
+                    "input": "sineWave1",
+                    "parameter": "offset"
+                },
+                {
+                    "output": "scale8",
+                    "input": "combine3",
+                    "parameter": "list4"
+                },
+                {
+                    "output": "merge1",
+                    "input": "combine3",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "lookup12",
+                    "input": "max2",
+                    "parameter": "values"
+                },
+                {
+                    "output": "lookup12",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "scale9",
+                    "input": "lookup12",
+                    "parameter": "table"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "max2",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "lookup13",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert1",
+                    "input": "makePoint4",
+                    "parameter": "y"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "makePoint4",
+                    "parameter": "x"
+                },
+                {
+                    "output": "translate1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "song_length",
+                    "input": "rect2",
+                    "parameter": "width"
+                },
+                {
+                    "output": "v_scale",
+                    "input": "scale2",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "align3",
+                    "input": "fitTo1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "fitTo1",
+                    "parameter": "bounding"
+                },
+                {
+                    "output": "fitTo1",
+                    "input": "combine3",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "rect2",
+                    "input": "align2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align2",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "song_length",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "rect2",
+                    "parameter": "height"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine3",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "makePoint6",
+                    "parameter": "x"
+                },
+                {
+                    "output": "subtract2",
+                    "input": "makePoint6",
+                    "parameter": "y"
+                },
+                {
+                    "output": "range3",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide3",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "colorize5",
+                    "parameter": "strokeWidth"
+                },
+                {
+                    "output": "angle1",
+                    "input": "lineAngle1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "lineAngle1",
+                    "input": "combine4",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rect1",
+                    "input": "combine4",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine4",
+                    "input": "group2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group2",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "toPoints4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints4",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "toPoints4",
+                    "input": "lineAngle1",
+                    "parameter": "point"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "jsonImport",
+            "type": "code",
+            "outputType": "object",
+            "parameters": [
+                {
+                    "name": "file",
+                    "type": "file",
+                    "value": ""
+                }
+            ],
+            "source": "edm.jsonImport = function (file) {\n    if (!window._assetCache) {\n        window._assetCache = {};\n    }\n\n    if (window._assetCache[file]) {\n        return window._assetCache[file];\n    }\n    var asset = ndbx.findAsset(file);\n    if (typeof asset === 'undefined') {\n        return;\n    }\n    var result = JSON.parse(asset);\n    window._assetCache[file] = result;\n    return result;\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "oneSection",
+            "type": "network",
+            "renderedNode": "lineAngle1",
+            "nodes": [
+                {
+                    "name": "lookup1",
+                    "x": 53,
+                    "y": 218,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "start"
+                    }
+                },
+                {
+                    "name": "lineAngle1",
+                    "x": 63,
+                    "y": 405,
+                    "fn": "g.lineAngle"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 65,
+                    "y": 321,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "lookup2",
+                    "x": 161,
+                    "y": 224,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "duration"
+                    }
+                },
+                {
+                    "name": "lookup3",
+                    "x": 292,
+                    "y": 214,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "loudness"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 334,
+                    "y": 299,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 6
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lookup1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "lineAngle1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "lineAngle1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "lineAngle1",
+                    "parameter": "angle"
+                },
+                {
+                    "inlet": "data",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "data",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "data",
+                    "input": "lookup3",
+                    "parameter": "table"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "data",
+                    "type": "object",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "unpack",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "data",
+                    "type": "object",
+                    "value": "",
+                    "takesList": true
+                }
+            ],
+            "source": "edm.unpack = function (data) {\n    return data[0];\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "leftRect",
+            "type": "code",
+            "outputType": "shape",
+            "parameters": [
+                {
+                    "name": "x",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "y",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "w",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "h",
+                    "type": "float",
+                    "value": 100
+                }
+            ],
+            "source": "edm.leftRect = function (x, y, w, h) {\n    var p = new g.Path();\n    p.addRect(x, y, w, h);\n    return p;\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "dbToIntensity",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "db",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "source": "edm.dbToIntensity = function (db, scale) {\n    db /= 10;\n    var v = Math.pow(10, db);\n    return v * scale;\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "oneSegment",
+            "type": "network",
+            "renderedNode": "multiply1",
+            "nodes": [
+                {
+                    "name": "leftRect1",
+                    "x": 362,
+                    "y": 428,
+                    "fn": "edm.leftRect",
+                    "values": {
+                        "h": 1
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 218,
+                    "y": 267,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 100
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "pitches",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "leftRect1",
+                    "parameter": "y"
+                },
+                {
+                    "inlet": "start",
+                    "input": "leftRect1",
+                    "parameter": "x"
+                },
+                {
+                    "inlet": "duration",
+                    "input": "leftRect1",
+                    "parameter": "w"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "pitches",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "start",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "duration",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "autoLink",
+            "type": "code",
+            "outputType": "shape",
+            "parameters": [
+                {
+                    "name": "shapes",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "orientation",
+                    "type": "string",
+                    "value": "horizontal"
+                }
+            ],
+            "source": "edm.autoLink = function (shapes, orientation) {\n    var p = new g.Path();\n    if (shapes.length < 2) {\n        return p;\n    }\n    var results = [];\n    for (var i = 1; i < shapes.length; i++) {\n        p.extend(g.link(shapes[i - 1], shapes[i], orientation));\n\n    }\n    return p;\n\n};",
+            "ref": "",
+            "category": "",
+            "returnsList": true
+        },
+        {
+            "name": "smoothConnect",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                }
+            ],
+            "source": "edm.smoothConnect = function (points) {\n    var p = new g.Path();\n    if (points.length === 0) {\n        return p;\n    }\n    var prevPt = points[0]\n    p.moveTo(prevPt.x, prevPt.y);\n    for (var i = 1; i < points.length; i++) {\n        var pt = points[i];\n        var hw = (pt.x - prevPt.x) * 0.5;\n        p.curveTo(prevPt.x + hw, prevPt.y, pt.x - hw, pt.y, pt.x, pt.y);\n        prevPt = pt;\n    }\n    p.fill = null;\n    p.stroke = 'black';\n    return p;\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "addPoint",
+            "type": "code",
+            "outputType": "point",
+            "parameters": [
+                {
+                    "name": "pt1",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "pt2",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "source": "edm.addPoint = function (pt1, pt2) {\n\n    return new g.Point((pt1.x/2+pt2.x/2),pt1.y+pt2.y);\n};",
+            "ref": "",
+            "category": ""
+        }
+    ],
+    "id": "edm"
+}

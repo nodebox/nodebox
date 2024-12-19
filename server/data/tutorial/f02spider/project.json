@@ -1,0 +1,501 @@
+{
+    "title": "f02spider",
+    "color": "teal",
+    "dependencies": {
+        "core/anim": "dev",
+        "core/data": "dev",
+        "core/g": "dev",
+        "core/list": "dev",
+        "core/math": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "web1",
+                    "x": 137,
+                    "y": 267,
+                    "fn": "f02spider.web",
+                    "values": {
+                        "segments": 9,
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "radius": 210,
+                        "depth": 11
+                    }
+                },
+                {
+                    "name": "connect1",
+                    "x": 137,
+                    "y": 384,
+                    "fn": "g.connect"
+                },
+                {
+                    "name": "combine1",
+                    "x": 180,
+                    "y": 559,
+                    "fn": "list.combine"
+                },
+                {
+                    "name": "number1",
+                    "x": 136,
+                    "y": 129,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 15
+                    }
+                },
+                {
+                    "name": "webleg1",
+                    "x": 199,
+                    "y": 336,
+                    "fn": "f02spider.webleg",
+                    "values": {
+                        "shift": 3
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 253,
+                    "y": 268,
+                    "fn": "math.range",
+                    "values": {
+                        "max": 9
+                    }
+                },
+                {
+                    "name": "pick1",
+                    "x": 318,
+                    "y": 338,
+                    "fn": "list.pick",
+                    "values": {
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 460,
+                    "y": 59,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 500,
+                        "height": 500
+                    }
+                },
+                {
+                    "name": "resample1",
+                    "x": 460,
+                    "y": 115,
+                    "fn": "g.resample",
+                    "values": {
+                        "length": 117
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 459,
+                    "y": 236,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "pick2",
+                    "x": 459,
+                    "y": 339,
+                    "fn": "list.pick",
+                    "values": {
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": 372,
+                    "y": 476,
+                    "fn": "g.line"
+                },
+                {
+                    "name": "slice1",
+                    "x": 335,
+                    "y": 162,
+                    "fn": "list.slice",
+                    "values": {
+                        "size": 20,
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "sort1",
+                    "x": 321,
+                    "y": 397,
+                    "fn": "g.sort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                },
+                {
+                    "name": "sort2",
+                    "x": 456,
+                    "y": 399,
+                    "fn": "g.sort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 359,
+                    "y": 272,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "black",
+                        "stroke": "white"
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 479,
+                    "y": 280,
+                    "fn": "math.number",
+                    "values": {
+                        "v": 15
+                    }
+                },
+                {
+                    "name": "wiggle1",
+                    "x": 463,
+                    "y": 173,
+                    "fn": "g.wiggle",
+                    "values": {
+                        "offset": {
+                            "x": 50,
+                            "y": 50
+                        },
+                        "seed": 3
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 136,
+                    "y": 430,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "white",
+                        "fill": "tranparent",
+                        "strokeWidth": 1.5
+                    }
+                },
+                {
+                    "name": "colorize3",
+                    "x": 372,
+                    "y": 519,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "white",
+                        "strokeWidth": 1.5
+                    }
+                },
+                {
+                    "name": "colorize4",
+                    "x": 249,
+                    "y": 473,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "transparent",
+                        "stroke": "white",
+                        "strokeWidth": 0.75
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 30,
+                    "y": 334,
+                    "fn": "list.count"
+                },
+                {
+                    "name": "divide1",
+                    "x": 30,
+                    "y": 379,
+                    "fn": "math.divide",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 30,
+                    "y": 425,
+                    "fn": "math.integer"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "web1",
+                    "input": "connect1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "number1",
+                    "input": "web1",
+                    "parameter": "segments"
+                },
+                {
+                    "output": "web1",
+                    "input": "webleg1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "number1",
+                    "input": "webleg1",
+                    "parameter": "segments"
+                },
+                {
+                    "output": "range1",
+                    "input": "webleg1",
+                    "parameter": "shift"
+                },
+                {
+                    "output": "number1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "pick2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "web1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "pick1",
+                    "input": "sort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "pick2",
+                    "input": "sort2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "sort1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "sort2",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "number2",
+                    "input": "pick2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "number2",
+                    "input": "pick1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "wiggle1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "resample1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resample1",
+                    "input": "wiggle1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "wiggle1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connect1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list5"
+                },
+                {
+                    "output": "webleg1",
+                    "input": "colorize4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize4",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "web1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "integer1",
+                    "input": "slice1",
+                    "parameter": "size"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "web",
+            "source": "f02spider.web = function (segments, depth, radius, origin) {\n    var stride = (2.0 * Math.PI) / segments;\n    var n = segments * depth;\n    var radiusStride = radius / n;\n    var p = [];\n\n    for (var i = 0; i < n; ++i) {\n        var theta = i * stride + Math.cos(i * 0.4) * 0.05 + Math.cos(i * 0.05) * 0.2;\n        var shrinkingRadius = radius - radiusStride * i + Math.cos(i * 0.1) * 15;\n        var offy = Math.cos(theta * 2.1) * (radius / depth) * 0.2;\n\n        p.push(new g.Point(origin.x + Math.cos(theta) * shrinkingRadius, origin.y + Math.sin(theta) * shrinkingRadius + offy));\n    }\n\n\n    return p;\n};",
+            "parameters": [
+                {
+                    "name": "segments",
+                    "type": "float",
+                    "value": 20
+                },
+                {
+                    "name": "depth",
+                    "type": "float",
+                    "value": 7
+                },
+                {
+                    "name": "radius",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "origin",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "webleg",
+            "type": "network",
+            "renderedNode": "connect1",
+            "nodes": [
+                {
+                    "name": "takeEvery1",
+                    "x": 249,
+                    "y": 305,
+                    "fn": "list.takeEvery",
+                    "values": {
+                        "n": 9
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 268,
+                    "y": 239,
+                    "fn": "list.shift",
+                    "values": {
+                        "amount": 5
+                    }
+                },
+                {
+                    "name": "connect1",
+                    "x": 249,
+                    "y": 360,
+                    "fn": "g.connect"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "shift1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "connect1",
+                    "parameter": "points"
+                },
+                {
+                    "inlet": "points",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "inlet": "segments",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "inlet": "shift",
+                    "input": "shift1",
+                    "parameter": "amount"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "shift",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "segments",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "f02spider"
+}

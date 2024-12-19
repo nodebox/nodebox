@@ -1,0 +1,11 @@
+{
+    "login": "skel",
+    "email": "skel@emrg.be",
+    "projects": [
+        {
+            "id": "welcome",
+            "title": "Getting Started",
+            "color": "teal"
+        }
+    ]
+}

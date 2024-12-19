@@ -1,0 +1,411 @@
+{
+    "title": "Mixels",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "wolf.jpg": "0eb16ee470d60302419f7121fe8f7ca23349248c",
+        "sunset.jpg": "8dbc4b732e5d5b0e7da489a51c33ea60409aaa61"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "getPixels1",
+                    "x": 66,
+                    "y": 137,
+                    "fn": "mixels.getPixels",
+                    "cached": true,
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "imageName": "wolf.jpg",
+                        "step": 20
+                    }
+                },
+                {
+                    "name": "hue",
+                    "x": 41,
+                    "y": 257,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "table": null,
+                        "key": "h"
+                    }
+                },
+                {
+                    "name": "lightness",
+                    "x": 355,
+                    "y": 262,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "table": null,
+                        "key": "l"
+                    }
+                },
+                {
+                    "name": "saturation",
+                    "x": 161,
+                    "y": 254,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "table": null,
+                        "key": "s"
+                    }
+                },
+                {
+                    "name": "stepSize",
+                    "x": 247,
+                    "y": 69,
+                    "fn": "g.number",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "v": 15
+                    }
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 101,
+                    "y": 398,
+                    "fn": "g.coordinates",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "pt": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "angle": 1,
+                        "distance": 1
+                    },
+                    "masterList": "angle"
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 328,
+                    "y": 555,
+                    "fn": "g.sineWave",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "max": 1,
+                        "speed": 0.8,
+                        "type": "sine",
+                        "period": 200,
+                        "min": 0,
+                        "offset": 150
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 178,
+                    "y": 680,
+                    "fn": "g.rect",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 100,
+                        "height": 100
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 178,
+                    "y": 778,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "red",
+                        "stroke": null,
+                        "strokeWidth": 1
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 330,
+                    "y": 509,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "toHsl1",
+                    "x": 197,
+                    "y": 188,
+                    "fn": "mixels.toHsl"
+                },
+                {
+                    "name": "toHexColor1",
+                    "x": 69,
+                    "y": 719,
+                    "fn": "mixels.toHexColor"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 38,
+                    "y": 329,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 360
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 160,
+                    "y": 327,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 200
+                    }
+                },
+                {
+                    "name": "multiply3",
+                    "x": 342,
+                    "y": 317,
+                    "fn": "g.multiply",
+                    "masterList": "a"
+                },
+                {
+                    "name": "mixSize",
+                    "x": 259,
+                    "y": 605,
+                    "fn": "g.mix",
+                    "masterList": "b"
+                },
+                {
+                    "name": "mixPos",
+                    "x": 128,
+                    "y": 614,
+                    "fn": "g.mix"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "stepSize",
+                    "input": "getPixels1",
+                    "parameter": "step"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "getPixels1",
+                    "input": "toHsl1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "toHsl1",
+                    "input": "hue",
+                    "parameter": "table"
+                },
+                {
+                    "output": "toHsl1",
+                    "input": "saturation",
+                    "parameter": "table"
+                },
+                {
+                    "output": "toHsl1",
+                    "input": "lightness",
+                    "parameter": "table"
+                },
+                {
+                    "output": "getPixels1",
+                    "input": "toHexColor1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "toHexColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "hue",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "saturation",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lightness",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "stepSize",
+                    "input": "multiply3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "coordinates1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "stepSize",
+                    "input": "mixSize",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "mixSize",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "mixSize",
+                    "parameter": "t"
+                },
+                {
+                    "output": "mixSize",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "mixSize",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "getPixels1",
+                    "input": "mixPos",
+                    "parameter": "a"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "mixPos",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "mixPos",
+                    "parameter": "t"
+                },
+                {
+                    "output": "mixPos",
+                    "input": "rect1",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 19,
+                    "y": 230,
+                    "width": 270,
+                    "height": 210,
+                    "text": "Hue / saturation will be used for the position."
+                },
+                {
+                    "x": 221,
+                    "y": 31,
+                    "width": 183,
+                    "height": 83,
+                    "text": "Step size defines how \"big\" the pixels will be."
+                },
+                {
+                    "x": 8,
+                    "y": 92,
+                    "width": 186,
+                    "height": 92,
+                    "text": "This is a custom function that returns r/g/b and x/y for every pixel."
+                },
+                {
+                    "x": 323,
+                    "y": 224,
+                    "width": 162,
+                    "height": 137,
+                    "text": "Lightness will be used for pixel size."
+                },
+                {
+                    "x": 102,
+                    "y": 488,
+                    "width": 343,
+                    "height": 174,
+                    "text": "Now \"mix\" the original values with the new values and animate it."
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "getPixels",
+            "returnsList": true,
+            "source": "mixels.getPixels = function (imageName, step) {\n    var image, imgWidth, imgHeight, canvas, ctx, pixels, stride, y, x, offset, r, g, b, a, outPixels;\n    image = ndbx.assets[imageName];\n    imgWidth = image.width;\n    imgHeight = image.height;\n    canvas = document.createElement('canvas');\n    canvas.width = image.width;\n    canvas.height = image.height;\n    ctx = canvas.getContext('2d');\n    ctx.drawImage(image, 0, 0, image.width, image.height);\n    pixels = ctx.getImageData(0, 0, image.width, image.height).data;\n    stride = image.width * 4;\n    outPixels = [];\n    for (y = 0; y < imgHeight; y += step) {\n        for (x = 0; x < imgWidth; x += step) {\n            offset = y * stride + x * 4;\n            r = pixels[offset];\n            g = pixels[offset + 1];\n            b = pixels[offset + 2];\n            a = pixels[offset + 3];\n            outPixels.push({x: x - imgWidth / 2, y: y - imgHeight / 2, \n                            r: r, g: g, b: b, a: a});\n        } \n    }\n    return outPixels;\n};",
+            "parameters": [
+                {
+                    "name": "imageName",
+                    "type": "string",
+                    "value": "wolf.jpg"
+                },
+                {
+                    "name": "step",
+                    "type": "float",
+                    "value": 20
+                }
+            ],
+            "outputType": "point"
+        },
+        {
+            "name": "toHsl",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "color",
+                    "value": "{r: 1, g: 2, b:3}"
+                }
+            ],
+            "source": "// Convert the incoming RGB value to a HSL object.\nmixels.toHsl = function (v) {\n    var hsl = g.color.rgb2hsl(v.r / 255, v.g / 255, v.b / 255);\n    return {\n        h: hsl[0],\n        s: hsl[1],\n        l: hsl[2]\n    };\n};",
+            "ref": "",
+            "category": ""
+        },
+        {
+            "name": "toHexColor",
+            "type": "code",
+            "outputType": "float",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "source": "// Convert the incoming RGB value to a hex color string.\n\nfunction _toHex(c) {\n    var hex = c.toString(16);\n    return hex.length === 1 ? '0' + hex : hex;\n}\n\nmixels.toHexColor = function (v) {\n    return '#' + _toHex(Math.round(v.r)) + _toHex(Math.round(v.g)) + _toHex(Math.round(v.b));\n};",
+            "ref": "",
+            "category": ""
+        }
+    ],
+    "color": "#d80",
+    "id": "mixels"
+}

@@ -1,0 +1,206 @@
+{
+    "title": "a6coordshape",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "connectPoints2",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 33,
+                    "y": 103,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 360,
+                        "amount": 80,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "reverse1",
+                    "x": 168,
+                    "y": 173,
+                    "fn": "g.reverse",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 148,
+                    "y": 230,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "sample2",
+                    "x": 148,
+                    "y": 104,
+                    "fn": "g.sample",
+                    "values": {
+                        "min": 50,
+                        "max": 200,
+                        "amount": 5,
+                        "circular": true
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 277,
+                    "y": 173,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "max": 250,
+                        "t": 2,
+                        "min": -100,
+                        "waveType": "square",
+                        "period": 6
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 291,
+                    "y": 104,
+                    "fn": "g.range",
+                    "values": {
+                        "end": 20
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 185,
+                    "y": 407,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,160,120,.7)",
+                        "stroke": "rgba(0,0,0,1)",
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 39,
+                    "y": 403,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,160,120,.3)",
+                        "stroke": "rgba(0,0,0,1)"
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 105,
+                    "y": 477,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 39,
+                    "y": 309,
+                    "fn": "g.coordinates",
+                    "masterList": "angle"
+                },
+                {
+                    "name": "coordinates2",
+                    "x": 185,
+                    "y": 308,
+                    "fn": "g.coordinates",
+                    "masterList": "angle"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 47,
+                    "y": 356,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "connectPoints2",
+                    "x": 186,
+                    "y": 352,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "reverse1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "sample2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "sample2",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "sample1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "combine1",
+                    "input": "coordinates1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "sample1",
+                    "input": "coordinates2",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "coordinates2",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "coordinates2",
+                    "input": "connectPoints2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "range1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a6coordshape"
+}

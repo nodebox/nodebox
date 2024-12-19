@@ -1,0 +1,301 @@
+{
+    "title": "d0debtris",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "Debtris.csv": "fb0bde0a4e44fc07a0621fa6607a506182474b32",
+        "FiraSans-Bold.otf": "02a4fdde364cac1f0eaf5e6916fc704e7efea203"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 289,
+                    "y": 296,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 100,
+                        "height": 15,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "import1",
+                    "x": 147,
+                    "y": 133,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "Debtris.csv"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 289,
+                    "y": 233,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "pound"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 174,
+                    "y": 231,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "description"
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 228,
+                    "y": 425,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "left"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 124,
+                    "y": 577,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "count1",
+                    "x": 78,
+                    "y": 200,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "line1",
+                    "x": 18,
+                    "y": 134,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": 0,
+                            "y": -200
+                        },
+                        "point2": {
+                            "x": 0,
+                            "y": 200
+                        }
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 42,
+                    "y": 333,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "translate1",
+                    "x": 82,
+                    "y": 424,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "textPath1",
+                    "x": 174,
+                    "y": 296,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraSans-Bold.otf",
+                        "align": "right",
+                        "fontSize": 18,
+                        "position": {
+                            "x": -5,
+                            "y": 5
+                        },
+                        "fontFamily": "FiraSans-Bold.otf"
+                    }
+                },
+                {
+                    "name": "log1",
+                    "x": 348,
+                    "y": 349,
+                    "fn": "g.log"
+                },
+                {
+                    "name": "convert1",
+                    "x": 348,
+                    "y": 491,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMax": 1
+                    }
+                },
+                {
+                    "name": "min1",
+                    "x": 388,
+                    "y": 401,
+                    "fn": "g.min"
+                },
+                {
+                    "name": "max1",
+                    "x": 412,
+                    "y": 443,
+                    "fn": "g.max"
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 346,
+                    "y": 536,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "green": 0
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 131,
+                    "y": 508,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 43,
+                    "y": 282,
+                    "fn": "g.resampleByAmount"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "import1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "rect1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "import1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "align1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "textPath1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "log1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "log1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "log1",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "log1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "convert1",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "line1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "resampleByAmount1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d0debtris"
+}

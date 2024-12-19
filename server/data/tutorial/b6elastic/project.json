@@ -1,0 +1,202 @@
+{
+    "title": "b6elastic",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev",
+        "tutorial/b5bulge": "dev"
+    },
+    "assets": {
+        "FiraSans-Bold.otf": "02a4fdde364cac1f0eaf5e6916fc704e7efea203"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "fx1",
+            "nodes": [
+                {
+                    "name": "align1",
+                    "x": 36,
+                    "y": 347,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "top"
+                    }
+                },
+                {
+                    "name": "ungroup1",
+                    "x": 32,
+                    "y": 400,
+                    "fn": "g.ungroup",
+                    "values": {}
+                },
+                {
+                    "name": "textPath1",
+                    "x": 31,
+                    "y": 276,
+                    "fn": "g.textPath",
+                    "values": {
+                        "font": "FiraSans-Bold.otf",
+                        "text": "ELASTIC",
+                        "position": {
+                            "x": -76,
+                            "y": -11
+                        },
+                        "fontSize": 186,
+                        "align": "left",
+                        "fontFamily": "FiraSans-Bold.otf"
+                    }
+                },
+                {
+                    "name": "makeStrings1",
+                    "x": 40,
+                    "y": 125,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "ELASTIC",
+                        "separator": ""
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 144,
+                    "y": 125,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 543,
+                        "amount": 7
+                    }
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 78,
+                    "y": 214,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 166,
+                    "y": 322,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": 30,
+                        "max": 200,
+                        "speed": 2,
+                        "period": 100
+                    }
+                },
+                {
+                    "name": "sineWave2",
+                    "x": 280,
+                    "y": 324,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": 0,
+                        "speed": 32,
+                        "period": 208,
+                        "max": 700
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 230,
+                    "y": 381,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "y": 50
+                    }
+                },
+                {
+                    "name": "fx1",
+                    "x": 32,
+                    "y": 493,
+                    "fn": "b5bulge.fx",
+                    "values": {
+                        "center": {
+                            "x": 335,
+                            "y": 72
+                        },
+                        "fill": "rgba(230,130,0,.5)",
+                        "resampl_amount": 56
+                    },
+                    "masterList": "shape"
+                },
+                {
+                    "name": "frame1",
+                    "x": 271,
+                    "y": 238,
+                    "fn": "g.frame"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "align1",
+                    "input": "ungroup1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "textPath1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makeStrings1",
+                    "input": "textPath1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "sample1",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "align1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "fx1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "fx1",
+                    "parameter": "factor"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "fx1",
+                    "parameter": "center"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave2",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 308,
+                    "y": 15,
+                    "width": 74,
+                    "height": 45,
+                    "text": "Press Play"
+                }
+            ]
+        }
+    ],
+    "id": "b6elastic"
+}

@@ -1,0 +1,1236 @@
+{
+    "title": "e10centipede",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "arm",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "number1",
+                    "x": 80,
+                    "y": 130,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 10
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 323,
+                    "y": 135,
+                    "fn": "g.range",
+                    "values": {
+                        "start": 2
+                    }
+                },
+                {
+                    "name": "reverse1",
+                    "x": 295,
+                    "y": 204,
+                    "fn": "g.reverse",
+                    "values": {}
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 257,
+                    "y": 319,
+                    "fn": "g.ellipse",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 257,
+                    "y": 362,
+                    "fn": "g.align",
+                    "values": {
+                        "vAlign": "center"
+                    }
+                },
+                {
+                    "name": "stack1",
+                    "x": 256,
+                    "y": 402,
+                    "fn": "g.stack",
+                    "values": {
+                        "direction": "n",
+                        "margin": -1
+                    }
+                },
+                {
+                    "name": "rotate1",
+                    "x": 419,
+                    "y": 341,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 454,
+                    "y": 172,
+                    "fn": "g.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 417,
+                    "y": 432,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "rotate2",
+                    "x": 417,
+                    "y": 387,
+                    "fn": "g.rotate",
+                    "values": {}
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 439,
+                    "y": 264,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "period": 8
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 439,
+                    "y": 219,
+                    "fn": "g.negate",
+                    "values": {}
+                },
+                {
+                    "name": "frame1",
+                    "x": 567,
+                    "y": 110,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "add1",
+                    "x": 134,
+                    "y": 190,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 278,
+                    "y": 257,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 1.8
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 187,
+                    "y": 133,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 3
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 538,
+                    "y": 437,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 0.6,
+                        "min": 0.25
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 417,
+                    "y": 596,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 498,
+                    "y": 528,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "range1",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "stack1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "range1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "stack1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "rotate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "segmentRotation",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "sineWave1",
+                    "parameter": "min"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "sineWave1",
+                    "parameter": "max"
+                },
+                {
+                    "inlet": "armlength",
+                    "input": "number1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "number1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "number2",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "waveperiod",
+                    "input": "sineWave1",
+                    "parameter": "period"
+                },
+                {
+                    "output": "number1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "add1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "rotate2",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "saturation"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "segmentRotation",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "armlength",
+                    "type": "float",
+                    "value": 10
+                },
+                {
+                    "name": "waveperiod",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "bodysegment",
+            "type": "network",
+            "renderedNode": "group1",
+            "nodes": [
+                {
+                    "name": "arm1",
+                    "x": 578,
+                    "y": 301,
+                    "fn": "e10centipede.arm",
+                    "values": {
+                        "armlength": 24,
+                        "waveperiod": 32,
+                        "segmentRotation": -10
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 615,
+                    "y": -38,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 40,
+                        "height": 30
+                    }
+                },
+                {
+                    "name": "angle1",
+                    "x": 593,
+                    "y": 170,
+                    "fn": "g.angle",
+                    "values": {
+                        "point2": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 573,
+                    "y": 235,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": -90
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 625,
+                    "y": 378,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 580,
+                    "y": 452,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": -15
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 580,
+                    "y": 539,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "scale1",
+                    "x": 502,
+                    "y": 497,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 60,
+                            "y": 60
+                        }
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 580,
+                    "y": 583,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 459,
+                    "y": 167,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgb(95,20,10)",
+                        "stroke": "black",
+                        "strokeWidth": 2
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 700,
+                    "y": 337,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(50,140,0,.4)",
+                        "stroke": "rgb(255,255,0)"
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 700,
+                    "y": 214,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.42,
+                            "y": 0.48
+                        }
+                    }
+                },
+                {
+                    "name": "snap1",
+                    "x": 700,
+                    "y": 257,
+                    "fn": "g.snap",
+                    "values": {
+                        "distance": 11,
+                        "position": {
+                            "x": -24,
+                            "y": 0
+                        },
+                        "strength": 3
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 806,
+                    "y": 115,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "rotate2",
+                    "x": 697,
+                    "y": 299,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": -90,
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "angle": 90
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 373,
+                    "y": 265,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 10,
+                        "amount": 2,
+                        "min": -10,
+                        "seed": -65
+                    }
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 806,
+                    "y": 58,
+                    "fn": "g.resampleByAmount",
+                    "values": {
+                        "amount": 2
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "angle1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "arm1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "inlet": "armlength",
+                    "input": "arm1",
+                    "parameter": "armlength"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "snap1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "arm1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "arm1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "snap1",
+                    "input": "rotate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "arm1",
+                    "parameter": "segmentRotation"
+                },
+                {
+                    "inlet": "armseed",
+                    "input": "randomNumbers1",
+                    "parameter": "seed"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "armseed",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "scale",
+                    "type": "point",
+                    "value": {
+                        "x": 100,
+                        "y": 100
+                    }
+                },
+                {
+                    "name": "armlength",
+                    "type": "float",
+                    "value": 10
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "bound",
+            "source": "e10centipede.bound = function (shape) {\n     bounds = shape.bounds(),\n     bx = bounds.x,\n     by = bounds.y,\n     bw = bounds.width,\n     bh = bounds.height;\npoints = [];\n     point1 = g.makePoint(bx, by+bh/2);\n     point2 = g.makePoint(bx+bw, by+bh/2);\npoints[0]= point1;\npoints[1]= point2;\n\n     return points\n};",
+            "example": "e10centipede.bound(42)",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "returnType": "point",
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "bounds",
+            "source": "",
+            "example": "e10centipede.bounds(42)",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ]
+        },
+        {
+            "name": "head",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "arm1",
+                    "x": 574,
+                    "y": 185,
+                    "fn": "e10centipede.arm",
+                    "values": {
+                        "segmentRotation": 15,
+                        "waveperiod": 25,
+                        "armlength": 8
+                    },
+                    "masterList": "angle"
+                },
+                {
+                    "name": "curve1",
+                    "x": 267,
+                    "y": 33,
+                    "fn": "g.curve",
+                    "values": {
+                        "point1": {
+                            "x": -20,
+                            "y": 0
+                        },
+                        "point2": {
+                            "x": 20,
+                            "y": 0
+                        },
+                        "distance": -20
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 573,
+                    "y": 229,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "group2",
+                    "x": 578,
+                    "y": 323,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "rotate1",
+                    "x": 635,
+                    "y": 373,
+                    "fn": "g.rotate",
+                    "values": {
+                        "rotate": -29
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 580,
+                    "y": 486,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "scale1",
+                    "x": 581,
+                    "y": 431,
+                    "fn": "g.scale",
+                    "values": {}
+                },
+                {
+                    "name": "pointOnPath1",
+                    "x": 273,
+                    "y": 82,
+                    "fn": "g.pointOnPath",
+                    "values": {
+                        "t": 8
+                    }
+                },
+                {
+                    "name": "mirror1",
+                    "x": 574,
+                    "y": 272,
+                    "fn": "g.mirror",
+                    "values": {}
+                },
+                {
+                    "name": "angle1",
+                    "x": 590,
+                    "y": 59,
+                    "fn": "g.angle",
+                    "values": {}
+                },
+                {
+                    "name": "subtract1",
+                    "x": 591,
+                    "y": 123,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 10
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "arm1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group2",
+                    "input": "rotate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rotate1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "curve1",
+                    "input": "pointOnPath1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "pointOnPath1",
+                    "input": "arm1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "group1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "angle1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "arm1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "group2",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "awayfromcentre",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "angle",
+                    "input": "rotate1",
+                    "parameter": "angle"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "angle",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "scale",
+                    "type": "point",
+                    "value": {
+                        "x": 100,
+                        "y": 100
+                    }
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "awayfromcentre",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "rest2",
+            "nodes": [
+                {
+                    "name": "bodysegment1",
+                    "x": 365,
+                    "y": 504,
+                    "fn": "e10centipede.bodysegment",
+                    "values": {
+                        "armseed": 72,
+                        "scale": {
+                            "x": 80,
+                            "y": 80
+                        },
+                        "armlength": 9
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 309,
+                    "y": 31,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 400,
+                        "height": 300,
+                        "roundness": {
+                            "x": 20,
+                            "y": 20
+                        }
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 309,
+                    "y": 73,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "maxLength": 15
+                    }
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 309,
+                    "y": 113,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "slice1",
+                    "x": 302,
+                    "y": 270,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 22
+                    }
+                },
+                {
+                    "name": "angle1",
+                    "x": 447,
+                    "y": 197,
+                    "fn": "g.angle"
+                },
+                {
+                    "name": "shift1",
+                    "x": 489,
+                    "y": 96,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "subtract1",
+                    "x": 445,
+                    "y": 242,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 90
+                    }
+                },
+                {
+                    "name": "rest1",
+                    "x": 386,
+                    "y": 350,
+                    "fn": "g.rest"
+                },
+                {
+                    "name": "frame1",
+                    "x": 556,
+                    "y": 239,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "repeat1",
+                    "x": 305,
+                    "y": 208,
+                    "fn": "g.repeat",
+                    "values": {
+                        "amount": 2
+                    }
+                },
+                {
+                    "name": "mod1",
+                    "x": 556,
+                    "y": 287,
+                    "fn": "g.mod"
+                },
+                {
+                    "name": "count1",
+                    "x": 557,
+                    "y": 198,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "reverse1",
+                    "x": 309,
+                    "y": 157,
+                    "fn": "g.reverse"
+                },
+                {
+                    "name": "count2",
+                    "x": 458,
+                    "y": 404,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 458,
+                    "y": 444,
+                    "fn": "g.randomNumbers"
+                },
+                {
+                    "name": "range1",
+                    "x": 580,
+                    "y": 347,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "sineWave2",
+                    "x": 576,
+                    "y": 485,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "max": 1.6,
+                        "period": 26,
+                        "min": 0.5
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 599,
+                    "y": 427,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "rest2",
+                    "x": 366,
+                    "y": 629,
+                    "fn": "g.rest"
+                },
+                {
+                    "name": "reverse2",
+                    "x": 366,
+                    "y": 592,
+                    "fn": "g.reverse"
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 198,
+                    "y": 23,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 600,
+                        "height": 444
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "resampleByLength1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "angle1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "bodysegment1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "slice1",
+                    "input": "rest1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "repeat1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "frame1",
+                    "input": "mod1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "mod1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "mod1",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "reverse1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "reverse1",
+                    "input": "repeat1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "rest1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "bodysegment1",
+                    "parameter": "armseed"
+                },
+                {
+                    "output": "count2",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range1",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "bodysegment1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "rest1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "rest1",
+                    "input": "angle1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "add1",
+                    "input": "sineWave2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "rest1",
+                    "input": "bodysegment1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "bodysegment1",
+                    "input": "reverse2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "reverse2",
+                    "input": "rest2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "type": "code",
+            "name": "topoints",
+            "source": "e10centipede.topoints = function (shape) {\n   var points = [];\n//return shape.segments;\n  if(shape.segments){\n   for (var i = 0; i < shape.segments.length; i += 1) {\n     var seg = shape.segments[i];\n     if (seg.point) {\n         points.push(new g.Point(seg.point.x, seg.point.y));\n     }\n   }\n}\n   return points;\n};",
+            "example": "e10centipede.topoints(42)",
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true,
+            "returnType": "point"
+        }
+    ],
+    "id": "e10centipede"
+}

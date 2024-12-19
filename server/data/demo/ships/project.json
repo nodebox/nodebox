@@ -1,0 +1,359 @@
+{
+    "title": "Shipwrecks",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "shipwrecks.csv": "b370d1cb2a2b66ecb0fe1aafeb28f5569c0f6fff"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "oneYear1",
+            "nodes": [
+                {
+                    "name": "importCSV",
+                    "x": 26,
+                    "y": 26,
+                    "fn": "g.import",
+                    "cached": true,
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "file": "shipwrecks.csv",
+                        "delimiter": ","
+                    }
+                },
+                {
+                    "name": "groupBy1",
+                    "x": 26,
+                    "y": 66,
+                    "fn": "g.groupBy",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "data": null,
+                        "key": "Year Sunk"
+                    }
+                },
+                {
+                    "name": "oneYear1",
+                    "x": 25,
+                    "y": 228,
+                    "fn": "ships.oneYear",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "data": null,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 68,
+                    "y": 106,
+                    "fn": "g.count",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "v": null
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 68,
+                    "y": 147,
+                    "fn": "g.grid",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "columns": 1,
+                        "rows": 1,
+                        "width": 100,
+                        "height": 461,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "columnWidth": 2,
+                        "rowHeight": 3.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "importCSV",
+                    "input": "groupBy1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "groupBy1",
+                    "input": "oneYear1",
+                    "parameter": "data"
+                },
+                {
+                    "output": "groupBy1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "grid1",
+                    "input": "oneYear1",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [],
+            "example": "ships.main()",
+            "returnsList": true
+        },
+        {
+            "name": "oneYear",
+            "type": "network",
+            "renderedNode": "align1",
+            "nodes": [
+                {
+                    "name": "lookup1",
+                    "x": -1,
+                    "y": 85,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "table": null,
+                        "key": "Tonage"
+                    }
+                },
+                {
+                    "name": "convert1",
+                    "x": -1,
+                    "y": 141,
+                    "fn": "g.convert",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "v": 42,
+                        "inMin": 0,
+                        "inMax": 40000,
+                        "outMin": 4,
+                        "outMax": 100
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 1,
+                    "y": 202,
+                    "fn": "g.rect",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 100,
+                        "height": 2
+                    }
+                },
+                {
+                    "name": "stack1",
+                    "x": -1,
+                    "y": 429,
+                    "fn": "g.stack",
+                    "outputType": "object",
+                    "returnsList": true,
+                    "values": {
+                        "shapes": null,
+                        "margin": 2
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 118,
+                    "y": 550,
+                    "fn": "g.align",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shape": null,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "hAlign": "center",
+                        "vAlign": "middle"
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 0,
+                    "y": 493,
+                    "fn": "g.group",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "shapes": []
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 135,
+                    "y": 87,
+                    "fn": "g.lookup",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "values": {
+                        "table": null,
+                        "key": "Cause"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": -2,
+                    "y": 374,
+                    "fn": "g.colorize",
+                    "outputType": "object",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "shape": null,
+                        "fill": "red",
+                        "stroke": null,
+                        "strokeWidth": 1
+                    }
+                },
+                {
+                    "name": "colors",
+                    "x": 362,
+                    "y": 120,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "#48D2EB,#009DDF,#0A71B3,#FF3000,#D20951,#F7C000,#92117E,#9B9C9E,#1A171B",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "causes",
+                    "x": 251,
+                    "y": 123,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "Stranded,Foundered,Grounded,Explosion / Burned,Collision,Demolished,Accident,Abandoned,Lost",
+                        "separator": ","
+                    }
+                },
+                {
+                    "name": "zipMap1",
+                    "x": 284,
+                    "y": 224,
+                    "fn": "g.zipMap"
+                },
+                {
+                    "name": "lookup3",
+                    "x": 237,
+                    "y": 288,
+                    "fn": "g.lookup"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "lookup1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "convert1",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "stack1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "data",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "inlet": "position",
+                    "input": "align1",
+                    "parameter": "position"
+                },
+                {
+                    "inlet": "data",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "stack1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "colors",
+                    "input": "zipMap1",
+                    "parameter": "vals"
+                },
+                {
+                    "output": "causes",
+                    "input": "zipMap1",
+                    "parameter": "keys"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "lookup3",
+                    "parameter": "key"
+                },
+                {
+                    "output": "zipMap1",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "data",
+                    "type": "string",
+                    "value": null
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "example": "ships.oneYear([{Tonage: 20000, Cause: 'Stranded'}, {Tonage: 1000, Cause: 'Lost'}])",
+            "returnsList": true
+        }
+    ],
+    "color": "#48d2eb",
+    "id": "ships"
+}

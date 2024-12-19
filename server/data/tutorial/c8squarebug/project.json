@@ -1,0 +1,980 @@
+{
+    "title": "c8squarebug",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev",
+        "tutorial/f1treemap": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "square",
+            "type": "network",
+            "renderedNode": "combine2",
+            "nodes": [
+                {
+                    "name": "resampleByLength1",
+                    "x": 63,
+                    "y": 134,
+                    "fn": "g.resampleByLength"
+                },
+                {
+                    "name": "topoints1",
+                    "x": 84,
+                    "y": 188,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "count1",
+                    "x": 197,
+                    "y": 146,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "divide1",
+                    "x": 197,
+                    "y": 188,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 11
+                    }
+                },
+                {
+                    "name": "floor1",
+                    "x": 197,
+                    "y": 234,
+                    "fn": "g.floor"
+                },
+                {
+                    "name": "takeEvery1",
+                    "x": 145,
+                    "y": 279,
+                    "fn": "g.takeEvery"
+                },
+                {
+                    "name": "combine1",
+                    "x": 245,
+                    "y": 865,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 21,
+                    "y": 279,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,.5)",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 84,
+                    "y": 232,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": -5
+                    }
+                },
+                {
+                    "name": "distance1",
+                    "x": 125,
+                    "y": 329,
+                    "fn": "g.distance"
+                },
+                {
+                    "name": "angle1",
+                    "x": 237,
+                    "y": 328,
+                    "fn": "g.angle"
+                },
+                {
+                    "name": "coordinates1",
+                    "x": 182,
+                    "y": 432,
+                    "fn": "g.coordinates"
+                },
+                {
+                    "name": "shift2",
+                    "x": 220,
+                    "y": 476,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "curve1",
+                    "x": 192,
+                    "y": 532,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": -22
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 192,
+                    "y": 577,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 20,
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "resampleByLength2",
+                    "x": 332.6216333096589,
+                    "y": 624.5797728886912,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "length": 15
+                    }
+                },
+                {
+                    "name": "connectPoints2",
+                    "x": 333,
+                    "y": 708,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "topoints2",
+                    "x": 333,
+                    "y": 666,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "colorize3",
+                    "x": 333,
+                    "y": 755,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "white",
+                        "strokeWidth": 5,
+                        "fill": "rgb(250,60,60)"
+                    }
+                },
+                {
+                    "name": "centerPoint1",
+                    "x": 311,
+                    "y": 146,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "divide3",
+                    "x": 381,
+                    "y": 299,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "negate1",
+                    "x": 408,
+                    "y": 389,
+                    "fn": "g.negate"
+                },
+                {
+                    "name": "centerPoint2",
+                    "x": 485,
+                    "y": 608,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "eye1",
+                    "x": 448,
+                    "y": 663,
+                    "fn": "c8squarebug.eye"
+                },
+                {
+                    "name": "count2",
+                    "x": 558,
+                    "y": 388,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "divide4",
+                    "x": 558,
+                    "y": 431,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 520,
+                    "y": 513,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "connectPoints3",
+                    "x": 521,
+                    "y": 556,
+                    "fn": "g.connectPoints"
+                },
+                {
+                    "name": "mirror1",
+                    "x": 478,
+                    "y": 722,
+                    "fn": "g.mirror",
+                    "values": {
+                        "angle": 95,
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": -76,
+                    "y": 254,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.3,
+                            "y": 0.3
+                        }
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": -113,
+                    "y": 171,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.9,
+                            "y": 0.9
+                        }
+                    }
+                },
+                {
+                    "name": "bounds1",
+                    "x": -152,
+                    "y": 444,
+                    "fn": "g.bounds",
+                    "values": {
+                        "selector": "h"
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 213,
+                    "y": 988,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "divide6",
+                    "x": -156,
+                    "y": 544,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "lineAngle2",
+                    "x": 104.86960971036311,
+                    "y": 688.4093193943547,
+                    "fn": "g.lineAngle",
+                    "values": {
+                        "angle": 90
+                    }
+                },
+                {
+                    "name": "colorize5",
+                    "x": 138.4629619945683,
+                    "y": 793.5240023481581,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 8
+                    }
+                },
+                {
+                    "name": "scale3",
+                    "x": 302,
+                    "y": 925,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 2,
+                            "y": 2
+                        }
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": -154,
+                    "y": 498,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "height"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "resampleByLength1",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "floor1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "floor1",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "angle1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "shift2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift2",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "curve1",
+                    "input": "resampleByLength2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength2",
+                    "input": "topoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints2",
+                    "input": "connectPoints2",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints2",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide3",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "curve1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "centerPoint2",
+                    "input": "eye1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "divide3",
+                    "input": "eye1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "topoints2",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "divide4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide4",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "topoints2",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "connectPoints3",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints3",
+                    "input": "centerPoint2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "eye1",
+                    "input": "mirror1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "mirror1",
+                    "input": "combine1",
+                    "parameter": "list4"
+                },
+                {
+                    "inlet": "sharpness",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "scale2",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "bounds1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "divide6",
+                    "input": "lineAngle2",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "lineAngle2",
+                    "input": "colorize5",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize5",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "distance1",
+                    "input": "coordinates1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "scale3",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "scale3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale3",
+                    "input": "combine2",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "distance1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "angle1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "mirror1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "lineAngle2",
+                    "parameter": "point"
+                },
+                {
+                    "output": "bounds1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "divide6",
+                    "parameter": "a"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "shape",
+                    "value": 1
+                },
+                {
+                    "name": "sharpness",
+                    "type": "float",
+                    "value": 5
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "group1",
+            "nodes": [
+                {
+                    "name": "square1",
+                    "x": 56,
+                    "y": 394,
+                    "fn": "c8squarebug.square",
+                    "values": {
+                        "sharpness": 3,
+                        "eyeloc": 0
+                    }
+                },
+                {
+                    "name": "main1",
+                    "x": 56,
+                    "y": 96,
+                    "fn": "f1treemap.main",
+                    "values": {
+                        "size": 500,
+                        "amount": 12,
+                        "rounding": {
+                            "x": 20,
+                            "y": 20
+                        },
+                        "seed": 10
+                    }
+                },
+                {
+                    "name": "ungroup1",
+                    "x": 56,
+                    "y": 142,
+                    "fn": "g.ungroup"
+                },
+                {
+                    "name": "align1",
+                    "x": 57,
+                    "y": 495,
+                    "fn": "g.align"
+                },
+                {
+                    "name": "group1",
+                    "x": 56,
+                    "y": 445,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "count1",
+                    "x": 96,
+                    "y": 231,
+                    "fn": "g.count"
+                },
+                {
+                    "name": "floor1",
+                    "x": 96,
+                    "y": 319,
+                    "fn": "g.floor"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 96,
+                    "y": 276,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 7,
+                        "min": 3,
+                        "seed": 9
+                    }
+                },
+                {
+                    "name": "square2",
+                    "x": 263,
+                    "y": 142,
+                    "fn": "c8squarebug.square",
+                    "values": {
+                        "eyeloc": 0,
+                        "sharpness": 7
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 263,
+                    "y": 97,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 200,
+                        "height": 193
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 269,
+                    "y": 372,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "divide1",
+                    "x": 269,
+                    "y": 416,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 7
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 269,
+                    "y": 458,
+                    "fn": "g.integer"
+                },
+                {
+                    "name": "divide2",
+                    "x": 379,
+                    "y": 415,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 20
+                    }
+                },
+                {
+                    "name": "integer2",
+                    "x": 379,
+                    "y": 457,
+                    "fn": "g.integer"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "main1",
+                    "input": "ungroup1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "square1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "square1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "floor1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "floor1",
+                    "input": "square1",
+                    "parameter": "sharpness"
+                },
+                {
+                    "output": "rect1",
+                    "input": "square2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide2",
+                    "input": "integer2",
+                    "parameter": "v"
+                },
+                {
+                    "output": "integer2",
+                    "input": "main1",
+                    "parameter": "seed"
+                },
+                {
+                    "output": "integer1",
+                    "input": "randomNumbers1",
+                    "parameter": "seed"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 273,
+                    "y": 21,
+                    "width": 77,
+                    "height": 40,
+                    "text": "Press Play "
+                }
+            ]
+        },
+        {
+            "name": "eye",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "ellipse1",
+                    "x": 64,
+                    "y": 190,
+                    "fn": "g.ellipse"
+                },
+                {
+                    "name": "combine1",
+                    "x": 62,
+                    "y": 397,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 150,
+                    "y": 323,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 150,
+                    "y": 275,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 0.5
+                        }
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 260,
+                    "y": 324,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "black"
+                    }
+                },
+                {
+                    "name": "scale2",
+                    "x": 260,
+                    "y": 276,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.3,
+                            "y": 0.3
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 62,
+                    "y": 457,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "multiply1",
+                    "x": 84,
+                    "y": 132,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 3
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "combine1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "size",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 30
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "c8squarebug"
+}

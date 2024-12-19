@@ -1,0 +1,971 @@
+{
+  "title": "Bubble plot",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "eSG3nwOjv6b:0",
+      "name": "Basic bubble plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSG4mLHJYst:1",
+          "x": 240,
+          "y": 237,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "gdpPercap"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "lifeExp"
+            },
+            "size": {
+              "type": "EXPRESSION",
+              "expression": "pop"
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0.7
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSG4mLHJYst:2",
+          "x": 240,
+          "y": 357,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSG4mLHJYst:3",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "year"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "2007"
+            },
+            "operator": {
+              "type": "VALUE",
+              "value": "equal"
+            },
+            "not": {
+              "type": "VALUE",
+              "value": false
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ57IEgf1Ge:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/gapminder.csv"
+            }
+          }
+        },
+        {
+          "id": "eZ57IEgf1Ge:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A bubble plot is a scatter plot with an additional dimension. The size of the circle marks are scaled, based on a numeric data attribute. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ57IEgf1Ge:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ57IEgf1Ge:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Keep only data records where the value of the attribute 'year' equals the 2007. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ57IEgf1Ge:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Specify the data attributes for the X- and the Y-position. Scale the size of the mark by the population attribute. Use some transparency for overlapping bubbles. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ57IEgf1Ge:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Bubble Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the size scale.  Customize the visible tick values. \nSet an absolute XY position in the layout section. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 340,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ6EPj1OcsC:4",
+          "x": 240,
+          "y": 297,
+          "name": "Add Legend 2",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "orient": {
+              "type": "VALUE",
+              "value": "none"
+            },
+            "legendY": {
+              "type": "VALUE",
+              "value": 295
+            },
+            "legendX": {
+              "type": "VALUE",
+              "value": 275
+            },
+            "values": {
+              "type": "VALUE",
+              "value": "100,500000000,1500000000"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Population"
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSG4mLHJYst:3",
+          "outPort": "dataOut",
+          "inNode": "eSG4mLHJYst:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ57IEgf1Ge:0",
+          "outPort": "out",
+          "inNode": "eSG4mLHJYst:3",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSG4mLHJYst:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ6EPj1OcsC:4",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ6EPj1OcsC:4",
+          "outPort": "plotSpecOut",
+          "inNode": "eSG4mLHJYst:2",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSG4mLHJYst:2",
+      "outputPorts": [],
+      "description": "A bubble plot is a scatter plot with an additional dimension. The size of the circle marks are scaled, based on a numeric data attribute. ",
+      "__gallery": {
+        "keyword": "bubble",
+        "subKeyword": "Basic bubble plot"
+      },
+      "background": {
+        "r": 0.13333333333333333,
+        "g": 0.13333333333333333,
+        "b": 0.13333333333333333,
+        "a": 1
+      },
+      "width": 500,
+      "height": 500
+    },
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Custom bubble plot",
+      "category": "",
+      "description": "Each part of a default plot can be customized using specialized nodes, which provide access to detailed parameters of the plot components and the plot style. ",
+      "width": 500,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:1",
+          "x": 240,
+          "y": 177,
+          "name": "Filter Data 1",
+          "fn": "core/g/Filter Data",
+          "values": {
+            "leftValue": {
+              "type": "EXPRESSION",
+              "expression": "year"
+            },
+            "rightValue": {
+              "type": "VALUE",
+              "value": "2007"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:2",
+          "x": 240,
+          "y": 237,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "gdpPercap"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "lifeExp"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "continent"
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0.7
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:3",
+          "x": 240,
+          "y": 597,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "none"
+            },
+            "legendX": {
+              "type": "VALUE",
+              "value": 300
+            },
+            "legendY": {
+              "type": "VALUE",
+              "value": 275
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Continent"
+            },
+            "titleFontWeight": {
+              "type": "VALUE",
+              "value": "bold"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:4",
+          "x": 240,
+          "y": 657,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:5",
+          "x": 240,
+          "y": 297,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "sizeScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "pop"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": "[1,2500]"
+            },
+            "sortAttribute": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "nice": {
+              "type": "VALUE",
+              "value": true
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:6",
+          "x": 240,
+          "y": 417,
+          "name": "Apply Color Theme 1",
+          "fn": "core/plot/Apply Color Theme",
+          "values": {
+            "colorScheme": {
+              "type": "VALUE",
+              "value": "[\"#2a788eff\", \"#7ad151ff\", \"#440154ff\", \"#414487ff\", \"#fdc425ff\", \"#22a884ff\"]"
+            },
+            "bgColor": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+              }
+            },
+            "primColor": {
+              "type": "VALUE",
+              "value": {
+                "r": 0.2823529411764706,
+                "g": 0.2823529411764706,
+                "b": 0.2823529411764706,
+                "a": 1
+              }
+            },
+            "secColor": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+              }
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eSHGMH6Vmon:7",
+          "x": 240,
+          "y": 357,
+          "name": "Set Plot Theme 1",
+          "fn": "core/plot/Set Plot Theme",
+          "values": {
+            "theme": {
+              "type": "VALUE",
+              "value": "ggplot2"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ6EPj1OcsC:8",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/gapminder.csv"
+            }
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Each part of a default plot can be customized using specialized nodes, which provide access to detailed parameters of the plot components and the plot style. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:11",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Keep only data records where the value of the attribute 'year' equals the 2007. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:12",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Specify the data attributes (the domains) to map to the fill color, the X- and the Y-position of the mark. Add some transparency for overlapping bubbles. The Plot Data node creates default scales for each property. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:13",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Customized Bubble Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:14",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Customize the style of the plot using a predefined theme. The style theme is stored in the 'config' property of the plot specification. Inspect the 'config' in the Detail view. (Toggle Raw to see all.)",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6EPj1OcsC:15",
+          "type": "STICKY",
+          "x": 400,
+          "y": 660,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6Nkcy90lN:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Set a custom size scale, mapping the population attribute (domain) to a custom size range. Scales with predefined names will be automatically applied to corresponding mark property. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6Nkcy90lN:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Customize the colors of the plot. The color scheme will be used as the default range of the color scale in the plot. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6Nkcy90lN:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 600,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color scale. Set an absolute XY position in the layout section. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ6aJLBPaH8:0",
+          "x": 240,
+          "y": 477,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "title": {
+              "type": "VALUE",
+              "value": "Gross domestic product per capita"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "bottom"
+            },
+            "position": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "grid": {
+              "type": "VALUE",
+              "value": true
+            },
+            "labels": {
+              "type": "VALUE",
+              "value": true
+            },
+            "domain": {
+              "type": "VALUE",
+              "value": false
+            },
+            "labelBaseline": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "labelPadding": {
+              "type": "VALUE",
+              "value": 4
+            },
+            "labelAngle": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eZ6aJLBPaH8:1",
+          "x": 240,
+          "y": 537,
+          "name": "Set Axis 2",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "left"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "Life expectancy"
+            },
+            "grid": {
+              "type": "VALUE",
+              "value": true
+            },
+            "domain": {
+              "type": "VALUE",
+              "value": false
+            },
+            "labelAlign": {
+              "type": "VALUE",
+              "value": "right"
+            },
+            "labelPadding": {
+              "type": "VALUE",
+              "value": 4
+            }
+          }
+        },
+        {
+          "id": "eZ6aJLBPaH8:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Set a custom X axis title. This node overrules theme 'config' properties. Set the label baseline back to top. Disable 'show baseline'. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eZ6aJLBPaH8:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 460,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Set a custom Y axis title. Explicit axis properties can overwrite style theme properties. Toggle the 'Show grid' parameter. The grid lines can be turned off, although the 'axis.grid' property in the theme ('config') is set to 'true'. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:5",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:1",
+          "outPort": "dataOut",
+          "inNode": "eSHGMH6Vmon:2",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:7",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:8",
+          "inPort": "table"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:7",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:6",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eV3Hg5D6zKJ:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ6EPj1OcsC:8",
+          "outPort": "out",
+          "inNode": "eSHGMH6Vmon:1",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ6aJLBPaH8:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ6aJLBPaH8:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:5",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:7",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:6",
+          "outPort": "plotSpecOut",
+          "inNode": "eZ6aJLBPaH8:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eZ6aJLBPaH8:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eSHGMH6Vmon:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eSHGMH6Vmon:4",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eSHGMH6Vmon:4",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "__gallery": {
+        "keyword": "bubble",
+        "subKeyword": "Customizing plots"
+      }
+    }
+  ],
+  "id": "bubble",
+  "formatVersion": 4,
+  "__gallery": {}
+}

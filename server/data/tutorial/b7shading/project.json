@@ -1,0 +1,499 @@
+{
+    "title": "b7shading",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "area",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "grid1",
+                    "x": 227,
+                    "y": -28,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 50,
+                        "rows": 50,
+                        "width": 150,
+                        "height": 150,
+                        "columnWidth": 10,
+                        "rowHeight": 10
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 211,
+                    "y": 108,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 2500
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 442,
+                    "y": 56,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "range1",
+                    "x": 369,
+                    "y": 135,
+                    "fn": "g.range",
+                    "values": {
+                        "step": 8,
+                        "max": 80
+                    }
+                },
+                {
+                    "name": "accumulate1",
+                    "x": 412,
+                    "y": 192,
+                    "fn": "g.accumulate",
+                    "values": {}
+                },
+                {
+                    "name": "ring1",
+                    "x": 321,
+                    "y": 359,
+                    "fn": "b7shading.ring",
+                    "values": {
+                        "strokecolor": "red"
+                    }
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 538,
+                    "y": 179,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0.44,
+                        "blue": 0.99,
+                        "green": 0.62
+                    }
+                },
+                {
+                    "name": "rgbColor2",
+                    "x": 538,
+                    "y": 226,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "green": 0.48
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 404,
+                    "y": 294,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "number1",
+                    "x": 95,
+                    "y": -141,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 50
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 119,
+                    "y": 28,
+                    "fn": "g.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "group1",
+                    "x": 320,
+                    "y": 414,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 320,
+                    "y": 465,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 228,
+                    "y": 23,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "distance"
+                    }
+                },
+                {
+                    "name": "number2",
+                    "x": 270,
+                    "y": -143,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 160
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 272,
+                    "y": -79,
+                    "fn": "g.divide"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "slice1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "range1",
+                    "input": "accumulate1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "range1",
+                    "input": "ring1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "accumulate1",
+                    "input": "ring1",
+                    "parameter": "startindex"
+                },
+                {
+                    "output": "slice1",
+                    "input": "ring1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "rgbColor2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "ring1",
+                    "parameter": "strokecolor"
+                },
+                {
+                    "output": "number1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "number1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "ring1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "number1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "number1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "rowcolum",
+                    "input": "number1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "count1",
+                    "input": "range1",
+                    "parameter": "max"
+                },
+                {
+                    "output": "grid1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "number1",
+                    "input": "divide1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "number2",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "grid1",
+                    "parameter": "rowHeight"
+                },
+                {
+                    "output": "divide1",
+                    "input": "grid1",
+                    "parameter": "columnWidth"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "rowcolum",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "area1",
+            "nodes": [
+                {
+                    "name": "area1",
+                    "x": 75,
+                    "y": 334,
+                    "fn": "b7shading.area",
+                    "values": {
+                        "rowcolum": 50
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 69,
+                    "y": 62,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 480,
+                        "height": 320,
+                        "rows": 2,
+                        "columnWidth": 175,
+                        "rowHeight": 175,
+                        "columns": 4
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 155,
+                    "y": 109,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "integer1",
+                    "x": 155,
+                    "y": 229,
+                    "fn": "g.integer",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 155,
+                    "y": 184,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "max": 30,
+                        "min": 8
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "area1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "integer1",
+                    "input": "area1",
+                    "parameter": "rowcolum"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "integer1",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "ring",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "slice1",
+                    "x": 313,
+                    "y": 150,
+                    "fn": "g.slice",
+                    "values": {}
+                },
+                {
+                    "name": "shift1",
+                    "x": 350,
+                    "y": 272,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "curve1",
+                    "x": 330,
+                    "y": 329,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": -4
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 330,
+                    "y": 391,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 312,
+                    "y": 221,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "startindex",
+                    "input": "slice1",
+                    "parameter": "startIndex"
+                },
+                {
+                    "inlet": "size",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "inlet": "points",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "strokecolor",
+                    "input": "colorize1",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "slice1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "curve1",
+                    "parameter": "point1"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "startindex",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": true
+                },
+                {
+                    "name": "strokecolor",
+                    "type": "color",
+                    "value": ""
+                }
+            ],
+            "returnsList": true,
+            "returnType": "point"
+        }
+    ],
+    "id": "b7shading"
+}
