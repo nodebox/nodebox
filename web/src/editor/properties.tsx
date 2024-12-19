@@ -592,8 +592,8 @@ export default function Properties() {
               <span className="rounded p-1 hover:bg-gray-700">
                 <Icon name="plus" onClick={handleAddParameter} />{" "}
               </span>
-              <ParameterModal />
             </div>
+            <ParameterModal />
 
             {item.parameters?.map((parameter) => (
               <ItemParameterRow
