@@ -1,0 +1,992 @@
+{
+    "title": "squids",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev",
+        "tutorial/b5bulge": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "squid",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "fx1",
+                    "x": 71,
+                    "y": 117,
+                    "fn": "b5bulge.fx",
+                    "values": {
+                        "center": {
+                            "x": 0,
+                            "y": 20
+                        },
+                        "factor": -75,
+                        "resampl_amount": 15
+                    }
+                },
+                {
+                    "name": "star1",
+                    "x": 71,
+                    "y": 71,
+                    "fn": "g.star",
+                    "values": {
+                        "inner": 20,
+                        "outer": 130
+                    }
+                },
+                {
+                    "name": "fx2",
+                    "x": 116,
+                    "y": 503,
+                    "fn": "b5bulge.fx",
+                    "values": {
+                        "factor": -100,
+                        "center": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "fill": "transparent",
+                        "resampl_amount": 5
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 228,
+                    "y": 243,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": -200,
+                        "max": 100,
+                        "period": 20
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 229,
+                    "y": 149,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 229,
+                    "y": 196,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 4
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 139,
+                    "y": 292,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "copy1",
+                    "x": 71,
+                    "y": 224,
+                    "fn": "g.copy",
+                    "values": {
+                        "rotate": 180,
+                        "translate": {
+                            "x": 0,
+                            "y": 100
+                        },
+                        "order": "trs",
+                        "copies": 4,
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 192,
+                    "y": 45,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "height": 25,
+                        "position": {
+                            "x": 0,
+                            "y": -20
+                        },
+                        "width": 25
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 71,
+                    "y": 174,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "group1",
+                    "x": 32,
+                    "y": 320,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 32,
+                    "y": 360,
+                    "fn": "g.align",
+                    "values": {}
+                },
+                {
+                    "name": "ungroup1",
+                    "x": 32,
+                    "y": 400,
+                    "fn": "g.ungroup",
+                    "values": {}
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": 228,
+                    "y": 92,
+                    "fn": "g.resampleByLength",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": 85,
+                    "y": 883,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 359,
+                    "y": 452,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "frame2",
+                    "x": 381,
+                    "y": 88,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "mod1",
+                    "x": 381,
+                    "y": 304,
+                    "fn": "g.mod",
+                    "values": {
+                        "b": 800
+                    }
+                },
+                {
+                    "name": "group2",
+                    "x": 112,
+                    "y": 571,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "multiply1",
+                    "x": 381,
+                    "y": 132,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 2
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 381,
+                    "y": 258,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 45
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 381,
+                    "y": 353,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": 400
+                    }
+                },
+                {
+                    "name": "divide4",
+                    "x": 559,
+                    "y": 59,
+                    "fn": "g.divide",
+                    "values": {}
+                },
+                {
+                    "name": "scale1",
+                    "x": 93,
+                    "y": 634,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 100,
+                            "y": 100
+                        }
+                    }
+                },
+                {
+                    "name": "makePoint3",
+                    "x": 492,
+                    "y": 524,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": 168,
+                    "y": 342,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "abs1",
+                    "x": 167,
+                    "y": 386,
+                    "fn": "g.abs",
+                    "values": {}
+                },
+                {
+                    "name": "min1",
+                    "x": 280,
+                    "y": 372,
+                    "fn": "g.min",
+                    "values": {}
+                },
+                {
+                    "name": "max1",
+                    "x": 278,
+                    "y": 413,
+                    "fn": "g.max",
+                    "values": {}
+                },
+                {
+                    "name": "convert1",
+                    "x": 234,
+                    "y": 505,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMin": 60,
+                        "outMax": 120
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": 559,
+                    "y": 225,
+                    "fn": "g.multiply",
+                    "values": {}
+                },
+                {
+                    "name": "divide3",
+                    "x": 579,
+                    "y": 117,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 10
+                    }
+                },
+                {
+                    "name": "add2",
+                    "x": 381,
+                    "y": 185,
+                    "fn": "g.add",
+                    "values": {}
+                },
+                {
+                    "name": "scale2",
+                    "x": 246,
+                    "y": 684,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 1.2,
+                            "y": 0.9
+                        },
+                        "origin": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 196,
+                    "y": 734,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(0,0,0,.1)",
+                        "strokeWidth": 0.75,
+                        "fill": "rgba(250,250,250,.1)"
+                    }
+                },
+                {
+                    "name": "combine2",
+                    "x": 86,
+                    "y": 827,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "centerPoint1",
+                    "x": 240,
+                    "y": 627,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 323,
+                    "y": -4,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "amount": 1,
+                        "max": 360
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "star1",
+                    "input": "fx1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "frame1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "fx2",
+                    "parameter": "center"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "fx1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "combine1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "ungroup1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "fx2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "posx",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "add1",
+                    "input": "mod1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "shapeval",
+                    "input": "ellipse1",
+                    "parameter": "width"
+                },
+                {
+                    "output": "mod1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "makePoint2",
+                    "parameter": "y"
+                },
+                {
+                    "inlet": "wavespeed",
+                    "input": "sineWave1",
+                    "parameter": "period"
+                },
+                {
+                    "inlet": "wavespeed",
+                    "input": "divide4",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "fx",
+                    "input": "fx1",
+                    "parameter": "factor"
+                },
+                {
+                    "output": "group2",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "makePoint3",
+                    "parameter": "x"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "makePoint3",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint3",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "abs1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "abs1",
+                    "input": "min1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "abs1",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "abs1",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "min1",
+                    "input": "convert1",
+                    "parameter": "inMin"
+                },
+                {
+                    "output": "divide4",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "abs1",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide3",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "posy",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame2",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add2",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "scale1",
+                    "input": "scale2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "group2",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "divide1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "sineWave1",
+                    "parameter": "offset"
+                },
+                {
+                    "output": "fx2",
+                    "input": "group2",
+                    "parameter": "shapes"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "posx",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "posy",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "shapeval",
+                    "type": "float",
+                    "value": 25
+                },
+                {
+                    "name": "wavespeed",
+                    "type": "float",
+                    "value": 20
+                },
+                {
+                    "name": "fx",
+                    "type": "float",
+                    "value": 75
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 100
+                }
+            ],
+            "returnsList": true,
+            "returnType": "float"
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "squid1",
+                    "x": 31,
+                    "y": 483,
+                    "fn": "squids.squid",
+                    "values": {
+                        "posx": -17,
+                        "scale": 115
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 96,
+                    "y": 108,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 472,
+                        "height": 831,
+                        "position": {
+                            "x": 48,
+                            "y": 279
+                        }
+                    }
+                },
+                {
+                    "name": "scatterPoints1",
+                    "x": 96,
+                    "y": 150,
+                    "fn": "g.scatterPoints",
+                    "values": {
+                        "amount": 7,
+                        "seed": 41
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 155,
+                    "y": 206,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 170,
+                    "y": 244,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "abs1",
+                    "x": 170,
+                    "y": 290,
+                    "fn": "g.abs",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 46,
+                    "y": 301,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "end": 300,
+                        "start": -100,
+                        "seed": 11,
+                        "min": -100
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 16,
+                    "y": 203,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 90,
+                    "y": 339,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 15,
+                        "end": 55,
+                        "seed": 27,
+                        "min": 20,
+                        "max": 40
+                    }
+                },
+                {
+                    "name": "randomNumbers3",
+                    "x": 111,
+                    "y": 380,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": -150,
+                        "end": 150,
+                        "seed": 110,
+                        "max": 160,
+                        "min": 20
+                    }
+                },
+                {
+                    "name": "randomNumbers4",
+                    "x": 132,
+                    "y": 423,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 60,
+                        "end": 150,
+                        "seed": 52,
+                        "min": 0.35,
+                        "max": 2
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 281,
+                    "y": 109,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 1600,
+                        "height": 25
+                    }
+                },
+                {
+                    "name": "copy1",
+                    "x": 281,
+                    "y": 153,
+                    "fn": "g.copy",
+                    "values": {
+                        "order": "trs",
+                        "rotate": 0,
+                        "translate": {
+                            "x": 0,
+                            "y": 20
+                        },
+                        "copies": 116
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 281,
+                    "y": 325,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "rgba(230,130,0,.1)",
+                        "strokeWidth": 0
+                    }
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 299,
+                    "y": 280,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "red": 0,
+                        "green": 0
+                    }
+                },
+                {
+                    "name": "count2",
+                    "x": 325,
+                    "y": 191,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sample1",
+                    "x": 325,
+                    "y": 235,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 0,
+                        "min": 1
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 281,
+                    "y": 368,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 281,
+                    "y": 412,
+                    "fn": "g.align",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": 132,
+                    "y": 532,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "squid2",
+                    "x": 337,
+                    "y": 501,
+                    "fn": "squids.squid",
+                    "values": {
+                        "fx": 116,
+                        "wavespeed": 23,
+                        "shapeval": 69,
+                        "scale": 1.2
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ellipse1",
+                    "input": "scatterPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "squid1",
+                    "parameter": "posx"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "abs1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "abs1",
+                    "input": "squid1",
+                    "parameter": "posy"
+                },
+                {
+                    "output": "scatterPoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "squid1",
+                    "parameter": "shapeval"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "squid1",
+                    "parameter": "wavespeed"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers3",
+                    "input": "squid1",
+                    "parameter": "fx"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers4",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers4",
+                    "input": "squid1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "rect1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "copy1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count2",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "sample1",
+                    "input": "rgbColor1",
+                    "parameter": "blue"
+                },
+                {
+                    "output": "copy1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "squid1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "align1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "squids"
+}

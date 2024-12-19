@@ -1,0 +1,181 @@
+{
+    "title": "a1numbers",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "sample1",
+                    "x": 300,
+                    "y": 241,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 1,
+                        "amount": 6
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 42,
+                    "y": 116,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 40,
+                        "height": 40,
+                        "position": {
+                            "x": 0,
+                            "y": -7
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 172,
+                    "y": 490,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "grid1",
+                    "x": 211,
+                    "y": 96,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 10,
+                        "rows": 10,
+                        "width": 400,
+                        "height": 400,
+                        "columnWidth": 40,
+                        "rowHeight": 40
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 227,
+                    "y": 166,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "text1",
+                    "x": 123,
+                    "y": 385,
+                    "fn": "g.text",
+                    "values": {
+                        "fill": "white",
+                        "position": {
+                            "x": 2,
+                            "y": -2
+                        }
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 42,
+                    "y": 241,
+                    "fn": "g.translate",
+                    "values": {},
+                    "masterList": "translate"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 243,
+                    "y": 383,
+                    "fn": "g.colorize",
+                    "values": {
+                        "strokeWidth": 5,
+                        "fill": "white"
+                    }
+                },
+                {
+                    "name": "range2",
+                    "x": 187,
+                    "y": 243,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 299,
+                    "y": 299,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5,
+                        "saturation": 0.75
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "grid1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "grid1",
+                    "input": "text1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "grid1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "rect1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "sample1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "count1",
+                    "input": "range2",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range2",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "sample1",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "colorize1",
+                    "parameter": "stroke"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "a1numbers"
+}

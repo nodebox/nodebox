@@ -1,0 +1,286 @@
+{
+    "title": "d1namedcolor",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "maakcolors.csv": "a3e115c83bb5565ac202546fef7b7309970672eb"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "rect1",
+                    "x": 104,
+                    "y": 400,
+                    "fn": "g.rect",
+                    "outputType": "shape",
+                    "returnsList": false,
+                    "stateful": false,
+                    "values": {
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "width": 40,
+                        "height": 40,
+                        "roundness": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "import1",
+                    "x": 88,
+                    "y": 95,
+                    "fn": "g.import",
+                    "values": {
+                        "file": "maakcolors.csv"
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 89,
+                    "y": 171,
+                    "fn": "g.lookup",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 229,
+                    "y": 159,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sqrt1",
+                    "x": 229,
+                    "y": 205,
+                    "fn": "g.sqrt",
+                    "values": {}
+                },
+                {
+                    "name": "ceil1",
+                    "x": 227,
+                    "y": 260,
+                    "fn": "g.ceil",
+                    "values": {}
+                },
+                {
+                    "name": "grid1",
+                    "x": 241,
+                    "y": 326,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 500,
+                        "height": 500,
+                        "columnWidth": 46,
+                        "rowHeight": 46
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 104,
+                    "y": 460,
+                    "fn": "g.colorize",
+                    "values": {}
+                },
+                {
+                    "name": "text1",
+                    "x": 237,
+                    "y": 400,
+                    "fn": "g.text",
+                    "values": {
+                        "position": {
+                            "x": -270,
+                            "y": -280
+                        },
+                        "align": "left"
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 104,
+                    "y": 556,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "rect2",
+                    "x": 370,
+                    "y": 354,
+                    "fn": "g.rect",
+                    "values": {
+                        "width": 50,
+                        "height": 50
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 370,
+                    "y": 401,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)",
+                        "stroke": "red",
+                        "strokeWidth": 10
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 372,
+                    "y": 234,
+                    "fn": "g.shift",
+                    "values": {
+                        "amount": 0
+                    }
+                },
+                {
+                    "name": "first1",
+                    "x": 372,
+                    "y": 281,
+                    "fn": "g.first",
+                    "values": {}
+                },
+                {
+                    "name": "selector",
+                    "x": 206,
+                    "y": 62,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 38
+                    }
+                },
+                {
+                    "name": "shift2",
+                    "x": 481,
+                    "y": 237,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "first2",
+                    "x": 481,
+                    "y": 281,
+                    "fn": "g.first",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "import1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "sqrt1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "sqrt1",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "rows"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "grid1",
+                    "parameter": "columns"
+                },
+                {
+                    "output": "grid1",
+                    "input": "rect1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "rect1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "text1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "rect2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "text1",
+                    "parameter": "text"
+                },
+                {
+                    "output": "selector",
+                    "input": "shift1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "grid1",
+                    "input": "shift2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "selector",
+                    "input": "shift2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "shift2",
+                    "input": "first2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first2",
+                    "input": "rect2",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        }
+    ],
+    "id": "d1namedcolor"
+}

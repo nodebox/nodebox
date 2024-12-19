@@ -1,0 +1,616 @@
+{
+    "title": "e3isometric",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "bar1",
+            "nodes": [
+                {
+                    "name": "bar1",
+                    "x": 171,
+                    "y": 493,
+                    "fn": "e3isometric.bar",
+                    "values": {
+                        "position": {
+                            "x": -58,
+                            "y": -14
+                        },
+                        "width": 30,
+                        "height": 100
+                    },
+                    "masterList": "position"
+                },
+                {
+                    "name": "grid1",
+                    "x": 44,
+                    "y": 93,
+                    "fn": "g.grid",
+                    "values": {
+                        "width": 500,
+                        "columns": 10,
+                        "height": 60,
+                        "rows": 2,
+                        "rowHeight": 120
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 182,
+                    "y": 156,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "sineWave2",
+                    "x": 171,
+                    "y": 431,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "max": 100,
+                        "period": 2,
+                        "waveType": "triangle"
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 233,
+                    "y": 263,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "divide1",
+                    "x": 233,
+                    "y": 363,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 40
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 234,
+                    "y": 308,
+                    "fn": "g.add",
+                    "values": {},
+                    "masterList": "b"
+                },
+                {
+                    "name": "grid2",
+                    "x": 180,
+                    "y": 95,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 10,
+                        "width": 500,
+                        "position": {
+                            "x": 50,
+                            "y": -60
+                        },
+                        "rows": 2,
+                        "height": 60,
+                        "rowHeight": 120
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 43,
+                    "y": 159,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "range2",
+                    "x": 186,
+                    "y": 202,
+                    "fn": "g.range"
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 36,
+                    "y": 260,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "x",
+                        "point": {
+                            "x": 0,
+                            "y": 0
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "frame1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "grid1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "grid2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "count1",
+                    "input": "range2",
+                    "parameter": "max"
+                },
+                {
+                    "output": "range2",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "sineWave2",
+                    "input": "bar1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "combine1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "bar1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "divide1",
+                    "input": "sineWave2",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 295,
+                    "y": 18,
+                    "width": 77,
+                    "height": 95,
+                    "text": "Press Play - change the sorting order of sort1"
+                }
+            ],
+            "background": "#fceae1"
+        },
+        {
+            "name": "bar",
+            "type": "network",
+            "renderedNode": "align1",
+            "nodes": [
+                {
+                    "name": "width",
+                    "x": 205,
+                    "y": 115,
+                    "fn": "g.number"
+                },
+                {
+                    "name": "rect1",
+                    "x": 55,
+                    "y": 185,
+                    "fn": "g.rect"
+                },
+                {
+                    "name": "toPoints1",
+                    "x": 55,
+                    "y": 235,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "get1",
+                    "x": 55,
+                    "y": 295,
+                    "fn": "g.get",
+                    "values": {
+                        "index": 3
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 175,
+                    "y": 385,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.5,
+                            "y": 1
+                        }
+                    }
+                },
+                {
+                    "name": "skew1",
+                    "x": 175,
+                    "y": 435,
+                    "fn": "g.skew",
+                    "values": {
+                        "skew": {
+                            "x": 0,
+                            "y": -45
+                        }
+                    }
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 295,
+                    "y": 385,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "translate1",
+                    "x": 175,
+                    "y": 495,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 445,
+                    "y": 485,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "get2",
+                    "x": 445,
+                    "y": 535,
+                    "fn": "g.get",
+                    "values": {
+                        "index": 2
+                    }
+                },
+                {
+                    "name": "lookup1",
+                    "x": 325,
+                    "y": 585,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 445,
+                    "y": 585,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 445,
+                    "y": 655,
+                    "fn": "g.subtract"
+                },
+                {
+                    "name": "abs1",
+                    "x": 445,
+                    "y": 705,
+                    "fn": "g.abs"
+                },
+                {
+                    "name": "rect2",
+                    "x": 445,
+                    "y": 765,
+                    "fn": "g.rect"
+                },
+                {
+                    "name": "skew2",
+                    "x": 445,
+                    "y": 815,
+                    "fn": "g.skew",
+                    "values": {
+                        "skew": {
+                            "x": 45,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 415,
+                    "y": 885,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "stack1",
+                    "x": 415,
+                    "y": 945,
+                    "fn": "g.stack",
+                    "values": {
+                        "margin": 0,
+                        "direction": "n"
+                    }
+                },
+                {
+                    "name": "stack2",
+                    "x": 415,
+                    "y": 1005,
+                    "fn": "g.stack"
+                },
+                {
+                    "name": "negate1",
+                    "x": 535,
+                    "y": 945,
+                    "fn": "g.negate"
+                },
+                {
+                    "name": "combine2",
+                    "x": 345,
+                    "y": 1065,
+                    "fn": "g.combine"
+                },
+                {
+                    "name": "stringSplit1",
+                    "x": 235,
+                    "y": 1075,
+                    "fn": "g.stringSplit",
+                    "values": {
+                        "s": "#e58e60;#e5dd60;#40977d"
+                    }
+                },
+                {
+                    "name": "colorize1",
+                    "x": 315,
+                    "y": 1125,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "group1",
+                    "x": 315,
+                    "y": 1175,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "align1",
+                    "x": 315,
+                    "y": 1225,
+                    "fn": "g.align"
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "width",
+                    "input": "width",
+                    "parameter": "v"
+                },
+                {
+                    "output": "width",
+                    "input": "rect1",
+                    "parameter": "width"
+                },
+                {
+                    "inlet": "height",
+                    "input": "rect1",
+                    "parameter": "height"
+                },
+                {
+                    "output": "rect1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "get1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "get1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "rect1",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "scale1",
+                    "input": "skew1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "get1",
+                    "input": "skew1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "width",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "skew1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "skew1",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "get2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "get1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "get2",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "abs1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "width",
+                    "input": "rect2",
+                    "parameter": "width"
+                },
+                {
+                    "output": "abs1",
+                    "input": "rect2",
+                    "parameter": "height"
+                },
+                {
+                    "output": "rect2",
+                    "input": "skew2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "rect1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "skew2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "stack1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "stack1",
+                    "input": "stack2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "width",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "negate1",
+                    "input": "stack2",
+                    "parameter": "margin"
+                },
+                {
+                    "output": "stack2",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate1",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine2",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "stringSplit1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "position",
+                    "input": "align1",
+                    "parameter": "position"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "width",
+                    "type": "float",
+                    "value": 20
+                },
+                {
+                    "name": "height",
+                    "type": "float",
+                    "value": 100
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    },
+                    "takesList": false
+                }
+            ],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 15,
+                    "y": 157,
+                    "width": 186,
+                    "height": 71,
+                    "text": "Front side"
+                },
+                {
+                    "x": 135,
+                    "y": 471,
+                    "width": 158,
+                    "height": 69,
+                    "text": "Right side"
+                },
+                {
+                    "x": 375,
+                    "y": 805,
+                    "width": 213,
+                    "height": 53,
+                    "text": "Top side"
+                }
+            ]
+        }
+    ],
+    "id": "e3isometric"
+}

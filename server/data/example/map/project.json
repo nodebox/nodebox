@@ -1,0 +1,646 @@
+{
+  "title": "Choropleth map",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Choropleth map",
+      "category": "",
+      "description": "",
+      "canvasSize": "fixed",
+      "padding": 10,
+      "width": 1000,
+      "height": 1000,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "id": "egih3UyNsS5:1",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A choropleth map is a type of thematic map in which areas are shaded or colored proportionally to a numerical variable. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load the geographic reference data. Inspect the date in the Table or Detail view. This data has a nested topojson format. Inspect the geometries in objects.counties.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:3",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Optimize the fill color scale with a custom domain to limit the effect of outliers in the data. Set a custom range using a Vega syntax {\"scheme\": \"blues\", \"count\": 7}, or copy a scale from https://observablehq.com/@d3/color-schemes. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:4",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Choropleth map",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:5",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load the thematic data",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Plot the geographic data. Define source data format and feature. Use the newly joined attribute properties.rate as domain of the fill color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a gradient legend. Define the layout orientation and format the labels. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:8",
+          "x": 240,
+          "y": 297,
+          "name": "Plot Geodata 1",
+          "fn": "core/plot/Plot Geodata",
+          "values": {
+            "dataName": {
+              "type": "VALUE",
+              "value": "counties"
+            },
+            "feature": {
+              "type": "VALUE",
+              "value": "counties"
+            },
+            "format": {
+              "type": "VALUE",
+              "value": "topojson"
+            },
+            "projection": {
+              "type": "VALUE",
+              "value": "albersUsa"
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": 700
+            },
+            "rotatePhi": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "centerLat": {
+              "type": "VALUE",
+              "value": 110
+            },
+            "centerLong": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "rotateLambda": {
+              "type": "VALUE",
+              "value": 90
+            },
+            "rotateGamma": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "properties.rate"
+            },
+            "strokeColor": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "id": "egih3UyNsS5:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Resize the map figure and define the map properties. Set the scale to 500 and use the AlbersUSA projection. This special projections ignores center and rotation parameters. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:10",
+          "x": 240,
+          "y": 417,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "scaleType": {
+              "type": "VALUE",
+              "value": "quantize"
+            },
+            "range": {
+              "type": "VALUE",
+              "value": "{\"scheme\": \"blues\", \"count\": 7}"
+            },
+            "domain": {
+              "type": "VALUE",
+              "value": "0,0.15"
+            },
+            "dataName": {
+              "type": "VALUE",
+              "value": "counties"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:11",
+          "x": 240,
+          "y": 477,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "scale": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "type": {
+              "type": "VALUE",
+              "value": "gradient"
+            },
+            "labelFormat": {
+              "type": "VALUE",
+              "value": "0.1%"
+            },
+            "labelSeparation": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "bottom-right"
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "legendX": {
+              "type": "VALUE",
+              "value": 200
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "vertical"
+            },
+            "symbolSize": {
+              "type": "VALUE",
+              "value": 100
+            },
+            "title": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:12",
+          "x": 240,
+          "y": 357,
+          "name": "Set Map Figure 1",
+          "fn": "core/plot/Set Map Figure",
+          "values": {
+            "projection": {
+              "type": "VALUE",
+              "value": "albersUsa"
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 500
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": 500
+            },
+            "height": {
+              "type": "VALUE",
+              "value": 300
+            },
+            "translateX": {
+              "type": "VALUE",
+              "value": -20
+            },
+            "rotateGamma": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "rotateLambda": {
+              "type": "VALUE",
+              "value": 90
+            },
+            "rotatePhi": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "centerLong": {
+              "type": "VALUE",
+              "value": 41.850033
+            },
+            "centerLat": {
+              "type": "VALUE",
+              "value": -87.6500523
+            },
+            "translateY": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "graticule": {
+              "type": "VALUE",
+              "value": true
+            }
+          }
+        },
+        {
+          "id": "egih3UyNsS5:14",
+          "type": "STICKY",
+          "x": 790,
+          "y": 360,
+          "width": 300,
+          "height": 70,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Geographic projections transform the Earth's 3D surface onto a 2D plane. This process inevitably introduces distortions. Projections affect the shapes, area, distance, or direction of boundaries and locations.  ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:15",
+          "type": "STICKY",
+          "x": 790,
+          "y": 510,
+          "width": 300,
+          "height": 130,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "The AlbersUSA projection is a special case of the Albers Equal-Area Conic projection, designed to represent the entire United States, including the contiguous 48 states, Alaska, and Hawaii. It minimizes distortions by applying separate conic projections for different regions. This method preserves the relative sizes (areas) of each state and adjusts the positions of Alaska and Hawaii to make it easier to display the U.S. on a single map.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:16",
+          "type": "STICKY",
+          "x": 790,
+          "y": 440,
+          "width": 300,
+          "height": 60,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Switch the projection to Albers and set the scale to 100, Rotate lambda to 90 and Translate Y to 100. Notice the position and the dimensions of Hawaii and Alaska. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "egih3UyNsS5:17",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Join the thematic data to the counties features in the geographic data. Define Left format and Left feature in the Data formats section on the bottom.  Inspect the result. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:18",
+          "x": 260,
+          "y": 227,
+          "name": "Join Data 1",
+          "fn": "core/g/Join Data",
+          "values": {
+            "leftFeature": {
+              "type": "VALUE",
+              "value": "counties"
+            },
+            "leftProperties": {
+              "type": "VALUE",
+              "value": true
+            },
+            "leftFormat": {
+              "type": "VALUE",
+              "value": "topojson"
+            },
+            "leftKey": {
+              "type": "VALUE",
+              "value": "id"
+            },
+            "rightKey": {
+              "type": "VALUE",
+              "value": "id"
+            },
+            "rightProperties": {
+              "type": "VALUE",
+              "value": true
+            },
+            "rightFormat": {
+              "type": "VALUE",
+              "value": "json"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:19",
+          "x": 260,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/us-10m.json"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egih3UyNsS5:20",
+          "x": 280,
+          "y": 167,
+          "name": "Fetch Data 2",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/unemployment-us.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "egjAJ3k1bp2:0",
+          "x": 240,
+          "y": 537,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "id": "egjAJ3k1bp2:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 540,
+          "width": 370,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:18",
+          "outPort": "dataOut",
+          "inNode": "egih3UyNsS5:8",
+          "inPort": "dataIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:20",
+          "outPort": "out",
+          "inNode": "egih3UyNsS5:18",
+          "inPort": "dataRight"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:10",
+          "outPort": "plotSpecOut",
+          "inNode": "egih3UyNsS5:11",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:19",
+          "outPort": "out",
+          "inNode": "egih3UyNsS5:18",
+          "inPort": "dataLeft"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:8",
+          "outPort": "plotSpecOut",
+          "inNode": "egih3UyNsS5:12",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:12",
+          "outPort": "plotSpecOut",
+          "inNode": "egih3UyNsS5:10",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "egih3UyNsS5:11",
+          "outPort": "plotSpecOut",
+          "inNode": "egjAJ3k1bp2:0",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "egjAJ3k1bp2:0",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "sections": []
+    }
+  ],
+  "__gallery": {},
+  "id": "74fd8717-7721-4035-be2a-29a3f23e09ec",
+  "formatVersion": 4
+}

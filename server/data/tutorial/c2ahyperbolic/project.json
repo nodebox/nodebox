@@ -1,0 +1,244 @@
+{
+    "title": "c2ahyperbolic",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize1",
+            "nodes": [
+                {
+                    "name": "coordinates1",
+                    "x": 136,
+                    "y": 257,
+                    "fn": "g.coordinates",
+                    "values": {
+                        "distance": 252
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 264,
+                    "y": 208,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 360
+                    }
+                },
+                {
+                    "name": "arcs1",
+                    "x": 156,
+                    "y": 343,
+                    "fn": "c2ahyperbolic.arcs",
+                    "values": {
+                        "index": 30
+                    },
+                    "masterList": "index"
+                },
+                {
+                    "name": "colorize1",
+                    "x": 243,
+                    "y": 503,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(250,0,0,.1)",
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "range2",
+                    "x": 381,
+                    "y": 207,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 60,
+                        "step": 15
+                    }
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 347,
+                    "y": 386,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "alpha": 0.16
+                    }
+                },
+                {
+                    "name": "convert1",
+                    "x": 385,
+                    "y": 328,
+                    "fn": "g.convert",
+                    "values": {
+                        "outMax": 255
+                    }
+                },
+                {
+                    "name": "max1",
+                    "x": 419,
+                    "y": 267,
+                    "fn": "g.max"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "range1",
+                    "input": "coordinates1",
+                    "parameter": "angle"
+                },
+                {
+                    "output": "coordinates1",
+                    "input": "arcs1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "arcs1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "range2",
+                    "input": "arcs1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "range2",
+                    "input": "convert1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "range2",
+                    "input": "max1",
+                    "parameter": "values"
+                },
+                {
+                    "output": "max1",
+                    "input": "convert1",
+                    "parameter": "inMax"
+                },
+                {
+                    "output": "convert1",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "colorize1",
+                    "parameter": "fill"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "arcs",
+            "type": "network",
+            "renderedNode": "curve1",
+            "nodes": [
+                {
+                    "name": "takeEvery1",
+                    "x": 175,
+                    "y": 360,
+                    "fn": "g.takeEvery",
+                    "values": {
+                        "n": 6
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 175,
+                    "y": 412,
+                    "fn": "g.shift"
+                },
+                {
+                    "name": "curve1",
+                    "x": 207,
+                    "y": 553,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 15
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": 311,
+                    "y": 446,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 7
+                    }
+                },
+                {
+                    "name": "number1",
+                    "x": 231,
+                    "y": 264,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 4
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "takeEvery1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "takeEvery1",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "shift1",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "number1",
+                    "input": "takeEvery1",
+                    "parameter": "n"
+                },
+                {
+                    "output": "number1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "curve1",
+                    "parameter": "distance"
+                },
+                {
+                    "inlet": "index",
+                    "input": "number1",
+                    "parameter": "v"
+                },
+                {
+                    "inlet": "points",
+                    "input": "takeEvery1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "float",
+                    "value": 1,
+                    "takesList": true
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "c2ahyperbolic"
+}

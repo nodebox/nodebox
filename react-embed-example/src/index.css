@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    avenir next,
+    avenir,
+    segoe ui,
+    helvetica neue,
+    helvetica,
+    Cantarell,
+    Ubuntu,
+    roboto,
+    noto,
+    arial,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.app__main {
+  margin: 100px auto;
+  padding: 0 8px;
+  max-width: 960px;
+}
+
+.app__title {
+  color: #666;
+}

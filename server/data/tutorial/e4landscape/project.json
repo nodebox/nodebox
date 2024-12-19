@@ -1,0 +1,204 @@
+{
+    "title": "e4landscape",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "copy1",
+            "nodes": [
+                {
+                    "name": "makePoint1",
+                    "x": 198,
+                    "y": 322,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 263,
+                    "y": 247,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "min": -100,
+                        "max": 100,
+                        "period": 100
+                    }
+                },
+                {
+                    "name": "sample1",
+                    "x": 83,
+                    "y": 31,
+                    "fn": "g.sample",
+                    "values": {
+                        "max": 1000,
+                        "amount": 15
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 334,
+                    "y": 21,
+                    "fn": "g.frame",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 168,
+                    "y": 121,
+                    "fn": "g.randomNumbers",
+                    "values": {}
+                },
+                {
+                    "name": "count1",
+                    "x": 168,
+                    "y": 74,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "add1",
+                    "x": 231,
+                    "y": 185,
+                    "fn": "g.add",
+                    "values": {},
+                    "masterList": "b"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 198,
+                    "y": 375,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                },
+                {
+                    "name": "align1",
+                    "x": 198,
+                    "y": 419,
+                    "fn": "g.align",
+                    "values": {}
+                },
+                {
+                    "name": "copy1",
+                    "x": 198,
+                    "y": 464,
+                    "fn": "g.copy",
+                    "values": {
+                        "order": "trs",
+                        "rotate": 0,
+                        "translate": {
+                            "x": 8,
+                            "y": -15
+                        }
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "sineWave1",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "sample1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "sample1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "frame1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "add1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "closest",
+            "type": "network",
+            "renderedNode": "distance1",
+            "nodes": [
+                {
+                    "name": "distance1",
+                    "x": 234,
+                    "y": 325,
+                    "fn": "g.distance",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 276,
+                    "y": 156,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1,
+                        "startIndex": 0
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "points",
+                    "input": "slice1",
+                    "parameter": "l"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "points",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "index",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "e4landscape"
+}

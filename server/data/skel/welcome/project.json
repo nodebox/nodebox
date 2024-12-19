@@ -1,0 +1,147 @@
+{
+  "title": "Welcome - Getting Started",
+  "id": "welcome",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Main",
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eayR3GkrlEu:0",
+          "x": 300,
+          "y": 237,
+          "name": "Rect 1",
+          "fn": "core/g/Rect",
+          "values": {
+            "x": {
+              "type": "EXPRESSION",
+              "expression": "value"
+            },
+            "y": {
+              "type": "EXPRESSION",
+              "expression": "value"
+            },
+            "width": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "height": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "fill": {
+              "type": "VALUE",
+              "value": {
+                "r": 0.9529411764705882,
+                "g": 0.023529411764705882,
+                "b": 0.023529411764705882,
+                "a": 1
+              }
+            },
+            "stroke": {
+              "type": "VALUE",
+              "value": {
+                "r": 1,
+                "g": 1,
+                "b": 1,
+                "a": 1
+              }
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eayR3GkrlEu:1",
+          "x": 300,
+          "y": 67,
+          "name": "Sample 1",
+          "fn": "core/g/Sample",
+          "values": {
+            "min": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "max": {
+              "type": "VALUE",
+              "value": 100
+            },
+            "amount": {
+              "type": "VALUE",
+              "value": 11
+            }
+          }
+        },
+        {
+          "id": "eayR3GkrlEu:2",
+          "type": "STICKY",
+          "x": 80,
+          "y": 70,
+          "width": 340,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Generates data",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eayR3GkrlEu:3",
+          "type": "STICKY",
+          "x": 80,
+          "y": 240,
+          "width": 340,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Maps on rectangles.",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eayR3GkrlEu:1",
+          "outPort": "out",
+          "inNode": "eayR3GkrlEu:0",
+          "inPort": "table"
+        }
+      ],
+      "renderedNode": "eayR3GkrlEu:0",
+      "outputPorts": []
+    }
+  ],
+  "formatVersion": 4
+}

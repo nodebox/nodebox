@@ -1,0 +1,1268 @@
+{
+  "title": "waffle",
+  "color": "teal",
+  "dependencies": {
+    "core/g": "dev",
+    "core/plot": "dev"
+  },
+  "assets": {},
+  "items": [
+    {
+      "type": "NETWORK",
+      "id": "0:1",
+      "name": "Basic waffle plot",
+      "children": [
+        {
+          "type": "NODE",
+          "id": "eXTl43St7Kw:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "waffle"
+            },
+            "X": {
+              "type": "VALUE",
+              "value": "1,16"
+            },
+            "Y": {
+              "type": "VALUE",
+              "value": "1,25"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "gridUnits": {
+              "type": "VALUE",
+              "value": "1"
+            },
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eXTl43St7Kw:2",
+          "x": 240,
+          "y": 297,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eXTpwYMxKto:0",
+          "x": 410,
+          "y": 627,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "domain": {
+              "type": "VALUE",
+              "value": "1,16"
+            },
+            "padInner": {
+              "type": "VALUE",
+              "value": 0.1
+            },
+            "scaleType": {
+              "type": "VALUE",
+              "value": "band"
+            },
+            "dataName": {
+              "type": "VALUE",
+              "value": "table"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eXTpwYMxKto:1",
+          "x": 410,
+          "y": 567,
+          "name": "Add Plot Data 1",
+          "fn": "core/plot/Add Plot Data",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eXTrPcI9q84:0",
+          "x": 410,
+          "y": 687,
+          "name": "Set Plot Scale 2",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "domain": {
+              "type": "VALUE",
+              "value": "1,25"
+            },
+            "padInner": {
+              "type": "VALUE",
+              "value": 0.1
+            },
+            "nice": {
+              "type": "VALUE",
+              "value": true
+            },
+            "scaleType": {
+              "type": "VALUE",
+              "value": "band"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eXTrPcI9q84:1",
+          "x": 410,
+          "y": 747,
+          "name": "Set Plot Scale 3",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "fillColorScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eXTrPcI9q84:3",
+          "x": 410,
+          "y": 1047,
+          "name": "Render Plot 2",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "eXT0qR1kTkY:2",
+          "x": 240,
+          "y": 237,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -20
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "bottom"
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 40
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "horizontal"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eXT0qR1kTkY:3",
+          "x": 410,
+          "y": 987,
+          "name": "Add Legend 2",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "orient": {
+              "type": "VALUE",
+              "value": "bottom"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "horizontal"
+            },
+            "columns": {
+              "type": "VALUE",
+              "value": 3
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": -20
+            },
+            "rowPadding": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "padding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 40
+            },
+            "titlePadding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "title": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "eafH47ETtm9:0",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "id": "eafLAi38any:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A waffle plot displays categorical data as colored rectangles on a grid. Each grid unit represents a proportional ratio of the total data count. A waffle plot is often used to visualize proportions or percentages. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafLAi38any:4",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafLAi38any:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 460,
+          "width": 710,
+          "height": 40,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "A waffle plot is a complex plot which displays calculated grid data instead of the original input data. Behind the scenes, a separate grid table is generated, and the X- and Y-positions represent grid indexes instead of data attributes.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafLAi38any:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend for the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafLAi38any:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Basic Waffle Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:0",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "To define the number of columns and rows of the waffle grid, specify min and max grid indexes as the domains of the X- and Y-scales. Set a categorical attribute for the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:2",
+          "type": "STICKY",
+          "x": 50,
+          "y": 430,
+          "width": 140,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Step-by-step",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 570,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:4",
+          "type": "STICKY",
+          "x": 50,
+          "y": 810,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Select the waffle plot type and specify the attribute to group the rectangles. Set offset to Normalize to visualize ratios instead of absolute values. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 870,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "The axes of a waffle plot only show the row and column indexes. Remove them to create a clean data visualization. Select Remove axis in the Other section. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:6",
+          "type": "STICKY",
+          "x": 50,
+          "y": 630,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Set linear X and Y scales. The maximum number of rows and columns of the waffle grid is defined by the domains of the position scales. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:7",
+          "type": "STICKY",
+          "x": 50,
+          "y": 500,
+          "width": 710,
+          "height": 30,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "In the network below the same waffle plot is created step-by-step. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:8",
+          "type": "STICKY",
+          "x": 50,
+          "y": 690,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "When generating the grid data, NodeBox Plot will recalculate the provided min and max domain values to a zero-based index range. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "eafoAhMFTrN:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 750,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Set a color scale to separate categories. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ealS3Euhj8F:1",
+          "x": 410,
+          "y": 807,
+          "name": "Set Plot Type 1",
+          "fn": "core/plot/Set Plot Type",
+          "values": {
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "plotType": {
+              "type": "VALUE",
+              "value": "waffle"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "Y"
+            },
+            "order": {
+              "type": "VALUE",
+              "value": "ascending"
+            },
+            "baseline": {
+              "type": "VALUE",
+              "value": 999
+            },
+            "unitRatio": {
+              "type": "VALUE",
+              "value": 1
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": "normalize"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ealXhuv7en5:0",
+          "x": 410,
+          "y": 867,
+          "name": "Set Axis 1",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "remove": {
+              "type": "VALUE",
+              "value": true
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "labelPadding": {
+              "type": "VALUE",
+              "value": 10
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ealX2sN5O4I:0",
+          "x": 410,
+          "y": 927,
+          "name": "Set Axis 2",
+          "fn": "core/plot/Set Axis",
+          "values": {
+            "remove": {
+              "type": "VALUE",
+              "value": true
+            },
+            "offset": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "labelPadding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": "yScale"
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "left"
+            }
+          }
+        },
+        {
+          "id": "ealX2sN5O4I:1",
+          "type": "STICKY",
+          "x": 50,
+          "y": 930,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Remove both the X- and Y-axis. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ealX2sN5O4I:2",
+          "type": "STICKY",
+          "x": 50,
+          "y": 990,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend for the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ealX2sN5O4I:3",
+          "type": "STICKY",
+          "x": 50,
+          "y": 1050,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ealzOJWiyxB:0",
+          "type": "STICKY",
+          "x": 560,
+          "y": 810,
+          "width": 200,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.03137254901960784,
+            "g": 0.1843137254901961,
+            "b": 0.28627450980392155,
+            "a": 0.8
+          },
+          "text": "Inspect the Detail view. The marks now display data from the new gridTable. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXTpwYMxKto:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eXTrPcI9q84:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXTrPcI9q84:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eXTrPcI9q84:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXTl43St7Kw:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eXT0qR1kTkY:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXT0qR1kTkY:2",
+          "outPort": "plotSpecOut",
+          "inNode": "eXTl43St7Kw:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXTpwYMxKto:1",
+          "outPort": "plotSpecOut",
+          "inNode": "eXTpwYMxKto:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eafH47ETtm9:0",
+          "outPort": "out",
+          "inNode": "eXTl43St7Kw:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eafH47ETtm9:0",
+          "outPort": "out",
+          "inNode": "eXTpwYMxKto:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXTrPcI9q84:1",
+          "outPort": "plotSpecOut",
+          "inNode": "ealS3Euhj8F:1",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "eXT0qR1kTkY:3",
+          "outPort": "plotSpecOut",
+          "inNode": "eXTrPcI9q84:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ealXhuv7en5:0",
+          "outPort": "plotSpecOut",
+          "inNode": "ealX2sN5O4I:0",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ealX2sN5O4I:0",
+          "outPort": "plotSpecOut",
+          "inNode": "eXT0qR1kTkY:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ealS3Euhj8F:1",
+          "outPort": "plotSpecOut",
+          "inNode": "ealXhuv7en5:0",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "eXTrPcI9q84:3",
+      "width": 440,
+      "height": 440,
+      "outputPorts": [],
+      "__gallery": {
+        "keyword": "waffle",
+        "subKeyword": "Basic waffle plot"
+      },
+      "description": "A waffle plot displays categorical data as colored rectangles on a grid. Each grid unit represents a proportional ratio of the total data count. A waffle plot is often used to visualize proportions or percentages. "
+    },
+    {
+      "type": "NETWORK",
+      "id": "ehZayVok1C2:0",
+      "name": "Icon waffle plot",
+      "category": "",
+      "description": "",
+      "canvasSize": "fixed",
+      "padding": 10,
+      "width": 1000,
+      "height": 1000,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "ehZayVok1C2:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "plotType": {
+              "type": "VALUE",
+              "value": "waffle"
+            },
+            "X": {
+              "type": "VALUE",
+              "value": "1,16"
+            },
+            "Y": {
+              "type": "VALUE",
+              "value": "1,25"
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "gridUnits": {
+              "type": "VALUE",
+              "value": "1"
+            },
+            "groupBy": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 0
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehZayVok1C2:2",
+          "x": 240,
+          "y": 477,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "ehZayVok1C2:3",
+          "x": 240,
+          "y": 417,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -20
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "bottom"
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 40
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "horizontal"
+            },
+            "title": {
+              "type": "VALUE",
+              "value": ""
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehZayVok1C2:4",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "id": "ehZayVok1C2:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "An icon waffle plot uses icons instead of rectangular grid cells. Each icon represents a proportional ratio of the total data count. A waffle plot is often used to visualize proportions or percentages. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZayVok1C2:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZayVok1C2:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend for the color and shape scales. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZayVok1C2:8",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Icon Waffle Plot",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZayVok1C2:9",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZayVok1C2:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "To define the number of columns and rows of the waffle grid, specify min and max grid indexes as the domains of the X- and Y-scales. Set a categorical attribute for the color scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehZayVok1C2:11",
+          "x": 240,
+          "y": 297,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "shapeScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "dataName": {
+              "type": "VALUE",
+              "value": "gridTable"
+            }
+          }
+        },
+        {
+          "id": "ehZayVok1C2:12",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Define a custom shape scale using the SVG icon as range. Define the scale on the gridTable dataName. This gridTable was created by the Plot Data node. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehZcz9sxIE8:0",
+          "x": 260,
+          "y": 237,
+          "name": "Load Icon 1",
+          "fn": "core/g/Load Icon",
+          "values": {
+            "style": {
+              "type": "VALUE",
+              "value": "solid"
+            },
+            "solid": {
+              "type": "VALUE",
+              "value": "show"
+            }
+          }
+        },
+        {
+          "id": "ehZcz9sxIE8:1",
+          "type": "STICKY",
+          "x": 400,
+          "y": 240,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Load SVG icon using the Load Icon (from boxicons.com) or Import SVG (from file) node. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehZcz9sxIE8:2",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 360,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Waffle plot by default uses a 'rect' type mark. Replace the mark but keep the same style. Set mark type to 'symbol' and dataName to 'gridTable'. Set a fixed size. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehZcz9sxIE8:5",
+          "x": 240,
+          "y": 357,
+          "name": "Set Mark 1",
+          "fn": "core/plot/Set Mark",
+          "values": {
+            "dataName": {
+              "type": "VALUE",
+              "value": "gridTable"
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "mode": {
+              "type": "VALUE",
+              "value": "truncate_reuse"
+            }
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZayVok1C2:3",
+          "outPort": "plotSpecOut",
+          "inNode": "ehZayVok1C2:2",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZayVok1C2:4",
+          "outPort": "out",
+          "inNode": "ehZayVok1C2:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZayVok1C2:1",
+          "outPort": "plotSpecOut",
+          "inNode": "ehZayVok1C2:11",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZcz9sxIE8:0",
+          "outPort": "out",
+          "inNode": "ehZayVok1C2:11",
+          "inPort": "shapeRange"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZayVok1C2:11",
+          "outPort": "plotSpecOut",
+          "inNode": "ehZcz9sxIE8:5",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehZcz9sxIE8:5",
+          "outPort": "plotSpecOut",
+          "inNode": "ehZayVok1C2:3",
+          "inPort": "plotSpecIn"
+        }
+      ],
+      "renderedNode": "ehZayVok1C2:2",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "sections": []
+    }
+  ],
+  "id": "waffle",
+  "formatVersion": 4,
+  "__gallery": {}
+}

@@ -1,0 +1,104 @@
+{
+    "title": "g0counter",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "stateSave1",
+            "nodes": [
+                {
+                    "name": "number1",
+                    "x": 45,
+                    "y": 85,
+                    "fn": "g.number",
+                    "values": {
+                        "v": 0
+                    }
+                },
+                {
+                    "name": "stateLoad1",
+                    "x": 45,
+                    "y": 205,
+                    "fn": "g.stateLoad",
+                    "values": {
+                        "key": "myNumber"
+                    }
+                },
+                {
+                    "name": "add1",
+                    "x": 45,
+                    "y": 305,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 1
+                    }
+                },
+                {
+                    "name": "stateSave1",
+                    "x": 45,
+                    "y": 425,
+                    "fn": "g.stateSave",
+                    "values": {
+                        "key": "myNumber"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "number1",
+                    "input": "stateLoad1",
+                    "parameter": "initial"
+                },
+                {
+                    "output": "stateLoad1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "add1",
+                    "input": "stateSave1",
+                    "parameter": "state"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stateful": false,
+            "stickies": [
+                {
+                    "x": 35,
+                    "y": 45,
+                    "width": 245,
+                    "height": 85,
+                    "text": "The initial value. This is used for the first frame of the animation."
+                },
+                {
+                    "x": 35,
+                    "y": 145,
+                    "width": 245,
+                    "height": 105,
+                    "text": "Load the frame from the global context. For the first frame, stateLoad will take the initial input value and use that."
+                },
+                {
+                    "x": 35,
+                    "y": 265,
+                    "width": 245,
+                    "height": 85,
+                    "text": "Do something with the state. In this case, add 1 to the input number."
+                },
+                {
+                    "x": 35,
+                    "y": 365,
+                    "width": 245,
+                    "height": 105,
+                    "text": "Save the state back into the global context. Make sure to use the same state key as in stateLoad!"
+                }
+            ]
+        }
+    ],
+    "id": "g0counter"
+}

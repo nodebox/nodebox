@@ -1,0 +1,283 @@
+{
+    "title": "f6simplenoise",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "toxiclibs.min.js": "6aef4f53a01aa56540bdcb07835bbad7b250b817"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "colorize2",
+            "nodes": [
+                {
+                    "name": "noiser1",
+                    "x": 187,
+                    "y": 198,
+                    "fn": "f6simplenoise.noise",
+                    "values": {
+                        "p": {
+                            "x": 3,
+                            "y": -41
+                        }
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 133,
+                    "y": 85,
+                    "fn": "g.grid",
+                    "values": {
+                        "rows": 75,
+                        "columns": 75,
+                        "width": 400,
+                        "height": 400,
+                        "columnWidth": 7,
+                        "rowHeight": 7
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 133,
+                    "y": 513,
+                    "fn": "g.colorize"
+                },
+                {
+                    "name": "rgbColor1",
+                    "x": 187,
+                    "y": 336,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "green": 0
+                    }
+                },
+                {
+                    "name": "add2",
+                    "x": 187,
+                    "y": 263,
+                    "fn": "g.add",
+                    "values": {
+                        "b": 0.5
+                    }
+                },
+                {
+                    "name": "range1",
+                    "x": 321,
+                    "y": 84,
+                    "fn": "g.range",
+                    "values": {
+                        "max": 0.125,
+                        "step": 0.001
+                    }
+                },
+                {
+                    "name": "slice1",
+                    "x": 321,
+                    "y": 128,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 1,
+                        "startIndex": 9
+                    }
+                },
+                {
+                    "name": "ellipse2",
+                    "x": 133,
+                    "y": 433,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 7,
+                        "height": 7
+                    }
+                },
+                {
+                    "name": "translate1",
+                    "x": 54,
+                    "y": 222,
+                    "fn": "g.translate"
+                },
+                {
+                    "name": "frame1",
+                    "x": 23,
+                    "y": 72,
+                    "fn": "g.frame"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 23,
+                    "y": 171,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "multiply2",
+                    "x": 23,
+                    "y": 124,
+                    "fn": "g.multiply",
+                    "values": {
+                        "b": 15
+                    }
+                },
+                {
+                    "name": "switch1",
+                    "x": 167,
+                    "y": 392,
+                    "fn": "g.switch",
+                    "values": {
+                        "index": 1
+                    }
+                },
+                {
+                    "name": "rgbColor2",
+                    "x": 408,
+                    "y": 338,
+                    "fn": "g.rgbColor",
+                    "values": {
+                        "green": 120,
+                        "red": 30
+                    }
+                },
+                {
+                    "name": "hslColor1",
+                    "x": 299,
+                    "y": 338,
+                    "fn": "g.hslColor",
+                    "values": {
+                        "lightness": 0.5
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "add2",
+                    "input": "rgbColor1",
+                    "parameter": "red"
+                },
+                {
+                    "output": "range1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "noiser1",
+                    "parameter": "scale"
+                },
+                {
+                    "output": "grid1",
+                    "input": "ellipse2",
+                    "parameter": "position"
+                },
+                {
+                    "output": "ellipse2",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "grid1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "translate1",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate1",
+                    "input": "noiser1",
+                    "parameter": "p"
+                },
+                {
+                    "output": "frame1",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "switch1",
+                    "input": "colorize2",
+                    "parameter": "fill"
+                },
+                {
+                    "output": "rgbColor1",
+                    "input": "switch1",
+                    "parameter": "l1"
+                },
+                {
+                    "output": "rgbColor2",
+                    "input": "switch1",
+                    "parameter": "l3"
+                },
+                {
+                    "output": "add2",
+                    "input": "hslColor1",
+                    "parameter": "hue"
+                },
+                {
+                    "output": "add2",
+                    "input": "rgbColor2",
+                    "parameter": "blue"
+                },
+                {
+                    "output": "hslColor1",
+                    "input": "switch1",
+                    "parameter": "l2"
+                },
+                {
+                    "output": "noiser1",
+                    "input": "add2",
+                    "parameter": "a"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 324,
+                    "y": 171,
+                    "width": 129,
+                    "height": 101,
+                    "text": "Change the startIndex of slice1 to zoom through the noisefield.          Press Play for moving through it.     Change index of switch1 for a different visual"
+                }
+            ]
+        },
+        {
+            "type": "code",
+            "name": "noise",
+            "source": "/*\nThis example uses the js port by Kyle Phillips based on the original code by Karsten Schmidt\nsee https://github.com/hapticdata/toxiclibsjs/ for toxiclibs.js code\n*/\n\nf6simplenoise.noise = function (p, scale, offset) {\n    var m = toxi.math.noise.simplexNoise.noise(p.x * scale + offset, p.y * scale + offset);\n    return m;\n};",
+            "parameters": [
+                {
+                    "name": "p",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "offset",
+                    "type": "float",
+                    "value": 100
+                }
+            ]
+        }
+    ],
+    "id": "f6simplenoise"
+}

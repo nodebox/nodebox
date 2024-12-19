@@ -1,0 +1,1067 @@
+{
+    "title": "c6guys",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "dude",
+            "type": "network",
+            "renderedNode": "translate3",
+            "nodes": [
+                {
+                    "name": "makePoint1",
+                    "x": -37,
+                    "y": 168,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "negate1",
+                    "x": -21,
+                    "y": 68,
+                    "fn": "g.negate",
+                    "values": {}
+                },
+                {
+                    "name": "combine1",
+                    "x": -37,
+                    "y": 122,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "first1",
+                    "x": -81,
+                    "y": 214,
+                    "fn": "g.first",
+                    "values": {}
+                },
+                {
+                    "name": "last1",
+                    "x": 26,
+                    "y": 212,
+                    "fn": "g.last",
+                    "values": {}
+                },
+                {
+                    "name": "curve1",
+                    "x": -20,
+                    "y": 342,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": 253
+                    }
+                },
+                {
+                    "name": "resampleByLength1",
+                    "x": -94,
+                    "y": 418,
+                    "fn": "g.resampleByLength",
+                    "values": {
+                        "points": 2
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 681,
+                    "y": 419,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": -187,
+                    "y": 561,
+                    "fn": "g.slice",
+                    "values": {
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "divide1",
+                    "x": 805,
+                    "y": 467,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 3
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": -220,
+                    "y": 683,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "line1",
+                    "x": -94,
+                    "y": 657,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "combine2",
+                    "x": 213,
+                    "y": 877,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "translate1",
+                    "x": -58,
+                    "y": 778,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": -5,
+                            "y": 15
+                        }
+                    }
+                },
+                {
+                    "name": "slice2",
+                    "x": -56,
+                    "y": 728,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 5
+                    }
+                },
+                {
+                    "name": "makePoint2",
+                    "x": 86,
+                    "y": 657,
+                    "fn": "g.makePoint",
+                    "values": {
+                        "x": -20
+                    }
+                },
+                {
+                    "name": "ellipse1",
+                    "x": 640,
+                    "y": 69,
+                    "fn": "g.ellipse",
+                    "values": {
+                        "width": 5,
+                        "height": 10
+                    }
+                },
+                {
+                    "name": "subtract2",
+                    "x": 96,
+                    "y": 295,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 50
+                    }
+                },
+                {
+                    "name": "translate2",
+                    "x": 251,
+                    "y": 821,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "copy1",
+                    "x": 621,
+                    "y": 189,
+                    "fn": "g.copy",
+                    "values": {
+                        "copies": 2,
+                        "scale": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "rotate": 0,
+                        "translate": {
+                            "x": 15,
+                            "y": 0
+                        }
+                    }
+                },
+                {
+                    "name": "align1",
+                    "x": 627,
+                    "y": 118,
+                    "fn": "g.align",
+                    "values": {
+                        "hAlign": "right",
+                        "position": {
+                            "x": -5,
+                            "y": 0
+                        },
+                        "vAlign": "center"
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 230,
+                    "y": 945,
+                    "fn": "g.group",
+                    "values": {}
+                },
+                {
+                    "name": "translate3",
+                    "x": 228,
+                    "y": 1065,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 180,
+                    "y": 783,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(255,255,255,.95)",
+                        "stroke": "black",
+                        "strokeWidth": 7
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": -38,
+                    "y": 834,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 4
+                    }
+                },
+                {
+                    "name": "divide3",
+                    "x": 802,
+                    "y": 541,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 1.6
+                    }
+                },
+                {
+                    "name": "ceil1",
+                    "x": 811,
+                    "y": 577,
+                    "fn": "g.ceil",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint3",
+                    "x": 482,
+                    "y": 776,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "curve2",
+                    "x": 471,
+                    "y": 687,
+                    "fn": "g.curve",
+                    "values": {
+                        "distance": -22,
+                        "point1": {
+                            "x": -50,
+                            "y": 0
+                        },
+                        "point2": {
+                            "x": 50,
+                            "y": 0
+                        },
+                        "t": 49
+                    }
+                },
+                {
+                    "name": "translate4",
+                    "x": 425,
+                    "y": 877,
+                    "fn": "g.translate",
+                    "values": {}
+                },
+                {
+                    "name": "colorize3",
+                    "x": 435,
+                    "y": 924,
+                    "fn": "g.colorize",
+                    "values": {
+                        "fill": "rgba(0,0,0,0)",
+                        "strokeWidth": 4,
+                        "stroke": "black"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": 423,
+                    "y": 288,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "bounds.width"
+                    }
+                },
+                {
+                    "name": "divide5",
+                    "x": 423,
+                    "y": 333,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 6
+                    }
+                },
+                {
+                    "name": "negate4",
+                    "x": 484,
+                    "y": 420,
+                    "fn": "g.negate",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint4",
+                    "x": 602,
+                    "y": 305,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint5",
+                    "x": 469,
+                    "y": 477,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "toPoints1",
+                    "x": -203,
+                    "y": 483,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": 267.5877876145499,
+                    "y": 229.46806902360504,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "y"
+                    }
+                },
+                {
+                    "name": "first2",
+                    "x": 267,
+                    "y": 291,
+                    "fn": "g.first"
+                },
+                {
+                    "name": "lookup3",
+                    "x": 230,
+                    "y": 365,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 346.22003550153755,
+                    "y": 375.0213789420716,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "subtract4",
+                    "x": 273,
+                    "y": 488,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": -25
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 322.79766379051995,
+                    "y": 572.4385119349342,
+                    "fn": "g.subtract",
+                    "values": {
+                        "b": -36
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "output": "negate1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "first1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "last1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first1",
+                    "input": "curve1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "last1",
+                    "input": "curve1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "curve1",
+                    "input": "resampleByLength1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "slice1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "slice1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "shift1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "slice1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "line1",
+                    "input": "slice2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice2",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "makePoint2",
+                    "input": "translate2",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "translate2",
+                    "input": "combine2",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "copy1",
+                    "input": "translate2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "ellipse1",
+                    "input": "align1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align1",
+                    "input": "copy1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "combine2",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "inlet": "position",
+                    "input": "translate3",
+                    "parameter": "translate"
+                },
+                {
+                    "inlet": "quaddist",
+                    "input": "curve1",
+                    "parameter": "distance"
+                },
+                {
+                    "output": "curve1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine2",
+                    "parameter": "list1"
+                },
+                {
+                    "output": "translate1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine2",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "divide1",
+                    "input": "divide3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide3",
+                    "input": "ceil1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "ceil1",
+                    "input": "slice2",
+                    "parameter": "size"
+                },
+                {
+                    "output": "curve2",
+                    "input": "translate4",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "translate4",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "combine2",
+                    "parameter": "list6"
+                },
+                {
+                    "output": "curve1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "divide5",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide5",
+                    "input": "negate4",
+                    "parameter": "v"
+                },
+                {
+                    "output": "divide5",
+                    "input": "makePoint4",
+                    "parameter": "x"
+                },
+                {
+                    "output": "negate4",
+                    "input": "makePoint5",
+                    "parameter": "x"
+                },
+                {
+                    "output": "makePoint5",
+                    "input": "curve2",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "makePoint4",
+                    "input": "curve2",
+                    "parameter": "point2"
+                },
+                {
+                    "inlet": "size",
+                    "input": "negate1",
+                    "parameter": "v"
+                },
+                {
+                    "inlet": "size",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "inlet": "leftright",
+                    "input": "subtract2",
+                    "parameter": "b"
+                },
+                {
+                    "inlet": "leftright",
+                    "input": "curve2",
+                    "parameter": "t"
+                },
+                {
+                    "inlet": "leftright",
+                    "input": "curve1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "resampleByLength1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "first2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "first2",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "first2",
+                    "input": "lookup4",
+                    "parameter": "table"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "makePoint2",
+                    "parameter": "x"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "subtract4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract4",
+                    "input": "makePoint2",
+                    "parameter": "y"
+                },
+                {
+                    "output": "subtract4",
+                    "input": "subtract1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "makePoint3",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint3",
+                    "input": "translate4",
+                    "parameter": "translate"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "makePoint3",
+                    "parameter": "x"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate3",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "size",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "leftright",
+                    "type": "float",
+                    "value": 1
+                },
+                {
+                    "name": "position",
+                    "type": "point",
+                    "value": {
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                {
+                    "name": "quaddist",
+                    "type": "float",
+                    "value": 1
+                }
+            ],
+            "returnsList": true
+        },
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "translate1",
+            "nodes": [
+                {
+                    "name": "dude1",
+                    "x": 220,
+                    "y": 422,
+                    "fn": "c6guys.dude",
+                    "values": {
+                        "size": 120,
+                        "quaddist": 246
+                    }
+                },
+                {
+                    "name": "grid1",
+                    "x": 77,
+                    "y": 43,
+                    "fn": "g.grid",
+                    "values": {
+                        "columns": 40,
+                        "rows": 1,
+                        "width": 756,
+                        "position": {
+                            "x": 28,
+                            "y": 132
+                        },
+                        "columnWidth": 20
+                    }
+                },
+                {
+                    "name": "pick1",
+                    "x": 77,
+                    "y": 108,
+                    "fn": "g.pick",
+                    "values": {
+                        "amount": 20,
+                        "seed": 2
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 209,
+                    "y": 159,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "randomNumbers2",
+                    "x": 199,
+                    "y": 276,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "start": 50,
+                        "end": 150,
+                        "seed": 5,
+                        "min": 50,
+                        "max": 140
+                    }
+                },
+                {
+                    "name": "randomNumbers3",
+                    "x": 421,
+                    "y": 324,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "end": 350,
+                        "seed": 41,
+                        "start": 100,
+                        "max": 701,
+                        "min": 100
+                    }
+                },
+                {
+                    "name": "line1",
+                    "x": 72,
+                    "y": 283,
+                    "fn": "g.line",
+                    "values": {
+                        "point1": {
+                            "x": -500,
+                            "y": 135
+                        },
+                        "point2": {
+                            "x": 540,
+                            "y": 135
+                        }
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 137,
+                    "y": 562,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 72,
+                    "y": 330,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 30
+                    }
+                },
+                {
+                    "name": "dude2",
+                    "x": -120.55437216802757,
+                    "y": 512.2095561066033,
+                    "fn": "c6guys.dude",
+                    "values": {
+                        "size": 158,
+                        "quaddist": 400,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "leftright": 0.4
+                    }
+                },
+                {
+                    "name": "dude3",
+                    "x": -121,
+                    "y": 569,
+                    "fn": "c6guys.dude",
+                    "values": {
+                        "size": 62,
+                        "quaddist": 566,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "leftright": -0.3
+                    }
+                },
+                {
+                    "name": "randomNumbers1",
+                    "x": 312,
+                    "y": 321,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "end": 350,
+                        "seed": 38,
+                        "start": 100,
+                        "max": 1.25,
+                        "min": -0.25
+                    }
+                },
+                {
+                    "name": "group1",
+                    "x": 133,
+                    "y": 609,
+                    "fn": "g.group"
+                },
+                {
+                    "name": "translate1",
+                    "x": 162.18711491497066,
+                    "y": 694.5694501423832,
+                    "fn": "g.translate",
+                    "values": {
+                        "translate": {
+                            "x": -25,
+                            "y": 50
+                        }
+                    }
+                },
+                {
+                    "name": "mix1",
+                    "x": 317.1887313921499,
+                    "y": 549.0430596386644,
+                    "fn": "g.mix",
+                    "values": {
+                        "t": 0.13
+                    }
+                },
+                {
+                    "name": "shift1",
+                    "x": 425,
+                    "y": 441,
+                    "fn": "g.shift",
+                    "values": {}
+                },
+                {
+                    "name": "elapsedSeconds1",
+                    "x": 579,
+                    "y": 312,
+                    "fn": "g.elapsedSeconds"
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 553,
+                    "y": 430,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "period": 2,
+                        "min": 0
+                    }
+                },
+                {
+                    "name": "randomNumbers4",
+                    "x": 491,
+                    "y": 175,
+                    "fn": "g.randomNumbers",
+                    "values": {
+                        "min": 1,
+                        "max": 4,
+                        "seed": 41
+                    }
+                },
+                {
+                    "name": "integer1",
+                    "x": 491,
+                    "y": 231,
+                    "fn": "g.integer"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "count1",
+                    "input": "randomNumbers3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "pick1",
+                    "input": "dude1",
+                    "parameter": "position"
+                },
+                {
+                    "output": "pick1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "grid1",
+                    "input": "pick1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers1",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "combine1",
+                    "parameter": "list3"
+                },
+                {
+                    "output": "dude1",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "combine1",
+                    "input": "group1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "group1",
+                    "input": "translate1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "shift1",
+                    "input": "mix1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "randomNumbers2",
+                    "input": "dude1",
+                    "parameter": "size"
+                },
+                {
+                    "output": "elapsedSeconds1",
+                    "input": "sineWave1",
+                    "parameter": "offset"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "mix1",
+                    "parameter": "t"
+                },
+                {
+                    "output": "count1",
+                    "input": "randomNumbers4",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "randomNumbers4",
+                    "input": "integer1",
+                    "parameter": "v"
+                },
+                {
+                    "output": "integer1",
+                    "input": "sineWave1",
+                    "parameter": "period"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "shift1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "randomNumbers1",
+                    "input": "mix1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "randomNumbers3",
+                    "input": "dude1",
+                    "parameter": "quaddist"
+                },
+                {
+                    "output": "mix1",
+                    "input": "dude1",
+                    "parameter": "leftright"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "returnType": "point"
+        },
+        {
+            "type": "code",
+            "name": "topoints",
+            "source": "c6guys.topoints = function (shape) {\n   var points = [];\n  if(shape.segments){\n   for (var i = 0; i < shape.segments.length; i += 1) {\n     var seg = shape.segments[i];\n     if (seg.point) {\n         points.push(new g.Point(seg.point.x, seg.point.y));\n     }\n   }\n}\n   return points;\n};",
+            "example": "c6guys.topoints(42)",
+            "parameters": [
+                {
+                    "name": "v",
+                    "type": "float",
+                    "value": 42
+                }
+            ],
+            "returnType": "point",
+            "returnsList": true
+        }
+    ],
+    "id": "c6guys"
+}

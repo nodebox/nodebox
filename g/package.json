@@ -1,0 +1,42 @@
+{
+  "name": "@ndbx/g",
+  "version": "0.1.29",
+  "type": "module",
+  "description": "NodeBox Graphics Package",
+  "main": "dist/g.esm.js",
+  "module": "dist/g.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "vitest run",
+    "test-dev": "vitest --ui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@rollup/plugin-babel": "6.0.4",
+    "@rollup/plugin-commonjs": "28.0.0",
+    "@rollup/plugin-node-resolve": "15.3.0",
+    "@rollup/plugin-typescript": "^12.1.0",
+    "@types/jsdom": "^21.1.7",
+    "@vitest/ui": "^2.1.2",
+    "jsdom": "^25.0.1",
+    "rollup": "^4.24.0",
+    "tslib": "^2.7.0",
+    "typescript": "^5.6.2",
+    "vitest": "^2.1.2"
+  },
+  "dependencies": {
+    "d3-color": "^3.1.0"
+  },
+  "overrides": {
+    "vite": {
+      "rollup": "npm:@rollup/wasm-node"
+    }
+  }
+}

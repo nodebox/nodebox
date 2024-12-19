@@ -1,0 +1,495 @@
+{
+    "title": "b55morph",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev",
+        "demo/supr": "dev"
+    },
+    "assets": {},
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "morphfx1",
+            "nodes": [
+                {
+                    "name": "morphfx1",
+                    "x": 54,
+                    "y": 336,
+                    "fn": "b55morph.morphfx",
+                    "values": {
+                        "amountPoints": 500,
+                        "orderBy": "angle",
+                        "percentage": 29
+                    }
+                },
+                {
+                    "name": "shape1",
+                    "x": 170,
+                    "y": 129,
+                    "fn": "supr.shape",
+                    "values": {
+                        "n1": 266,
+                        "position": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "n2": 16,
+                        "n3": -16,
+                        "m": 6
+                    }
+                },
+                {
+                    "name": "rect1",
+                    "x": 54,
+                    "y": 128,
+                    "fn": "g.rect",
+                    "values": {
+                        "height": 300,
+                        "roundness": {
+                            "x": 20,
+                            "y": 20
+                        },
+                        "width": 348
+                    }
+                },
+                {
+                    "name": "sineWave1",
+                    "x": 141,
+                    "y": 260,
+                    "fn": "g.sineWave",
+                    "values": {
+                        "period": 100,
+                        "min": 0,
+                        "max": 100
+                    }
+                },
+                {
+                    "name": "frame1",
+                    "x": 177,
+                    "y": 198,
+                    "fn": "g.frame"
+                }
+            ],
+            "connections": [
+                {
+                    "output": "rect1",
+                    "input": "morphfx1",
+                    "parameter": "shape1"
+                },
+                {
+                    "output": "shape1",
+                    "input": "morphfx1",
+                    "parameter": "shape2"
+                },
+                {
+                    "output": "sineWave1",
+                    "input": "morphfx1",
+                    "parameter": "percentage"
+                },
+                {
+                    "output": "frame1",
+                    "input": "sineWave1",
+                    "parameter": "v"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true,
+            "stickies": [
+                {
+                    "x": 310,
+                    "y": 16,
+                    "width": 77,
+                    "height": 40,
+                    "text": "Press play"
+                }
+            ]
+        },
+        {
+            "name": "morphfx",
+            "type": "network",
+            "renderedNode": "connectPoints1",
+            "nodes": [
+                {
+                    "name": "toPoints1",
+                    "x": -53,
+                    "y": 259,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "toPoints2",
+                    "x": 70,
+                    "y": 262,
+                    "fn": "g.toPoints"
+                },
+                {
+                    "name": "centroid1",
+                    "x": -163,
+                    "y": 191,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "centroid2",
+                    "x": 187,
+                    "y": 197,
+                    "fn": "g.centerPoint"
+                },
+                {
+                    "name": "lookup1",
+                    "x": -181,
+                    "y": 415,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup2",
+                    "x": -44,
+                    "y": 416,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "lookup3",
+                    "x": 83,
+                    "y": 417,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "x"
+                    }
+                },
+                {
+                    "name": "lookup4",
+                    "x": 209,
+                    "y": 416,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "y"
+                    }
+                },
+                {
+                    "name": "multiply1",
+                    "x": -181,
+                    "y": 494,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "divide1",
+                    "x": -262,
+                    "y": 272,
+                    "fn": "g.divide",
+                    "values": {
+                        "b": 100
+                    }
+                },
+                {
+                    "name": "subtract1",
+                    "x": 195,
+                    "y": 327,
+                    "fn": "g.subtract",
+                    "values": {
+                        "a": 1
+                    }
+                },
+                {
+                    "name": "multiply2",
+                    "x": -44,
+                    "y": 496,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "multiply3",
+                    "x": 83,
+                    "y": 497,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "multiply4",
+                    "x": 211,
+                    "y": 497,
+                    "fn": "g.multiply"
+                },
+                {
+                    "name": "add1",
+                    "x": -85,
+                    "y": 616,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "add2",
+                    "x": 57,
+                    "y": 616,
+                    "fn": "g.add"
+                },
+                {
+                    "name": "makePoint1",
+                    "x": -46,
+                    "y": 701,
+                    "fn": "g.makePoint"
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": -21,
+                    "y": 808,
+                    "fn": "g.connectPoints",
+                    "values": {
+                        "closed": true
+                    }
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": -54,
+                    "y": 190,
+                    "fn": "g.resampleByAmount"
+                },
+                {
+                    "name": "resampleByAmount2",
+                    "x": 66,
+                    "y": 188,
+                    "fn": "g.resampleByAmount"
+                },
+                {
+                    "name": "shapeSort1",
+                    "x": -86,
+                    "y": 331,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                },
+                {
+                    "name": "shapeSort2",
+                    "x": 76,
+                    "y": 328,
+                    "fn": "g.shapeSort",
+                    "values": {
+                        "orderBy": "angle"
+                    }
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "shape1",
+                    "input": "centroid1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "shape2",
+                    "input": "centroid2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "multiply1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "subtract1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup2",
+                    "input": "multiply2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "divide1",
+                    "input": "multiply2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup3",
+                    "input": "multiply3",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "multiply3",
+                    "parameter": "b"
+                },
+                {
+                    "output": "lookup4",
+                    "input": "multiply4",
+                    "parameter": "a"
+                },
+                {
+                    "output": "subtract1",
+                    "input": "multiply4",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply1",
+                    "input": "add1",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply3",
+                    "input": "add1",
+                    "parameter": "b"
+                },
+                {
+                    "output": "multiply2",
+                    "input": "add2",
+                    "parameter": "a"
+                },
+                {
+                    "output": "multiply4",
+                    "input": "add2",
+                    "parameter": "b"
+                },
+                {
+                    "output": "add1",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "output": "add2",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "inlet": "percentage",
+                    "input": "divide1",
+                    "parameter": "a"
+                },
+                {
+                    "inlet": "shape1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "toPoints1",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "amountPoints",
+                    "input": "resampleByAmount1",
+                    "parameter": "amount"
+                },
+                {
+                    "inlet": "shape2",
+                    "input": "resampleByAmount2",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "amountPoints",
+                    "input": "resampleByAmount2",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "resampleByAmount2",
+                    "input": "toPoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "toPoints1",
+                    "input": "shapeSort1",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "centroid1",
+                    "input": "shapeSort1",
+                    "parameter": "point"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "shapeSort1",
+                    "input": "lookup2",
+                    "parameter": "table"
+                },
+                {
+                    "output": "centroid2",
+                    "input": "shapeSort2",
+                    "parameter": "point"
+                },
+                {
+                    "output": "toPoints2",
+                    "input": "shapeSort2",
+                    "parameter": "shapes"
+                },
+                {
+                    "output": "shapeSort2",
+                    "input": "lookup3",
+                    "parameter": "table"
+                },
+                {
+                    "output": "shapeSort2",
+                    "input": "lookup4",
+                    "parameter": "table"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape1",
+                    "type": "shape",
+                    "value": 1
+                },
+                {
+                    "name": "shape2",
+                    "type": "shape",
+                    "value": 1
+                },
+                {
+                    "name": "percentage",
+                    "type": "float",
+                    "value": 100,
+                    "minimum": 0,
+                    "maximum": 100
+                },
+                {
+                    "name": "amountPoints",
+                    "type": "float",
+                    "value": 598
+                },
+                {
+                    "name": "orderBy",
+                    "type": "string",
+                    "value": 1,
+                    "choices": [
+                        [
+                            "x",
+                            "X"
+                        ],
+                        [
+                            "y",
+                            "Y"
+                        ],
+                        [
+                            "angle",
+                            "Angle"
+                        ],
+                        [
+                            "distance",
+                            "Distance"
+                        ],
+                        [
+                            "none",
+                            "noChange"
+                        ]
+                    ]
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "b55morph"
+}

@@ -1,0 +1,326 @@
+(function () {
+    'use strict';
+
+    var verletSimple = {};
+
+    //// Graphics ///////////////////////////////////////////////////////////////
+
+    var Vec2 = verletSimple.Vec2 = function (x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+    };
+
+    Vec2.prototype.add = function (v) {
+        return new Vec2(this.x + v.x, this.y + v.y);
+    };
+
+    Vec2.prototype.sub = function (v) {
+        return new Vec2(this.x - v.x, this.y - v.y);
+    };
+
+    Vec2.prototype.mul = function (v) {
+        return new Vec2(this.x * v.x, this.y * v.y);
+    };
+
+    Vec2.prototype.div = function (v) {
+        return new Vec2(this.x / v.x, this.y / v.y);
+    };
+
+    Vec2.prototype.scale = function (coef) {
+        return new Vec2(this.x * coef, this.y * coef);
+    };
+
+    Vec2.prototype.mutableSet = function (v) {
+        this.x = v.x;
+        this.y = v.y;
+        return this;
+    };
+
+    Vec2.prototype.mutableAdd = function (v) {
+        this.x += v.x;
+        this.y += v.y;
+        return this;
+    };
+
+    Vec2.prototype.mutableSub = function (v) {
+        this.x -= v.x;
+        this.y -= v.y;
+        return this;
+    };
+
+    Vec2.prototype.mutableMul = function (v) {
+        this.x *= v.x;
+        this.y *= v.y;
+        return this;
+    };
+
+    Vec2.prototype.mutableDiv = function (v) {
+        this.x /= v.x;
+        this.y /= v.y;
+        return this;
+    };
+
+    Vec2.prototype.mutableScale = function (coef) {
+        this.x *= coef;
+        this.y *= coef;
+        return this;
+    };
+
+    Vec2.prototype.equals = function (v) {
+        return this.x == v.x && this.y == v.y;
+    };
+
+    Vec2.prototype.epsilonEquals = function (v, epsilon) {
+        return Math.abs(this.x - v.x) <= epsilon && Math.abs(this.y - v.y) <= epsilon;
+    };
+
+    Vec2.prototype.length = function (v) {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    };
+
+    Vec2.prototype.length2 = function (v) {
+        return this.x * this.x + this.y * this.y;
+    };
+
+    Vec2.prototype.dist = function (v) {
+        return Math.sqrt(this.dist2(v));
+    };
+
+    Vec2.prototype.dist2 = function (v) {
+        var x = v.x - this.x;
+        var y = v.y - this.y;
+        return x * x + y * y;
+    };
+
+    Vec2.prototype.normal = function () {
+        var m = Math.sqrt(this.x * this.x + this.y * this.y);
+        return new Vec2(this.x / m, this.y / m);
+    };
+
+    Vec2.prototype.dot = function (v) {
+        return this.x * v.x + this.y * v.y;
+    };
+
+    Vec2.prototype.angle = function (v) {
+        return Math.atan2(this.x * v.y - this.y * v.x, this.x * v.x + this.y * v.y);
+    };
+
+    Vec2.prototype.angle2 = function (vLeft, vRight) {
+        return vLeft.sub(this).angle(vRight.sub(this));
+    };
+
+    Vec2.prototype.rotate = function (origin, theta) {
+        var x = this.x - origin.x;
+        var y = this.y - origin.y;
+        return new Vec2(x * Math.cos(theta) - y * Math.sin(theta) + origin.x, x * Math.sin(theta) + y * Math.cos(theta) + origin.y);
+    };
+
+    Vec2.prototype.toString = function () {
+        return "(" + this.x + ", " + this.y + ")";
+    };
+
+
+    var Particle = verletSimple.Particle = function (pos) {
+        this.pos = (new Vec2()).mutableSet(pos);
+        this.lastPos = (new Vec2()).mutableSet(pos);
+    };
+
+
+    var VerletJS = verletSimple.VerletJS = function (width, height) {
+        this.width = width;
+        this.height = height;
+        this.mouse = new Vec2(0, 0);
+        this.mouseDown = false;
+        this.draggedEntity = null;
+        this.selectionRadius = 20;
+        this.highlightColor = "#4f545c";
+
+        this.bounds = function (particle) {
+            if (particle.pos.y > this.height - 1)
+                particle.pos.y = this.height - 1;
+
+            if (particle.pos.x < 0)
+                particle.pos.x = 0;
+
+            if (particle.pos.x > this.width - 1)
+                particle.pos.x = this.width - 1;
+        };
+
+        var _this = this;
+
+
+        // simulation params
+        this.gravity = new Vec2(0, 0.2);
+        this.friction = 0.99;
+        this.groundFriction = 1.0;
+
+        // holds composite entities
+        this.composites = [];
+    };
+
+    VerletJS.prototype.Composite = Composite;
+
+    var Composite = verletSimple.Composite = function () {
+        this.particles = [];
+        this.constraints = [];
+
+        this.drawParticles = null;
+        this.drawConstraints = null;
+    };
+
+    Composite.prototype.pin = function (index, pos) {
+        pos = pos || this.particles[index].pos;
+        var pc = new PinConstraint(this.particles[index], pos);
+        this.constraints.push(pc);
+        return pc;
+    };
+
+    VerletJS.prototype.frame = function (step) {
+        var i, j, c;
+
+        for (c in this.composites) {
+            for (i in this.composites[c].particles) {
+                var particles = this.composites[c].particles;
+
+                // calculate velocity
+                var velocity = particles[i].pos.sub(particles[i].lastPos).scale(this.friction);
+
+                // ground friction
+                if (particles[i].pos.y >= this.height - 1 && velocity.length2() > 0.000001) {
+                    var m = velocity.length();
+                    velocity.x /= m;
+                    velocity.y /= m;
+                    velocity.mutableScale(m * this.groundFriction);
+                }
+
+                // save last good state
+                particles[i].lastPos.mutableSet(particles[i].pos);
+
+                // gravity
+                particles[i].pos.mutableAdd(this.gravity);
+
+                // inertia
+                particles[i].pos.mutableAdd(velocity);
+            }
+        }
+
+        // handle dragging of entities
+        if (this.draggedEntity)
+            this.draggedEntity.pos.mutableSet(this.mouse);
+
+        // relax
+        var stepCoef = 1 / step;
+        for (c in this.composites) {
+            var constraints = this.composites[c].constraints;
+            for (i = 0; i < step; ++i)
+                for (j in constraints)
+                    constraints[j].relax(stepCoef);
+        }
+
+        // bounds checking
+        for (c in this.composites) {
+            var particles2 = this.composites[c].particles;
+            for (i in particles2)
+                this.bounds(particles2[i]);
+        }
+    };
+
+
+    var DistanceConstraint = verletSimple.DistanceConstraint = function (a, b, stiffness, distance /*optional*/ ) {
+        this.a = a;
+        this.b = b;
+        this.distance = typeof distance != "undefined" ? distance : a.pos.sub(b.pos).length();
+        this.stiffness = stiffness;
+    };
+    //verlet.DistanceConstraint = DistanceConstraint;
+
+    DistanceConstraint.prototype.relax = function (stepCoef) {
+        var normal = this.a.pos.sub(this.b.pos);
+        var m = normal.length2();
+        normal.mutableScale(((this.distance * this.distance - m) / m) * this.stiffness * stepCoef);
+        this.a.pos.mutableAdd(normal);
+        this.b.pos.mutableSub(normal);
+    };
+
+
+
+    var PinConstraint = verletSimple.PinConstraint = function (a, pos) {
+        this.a = a;
+        this.pos = (new Vec2()).mutableSet(pos);
+    };
+
+    PinConstraint.prototype.relax = function (stepCoef) {
+        this.a.pos.mutableSet(this.pos);
+    };
+
+
+
+    var AngleConstraint = verletSimple.AngleConstraint = function (a, b, c, stiffness) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.angle = this.b.pos.angle2(this.a.pos, this.c.pos);
+        this.stiffness = stiffness;
+    };
+
+    AngleConstraint.prototype.relax = function (stepCoef) {
+        var angle = this.b.pos.angle2(this.a.pos, this.c.pos);
+        var diff = angle - this.angle;
+
+        if (diff <= -Math.PI)
+            diff += 2 * Math.PI;
+        else if (diff >= Math.PI)
+            diff -= 2 * Math.PI;
+
+        diff *= stepCoef * this.stiffness;
+
+        this.a.pos = this.a.pos.rotate(this.b.pos, diff);
+        this.c.pos = this.c.pos.rotate(this.b.pos, -diff);
+        this.b.pos = this.b.pos.rotate(this.a.pos, diff);
+        this.b.pos = this.b.pos.rotate(this.c.pos, -diff);
+    };
+
+
+    VerletJS.prototype.point = function (pos) {
+        var composite = new this.Composite();
+        composite.particles.push(new Particle(pos));
+        this.composites.push(composite);
+        return composite;
+    };
+
+    VerletJS.prototype.any = function (position, points, spokeStiffness, treadStiffness, joint, tocentr) {
+        var composite = new Composite();
+        var center = new Particle(position);
+        composite.particles.push(center);
+        for (var i = 0; i < points.length; i += 1) {
+            composite.particles.push(new Particle(new Vec2(points[i].x, points[i].y)));
+        }
+
+
+        for (var ii = 1; ii < composite.particles.length; ii += 1) {
+            if (tocentr === true) {
+                composite.constraints.push(new DistanceConstraint(composite.particles[ii], center, spokeStiffness));
+            }
+            for (var b = 0; b < joint.length; b += 1) {
+                var nu = joint[b];
+                //console.log(nu);
+                composite.constraints.push(new DistanceConstraint(composite.particles[ii], composite.particles[(ii + nu) % points.length], treadStiffness));
+
+            }
+        }
+        this.composites.push(composite);
+        return composite;
+
+    };
+
+    //verletSimple.Vec2 = Vec2;
+    //verletSimple.Particle = Particle;
+    //verletSimple.VerletJS = VerletJS;
+    //verletSimple.Composite = Composite;
+    //verletSimple.DistanceConstraint = DistanceConstraint;
+    //verletSimple.AngleConstraint = AngleConstraint;
+    //verletSimple.PinConstraint = PinConstraint;
+    window.verletSimple = verletSimple;
+    //module.exports = verletSimple;
+
+})();

@@ -1,0 +1,422 @@
+{
+    "title": "b10svg",
+    "color": "teal",
+    "dependencies": {
+        "core/g": "dev"
+    },
+    "assets": {
+        "world-map-low-res.svg": "7d85ff3807fbacde701c041f4135369183fdaf81",
+        "mona-lisa.svg": "68c6a3b719bd3ee99a404026503394ac4cb95266"
+    },
+    "functions": [
+        {
+            "name": "main",
+            "type": "network",
+            "renderedNode": "fx1",
+            "nodes": [
+                {
+                    "name": "importsvg1",
+                    "x": 67,
+                    "y": 11,
+                    "fn": "g.import",
+                    "values": {
+                        "svgString": "world-map-low-res.svg",
+                        "file": "mona-lisa.svg"
+                    }
+                },
+                {
+                    "name": "ungroup1",
+                    "x": 67,
+                    "y": 95,
+                    "fn": "g.ungroup",
+                    "values": {}
+                },
+                {
+                    "name": "fx1",
+                    "x": 67,
+                    "y": 350,
+                    "fn": "b10svg.fx",
+                    "values": {
+                        "amount": 60,
+                        "scale": 0.8,
+                        "switch": 1
+                    }
+                },
+                {
+                    "name": "count2",
+                    "x": 214,
+                    "y": 197,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "slice1",
+                    "x": 67,
+                    "y": 277,
+                    "fn": "g.slice",
+                    "values": {
+                        "size": 390,
+                        "startIndex": 0
+                    }
+                },
+                {
+                    "name": "align3",
+                    "x": 67,
+                    "y": 54,
+                    "fn": "g.align",
+                    "values": {}
+                }
+            ],
+            "connections": [
+                {
+                    "output": "ungroup1",
+                    "input": "count2",
+                    "parameter": "l"
+                },
+                {
+                    "output": "ungroup1",
+                    "input": "slice1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "slice1",
+                    "input": "fx1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "importsvg1",
+                    "input": "align3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "align3",
+                    "input": "ungroup1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count2",
+                    "input": "slice1",
+                    "parameter": "size"
+                }
+            ],
+            "parameters": [],
+            "returnsList": true
+        },
+        {
+            "name": "fx",
+            "type": "network",
+            "renderedNode": "combine1",
+            "nodes": [
+                {
+                    "name": "centerPoint1",
+                    "x": 0,
+                    "y": 130,
+                    "fn": "g.centerPoint",
+                    "values": {}
+                },
+                {
+                    "name": "topoints1",
+                    "x": 274,
+                    "y": 206,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "line1",
+                    "x": 88,
+                    "y": 247,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "colorize1",
+                    "x": 88,
+                    "y": 329,
+                    "fn": "g.colorize",
+                    "values": {
+                        "strokeWidth": 0.75
+                    }
+                },
+                {
+                    "name": "combine1",
+                    "x": 150,
+                    "y": 628,
+                    "fn": "g.combine",
+                    "values": {}
+                },
+                {
+                    "name": "connectPoints1",
+                    "x": 264,
+                    "y": 273,
+                    "fn": "g.connectPoints",
+                    "values": {}
+                },
+                {
+                    "name": "lookup1",
+                    "x": 128,
+                    "y": 130,
+                    "fn": "g.lookup",
+                    "values": {
+                        "key": "fill"
+                    }
+                },
+                {
+                    "name": "colorize2",
+                    "x": 263,
+                    "y": 339,
+                    "fn": "g.colorize",
+                    "values": {
+                        "stroke": "black",
+                        "strokeWidth": 0.5,
+                        "fill": "rgba(0,0,0,0)"
+                    }
+                },
+                {
+                    "name": "scale1",
+                    "x": 461,
+                    "y": 209,
+                    "fn": "g.scale",
+                    "values": {
+                        "scale": {
+                            "x": 0.75,
+                            "y": 0.75
+                        }
+                    }
+                },
+                {
+                    "name": "count1",
+                    "x": 463,
+                    "y": 123,
+                    "fn": "g.count",
+                    "values": {}
+                },
+                {
+                    "name": "topoints2",
+                    "x": 459,
+                    "y": 344,
+                    "fn": "g.toPoints",
+                    "values": {}
+                },
+                {
+                    "name": "line2",
+                    "x": 353,
+                    "y": 432,
+                    "fn": "g.line",
+                    "values": {}
+                },
+                {
+                    "name": "colorize3",
+                    "x": 352,
+                    "y": 494,
+                    "fn": "g.colorize",
+                    "values": {
+                        "strokeWidth": 0.5
+                    }
+                },
+                {
+                    "name": "switch1",
+                    "x": 150,
+                    "y": 554,
+                    "fn": "g.switch",
+                    "values": {}
+                },
+                {
+                    "name": "makePoint1",
+                    "x": 596,
+                    "y": 152,
+                    "fn": "g.makePoint",
+                    "values": {}
+                },
+                {
+                    "name": "resampleByAmount1",
+                    "x": 460,
+                    "y": 287,
+                    "fn": "g.resampleByAmount"
+                },
+                {
+                    "name": "resampleByAmount3",
+                    "x": 317,
+                    "y": 76,
+                    "fn": "g.resampleByAmount"
+                }
+            ],
+            "connections": [
+                {
+                    "inlet": "shape",
+                    "input": "centerPoint1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "line1",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "line1",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line1",
+                    "input": "colorize1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "connectPoints1",
+                    "parameter": "points"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "lookup1",
+                    "parameter": "table"
+                },
+                {
+                    "output": "connectPoints1",
+                    "input": "colorize2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize2",
+                    "input": "combine1",
+                    "parameter": "list2"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "colorize1",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "centerPoint1",
+                    "input": "scale1",
+                    "parameter": "origin"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "count1",
+                    "parameter": "l"
+                },
+                {
+                    "output": "topoints1",
+                    "input": "line2",
+                    "parameter": "point1"
+                },
+                {
+                    "output": "topoints2",
+                    "input": "line2",
+                    "parameter": "point2"
+                },
+                {
+                    "output": "line2",
+                    "input": "colorize3",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "lookup1",
+                    "input": "colorize3",
+                    "parameter": "stroke"
+                },
+                {
+                    "output": "colorize1",
+                    "input": "switch1",
+                    "parameter": "l1"
+                },
+                {
+                    "output": "switch1",
+                    "input": "combine1",
+                    "parameter": "list1"
+                },
+                {
+                    "inlet": "switch",
+                    "input": "switch1",
+                    "parameter": "index"
+                },
+                {
+                    "output": "scale1",
+                    "input": "switch1",
+                    "parameter": "l2"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "makePoint1",
+                    "parameter": "x"
+                },
+                {
+                    "inlet": "scale",
+                    "input": "makePoint1",
+                    "parameter": "y"
+                },
+                {
+                    "output": "makePoint1",
+                    "input": "scale1",
+                    "parameter": "scale"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "scale1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "colorize3",
+                    "input": "switch1",
+                    "parameter": "l3"
+                },
+                {
+                    "output": "scale1",
+                    "input": "resampleByAmount1",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "resampleByAmount1",
+                    "input": "topoints2",
+                    "parameter": "shape"
+                },
+                {
+                    "output": "count1",
+                    "input": "resampleByAmount1",
+                    "parameter": "amount"
+                },
+                {
+                    "inlet": "shape",
+                    "input": "resampleByAmount3",
+                    "parameter": "shape"
+                },
+                {
+                    "inlet": "amount",
+                    "input": "resampleByAmount3",
+                    "parameter": "amount"
+                },
+                {
+                    "output": "resampleByAmount3",
+                    "input": "topoints1",
+                    "parameter": "shape"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "shape",
+                    "type": "shape",
+                    "value": "",
+                    "takesList": false
+                },
+                {
+                    "name": "amount",
+                    "type": "float",
+                    "value": 8
+                },
+                {
+                    "name": "switch",
+                    "type": "float",
+                    "value": 0
+                },
+                {
+                    "name": "scale",
+                    "type": "float",
+                    "value": 75
+                }
+            ],
+            "returnsList": true
+        }
+    ],
+    "id": "b10svg"
+}
