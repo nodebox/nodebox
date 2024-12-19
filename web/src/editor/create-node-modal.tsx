@@ -172,20 +172,41 @@ export default function CreateNodeModal() {
 
   function getFilteredItemDetails(): ItemDetail[] {
     const details = getAllItemDetails();
-    const threshold = 0.3;
-    if (searchText.trim().length === 0) {
+    const searchStr = searchText.trim();
+
+    if (searchStr.length === 0) {
       return details;
-    } else {
-      const fuse = new Fuse(details, {
-        keys: ["item.name", "item.description"],
-        includeScore: true,
-        threshold: threshold,
-        ignoreLocation: true,
-        minMatchCharLength: 1,
-      });
-      const result = fuse.search(searchText);
-      return result.filter((r) => r.score !== undefined && r.score <= threshold).map((r) => r.item);
     }
+
+    // First do acronym matching
+    const searchWords = searchStr.toLowerCase().split(/\s+/);
+    const acronymMatches = details.filter((detail) => {
+      const nameWords = detail.item.name.split(/(?=[A-Z])|[\s-_]+/); // Split on camelCase, space, hyphen
+      const firstLetters = nameWords.map((w) => w[0]?.toLowerCase()).join("");
+      return searchWords.every((word) => firstLetters.includes(word));
+    });
+
+    // Then do fuzzy search with Fuse
+    const fuse = new Fuse(details, {
+      keys: ["item.name", "item.description"],
+      includeScore: true,
+      threshold: 0.3,
+      ignoreLocation: true,
+      minMatchCharLength: 1,
+    });
+    const fuseResults = fuse
+      .search(searchStr)
+      .filter((r) => r.score !== undefined && r.score <= 0.3)
+      .map((r) => r.item);
+
+    // Combine results, removing duplicates
+    const seen = new Set();
+    return [...acronymMatches, ...fuseResults].filter((item) => {
+      const key = `${item.userId}/${item.projectId}/${item.item.name}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   const details = getFilteredItemDetails();
