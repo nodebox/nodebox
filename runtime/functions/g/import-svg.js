@@ -1,8 +1,5 @@
 /**
- * Load an uploaded CSV or JSON file and outputs a table.
- *
- * For a CSV file, the delimiter is a character that separates the values in the file. The most common
- * delimiters are commas (`,`), tabs (`\t`), and semicolons (`;`).
+ * Upload an SVG file and outputs as shape data.
  *
  * @category Input/Output
  */

@@ -319,6 +319,13 @@ export async function updateProjectScopeInProfile(scope: string) {
 export async function publishProject() {
   const currentUserId = localStorage.getItem("userId");
   if (!currentUserId || currentUserId !== userId.value) return;
+  // don't add to undo:redo stack
+  // onChangeSignal("publish-project");
+
+  project.value = produce(project.value!, (draft) => {
+    draft.isPublished = true;
+    draft.publishDate = new Date().toISOString();
+  });
 
   await saveProject();
 
@@ -330,7 +337,6 @@ export async function publishProject() {
     return;
   }
   saveState.value = SaveState.Saved;
-  onChangeSignal("publish-project");
 }
 
 const saveProjectDebounced = debounce(saveProject, 1000);
@@ -341,8 +347,7 @@ export function requestRender() {
   window.requestAnimationFrame(_render);
 }
 
-const requestRenderDebounced = debounce(requestRender, 200);
-const requestUpdateContextDebounced = debounce(updateContext, 200);
+export const requestUpdateContextDebounced = debounce(updateContext, 200);
 
 async function _render() {
   if (!cx.value || !project.value) return null;
@@ -741,7 +746,6 @@ export function setFunctionSource(id: string, source: string) {
   const item = project.value!.items.find((item: Item) => item.id === id)!;
   const fqId = `self/self/${item!.name}`;
   mutation.markFunctionDirty(cx.value!, project.value!, fqId);
-  requestRenderDebounced();
   requestUpdateContextDebounced();
 }
 

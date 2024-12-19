@@ -1,6 +1,6 @@
 {
   "name": "@ndbx/g",
-  "version": "0.1.28",
+  "version": "0.1.29",
   "type": "module",
   "description": "NodeBox Graphics Package",
   "main": "dist/g.esm.js",

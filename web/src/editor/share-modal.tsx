@@ -33,8 +33,6 @@ export default function ShareModal() {
     setPublishState(PublishState.Publishing);
     try {
       await publishProject();
-      project.value!.isPublished = true;
-      project.value!.publishDate = new Date().toISOString();
       if (userId === "example") {
         await exportAllExampleNetworks();
       }
@@ -65,7 +63,7 @@ export default function ShareModal() {
     navigator.clipboard.writeText(link);
   };
 
-  const embedCode = `<iframe src="https://nodebox.live/embed/${userId}/${project.value?.id}" width="100%" height="100%" frameborder="0"></iframe>`;
+  const embedCode = `<iframe src="https://new.nodebox.live/embed/${userId}/${project.value?.id}" width="100%" height="100%" frameborder="0"></iframe>`;
   const relativePublishTime = useRelativeTime(isPublished ? publishDate! : new Date().toISOString());
   return (
     <FullscreenModal style={{ width: "min(90vw, 750px)" }} onClose={handleClose}>
@@ -139,7 +137,7 @@ export default function ShareModal() {
               )}
             </span>
             <button
-              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded"
+              className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded w-20"
               onClick={handlePublish}
               disabled={readOnly || publishState !== PublishState.Publish}
             >

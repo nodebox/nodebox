@@ -15,7 +15,6 @@ const ResetEmailSent = React.lazy(() => import("./routes/reset-email-sent"));
 const ResetPassword = React.lazy(() => import("./routes/reset-password"));
 const ProjectCreate = React.lazy(() => import("./routes/project-create"));
 const RawEditor = React.lazy(() => import("./routes/raw-editor"));
-const Embed = React.lazy(() => import("./routes/embed"));
 const EmbedPreview = React.lazy(() => import("./routes/embed-preview"));
 const ProjectList = React.lazy(() => import("./routes/project-list"));
 const Editor = React.lazy(() => import("./editor"));
@@ -58,8 +57,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/auth/reset-password" component={ResetPassword} />
         <Route path="/create" component={ProjectCreate} />
         <Route path="/raw/:userId/:projectId" component={RawEditor} />
-        <Route path="/embed/:userId/:projectId/" component={Embed} />
-        <Route path="/embed/:userId/:projectId/:item" component={Embed} />
         <Route path="/embed-preview/:userId/:projectId" component={EmbedPreview} />
         <Route path="/embed-preview/:userId/:projectId/:item" component={EmbedPreview} />
         <Route path="/gallery" component={Gallery} />

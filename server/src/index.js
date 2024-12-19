@@ -716,6 +716,22 @@ app.get("/api/gallery/:keyword", async (req, res) => {
   }
 });
 
+app.get("/embed/:userId/:projectId/:item?", async (req, res) => {
+  const data = structuredClone(req.params);
+  data.item = data.item || "__undefined__";
+  data.version = "published";
+  if (!(await store.projectExists(data.userId, data.projectId, data.version))) {
+    return res.status(404).send("Project not found or not published.");
+  }
+  const template = await readFile(path.join(__dirname, `../template/embed.html`), "utf8");
+  const html = template.replace(/{{\s*(\w+)\s*}}/g, (_, key) => data[key] || "");
+
+  res.removeHeader("X-Frame-Options");
+  res.setHeader("Content-Security-Policy", "frame-ancestors *");
+  res.writeHead(200, { "Content-Type": "text/html" });
+  res.end(html);
+});
+
 // Catch-all SPA route for web app
 app.get("*", (_, res) => {
   res.sendFile(path.resolve(__dirname, "../../web/dist", "index.html"));

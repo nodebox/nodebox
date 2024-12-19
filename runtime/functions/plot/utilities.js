@@ -3252,6 +3252,23 @@ export function addLegend({
   spec.legends.push(legend);
 }
 
+// Function set config property
+export function setThemeProperties(spec, properties, values) {
+  let theme = spec.config || {};
+  properties = Array.isArray(properties) ? properties : [properties];
+  values = Array.isArray(values) ? values : [values];
+  let newTheme = {};
+  for (let i = 0; i < properties.length; i++) {
+    newTheme[properties[i]] = values[i];
+  }
+
+  // Filter out undefined properties
+  Object.keys(newTheme).forEach((key) => newTheme[key] === undefined && delete newTheme[key]);
+
+  // Replace config
+  spec.config = deepAssign(theme, newTheme);
+}
+
 // Function to apply colors
 export function applyColorTheme(spec, bgColor, primColor, secColor, accentColor, colorScheme) {
   let theme = spec.config || {};

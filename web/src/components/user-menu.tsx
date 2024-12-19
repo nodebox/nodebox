@@ -1,6 +1,7 @@
 import React from "react";
 import { autoUpdate, useFloating, useDismiss, useInteractions, Placement } from "@floating-ui/react";
 import { useAuth } from "../auth-context";
+import UserAvatar from "./user-avatar";
 
 export default function UserMenu() {
   const [menuVisible, setMenuVisible] = React.useState<boolean>(false);
@@ -31,10 +32,7 @@ export default function UserMenu() {
           ref={refs.setReference}
           {...getReferenceProps()}
         >
-          <div
-            className="w-full h-full bg-cover bg-center"
-            style={{ backgroundImage: `url("https://api.dicebear.com/7.x/initials/svg?seed=${userId ?? ""}")` }}
-          ></div>
+          <UserAvatar userId={userId ?? ""} />
         </div>
         {menuVisible && (
           <div ref={refs.setFloating} style={{ ...floatingStyles, zIndex: 10 }} {...getFloatingProps()}>

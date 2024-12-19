@@ -30,10 +30,10 @@ export default function (node) {
   node.onRender = () => {
     let specOut = structuredClone(plotSpecIn.value ? plotSpecIn.value : emptyPlot);
     validateVegaSpec(specOut);
-    const bgColor = bgColorIn.value.toHex() || undefined;
-    const primColor = primColorIn.value.toHex() || undefined;
-    const secColor = secColorIn.value.toHex() || undefined;
-    const accentColor = accentColorIn.value.toHex() || undefined;
+    const bgColor = bgColorIn.value.toString() || undefined;
+    const primColor = primColorIn.value.toString() || undefined;
+    const secColor = secColorIn.value.toString() || undefined;
+    const accentColor = accentColorIn.value.toString() || undefined;
     const colorScheme = JSON.parse(colorSchemeIn.value) || undefined;
 
     applyColorTheme(specOut, bgColor, primColor, secColor, accentColor, colorScheme);

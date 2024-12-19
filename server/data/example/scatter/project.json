@@ -1268,6 +1268,488 @@
         "keyword": "scatter",
         "subKeyword": "Data labels"
       }
+    },
+    {
+      "type": "NETWORK",
+      "id": "ehY055v8URG:0",
+      "name": "Icon scale",
+      "category": "",
+      "description": "",
+      "canvasSize": "fixed",
+      "padding": 10,
+      "width": 500,
+      "height": 500,
+      "background": {
+        "r": 0.15,
+        "g": 0.15,
+        "b": 0.15,
+        "a": 1
+      },
+      "children": [
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:1",
+          "x": 240,
+          "y": 177,
+          "name": "Plot Data 1",
+          "fn": "core/plot/Plot Data",
+          "values": {
+            "X": {
+              "type": "EXPRESSION",
+              "expression": "bill_length_mm"
+            },
+            "Y": {
+              "type": "EXPRESSION",
+              "expression": "flipper_length_mm"
+            },
+            "groupBy": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "fillColor": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            },
+            "opacity": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": ""
+            },
+            "fillOpacity": {
+              "type": "VALUE",
+              "value": 0.7
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 4
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:2",
+          "x": 240,
+          "y": 117,
+          "name": "Fetch Data 1",
+          "fn": "core/g/Fetch Data",
+          "values": {
+            "url": {
+              "type": "VALUE",
+              "value": "https://data.nodebox.live/penguins.csv"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:3",
+          "x": 240,
+          "y": 477,
+          "name": "Render Plot 1",
+          "fn": "core/plot/Render Plot",
+          "values": {}
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:4",
+          "x": 240,
+          "y": 417,
+          "name": "Add Legend 1",
+          "fn": "core/plot/Add Legend",
+          "values": {
+            "offset": {
+              "type": "VALUE",
+              "value": -140
+            },
+            "orient": {
+              "type": "VALUE",
+              "value": "top"
+            },
+            "direction": {
+              "type": "VALUE",
+              "value": "vertical"
+            },
+            "padding": {
+              "type": "VALUE",
+              "value": 10
+            },
+            "columnPadding": {
+              "type": "VALUE",
+              "value": 2
+            },
+            "title": {
+              "type": "VALUE",
+              "value": "legend"
+            },
+            "scale": {
+              "type": "VALUE",
+              "value": "all"
+            },
+            "type": {
+              "type": "VALUE",
+              "value": "symbol"
+            },
+            "shape": {
+              "type": "VALUE",
+              "value": "square"
+            },
+            "symbolSize": {
+              "type": "VALUE",
+              "value": 100
+            },
+            "labelBaseline": {
+              "type": "VALUE",
+              "value": "bottom"
+            },
+            "labelAlign": {
+              "type": "VALUE",
+              "value": "center"
+            },
+            "labelSeparation": {
+              "type": "VALUE",
+              "value": 0
+            },
+            "symbolLimit": {
+              "type": "VALUE",
+              "value": 9
+            },
+            "symbolOffset": {
+              "type": "VALUE",
+              "value": 5
+            },
+            "symbolType": {
+              "type": "VALUE",
+              "value": "filled"
+            },
+            "labelOverlap": {
+              "type": "VALUE",
+              "value": "false"
+            }
+          }
+        },
+        {
+          "id": "ehY055v8URG:5",
+          "type": "STICKY",
+          "x": 50,
+          "y": 120,
+          "width": 150,
+          "height": 170,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "A scale maps the value of a data attribute to a visual property of the mark. An icon scale is a shape scale with a customized range of icons. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehY055v8URG:6",
+          "type": "STICKY",
+          "x": 400,
+          "y": 120,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Load data from an online source. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehY055v8URG:7",
+          "type": "STICKY",
+          "x": 400,
+          "y": 180,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Specify which data attributes you want to map to the X- and the Y-position and the fill color of the mark. Set the fill opacity to a fixed value.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehY055v8URG:8",
+          "type": "STICKY",
+          "x": 400,
+          "y": 420,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Add a legend to clarify the color and shape scale.\nA legend, just like an axis, is a guide to understand the scale. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehY055v8URG:9",
+          "type": "STICKY",
+          "x": 50,
+          "y": 50,
+          "width": 150,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Icon scale",
+          "fontSize": 18,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "id": "ehY055v8URG:10",
+          "type": "STICKY",
+          "x": 400,
+          "y": 480,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.9921568627450981,
+            "g": 0.9019607843137255,
+            "b": 0.5411764705882353,
+            "a": 0.8
+          },
+          "text": "Transform the plot specification (which describes the plot in JSON format) to graphical objects. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.15294117647058825,
+            "g": 0.15294117647058825,
+            "b": 0.16470588235294117,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:11",
+          "x": 260,
+          "y": 237,
+          "name": "Load Icon 1",
+          "fn": "core/g/Load Icon",
+          "values": {
+            "style": {
+              "type": "VALUE",
+              "value": "solid"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:13",
+          "x": 400,
+          "y": 237,
+          "name": "Load Icon 2",
+          "fn": "core/g/Load Icon",
+          "values": {
+            "solid": {
+              "type": "VALUE",
+              "value": "cat"
+            },
+            "style": {
+              "type": "VALUE",
+              "value": "solid"
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:14",
+          "x": 540,
+          "y": 237,
+          "name": "Load Icon 3",
+          "fn": "core/g/Load Icon",
+          "values": {
+            "style": {
+              "type": "VALUE",
+              "value": "solid"
+            },
+            "solid": {
+              "type": "VALUE",
+              "value": "ghost"
+            },
+            "size": {
+              "type": "VALUE",
+              "value": 24
+            }
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:15",
+          "x": 260,
+          "y": 297,
+          "name": "Merge Shapes 1",
+          "fn": "core/g/Merge Shapes",
+          "values": {}
+        },
+        {
+          "id": "ehY055v8URG:16",
+          "type": "STICKY",
+          "x": 400,
+          "y": 360,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Define a custom shape scale. Pass the merged icons as the shape range. Set a fixed size in the Plot Data node. ",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        },
+        {
+          "type": "NODE",
+          "id": "ehY055v8URG:18",
+          "x": 240,
+          "y": 357,
+          "name": "Set Plot Scale 1",
+          "fn": "core/plot/Set Plot Scale",
+          "values": {
+            "scaleName": {
+              "type": "VALUE",
+              "value": "shapeScale"
+            },
+            "domain": {
+              "type": "EXPRESSION",
+              "expression": "species"
+            }
+          }
+        },
+        {
+          "id": "ehY055v8URG:20",
+          "type": "STICKY",
+          "x": 400,
+          "y": 300,
+          "width": 320,
+          "height": 50,
+          "backgroundColor": {
+            "r": 0.30196078431372547,
+            "g": 0.48627450980392156,
+            "b": 0.058823529411764705,
+            "a": 0.8
+          },
+          "text": "Load SVG icons using the Load Icon (from boxicons.com) or Import SVG (from file) node. Merge the icons to pass them as a range of the shape scale.",
+          "fontSize": 12,
+          "fontColor": {
+            "r": 0.9333333333333333,
+            "g": 0.9333333333333333,
+            "b": 0.9333333333333333,
+            "a": 1
+          }
+        }
+      ],
+      "connections": [
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:4",
+          "outPort": "plotSpecOut",
+          "inNode": "ehY055v8URG:3",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:2",
+          "outPort": "out",
+          "inNode": "ehY055v8URG:1",
+          "inPort": "data"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:11",
+          "outPort": "out",
+          "inNode": "ehY055v8URG:15",
+          "inPort": "shape 1"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:1",
+          "outPort": "plotSpecOut",
+          "inNode": "ehY055v8URG:18",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:18",
+          "outPort": "plotSpecOut",
+          "inNode": "ehY055v8URG:4",
+          "inPort": "plotSpecIn"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:15",
+          "outPort": "out",
+          "inNode": "ehY055v8URG:18",
+          "inPort": "shapeRange"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:13",
+          "outPort": "out",
+          "inNode": "ehY055v8URG:15",
+          "inPort": "shape 2"
+        },
+        {
+          "type": "NODE_TO_NODE",
+          "outNode": "ehY055v8URG:14",
+          "outPort": "out",
+          "inNode": "ehY055v8URG:15",
+          "inPort": "shape 3"
+        }
+      ],
+      "renderedNode": "ehY055v8URG:3",
+      "inputPorts": [],
+      "outputPorts": [],
+      "parameters": [],
+      "sections": []
     }
   ],
   "id": "scatter",

@@ -4,7 +4,7 @@
  * @category Geo
  */
 
-import { emptyMap, validateVegaSpec, setGeoMap, setGraticule } from "project:Utilities";
+import { emptyMap, validateVegaSpec, setGeoMap, setGraticule, setThemeProperties } from "project:Utilities";
 
 export default function (node) {
   // General properties (from Set Plot Figure)
@@ -23,6 +23,7 @@ export default function (node) {
     value: "none",
     choices: ["pad", "fit", "fit-x", "fit-y", "none"],
   });
+  const bgColorIn = node.colorIn({ name: "bgColor", label: "Background color", value: "#f2f2f2" });
   node.popSection();
 
   // Map properties
@@ -111,6 +112,11 @@ export default function (node) {
       };
     } else {
       specOut.padding = paddingIn.value;
+    }
+
+    // set background color
+    if (bgColorIn.value) {
+      setThemeProperties(specOut, "background", bgColorIn.value.toString());
     }
 
     // Extract map parameters

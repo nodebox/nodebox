@@ -131,6 +131,8 @@ export abstract class Paint {
       let clr = color(value);
       if (clr === null) {
         return new SolidPaint(0, 0, 0);
+      } else if ("opacity" in clr && clr.opacity === 0) {
+        return new SolidPaint(0, 0, 0, 0);
       } else if ("r" in clr) {
         clr = clr as RGBColor;
         return new SolidPaint(clr.r / 255, clr.g / 255, clr.b / 255, clr.opacity);

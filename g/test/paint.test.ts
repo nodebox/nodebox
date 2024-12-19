@@ -38,6 +38,18 @@ describe("Paint Class", () => {
     expect(solid.a).toBe(1);
   });
 
+  it("should parse an RGBA color string", () => {
+    // Because the alpha value is 0, the other values will be 0 as well.
+    // (d3-color returns NaN in this case, but this is harder to work with)
+    const paint = Paint.parse("rgba(255, 255, 255, 0)");
+    expect(paint.type).toBe("solid");
+    const solid = paint as SolidPaint;
+    expect(solid.r).toBeCloseTo(0);
+    expect(solid.g).toBeCloseTo(0);
+    expect(solid.b).toBeCloseTo(0);
+    expect(solid.a).toBe(0);
+  });
+
   it("should parse an HSL color string", () => {
     const paint = Paint.parse("hsl(30, 100%, 50%)");
     expect(paint.type).toBe("solid");

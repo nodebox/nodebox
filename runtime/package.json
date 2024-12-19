@@ -1,6 +1,6 @@
 {
   "name": "@ndbx/runtime",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "type": "module",
   "description": "",
   "main": "dist/ndbx.esm.js",

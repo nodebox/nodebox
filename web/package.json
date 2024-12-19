@@ -12,6 +12,8 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/state": "^6.4.1",
+    "@dicebear/collection": "^9.2.2",
+    "@dicebear/core": "^9.2.2",
     "@floating-ui/react": "^0.26.24",
     "@ndbx/g": "*",
     "@ndbx/runtime": "*",

@@ -532,8 +532,8 @@ function convertSymbolInstance(instance: VegaSymbolItem): Shape {
       return applyStylesAndTransform(path, instance);
     }
     default:
-      console.warn(`Unknown symbol shape ${instance.shape}`);
-      return applyStylesAndTransform(new Path(), instance);
+      const path = Path.fromPathData(shape);
+      return applyStylesAndTransform(path, instance);
   }
 }
 

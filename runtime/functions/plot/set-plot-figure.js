@@ -4,7 +4,7 @@
  * @category Plot
  */
 
-import { emptyPlot, validateVegaSpec } from "project:Utilities";
+import { emptyPlot, validateVegaSpec, setThemeProperties } from "project:Utilities";
 
 export default function (node) {
   const plotSpecIn = node.specIn({ name: "plotSpecIn", label: "Plot spec" });
@@ -22,6 +22,7 @@ export default function (node) {
     choices: ["pad", "fit", "fit-x", "fit-y", "none"],
   });
   const axesIn = node.booleanIn({ name: "defaultAxes", label: "Default axes", value: true });
+  const bgColorIn = node.colorIn({ name: "bgColor", label: "Background color", value: "#f2f2f2" });
 
   const plotSpecOut = node.specOut({ name: "plotSpecOut", label: "Plot spec out" });
   const shapeOut = node.shapeOut({ name: "plotShape" });
@@ -46,6 +47,11 @@ export default function (node) {
       };
     } else {
       specOut.padding = paddingIn.value;
+    }
+
+    // set background color
+    if (bgColorIn.value) {
+      setThemeProperties(specOut, "background", bgColorIn.value.toString());
     }
 
     //shapeOut.set(rect);

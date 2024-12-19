@@ -4,6 +4,7 @@ import Fuse from "fuse.js";
 import Markdown from "react-markdown";
 
 import Icon from "../components/icon";
+import NodeIcon from "../components/node-icon";
 import FullscreenModal from "../components/fullscreen-modal";
 import { Project, Item, Network } from "@ndbx/runtime";
 import {
@@ -46,12 +47,7 @@ function ItemName({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
     >
-      <img
-        src={`https://api.dicebear.com/8.x/shapes/svg?seed=${detail.item.name}`}
-        alt={detail.item.name}
-        width={30}
-        height={30}
-      />
+      <NodeIcon name={detail.item.name} alt={detail.item.name} />
       <span className="text-sm text-zinc-100">{detail.item.name}</span>
     </div>
   );
@@ -176,13 +172,19 @@ export default function CreateNodeModal() {
 
   function getFilteredItemDetails(): ItemDetail[] {
     const details = getAllItemDetails();
-
+    const threshold = 0.3;
     if (searchText.trim().length === 0) {
       return details;
     } else {
-      const fuse = new Fuse(details, { keys: ["item.name", "item.description"] });
+      const fuse = new Fuse(details, {
+        keys: ["item.name", "item.description"],
+        includeScore: true,
+        threshold: threshold,
+        ignoreLocation: true,
+        minMatchCharLength: 1,
+      });
       const result = fuse.search(searchText);
-      return result.map((r) => r.item);
+      return result.filter((r) => r.score !== undefined && r.score <= threshold).map((r) => r.item);
     }
   }
 
