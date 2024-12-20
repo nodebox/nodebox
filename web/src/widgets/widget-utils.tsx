@@ -14,6 +14,7 @@ export interface WidgetProps {
   onChange: (value: ParameterValue) => void;
   onToggleExpression?: () => void;
   onPublishParameter?: () => void;
+  onRevertToDefault?: () => void;
   onRemove?: () => void;
   onMeta?: (e: React.MouseEvent) => void;
   disabled?: boolean;
@@ -95,9 +96,11 @@ export function WidgetRemoveButton({ onRemove }: { onRemove?: () => void }) {
 export function WidgetExpressionButton({
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
 }: {
   onToggleExpression?: () => void;
   onPublishParameter?: () => void;
+  onRevertToDefault?: () => void;
 }) {
   if (!onToggleExpression) return null;
   const [menuOpen, setMenuOpen] = useState(false);
@@ -143,8 +146,17 @@ export function WidgetExpressionButton({
 
   const handlePublishParameter = () => {
     setMenuOpen(false);
+    debugger;
     if (onPublishParameter) {
       onPublishParameter();
+    }
+  };
+
+  const handleRevertToDefault = () => {
+    setMenuOpen(false);
+    if (onRevertToDefault) {
+      debugger;
+      onRevertToDefault();
     }
   };
 
@@ -167,6 +179,7 @@ export function WidgetExpressionButton({
         onMouseEnter={handleMouseEnter}
       >
         <MenuItem onClick={handleToggleExpression}>Toggle Expression</MenuItem>
+        <MenuItem onClick={handleRevertToDefault}>Revert To Default</MenuItem>
         <MenuItem onClick={handlePublishParameter}>Publish Parameter</MenuItem>
       </PopupMenu>
     </>

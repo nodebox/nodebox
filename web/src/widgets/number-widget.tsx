@@ -20,6 +20,7 @@ export default function NumberWidget({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
   disabled,
@@ -153,7 +154,11 @@ export default function NumberWidget({
         />
       )}
       <WidgetRemoveButton onRemove={onRemove} />
-      <WidgetExpressionButton onToggleExpression={onToggleExpression} onPublishParameter={onPublishParameter} />
+      <WidgetExpressionButton
+        onToggleExpression={onToggleExpression}
+        onPublishParameter={onPublishParameter}
+        onRevertToDefault={onRevertToDefault}
+      />
     </div>
   );
 }

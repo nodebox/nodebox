@@ -36,6 +36,7 @@ import {
   removeGalleryMetadata,
   setItemParameterValue,
   setParameterValue,
+  setParameterEmpty,
   setStickyBackgroundColor,
   setStickyFontColor,
   setStickyFontSize,
@@ -105,6 +106,7 @@ interface ParameterRowProps {
   onChange: (value: ParameterValue) => void;
   onToggleExpression?: () => void;
   onPublishParameter?: () => void;
+  onRevertToDefault?: () => void;
   onRemove?: () => void;
   onMeta?: (e: React.MouseEvent) => void;
 }
@@ -114,6 +116,7 @@ export function ParameterRow({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
 }: ParameterRowProps) {
@@ -132,6 +135,7 @@ export function ParameterRow({
         onChange={onChange}
         onToggleExpression={onToggleExpression}
         onPublishParameter={onPublishParameter}
+        onRevertToDefault={onRevertToDefault}
         onRemove={onRemove}
         onMeta={onMeta}
       />
@@ -158,6 +162,7 @@ export function ParameterRow({
     onChange,
     onToggleExpression,
     onPublishParameter,
+    onRevertToDefault,
     onRemove,
     onMeta,
   });
@@ -170,6 +175,7 @@ interface NodeParameterRowProps {
   onChange: (value: ParameterValue) => void;
   onToggleExpression?: () => void;
   onPublishParameter?: () => void;
+  onRevertToDefault?: () => void;
   onRemove?: () => void;
   onMeta?: () => void;
 }
@@ -181,6 +187,7 @@ export function NodeParameterRow({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
 }: NodeParameterRowProps) {
@@ -193,6 +200,7 @@ export function NodeParameterRow({
         onChange={onChange}
         onToggleExpression={onToggleExpression}
         onPublishParameter={onPublishParameter}
+        onRevertToDefault={onRevertToDefault}
         onRemove={onRemove}
         onMeta={onMeta}
       />
@@ -205,6 +213,7 @@ interface ItemParameterRowProps {
   onChange: (value: ParameterValue) => void;
   onToggleExpression?: () => void;
   onPublishParameter?: () => void;
+  onRevertToDefault?: () => void;
   onRemove?: () => void;
   onMeta?: (e: React.MouseEvent) => void;
 }
@@ -214,6 +223,7 @@ export function ItemParameterRow({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
 }: ItemParameterRowProps) {
@@ -225,6 +235,7 @@ export function ItemParameterRow({
       onChange={onChange}
       onToggleExpression={onToggleExpression}
       onPublishParameter={onPublishParameter}
+      onRevertToDefault={onRevertToDefault}
       onRemove={onRemove}
       onMeta={onMeta}
     />
@@ -239,6 +250,7 @@ interface ParameterSectionProps {
   onChange: (parameter: Parameter, value: ParameterValue) => void;
   onToggleExpression: (parameter: Parameter) => void;
   onPublishParameter: (parameter: Parameter) => void;
+  onRevertToDefault: (parameter: Parameter) => void;
 }
 
 function ParameterSection({
@@ -249,6 +261,7 @@ function ParameterSection({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
 }: ParameterSectionProps) {
   const fn = cx.lookupItemByName(node.fn);
   const section = fn ? fn.sections.find((section) => section.name === name) : undefined;
@@ -275,6 +288,7 @@ function ParameterSection({
               parameter={parameter}
               onToggleExpression={() => onToggleExpression(parameter)}
               onPublishParameter={() => onPublishParameter(parameter)}
+              onRevertToDefault={() => onRevertToDefault(parameter)}
               onChange={(value) => onChange(parameter, value)}
             />
           ))}
@@ -410,6 +424,11 @@ export default function Properties() {
       const literalValue = defaultValueForType(parameter.type);
       setParameterValue(item as Network, node, parameter.name, { type: "VALUE", value: literalValue });
     }
+  }
+
+  function handleRevertToDefault(parameter: Parameter) {
+    if (!node) return;
+    setParameterEmpty(item as Network, node, parameter.name);
   }
 
   function handlePublishParameter(parameter: Parameter) {
@@ -677,6 +696,7 @@ export default function Properties() {
             node={node}
             onToggleExpression={handleToggleExpression}
             onPublishParameter={handlePublishParameter}
+            onRevertToDefault={handleRevertToDefault}
             onChange={handleChange}
           />
         ))}

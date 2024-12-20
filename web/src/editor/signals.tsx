@@ -817,6 +817,7 @@ export function updateNodeName(network: Network, node: Node, newName: string) {
 }
 
 export function setParameterValue(network: Network, node: Node, parameterName: string, value: ParameterValue) {
+  onChangeSignal("set-parameter-value", `${node.id}/${parameterName}`);
   project.value = produce(project.value!, (draft) => {
     const draftNetwork = draft.items.find((item: Item) => item.id === network.id) as Network;
     const draftNode = draftNetwork.children.find((n: NetworkItem) => n.id === node.id) as Node;
@@ -824,7 +825,21 @@ export function setParameterValue(network: Network, node: Node, parameterName: s
       draftNode.values = {};
     }
     draftNode.values[parameterName] = value;
-    onChangeSignal("set-parameter-value", `${node.id}/${parameterName}`);
+  });
+  mutation.markDirty(cx.value!, network, node);
+  sendChangeEvent(cx.value!, node.id, parameterName);
+  updateContext();
+}
+
+export function setParameterEmpty(network: Network, node: Node, parameterName: string) {
+  onChangeSignal("set-parameter-empty", `${node.id}/${parameterName}`);
+  project.value = produce(project.value!, (draft) => {
+    const draftNetwork = draft.items.find((item: Item) => item.id === network.id) as Network;
+    const draftNode = draftNetwork.children.find((n: NetworkItem) => n.id === node.id) as Node;
+    if (draftNode.values === undefined) {
+      draftNode.values = {};
+    }
+    delete draftNode.values[parameterName];
   });
   mutation.markDirty(cx.value!, network, node);
   sendChangeEvent(cx.value!, node.id, parameterName);

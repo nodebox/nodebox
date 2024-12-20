@@ -19,6 +19,7 @@ export default function StringWidget({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
   isMultiline = false,
@@ -57,7 +58,11 @@ export default function StringWidget({
           onChange={(s) => onChange(createParameterValueFromLiteral(s))}
           className="flex-1"
         />
-        <WidgetExpressionButton onToggleExpression={onToggleExpression} onPublishParameter={onPublishParameter} />
+        <WidgetExpressionButton
+          onToggleExpression={onToggleExpression}
+          onPublishParameter={onPublishParameter}
+          onRevertToDefault={onRevertToDefault}
+        />
         <WidgetRemoveButton onRemove={onRemove} />
       </div>
       {isModalOpen && (

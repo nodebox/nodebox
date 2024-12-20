@@ -7,6 +7,7 @@ export default function ExpressionWidget({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
 }: WidgetProps) {
   return (
     <div className="flex items-stretch px-1 h-8 hover:bg-zinc-700 group relative">
@@ -16,7 +17,11 @@ export default function ExpressionWidget({
         onChange={(s) => onChange({ type: "EXPRESSION", expression: s })}
         className="flex-1 text-green-400 font-semibold"
       />
-      <WidgetExpressionButton onToggleExpression={onToggleExpression} onPublishParameter={onPublishParameter} />
+      <WidgetExpressionButton
+        onToggleExpression={onToggleExpression}
+        onPublishParameter={onPublishParameter}
+        onRevertToDefault={onRevertToDefault}
+      />
     </div>
   );
 }

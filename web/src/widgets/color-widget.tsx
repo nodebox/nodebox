@@ -26,6 +26,7 @@ export default function ColorWidget({
   onChange,
   onToggleExpression,
   onPublishParameter,
+  onRevertToDefault,
   onRemove,
   onMeta,
 }: WidgetProps & { value: ColorValue }) {
@@ -116,7 +117,11 @@ export default function ColorWidget({
         </div>
       </div>
       <WidgetRemoveButton onRemove={onRemove} />
-      <WidgetExpressionButton onToggleExpression={onToggleExpression} onPublishParameter={onPublishParameter} />
+      <WidgetExpressionButton
+        onToggleExpression={onToggleExpression}
+        onPublishParameter={onPublishParameter}
+        onRevertToDefault={onRevertToDefault}
+      />
       {pickerVisible &&
         createPortal(
           <div className="fixed inset-0 z-40" onClick={(e) => e.stopPropagation()}>
