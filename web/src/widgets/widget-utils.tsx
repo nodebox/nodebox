@@ -146,7 +146,6 @@ export function WidgetExpressionButton({
 
   const handlePublishParameter = () => {
     setMenuOpen(false);
-    debugger;
     if (onPublishParameter) {
       onPublishParameter();
     }
@@ -155,7 +154,6 @@ export function WidgetExpressionButton({
   const handleRevertToDefault = () => {
     setMenuOpen(false);
     if (onRevertToDefault) {
-      debugger;
       onRevertToDefault();
     }
   };
