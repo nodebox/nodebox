@@ -24,12 +24,14 @@ const functionsToJSON = () => {
         const pattern = path.resolve("functions", projectName, "*.js");
         const files = globSync(pattern, { windowsPathsNoEscape: true });
         let id = 1;
-        files.forEach((file) => {
-          let slug = path.basename(file, ".js");
-          const name = slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-          const source = fs.readFileSync(file, "utf-8");
-          project.items.push({ type: "FUNCTION", id: `0:${id++}`, name, source });
-        });
+        files
+          .sort((a, b) => a.localeCompare(b))
+          .forEach((file) => {
+            let slug = path.basename(file, ".js");
+            const name = slug.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+            const source = fs.readFileSync(file, "utf-8");
+            project.items.push({ type: "FUNCTION", id: `0:${id++}`, name, source });
+          });
         const projectDirectory = path.join("..", "server", "data", "core", projectName);
         if (!fs.existsSync(projectDirectory)) {
           fs.mkdirSync(projectDirectory, { recursive: true });
