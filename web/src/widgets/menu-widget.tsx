@@ -12,7 +12,7 @@ export default function MenuWidget({ label, value, choices, onChange, onRemove, 
   }
 
   return (
-    <div className="flex px-1 h-8 hover:bg-zinc-700 group relative">
+    <div className="flex px-1 h-8 hover:bg-zinc-700 group relative items-baseline">
       <WidgetMetaButton onMeta={onMeta} />
       <WidgetRemoveButton onRemove={onRemove} />
 
@@ -20,7 +20,7 @@ export default function MenuWidget({ label, value, choices, onChange, onRemove, 
       <select
         value={value as string}
         onChange={handleChange}
-        className="menu-widget flex-1 text-xs bg-transparent px-2 border border-transparent outline-none rounded-sm"
+        className="menu-widget flex-1 h-7 text-xs px-2 border border-transparent outline-none rounded bg-transparent"
       >
         {choices.map((choice) => (
           <option key={choice.name} value={choice.name}>
