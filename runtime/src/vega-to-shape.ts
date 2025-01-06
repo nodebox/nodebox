@@ -345,17 +345,18 @@ function convertGroupInstance(instance: VegaGroupItem): Shape {
 }
 
 function convertLine(def: VegaItem): Shape {
+  if (def.items.length < 2) {
+    return new Path();
+  }
   const firstItem = def.items[0] as VegaLineItem;
   const [path, curve] = createCurve(firstItem.interpolate, firstItem.orient);
-  if (def.items.length >= 2) {
-    curve.lineStart();
-    for (let i = 0; i < def.items.length; i++) {
-      const instance = def.items[i];
-      curve.point(instance.x, instance.y);
-    }
-    curve.lineEnd();
-    applyStyles(path, firstItem);
+  curve.lineStart();
+  for (let i = 0; i < def.items.length; i++) {
+    const instance = def.items[i];
+    curve.point(instance.x, instance.y);
   }
+  curve.lineEnd();
+  applyStyles(path, firstItem);
   return path;
 }
 
