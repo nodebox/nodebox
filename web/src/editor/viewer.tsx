@@ -427,7 +427,14 @@ export default function Viewer() {
 
   useEffect(() => {
     if (item !== null && result.value !== null && realActiveTab === ViewerMode.Viewer && isVegaSpec(result.value)) {
-      const shape = renderVegaSpec(result.value);
+      let shape;
+      try {
+        shape = renderVegaSpec(result.value);
+      } catch (e: any) {
+        console.error(e);
+        nodeError.value = e;
+        shape = null;
+      }
       setResultShape(shape);
     } else {
       setResultShape(result.value as Shape);
