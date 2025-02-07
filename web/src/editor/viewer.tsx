@@ -187,7 +187,7 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     svgSize.width = autoSize.right - autoSize.left;
     svgSize.height = autoSize.bottom - autoSize.top;
   }
-  const backgroundColor = item.background;
+  const backgroundColor = item.background || 'transparent';
 
   const [popup, setPopup] = useState<PopupState>({
     content: "",
@@ -330,6 +330,40 @@ export default function Viewer() {
     a.download = `${projectId.value}-${currentItem.value!.name.toLowerCase()}.svg`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleExportPng() {
+    const svgString = renderToSvg();
+    if (!svgString) return;
+    const item = currentItem.value!;
+    const img = new Image();
+    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const scale = 2; // Double resolution
+      canvas.width = item.width * scale;
+      canvas.height = item.height * scale;
+      const ctx = canvas.getContext("2d")!;
+      // Use transparent if background is undefined
+      ctx.fillStyle = item.background ? colorToCss(item.background) : 'transparent';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.scale(scale, scale);
+      ctx.drawImage(img, 0, 0);
+      
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${projectId.value}-${currentItem.value!.name.toLowerCase()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+    
+    img.src = url;
   }
 
   async function handleExportCsv() {
@@ -551,6 +585,12 @@ export default function Viewer() {
                     label: "SVG",
                     action: () => {
                       handleExportSvg();
+                    },
+                  },
+                  {
+                    label: "PNG",
+                    action: () => {
+                      handleExportPng();
                     },
                   },
                 ]}
