@@ -187,7 +187,7 @@ function CanvasViewer({ item, result, showAttributes, drawPoints, drawBounds }: 
     svgSize.width = autoSize.right - autoSize.left;
     svgSize.height = autoSize.bottom - autoSize.top;
   }
-  const backgroundColor = item.background || 'transparent';
+  const backgroundColor = item.background || "transparent";
 
   const [popup, setPopup] = useState<PopupState>({
     content: "",
@@ -339,7 +339,7 @@ export default function Viewer() {
     const img = new Image();
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
-    
+
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const scale = 2; // Double resolution
@@ -347,11 +347,11 @@ export default function Viewer() {
       canvas.height = item.height * scale;
       const ctx = canvas.getContext("2d")!;
       // Use transparent if background is undefined
-      ctx.fillStyle = item.background ? colorToCss(item.background) : 'transparent';
+      ctx.fillStyle = item.background ? colorToCss(item.background) : "transparent";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.scale(scale, scale);
       ctx.drawImage(img, 0, 0);
-      
+
       canvas.toBlob((blob) => {
         if (!blob) return;
         const url = URL.createObjectURL(blob);
@@ -362,7 +362,7 @@ export default function Viewer() {
         URL.revokeObjectURL(url);
       }, "image/png");
     };
-    
+
     img.src = url;
   }
 
