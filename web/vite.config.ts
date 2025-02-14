@@ -51,8 +51,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": "http://localhost:3000",
-      "/embed": "http://localhost:3000",
       "/guide": "http://localhost:3000",
+      // Note that `/embed/` ends with a slash, to avoid conflicting with the /embed-preview route
+      "/embed/": "http://localhost:3000",
     },
   },
 });
