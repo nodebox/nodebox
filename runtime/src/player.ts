@@ -97,6 +97,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
             const errorMessage = `No rendered node found in network ${network.name}.`;
             console.error(errorMessage);
             onProjectError && onProjectError(errorMessage);
+            return;
           }
           const renderedNodeFn = cx.lookupItemByName(renderedNode.fn);
           if (renderedNodeFn) {
