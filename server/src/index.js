@@ -20,6 +20,7 @@ import { verify } from "crypto";
 import { callbackPromise } from "nodemailer/lib/shared/index.js";
 
 const USERS_PUBLIC_SCOPE = ["example", "core"];
+const ADMIN_USERS = ["fdb"];
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,6 +107,27 @@ function _checkOwnership(req, res, userId, next) {
     req._authUserId = decoded.userId;
     next();
   }
+}
+
+function checkAdmin(req) {
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return false;
+  }
+  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return false;
+  }
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return false;
+  }
+  if (!ADMIN_USERS.includes(decoded.userId)) {
+    return false;
+  }
+  return true;
 }
 
 function _getOwnership(req, res, userId, next) {
@@ -740,6 +762,54 @@ app.get("/embed/:userId/:projectId/:item?", async (req, res) => {
   res.setHeader("Content-Security-Policy", "frame-ancestors *");
   res.writeHead(200, { "Content-Type": "text/html" });
   res.end(html);
+});
+
+app.get("/admin", async (req, res) => {
+  const data = {};
+  const template = await readFile(path.join(__dirname, `../template/admin.html`), "utf8");
+  const html = template.replace(/{{\s*(\w+)\s*}}/g, (_, key) => data[key] || "");
+  res.writeHead(200, { "Content-Type": "text/html" });
+  res.end(html);
+});
+
+app.get("/api/admin/current-user", async (req, res) => {
+  const result = checkAdmin(req);
+  if (!result) {
+    return error(res, "Not logged in", 401);
+  }
+  success(res, { userId: "fdb" });
+});
+
+app.post("/admin/reset-password", async (req, res) => {
+  const isAdmin = checkAdmin(req);
+  if (!isAdmin) {
+    return error(res, "Not logged in", 401);
+  }
+  const { userIdOrEmail, newPassword, confirmPassword } = req.body;
+  let userId;
+  if (userIdOrEmail.match(/^[a-zA-Z0-9]{3,20}$/)) {
+    userId = userIdOrEmail;
+  } else if (userIdOrEmail.match(/^(.*)@(.*)$/)) {
+    const userIds = await store.findUserIdsByEmail(userIdOrEmail);
+    if (userIds.length === 0) {
+      return error(res, "User not found", 404);
+    }
+    userId = userIds[0];
+  } else {
+    error(res, "Invalid user ID or email");
+  }
+  if (newPassword.length < 6) {
+    return error(res, "Password must be at least 8 characters long", 400);
+  }
+  if (newPassword !== confirmPassword) {
+    return error(res, "Passwords do not match");
+  }
+  try {
+    await store.resetPassword(userId, newPassword);
+    success(res, { message: `Password for user ${userId} reset successfully` });
+  } catch (e) {
+    error(res, e.message);
+  }
 });
 
 // Catch-all SPA route for web app

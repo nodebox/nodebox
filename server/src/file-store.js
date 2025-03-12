@@ -154,7 +154,7 @@ export async function findUserIdsByEmail(email) {
   return userIds;
 }
 
-async function resetPassword(userId, newPassword) {
+export async function resetPassword(userId, newPassword) {
   try {
     const profile = await getUserProfile(userId);
     const passwordHash = await bcrypt.hash(newPassword, 10);
