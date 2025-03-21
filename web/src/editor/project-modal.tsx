@@ -121,7 +121,7 @@ export default function ProjectModal() {
                   </p>
                 </div>
               </div>
-              {membership.membership_type === "plus" && (
+              {membership.membership_type === "plus" ? (
                 <button
                   id="projectScope"
                   type="button"
@@ -133,6 +133,12 @@ export default function ProjectModal() {
                 >
                   Change to {scope === "private" ? "public" : "private"}
                 </button>
+              ) : (
+                <span className="text-xs text-zinc-400">
+                  <a href="/membership" className="text-blue-400 hover:underline">
+                    Upgrade to Plus
+                  </a>
+                </span>
               )}
             </div>
 
