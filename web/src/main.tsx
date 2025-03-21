@@ -8,6 +8,7 @@ import { AuthProvider } from "./auth-context";
 const Home = React.lazy(() => import("./routes/home"));
 const Terms = React.lazy(() => import("./routes/terms"));
 const Privacy = React.lazy(() => import("./routes/privacy"));
+const Membership = React.lazy(() => import("./routes/membership"));
 const Login = React.lazy(() => import("./routes/login"));
 const Signup = React.lazy(() => import("./routes/signup"));
 const ForgotPassword = React.lazy(() => import("./routes/forgot-password"));
@@ -50,6 +51,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <Route path="/" component={Home} />
         <Route path="/terms" component={Terms} />
         <Route path="/privacy" component={Privacy} />
+        <Route path="/membership" component={Membership} />
         <Route path="/auth/login" component={Login} />
         <Route path="/auth/signup" component={Signup} />
         <Route path="/auth/forgot-password" component={ForgotPassword} />
