@@ -1,7 +1,7 @@
 import React, { FormEvent, useState, useRef, useEffect } from "react";
 import { useAuth } from "../auth-context";
 import Icon from "../components/icon";
-import { project, projectModalVisible, setProjectTitle, setProjectScope, scopePrivateNoPlan } from "./signals";
+import { project, projectModalVisible, setProjectTitle, setProjectScope } from "./signals";
 import FullscreenModal from "../components/fullscreen-modal";
 import { SubmitField, TextAreaField } from "../components/fields";
 import InlineMessage from "../components/inline-message";
@@ -34,10 +34,9 @@ export const drawAttentionProjectScope = () => {
 };
 
 export default function ProjectModal() {
-  const { userId, version } = useParams();
+  const { userId } = useParams();
   const { userId: currentUserId, membership } = useAuth()!;
   const isOwner = currentUserId === userId;
-  const readOnly = !isOwner || scopePrivateNoPlan.value || version !== "dev";
   const scope = project.value!.scope || "public";
 
   const [error, setError] = React.useState<string | null>(null);
