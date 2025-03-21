@@ -54,7 +54,6 @@ export default function ProjectModal() {
   }, [project.value]);
 
   const hasValueTitleChanged = title !== initialTitleRef.current;
-  const hasValueScopeChanges = scope !== initialScopeRef.current;
 
   const handleClose = () => {
     projectModalVisible.value = false;
@@ -98,7 +97,7 @@ export default function ProjectModal() {
           <div className="flex flex-col gap-2 mb-4">
             <form onSubmit={handleSubmitTitle}>
               <TextAreaField
-                disabled={false}
+                disabled={!isOwner}
                 name="title"
                 label="Project Title"
                 value={title}
@@ -106,7 +105,7 @@ export default function ProjectModal() {
                 className=""
               />
               <div className="flex justify-center mb-2">
-                <SubmitField name="saveTitle" label="Save" disabled={!hasValueTitleChanged} />
+                <SubmitField name="saveTitle" label="Save" disabled={!isOwner || !hasValueTitleChanged} />
               </div>
             </form>
           </div>
@@ -127,7 +126,10 @@ export default function ProjectModal() {
                   id="projectScope"
                   type="button"
                   onClick={() => setShowConfirmDialog(true)}
-                  className="px-3 py-1 text-sm rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                  disabled={!isOwner}
+                  className={`px-3 py-1 text-sm rounded transition-colors ${
+                    isOwner ? "bg-zinc-700 hover:bg-zinc-600" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                  }`}
                 >
                   Change to {scope === "private" ? "public" : "private"}
                 </button>
@@ -164,7 +166,10 @@ export default function ProjectModal() {
                         handleChangeProjectScope();
                         setShowConfirmDialog(false);
                       }}
-                      className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700"
+                      disabled={!isOwner}
+                      className={`px-3 py-1 rounded ${
+                        isOwner ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-800 text-blue-300 cursor-not-allowed"
+                      }`}
                     >
                       {isChangingScope
                         ? "Changing scope..."
