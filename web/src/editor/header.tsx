@@ -289,7 +289,7 @@ export default function Header({ showReadOnlyWarning, userId, projectId, version
             Share
           </button>
         )}
-        {isExampleUser && <IconButton name="cog" onClick={() => (projectModalVisible.value = true)} />}
+        <IconButton name="cog" onClick={() => (projectModalVisible.value = true)} />
         <UserMenu />
       </div>
     </div>

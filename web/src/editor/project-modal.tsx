@@ -4,25 +4,15 @@ import Icon from "../components/icon";
 import {
   project,
   projectModalVisible,
-  publishProject,
-  setProjectDescription,
+  setProjectTitle,
   setProjectScope,
-  exportAllExampleNetworks,
   scopePrivateNoPlan,
 } from "./signals";
 import FullscreenModal from "../components/fullscreen-modal";
 import { SubmitField, TextAreaField } from "../components/fields";
 import InlineMessage from "../components/inline-message";
-import { sleep } from "../util";
 import { useParams } from "wouter";
 
-enum PublishState {
-  Publish = "Publish",
-  RePublish = "Re-Publish",
-  Publishing = "Publishing...",
-  Published = "Published",
-  Error = "Error",
-}
 
 const drawAttention = (element: HTMLElement) => {
   element.animate(
@@ -53,34 +43,33 @@ export const drawAttentionProjectScope = () => {
 export default function ProjectModal() {
   const { userId, version } = useParams();
   const { userId: currentUserId, membership } = useAuth()!;
-  const readOnly = currentUserId !== userId || scopePrivateNoPlan.value || version !== "dev";
+  const isOwner = currentUserId === userId;
+  const readOnly = !isOwner || scopePrivateNoPlan.value || version !== "dev";
 
   const [error, setError] = React.useState<string | null>(null);
-  const [publishState, setPublishState] = React.useState<PublishState>(
-    project.value?.isPublished === true ? PublishState.RePublish : PublishState.Publish,
-  );
-  const [description, setDescription] = useState(project.value!.description || "");
+  const [title, setTitle] = useState(project.value!.title || "");
   const [scope, setScope] = useState(project.value!.scope || "public");
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
-  const initialDescriptionRef = useRef(description);
+  const initialTitleRef = useRef(title);
   const initialScopeRef = useRef(scope);
 
   useEffect(() => {
-    initialDescriptionRef.current = project.value!.description || "";
+    initialTitleRef.current = project.value!.title || "";
     initialScopeRef.current = project.value!.scope || "public";
   }, [project.value]);
 
-  const hasValueDescriptionChanged = description !== initialDescriptionRef.current;
+  const hasValueTitleChanged = title !== initialTitleRef.current;
   const hasValueScopeChanges = scope !== initialScopeRef.current;
 
   const handleClose = () => {
     projectModalVisible.value = false;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmitTitle = (e: FormEvent) => {
     e.preventDefault();
     try {
-      setProjectDescription(description);
+      setProjectTitle(title);
       handleClose();
     } catch (err) {
       console.error(err);
@@ -88,36 +77,16 @@ export default function ProjectModal() {
     }
   };
 
-  const handleSubmitScope = (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmitScope = (e?: FormEvent) => {
+    if (e) e.preventDefault();
     try {
       setProjectScope(scope);
-      handleClose();
     } catch (err) {
       console.error(err);
       setError((err as Error)?.message);
     }
   };
 
-  const handlePublish = async () => {
-    if (publishState !== PublishState.Publish && publishState !== PublishState.RePublish) return;
-    setPublishState(PublishState.Publishing);
-    try {
-      await publishProject();
-      if (userId === "example") {
-        await exportAllExampleNetworks();
-      }
-      setPublishState(PublishState.Published);
-      await sleep(2000);
-      setPublishState(PublishState.RePublish);
-    } catch (err) {
-      setPublishState(PublishState.Error);
-      console.error(err);
-      setError((err as Error)?.message);
-      await sleep(3000);
-      setPublishState(PublishState.Publish);
-    }
-  };
   return (
     <FullscreenModal style={{ width: "min(90vw, 750px)" }} onClose={handleClose}>
       <main className="flex flex-row h-full w-full relative">
@@ -127,98 +96,92 @@ export default function ProjectModal() {
         <div className="modal-content flex-1 bg-zinc-900 px-8">
           <h1 className="mt-2 mb-6 font-bold text-sm">Project Settings</h1>
           {error && <InlineMessage key={Date.now()}>{error}</InlineMessage>}
-          <div className="flex flex-col gap-2 mb-2 p-4 border rounded-sm border-zinc-600">
-            {userId === "example" ||
-            (membership.membership_type === "plus" && userId === currentUserId && (version || "dev") === "dev") ? (
-              <>
-                <div className="flex justify-start px-2">
-                  {publishState === PublishState.RePublish && (
-                    <div className="flex justify-between">
-                      The published version can be found&nbsp;
-                      <b>
-                        <u>
-                          <a href={`/${userId}/${project.value!.id}/published`}>here</a>
-                        </u>
-                      </b>
-                      .
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-end px-2">
-                  <button
-                    className="text-xs bg-green-500 text-white px-2 py-1 rounded"
-                    onClick={handlePublish}
-                    disabled={publishState !== PublishState.Publish && publishState !== PublishState.RePublish}
-                  >
-                    {publishState as string}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                {userId !== currentUserId ? (
-                  <div className="text-zinc-600">You can only publish your own projects.</div>
-                ) : (
-                  <div>
-                    Publishing projects is a premium feature. Click{" "}
-                    <u>
-                      <b>
-                        <a href="/membership" target="_blank" rel="noopener noreferrer">
-                          here
-                        </a>
-                      </b>
-                    </u>{" "}
-                    for more details (opens in new window).
-                  </div>
-                )}
-              </>
-            )}
-          </div>
 
-          <div className="flex flex-col gap-2 mb-2 p-4 border rounded-sm border-zinc-600">
-            <form onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-2 mb-4">
+            <h2 className="text-sm font-bold mb-1">Project Title</h2>
+            <form onSubmit={handleSubmitTitle}>
               <TextAreaField
-                disabled={readOnly}
-                name="description"
-                label="Description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className={readOnly ? "disabled-textarea" : ""}
+                disabled={false}
+                name="title"
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className=""
               />
               <div className="flex justify-center mb-2">
-                <SubmitField name="save" label="Save" disabled={readOnly || !hasValueDescriptionChanged} />
+                <SubmitField name="saveTitle" label="Save" disabled={!hasValueTitleChanged} />
               </div>
             </form>
           </div>
-          {
-            <div className="flex flex-col gap-2 mb-4 p-4 border rounded-sm border-zinc-600">
-              <div>
-                <form>
-                  <button
-                    id="projectScope"
-                    type="button"
-                    disabled={membership.membership_type !== "plus"}
-                    onClick={() => {
-                      const toggle = scope === "private" ? "public" : "private";
-                      setScope(toggle);
-                    }}
-                    className="flex items-center gap-2 px-3 py-1 text-sm rounded hover:bg-zinc-700 transition-colors"
-                  >
-                    <Icon name={scope === "private" ? "lock" : "unlock"} size={24} />
-                    <span>{scope.charAt(0).toUpperCase() + scope.slice(1)}</span>
-                  </button>
-                </form>
+          <div className="flex flex-col gap-2 mb-4">
+            <h2 className="text-sm font-bold mb-1">Project Visibility</h2>
+            <div className="flex items-center bg-zinc-800 rounded-md p-3 mb-2">
+              <div className="flex items-center flex-1">
+                <Icon name={scope === "private" ? "lock" : "unlock"} size={24} className="mr-2" />
+                <div>
+                  <p className="font-medium">
+                    {scope === "private" ? "Private" : "Public"}
+                  </p>
+                  <p className="text-xs text-zinc-400">
+                    {scope === "private" 
+                      ? "Only you can see this project" 
+                      : "Anyone can see this project"}
+                  </p>
+                </div>
               </div>
-              <div className="flex justify-center mb-2">
-                <SubmitField
-                  name="confirm"
-                  label="Confirm"
-                  onClick={handleSubmitScope}
-                  disabled={!hasValueScopeChanges || membership.membership_type === "plus" || scopePrivateNoPlan.value}
-                />
-              </div>
+              {membership.membership_type === "plus" && (
+                <button
+                  id="projectScope"
+                  type="button"
+                  onClick={() => setShowConfirmDialog(true)}
+                  className="px-3 py-1 text-sm rounded bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                >
+                  Change to {scope === "private" ? "Public" : "Private"}
+                </button>
+              )}
             </div>
-          }
+            
+            {membership.membership_type !== "plus" && (
+              <p className="text-xs text-zinc-400 mb-2">
+                Plus members can switch between private and public projects. 
+                <a href="/membership" className="text-blue-400 ml-1 hover:underline">
+                  Upgrade to Plus
+                </a>
+              </p>
+            )}
+            
+            {showConfirmDialog && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-zinc-800 p-4 rounded-md max-w-md">
+                  <h3 className="font-bold mb-2">Change visibility to {scope === "private" ? "public" : "private"}?</h3>
+                  <p className="mb-4 text-sm">
+                    {scope === "private" 
+                      ? "This will make your project visible to anyone with the link. Are you sure?"
+                      : "This will make your project private and only visible to you. Are you sure?"}
+                  </p>
+                  <div className="flex justify-end gap-2">
+                    <button 
+                      onClick={() => setShowConfirmDialog(false)}
+                      className="px-3 py-1 rounded bg-zinc-700 hover:bg-zinc-600"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => {
+                        const toggle = scope === "private" ? "public" : "private";
+                        setScope(toggle);
+                        setShowConfirmDialog(false);
+                        handleSubmitScope();
+                      }}
+                      className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700"
+                    >
+                      Change to {scope === "private" ? "Public" : "Private"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
     </FullscreenModal>
