@@ -58,7 +58,6 @@ export default function Header({ showReadOnlyWarning, userId, projectId, version
   const [originalTitle, setOriginalTitle] = useState<string>(project.value?.title || "Untitled");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const isExampleUser = userId === "example" && currentUserId === "example";
 
   const lastUndoChangeType = computed(() =>
     undoStack.value.length > 0 ? "undo: " + undoStack.value[undoStack.value.length - 1].changeType : "",
