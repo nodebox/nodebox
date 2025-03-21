@@ -256,7 +256,7 @@ export default function Header({ showReadOnlyWarning, userId, projectId, version
       <div className="flex">
         {showScope && (
           <div className="mr-2">
-            <Icon name={(project.value?.scope?.toString() ?? "public") === "private" ? "lock" : "unlock"} size={16} />
+            {project.value?.scope?.toString() === "private" ? <Icon name="lock" size={16} /> : null}
           </div>
         )}
         <div className="project-title text-xs cursor-text" onClick={handleClickTitle}>

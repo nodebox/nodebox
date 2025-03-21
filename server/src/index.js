@@ -500,12 +500,13 @@ app.head("/api/projects/:userId/:projectId", async (req, res) => {
     error(res, "Project not found", 404);
   }
 });
+
 // Update scope in profile overview
 app.post("/api/set-scope/:userId/:projectId", checkOwnershipFromParam, async (req, res) => {
   const userId = req.params.userId;
   const projectId = req.params.projectId;
   const body = req.body;
-  //Overrule scope if membership has expired through token.
+  // Overrule scope if membership has expired through token.
   if (req._membership?.membership_until) {
     const today = new Date();
     const membershipUntil = new Date(req._membership.membership_until);
