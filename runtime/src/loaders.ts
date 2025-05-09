@@ -14,10 +14,17 @@ import {
 import Context from "./context";
 import RuntimeNode, { defaultValueForType, defaultWidgetForType } from "./runtime-node";
 import { updateFormatVersion } from "./upgrades";
-import { startCase } from "./string-utils";
+import { evalTemplate, startCase } from "./string-utils";
 import { findNodeStatements } from "./lexer";
 
-export async function apiRequestGet(url: string) {
+interface LoadResult {
+  status: "ok" | "error";
+  message?: string;
+  assetsRoot?: string;
+  project?: Project;
+}
+
+export async function loadProjectThroughApi(url: string): Promise<LoadResult> {
   const token = localStorage.getItem("token");
   const response = await fetch(url, {
     method: "GET",
@@ -44,12 +51,42 @@ export async function apiRequestGet(url: string) {
   }
 }
 
+export async function loadProjectDirectly(url: string): Promise<LoadResult> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      try {
+        const errBody = await response.json();
+        return {
+          status: "error",
+          message: errBody?.message || response.statusText,
+        };
+      } catch {
+        return { status: "error", message: response.statusText };
+      }
+    }
+    try {
+      const data = await response.json();
+      return { status: "ok", project: data };
+    } catch (e: any) {
+      return {
+        status: "error",
+        message: "Failed to parse JSON: " + String(e),
+      };
+    }
+  } catch (e: any) {
+    return { status: "error", message: String(e) };
+  }
+}
+
 export const CURRENT_FORMAT_VERSION = 1;
 
 const envType = typeof window === "undefined" ? "node" : "browser";
 
 export const config = {
   apiRoot: "https://new.nodebox.live",
+  publishedUrlTemplate:
+    "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json",
   // Note that the assetsRoot will be set whenever a project is requested,
   // as the server will return the correct assetsRoot URL for the user's assets.
   assetsRoot: "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users",
@@ -84,13 +121,22 @@ async function loadProject(
   if (loader.projectMap.has(projectKey)) {
     return loader.projectMap.get(projectKey)!;
   }
-  const projectUrl = `${config.apiRoot}/api/projects/${userId}/${projectId}/${version}`;
-  const result = await apiRequestGet(projectUrl);
+  let result: LoadResult;
+  if (version !== "published") {
+    // If it's not a published project, we're going through the API
+    const projectUrl = `${config.apiRoot}/api/projects/${userId}/${projectId}/${version}`;
+    result = await loadProjectThroughApi(projectUrl);
+  } else {
+    // If it is a published project, we'll use the publishedRoot prefix.
+    // Note that this is not an API call! We'll just receive the project.json, so we can't check `result.status`.
+    const projectUrl = evalTemplate(config.publishedUrlTemplate, { userId, projectId });
+    result = await loadProjectDirectly(projectUrl);
+  }
   if (result.status !== "ok") {
     throw new Error(`Error loading project '${userId}/${projectId}': ${result.message}`);
   }
   config.assetsRoot = result.assetsRoot || config.assetsRoot;
-  const project: Project = result.project;
+  const project: Project = result.project!;
   if (project === undefined) {
     throw new Error(`Failed to load project ${userId}/${projectId}@${version}: ${result.message}`);
   }
