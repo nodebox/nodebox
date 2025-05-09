@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { loadMainProject } from "./loaders";
+import { loadMainProject, config } from "./loaders";
 import Context from "./context";
 import { Item, Network, Node, LiteralValue } from "./types";
 
@@ -20,6 +20,9 @@ interface PlayerProps {
   version?: string;
   item?: string;
   values?: Record<string, LiteralValue>;
+  apiRoot?: string;
+  publishedUrlTemplate?: string;
+  assetsUrlTemplate?: string;
   onProjectLoaded?: (context: Context) => void;
   onProjectError?: (message: string) => void;
 }
@@ -30,6 +33,9 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
   version,
   item,
   values,
+  apiRoot,
+  publishedUrlTemplate,
+  assetsUrlTemplate,
   onProjectLoaded,
   onProjectError,
 }) => {
@@ -39,6 +45,11 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
 
   useEffect(() => {
     (async () => {
+      // Apply custom configuration values if provided
+      if (apiRoot !== undefined) config.apiRoot = apiRoot;
+      if (publishedUrlTemplate !== undefined) config.publishedUrlTemplate = publishedUrlTemplate;
+      if (assetsUrlTemplate !== undefined) config.assetsUrlTemplate = assetsUrlTemplate;
+
       let cx;
       try {
         cx = await loadMainProject(userId, projectId, version || "published");
@@ -72,7 +83,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
         onProjectLoaded(cx);
       }
     })();
-  }, [userId, projectId, item, version]);
+  }, [userId, projectId, item, version, apiRoot, publishedUrlTemplate, assetsUrlTemplate]);
 
   useEffect(() => {
     (async () => {
