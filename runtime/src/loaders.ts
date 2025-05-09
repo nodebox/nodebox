@@ -20,7 +20,7 @@ import { findNodeStatements } from "./lexer";
 interface LoadResult {
   status: "ok" | "error";
   message?: string;
-  assetsRoot?: string;
+  assetsUrlTemplate?: string;
   project?: Project;
 }
 
@@ -87,9 +87,8 @@ export const config = {
   apiRoot: "https://new.nodebox.live",
   publishedUrlTemplate:
     "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json",
-  // Note that the assetsRoot will be set whenever a project is requested,
-  // as the server will return the correct assetsRoot URL for the user's assets.
-  assetsRoot: "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users",
+  // Template for asset URLs
+  assetsUrlTemplate: "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
   // Used to replace @ndbx/g with https://esm.sh/@ndbx/g
   bareImportReplacer: (name: string) => `https://esm.sh/${name}`,
 };
@@ -135,7 +134,9 @@ async function loadProject(
   if (result.status !== "ok") {
     throw new Error(`Error loading project '${userId}/${projectId}': ${result.message}`);
   }
-  config.assetsRoot = result.assetsRoot || config.assetsRoot;
+  if (result.assetsUrlTemplate) {
+    config.assetsUrlTemplate = result.assetsUrlTemplate;
+  }
   const project: Project = result.project!;
   if (project === undefined) {
     throw new Error(`Failed to load project ${userId}/${projectId}@${version}: ${result.message}`);
@@ -340,7 +341,7 @@ const TEXT_BASED_FILE_EXTENSIONS = new Set([
 ]);
 
 function assetUrl(userId: string, projectId: string, hash: string): string {
-  return `${config.assetsRoot}/${userId}/${projectId}/blobs/${hash}`;
+  return evalTemplate(config.assetsUrlTemplate, { userId, projectId, hash });
 }
 
 export async function loadAsset(cx: Context, userId: string, projectId: string, filename: string): Promise<any> {

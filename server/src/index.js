@@ -562,7 +562,7 @@ app.get("/api/projects/:userId/:projectId/:version", getOwnershipFromParam, asyn
       error(res, "Project not accesible");
       return;
     }
-    success(res, { assetsRoot: store.assetsRoot(), project });
+    success(res, { assetsUrlTemplate: store.assetsUrlTemplate(), project });
   } catch (e) {
     error(res, e.message, 404);
   }

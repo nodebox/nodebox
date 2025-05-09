@@ -387,8 +387,8 @@ export function assetsPath(userId, projectId, assetId) {
   return path.join(DATA_ROOT, userId, projectId, "blobs", assetId);
 }
 
-export function assetsRoot() {
-  return "/api/assets";
+export function assetsUrlTemplate() {
+  return "/api/assets/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
 }
 
 export function loadAsset(userId, projectId, assetId) {

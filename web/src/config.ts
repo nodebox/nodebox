@@ -1,10 +1,10 @@
 export let apiRoot: string;
-export let assetsRoot: string;
+export let assetsUrlTemplate: string;
 
 if (import.meta.env.PROD) {
   apiRoot = "";
-  assetsRoot = "https://nodeboxlive.s3.amazonaws.com";
+  assetsUrlTemplate = "https://nodeboxlive.s3.amazonaws.com/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
 } else {
   apiRoot = "";
-  assetsRoot = "https://nodeboxtest.s3.amazonaws.com";
+  assetsUrlTemplate = "https://nodeboxtest.s3.amazonaws.com/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
 }

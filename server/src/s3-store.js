@@ -513,8 +513,8 @@ export function assetsPath(userId, projectId, assetId) {
   return `users/${userId}/${projectId}/blobs/${assetId}`;
 }
 
-export function assetsRoot() {
-  return AWS_S3_ASSETS_URL;
+export function assetsUrlTemplate() {
+  return `${AWS_S3_ASSETS_URL}/{{ userId }}/{{ projectId }}/blobs/{{ hash }}`;
 }
 
 export async function loadAsset(userId, projectId, assetId) {
