@@ -6,6 +6,14 @@ import { globSync } from "glob";
 import fs from "fs";
 import path from "path";
 
+function ensureDirectory(...segments) {
+  const dir = path.join(...segments);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+
 const functionsToJSON = () => {
   return {
     name: "functions-to-json",
@@ -32,12 +40,12 @@ const functionsToJSON = () => {
             const source = fs.readFileSync(file, "utf-8");
             project.items.push({ type: "FUNCTION", id: `0:${id++}`, name, source });
           });
-        const projectDirectory = path.join("..", "server", "data", "core", projectName);
-        if (!fs.existsSync(projectDirectory)) {
-          fs.mkdirSync(projectDirectory, { recursive: true });
-        }
+        const projectDirectory = ensureDirectory("..", "server", "data", "core", projectName);
         const projectFile = path.join(projectDirectory, "project.json");
         fs.writeFileSync(projectFile, JSON.stringify(project, null, 2));
+        const publishedDirectory = ensureDirectory("..", "server", "data", "core", projectName, "versions");
+        const publishedProjectFile = path.join(publishedDirectory, "published.json");
+        fs.writeFileSync(publishedProjectFile, JSON.stringify(project, null, 2));
       }
 
       generateProject("g");
