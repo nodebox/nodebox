@@ -25,6 +25,8 @@ async function copyToS3(filePath) {
     Bucket: process.env.AWS_S3_BUCKET,
     Key: `users/${filePath}`,
     Body: fileStream,
+    // Make files in published directories publicly readable
+    ACL: filePath.includes("published") ? "public-read" : undefined,
   };
 
   try {
