@@ -1,10 +1,11 @@
-export let apiRoot: string;
-export let assetsUrlTemplate: string;
+import { config } from "@ndbx/runtime";
 
-if (import.meta.env.PROD) {
-  apiRoot = "";
-  assetsUrlTemplate = "https://nodeboxlive.s3.amazonaws.com/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
-} else {
-  apiRoot = "";
-  assetsUrlTemplate = "https://nodeboxtest.s3.amazonaws.com/{{ userId }}/{{ projectId }}/blobs/{{ hash }}";
+if (import.meta.env.DEV) {
+  config.apiRoot = document.location.origin;
+  config.publishedUrlTemplate = "/api/published/{{ userId }}/{{ projectId }}";
+  config.assetsUrlTemplate = "/api/projects/{{ userId }}/{{ projectId }}/{{ version }}/assets/{{ hash }}";
+  config.bareImportReplacer = (name: string) => import.meta.resolve(name);
 }
+
+export let apiRoot: string = config.apiRoot;
+export let assetsUrlTemplate: string = config.assetsUrlTemplate;

@@ -7,7 +7,6 @@ import { produce } from "immer";
 import { Context as GraphicsContext, Shape, CanvasSize, Bounds } from "@ndbx/g";
 import {
   Color,
-  config,
   Context,
   Project,
   Network,
@@ -43,11 +42,6 @@ import { debounce } from "../util";
 import { checkFunctionId } from "@ndbx/runtime/src/identifiers";
 import { colorIsTransparent, colorToCss } from "../lib/color-utils";
 import Markdown from "react-markdown";
-
-if (import.meta.env.DEV) {
-  config.apiRoot = document.location.origin;
-  config.bareImportReplacer = (name: string) => import.meta.resolve(name);
-}
 
 export async function apiRequest(
   url: string,
