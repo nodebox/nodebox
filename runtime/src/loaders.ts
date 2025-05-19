@@ -88,7 +88,8 @@ export const config = {
   publishedUrlTemplate:
     "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json",
   // Template for asset URLs
-  assetsUrlTemplate: "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
+  assetsUrlTemplate:
+    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
   // Used to replace @ndbx/g with https://esm.sh/@ndbx/g
   bareImportReplacer: (name: string) => `https://esm.sh/${name}`,
 };
@@ -400,8 +401,8 @@ function loadDependencies(project: Project, loader: ProjectLoader) {
   if (project === undefined) return;
   const loaders = Object.keys(project.dependencies).map((key) => {
     const [userId, projectId] = key.split("/");
-    const version = project.dependencies[key];
-    return loadProject(userId, projectId, version, loader);
+    // Dependencies always load the published version of the project
+    return loadProject(userId, projectId, "published", loader);
   });
   return Promise.all(loaders);
 }
