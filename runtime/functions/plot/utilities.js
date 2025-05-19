@@ -46,7 +46,7 @@ import {
   geoTransverseMercator,
   geoNaturalEarth1,
 } from "https://esm.sh/d3-geo@3.1.1";
-import proj4 from "https://esm.sh/proj4@2";
+import proj4 from "https://esm.sh/proj4@2.15.0";
 
 /*
 -------- GENERAL FUNCTIONS --------
