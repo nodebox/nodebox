@@ -545,6 +545,7 @@ app.post("/api/set-project-color/:userId/:projectId", checkOwnershipFromParam, a
     error(res, e.message);
   }
 });
+
 // Load project
 app.get("/api/projects/:userId/:projectId/:version", getOwnershipFromParam, async (req, res) => {
   const userId = req.params.userId;
@@ -563,6 +564,19 @@ app.get("/api/projects/:userId/:projectId/:version", getOwnershipFromParam, asyn
       return;
     }
     success(res, { assetsUrlTemplate: store.assetsUrlTemplate(), project });
+  } catch (e) {
+    error(res, e.message, 404);
+  }
+});
+
+// Load published project directly
+app.get("/api/published/:userId/:projectId", async (req, res) => {
+  const userId = req.params.userId;
+  const projectId = req.params.projectId;
+  try {
+    const project = await store.loadProject(userId, projectId, "published");
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(project));
   } catch (e) {
     error(res, e.message, 404);
   }
