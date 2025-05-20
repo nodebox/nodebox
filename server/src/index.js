@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import archiver from "archiver";
 import jwt from "jsonwebtoken";
 import path from "path";
 import fs from "fs";
@@ -768,6 +769,111 @@ app.get("/api/fn/:userId/:projectId/:functionName", async (req, res) => {
     return res.end(item.source);
   } catch (e) {
     error(res, e.message);
+  }
+});
+
+// Download a ZIP file containing all files to self-host a project.
+// This includes the "core" user's published and lib directories, as well as the "version" directory of the given userId/projectId.
+app.get("/api/download-published/:userId/:projectId", async (req, res) => {
+  const userId = req.params.userId;
+  const projectId = req.params.projectId;
+  const archive = archiver("zip", {
+    zlib: { level: 9 },
+  });
+
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", `attachment; filename="${userId}-${projectId}-project.zip"`);
+
+  archive.on("warning", function (err) {
+    if (err.code === "ENOENT") {
+      console.warn("Archiver warning: ", err);
+    } else {
+      error(res, err.message);
+    }
+  });
+
+  archive.on("error", function (err) {
+    error(res, err.message);
+  });
+
+  archive.pipe(res);
+
+  try {
+    // 1. Load the main project
+    const mainProject = await store.loadProject(userId, projectId, "published");
+    archive.append(JSON.stringify(mainProject, null, 2), { name: `${userId}/${projectId}/versions/published.json` });
+
+    // 2. Process assets for the main project
+    if (mainProject.assets) {
+      for (const [filename, assetId] of Object.entries(mainProject.assets)) {
+        try {
+          const assetData = await store.loadAsset(userId, projectId, assetId);
+          archive.append(assetData, { name: `${userId}/${projectId}/blobs/${filename}` });
+        } catch (e) {
+          console.warn(`Failed to load asset ${assetId} for ${userId}/${projectId}: ${e.message}`);
+          archive.append(`Error loading asset: ${e.message}`, {
+            name: `${userId}/${projectId}/blobs/${filename}.error.txt`,
+          });
+        }
+      }
+    }
+
+    // 3. Process dependencies
+    const processedDependencies = new Set(); // To avoid processing the same dependency multiple times
+    if (mainProject.dependencies) {
+      for (const depKey of Object.keys(mainProject.dependencies)) {
+        if (processedDependencies.has(depKey)) {
+          continue;
+        }
+        processedDependencies.add(depKey);
+
+        const [depUserId, depProjectId] = depKey.split("/");
+        if (!depUserId || !depProjectId) {
+          console.warn(`Invalid dependency key: ${depKey}`);
+          continue;
+        }
+
+        try {
+          const depProject = await store.loadProject(depUserId, depProjectId, "published");
+          archive.append(JSON.stringify(depProject, null, 2), {
+            name: `${depUserId}/${depProjectId}/versions/published.json`,
+          });
+
+          // 4. Handle Utilities for core/g and core/plot
+          if ((depUserId === "core" && depProjectId === "g") || (depUserId === "core" && depProjectId === "plot")) {
+            const utilitiesItem = depProject.items?.find((item) => item.name === "Utilities");
+            if (utilitiesItem && utilitiesItem.source) {
+              archive.append(utilitiesItem.source, { name: `${depUserId}/${depProjectId}/lib/utilities.js` });
+            } else {
+              console.warn(`Utilities not found or no source for ${depKey}`);
+              archive.append(`Utilities not found for ${depKey}`, {
+                name: `${depUserId}/${depProjectId}/lib/utilities.notfound.txt`,
+              });
+            }
+          }
+        } catch (e) {
+          console.warn(`Failed to load dependency project ${depKey}: ${e.message}`);
+          archive.append(`Error loading dependency ${depKey}: ${e.message}`, {
+            name: `${depUserId}/${depProjectId}/versions/published.error.txt`,
+          });
+        }
+      }
+    }
+
+    await archive.finalize();
+  } catch (e) {
+    console.error(`Error creating ZIP for ${userId}/${projectId}:`, e);
+    // Ensure archive doesn't keep res hanging if finalize wasn't called or if it's an early error
+    if (!archive.pointer() === 0 || !res.headersSent) {
+      // A bit simplistic, but tries to catch unfinalized archives
+      archive.abort();
+      error(res, `Failed to generate project ZIP: ${e.message}`);
+    } else if (!res.headersSent) {
+      // If headers haven't been sent, we can still send a proper error response.
+      error(res, `Failed to generate project ZIP: ${e.message}`);
+    }
+    // If headers were already sent, Express will close the connection.
+    // Logging the error is important for server-side diagnostics.
   }
 });
 
