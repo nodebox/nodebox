@@ -83,7 +83,17 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
         onProjectLoaded(cx);
       }
     })();
-  }, [userId, projectId, item, version, apiRoot, publishedUrlTemplate, assetsUrlTemplate]);
+  }, [
+    userId,
+    projectId,
+    item,
+    version,
+    apiRoot,
+    publishedUrlTemplate,
+    assetsUrlTemplate,
+    onProjectLoaded,
+    onProjectError,
+  ]);
 
   useEffect(() => {
     (async () => {
@@ -123,7 +133,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
         }
       }
     })();
-  }, [activeItem, values]);
+  }, [activeItem, values, onProjectError]);
 
   let shape = null;
   let shapeElement = null;

@@ -46,6 +46,9 @@ const functionsToJSON = () => {
         const publishedDirectory = ensureDirectory("..", "server", "data", "core", projectName, "versions");
         const publishedProjectFile = path.join(publishedDirectory, "published.json");
         fs.writeFileSync(publishedProjectFile, JSON.stringify(project, null, 2));
+        const libDirectory = ensureDirectory("..", "server", "data", "core", projectName, "lib");
+        const utilitySource = fs.readFileSync(path.resolve("functions", projectName, "utilities.js"));
+        fs.writeFileSync(path.join(libDirectory, "utilities.js"), utilitySource);
       }
 
       generateProject("g");

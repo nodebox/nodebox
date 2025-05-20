@@ -726,6 +726,29 @@ app.delete("/api/assets/:userId/:projectId/:assetId", checkOwnershipFromParam, a
   }
 });
 
+app.get("/api/fn/:userId/:projectId/:filename.js", async (req, res) => {
+  const { userId, projectId, filename } = req.params;
+  const functionName = filename.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+  console.log(filename, functionName);
+  try {
+    const project = await store.loadProject(userId, projectId);
+    const item = project.items?.find((item) => item.name === functionName);
+    if (!item || item.type !== "FUNCTION") {
+      const items = project.items?.map((item) => item.name).join(", ");
+      res.header("Content-Type", "application/javascript");
+      return res
+        .status(404)
+        .send(
+          `// The function "${functionName}" does not exist in the project.\n// Valid functions are: ${items}\n// Use like this:\n//\n//   import { myHelperFunction } from "project:MyFunction";\n`,
+        );
+    }
+    res.header("Content-Type", "application/javascript");
+    return res.end(item.source);
+  } catch (e) {
+    error(res, e.message);
+  }
+});
+
 // Load a function as a JavaScript module
 // This is used by the web app for dynamic imports
 app.get("/api/fn/:userId/:projectId/:functionName", async (req, res) => {

@@ -90,6 +90,9 @@ export const config = {
   // Template for asset URLs
   assetsUrlTemplate:
     "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
+  // Template for library URLs
+  libUrlTemplate:
+    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/libs/{{ file }}.js",
   // Used to replace @ndbx/g with https://esm.sh/@ndbx/g
   bareImportReplacer: (name: string) => `https://esm.sh/${name}`,
 };
@@ -498,7 +501,9 @@ function fixupSource(source: string, itemKey: string) {
     projectId = document.location.pathname.split("/")[2];
   }
   const regex = /from "project:(.*?)"/g;
-  source = source.replace(regex, `from "${config.apiRoot}/api/fn/${userId}/${projectId}/$1"`);
+  const libraryName = regex.exec(source)![1].toLowerCase().replaceAll(" ", "-");
+  const libUrl = evalTemplate(config.libUrlTemplate, { userId, projectId, file: libraryName });
+  source = source.replace(regex, `from "${libUrl}"`);
   return source;
 }
 

@@ -4,6 +4,7 @@ if (import.meta.env.DEV) {
   config.apiRoot = document.location.origin;
   config.publishedUrlTemplate = "/api/published/{{ userId }}/{{ projectId }}";
   config.assetsUrlTemplate = "/api/projects/{{ userId }}/{{ projectId }}/{{ version }}/assets/{{ hash }}";
+  config.libUrlTemplate = `${document.location.origin}/api/fn/{{ userId }}/{{ projectId }}/{{ file }}.js`;
   config.bareImportReplacer = (name: string) => import.meta.resolve(name);
 }
 
