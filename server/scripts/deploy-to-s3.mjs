@@ -27,6 +27,7 @@ async function copyToS3(filePath) {
     Body: fileStream,
     // Make files in "lib" and "published" directories publicly readable
     ACL: filePath.includes("published") || filePath.includes("lib") ? "public-read" : undefined,
+    ContentType: filePath.endsWith(".js") ? "application/javascript" : undefined,
   };
 
   try {
