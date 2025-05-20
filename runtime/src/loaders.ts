@@ -92,7 +92,7 @@ export const config = {
     "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/blobs/{{ hash }}",
   // Template for library URLs
   libUrlTemplate:
-    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/libs/{{ file }}.js",
+    "https://nodeboxlive.ams3.cdn.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/lib/{{ file }}.js",
   // Used to replace @ndbx/g with https://esm.sh/@ndbx/g
   bareImportReplacer: (name: string) => `https://esm.sh/${name}`,
 };

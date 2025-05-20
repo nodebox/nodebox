@@ -23,6 +23,7 @@ interface PlayerProps {
   apiRoot?: string;
   publishedUrlTemplate?: string;
   assetsUrlTemplate?: string;
+  libUrlTemplate?: string;
   onProjectLoaded?: (context: Context) => void;
   onProjectError?: (message: string) => void;
 }
@@ -36,6 +37,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
   apiRoot,
   publishedUrlTemplate,
   assetsUrlTemplate,
+  libUrlTemplate,
   onProjectLoaded,
   onProjectError,
 }) => {
@@ -49,6 +51,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
       if (apiRoot !== undefined) config.apiRoot = apiRoot;
       if (publishedUrlTemplate !== undefined) config.publishedUrlTemplate = publishedUrlTemplate;
       if (assetsUrlTemplate !== undefined) config.assetsUrlTemplate = assetsUrlTemplate;
+      if (libUrlTemplate !== undefined) config.libUrlTemplate = libUrlTemplate;
 
       let cx;
       try {
@@ -91,6 +94,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
     apiRoot,
     publishedUrlTemplate,
     assetsUrlTemplate,
+    libUrlTemplate,
     onProjectLoaded,
     onProjectError,
   ]);
