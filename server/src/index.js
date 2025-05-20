@@ -729,7 +729,6 @@ app.delete("/api/assets/:userId/:projectId/:assetId", checkOwnershipFromParam, a
 app.get("/api/fn/:userId/:projectId/:filename.js", async (req, res) => {
   const { userId, projectId, filename } = req.params;
   const functionName = filename.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-  console.log(filename, functionName);
   try {
     const project = await store.loadProject(userId, projectId);
     const item = project.items?.find((item) => item.name === functionName);
