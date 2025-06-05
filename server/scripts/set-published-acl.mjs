@@ -39,7 +39,7 @@ async function setObjectAcl(key) {
         Bucket: AWS_S3_BUCKET,
         Key: key,
         ACL: "public-read",
-      })
+      }),
     );
     console.log(`Set ACL to public-read for: ${key}`);
   } catch (err) {
@@ -47,7 +47,11 @@ async function setObjectAcl(key) {
   }
 }
 
-console.log(isDryRun ? "Running in DRY RUN mode - no changes will be made" : "Setting ACL to public-read for all published.json files");
+console.log(
+  isDryRun
+    ? "Running in DRY RUN mode - no changes will be made"
+    : "Setting ACL to public-read for all published.json files",
+);
 console.log();
 
 const userIds = await s3Store.listRootDir();
@@ -58,7 +62,7 @@ for (const userId of userIds) {
   const projectDetails = await s3Store.listProjects(userId);
   for (const projectDetail of projectDetails) {
     const projectId = projectDetail.id;
-    
+
     try {
       // Check if published version exists
       const publishedExists = await s3Store.projectExists(userId, projectId, "published");

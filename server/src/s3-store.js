@@ -293,11 +293,11 @@ export async function saveProject(userId, projectId, project, version = "dev") {
     Key: projectPath,
     Body: JSON.stringify(project, null, 2),
   };
-  
+
   if (version === "published") {
     putObjectParams.ACL = "public-read";
   }
-  
+
   try {
     await s3Client.send(new PutObjectCommand(putObjectParams));
   } catch (e) {
