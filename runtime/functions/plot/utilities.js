@@ -770,20 +770,20 @@ export function deepCleanVega(spec) {
 
 // Helper function to get nested properties using a string path.
 export function getNestedProperty(obj, path) {
-  if (!obj || typeof obj !== "object") return undefined;
+  if (obj === null || typeof obj !== "object") {
+    return undefined;
+  }
 
-  if (obj.hasOwnProperty(path)) {
+  if (Object.prototype.hasOwnProperty.call(obj, path)) {
     return obj[path];
   }
 
-  // Split the path into keys
   const keys = path.split(".");
-
-  // Traverse the object step by step
   let current = obj;
-  for (let key of keys) {
-    if (current[key] === undefined) {
-      return undefined; // Return undefined if any part of the path is missing
+
+  for (const key of keys) {
+    if (current === null || typeof current !== "object") {
+      return undefined;
     }
     current = current[key];
   }

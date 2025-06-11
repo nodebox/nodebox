@@ -64,55 +64,25 @@ export function fn2(nodeParamIn) {
 
 // Helper function to get nested properties using a string path.
 export function getNestedProperty(obj, path) {
-  if (!obj || typeof obj !== "object") return undefined;
+  if (obj === null || typeof obj !== "object") {
+    return undefined;
+  }
 
-  if (obj.hasOwnProperty(path)) {
+  if (Object.prototype.hasOwnProperty.call(obj, path)) {
     return obj[path];
   }
 
-  // Split the path into keys
   const keys = path.split(".");
-
-  // Traverse the object step by step
   let current = obj;
-  for (let key of keys) {
-    if (current[key] === undefined) {
-      return undefined; // Return undefined if any part of the path is missing
+
+  for (const key of keys) {
+    if (current === null || typeof current !== "object") {
+      return undefined;
     }
     current = current[key];
   }
 
   return current;
-}
-
-// Helper function to set a value in a nested object based on a key path.
-export function setNestedProperty(obj, path, value, separator = ".") {
-  if (!obj || typeof obj !== "object") {
-    throw new Error("First argument must be an object.");
-  }
-  if (typeof path !== "string") {
-    throw new Error("Path must be a string.");
-  }
-
-  const keys = path.split(separator);
-  let current = obj;
-
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i];
-
-    if (i === keys.length - 1) {
-      // If it's the last key, set the value
-      current[key] = value;
-    } else {
-      // If the key doesn't exist, create an object
-      if (!current[key] || typeof current[key] !== "object") {
-        current[key] = {};
-      }
-
-      // Move deeper into the object
-      current = current[key];
-    }
-  }
 }
 
 // Helper function to extract core data from nested data formats
