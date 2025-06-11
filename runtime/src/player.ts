@@ -86,18 +86,7 @@ const NodeBoxPlayer: React.FC<PlayerProps> = ({
         onProjectLoaded(cx);
       }
     })();
-  }, [
-    userId,
-    projectId,
-    item,
-    version,
-    apiRoot,
-    publishedUrlTemplate,
-    assetsUrlTemplate,
-    libUrlTemplate,
-    onProjectLoaded,
-    onProjectError,
-  ]);
+  }, [userId, projectId, item, version, apiRoot, publishedUrlTemplate, assetsUrlTemplate, libUrlTemplate]);
 
   useEffect(() => {
     (async () => {
