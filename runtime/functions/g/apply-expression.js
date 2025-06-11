@@ -9,12 +9,15 @@ export default function (node) {
 
   node.onRender = async () => {
     const data = tableIn.value;
-    if (!Array.isArray(data)) {
-      tableOut.set([]);
+    const fn = new Function("d", sourceIn.value);
+
+    if (Array.isArray(data)) {
+      const rows = data.map(fn);
+      tableOut.set(rows);
+    } else {
+      const result = fn(data);
+      tableOut.set(result);
       return;
     }
-    const fn = new Function("d", sourceIn.value);
-    const rows = data.map(fn);
-    tableOut.set(rows);
   };
 }
