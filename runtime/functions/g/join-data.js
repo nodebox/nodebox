@@ -91,41 +91,64 @@ export default function (node) {
         });
       });
     } else {
-      const leftKeyArray = lkey.split(",");
-      const rightKeyArray = rkey.split(",");
+      const leftKeyArray = lkey.split(",").map((d) => d.trim());
+      const rightKeyArray = rkey.split(",").map((d) => d.trim());
 
-      //const keyFn = (row, keys) => keys.map((key) => row[key]).join("|");
-      const keyFn = (row, keys) => keys.map((key) => getNestedProperty(row, key)).join("|");
+      // Helper to generate a composite key from a row. If any key is missing (undefined or null),
+      // we return null so that this row is treated as "unmatched" rather than producing the string
+      // "undefined" and accidentally colliding with other rows that miss the same field.
+      const keyFn = (row, keys) => {
+        const values = keys.map((k) => getNestedProperty(row, k));
+        return values.some((v) => v === undefined || v === null) ? null : values.join("|");
+      };
 
+      // Build lookup table for the *right* dataset. Rows that have an invalid (null) key are not
+      // placed in the lookup to avoid unintended matches, but they can still be emitted later for
+      // right/full outer joins.
       const lookup = new Map();
+      const unmatchedRight = [];
       right.forEach((row) => {
         const key = keyFn(row, rightKeyArray);
+        if (key === null) {
+          unmatchedRight.push(row);
+          return;
+        }
         if (!lookup.has(key)) {
           lookup.set(key, []);
         }
         lookup.get(key).push(row);
       });
 
+      // Process the *left* dataset and join where possible.
       left.forEach((leftRow) => {
-        const leftKey = keyFn(leftRow, leftKeyArray);
-        const rightRows = lookup.get(leftKey) || [];
+        const key = keyFn(leftRow, leftKeyArray);
+        const rightRows = key !== null ? lookup.get(key) || [] : [];
+
         if (rightRows.length > 0) {
           rightRows.forEach((rightRow) => {
             const joinedRow = { ...leftRow, ...rightRow };
             output.push(selectFn(joinedRow));
           });
         } else if (mode === "left outer" || mode === "full outer") {
+          // No match found – keep the left row as-is (outer-join behaviour)
           output.push(selectFn({ ...leftRow }));
         }
       });
 
+      // Add rows from the right side that never matched a left row (right/full outer).
       if (mode === "right outer" || mode === "full outer") {
-        right.forEach((rightRow) => {
-          const rightKey = keyFn(rightRow, rightKeyArray);
-          if (!left.some((leftRow) => keyFn(leftRow, leftKeyArray) === rightKey)) {
-            output.push(selectFn({ ...rightRow }));
+        // Rows that lacked a valid key were already collected in `unmatchedRight`.
+        const rightCandidates = [...unmatchedRight];
+
+        // Also include rows with a key that is not present in any left row.
+        lookup.forEach((rows, key) => {
+          const hasMatchInLeft = left.some((leftRow) => keyFn(leftRow, leftKeyArray) === key);
+          if (!hasMatchInLeft) {
+            rightCandidates.push(...rows);
           }
         });
+
+        rightCandidates.forEach((row) => output.push(selectFn({ ...row })));
       }
     }
 

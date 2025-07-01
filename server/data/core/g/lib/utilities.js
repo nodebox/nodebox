@@ -145,8 +145,16 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
     console.warn(`Detected format is ${detectedFormat}, not ${specifiedFormat}`);
     return newData;
   }
-  // Create a lookup table from 'newCore'
-  const newCore_lookup = new Map(newCore.map((item) => [item.id, item]));
+  // Create a lookup table from 'newCore' using their explicit `id` when present.
+  // We **do not** include items whose `id` is `undefined` so we can fall back to
+  // a positional match later. This prevents all "id-less" items from ending up
+  // under the same key and overwriting each other.
+  const newCore_lookup = new Map();
+  newCore.forEach((item) => {
+    if (item && item.id !== undefined && item.id !== null) {
+      newCore_lookup.set(item.id, item);
+    }
+  });
 
   if (detectedFormat === "geojson featurecollection") {
     if (Array.isArray(newData)) {
@@ -160,8 +168,9 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
     if (properties) {
       // use properties as core
       newData.features = newData.features
-        .map((f) => {
-          const lookupFeature = newCore_lookup.get(f.id); // Find the corresponding value
+        .map((f, idx) => {
+          // Try lookup by explicit `id` first, then fall back to positional index.
+          const lookupFeature = (f.id !== undefined && newCore_lookup.get(f.id)) || newCore[idx];
           if (lookupFeature) {
             // Add the looked-up feature to `properties`
             return {
@@ -193,8 +202,9 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
       if (properties) {
         // use properties as core
         featureObj.geometries = featureObj.geometries
-          .map((f) => {
-            const lookupFeature = newCore_lookup.get(f.id); // Find the corresponding value
+          .map((f, idx) => {
+            // Try lookup by explicit `id` first, then fall back to positional index.
+            const lookupFeature = (f.id !== undefined && newCore_lookup.get(f.id)) || newCore[idx];
             if (lookupFeature) {
               // Add the looked-up feature to `properties`
               return {
@@ -216,138 +226,49 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
   return newData;
 }
 
-/*
--------- HELPER FUNCTIONS FOR DATA HANDLING --------
-*/
-
 // Function to detect or validate data format (json, geojson, topojson)
 export function detectDataFormat(data) {
   if (!data) return undefined;
 
-  // Extract single dataObject for geojson and json
-  let dataObj;
+  let dataObj = data;
+  // Handle cases where data might be an array containing a single relevant object
   if (Array.isArray(data)) {
-    if (data.length === 1) {
+    if (data.length === 1 && typeof data[0] === "object" && data[0] !== null) {
       dataObj = data[0];
     } else {
+      // Multi-element arrays, empty arrays, or arrays with non-object single elements are plain JSON
       return "json";
     }
-  } else {
-    dataObj = data;
   }
 
-  // GeoJSON Member types
-  const geojsonTypes = [
-    "Point",
-    "MultiPoint",
-    "LineString",
-    "MultiLineString",
-    "Polygon",
-    "MultiPolygon",
-    "GeometryCollection",
-    "Feature",
-    "FeatureCollection",
-  ];
+  if (typeof dataObj !== "object" || dataObj === null || typeof dataObj.type !== "string") {
+    // Not an object, null, or doesn't have a 'type' string: consider it plain JSON
+    return "json";
+  }
 
-  // TopoJSON Member types
-  const topojsonGeometryTypes = [
-    "Point",
-    "MultiPoint",
-    "LineString",
-    "MultiLineString",
-    "Polygon",
-    "MultiPolygon",
-    "GeometryCollection",
-  ];
+  const { type, features, objects, arcs, geometries } = dataObj;
 
-  // Check data format
-  if (dataObj && "type" in dataObj) {
-    const type = dataObj.type;
-    if (geojsonTypes.includes(type)) {
-      // validate geojson
-      switch (type) {
-        case "Point":
-        case "MultiPoint":
-          if ("coordinates" in dataObj && Array.isArray(dataObj.coordinates)) {
-            return `geojson ${type.toLowerCase()}`;
-          }
-          break;
-        case "LineString":
-        case "MultiLineString":
-        case "Polygon":
-        case "MultiPolygon":
-          if ("coordinates" in dataObj && Array.isArray(dataObj.coordinates)) {
-            return `geojson ${type.toLowerCase()}`;
-          } else if ("arcs" in dataObj && Array.isArray(dataObj.arcs)) {
-            return `topojson ${type.toLowerCase()}`;
-          }
-          break;
+  // Check for GeoJSON FeatureCollection
+  if (type === "FeatureCollection" && Array.isArray(features)) {
+    return "geojson featurecollection";
+  }
 
-        case "GeometryCollection":
-          if ("geometries" in dataObj && Array.isArray(dataObj.geometries)) {
-            if (dataObj.geometries.every((geometry) => detectDataFormat(geometry).startsWith("geojson"))) {
-              return "geojson geometrycollection";
-            } else if (dataObj.geometries.some((geometry) => detectDataFormat(geometry).startsWith("topojson"))) {
-              return "topojson geometrycollection";
-            }
-          }
-          break;
+  // Check for TopoJSON Topology
+  if (type === "Topology" && typeof objects === "object" && Array.isArray(arcs)) {
+    return "topojson topology";
+  }
 
-        case "Feature":
-          if (
-            "geometry" in dataObj &&
-            "properties" in dataObj &&
-            (dataObj.geometry === null || detectDataFormat(dataObj.geometry).startsWith("geojson"))
-          ) {
-            return "geojson feature";
-          }
-          break;
-
-        case "FeatureCollection":
-          if (
-            "features" in dataObj &&
-            Array.isArray(dataObj.features) &&
-            dataObj.features.every((feature) => detectDataFormat(feature) === "geojson feature")
-          ) {
-            return "geojson featurecollection";
-          }
-          break;
-
-        default:
-          break;
-      }
-    } else if (type === "Topology") {
-      // validate topojson
-      if ("objects" in dataObj && "arcs" in dataObj) {
-        if (typeof dataObj.objects === "object" && Array.isArray(dataObj.arcs)) {
-          // Validate objects in the topology
-          for (const key in dataObj.objects) {
-            const geometryObj = dataObj.objects[key];
-            if (topojsonGeometryTypes.includes(geometryObj.type)) {
-              const format = detectDataFormat(geometryObj);
-              if (!format.startsWith("geojson") && !format.startsWith("topojson")) {
-                console.warn(`Invalid GeoJSON member in TopoJSON object: ${key}`);
-              } else {
-                return "topojson topology";
-              }
-            }
-          }
-        } else {
-          console.warn("Invalid TopoJSON topology.");
-        }
-      }
-
-      /*&&
-        (!("transform" in dataObj) ||
-          (
-            "scale" in dataObj.transform &&
-            Array.isArray(dataObj.transform.scale) &&
-            dataObj.transform.scale.length === 2 &&
-            "translate" in dataObj.transform &&
-            Array.isArray(dataObj.transform.translate) &&
-            dataObj.transform.translate.length === 2
-          ))*/
+  // Check for GeometryCollection (often found within TopoJSON objects or as standalone GeoJSON)
+  // This is important because `featureObj` in your other functions can be a GeometryCollection.
+  if (type === "GeometryCollection" && Array.isArray(geometries)) {
+    // If any internal geometry uses 'arcs', it's likely a TopoJSON-style GeometryCollection
+    if (geometries.some((g) => g && typeof g === "object" && Array.isArray(g.arcs))) {
+      return "topojson geometrycollection";
     }
+    // Otherwise, assume it's a GeoJSON-style GeometryCollection
+    return "geojson geometrycollection";
   }
-  return "json"; // Default to JSON if no valid format is detected
+
+  // Default to JSON if no specific collection format is confidently detected
+  return "json";
 }

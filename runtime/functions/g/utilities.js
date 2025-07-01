@@ -145,8 +145,16 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
     console.warn(`Detected format is ${detectedFormat}, not ${specifiedFormat}`);
     return newData;
   }
-  // Create a lookup table from 'newCore'
-  const newCore_lookup = new Map(newCore.map((item) => [item.id, item]));
+  // Create a lookup table from 'newCore' using their explicit `id` when present.
+  // We **do not** include items whose `id` is `undefined` so we can fall back to
+  // a positional match later. This prevents all "id-less" items from ending up
+  // under the same key and overwriting each other.
+  const newCore_lookup = new Map();
+  newCore.forEach((item) => {
+    if (item && item.id !== undefined && item.id !== null) {
+      newCore_lookup.set(item.id, item);
+    }
+  });
 
   if (detectedFormat === "geojson featurecollection") {
     if (Array.isArray(newData)) {
@@ -160,8 +168,9 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
     if (properties) {
       // use properties as core
       newData.features = newData.features
-        .map((f) => {
-          const lookupFeature = newCore_lookup.get(f.id); // Find the corresponding value
+        .map((f, idx) => {
+          // Try lookup by explicit `id` first, then fall back to positional index.
+          const lookupFeature = (f.id !== undefined && newCore_lookup.get(f.id)) || newCore[idx];
           if (lookupFeature) {
             // Add the looked-up feature to `properties`
             return {
@@ -193,8 +202,9 @@ export function replaceCoreData(data, format, feature, newCore, properties) {
       if (properties) {
         // use properties as core
         featureObj.geometries = featureObj.geometries
-          .map((f) => {
-            const lookupFeature = newCore_lookup.get(f.id); // Find the corresponding value
+          .map((f, idx) => {
+            // Try lookup by explicit `id` first, then fall back to positional index.
+            const lookupFeature = (f.id !== undefined && newCore_lookup.get(f.id)) || newCore[idx];
             if (lookupFeature) {
               // Add the looked-up feature to `properties`
               return {
