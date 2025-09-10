@@ -10,16 +10,7 @@ import {
   renderItemToSvgString,
 } from "@ndbx/runtime";
 import { CanvasSize, Context as GraphicsContext, Shape, Bounds } from "@ndbx/g";
-import {
-  projectId,
-  result,
-  resultVersion,
-  nodeError,
-  currentItem,
-  togglePlay,
-  playState,
-  PlayState,
-} from "./signals";
+import { projectId, result, resultVersion, nodeError, currentItem, togglePlay, playState, PlayState } from "./signals";
 import TableViewer from "./table-viewer";
 import DetailViewer from "./detail-viewer";
 import Toggle from "../components/toggle";
