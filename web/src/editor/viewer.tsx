@@ -1,6 +1,14 @@
 import React, { useEffect, useState, useRef, isValidElement, ReactElement, useCallback } from "react";
 import clsx from "clsx";
-import { Item, Network, renderShape, renderDefs, renderVegaSpec } from "@ndbx/runtime";
+import {
+  Item,
+  Network,
+  renderShape,
+  renderDefs,
+  renderVegaSpec,
+  renderItemToPngBlob,
+  renderItemToSvgString,
+} from "@ndbx/runtime";
 import { CanvasSize, Context as GraphicsContext, Shape, Bounds } from "@ndbx/g";
 import {
   projectId,
@@ -321,7 +329,7 @@ export default function Viewer() {
   const [selectedTableIndex, setSelectedTableIndex] = useState(0);
 
   function handleExportSvg() {
-    const svgString = renderToSvg();
+    const svgString = renderItemToSvgString(currentItem.value!, result.value);
     if (!svgString) return;
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
@@ -332,38 +340,15 @@ export default function Viewer() {
     URL.revokeObjectURL(url);
   }
 
-  function handleExportPng() {
-    const svgString = renderToSvg();
-    if (!svgString) return;
-    const item = currentItem.value!;
-    const img = new Image();
-    const blob = new Blob([svgString], { type: "image/svg+xml" });
+  async function handleExportPng() {
+    const blob = await renderItemToPngBlob(currentItem.value!, result.value, { scale: 2 });
+    if (!blob) return;
     const url = URL.createObjectURL(blob);
-
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const scale = 2; // Double resolution
-      canvas.width = item.width * scale;
-      canvas.height = item.height * scale;
-      const ctx = canvas.getContext("2d")!;
-      // Use transparent if background is undefined
-      ctx.fillStyle = item.background ? colorToCss(item.background) : "transparent";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.scale(scale, scale);
-      ctx.drawImage(img, 0, 0);
-
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `${projectId.value}-${currentItem.value!.name.toLowerCase()}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }, "image/png");
-    };
-
-    img.src = url;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${projectId.value}-${currentItem.value!.name.toLowerCase()}.png`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function handleExportCsv() {

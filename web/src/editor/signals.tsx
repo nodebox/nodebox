@@ -36,6 +36,7 @@ import {
   WidgetType,
   defaultValueForType,
   renderVegaSpec,
+  renderItemToSvgString,
 } from "@ndbx/runtime";
 import * as mutation from "@ndbx/runtime/src/mutation";
 import { debounce } from "../util";
@@ -425,82 +426,7 @@ export async function exportAllExampleNetworks() {
 export function renderToSvg(): string | undefined {
   const item = currentItem.value;
   if (!item) return;
-  const GRAPHIC_TYPES = ["CIRCLE", "ELLIPSE", "GROUP", "LINE", "PATH", "POINT", "RECT", "TEXT"];
-  let resultType, resultValue;
-  if (result.value !== null && typeof result.value === "object" && "type" in result.value) {
-    resultValue = result.value;
-    resultType = result.value.type;
-  }
-  if (result.value !== null && typeof result.value === "object" && "$schema" in result.value) {
-    const resultSpec = result.value as vega.Spec;
-    resultValue = renderVegaSpec(resultSpec);
-    resultType = resultValue.type;
-  }
-  const resultIsDrawable =
-    (typeof resultType === "string" && GRAPHIC_TYPES.includes(resultType)) || isValidElement(resultValue);
-  if (!resultIsDrawable) return;
-
-  const graphicsContext = new GraphicsContext();
-
-  let shapeElement = null;
-  let defsElement;
-  try {
-    shapeElement = renderShape(resultValue as Shape, graphicsContext, undefined, false);
-    defsElement = renderDefs(graphicsContext);
-  } catch (e) {
-    console.error(e);
-  }
-
-  let svgSize: CanvasSize = { left: 0, top: 0, width: item.width ?? 1000, height: item.height ?? 1000 };
-  if ((item as Network).canvasSize === "auto") {
-    const bounds: Bounds = (resultValue as Shape).getBounds();
-    svgSize.left = bounds.left;
-    svgSize.top = bounds.top;
-    svgSize.width = bounds.right - bounds.left;
-    svgSize.height = bounds.bottom - bounds.top;
-  }
-
-  const backgroundColor = item.background;
-
-  const svgElement = createElement(
-    "svg",
-    { width: svgSize.width, height: svgSize.height, xmlns: "http://www.w3.org/2000/svg" },
-    createElement(
-      "defs",
-      {},
-      createElement(
-        "clipPath",
-        { id: "frame" },
-        createElement("rect", {
-          x: svgSize.left,
-          y: svgSize.top,
-          width: svgSize.width,
-          height: svgSize.height,
-        }),
-      ),
-    ),
-    createElement(
-      "g",
-      {
-        clipPath: "url(#frame)",
-        transform: `translate(${-svgSize.left}, ${-svgSize.top})`,
-      },
-      !colorIsTransparent(backgroundColor) &&
-        createElement("rect", {
-          x: svgSize.left,
-          y: svgSize.top,
-          width: svgSize.width,
-          height: svgSize.height,
-          fill: colorToCss(backgroundColor),
-        }),
-      shapeElement,
-      defsElement,
-    ),
-  );
-
-  const svgString = ReactDOMServer.renderToStaticMarkup(svgElement);
-
-  return svgString;
+  return renderItemToSvgString(item, result.value);
 }
 
 export function setPlayState(state: PlayState) {

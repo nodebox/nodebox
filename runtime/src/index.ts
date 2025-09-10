@@ -8,4 +8,5 @@ export * from "./types";
 export * from "./queries";
 export * from "./render";
 export * from "./runtime-node";
+export * from "./export";
 export { config, Context, NodeBoxPlayer, loadMainProject, loadAsset };

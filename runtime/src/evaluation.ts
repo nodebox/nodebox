@@ -13,6 +13,29 @@ import RuntimeNode, { createExpressionContext } from "./runtime-node";
 import { findInputConnection, findOutletConnection } from "./queries";
 import { loadItem } from "./loaders";
 
+export async function renderItem(cx: Context, item: Item, values?: Record<string, LiteralValue>): Promise<any> {
+  const fqName = `self/self/${item.name}`;
+  await evaluateItem(cx, fqName, item, values);
+  if (item.type === "NETWORK") {
+    const network = item as Network;
+    if (!network.outputPorts || network.outputPorts.length === 0) {
+      const renderedNode = network.children.find((node) => node.id === network.renderedNode)! as Node;
+      if (!renderedNode) {
+        const errorMessage = `No rendered node found in network ${network.name}.`;
+        throw new Error(errorMessage);
+      }
+      const renderedNodeFn = cx.lookupItemByName(renderedNode.fn);
+      if (renderedNodeFn) {
+        const outputs = renderedNodeFn.outputPorts.map((port) => cx.portValues.get(`${renderedNode.id}/${port.name}`));
+        if (outputs.length > 0) return outputs[0];
+      }
+    } else {
+      const outputs = network.outputPorts.map((port) => cx.portValues.get(`${network.id}/${port.name}`));
+      if (outputs.length > 0) return outputs[0];
+    }
+  }
+}
+
 export async function evaluateItem(
   cx: Context,
   fqName: string,
