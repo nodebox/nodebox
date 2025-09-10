@@ -5,7 +5,7 @@ import { createTestContext } from "./util.js";
 
 it("can evaluate a simple function", async () => {
   const { cx, network } = createTestContext();
-  const value1 = createNode(cx, network, "test/math/value");
+  const value1 = createNode(cx, network, "test/math/value")!;
   setValue(cx, network, value1, "value", { type: "VALUE", value: 5 });
   setRenderedNode(cx, network, value1);
   const item = cx.lookupItemByName("test/math/value");
@@ -19,7 +19,7 @@ it("can evaluate a simple function", async () => {
 
 it("can evaluate connected functions", async () => {
   const { cx, network } = createTestContext();
-  const value1 = createNode(cx, network, "test/math/value");
+  const value1 = createNode(cx, network, "test/math/value")!;
   setValue(cx, network, value1, "value", { type: "VALUE", value: 5 });
   const negate1 = createNode(cx, network, "test/math/negate");
   const valueFn = cx.lookupItemById(value1.fn);
@@ -37,7 +37,7 @@ it("can evaluate connected functions", async () => {
 it("can evaluate an expression", async () => {
   const { cx, network } = createTestContext();
   network.width = 1234;
-  const value1 = createNode(cx, network, "test/math/value");
+  const value1 = createNode(cx, network, "test/math/value")!;
   setValue(cx, network, value1, "value", { type: "EXPRESSION", expression: "network.width" });
   setRenderedNode(cx, network, value1);
   await evaluateNetwork(cx, network);

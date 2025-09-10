@@ -1,6 +1,37 @@
-import { format } from "d3";
+import JSON5 from "json5";
 import { Context, FunctionItem, Project, PortType, ParameterType } from "../src";
 import { createProject, createNetwork, createNode } from "../src/mutation";
+import { parseNodeStatements } from "../src/loaders";
+import { Color } from "@ndbx/g";
+
+export function createFunctionItem({
+  name,
+  category,
+  description,
+  source,
+}: {
+  name: string;
+  category: string;
+  description: string;
+  source: string;
+}): FunctionItem {
+  const { parameters, sections, inputPorts, outputPorts } = parseNodeStatements(source.split("\n"));
+  return {
+    type: "FUNCTION",
+    id: name,
+    name,
+    category,
+    description,
+    inputPorts,
+    outputPorts,
+    parameters,
+    sections,
+    source,
+    width: 1000,
+    height: 1000,
+    background: Color.black(),
+  };
+}
 
 export function createValueFn(): FunctionItem {
   const source = `
@@ -17,17 +48,7 @@ export default function(node) {
 }
 `;
 
-  return {
-    type: "FUNCTION",
-    id: "value",
-    name: "value",
-    category: "Math",
-    description: "Generates a simple value",
-    inputPorts: [],
-    outputPorts: [{ type: PortType.Series, name: "out" }],
-    parameters: [{ type: ParameterType.Number, name: "value", label: "Value", defaultValue: 0 }],
-    source,
-  };
+  return createFunctionItem({ name: "value", category: "Math", description: "Generates a simple value", source });
 }
 
 export function createAddFn(): FunctionItem {
@@ -110,20 +131,7 @@ export default function(node) {
 }
 `;
 
-  return {
-    type: "FUNCTION",
-    id: "negate",
-    name: "negate",
-    category: "Math",
-    description: "Negates a column",
-    inputPorts: [{ type: PortType.Table, name: "table" }],
-    outputPorts: [{ type: PortType.Table, name: "out" }],
-    parameters: [
-      { type: ParameterType.String, name: "attribute", label: "Attribute", defaultValue: "value" },
-      { type: ParameterType.String, name: "targetAttribute", label: "Target Attribute", defaultValue: "value" },
-    ],
-    source,
-  };
+  return createFunctionItem({ name: "negate", category: "Math", description: "Negates a column", source });
 }
 
 export function createMakeNumbersFn(): FunctionItem {
@@ -160,6 +168,30 @@ export default function(node) {
   };
 }
 
+export function createRectFn(): FunctionItem {
+  const source = `
+import { Rect, Group } from "@ndbx/g";
+
+export default function(node) {
+  const xIn = node.numberIn({ name: "x", value: 0 });
+  const yIn = node.numberIn({ name: "y", value: 0 });
+  const widthIn = node.numberIn({ name: "width", value: 100, min: 0 });
+  const heightIn = node.numberIn({ name: "height", value: 100, min: 0 });
+  const fillIn = node.colorIn({ name: "fill", value: "black" });
+  const shapeOut = node.shapeOut({ name: "Out" });
+
+
+  node.onRender = () => {
+    const rect = new Rect(xIn.value, yIn.value, widthIn.value, heightIn.value);
+    rect.fill = fillIn.value;
+    shapeOut.set(rect);
+  };
+}
+`;
+
+  return createFunctionItem({ name: "rect", category: "Graphics", description: "Draws a rectangle", source });
+}
+
 export function createMathProject(): Project {
   const project = createProject("math");
   project.items.push(createAddFn());
@@ -169,9 +201,22 @@ export function createMathProject(): Project {
   return project;
 }
 
+export function createGraphicsProject(): Project {
+  const project = createProject("g");
+  project.items.push(createRectFn());
+  return project;
+}
+
 export function createTestContext() {
   const project = createProject("test");
-  const cx = new Context(project, new Map(), new Map([["test/math", createMathProject()]]));
+  const cx = new Context(
+    project,
+    new Map(),
+    new Map([
+      ["test/math", createMathProject()],
+      ["test/g", createGraphicsProject()],
+    ]),
+  );
   const network = createNetwork(cx, project, "test");
   //   plan = createNetwork(plan, "test");
   //   plan = createNode(plan, "test", "math.add");

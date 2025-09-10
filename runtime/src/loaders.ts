@@ -180,7 +180,7 @@ function analyzeFunctions(project: Project) {
   }
 }
 
-function parseNodeStatements(statements: string[]): {
+export function parseNodeStatements(statements: string[]): {
   parameters: Parameter[];
   sections: Section[];
   inputPorts: Port[];
