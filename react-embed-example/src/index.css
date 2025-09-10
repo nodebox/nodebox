@@ -91,7 +91,8 @@
   color: #6c757d;
 }
 
-.input-group button {
+.input-group button,
+.actions-group button {
   background: #007bff;
   color: white;
   border: none;
@@ -103,11 +104,13 @@
   transition: background-color 0.2s;
 }
 
-.input-group button:hover {
+.input-group button:hover,
+.actions-group button:hover {
   background: #0056b3;
 }
 
-.input-group button:active {
+.input-group button:active,
+.actions-group button:active {
   background: #004085;
 }
 
@@ -140,4 +143,11 @@
   border-top: 1px solid #dee2e6;
   padding-top: 16px;
   margin-top: 8px;
+}
+
+.actions-group {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 16px;
 }

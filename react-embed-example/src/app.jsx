@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NodeBoxPlayer } from "@ndbx/runtime";
+import { NodeBoxPlayer, loadMainProject, renderItemToSvgString, renderItem, renderItemToPngBlob } from "@ndbx/runtime";
 
 const DEFAULT_PUBLISHED_URL_TEMPLATE =
   "https://nodeboxlive.ams3.digitaloceanspaces.com/users/{{ userId }}/{{ projectId }}/versions/published.json";
@@ -36,6 +36,44 @@ function App() {
     } else {
       alert("Invalid NodeBox URL format");
     }
+  };
+
+  const handleExportSVG = async () => {
+    const cx = await loadMainProject(userId, projectId, "dev");
+    const item = cx.project.items[0];
+    const resultValue = await renderItem(cx, item);
+    const svg = renderItemToSvgString(item, resultValue);
+    console.log(svg);
+    const blob = new Blob([svg], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    const filename = `${userId}-${projectId}-${item.id}.svg`;
+    link.download = filename;
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPNG = async () => {
+    const cx = await loadMainProject(userId, projectId, "dev");
+    const item = cx.project.items[0];
+    const resultValue = await renderItem(cx, item);
+    const pngBlob = await renderItemToPngBlob(item, resultValue, { scale: 2 });
+    if (!pngBlob) {
+      alert("PNG export failed: no drawable result");
+      return;
+    }
+    const url = URL.createObjectURL(pngBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    const filename = `${userId}-${projectId}-${item.id}.png`;
+    link.download = filename;
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const values = {
@@ -95,6 +133,10 @@ function App() {
             </div>
           </div>
         )}
+        <div className="actions-group">
+          <button onClick={handleExportSVG}>Export SVG</button>
+          <button onClick={handleExportPNG}>Export PNG</button>
+        </div>
       </div>
 
       <NodeBoxPlayer
