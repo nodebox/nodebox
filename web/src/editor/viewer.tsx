@@ -14,7 +14,6 @@ import {
   projectId,
   result,
   resultVersion,
-  renderToSvg,
   nodeError,
   currentItem,
   togglePlay,

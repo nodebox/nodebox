@@ -1,10 +1,6 @@
 import { pushHistory } from "./history";
-import { createElement, isValidElement } from "react";
-import ReactDOMServer from "react-dom/server";
-import * as vega from "vega";
 import { computed, signal } from "@preact/signals-react";
 import { produce } from "immer";
-import { Context as GraphicsContext, Shape, CanvasSize, Bounds } from "@ndbx/g";
 import {
   Color,
   Context,
@@ -22,8 +18,6 @@ import {
   findNodeById,
   evaluateItem,
   sendChangeEvent,
-  renderShape,
-  renderDefs,
   NetworkItem,
   NodeToNodeConnection,
   ParameterValue,
@@ -35,13 +29,11 @@ import {
   ParameterType,
   WidgetType,
   defaultValueForType,
-  renderVegaSpec,
   renderItemToSvgString,
 } from "@ndbx/runtime";
 import * as mutation from "@ndbx/runtime/src/mutation";
 import { debounce } from "../util";
 import { checkFunctionId } from "@ndbx/runtime/src/identifiers";
-import { colorIsTransparent, colorToCss } from "../lib/color-utils";
 import Markdown from "react-markdown";
 
 export async function apiRequest(
