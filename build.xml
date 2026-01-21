@@ -125,7 +125,7 @@
     </target>
 
     <target name="compile" depends="init">
-        <javac destdir="${build.prod}" source="11" target="11" includeantruntime="false" deprecation="yes"
+        <javac destdir="${build.prod}" release="11" includeantruntime="false" deprecation="yes"
                debug="true" debuglevel="lines,vars,source">
             <src path="${src}"/>
             <classpath refid="compile.classpath"/>
@@ -137,7 +137,7 @@
     </target>
 
     <target name="compile-tests" depends="compile">
-        <javac srcdir="${test}" destdir="${build.test}" source="11" target="11" includeantruntime="false"
+        <javac srcdir="${test}" destdir="${build.test}" release="11" includeantruntime="false"
                deprecation="yes">
             <classpath refid="test.classpath"/>
             <compilerarg value="-Xlint:unchecked"/>

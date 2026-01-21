@@ -1,6 +1,7 @@
 package nodebox.versioncheck;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -20,7 +21,7 @@ public class MockHost implements Host {
 
     public URL getIconFile() {
         try {
-            return new URL("file:src/test/files/mockboxlogo.png");
+            return URI.create("file:src/test/files/mockboxlogo.png").toURL();
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
