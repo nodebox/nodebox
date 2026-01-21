@@ -4,23 +4,21 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.jayway.jsonpath.JsonPath;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.auth.AuthenticationException;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,39 +80,45 @@ public class NetworkFunctions {
         HttpGet request = new HttpGet(url);
 
         if (username != null && !username.trim().isEmpty()) {
-            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
-            BasicScheme scheme = new BasicScheme();
-            Header authorizationHeader;
-            try {
-                authorizationHeader = scheme.authenticate(credentials, request, new BasicHttpContext());
-            } catch (AuthenticationException e) {
-                throw new RuntimeException(e);
-            }
-            request.addHeader(authorizationHeader);
+            String safePassword = password == null ? "" : password;
+            String credentials = username + ":" + safePassword;
+            String encodedCredentials = Base64.getEncoder()
+                    .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            request.addHeader("Authorization", "Basic " + encodedCredentials);
         }
 
-        try {
-            CloseableHttpClient client = HttpClients.createDefault();
-            HttpResponse response = client.execute(request);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                String body = EntityUtils.toString(entity);
-                HashMap<String, String> m = new HashMap<String, String>();
-                for (Header h : response.getAllHeaders()) {
-                    m.put(h.getName(), h.getValue());
-                }
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpClientResponseHandler<Map<String, Object>> handler = new HttpClientResponseHandler<Map<String, Object>>() {
+                @Override
+                public Map<String, Object> handleResponse(ClassicHttpResponse response) throws IOException {
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        String body;
+                        try {
+                            body = EntityUtils.toString(entity);
+                        } catch (ParseException e) {
+                            throw new IOException(e);
+                        }
+                        HashMap<String, String> m = new HashMap<String, String>();
+                        for (Header h : response.getHeaders()) {
+                            m.put(h.getName(), h.getValue());
+                        }
 
-                Map<String, String> headers = ImmutableMap.copyOf(m);
-                return ImmutableMap.of(
-                        "body", body,
-                        "statusCode", response.getStatusLine().getStatusCode(),
-                        "headers", headers);
-            } else {
-                // 204 No Content
-                return emptyResponse(204);
-            }
-        } catch (IllegalStateException e) {
-            if (e.getMessage().startsWith("Target host must not be null")) {
+                        Map<String, String> headers = ImmutableMap.copyOf(m);
+                        return ImmutableMap.of(
+                                "body", body,
+                                "statusCode", response.getCode(),
+                                "headers", headers);
+                    } else {
+                        // 204 No Content
+                        return emptyResponse(204);
+                    }
+                }
+            };
+            return client.execute(request, handler);
+        } catch (IllegalArgumentException e) {
+            String message = e.getMessage();
+            if (message != null && message.contains("URI with undefined scheme")) {
                 throw new RuntimeException("URL should start with \"http://\" or \"https://\".");
             } else {
                 throw e;

@@ -43,6 +43,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - [x] Upgrade `jna` to 5.18.1.
 - [x] Upgrade `json-path` to 2.10.0.
 - [x] Upgrade `guava` to 33.5.0-jre.
+- [x] Upgrade `httpclient` to 5.5.2 and migrate API usage.
 - [ ] Document a short build matrix note in `README.md` (supported JDKs).
 - [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
 
@@ -66,7 +67,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - Watch for API removals (e.g., Guava, HttpClient) and Java module warnings.
 
 ### Stage 2 Status (in progress)
-- Updated `jna` to 5.18.1, `json-path` to 2.10.0, and `guava` to 33.5.0-jre; tests pass locally.
+- Updated `jna` to 5.18.1, `json-path` to 2.10.0, `guava` to 33.5.0-jre, and `httpclient` to 5.5.2; tests pass locally.
 
 ### Stage 3 — Content & Media Stack
 - Group B: `itextpdf`, `processing.core`, `ddf.minim`, `oscp5`.
