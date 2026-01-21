@@ -3,6 +3,7 @@ package nodebox.e2e;
 import nodebox.client.Application;
 import nodebox.client.NodeBoxDocument;
 import nodebox.node.Node;
+import nodebox.node.Port;
 import nodebox.ui.ExportFormat;
 import org.junit.AfterClass;
 import org.junit.Assume;
@@ -242,6 +243,172 @@ public class NodeBoxE2ETest {
         });
     }
 
+    @Test
+    public void copyPasteSelectionIncreasesNodeCount() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+        ensureAtLeastOneNode(doc);
+
+        final int beforeCount = countRootNodes(doc);
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Node node = firstChildNode(doc);
+                if (node == null) {
+                    return;
+                }
+                doc.setActiveNode(node.getName());
+                doc.copy();
+                doc.paste();
+            }
+        });
+
+        waitFor("Paste node", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) >= beforeCount + 1;
+            }
+        });
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.undo();
+            }
+        });
+
+        waitFor("Undo paste", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == beforeCount;
+            }
+        });
+    }
+
+    @Test
+    public void deleteSelectionRemovesNode() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+
+        final int beforeCount = countRootNodes(doc);
+        final Node created = createRectNode(doc, new nodebox.graphics.Point(140, 140));
+
+        waitFor("Node created", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == beforeCount + 1;
+            }
+        });
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                if (created != null) {
+                    doc.setActiveNode(created.getName());
+                }
+                doc.deleteSelection();
+            }
+        });
+
+        waitFor("Delete selection", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == beforeCount;
+            }
+        });
+    }
+
+    @Test
+    public void setPortValueUpdatesNode() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+
+        final Node created = createRectNode(doc, new nodebox.graphics.Point(180, 180));
+        assertNotNull(created);
+        final String nodePath = Node.path(doc.getActiveNetworkPath(), created.getName());
+        final double expected = 200.0;
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.setActiveNode(created.getName());
+                doc.setValue(nodePath, "width", expected);
+            }
+        });
+
+        waitFor("Port value updated", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                Object value = readPortValue(doc, nodePath, "width");
+                return numberEquals(value, expected);
+            }
+        });
+    }
+
+    @Test
+    public void renameNodeUpdatesActiveNetwork() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+
+        final Node created = createRectNode(doc, new nodebox.graphics.Point(220, 220));
+        assertNotNull(created);
+        final String newName = created.getName() + "_renamed";
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.setNodeName(created, newName);
+            }
+        });
+
+        waitFor("Node renamed", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                Node active = doc.getActiveNetwork();
+                return active != null && active.hasChild(newName);
+            }
+        });
+    }
+
+    @Test
+    public void takeDocumentScreenshot() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+        final File screenshot = new File(artifactsDir(), "nodebox-document.png");
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.takeScreenshot(screenshot);
+            }
+        });
+
+        waitFor("Document screenshot", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return screenshot.isFile() && screenshot.length() > 0;
+            }
+        });
+    }
+
+    @Test
+    public void frameAdvancesByOne() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+        final double[] frame = new double[1];
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.setFrame(1);
+                doc.nextFrame();
+                frame[0] = doc.getFrame();
+            }
+        });
+
+        assertTrue("Frame should advance by one.", Math.abs(frame[0] - 2.0) < 0.001);
+    }
+
     private static int menuShortcutKey() {
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         if ((mask & InputEvent.META_DOWN_MASK) != 0) {
@@ -308,12 +475,79 @@ public class NodeBoxE2ETest {
         return nodes == null ? 0 : nodes.size();
     }
 
+    private static Node firstChildNode(NodeBoxDocument doc) {
+        Collection<Node> nodes = doc.getNodeLibrary().getRoot().getChildren();
+        if (nodes == null || nodes.isEmpty()) {
+            return null;
+        }
+        return nodes.iterator().next();
+    }
+
+    private static void ensureAtLeastOneNode(NodeBoxDocument doc) throws Exception {
+        if (countRootNodes(doc) > 0) {
+            return;
+        }
+        createRectNode(doc, new nodebox.graphics.Point(100, 100));
+        waitFor("Initial node", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) > 0;
+            }
+        });
+    }
+
+    private static Node createRectNode(final NodeBoxDocument doc, final nodebox.graphics.Point point) throws Exception {
+        final Node[] created = new Node[1];
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Node prototype = rectPrototype(doc);
+                doc.createNode(prototype, point);
+                created[0] = doc.getActiveNode();
+            }
+        });
+        return created[0];
+    }
+
+    private static Node rectPrototype(NodeBoxDocument doc) {
+        try {
+            return doc.getNodeRepository().getNode("corevector.rect");
+        } catch (RuntimeException ignored) {
+            return firstPrototypeNode(doc);
+        }
+    }
+
     private static Node firstPrototypeNode(NodeBoxDocument doc) {
         List<Node> nodes = doc.getNodeRepository().getNodes();
         if (nodes.isEmpty()) {
             throw new IllegalStateException("No prototype nodes available.");
         }
         return nodes.get(0);
+    }
+
+    private static Object readPortValue(final NodeBoxDocument doc, final String nodePath, final String portName) {
+        final Object[] value = new Object[1];
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    Node node = doc.getNodeLibrary().getNodeForPath(nodePath);
+                    if (node == null) return;
+                    Port port = node.getInput(portName);
+                    if (port == null) return;
+                    value[0] = port.getValue();
+                }
+            });
+        } catch (Exception ignored) {
+        }
+        return value[0];
+    }
+
+    private static boolean numberEquals(Object value, double expected) {
+        if (!(value instanceof Number)) {
+            return false;
+        }
+        return Math.abs(((Number) value).doubleValue() - expected) < 0.001;
     }
 
     private static File artifactsDir() {
