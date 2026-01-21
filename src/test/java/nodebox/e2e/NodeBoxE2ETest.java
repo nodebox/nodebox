@@ -5,15 +5,23 @@ import nodebox.client.NodeBoxDocument;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 import javax.swing.SwingUtilities;
+import javax.imageio.ImageIO;
 import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -24,7 +32,18 @@ import static org.junit.Assert.assertTrue;
 public class NodeBoxE2ETest {
 
     private static final String E2E_ENV = "NODEBOX_E2E";
+    private static final String E2E_FAIL_ENV = "NODEBOX_E2E_FORCE_FAIL";
+    private static final String ARTIFACTS_ENV = "NODEBOX_E2E_ARTIFACTS";
     private static final long DEFAULT_TIMEOUT_MS = 20000;
+
+    @Rule
+    public final TestWatcher watcher = new TestWatcher() {
+        @Override
+        protected void failed(Throwable e, Description description) {
+            writeFailure(description, e);
+            captureScreenshot(description);
+        }
+    };
 
     @BeforeClass
     public static void requireE2E() {
@@ -118,6 +137,12 @@ public class NodeBoxE2ETest {
         });
     }
 
+    @Test
+    public void canFailForPipelineVerification() {
+        Assume.assumeTrue("Failure flag is not enabled", "1".equals(System.getenv(E2E_FAIL_ENV)));
+        throw new AssertionError("Intentional E2E failure to verify CI artifacts.");
+    }
+
     private static int menuShortcutKey() {
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         if ((mask & InputEvent.META_DOWN_MASK) != 0) {
@@ -141,5 +166,46 @@ public class NodeBoxE2ETest {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static File artifactsDir() {
+        String dir = System.getenv(ARTIFACTS_ENV);
+        if (dir == null || dir.trim().isEmpty()) {
+            dir = "build/e2e-artifacts";
+        }
+        File target = new File(dir);
+        if (!target.exists()) {
+            target.mkdirs();
+        }
+        return target;
+    }
+
+    private static void captureScreenshot(Description description) {
+        try {
+            Robot robot = new Robot();
+            Rectangle bounds = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            BufferedImage image = robot.createScreenCapture(bounds);
+            File out = new File(artifactsDir(), safeName(description) + ".png");
+            ImageIO.write(image, "png", out);
+        } catch (Exception ignored) {
+            // Best-effort for CI artifacts.
+        }
+    }
+
+    private static void writeFailure(Description description, Throwable error) {
+        File out = new File(artifactsDir(), safeName(description) + ".txt");
+        try (PrintWriter writer = new PrintWriter(new FileWriter(out))) {
+            writer.println("Test: " + description.getDisplayName());
+            writer.println("Thread: " + Thread.currentThread().getName());
+            writer.println();
+            error.printStackTrace(writer);
+        } catch (Exception ignored) {
+            // Best-effort for CI artifacts.
+        }
+    }
+
+    private static String safeName(Description description) {
+        String raw = description.getClassName() + "-" + description.getMethodName();
+        return raw.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 }

@@ -1,6 +1,13 @@
 name: Build and run tests
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      e2eFail:
+        description: "Intentionally fail E2E to verify artifacts"
+        required: false
+        default: "false"
 
 jobs:
   build:
@@ -25,6 +32,8 @@ jobs:
     needs: build
     env:
       NODEBOX_E2E: "1"
+      NODEBOX_E2E_ARTIFACTS: "build/e2e-artifacts"
+      NODEBOX_E2E_FORCE_FAIL: ${{ github.event_name == 'workflow_dispatch' && inputs.e2eFail == 'true' && '1' || '0' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -37,3 +46,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ant xvfb
       - name: Run E2E tests
         run: xvfb-run -a ant test-e2e
+      - name: Upload E2E artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            build/e2e-artifacts
+            reports/TEST-*.xml
