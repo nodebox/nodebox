@@ -14,9 +14,11 @@ For downloads, documentation and the forum, visit the website:
 
 ![Build Status](https://github.com/nodebox/nodebox/workflows/Build%20and%20run%20tests/badge.svg)
 
+Build matrix: **JDK 25 only** (other JDK versions are not supported).
+
 ## Building on Mac
 
-NodeBox requires the [Java JDK](https://jdk.java.net/15/), and [Homebrew](https://brew.sh/) (for Ant and Maven)
+NodeBox requires a recent Java JDK (baseline: JDK 25), and [Homebrew](https://brew.sh/) (for Ant and Maven)
 
 NodeBox uses Ant and Maven to build a running version. Install these first:
 

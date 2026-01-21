@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="NodeBox" default="run" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project name="NodeBox" default="run" basedir="." xmlns:resolver="antlib:org.apache.maven.resolver.ant">
     <description>Builds and tests NodeBox.</description>
 
-    <path id="maven-ant-tasks.classpath" path="lib/maven-ant-tasks-2.1.3.jar"/>
-    <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
-             uri="antlib:org.apache.maven.artifact.ant"
-             classpathref="maven-ant-tasks.classpath"/>
+    <taskdef uri="antlib:org.apache.maven.resolver.ant"
+             resource="org/apache/maven/resolver/ant/antlib.xml"
+             classpath="lib/maven-resolver-ant-tasks-1.6.0-uber.jar"/>
 
     <!--    <taskdef resource="com/sun/javafx/tools/ant/antlib.xml"-->
     <!--             uri="javafx:com.sun.javafx.tools.ant"-->
@@ -30,6 +29,7 @@
         <property name="build.test" location="${build}/test"/>
         <property name="build.dev" location="${build}/dev"/>
         <property name="build.doc" location="${build}/doc"/>
+        <property name="build.deps" location="${build}/deps"/>
         <property name="dist" value="dist"/>
         <property name="dist.unpacked" value="${dist}/unpacked"/>
         <property name="dist.res" value="${dist.unpacked}/resources"/>
@@ -81,10 +81,23 @@
         <property name="platform.res" location="${platform.dir}/res"/>
         <property name="platform.bin" location="${platform.dir}/bin"/>
 
-        <artifact:pom id="maven.project" file="pom.xml"/>
-        <artifact:dependencies filesetId="maven.fileset" pathId="maven.runtime.classpath" pomRefId="maven.project"
-                               usescope="runtime"/>
-        <artifact:dependencies pathId="maven.test.classpath" pomRefId="maven.project" usescope="test"/>
+        <resolver:remoterepo id="repo.central" url="https://repo1.maven.org/maven2/" releases="true" snapshots="false"/>
+        <resolver:remoterepo id="repo.clojars" url="https://clojars.org/repo" releases="true" snapshots="false"/>
+        <resolver:remoterepos id="maven.repositories">
+            <resolver:remoterepo refid="repo.central"/>
+            <resolver:remoterepo refid="repo.clojars"/>
+        </resolver:remoterepos>
+
+        <resolver:pom id="maven.project" file="pom.xml"/>
+        <resolver:dependencies id="maven.dependencies" pomRef="maven.project"/>
+
+        <resolver:resolve>
+            <resolver:dependencies refid="maven.dependencies"/>
+            <resolver:remoterepos refid="maven.repositories"/>
+            <resolver:path refid="maven.runtime.classpath" classpath="runtime"/>
+            <resolver:path refid="maven.test.classpath" classpath="test"/>
+            <resolver:files dir="${build.deps}" layout="{artifactId}-{version}.{extension}" classpath="runtime"/>
+        </resolver:resolve>
 
         <path id="compile.classpath">
             <path refid="maven.runtime.classpath"/>
@@ -105,6 +118,7 @@
         <mkdir dir="${build.test}"/>
         <mkdir dir="${build.dev}"/>
         <mkdir dir="${build.doc}"/>
+        <mkdir dir="${build.deps}"/>
         <mkdir dir="${dist}"/>
         <mkdir dir="${dist.unpacked}"/>
         <mkdir dir="${dist.res}"/>
@@ -154,7 +168,7 @@
     <target name="jar" depends="compile">
         <mkdir dir="${dist.lib}"/>
         <jar jarfile="${dist.lib}/nodebox.jar" basedir="${build.prod}">
-            <zipgroupfileset refid="maven.fileset"/>
+            <zipgroupfileset dir="${build.deps}" includes="**/*.jar"/>
             <manifest>
                 <attribute name="Main-Class" value="nodebox.client.Application"/>
                 <attribute name="Implementation-Version" value="${nodebox.version}"/>

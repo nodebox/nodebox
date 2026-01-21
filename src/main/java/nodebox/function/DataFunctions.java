@@ -1,6 +1,9 @@
 package nodebox.function;
 
-import au.com.bytecode.opencsv.CSVReader;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -124,92 +127,111 @@ public class DataFunctions {
     public static List<Map<String, Object>> importCSV(String fileName, String delimiter, String quotationCharacter, String numberSeparator) {
         if (fileName == null || fileName.trim().isEmpty()) return ImmutableList.of();
         try {
-            InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
             Character sep = separators.get(delimiter);
             if (sep == null) sep = ',';
             Character quot = separators.get(quotationCharacter);
             if (quot == null) quot = '"';
-            CSVReader reader = new CSVReader(in, sep, quot);
-            ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
-            String[] headers = reader.readNext();
-
-            Map<String, Integer> headerDuplicates = new HashMap<String, Integer>();
-            Map<String, Boolean> columnNumerics = new HashMap<String, Boolean>();
-            List<String> tmp = new ArrayList<String>();
-            for (int i = 0; i < headers.length; i++) {
-                headers[i] = headers[i].trim();
-                if (headers[i].isEmpty())
-                    headers[i] = String.format("Column %s", i + 1);
-                if (tmp.contains(headers[i]))
-                    headerDuplicates.put(headers[i], 0);
-                tmp.add(headers[i]);
-            }
-
-            for (int i = 0; i < headers.length; i++) {
-                String header = headers[i];
-                if (headerDuplicates.get(header) != null) {
-                    int number = headerDuplicates.get(header) + 1;
-                    headers[i] = header + " " + number;
-                    headerDuplicates.put(header, number);
+            try (InputStreamReader in = new InputStreamReader(new FileInputStream(fileName), "UTF-8");
+                 CSVReader reader = new CSVReaderBuilder(in)
+                         .withCSVParser(new CSVParserBuilder()
+                                 .withSeparator(sep)
+                                 .withQuoteChar(quot)
+                                 .build())
+                         .build()) {
+                ImmutableList.Builder<Map<String, Object>> b = ImmutableList.builder();
+                String[] headers;
+                try {
+                    headers = reader.readNext();
+                } catch (CsvValidationException e) {
+                    throw new RuntimeException("Could not parse CSV headers: " + e.getMessage(), e);
                 }
-                columnNumerics.put(headers[i], null);
-            }
 
-            String[] row;
+                Map<String, Integer> headerDuplicates = new HashMap<String, Integer>();
+                Map<String, Boolean> columnNumerics = new HashMap<String, Boolean>();
+                List<String> tmp = new ArrayList<String>();
+                for (int i = 0; i < headers.length; i++) {
+                    headers[i] = headers[i].trim();
+                    if (headers[i].isEmpty())
+                        headers[i] = String.format("Column %s", i + 1);
+                    if (tmp.contains(headers[i]))
+                        headerDuplicates.put(headers[i], 0);
+                    tmp.add(headers[i]);
+                }
 
-            NumberFormat nf = NumberFormat.getNumberInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
-            while ((row = reader.readNext()) != null) {
-                ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
-                for (int i = 0; i < row.length; i++) {
-                    String header = i < headers.length ? headers[i] : String.format("Column %s", i + 1);
-                    if (!columnNumerics.containsKey(header))
-                        columnNumerics.put(header, null);
+                for (int i = 0; i < headers.length; i++) {
+                    String header = headers[i];
+                    if (headerDuplicates.get(header) != null) {
+                        int number = headerDuplicates.get(header) + 1;
+                        headers[i] = header + " " + number;
+                        headerDuplicates.put(header, number);
+                    }
+                    columnNumerics.put(headers[i], null);
+                }
 
-                    String v = row[i].trim();
+                String[] row;
+
+                NumberFormat nf = NumberFormat.getNumberInstance(numberSeparator.equals("comma") ? Locale.GERMANY : Locale.US);
+                while (true) {
                     try {
-                        ParsePosition position = new ParsePosition(0);
-                        nf.parse(v, position).doubleValue();
-                        if (columnNumerics.get(header) == null)
-                            columnNumerics.put(header, true);
-                        if (position.getIndex() != v.length()) {
-                            throw new ParseException("Failed to parse entire string: " + v, position.getIndex());
-                        }
-                    } catch (ParseException e) {
-                        columnNumerics.put(header, false);
-                    } catch (NullPointerException e) {
-                        columnNumerics.put(header, false);
+                        row = reader.readNext();
+                    } catch (CsvValidationException e) {
+                        throw new RuntimeException("Could not parse CSV row: " + e.getMessage(), e);
                     }
-                    mb.put(header, v);
-                }
-                b.add(mb.build());
-            }
-            List<Map<String, Object>> tempRows = b.build();
+                    if (row == null) {
+                        break;
+                    }
+                    ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                    for (int i = 0; i < row.length; i++) {
+                        String header = i < headers.length ? headers[i] : String.format("Column %s", i + 1);
+                        if (!columnNumerics.containsKey(header))
+                            columnNumerics.put(header, null);
 
-            List<String> headersNumericCols = new ArrayList<String>();
-            for (String header : columnNumerics.keySet()) {
-                if (columnNumerics.get(header) == true)
-                    headersNumericCols.add(header);
-            }
-
-            if (headersNumericCols.isEmpty()) return tempRows;
-
-            b = ImmutableList.builder();
-            for (Map<String, Object> r : tempRows) {
-                ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
-                for (String header : r.keySet()) {
-                    if (headersNumericCols.contains(header)) {
+                        String v = row[i].trim();
                         try {
-                            double d = nf.parse(((String) r.get(header))).doubleValue();
-                            mb.put(header, d);
+                            ParsePosition position = new ParsePosition(0);
+                            nf.parse(v, position).doubleValue();
+                            if (columnNumerics.get(header) == null)
+                                columnNumerics.put(header, true);
+                            if (position.getIndex() != v.length()) {
+                                throw new ParseException("Failed to parse entire string: " + v, position.getIndex());
+                            }
                         } catch (ParseException e) {
+                            columnNumerics.put(header, false);
+                        } catch (NullPointerException e) {
+                            columnNumerics.put(header, false);
                         }
-                    } else {
-                        mb.put(header, r.get(header));
+                        mb.put(header, v);
                     }
+                    b.add(mb.build());
                 }
-                b.add(mb.build());
+                List<Map<String, Object>> tempRows = b.build();
+
+                List<String> headersNumericCols = new ArrayList<String>();
+                for (String header : columnNumerics.keySet()) {
+                    if (columnNumerics.get(header) == true)
+                        headersNumericCols.add(header);
+                }
+
+                if (headersNumericCols.isEmpty()) return tempRows;
+
+                b = ImmutableList.builder();
+                for (Map<String, Object> r : tempRows) {
+                    ImmutableMap.Builder<String, Object> mb = ImmutableMap.builder();
+                    for (String header : r.keySet()) {
+                        if (headersNumericCols.contains(header)) {
+                            try {
+                                double d = nf.parse(((String) r.get(header))).doubleValue();
+                                mb.put(header, d);
+                            } catch (ParseException e) {
+                            }
+                        } else {
+                            mb.put(header, r.get(header));
+                        }
+                    }
+                    b.add(mb.build());
+                }
+                return b.build();
             }
-            return b.build();
         } catch (IOException e) {
             throw new RuntimeException("Could not read file " + fileName + ": " + e.getMessage(), e);
         }
