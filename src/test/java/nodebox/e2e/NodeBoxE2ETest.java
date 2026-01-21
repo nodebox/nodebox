@@ -141,13 +141,6 @@ public class NodeBoxE2ETest {
         }
     }
 
-    @Test
-    public void canFailForPipelineVerification() {
-        Assume.assumeTrue("Failure flag is not enabled", "1".equals(System.getenv(E2E_FAIL_ENV)));
-        // If launchesAndOpensExample didn't run, fail here as a fallback.
-        throw new AssertionError("Intentional E2E failure fallback.");
-    }
-
     private static int menuShortcutKey() {
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         if ((mask & InputEvent.META_DOWN_MASK) != 0) {
