@@ -29,6 +29,7 @@
         <property name="build.test" location="${build}/test"/>
         <property name="build.dev" location="${build}/dev"/>
         <property name="build.doc" location="${build}/doc"/>
+        <property name="build.deps" location="${build}/deps"/>
         <property name="dist" value="dist"/>
         <property name="dist.unpacked" value="${dist}/unpacked"/>
         <property name="dist.res" value="${dist.unpacked}/resources"/>
@@ -95,7 +96,7 @@
             <resolver:remoterepos refid="maven.repositories"/>
             <resolver:path refid="maven.runtime.classpath" classpath="runtime"/>
             <resolver:path refid="maven.test.classpath" classpath="test"/>
-            <resolver:files refid="maven.fileset" classpath="runtime"/>
+            <resolver:files dir="${build.deps}" layout="{artifactId}-{version}.{extension}" classpath="runtime"/>
         </resolver:resolve>
 
         <path id="compile.classpath">
@@ -117,6 +118,7 @@
         <mkdir dir="${build.test}"/>
         <mkdir dir="${build.dev}"/>
         <mkdir dir="${build.doc}"/>
+        <mkdir dir="${build.deps}"/>
         <mkdir dir="${dist}"/>
         <mkdir dir="${dist.unpacked}"/>
         <mkdir dir="${dist.res}"/>
@@ -166,7 +168,7 @@
     <target name="jar" depends="compile">
         <mkdir dir="${dist.lib}"/>
         <jar jarfile="${dist.lib}/nodebox.jar" basedir="${build.prod}">
-            <zipgroupfileset refid="maven.fileset"/>
+            <zipgroupfileset dir="${build.deps}" includes="**/*.jar"/>
             <manifest>
                 <attribute name="Main-Class" value="nodebox.client.Application"/>
                 <attribute name="Implementation-Version" value="${nodebox.version}"/>

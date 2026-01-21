@@ -47,6 +47,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - [x] Upgrade `opencsv` to 5.12.0 and update CSV reader usage.
 - [x] Upgrade `itextpdf` to 5.5.13.4.
 - [x] Verified `processing-core`, `ddf.minim`, and `oscp5` are already at the latest published versions.
+- [x] Fixed `ant jar` packaging after resolver task migration by materializing deps to `build/deps`.
 - [ ] Document a short build matrix note in `README.md` (supported JDKs).
 - [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
 
@@ -63,6 +64,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - Replaced retired Maven Ant Tasks with Maven Resolver Ant Tasks 1.6.0 using the uber jar:
   - Added `lib/maven-resolver-ant-tasks-1.6.0-uber.jar`.
   - Updated `build.xml` to use `resolver:` tasks and explicit remote repos (Central + Clojars).
+- Restored fat-jar packaging by copying runtime deps to `build/deps` and zipping them into `nodebox.jar`.
 
 ### Stage 2 — Low-risk Runtime Libraries
 - Group A: `guava`, `httpclient`, `json-path`, `opencsv`, `jna`.
