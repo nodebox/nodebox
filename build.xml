@@ -155,6 +155,17 @@
         </junit>
     </target>
 
+    <target name="test-e2e" depends="compile-tests">
+        <mkdir dir="${reports}"/>
+        <junit haltonfailure="false">
+            <classpath refid="test.classpath"/>
+            <formatter type="xml"/>
+            <batchtest todir="${reports}">
+                <fileset dir="${build.test}" includes="**/*E2ETest.class"/>
+            </batchtest>
+        </junit>
+    </target>
+
     <target name="generate-test-reports" depends="test">
         <mkdir dir="${reports}"/>
         <junitreport todir="${reports}">
