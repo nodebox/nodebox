@@ -48,6 +48,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - [x] Upgrade `itextpdf` to 5.5.13.4.
 - [x] Verified `processing-core`, `ddf.minim`, and `oscp5` are already at the latest published versions.
 - [x] Fixed `ant jar` packaging after resolver task migration by materializing deps to `build/deps`.
+- [x] Upgrade `clojure` to 1.12.4.
 - [ ] Document a short build matrix note in `README.md` (supported JDKs).
 - [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
 
@@ -86,6 +87,9 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - Group C: `clojure`, `jython-standalone`.
 - Clojure upgrade risk: breaking changes across major versions.
 - Jython status is tricky (2.7 line is legacy); consider pinning or isolating.
+
+### Stage 4 Status (in progress)
+- Updated `clojure` to 1.12.4; tests pass locally.
 
 ### Stage 5 — Testing Framework
 - Move from JUnit 4 to a newer 4.x (if not already) or plan a JUnit 5 migration.
