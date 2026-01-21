@@ -40,6 +40,8 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - [x] Record local toolchain snapshot (Ant/JDK/Maven availability).
 - [x] Update CI to baseline JDK 25 and run `ant test`.
 - [x] Replace Maven Ant Tasks with Maven Resolver Ant Tasks in `build.xml`.
+- [x] Upgrade `jna` to 5.18.1.
+- [x] Upgrade `json-path` to 2.10.0.
 - [ ] Document a short build matrix note in `README.md` (supported JDKs).
 - [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
 
@@ -61,6 +63,9 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - Group A: `guava`, `httpclient`, `json-path`, `opencsv`, `jna`.
 - Upgrade one at a time; run tests + launch app after each.
 - Watch for API removals (e.g., Guava, HttpClient) and Java module warnings.
+
+### Stage 2 Status (in progress)
+- Updated `jna` to 5.18.1 and `json-path` to 2.10.0; tests pass locally.
 
 ### Stage 3 — Content & Media Stack
 - Group B: `itextpdf`, `processing.core`, `ddf.minim`, `oscp5`.
