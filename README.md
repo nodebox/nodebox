@@ -16,6 +16,14 @@ For downloads, documentation and the forum, visit the website:
 
 Build matrix: **JDK 25 only** (other JDK versions are not supported).
 
+## Documentation
+
+Developer and project docs live in `docs/`:
+
+- `docs/README.md` (index)
+- `docs/development.md` (build/test workflow)
+- `docs/architecture.md` (system overview)
+
 ## E2E Tests
 
 Run the UI end-to-end suite with a graphical session available:
