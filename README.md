@@ -16,6 +16,16 @@ For downloads, documentation and the forum, visit the website:
 
 Build matrix: **JDK 25 only** (other JDK versions are not supported).
 
+## E2E Tests
+
+Run the UI end-to-end suite with a graphical session available:
+
+```shell
+NODEBOX_E2E=1 ant test-e2e
+```
+
+Artifacts (screenshots + stack traces) are written to `build/e2e-artifacts` by default. You can override this with `NODEBOX_E2E_ARTIFACTS=/path/to/dir`.
+
 ## Building on Mac
 
 NodeBox requires a recent Java JDK (baseline: JDK 25), and [Homebrew](https://brew.sh/) (for Ant and Maven)

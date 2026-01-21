@@ -2,6 +2,7 @@ package nodebox.e2e;
 
 import nodebox.client.Application;
 import nodebox.client.NodeBoxDocument;
+import nodebox.node.Connection;
 import nodebox.node.Node;
 import nodebox.node.Port;
 import nodebox.ui.ExportFormat;
@@ -409,6 +410,51 @@ public class NodeBoxE2ETest {
         assertTrue("Frame should advance by one.", Math.abs(frame[0] - 2.0) < 0.001);
     }
 
+    @Test
+    public void connectNodesAddsConnection() throws Exception {
+        openExampleAndWait(exampleFile());
+        final NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
+        assertNotNull(doc);
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.connect("colorize1", "combine1", "list4");
+            }
+        });
+
+        waitFor("Connection added", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return hasConnection(doc.getActiveNetwork(), "colorize1", "combine1", "list4");
+            }
+        });
+    }
+
+    @Test
+    public void switchRenderedNodeUpdatesNetwork() throws Exception {
+        openExampleAndWait(exampleFile());
+        final NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
+        assertNotNull(doc);
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Node target = doc.getActiveNetwork().getChild("polygon1");
+                if (target != null) {
+                    doc.setRenderedNode(target);
+                }
+            }
+        });
+
+        waitFor("Rendered node switched", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return "polygon1".equals(doc.getActiveNetwork().getRenderedChildName());
+            }
+        });
+    }
+
     private static int menuShortcutKey() {
         int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         if ((mask & InputEvent.META_DOWN_MASK) != 0) {
@@ -515,6 +561,20 @@ public class NodeBoxE2ETest {
         } catch (RuntimeException ignored) {
             return firstPrototypeNode(doc);
         }
+    }
+
+    private static boolean hasConnection(Node network, String outputNode, String inputNode, String inputPort) {
+        if (network == null) {
+            return false;
+        }
+        for (Connection connection : network.getConnections()) {
+            if (outputNode.equals(connection.getOutputNode())
+                    && inputNode.equals(connection.getInputNode())
+                    && inputPort.equals(connection.getInputPort())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static Node firstPrototypeNode(NodeBoxDocument doc) {
