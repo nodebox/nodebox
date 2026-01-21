@@ -2,6 +2,8 @@ package nodebox.e2e;
 
 import nodebox.client.Application;
 import nodebox.client.NodeBoxDocument;
+import nodebox.node.Node;
+import nodebox.ui.ExportFormat;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -23,8 +25,10 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import static org.junit.Assert.assertNotNull;
@@ -48,9 +52,25 @@ public class NodeBoxE2ETest {
     };
 
     @BeforeClass
-    public static void requireE2E() {
+    public static void requireE2E() throws Exception {
         Assume.assumeTrue("E2E tests require NODEBOX_E2E=1", "1".equals(System.getenv(E2E_ENV)));
         Assume.assumeFalse("E2E tests require a graphics environment", GraphicsEnvironment.isHeadless());
+        if (Application.getInstance() == null) {
+            Application.main(new String[]{});
+            waitFor("Application instance", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+                @Override
+                public Boolean get() {
+                    return Application.getInstance() != null;
+                }
+            });
+        }
+        waitFor("Initial document", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                Application app = Application.getInstance();
+                return app != null && app.getDocumentCount() > 0 && app.getCurrentDocument() != null;
+            }
+        });
     }
 
     @AfterClass
@@ -71,40 +91,11 @@ public class NodeBoxE2ETest {
 
     @Test
     public void launchesAndOpensExample() throws Exception {
-        Application.main(new String[]{});
-
-        waitFor("Application instance", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
-            @Override
-            public Boolean get() {
-                return Application.getInstance() != null;
-            }
-        });
-
-        waitFor("Initial document", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
-            @Override
-            public Boolean get() {
-                Application app = Application.getInstance();
-                return app != null && app.getDocumentCount() > 0 && app.getCurrentDocument() != null;
-            }
-        });
-
-        final NodeBoxDocument[] current = new NodeBoxDocument[1];
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                current[0] = Application.getInstance().getCurrentDocument();
-                if (current[0] != null) {
-                    current[0].toFront();
-                    current[0].requestFocus();
-                }
-            }
-        });
-
-        assertNotNull(current[0]);
-        assertTrue(current[0].isVisible());
+        NodeBoxDocument current = focusCurrentDocument();
+        assertNotNull(current);
+        assertTrue(current.isVisible());
 
         int initialCount = Application.getInstance().getDocumentCount();
-
         Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
         robot.delay(500);
@@ -122,25 +113,129 @@ public class NodeBoxE2ETest {
             }
         });
 
-        final File example = new File("examples/01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
-        SwingUtilities.invokeAndWait(new Runnable() {
-            @Override
-            public void run() {
-                Application.getInstance().openExample(example);
-            }
-        });
-
-        waitFor("Example open", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
-            @Override
-            public Boolean get() {
-                NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
-                return doc != null && doc.getDocumentFile() != null && sameFile(example, doc.getDocumentFile());
-            }
-        });
+        final File example = exampleFile();
+        openExampleAndWait(example);
 
         if ("1".equals(System.getenv(E2E_FAIL_ENV))) {
             throw new AssertionError("Intentional E2E failure after UI is visible.");
         }
+    }
+
+    @Test
+    public void saveAndReloadDocument() throws Exception {
+        final NodeBoxDocument doc = focusCurrentDocument();
+        assertNotNull(doc);
+
+        final File tempFile = new File("build/e2e-artifacts", "e2e-save.ndbx");
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.setDocumentFile(tempFile);
+                doc.setNeedsResave(false);
+                doc.save();
+            }
+        });
+
+        waitFor("Saved file", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return tempFile.isFile() && tempFile.length() > 0;
+            }
+        });
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Application.getInstance().openDocument(tempFile);
+            }
+        });
+
+        waitFor("Reloaded document", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                NodeBoxDocument current = Application.getInstance().getCurrentDocument();
+                return current != null && current.getDocumentFile() != null && sameFile(tempFile, current.getDocumentFile());
+            }
+        });
+    }
+
+    @Test
+    public void exportSingleFramePng() throws Exception {
+        openExampleAndWait(exampleFile());
+        final NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
+        assertNotNull(doc);
+
+        final File exportDir = new File("build/e2e-artifacts", "exports");
+        if (!exportDir.exists()) {
+            exportDir.mkdirs();
+        }
+        final String prefix = "e2e-export";
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.exportRange(prefix, exportDir, 1, 1, ExportFormat.PNG);
+            }
+        });
+
+        final File exportFile = new File(exportDir, prefix + "-00001.png");
+        waitFor("PNG export", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return exportFile.isFile() && exportFile.length() > 0;
+            }
+        });
+    }
+
+    @Test
+    public void undoRedoNodeCreation() throws Exception {
+        openExampleAndWait(exampleFile());
+        final NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
+        assertNotNull(doc);
+
+        final AtomicInteger initialCount = new AtomicInteger();
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                initialCount.set(countRootNodes(doc));
+                Node prototype = firstPrototypeNode(doc);
+                doc.createNode(prototype, new nodebox.graphics.Point(100, 100));
+            }
+        });
+
+        waitFor("Node created", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == initialCount.get() + 1;
+            }
+        });
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.undo();
+            }
+        });
+
+        waitFor("Undo", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == initialCount.get();
+            }
+        });
+
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                doc.redo();
+            }
+        });
+
+        waitFor("Redo", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                return countRootNodes(doc) == initialCount.get() + 1;
+            }
+        });
     }
 
     private static int menuShortcutKey() {
@@ -166,6 +261,55 @@ public class NodeBoxE2ETest {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static NodeBoxDocument focusCurrentDocument() throws Exception {
+        final NodeBoxDocument[] current = new NodeBoxDocument[1];
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                current[0] = Application.getInstance().getCurrentDocument();
+                if (current[0] != null) {
+                    current[0].toFront();
+                    current[0].requestFocus();
+                }
+            }
+        });
+        return current[0];
+    }
+
+    private static File exampleFile() {
+        return new File("examples/01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+    }
+
+    private static void openExampleAndWait(final File example) throws Exception {
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                Application.getInstance().openExample(example);
+            }
+        });
+
+        waitFor("Example open", DEFAULT_TIMEOUT_MS, new Supplier<Boolean>() {
+            @Override
+            public Boolean get() {
+                NodeBoxDocument doc = Application.getInstance().getCurrentDocument();
+                return doc != null && doc.getDocumentFile() != null && sameFile(example, doc.getDocumentFile());
+            }
+        });
+    }
+
+    private static int countRootNodes(NodeBoxDocument doc) {
+        Collection<Node> nodes = doc.getNodeLibrary().getRoot().getChildren();
+        return nodes == null ? 0 : nodes.size();
+    }
+
+    private static Node firstPrototypeNode(NodeBoxDocument doc) {
+        List<Node> nodes = doc.getNodeRepository().getNodes();
+        if (nodes.isEmpty()) {
+            throw new IllegalStateException("No prototype nodes available.");
+        }
+        return nodes.get(0);
     }
 
     private static File artifactsDir() {
