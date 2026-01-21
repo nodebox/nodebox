@@ -19,6 +19,16 @@ NodeBox currently embeds Jython 2.7.2. A Python 3-capable Jython release does **
 - NodeBox uses Jython-specific APIs directly (e.g., `PythonInterpreter`, `PyObject`), so runtime swap is non-trivial.
 - Packaging changes would be required if a new runtime is introduced.
 
+## User Migration UX (Future Work)
+- Add a per-project/runtime selector (Python 2 vs Python 3) with a clear banner when Python 2 is active.
+- Provide a migration assistant that:
+  - Scans user code and libraries for Python 2-only constructs.
+  - Runs an automatic conversion pass (e.g., `2to3`) with a preview diff.
+  - Generates a compatibility report highlighting manual fixes (I/O, unicode, dict iteration, exceptions).
+- Surface migration status in the UI (e.g., “Auto-migrated: X files; Manual fixes: Y files”).
+- Allow rollback to Python 2 for a project if migration fails.
+- Add in-app links to migration docs and a “report incompatibility” action.
+
 ## Proposed Phases (Future Work)
 ### Phase 0 — Requirements & Scope
 - Decide whether native CPython packages are required.
