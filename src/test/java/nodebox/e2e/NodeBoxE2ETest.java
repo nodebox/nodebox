@@ -135,12 +135,17 @@ public class NodeBoxE2ETest {
                 return doc != null && doc.getDocumentFile() != null && sameFile(example, doc.getDocumentFile());
             }
         });
+
+        if ("1".equals(System.getenv(E2E_FAIL_ENV))) {
+            throw new AssertionError("Intentional E2E failure after UI is visible.");
+        }
     }
 
     @Test
     public void canFailForPipelineVerification() {
         Assume.assumeTrue("Failure flag is not enabled", "1".equals(System.getenv(E2E_FAIL_ENV)));
-        throw new AssertionError("Intentional E2E failure to verify CI artifacts.");
+        // If launchesAndOpensExample didn't run, fail here as a fallback.
+        throw new AssertionError("Intentional E2E failure fallback.");
     }
 
     private static int menuShortcutKey() {
