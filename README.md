@@ -16,7 +16,7 @@ For downloads, documentation and the forum, visit the website:
 
 ## Building on Mac
 
-NodeBox requires the [Java JDK](https://jdk.java.net/15/), and [Homebrew](https://brew.sh/) (for Ant and Maven)
+NodeBox requires a recent Java JDK (baseline: JDK 25), and [Homebrew](https://brew.sh/) (for Ant and Maven)
 
 NodeBox uses Ant and Maven to build a running version. Install these first:
 

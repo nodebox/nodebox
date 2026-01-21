@@ -35,6 +35,14 @@ Repositories:
 ## Upgrade Staging Proposal
 Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check (launch, open example, render/export if relevant).
 
+### Progress Checklist
+- [x] Inventory current dependencies from `pom.xml`.
+- [x] Record local toolchain snapshot (Ant/JDK/Maven availability).
+- [x] Update CI to baseline JDK 25 and run `ant test`.
+- [x] Replace Maven Ant Tasks with Maven Resolver Ant Tasks in `build.xml`.
+- [ ] Document a short build matrix note in `README.md` (supported JDKs).
+- [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
+
 ### Stage 0 — Guardrails & Repro
 - Record current Java/Ant/Maven versions used by the team.
 - Add a short “build matrix” note to docs if not already present (e.g., supported JDKs).
@@ -43,6 +51,11 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 ### Stage 1 — Build Tooling (no runtime libs)
 - Review/upgrade Ant tasks and helper jars if newer equivalents are available.
 - Confirm `jpackage` path assumptions in `build.xml` still align with modern JDK installs.
+
+### Stage 1 Status (completed)
+- Replaced retired Maven Ant Tasks with Maven Resolver Ant Tasks 1.6.0 using the uber jar:
+  - Added `lib/maven-resolver-ant-tasks-1.6.0-uber.jar`.
+  - Updated `build.xml` to use `resolver:` tasks and explicit remote repos (Central + Clojars).
 
 ### Stage 2 — Low-risk Runtime Libraries
 - Group A: `guava`, `httpclient`, `json-path`, `opencsv`, `jna`.
