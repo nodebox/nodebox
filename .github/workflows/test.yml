@@ -43,9 +43,9 @@ jobs:
           distribution: temurin
           java-version: '25'
       - name: Install Ant and Xvfb
-        run: sudo apt-get update && sudo apt-get install -y ant xvfb
+        run: sudo apt-get update && sudo apt-get install -y ant xvfb openbox
       - name: Run E2E tests
-        run: xvfb-run -a ant test-e2e
+        run: xvfb-run -a -s "-screen 0 1920x1080x24" bash -lc "openbox & ant test-e2e"
       - name: Upload E2E artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4

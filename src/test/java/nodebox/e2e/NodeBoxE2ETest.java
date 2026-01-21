@@ -13,6 +13,7 @@ import org.junit.runner.Description;
 import javax.swing.SwingUtilities;
 import javax.imageio.ImageIO;
 import java.awt.GraphicsEnvironment;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -41,6 +42,7 @@ public class NodeBoxE2ETest {
         @Override
         protected void failed(Throwable e, Description description) {
             writeFailure(description, e);
+            captureSwingSnapshot(description);
             captureScreenshot(description);
         }
     };
@@ -183,8 +185,40 @@ public class NodeBoxE2ETest {
             Robot robot = new Robot();
             Rectangle bounds = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             BufferedImage image = robot.createScreenCapture(bounds);
-            File out = new File(artifactsDir(), safeName(description) + ".png");
+            File out = new File(artifactsDir(), safeName(description) + "-screen.png");
             ImageIO.write(image, "png", out);
+        } catch (Exception ignored) {
+            // Best-effort for CI artifacts.
+        }
+    }
+
+    private static void captureSwingSnapshot(Description description) {
+        try {
+            final Application app = Application.getInstance();
+            if (app == null) return;
+            final NodeBoxDocument doc = app.getCurrentDocument();
+            if (doc == null) return;
+            final BufferedImage[] imageHolder = new BufferedImage[1];
+            SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
+                public void run() {
+                    int width = Math.max(doc.getWidth(), doc.getPreferredSize().width);
+                    int height = Math.max(doc.getHeight(), doc.getPreferredSize().height);
+                    if (width <= 0) width = 1280;
+                    if (height <= 0) height = 720;
+                    doc.setSize(width, height);
+                    doc.validate();
+                    BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = image.createGraphics();
+                    doc.printAll(g);
+                    g.dispose();
+                    imageHolder[0] = image;
+                }
+            });
+            if (imageHolder[0] != null) {
+                File out = new File(artifactsDir(), safeName(description) + "-swing.png");
+                ImageIO.write(imageHolder[0], "png", out);
+            }
         } catch (Exception ignored) {
             // Best-effort for CI artifacts.
         }
