@@ -206,6 +206,13 @@ public class NodeBoxE2ETest {
                     int height = Math.max(doc.getHeight(), doc.getPreferredSize().height);
                     if (width <= 0) width = 1280;
                     if (height <= 0) height = 720;
+                    java.awt.Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+                    if (screen.width > 0) {
+                        width = Math.min(width, screen.width);
+                    }
+                    if (screen.height > 0) {
+                        height = Math.min(height, screen.height);
+                    }
                     doc.setSize(width, height);
                     doc.validate();
                     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
