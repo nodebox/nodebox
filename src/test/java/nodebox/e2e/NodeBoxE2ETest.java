@@ -127,6 +127,10 @@ public class NodeBoxE2ETest {
         assertNotNull(doc);
 
         final File tempFile = new File("build/e2e-artifacts", "e2e-save.ndbx");
+        File parentDir = tempFile.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
             public void run() {
