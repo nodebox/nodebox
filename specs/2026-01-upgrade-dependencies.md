@@ -49,6 +49,7 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 - [x] Verified `processing-core`, `ddf.minim`, and `oscp5` are already at the latest published versions.
 - [x] Fixed `ant jar` packaging after resolver task migration by materializing deps to `build/deps`.
 - [x] Upgrade `clojure` to 1.12.4.
+- [x] Upgrade `junit` to 4.13.2.
 - [ ] Document a short build matrix note in `README.md` (supported JDKs).
 - [ ] Verify `ant run` is green on the baseline JDK in a clean environment.
 
@@ -94,6 +95,9 @@ Each stage should end with `ant run` and `ant test`, plus a quick UI smoke check
 ### Stage 5 — Testing Framework
 - Move from JUnit 4 to a newer 4.x (if not already) or plan a JUnit 5 migration.
 - If migrating, update Ant test task + test source structure incrementally.
+
+### Stage 5 Status (in progress)
+- Updated `junit` to 4.13.2; tests pass locally.
 
 ## Proposed Dependency Batches (for PR sizing)
 - PR 1: Build tooling + documentation updates (no library upgrades).
