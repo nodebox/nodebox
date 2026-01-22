@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 /**
@@ -108,7 +109,7 @@ public class UpdateCheckDialog extends JDialog implements ActionListener {
 
         public URL getIconFile() {
             try {
-                return new URL("file:src/test/files/mockboxlogo.png");
+                return URI.create("file:src/test/files/mockboxlogo.png").toURL();
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }

@@ -184,7 +184,7 @@ public class Platform {
         public static final int SHGFP_TYPE_CURRENT = 0;
         public static final int S_OK = 0;
 
-        static Shell32 INSTANCE = (Shell32) Native.loadLibrary("shell32", Shell32.class, JNA_OPTIONS);
+        static Shell32 INSTANCE = Native.load("shell32", Shell32.class, JNA_OPTIONS);
 
         /**
          * See http://msdn.microsoft.com/en-us/library/bb762181(VS.85).aspx

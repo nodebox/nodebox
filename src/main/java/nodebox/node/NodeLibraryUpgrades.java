@@ -1,6 +1,5 @@
 package nodebox.node;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import nodebox.graphics.Point;
@@ -21,6 +20,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,7 +83,7 @@ public class NodeLibraryUpgrades {
 
     private static String readFile(File file) {
         try {
-            return Files.asCharSource(file, Charsets.UTF_8).read();
+            return Files.asCharSource(file, StandardCharsets.UTF_8).read();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

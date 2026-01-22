@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -23,7 +24,7 @@ public class UpdateChecker extends Thread implements Runnable {
 
     public void run() {
         try {
-            URL appcastURL = new URL(updater.getHost().getAppcastURL());
+            URL appcastURL = URI.create(updater.getHost().getAppcastURL()).toURL();
             // Get contents of URL.
             URLConnection conn = appcastURL.openConnection();
             // Parse XML contents.
