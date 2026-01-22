@@ -32,6 +32,31 @@ E2E failures produce screenshots and stack traces in `build/e2e-artifacts` by de
 NODEBOX_E2E_ARTIFACTS=/path/to/dir NODEBOX_E2E=1 ant test-e2e
 ```
 
+## Adding an E2E Test (Manual)
+
+1) Add a new `@Test` method in `src/test/java/nodebox/e2e/NodeBoxE2ETest.java`.
+2) Use `focusCurrentDocument()` or `openExampleAndWait(exampleFile())` to ensure the UI is ready.
+3) For UI mutations, wrap calls in `SwingUtilities.invokeAndWait(...)`.
+4) Use `waitFor(...)` to assert state changes (avoid fixed sleeps).
+5) Keep tests deterministic: prefer built-in examples and stable node names.
+
+Example skeleton:
+
+```java
+@Test
+public void myNewE2ETest() throws Exception {
+    final NodeBoxDocument doc = focusCurrentDocument();
+    assertNotNull(doc);
+    SwingUtilities.invokeAndWait(() -> {
+        // mutate UI or model
+    });
+    waitFor("Expected change", DEFAULT_TIMEOUT_MS, () -> {
+        // return true when the state is correct
+        return true;
+    });
+}
+```
+
 ## Notes
 
 - Jython emits native-access warnings on newer JDKs; this is expected for now.
