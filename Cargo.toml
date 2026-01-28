@@ -15,6 +15,9 @@ authors = ["NodeBox Contributors"]
 # Core geometry
 kurbo = "0.11"
 
+# UUID generation
+uuid = { version = "1.6", features = ["v4"] }
+
 # Testing
 proptest = "1.4"
 approx = "0.5"

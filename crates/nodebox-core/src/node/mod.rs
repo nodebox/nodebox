@@ -1,9 +1,17 @@
 //! Node graph model for NodeBox.
 //!
-//! This module will contain:
-//! - [`Node`] - A node in the graph
-//! - [`Port`] - Input/output ports on nodes
+//! This module contains:
+//! - [`Port`] - Input ports on nodes with type and value
 //! - [`Connection`] - Connections between nodes
+//! - [`Node`] - A node in the graph
 //! - [`NodeLibrary`] - A collection of nodes
 
-// TODO: Implement node graph model in M1.2
+mod port;
+mod connection;
+mod node;
+mod library;
+
+pub use port::{Port, PortType, PortRange, Widget, MenuItem};
+pub use connection::Connection;
+pub use node::Node;
+pub use library::NodeLibrary;

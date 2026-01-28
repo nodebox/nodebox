@@ -8,6 +8,7 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
+uuid = { workspace = true }
 
 [dev-dependencies]
 proptest = { workspace = true }
