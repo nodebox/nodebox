@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "crates/nodebox-core",
+    "crates/nodebox-ndbx",
 ]
 
 [workspace.package]
@@ -17,6 +18,12 @@ kurbo = "0.11"
 
 # UUID generation
 uuid = { version = "1.6", features = ["v4"] }
+
+# XML parsing
+quick-xml = "0.31"
+
+# Error handling
+thiserror = "1.0"
 
 # Testing
 proptest = "1.4"

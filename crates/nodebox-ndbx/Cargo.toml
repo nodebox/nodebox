@@ -1,0 +1,16 @@
+[package]
+name = "nodebox-ndbx"
+description = "NDBX file format parser for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+quick-xml = "0.31"
+thiserror = "1.0"
+
+[dev-dependencies]
+proptest = { workspace = true }
