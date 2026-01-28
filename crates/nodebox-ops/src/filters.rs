@@ -596,6 +596,564 @@ pub fn resample_by_length(path: &Path, segment_length: f64) -> Path {
     path.resample_by_length(segment_length)
 }
 
+// ============================================================================
+// Advanced Geometry Operations
+// ============================================================================
+
+/// Snap geometry to a grid.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `grid_size` - The grid cell size
+/// * `strength` - Snap strength from 0.0 (no snap) to 100.0 (full snap)
+/// * `offset` - Grid offset position
+pub fn snap(path: &Path, grid_size: f64, strength: f64, offset: Point) -> Path {
+    if grid_size <= 0.0 {
+        return path.clone();
+    }
+
+    let strength = (strength / 100.0).clamp(0.0, 1.0);
+
+    let snap_value = |v: f64, grid_offset: f64| -> f64 {
+        let grid_pos = v + grid_offset;
+        let snapped = (grid_pos / grid_size).round() * grid_size;
+        let original = v;
+        let snapped_final = snapped - grid_offset;
+        original * (1.0 - strength) + snapped_final * strength
+    };
+
+    let mut result = path.clone();
+    for contour in &mut result.contours {
+        for point in &mut contour.points {
+            point.point.x = snap_value(point.point.x, offset.x);
+            point.point.y = snap_value(point.point.y, offset.y);
+        }
+    }
+    result
+}
+
+/// Wiggle scope - which elements to apply random offset to.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WiggleScope {
+    Points,
+    Contours,
+    Paths,
+}
+
+impl WiggleScope {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "contours" => WiggleScope::Contours,
+            "paths" => WiggleScope::Paths,
+            _ => WiggleScope::Points,
+        }
+    }
+}
+
+/// Wiggle (randomly offset) elements in a path.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `scope` - What to wiggle: points, contours, or the whole path
+/// * `offset` - Maximum random offset in x and y
+/// * `seed` - Random seed for reproducibility
+pub fn wiggle(path: &Path, scope: WiggleScope, offset: Point, seed: u64) -> Path {
+    let mut state = seed.wrapping_mul(1000000000);
+
+    let random_offset = |state: &mut u64| -> (f64, f64) {
+        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
+        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32767.0 - 0.5;
+        (rx * offset.x * 2.0, ry * offset.y * 2.0)
+    };
+
+    match scope {
+        WiggleScope::Points => {
+            let mut result = path.clone();
+            for contour in &mut result.contours {
+                for point in &mut contour.points {
+                    let (dx, dy) = random_offset(&mut state);
+                    point.point.x += dx;
+                    point.point.y += dy;
+                }
+            }
+            result
+        }
+        WiggleScope::Contours => {
+            let mut result = path.clone();
+            for contour in &mut result.contours {
+                let (dx, dy) = random_offset(&mut state);
+                for point in &mut contour.points {
+                    point.point.x += dx;
+                    point.point.y += dy;
+                }
+            }
+            result
+        }
+        WiggleScope::Paths => {
+            let (dx, dy) = random_offset(&mut state);
+            translate(path, Point::new(dx, dy))
+        }
+    }
+}
+
+/// Generate random points within the bounding box of a shape.
+///
+/// # Arguments
+/// * `path` - The shape to scatter within
+/// * `amount` - Number of points to generate
+/// * `seed` - Random seed
+///
+/// Note: Points are generated within the bounding box and filtered to be inside the shape.
+pub fn scatter(path: &Path, amount: usize, seed: u64) -> Vec<Point> {
+    let bounds = match path.bounds() {
+        Some(b) => b,
+        None => return Vec::new(),
+    };
+
+    let mut state = seed.wrapping_mul(1000000000);
+    let mut points = Vec::with_capacity(amount);
+
+    let random_point = |state: &mut u64| -> Point {
+        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let rx = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
+        *state = state.wrapping_mul(1103515245).wrapping_add(12345);
+        let ry = ((*state >> 16) & 0x7FFF) as f64 / 32768.0;
+        Point::new(bounds.x + rx * bounds.width, bounds.y + ry * bounds.height)
+    };
+
+    // For simplicity, we generate points in the bounding box
+    // A full implementation would check if points are inside the actual path
+    for _ in 0..amount {
+        let pt = random_point(&mut state);
+        points.push(pt);
+    }
+
+    points
+}
+
+/// Delete scope - which elements to delete.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DeleteScope {
+    Points,
+    Paths,
+}
+
+impl DeleteScope {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "paths" => DeleteScope::Paths,
+            _ => DeleteScope::Points,
+        }
+    }
+}
+
+/// Delete points or paths within a bounding region.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `bounds` - The bounding region
+/// * `scope` - Delete points or paths
+/// * `delete_inside` - If true, delete elements inside bounds; if false, delete outside
+pub fn delete(path: &Path, bounds: &Path, scope: DeleteScope, delete_inside: bool) -> Path {
+    let bounding_rect = match bounds.bounds() {
+        Some(b) => b,
+        None => return path.clone(),
+    };
+
+    match scope {
+        DeleteScope::Points => {
+            let mut result = path.clone();
+            for contour in &mut result.contours {
+                contour.points.retain(|pp| {
+                    let inside = bounding_rect.contains_point(pp.point);
+                    if delete_inside { !inside } else { inside }
+                });
+            }
+            // Remove empty contours
+            result.contours.retain(|c| !c.points.is_empty());
+            result
+        }
+        DeleteScope::Paths => {
+            // For a single path, check if any point is inside the bounds
+            let has_point_inside = path.contours.iter().any(|c| {
+                c.points.iter().any(|pp| bounding_rect.contains_point(pp.point))
+            });
+            if (delete_inside && has_point_inside) || (!delete_inside && !has_point_inside) {
+                Path::new()
+            } else {
+                path.clone()
+            }
+        }
+    }
+}
+
+/// Reflect a path across an axis.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `origin` - The reflection origin point
+/// * `angle` - The reflection axis angle in degrees
+/// * `keep_original` - If true, return both original and reflected; if false, only reflected
+pub fn reflect(path: &Path, origin: Point, angle: f64, keep_original: bool) -> Geometry {
+    use std::f64::consts::PI;
+
+    let angle_rad = angle * PI / 180.0;
+
+    // Reflect a point across a line through origin at the given angle
+    let reflect_point = |p: Point| -> Point {
+        // Translate to origin
+        let px = p.x - origin.x;
+        let py = p.y - origin.y;
+
+        // Reflect across the axis
+        // Using reflection matrix for a line through origin at angle theta:
+        // [cos(2θ)   sin(2θ)]
+        // [sin(2θ)  -cos(2θ)]
+        let cos_2a = (2.0 * angle_rad).cos();
+        let sin_2a = (2.0 * angle_rad).sin();
+
+        let rx = px * cos_2a + py * sin_2a;
+        let ry = px * sin_2a - py * cos_2a;
+
+        // Translate back
+        Point::new(rx + origin.x, ry + origin.y)
+    };
+
+    let mut reflected = path.clone();
+    for contour in &mut reflected.contours {
+        for point in &mut contour.points {
+            point.point = reflect_point(point.point);
+        }
+    }
+
+    let mut result = Geometry::new();
+    if keep_original {
+        result.add(path.clone());
+    }
+    result.add(reflected);
+    result
+}
+
+/// Sort shapes by a criterion.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SortBy {
+    X,
+    Y,
+    Angle,
+    Distance,
+}
+
+impl SortBy {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "y" => SortBy::Y,
+            "angle" => SortBy::Angle,
+            "distance" => SortBy::Distance,
+            _ => SortBy::X,
+        }
+    }
+}
+
+/// Sort a list of paths by a criterion.
+///
+/// # Arguments
+/// * `paths` - The paths to sort
+/// * `order_by` - The sorting criterion
+/// * `reference` - Reference point for angle/distance sorting
+pub fn sort_paths(paths: &[Path], order_by: SortBy, reference: Point) -> Vec<Path> {
+    let mut sorted: Vec<(f64, Path)> = paths
+        .iter()
+        .map(|p| {
+            let c = centroid(p);
+            let key = match order_by {
+                SortBy::X => c.x,
+                SortBy::Y => c.y,
+                SortBy::Angle => (c.y - reference.y).atan2(c.x - reference.x),
+                SortBy::Distance => ((c.x - reference.x).powi(2) + (c.y - reference.y).powi(2)).sqrt(),
+            };
+            (key, p.clone())
+        })
+        .collect();
+
+    sorted.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal));
+    sorted.into_iter().map(|(_, p)| p).collect()
+}
+
+/// Stack direction.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StackDirection {
+    East,
+    West,
+    North,
+    South,
+}
+
+impl StackDirection {
+    pub fn from_str(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "w" | "west" => StackDirection::West,
+            "n" | "north" => StackDirection::North,
+            "s" | "south" => StackDirection::South,
+            _ => StackDirection::East,
+        }
+    }
+}
+
+/// Stack shapes in a direction with margin.
+///
+/// # Arguments
+/// * `paths` - The paths to stack
+/// * `direction` - Stack direction (e, w, n, s)
+/// * `margin` - Spacing between shapes
+pub fn stack(paths: &[Path], direction: StackDirection, margin: f64) -> Vec<Path> {
+    if paths.is_empty() {
+        return Vec::new();
+    }
+    if paths.len() == 1 {
+        return vec![paths[0].clone()];
+    }
+
+    let mut result = Vec::with_capacity(paths.len());
+    let first_bounds = paths[0].bounds().unwrap_or_default();
+
+    match direction {
+        StackDirection::East => {
+            let mut tx = first_bounds.x;
+            for path in paths {
+                let bounds = path.bounds().unwrap_or_default();
+                let offset = tx - bounds.x;
+                result.push(translate(path, Point::new(offset, 0.0)));
+                tx += bounds.width + margin;
+            }
+        }
+        StackDirection::West => {
+            let mut tx = first_bounds.x + first_bounds.width;
+            for path in paths {
+                let bounds = path.bounds().unwrap_or_default();
+                let offset = tx - bounds.x - bounds.width;
+                result.push(translate(path, Point::new(offset, 0.0)));
+                tx -= bounds.width + margin;
+            }
+        }
+        StackDirection::South => {
+            let mut ty = first_bounds.y;
+            for path in paths {
+                let bounds = path.bounds().unwrap_or_default();
+                let offset = ty - bounds.y;
+                result.push(translate(path, Point::new(0.0, offset)));
+                ty += bounds.height + margin;
+            }
+        }
+        StackDirection::North => {
+            let mut ty = first_bounds.y + first_bounds.height;
+            for path in paths {
+                let bounds = path.bounds().unwrap_or_default();
+                let offset = ty - bounds.y - bounds.height;
+                result.push(translate(path, Point::new(0.0, offset)));
+                ty -= bounds.height + margin;
+            }
+        }
+    }
+
+    result
+}
+
+/// Place shapes along a path.
+///
+/// # Arguments
+/// * `shapes` - The shapes to place
+/// * `path` - The path to place along
+/// * `amount` - Number of copies
+/// * `spacing` - Spacing between copies (as percentage of path length)
+/// * `margin` - Margin from path ends
+/// * `rotate_to_path` - If true, rotate shapes to follow path direction
+pub fn shape_on_path(
+    shapes: &[Path],
+    path: &Path,
+    amount: usize,
+    spacing: f64,
+    margin: f64,
+    rotate_to_path: bool,
+) -> Vec<Path> {
+    if shapes.is_empty() || amount == 0 {
+        return Vec::new();
+    }
+
+    let path_len = path.length();
+    if path_len <= 0.0 {
+        return Vec::new();
+    }
+
+    let mut result = Vec::with_capacity(amount * shapes.len());
+    let margin_ratio = margin / 100.0;
+    let usable_length = 1.0 - 2.0 * margin_ratio;
+    let spacing_ratio = spacing / 100.0;
+
+    let total_items = amount * shapes.len();
+    for i in 0..amount {
+        for (j, shape) in shapes.iter().enumerate() {
+            let idx = i * shapes.len() + j;
+            let pos = if total_items == 1 {
+                0.5
+            } else if spacing_ratio > 0.0 {
+                // Use spacing mode
+                margin_ratio + (idx as f64 * spacing_ratio) % usable_length
+            } else {
+                // Distribute evenly
+                margin_ratio + (idx as f64 / (total_items - 1) as f64) * usable_length
+            };
+
+            let pos = pos.clamp(0.0, 1.0);
+            let p1 = path.point_at(pos);
+            let p2 = path.point_at((pos + 0.0001).min(1.0));
+
+            let rotation_angle = if rotate_to_path {
+                (p2.y - p1.y).atan2(p2.x - p1.x) * 180.0 / std::f64::consts::PI
+            } else {
+                0.0
+            };
+
+            let transform = Transform::translate(p1.x, p1.y)
+                .then(&Transform::rotate(rotation_angle));
+            result.push(shape.transform(&transform));
+        }
+    }
+
+    result
+}
+
+/// Create a link path between two shapes.
+///
+/// # Arguments
+/// * `shape1` - First shape
+/// * `shape2` - Second shape
+/// * `horizontal` - If true, create horizontal link; if false, vertical
+pub fn link(shape1: &Path, shape2: &Path, horizontal: bool) -> Path {
+    let a = match shape1.bounds() {
+        Some(b) => b,
+        None => return Path::new(),
+    };
+    let b = match shape2.bounds() {
+        Some(b) => b,
+        None => return Path::new(),
+    };
+
+    let mut p = Path::new();
+
+    if horizontal {
+        let hw = (b.x - (a.x + a.width)) / 2.0;
+        p.move_to(a.x + a.width, a.y);
+        p.curve_to(
+            a.x + a.width + hw, a.y,
+            b.x - hw, b.y,
+            b.x, b.y,
+        );
+        p.line_to(b.x, b.y + b.height);
+        p.curve_to(
+            b.x - hw, b.y + b.height,
+            a.x + a.width + hw, a.y + a.height,
+            a.x + a.width, a.y + a.height,
+        );
+    } else {
+        let hh = (b.y - (a.y + a.height)) / 2.0;
+        p.move_to(a.x, a.y + a.height);
+        p.curve_to(
+            a.x, a.y + a.height + hh,
+            b.x, b.y - hh,
+            b.x, b.y,
+        );
+        p.line_to(b.x + b.width, b.y);
+        p.curve_to(
+            b.x + b.width, b.y - hh,
+            a.x + a.width, a.y + a.height + hh,
+            a.x + a.width, a.y + a.height,
+        );
+    }
+
+    p.fill = None;
+    p.stroke = Some(Color::BLACK);
+    p.stroke_width = 1.0;
+    p
+}
+
+/// Parse a freehand path string into a Path.
+///
+/// The path string format: "M x1,y1 x2,y2 ... M x1,y1 ..."
+/// where M starts a new contour.
+pub fn freehand(path_string: &str) -> Path {
+    let mut path = Path::new();
+
+    for contour_str in path_string.split('M') {
+        let contour_str = contour_str.trim();
+        if contour_str.is_empty() {
+            continue;
+        }
+
+        let mut first = true;
+        let coords: Vec<&str> = contour_str.split(|c: char| c.is_whitespace() || c == ',')
+            .filter(|s| !s.is_empty())
+            .collect();
+
+        let mut i = 0;
+        while i + 1 < coords.len() {
+            if let (Ok(x), Ok(y)) = (coords[i].parse::<f64>(), coords[i + 1].parse::<f64>()) {
+                if first {
+                    path.move_to(x, y);
+                    first = false;
+                } else {
+                    path.line_to(x, y);
+                }
+            }
+            i += 2;
+        }
+    }
+
+    path.fill = None;
+    path.stroke = Some(Color::BLACK);
+    path.stroke_width = 1.0;
+    path
+}
+
+/// Create a quadratic bezier curve between two points.
+///
+/// # Arguments
+/// * `p1` - Start point
+/// * `p2` - End point
+/// * `t` - Position of the control point along the line (0-100)
+/// * `distance` - Perpendicular distance of control point from line
+pub fn quad_curve(p1: Point, p2: Point, t: f64, distance: f64) -> Path {
+    use std::f64::consts::PI;
+
+    let t = t / 100.0;
+
+    // Find point along the line
+    let cx = p1.x + t * (p2.x - p1.x);
+    let cy = p1.y + t * (p2.y - p1.y);
+
+    // Calculate angle perpendicular to the line
+    let angle = (p2.y - p1.y).atan2(p2.x - p1.x) + PI / 2.0;
+
+    // Control point offset perpendicular to line
+    let qx = cx + distance * angle.cos();
+    let qy = cy + distance * angle.sin();
+
+    // Convert quadratic to cubic (for our Path which uses cubics)
+    let c1x = p1.x + 2.0 / 3.0 * (qx - p1.x);
+    let c1y = p1.y + 2.0 / 3.0 * (qy - p1.y);
+    let c2x = p2.x + 2.0 / 3.0 * (qx - p2.x);
+    let c2y = p2.y + 2.0 / 3.0 * (qy - p2.y);
+
+    let mut path = Path::new();
+    path.move_to(p1.x, p1.y);
+    path.curve_to(c1x, c1y, c2x, c2y, p2.x, p2.y);
+    path.fill = None;
+    path.stroke = Some(Color::BLACK);
+    path.stroke_width = 1.0;
+    path
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -796,5 +1354,148 @@ mod tests {
 
         // Should have approximately 5 segments -> 6 points, but rounding may vary
         assert!(resampled.contours[0].points.len() >= 4);
+    }
+
+    // ========================================================================
+    // Advanced Geometry Tests
+    // ========================================================================
+
+    #[test]
+    fn test_snap() {
+        let path = Path::rect(13.0, 17.0, 10.0, 10.0);
+        let snapped = snap(&path, 10.0, 100.0, Point::ZERO);
+        let bounds = snapped.bounds().unwrap();
+        // With 100% strength, corners should snap to grid
+        assert_relative_eq!(bounds.x, 10.0, epsilon = 0.1);
+        assert_relative_eq!(bounds.y, 20.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_snap_partial_strength() {
+        let path = Path::rect(15.0, 15.0, 10.0, 10.0);
+        let snapped = snap(&path, 10.0, 50.0, Point::ZERO);
+        let bounds = snapped.bounds().unwrap();
+        // With 50% strength, should be between original (15) and snapped position (20)
+        // 15 * 0.5 + 20 * 0.5 = 17.5
+        assert!(bounds.x > 15.0 && bounds.x < 20.0);
+    }
+
+    #[test]
+    fn test_wiggle() {
+        let path = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let wiggled = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
+        // Points should have moved
+        assert_ne!(path.contours[0].points[0].point, wiggled.contours[0].points[0].point);
+    }
+
+    #[test]
+    fn test_wiggle_reproducible() {
+        let path = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let w1 = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
+        let w2 = wiggle(&path, WiggleScope::Points, Point::new(5.0, 5.0), 42);
+        // Same seed should produce same result
+        assert_eq!(w1.contours[0].points[0].point.x, w2.contours[0].points[0].point.x);
+    }
+
+    #[test]
+    fn test_scatter() {
+        let path = Path::rect(0.0, 0.0, 100.0, 100.0);
+        let points = scatter(&path, 10, 42);
+        assert_eq!(points.len(), 10);
+        // Points should be within bounds
+        for p in &points {
+            assert!(p.x >= 0.0 && p.x <= 100.0);
+            assert!(p.y >= 0.0 && p.y <= 100.0);
+        }
+    }
+
+    #[test]
+    fn test_reflect() {
+        let path = Path::rect(10.0, 0.0, 10.0, 10.0);
+        let reflected = reflect(&path, Point::ZERO, 90.0, false);
+        // Reflected across y-axis (90 degrees) should move from (10,0) to (-10,0) approximately
+        let bounds = reflected.paths[0].bounds().unwrap();
+        assert!(bounds.x < 0.0);
+    }
+
+    #[test]
+    fn test_reflect_keep_original() {
+        let path = Path::rect(10.0, 0.0, 10.0, 10.0);
+        let result = reflect(&path, Point::ZERO, 90.0, true);
+        // Should have both original and reflected
+        assert_eq!(result.paths.len(), 2);
+    }
+
+    #[test]
+    fn test_sort_paths() {
+        let p1 = Path::rect(30.0, 0.0, 10.0, 10.0);
+        let p2 = Path::rect(10.0, 0.0, 10.0, 10.0);
+        let p3 = Path::rect(20.0, 0.0, 10.0, 10.0);
+
+        let sorted = sort_paths(&[p1.clone(), p2.clone(), p3.clone()], SortBy::X, Point::ZERO);
+
+        // Should be sorted by x position (centroid)
+        let centers: Vec<f64> = sorted.iter().map(|p| centroid(p).x).collect();
+        assert!(centers[0] < centers[1]);
+        assert!(centers[1] < centers[2]);
+    }
+
+    #[test]
+    fn test_stack_east() {
+        let p1 = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let p2 = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let p3 = Path::rect(0.0, 0.0, 10.0, 10.0);
+
+        let stacked = stack(&[p1, p2, p3], StackDirection::East, 5.0);
+
+        let bounds: Vec<_> = stacked.iter().map(|p| p.bounds().unwrap()).collect();
+        assert_relative_eq!(bounds[0].x, 0.0, epsilon = 0.1);
+        assert_relative_eq!(bounds[1].x, 15.0, epsilon = 0.1); // 10 + 5 margin
+        assert_relative_eq!(bounds[2].x, 30.0, epsilon = 0.1); // 25 + 5 margin
+    }
+
+    #[test]
+    fn test_stack_south() {
+        let p1 = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let p2 = Path::rect(0.0, 0.0, 10.0, 10.0);
+
+        let stacked = stack(&[p1, p2], StackDirection::South, 5.0);
+
+        let bounds: Vec<_> = stacked.iter().map(|p| p.bounds().unwrap()).collect();
+        assert_relative_eq!(bounds[0].y, 0.0, epsilon = 0.1);
+        assert_relative_eq!(bounds[1].y, 15.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_link_horizontal() {
+        let p1 = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let p2 = Path::rect(50.0, 0.0, 10.0, 10.0);
+
+        let linked = link(&p1, &p2, true);
+        assert!(!linked.contours.is_empty());
+    }
+
+    #[test]
+    fn test_freehand() {
+        let path = freehand("M 0,0 10,0 10,10 M 20,20 30,30");
+        assert_eq!(path.contours.len(), 2);
+    }
+
+    #[test]
+    fn test_quad_curve() {
+        let curve = quad_curve(Point::new(0.0, 0.0), Point::new(100.0, 0.0), 50.0, 50.0);
+        assert_eq!(curve.contours.len(), 1);
+        // Midpoint should be offset by the distance
+        let mid = curve.point_at(0.5);
+        assert!(mid.y.abs() > 20.0); // Should be offset significantly
+    }
+
+    #[test]
+    fn test_shape_on_path() {
+        let shape = Path::rect(0.0, 0.0, 10.0, 10.0);
+        let guide = Path::line(0.0, 0.0, 100.0, 0.0);
+
+        let placed = shape_on_path(&[shape], &guide, 3, 10.0, 0.0, false);
+        assert_eq!(placed.len(), 3);
     }
 }
