@@ -10,12 +10,14 @@
 //! - [`math`] - Mathematical operations (arithmetic, trigonometry, random, etc.)
 //! - [`list`] - List manipulation operations (sort, filter, combine, etc.)
 //! - [`string`] - String manipulation operations (case, split, format, etc.)
+//! - [`parallel`] - Parallel versions of operations using Rayon
 
 pub mod generators;
 pub mod filters;
 pub mod math;
 pub mod list;
 pub mod string;
+pub mod parallel;
 
 pub use generators::*;
 pub use filters::*;
