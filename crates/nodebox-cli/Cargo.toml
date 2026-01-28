@@ -1,0 +1,18 @@
+[package]
+name = "nodebox-cli"
+description = "Command-line interface for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "nodebox"
+path = "src/main.rs"
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+nodebox-ops = { path = "../nodebox-ops" }
+nodebox-ndbx = { path = "../nodebox-ndbx" }
+nodebox-svg = { path = "../nodebox-svg" }

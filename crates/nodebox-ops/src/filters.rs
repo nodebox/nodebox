@@ -495,6 +495,107 @@ pub fn do_nothing(path: &Path) -> Path {
     path.clone()
 }
 
+// ============================================================================
+// Bezier Curve Operations
+// ============================================================================
+
+/// Get a point at a specific position along the path.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `t` - Position along the path (0.0 = start, 1.0 = end)
+///
+/// # Example
+/// ```
+/// use nodebox_core::Path;
+/// use nodebox_ops::point_on_path;
+///
+/// let path = Path::line(0.0, 0.0, 100.0, 0.0);
+/// let mid = point_on_path(&path, 0.5);
+/// assert!((mid.x - 50.0).abs() < 0.001);
+/// ```
+pub fn point_on_path(path: &Path, t: f64) -> Point {
+    path.point_at(t)
+}
+
+/// Get the total length of a path.
+///
+/// # Arguments
+/// * `path` - The input path
+///
+/// # Example
+/// ```
+/// use nodebox_core::Path;
+/// use nodebox_ops::path_length;
+///
+/// let path = Path::line(0.0, 0.0, 100.0, 0.0);
+/// assert!((path_length(&path) - 100.0).abs() < 0.001);
+/// ```
+pub fn path_length(path: &Path) -> f64 {
+    path.length()
+}
+
+/// Generate evenly-spaced points along a path.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `amount` - The number of points to generate
+///
+/// # Example
+/// ```
+/// use nodebox_core::Path;
+/// use nodebox_ops::make_points;
+///
+/// let path = Path::line(0.0, 0.0, 100.0, 0.0);
+/// let points = make_points(&path, 5);
+/// assert_eq!(points.len(), 5);
+/// ```
+pub fn make_points(path: &Path, amount: usize) -> Vec<Point> {
+    path.make_points(amount)
+}
+
+/// Resample a path with a specific number of points.
+///
+/// Creates a new path with evenly-spaced points along the original path.
+/// Useful for simplifying complex curves or adding detail to simple paths.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `amount` - The number of points per contour
+///
+/// # Example
+/// ```
+/// use nodebox_core::Path;
+/// use nodebox_ops::resample;
+///
+/// let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
+/// let resampled = resample(&path, 20);
+/// assert_eq!(resampled.contours[0].points.len(), 20);
+/// ```
+pub fn resample(path: &Path, amount: usize) -> Path {
+    path.resample_by_amount(amount)
+}
+
+/// Resample a path with approximately equal-length segments.
+///
+/// Creates a new path with points spaced at approximately the given distance.
+///
+/// # Arguments
+/// * `path` - The input path
+/// * `segment_length` - The desired length of each segment
+///
+/// # Example
+/// ```
+/// use nodebox_core::Path;
+/// use nodebox_ops::resample_by_length;
+///
+/// let path = Path::line(0.0, 0.0, 100.0, 0.0);
+/// let resampled = resample_by_length(&path, 25.0);
+/// ```
+pub fn resample_by_length(path: &Path, segment_length: f64) -> Path {
+    path.resample_by_length(segment_length)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -644,5 +745,56 @@ mod tests {
         let path = Path::rect(0.0, 0.0, 100.0, 100.0);
         let same = do_nothing(&path);
         assert_eq!(path, same);
+    }
+
+    // ========================================================================
+    // Bezier Operations Tests
+    // ========================================================================
+
+    #[test]
+    fn test_point_on_path() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+        let p0 = point_on_path(&path, 0.0);
+        let p_half = point_on_path(&path, 0.5);
+        let p1 = point_on_path(&path, 1.0);
+
+        assert_relative_eq!(p0.x, 0.0, epsilon = 0.01);
+        assert_relative_eq!(p_half.x, 50.0, epsilon = 0.01);
+        assert_relative_eq!(p1.x, 100.0, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_path_length() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+        assert_relative_eq!(path_length(&path), 100.0, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_make_points() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+        let points = make_points(&path, 5);
+
+        assert_eq!(points.len(), 5);
+        assert_relative_eq!(points[0].x, 0.0, epsilon = 0.01);
+        assert_relative_eq!(points[2].x, 50.0, epsilon = 0.01);
+        assert_relative_eq!(points[4].x, 100.0, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_resample() {
+        let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
+        let resampled = resample(&path, 20);
+
+        assert_eq!(resampled.contours.len(), 1);
+        assert_eq!(resampled.contours[0].points.len(), 20);
+    }
+
+    #[test]
+    fn test_resample_by_length() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+        let resampled = resample_by_length(&path, 20.0);
+
+        // Should have approximately 5 segments -> 6 points, but rounding may vary
+        assert!(resampled.contours[0].points.len() >= 4);
     }
 }

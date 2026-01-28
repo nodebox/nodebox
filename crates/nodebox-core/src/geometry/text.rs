@@ -1,6 +1,7 @@
 //! Text rendering type.
 
-use super::{Point, Color, Rect, Transform};
+use super::{Point, Color, Rect, Transform, Path};
+use super::font::{text_to_path, FontError};
 
 /// Text alignment options.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -106,6 +107,37 @@ impl Text {
             position: t.transform_point(self.position),
             ..self.clone()
         }
+    }
+
+    /// Converts this text to a vector path using the specified font.
+    ///
+    /// The text is rendered at its position using the font family and size
+    /// specified in the Text struct.
+    ///
+    /// # Returns
+    /// A Path containing the outlines of all glyphs, or an error if the
+    /// font cannot be loaded.
+    ///
+    /// # Example
+    /// ```ignore
+    /// use nodebox_core::geometry::Text;
+    ///
+    /// let text = Text::with_font("Hello", 0.0, 100.0, "Arial", 72.0);
+    /// let path = text.to_path().unwrap();
+    /// ```
+    pub fn to_path(&self) -> Result<Path, FontError> {
+        let mut path = text_to_path(
+            &self.text,
+            &self.font_family,
+            self.font_size,
+            self.position,
+        )?;
+
+        // Apply fill color from text
+        path.fill = self.fill;
+        path.stroke = None;
+
+        Ok(path)
     }
 }
 

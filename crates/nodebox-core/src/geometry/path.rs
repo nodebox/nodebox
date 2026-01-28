@@ -211,6 +211,132 @@ impl Path {
         path.line_to(x2, y2);
         path
     }
+
+    // ========================================================================
+    // Bezier Curve Operations
+    // ========================================================================
+
+    /// Returns the total arc length of all contours.
+    ///
+    /// For bezier curves, this uses numerical approximation.
+    pub fn length(&self) -> f64 {
+        self.contours.iter().map(|c| c.length()).sum()
+    }
+
+    /// Returns the point at parameter `t` along the path.
+    ///
+    /// `t` ranges from 0.0 (start) to 1.0 (end). The parameter is distributed
+    /// proportionally across all contours based on their lengths.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nodebox_core::geometry::Path;
+    ///
+    /// let path = Path::line(0.0, 0.0, 100.0, 0.0);
+    /// let mid = path.point_at(0.5);
+    /// assert!((mid.x - 50.0).abs() < 0.001);
+    /// ```
+    pub fn point_at(&self, t: f64) -> Point {
+        if self.contours.is_empty() {
+            return Point::ZERO;
+        }
+
+        // Clamp t to [0, 1]
+        let t = t.clamp(0.0, 1.0);
+
+        // Calculate contour lengths
+        let contour_lengths: Vec<f64> = self.contours.iter().map(|c| c.length()).collect();
+        let total_length: f64 = contour_lengths.iter().sum();
+
+        if total_length == 0.0 {
+            return self.contours[0].point_at(0.0);
+        }
+
+        // Find which contour contains the point at t
+        let target_length = t * total_length;
+        let mut accumulated = 0.0;
+
+        for (i, contour) in self.contours.iter().enumerate() {
+            let c_len = contour_lengths[i];
+            if accumulated + c_len >= target_length || i == self.contours.len() - 1 {
+                // t falls within this contour
+                let local_t = if c_len > 0.0 {
+                    (target_length - accumulated) / c_len
+                } else {
+                    0.0
+                };
+                return contour.point_at(local_t);
+            }
+            accumulated += c_len;
+        }
+
+        // Fallback
+        self.contours.last().map(|c| c.point_at(1.0)).unwrap_or(Point::ZERO)
+    }
+
+    /// Generates `amount` evenly-spaced points along the path.
+    ///
+    /// Points are distributed across all contours proportionally.
+    pub fn make_points(&self, amount: usize) -> Vec<Point> {
+        if amount == 0 || self.contours.is_empty() {
+            return Vec::new();
+        }
+        if amount == 1 {
+            return vec![self.point_at(0.0)];
+        }
+
+        // For paths, treat all contours as one continuous curve
+        let delta = 1.0 / (amount - 1) as f64;
+        (0..amount)
+            .map(|i| self.point_at(i as f64 * delta))
+            .collect()
+    }
+
+    /// Creates a new path by resampling all contours with `amount` points each.
+    ///
+    /// Each contour is resampled independently.
+    pub fn resample_by_amount(&self, amount: usize) -> Path {
+        let contours: Vec<Contour> = self.contours
+            .iter()
+            .map(|c| c.resample_by_amount(amount))
+            .collect();
+
+        Path {
+            contours,
+            fill: self.fill,
+            stroke: self.stroke,
+            stroke_width: self.stroke_width,
+        }
+    }
+
+    /// Creates a new path by resampling with segments of approximately `segment_length`.
+    ///
+    /// Each contour is resampled independently.
+    pub fn resample_by_length(&self, segment_length: f64) -> Path {
+        let contours: Vec<Contour> = self.contours
+            .iter()
+            .map(|c| c.resample_by_length(segment_length))
+            .collect();
+
+        Path {
+            contours,
+            fill: self.fill,
+            stroke: self.stroke,
+            stroke_width: self.stroke_width,
+        }
+    }
+
+    /// Converts the path to a list of points (flattens all curves).
+    ///
+    /// This is equivalent to `make_points` but returns the on-curve points
+    /// from all contours without resampling.
+    pub fn to_points(&self) -> Vec<Point> {
+        self.contours
+            .iter()
+            .flat_map(|c| c.on_curve_points())
+            .collect()
+    }
 }
 
 #[cfg(test)]
@@ -318,5 +444,134 @@ mod tests {
         let path = Path::rect(0.0, 0.0, 100.0, 100.0);
         let centroid = path.centroid().unwrap();
         assert_eq!(centroid, Point::new(50.0, 50.0));
+    }
+
+    // ========================================================================
+    // Bezier Operations Tests
+    // ========================================================================
+
+    #[test]
+    fn test_path_length_empty() {
+        let path = Path::new();
+        assert_eq!(path.length(), 0.0);
+    }
+
+    #[test]
+    fn test_path_length_line() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+        assert!((path.length() - 100.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_length_rect() {
+        // Rectangle perimeter (but not closed in this test)
+        let mut path = Path::new();
+        path.move_to(0.0, 0.0);
+        path.line_to(100.0, 0.0);
+        path.line_to(100.0, 100.0);
+        path.line_to(0.0, 100.0);
+        path.close();
+
+        assert!((path.length() - 400.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_length_ellipse() {
+        let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
+        // Circumference of circle with diameter 100 is approximately 314.159
+        assert!((path.length() - 314.159).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_path_point_at_empty() {
+        let path = Path::new();
+        assert_eq!(path.point_at(0.5), Point::ZERO);
+    }
+
+    #[test]
+    fn test_path_point_at_line() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+
+        let p0 = path.point_at(0.0);
+        let p_half = path.point_at(0.5);
+        let p1 = path.point_at(1.0);
+
+        assert!((p0.x - 0.0).abs() < 0.001);
+        assert!((p_half.x - 50.0).abs() < 0.001);
+        assert!((p1.x - 100.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_point_at_ellipse() {
+        let path = Path::ellipse(0.0, 0.0, 100.0, 100.0);
+
+        // At t=0, should be at (50, 0) - rightmost point
+        let p0 = path.point_at(0.0);
+        assert!((p0.x - 50.0).abs() < 0.001);
+        assert!((p0.y - 0.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_make_points() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+
+        let points = path.make_points(5);
+        assert_eq!(points.len(), 5);
+        assert!((points[0].x - 0.0).abs() < 0.001);
+        assert!((points[2].x - 50.0).abs() < 0.001);
+        assert!((points[4].x - 100.0).abs() < 0.001);
+    }
+
+    #[test]
+    fn test_path_make_points_empty() {
+        let path = Path::new();
+        assert!(path.make_points(5).is_empty());
+    }
+
+    #[test]
+    fn test_path_resample_by_amount() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+
+        let resampled = path.resample_by_amount(10);
+        assert_eq!(resampled.contours.len(), 1);
+        assert_eq!(resampled.contours[0].points.len(), 10);
+        assert!(resampled.fill.is_none()); // Preserves fill
+        assert!(resampled.stroke.is_some()); // Preserves stroke
+    }
+
+    #[test]
+    fn test_path_resample_by_length() {
+        let path = Path::line(0.0, 0.0, 100.0, 0.0);
+
+        let resampled = path.resample_by_length(20.0);
+        // Should have approximately 5 segments (100/20)
+        assert!(resampled.contours[0].points.len() >= 4);
+    }
+
+    #[test]
+    fn test_path_to_points() {
+        let mut path = Path::new();
+        path.move_to(0.0, 0.0);
+        path.line_to(100.0, 0.0);
+        path.line_to(100.0, 100.0);
+
+        let points = path.to_points();
+        assert_eq!(points.len(), 3);
+        assert_eq!(points[0], Point::new(0.0, 0.0));
+        assert_eq!(points[1], Point::new(100.0, 0.0));
+        assert_eq!(points[2], Point::new(100.0, 100.0));
+    }
+
+    #[test]
+    fn test_path_to_points_with_curves() {
+        let mut path = Path::new();
+        path.move_to(0.0, 0.0);
+        path.curve_to(10.0, 0.0, 20.0, 10.0, 20.0, 20.0);
+
+        let points = path.to_points();
+        // Only returns on-curve points (start and end of curve)
+        assert_eq!(points.len(), 2);
+        assert_eq!(points[0], Point::new(0.0, 0.0));
+        assert_eq!(points[1], Point::new(20.0, 20.0));
     }
 }

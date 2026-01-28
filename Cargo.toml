@@ -4,6 +4,8 @@ members = [
     "crates/nodebox-core",
     "crates/nodebox-ndbx",
     "crates/nodebox-ops",
+    "crates/nodebox-svg",
+    "crates/nodebox-cli",
 ]
 
 [workspace.package]
@@ -16,6 +18,10 @@ authors = ["NodeBox Contributors"]
 [workspace.dependencies]
 # Core geometry
 kurbo = "0.11"
+
+# Font loading and text paths
+font-kit = "0.14"
+pathfinder_geometry = "0.5"
 
 # UUID generation
 uuid = { version = "1.6", features = ["v4"] }
