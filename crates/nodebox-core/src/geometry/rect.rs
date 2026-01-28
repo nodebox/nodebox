@@ -256,10 +256,63 @@ mod tests {
 
     #[test]
     fn test_rect_is_empty() {
+        // Tests matching Java RectTest.testEmpty()
+        // Non-empty rectangles
+        assert!(!Rect::new(100.0, 100.0, 100.0, 100.0).is_empty());
+        assert!(!Rect::new(1.0, 1.0, 1.0, 1.0).is_empty());
+        assert!(!Rect::new(0.0, 0.0, 1.0, 1.0).is_empty());
+        // Negative dimensions are NOT empty (they normalize to positive)
+        assert!(!Rect::new(0.0, 0.0, -100.0, -200.0).is_empty());
+
+        // Empty rectangles (zero width OR height)
         assert!(Rect::new(0.0, 0.0, 0.0, 0.0).is_empty());
-        assert!(Rect::new(0.0, 0.0, 10.0, 0.0).is_empty());
-        assert!(Rect::new(0.0, 0.0, 0.0, 10.0).is_empty());
-        assert!(!Rect::new(0.0, 0.0, 10.0, 10.0).is_empty());
+        assert!(Rect::new(-10.0, 0.0, 0.0, 10.0).is_empty());
+        assert!(Rect::new(-10.0, 0.0, 200.0, 0.0).is_empty());
+        assert!(Rect::new(20.0, 30.0, 10.0, 0.0).is_empty());
+    }
+
+    /// Tests matching Java RectTest.testUnited()
+    #[test]
+    fn test_rect_union_java() {
+        let r1 = Rect::new(10.0, 20.0, 30.0, 40.0);
+        let r2 = Rect::new(40.0, 30.0, 50.0, 30.0);
+        let u = r1.union(&r2);
+        assert_eq!(u.x, 10.0);
+        assert_eq!(u.y, 20.0);
+        assert_eq!(u.width, 40.0 + 50.0 - 10.0); // 80
+        assert_eq!(u.height, 30.0 + 30.0 - 20.0); // 40
+
+        let r3 = Rect::new(10.0, 20.0, 30.0, 40.0);
+        let r4 = Rect::new(10.0, 120.0, 30.0, 40.0);
+        let u2 = r3.union(&r4);
+        assert_eq!(u2.x, 10.0);
+        assert_eq!(u2.y, 20.0);
+        assert_eq!(u2.width, 30.0);
+        assert_eq!(u2.height, 120.0 + 40.0 - 20.0); // 140
+    }
+
+    /// Tests matching Java RectTest.testContains()
+    #[test]
+    fn test_rect_contains_java() {
+        let r = Rect::new(10.0, 20.0, 30.0, 40.0);
+        // Point containment
+        assert!(r.contains_point(Point::new(10.0, 20.0)));
+        assert!(r.contains_point(Point::new(11.0, 22.0)));
+        assert!(r.contains_point(Point::new(40.0, 60.0)));
+        assert!(!r.contains_point(Point::new(0.0, 0.0)));
+        assert!(!r.contains_point(Point::new(-11.0, -22.0)));
+        assert!(!r.contains_point(Point::new(100.0, 200.0)));
+        assert!(!r.contains_point(Point::new(15.0, 200.0)));
+        assert!(!r.contains_point(Point::new(200.0, 25.0)));
+
+        // Rect containment
+        assert!(r.contains_rect(&Rect::new(10.0, 20.0, 30.0, 40.0)));
+        assert!(r.contains_rect(&Rect::new(15.0, 25.0, 5.0, 5.0)));
+        assert!(!r.contains_rect(&Rect::new(15.0, 25.0, 30.0, 40.0)));
+        assert!(!r.contains_rect(&Rect::new(1.0, 2.0, 3.0, 4.0)));
+        assert!(!r.contains_rect(&Rect::new(15.0, 25.0, 300.0, 400.0)));
+        assert!(!r.contains_rect(&Rect::new(15.0, 25.0, 5.0, 400.0)));
+        assert!(!r.contains_rect(&Rect::new(15.0, 25.0, 400.0, 5.0)));
     }
 
     #[test]
