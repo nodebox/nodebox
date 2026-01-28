@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "crates/nodebox-core",
     "crates/nodebox-ndbx",
+    "crates/nodebox-ops",
 ]
 
 [workspace.package]
