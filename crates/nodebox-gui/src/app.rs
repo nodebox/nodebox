@@ -3,6 +3,7 @@
 use eframe::egui;
 use crate::canvas::CanvasViewer;
 use crate::network_view::NetworkView;
+use crate::node_library::NodeLibraryBrowser;
 use crate::panels::ParameterPanel;
 use crate::state::AppState;
 
@@ -11,7 +12,9 @@ pub struct NodeBoxApp {
     state: AppState,
     canvas: CanvasViewer,
     network_view: NetworkView,
+    node_library: NodeLibraryBrowser,
     parameters: ParameterPanel,
+    show_node_library: bool,
 }
 
 impl NodeBoxApp {
@@ -21,7 +24,9 @@ impl NodeBoxApp {
             state: AppState::new(),
             canvas: CanvasViewer::new(),
             network_view: NetworkView::new(),
+            node_library: NodeLibraryBrowser::new(),
             parameters: ParameterPanel::new(),
+            show_node_library: true,
         }
     }
 }
@@ -83,6 +88,10 @@ impl eframe::App for NodeBoxApp {
                         self.canvas.fit_to_window();
                         ui.close_menu();
                     }
+                    ui.separator();
+                    if ui.checkbox(&mut self.show_node_library, "Node Library").clicked() {
+                        ui.close_menu();
+                    }
                 });
 
                 ui.menu_button("Help", |ui| {
@@ -123,6 +132,23 @@ impl eframe::App for NodeBoxApp {
                 self.parameters.show(ui, &mut self.state);
             });
 
+        // Node library panel (optional)
+        if self.show_node_library {
+            egui::TopBottomPanel::bottom("node_library")
+                .default_height(150.0)
+                .resizable(true)
+                .show(ctx, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.heading("Node Library");
+                        if ui.small_button("×").clicked() {
+                            self.show_node_library = false;
+                        }
+                    });
+                    ui.separator();
+                    self.node_library.show(ui, &mut self.state.library);
+                });
+        }
+
         // Bottom status bar
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
             ui.horizontal(|ui| {
@@ -133,6 +159,8 @@ impl eframe::App for NodeBoxApp {
                 }
                 ui.separator();
                 ui.label(format!("Zoom: {:.0}%", self.canvas.zoom() * 100.0));
+                ui.separator();
+                ui.label(format!("Nodes: {}", self.state.library.root.children.len()));
             });
         });
 

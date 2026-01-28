@@ -6,6 +6,7 @@
 mod app;
 mod canvas;
 mod network_view;
+mod node_library;
 mod panels;
 mod state;
 
