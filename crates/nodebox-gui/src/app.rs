@@ -2,14 +2,15 @@
 
 use eframe::egui;
 use crate::canvas::CanvasViewer;
-use crate::panels::{NodeGraphPanel, ParameterPanel};
+use crate::network_view::NetworkView;
+use crate::panels::ParameterPanel;
 use crate::state::AppState;
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
     state: AppState,
     canvas: CanvasViewer,
-    node_graph: NodeGraphPanel,
+    network_view: NetworkView,
     parameters: ParameterPanel,
 }
 
@@ -19,7 +20,7 @@ impl NodeBoxApp {
         Self {
             state: AppState::new(),
             canvas: CanvasViewer::new(),
-            node_graph: NodeGraphPanel::new(),
+            network_view: NetworkView::new(),
             parameters: ParameterPanel::new(),
         }
     }
@@ -95,12 +96,21 @@ impl eframe::App for NodeBoxApp {
 
         // Left panel: Node graph
         egui::SidePanel::left("node_graph")
-            .default_width(300.0)
+            .default_width(400.0)
+            .min_width(300.0)
             .resizable(true)
             .show(ctx, |ui| {
                 ui.heading("Network");
                 ui.separator();
-                self.node_graph.show(ui, &mut self.state);
+                self.network_view.show(ui, &mut self.state.library);
+
+                // Update selected node from network view
+                let selected = self.network_view.selected_nodes();
+                if selected.len() == 1 {
+                    self.state.selected_node = selected.iter().next().cloned();
+                } else if selected.is_empty() {
+                    self.state.selected_node = None;
+                }
             });
 
         // Right panel: Parameters

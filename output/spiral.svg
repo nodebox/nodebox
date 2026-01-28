@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <path d="M280.00,250.00 C280.00,266.57 266.57,280.00 250.00,280.00 C233.43,280.00 220.00,266.57 220.00,250.00 C220.00,233.43 233.43,220.00 250.00,220.00 C266.57,220.00 280.00,233.43 280.00,250.00 Z" fill="none" stroke="#e64545" stroke-width="3"/>
+  <path d="M298.00,250.00 C298.00,276.51 276.51,298.00 250.00,298.00 C223.49,298.00 202.00,276.51 202.00,250.00 C202.00,223.49 223.49,202.00 250.00,202.00 C276.51,202.00 298.00,223.49 298.00,250.00 Z" fill="none" stroke="#e69545" stroke-width="3"/>
+  <path d="M316.00,250.00 C316.00,286.45 286.45,316.00 250.00,316.00 C213.55,316.00 184.00,286.45 184.00,250.00 C184.00,213.55 213.55,184.00 250.00,184.00 C286.45,184.00 316.00,213.55 316.00,250.00 Z" fill="none" stroke="#e6e645" stroke-width="3"/>
+  <path d="M334.00,250.00 C334.00,296.39 296.39,334.00 250.00,334.00 C203.61,334.00 166.00,296.39 166.00,250.00 C166.00,203.61 203.61,166.00 250.00,166.00 C296.39,166.00 334.00,203.61 334.00,250.00 Z" fill="none" stroke="#95e645" stroke-width="3"/>
+  <path d="M352.00,250.00 C352.00,306.33 306.33,352.00 250.00,352.00 C193.67,352.00 148.00,306.33 148.00,250.00 C148.00,193.67 193.67,148.00 250.00,148.00 C306.33,148.00 352.00,193.67 352.00,250.00 Z" fill="none" stroke="#45e645" stroke-width="3"/>
+  <path d="M370.00,250.00 C370.00,316.27 316.27,370.00 250.00,370.00 C183.73,370.00 130.00,316.27 130.00,250.00 C130.00,183.73 183.73,130.00 250.00,130.00 C316.27,130.00 370.00,183.73 370.00,250.00 Z" fill="none" stroke="#45e695" stroke-width="3"/>
+  <path d="M388.00,250.00 C388.00,326.22 326.22,388.00 250.00,388.00 C173.78,388.00 112.00,326.22 112.00,250.00 C112.00,173.78 173.78,112.00 250.00,112.00 C326.22,112.00 388.00,173.78 388.00,250.00 Z" fill="none" stroke="#45e6e6" stroke-width="3"/>
+  <path d="M406.00,250.00 C406.00,336.16 336.16,406.00 250.00,406.00 C163.84,406.00 94.00,336.16 94.00,250.00 C94.00,163.84 163.84,94.00 250.00,94.00 C336.16,94.00 406.00,163.84 406.00,250.00 Z" fill="none" stroke="#4595e6" stroke-width="3"/>
+  <path d="M424.00,250.00 C424.00,346.10 346.10,424.00 250.00,424.00 C153.90,424.00 76.00,346.10 76.00,250.00 C76.00,153.90 153.90,76.00 250.00,76.00 C346.10,76.00 424.00,153.90 424.00,250.00 Z" fill="none" stroke="#4545e6" stroke-width="3"/>
+  <path d="M442.00,250.00 C442.00,356.04 356.04,442.00 250.00,442.00 C143.96,442.00 58.00,356.04 58.00,250.00 C58.00,143.96 143.96,58.00 250.00,58.00 C356.04,58.00 442.00,143.96 442.00,250.00 Z" fill="none" stroke="#9545e6" stroke-width="3"/>
+  <path d="M460.00,250.00 C460.00,365.98 365.98,460.00 250.00,460.00 C134.02,460.00 40.00,365.98 40.00,250.00 C40.00,134.02 134.02,40.00 250.00,40.00 C365.98,40.00 460.00,134.02 460.00,250.00 Z" fill="none" stroke="#e645e6" stroke-width="3"/>
+  <path d="M478.00,250.00 C478.00,375.92 375.92,478.00 250.00,478.00 C124.08,478.00 22.00,375.92 22.00,250.00 C22.00,124.08 124.08,22.00 250.00,22.00 C375.92,22.00 478.00,124.08 478.00,250.00 Z" fill="none" stroke="#e64595" stroke-width="3"/>
+  <path d="M275.00,250.00 L480.00,250.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M274.15,256.47 L472.16,309.53" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M271.65,262.50 L449.19,365.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M267.68,267.68 L412.63,412.63" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M262.50,271.65 L365.00,449.19" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M256.47,274.15 L309.53,472.16" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M250.00,275.00 L250.00,480.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M243.53,274.15 L190.47,472.16" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M237.50,271.65 L135.00,449.19" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M232.32,267.68 L87.37,412.63" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M228.35,262.50 L50.81,365.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M225.85,256.47 L27.84,309.53" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M225.00,250.00 L20.00,250.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M225.85,243.53 L27.84,190.47" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M228.35,237.50 L50.81,135.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M232.32,232.32 L87.37,87.37" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M237.50,228.35 L135.00,50.81" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M243.53,225.85 L190.47,27.84" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M250.00,225.00 L250.00,20.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M256.47,225.85 L309.53,27.84" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M262.50,228.35 L365.00,50.81" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M267.68,232.32 L412.63,87.37" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M271.65,237.50 L449.19,135.00" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+  <path d="M274.15,243.53 L472.16,190.47" fill="none" stroke="#4d4d4d" stroke-width="1" stroke-opacity="0.30"/>
+</svg>
