@@ -21,10 +21,13 @@ The Rust translation will leverage Rust's strengths: memory safety, fearless con
 
 ### 1.1 Project Structure
 
+Rust code lives at the repository root alongside the existing Java code. This allows easy cross-referencing during migration while keeping both build systems independent.
+
 ```
-nodebox-rs/
-├── Cargo.toml                    # Workspace root
-├── crates/
+nodebox/
+├── Cargo.toml                    # Rust workspace root
+├── Cargo.lock
+├── crates/                       # Rust crates
 │   ├── nodebox-core/             # Core types and traits
 │   │   ├── src/
 │   │   │   ├── lib.rs
@@ -81,12 +84,38 @@ nodebox-rs/
 │       │   └── main.rs
 │       └── Cargo.toml
 │
-├── tests/                        # Integration tests
+├── tests/                        # Rust integration tests
 │   ├── golden/                   # Golden master SVG files
 │   └── fixtures/                 # Test .ndbx files
 │
-└── benches/                      # Performance benchmarks
+├── benches/                      # Rust performance benchmarks
+│
+│── ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  # Java (kept for reference)
+│
+├── build.xml                     # Java Ant build
+├── pom.xml                       # Java Maven dependencies
+├── src/                          # Java source code
+│   ├── main/java/nodebox/        # Java implementation
+│   ├── main/python/              # Python modules (shared)
+│   └── test/                     # Java tests
+│
+├── libraries/                    # .ndbx node libraries (shared!)
+│   ├── corevector/
+│   ├── math/
+│   ├── list/
+│   └── ...
+│
+└── docs/
+    └── rust-translation-plan.md
 ```
+
+**Key points:**
+- `Cargo.toml` at root, `crates/` for Rust workspace members
+- `ant build` still works for Java, `cargo build` for Rust
+- `libraries/` directory is shared - both implementations read the same `.ndbx` files
+- Easy to compare implementations side-by-side:
+  - `src/main/java/nodebox/graphics/Path.java` ↔ `crates/nodebox-core/src/geometry/path.rs`
+  - `src/main/java/nodebox/node/Node.java` ↔ `crates/nodebox-core/src/node/node.rs`
 
 ### 1.2 Graphics Package (`nodebox-core/geometry`)
 
@@ -985,7 +1014,7 @@ For a NodeBox-style application, egui is the best fit because:
 ### 2.3 GUI Architecture
 
 ```
-nodebox-gui/
+crates/nodebox-gui/
 ├── src/
 │   ├── main.rs
 │   ├── app.rs              # Main application state
@@ -1257,7 +1286,7 @@ Use PyO3 as the primary integration, with optional RustPython for environments w
 ### 3.3 Python Bridge Architecture
 
 ```
-nodebox-python/
+crates/nodebox-python/
 ├── src/
 │   ├── lib.rs
 │   ├── runtime.rs      # Python interpreter management
