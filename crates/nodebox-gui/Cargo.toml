@@ -1,0 +1,30 @@
+[package]
+name = "nodebox-gui"
+description = "Native GUI for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "nodebox-gui"
+path = "src/main.rs"
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+nodebox-ops = { path = "../nodebox-ops" }
+nodebox-ndbx = { path = "../nodebox-ndbx" }
+nodebox-svg = { path = "../nodebox-svg" }
+
+# GUI
+eframe = "0.30"
+egui = "0.30"
+egui_extras = { version = "0.30", features = ["image"] }
+
+# File dialogs
+rfd = "0.15"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"

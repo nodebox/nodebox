@@ -6,6 +6,7 @@ members = [
     "crates/nodebox-ops",
     "crates/nodebox-svg",
     "crates/nodebox-cli",
+    "crates/nodebox-gui",
 ]
 
 [workspace.package]
