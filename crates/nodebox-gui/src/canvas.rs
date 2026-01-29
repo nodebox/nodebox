@@ -1,7 +1,8 @@
 //! Canvas viewer for rendering geometry.
 
-use eframe::egui::{self, Pos2, Rect, Stroke, Vec2};
-use nodebox_core::geometry::{Color, Path, PointType};
+use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
+use nodebox_core::geometry::{Color, Path, PointType, Point};
+use crate::handles::{HandleSet, Handle, ellipse_handles, rect_handles};
 use crate::state::AppState;
 
 /// The canvas viewer widget.
@@ -12,11 +13,14 @@ pub struct CanvasViewer {
     /// Current pan offset.
     pan: Vec2,
 
-    /// Whether we're currently panning.
-    _panning: bool,
+    /// Active handles for the selected node.
+    handles: Option<HandleSet>,
 
-    /// Last mouse position during pan.
-    _last_pan_pos: Option<Pos2>,
+    /// Index of handle being dragged.
+    dragging_handle: Option<usize>,
+
+    /// Whether to show handles.
+    pub show_handles: bool,
 }
 
 impl Default for CanvasViewer {
@@ -31,9 +35,15 @@ impl CanvasViewer {
         Self {
             zoom: 1.0,
             pan: Vec2::ZERO,
-            _panning: false,
-            _last_pan_pos: None,
+            handles: None,
+            dragging_handle: None,
+            show_handles: true,
         }
+    }
+
+    /// Get the current pan offset.
+    pub fn pan(&self) -> Vec2 {
+        self.pan
     }
 
     /// Get the current zoom level.
@@ -118,6 +128,124 @@ impl CanvasViewer {
                 Stroke::new(1.0, egui::Color32::GRAY),
             );
         }
+
+        // Draw and handle interactive handles
+        if self.show_handles {
+            if let Some(ref handles) = self.handles {
+                handles.draw(&painter, self.zoom, self.pan, center);
+            }
+        }
+    }
+
+    /// Update handles for the selected node.
+    pub fn update_handles_for_node(&mut self, node_name: Option<&str>, state: &AppState) {
+        match node_name {
+            Some(name) => {
+                // Find the node and create handles based on its type
+                if let Some(node) = state.library.root.child(name) {
+                    let mut handle_set = HandleSet::new(name);
+
+                    // Create handles based on node prototype
+                    if let Some(ref proto) = node.prototype {
+                        match proto.as_str() {
+                            "corevector.ellipse" => {
+                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                let width = node.input("width").and_then(|p| p.value.as_float()).unwrap_or(100.0);
+                                let height = node.input("height").and_then(|p| p.value.as_float()).unwrap_or(100.0);
+
+                                for h in ellipse_handles(x, y, width, height) {
+                                    handle_set.add(h);
+                                }
+                            }
+                            "corevector.rect" => {
+                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                let width = node.input("width").and_then(|p| p.value.as_float()).unwrap_or(100.0);
+                                let height = node.input("height").and_then(|p| p.value.as_float()).unwrap_or(100.0);
+
+                                for h in rect_handles(x, y, width, height) {
+                                    handle_set.add(h);
+                                }
+                            }
+                            "corevector.line" => {
+                                let p1 = node.input("point1").and_then(|p| p.value.as_point().cloned()).unwrap_or(Point::ZERO);
+                                let p2 = node.input("point2").and_then(|p| p.value.as_point().cloned()).unwrap_or(Point::new(100.0, 100.0));
+
+                                handle_set.add(Handle::point("point1", p1).with_color(Color32::from_rgb(255, 100, 100)));
+                                handle_set.add(Handle::point("point2", p2).with_color(Color32::from_rgb(100, 255, 100)));
+                            }
+                            "corevector.polygon" | "corevector.star" => {
+                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+
+                                handle_set.add(Handle::point("position", Point::new(x, y)));
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    if !handle_set.handles().is_empty() {
+                        self.handles = Some(handle_set);
+                    } else {
+                        self.handles = None;
+                    }
+                } else {
+                    self.handles = None;
+                }
+            }
+            None => {
+                self.handles = None;
+            }
+        }
+    }
+
+    /// Handle interaction and return any parameter changes.
+    /// Returns (param_name, new_value) if a handle was moved.
+    pub fn handle_interaction(&mut self, ui: &egui::Ui, rect: Rect) -> Option<(String, Point)> {
+        if !self.show_handles {
+            return None;
+        }
+
+        let center = rect.center().to_vec2();
+
+        // Check for handle dragging
+        if let Some(ref mut handles) = self.handles {
+            let mouse_pos = ui.input(|i| i.pointer.hover_pos());
+
+            // Check for drag start
+            if ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary)) {
+                if let Some(pos) = mouse_pos {
+                    if let Some(idx) = handles.hit_test(pos, self.zoom, self.pan, center) {
+                        self.dragging_handle = Some(idx);
+                        if let Some(handle) = handles.handles_mut().get_mut(idx) {
+                            handle.dragging = true;
+                        }
+                    }
+                }
+            }
+
+            // Handle dragging
+            if let Some(idx) = self.dragging_handle {
+                if ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary)) {
+                    if let Some(pos) = mouse_pos {
+                        handles.update_handle_position(idx, pos, self.zoom, self.pan, center);
+                    }
+                } else {
+                    // Drag ended
+                    if let Some(handle) = handles.handles_mut().get_mut(idx) {
+                        handle.dragging = false;
+                        let param_name = handle.param_name.clone();
+                        let position = handle.position;
+                        self.dragging_handle = None;
+                        return Some((param_name, position));
+                    }
+                    self.dragging_handle = None;
+                }
+            }
+        }
+
+        None
     }
 
     /// Draw a background grid.

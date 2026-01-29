@@ -5,6 +5,7 @@
 
 mod app;
 mod canvas;
+mod handles;
 mod history;
 mod network_view;
 mod node_library;

@@ -225,9 +225,74 @@ impl eframe::App for NodeBoxApp {
             });
         });
 
+        // Update canvas handles when selection changes
+        self.canvas.update_handles_for_node(self.state.selected_node.as_deref(), &self.state);
+
         // Central panel: Canvas viewer
         egui::CentralPanel::default().show(ctx, |ui| {
+            // Get the rect before showing canvas
+            let rect = ui.available_rect_before_wrap();
+
             self.canvas.show(ui, &self.state);
+
+            // Handle interaction with canvas handles
+            if let Some((param_name, new_position)) = self.canvas.handle_interaction(ui, rect) {
+                // Update the parameter in the selected node
+                if let Some(ref node_name) = self.state.selected_node {
+                    if let Some(node) = self.state.library.root.child_mut(node_name) {
+                        // Update the appropriate parameter
+                        match param_name.as_str() {
+                            "position" => {
+                                if let Some(port) = node.input_mut("x") {
+                                    port.value = nodebox_core::Value::Float(new_position.x);
+                                }
+                                if let Some(port) = node.input_mut("y") {
+                                    port.value = nodebox_core::Value::Float(new_position.y);
+                                }
+                            }
+                            "width" => {
+                                if let Some(port) = node.input_mut("x") {
+                                    let x = port.value.as_float().unwrap_or(0.0);
+                                    let new_width = (new_position.x - x) * 2.0;
+                                    if let Some(width_port) = node.input_mut("width") {
+                                        width_port.value = nodebox_core::Value::Float(new_width.abs());
+                                    }
+                                }
+                            }
+                            "height" => {
+                                if let Some(port) = node.input_mut("y") {
+                                    let y = port.value.as_float().unwrap_or(0.0);
+                                    let new_height = (new_position.y - y) * 2.0;
+                                    if let Some(height_port) = node.input_mut("height") {
+                                        height_port.value = nodebox_core::Value::Float(new_height.abs());
+                                    }
+                                }
+                            }
+                            "size" => {
+                                // For rect size handle
+                                if let Some(port) = node.input_mut("x") {
+                                    let x = port.value.as_float().unwrap_or(0.0);
+                                    if let Some(width_port) = node.input_mut("width") {
+                                        width_port.value = nodebox_core::Value::Float((new_position.x - x).abs());
+                                    }
+                                }
+                                if let Some(port) = node.input_mut("y") {
+                                    let y = port.value.as_float().unwrap_or(0.0);
+                                    if let Some(height_port) = node.input_mut("height") {
+                                        height_port.value = nodebox_core::Value::Float((new_position.y - y).abs());
+                                    }
+                                }
+                            }
+                            "point1" | "point2" => {
+                                if let Some(port) = node.input_mut(&param_name) {
+                                    port.value = nodebox_core::Value::Point(new_position);
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
         });
 
         // About dialog
