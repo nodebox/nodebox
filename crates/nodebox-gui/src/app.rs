@@ -98,6 +98,10 @@ impl eframe::App for NodeBoxApp {
                         self.export_svg();
                         ui.close_menu();
                     }
+                    if ui.button("Export PNG...").clicked() {
+                        self.export_png();
+                        ui.close_menu();
+                    }
                     ui.separator();
                     if ui.button("Quit").clicked() {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
@@ -387,6 +391,29 @@ impl NodeBoxApp {
         {
             if let Err(e) = self.state.export_svg(&path) {
                 log::error!("Failed to export SVG: {}", e);
+            }
+        }
+    }
+
+    fn export_png(&mut self) {
+        if let Some(path) = rfd::FileDialog::new()
+            .add_filter("PNG Files", &["png"])
+            .save_file()
+        {
+            // Calculate bounds and export dimensions
+            let (min_x, min_y, max_x, max_y) = crate::export::calculate_bounds(&self.state.geometry);
+            let padding = 20.0;
+            let width = ((max_x - min_x + padding * 2.0).max(100.0)) as u32;
+            let height = ((max_y - min_y + padding * 2.0).max(100.0)) as u32;
+
+            if let Err(e) = crate::export::export_png(
+                &self.state.geometry,
+                &path,
+                width,
+                height,
+                self.state.background_color,
+            ) {
+                log::error!("Failed to export PNG: {}", e);
             }
         }
     }
