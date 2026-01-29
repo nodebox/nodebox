@@ -92,12 +92,18 @@ impl AppState {
     fn create_demo_library() -> NodeLibrary {
         let mut library = NodeLibrary::new("demo");
 
-        // Create demo nodes
+        // Create demo nodes (positions in grid units, vertical flow: top to bottom)
+        // Layout:
+        //   ellipse1 (0,0)     rect1 (4,0)
+        //      ↓                  ↓
+        //   colorize1 (0,1)   colorize2 (4,1)
+        //         ↓              ↓
+        //           merge1 (2,2)
         let ellipse_node = Node::new("ellipse1")
             .with_prototype("corevector.ellipse")
             .with_function("corevector/ellipse")
             .with_category("geometry")
-            .with_position(50.0, 50.0)
+            .with_position(0.0, 0.0)
             .with_input(Port::float("x", 200.0))
             .with_input(Port::float("y", 200.0))
             .with_input(Port::float("width", 100.0))
@@ -107,7 +113,7 @@ impl AppState {
             .with_prototype("corevector.colorize")
             .with_function("corevector/colorize")
             .with_category("color")
-            .with_position(250.0, 50.0)
+            .with_position(0.0, 1.0)
             .with_input(Port::geometry("shape"))
             .with_input(Port::color("fill", Color::rgb(0.9, 0.2, 0.2)))
             .with_input(Port::color("stroke", Color::BLACK))
@@ -117,7 +123,7 @@ impl AppState {
             .with_prototype("corevector.rect")
             .with_function("corevector/rect")
             .with_category("geometry")
-            .with_position(50.0, 180.0)
+            .with_position(4.0, 0.0)
             .with_input(Port::float("x", 350.0))
             .with_input(Port::float("y", 200.0))
             .with_input(Port::float("width", 80.0))
@@ -127,7 +133,7 @@ impl AppState {
             .with_prototype("corevector.colorize")
             .with_function("corevector/colorize")
             .with_category("color")
-            .with_position(250.0, 180.0)
+            .with_position(4.0, 1.0)
             .with_input(Port::geometry("shape"))
             .with_input(Port::color("fill", Color::rgb(0.2, 0.8, 0.3)))
             .with_input(Port::color("stroke", Color::BLACK))
@@ -137,7 +143,7 @@ impl AppState {
             .with_prototype("corevector.merge")
             .with_function("corevector/merge")
             .with_category("geometry")
-            .with_position(450.0, 115.0)
+            .with_position(2.0, 2.0)
             .with_input(Port::geometry("shapes"));
 
         // Build the root network

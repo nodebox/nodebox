@@ -1,13 +1,15 @@
 //! UI panels for the NodeBox application.
 
-use eframe::egui;
+use eframe::egui::{self, Color32};
 use nodebox_core::node::{PortType, Widget};
 use nodebox_core::Value;
 use crate::state::AppState;
+use crate::theme;
 
 /// The parameter editor panel.
 pub struct ParameterPanel {
-    // Parameter panel state will go here
+    /// Fixed width for labels.
+    label_width: f32,
 }
 
 impl Default for ParameterPanel {
@@ -19,114 +21,213 @@ impl Default for ParameterPanel {
 impl ParameterPanel {
     /// Create a new parameter panel.
     pub fn new() -> Self {
-        Self {}
+        Self {
+            label_width: theme::LABEL_WIDTH,
+        }
     }
 
     /// Show the parameter panel.
     pub fn show(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
         if let Some(ref node_name) = state.selected_node.clone() {
-            // Find the node in the library
-            if let Some(node) = state.library.root.child_mut(node_name) {
-                ui.heading(&node.name);
-                if let Some(ref proto) = node.prototype {
-                    ui.label(format!("Type: {}", proto));
+            // First, collect connected ports while we only have immutable borrow
+            let connected_ports: std::collections::HashSet<String> = state
+                .library
+                .root
+                .connections
+                .iter()
+                .filter(|c| c.input_node == *node_name)
+                .map(|c| c.input_port.clone())
+                .collect();
+
+            // Also collect display info before mutable borrow
+            let (node_display_name, node_prototype) = {
+                if let Some(node) = state.library.root.child(&node_name) {
+                    (Some(node.name.clone()), node.prototype.clone())
+                } else {
+                    (None, None)
                 }
-                ui.add_space(10.0);
+            };
+
+            // Find the node in the library for mutation
+            if let Some(node) = state.library.root.child_mut(&node_name) {
+                // Node header with name
+                ui.horizontal(|ui| {
+                    ui.add_space(4.0);
+                    ui.label(
+                        egui::RichText::new(node_display_name.as_deref().unwrap_or(&node.name))
+                            .color(theme::TEXT_BRIGHT)
+                            .size(14.0)
+                            .strong(),
+                    );
+                });
+
+                if let Some(ref proto) = node_prototype {
+                    ui.horizontal(|ui| {
+                        ui.add_space(4.0);
+                        ui.label(
+                            egui::RichText::new(proto)
+                                .color(theme::TEXT_DISABLED)
+                                .size(11.0),
+                        );
+                    });
+                }
+                ui.add_space(4.0);
                 ui.separator();
 
-                // Show input ports
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    for port in &mut node.inputs {
-                        ui.add_space(5.0);
-
-                        match port.widget {
-                            Widget::Float | Widget::Angle => {
-                                if let Value::Float(ref mut value) = port.value {
-                                    ui.horizontal(|ui| {
-                                        ui.label(&port.name);
-                                        let mut drag = egui::DragValue::new(value).speed(1.0);
-                                        if let Some(min) = port.min {
-                                            drag = drag.range(min..=f64::MAX);
-                                        }
-                                        if let Some(max) = port.max {
-                                            drag = drag.range(f64::MIN..=max);
-                                        }
-                                        ui.add(drag);
-                                    });
-                                }
-                            }
-                            Widget::Int => {
-                                if let Value::Int(ref mut value) = port.value {
-                                    ui.horizontal(|ui| {
-                                        ui.label(&port.name);
-                                        ui.add(egui::DragValue::new(value).speed(1.0));
-                                    });
-                                }
-                            }
-                            Widget::Toggle => {
-                                if let Value::Boolean(ref mut value) = port.value {
-                                    ui.checkbox(value, &port.name);
-                                }
-                            }
-                            Widget::String | Widget::Text => {
-                                if let Value::String(ref mut value) = port.value {
-                                    ui.horizontal(|ui| {
-                                        ui.label(&port.name);
-                                        ui.text_edit_singleline(value);
-                                    });
-                                }
-                            }
-                            Widget::Color => {
-                                if let Value::Color(ref mut color) = port.value {
-                                    ui.horizontal(|ui| {
-                                        ui.label(&port.name);
-                                        let mut rgba = [
-                                            color.r as f32,
-                                            color.g as f32,
-                                            color.b as f32,
-                                            color.a as f32,
-                                        ];
-                                        if ui.color_edit_button_rgba_unmultiplied(&mut rgba).changed() {
-                                            color.r = rgba[0] as f64;
-                                            color.g = rgba[1] as f64;
-                                            color.b = rgba[2] as f64;
-                                            color.a = rgba[3] as f64;
-                                        }
-                                    });
-                                }
-                            }
-                            Widget::Point => {
-                                if let Value::Point(ref mut point) = port.value {
-                                    ui.horizontal(|ui| {
-                                        ui.label(&port.name);
-                                    });
-                                    ui.horizontal(|ui| {
-                                        ui.label("  X:");
-                                        ui.add(egui::DragValue::new(&mut point.x).speed(1.0));
-                                        ui.label("Y:");
-                                        ui.add(egui::DragValue::new(&mut point.y).speed(1.0));
-                                    });
-                                }
-                            }
-                            _ => {
-                                // For geometry and other non-editable types, just show the name
-                                match port.port_type {
-                                    PortType::Geometry => {
-                                        ui.label(format!("{}: (connected)", port.name));
-                                    }
-                                    _ => {
-                                        ui.label(format!("{}: {}", port.name, port.port_type.as_str()));
-                                    }
-                                }
-                            }
+                // Show input ports in a scrollable area
+                egui::ScrollArea::vertical()
+                    .auto_shrink([false, false])
+                    .show(ui, |ui| {
+                        for port in &mut node.inputs {
+                            let is_connected = connected_ports.contains(&port.name);
+                            self.show_port_row(ui, port, is_connected);
                         }
-                    }
-                });
+                    });
             } else {
-                ui.label(format!("Node '{}' not found.", node_name));
+                self.show_no_selection(ui, Some(&format!("Node '{}' not found.", node_name)));
             }
         } else {
-            ui.label("Select a node to edit its parameters.");
+            self.show_no_selection(ui, None);
         }
+    }
+
+    /// Show a single port row with label and value editor.
+    fn show_port_row(
+        &self,
+        ui: &mut egui::Ui,
+        port: &mut nodebox_core::node::Port,
+        is_connected: bool,
+    ) {
+        ui.horizontal(|ui| {
+            // Fixed-width label
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(self.label_width, 20.0),
+                egui::Layout::left_to_right(egui::Align::Center),
+                |ui| {
+                    ui.add_space(4.0);
+                    ui.label(
+                        egui::RichText::new(&port.name)
+                            .color(theme::TEXT_NORMAL)
+                            .size(11.0),
+                    );
+                },
+            );
+
+            // Value editor
+            if is_connected {
+                ui.label(
+                    egui::RichText::new("<connected>")
+                        .color(theme::TEXT_DISABLED)
+                        .size(11.0)
+                        .italics(),
+                );
+            } else {
+                self.show_port_editor(ui, port);
+            }
+        });
+    }
+
+    /// Show the editor widget for a port value.
+    fn show_port_editor(&self, ui: &mut egui::Ui, port: &mut nodebox_core::node::Port) {
+        match port.widget {
+            Widget::Float | Widget::Angle => {
+                if let Value::Float(ref mut value) = port.value {
+                    let mut drag = egui::DragValue::new(value).speed(1.0);
+                    if let Some(min) = port.min {
+                        drag = drag.range(min..=f64::MAX);
+                    }
+                    if let Some(max) = port.max {
+                        drag = drag.range(f64::MIN..=max);
+                    }
+                    ui.add(drag);
+                }
+            }
+            Widget::Int => {
+                if let Value::Int(ref mut value) = port.value {
+                    ui.add(egui::DragValue::new(value).speed(1.0));
+                }
+            }
+            Widget::Toggle => {
+                if let Value::Boolean(ref mut value) = port.value {
+                    ui.checkbox(value, "");
+                }
+            }
+            Widget::String | Widget::Text => {
+                if let Value::String(ref mut value) = port.value {
+                    ui.add(egui::TextEdit::singleline(value).desired_width(80.0));
+                }
+            }
+            Widget::Color => {
+                if let Value::Color(ref mut color) = port.value {
+                    let mut rgba = [
+                        color.r as f32,
+                        color.g as f32,
+                        color.b as f32,
+                        color.a as f32,
+                    ];
+                    if ui.color_edit_button_rgba_unmultiplied(&mut rgba).changed() {
+                        color.r = rgba[0] as f64;
+                        color.g = rgba[1] as f64;
+                        color.b = rgba[2] as f64;
+                        color.a = rgba[3] as f64;
+                    }
+                }
+            }
+            Widget::Point => {
+                if let Value::Point(ref mut point) = port.value {
+                    ui.label(
+                        egui::RichText::new("X:")
+                            .color(theme::TEXT_DISABLED)
+                            .size(10.0),
+                    );
+                    ui.add(egui::DragValue::new(&mut point.x).speed(1.0));
+                    ui.label(
+                        egui::RichText::new("Y:")
+                            .color(theme::TEXT_DISABLED)
+                            .size(10.0),
+                    );
+                    ui.add(egui::DragValue::new(&mut point.y).speed(1.0));
+                }
+            }
+            _ => {
+                // For geometry and other non-editable types, show type info
+                match port.port_type {
+                    PortType::Geometry => {
+                        ui.label(
+                            egui::RichText::new("Geometry")
+                                .color(theme::TEXT_DISABLED)
+                                .size(11.0),
+                        );
+                    }
+                    _ => {
+                        ui.label(
+                            egui::RichText::new(port.port_type.as_str())
+                                .color(theme::TEXT_DISABLED)
+                                .size(11.0),
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /// Show message when no node is selected.
+    fn show_no_selection(&self, ui: &mut egui::Ui, error: Option<&str>) {
+        ui.vertical_centered(|ui| {
+            ui.add_space(30.0);
+            if let Some(err) = error {
+                ui.label(
+                    egui::RichText::new(err)
+                        .color(Color32::from_rgb(255, 100, 100))
+                        .size(12.0),
+                );
+            } else {
+                ui.label(
+                    egui::RichText::new("Select a node to edit parameters")
+                        .color(theme::TEXT_DISABLED)
+                        .size(11.0),
+                );
+            }
+        });
     }
 }

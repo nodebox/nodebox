@@ -1,6 +1,6 @@
 //! Animation timeline widget.
 
-use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
+use eframe::egui::{self, Color32, Pos2, Stroke, Vec2};
 use std::time::{Duration, Instant};
 
 /// Animation playback state.

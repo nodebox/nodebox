@@ -1,25 +1,27 @@
 //! Main application state and update loop.
 
-use eframe::egui;
-use crate::canvas::CanvasViewer;
+use eframe::egui::{self, Pos2, Rect, Vec2};
+use nodebox_core::geometry::Point;
+use crate::address_bar::AddressBar;
+use crate::animation_bar::AnimationBar;
 use crate::history::History;
-use crate::network_view::NetworkView;
-use crate::node_library::NodeLibraryBrowser;
+use crate::network_view::{NetworkAction, NetworkView};
+use crate::node_selection_dialog::NodeSelectionDialog;
 use crate::panels::ParameterPanel;
 use crate::state::AppState;
-use crate::timeline::Timeline;
+use crate::theme;
+use crate::viewer_pane::ViewerPane;
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
     state: AppState,
-    canvas: CanvasViewer,
+    address_bar: AddressBar,
+    viewer_pane: ViewerPane,
     network_view: NetworkView,
-    node_library: NodeLibraryBrowser,
     parameters: ParameterPanel,
+    animation_bar: AnimationBar,
+    node_dialog: NodeSelectionDialog,
     history: History,
-    timeline: Timeline,
-    show_node_library: bool,
-    show_timeline: bool,
     /// Previous library state for detecting changes.
     previous_library_hash: u64,
 }
@@ -31,14 +33,13 @@ impl NodeBoxApp {
         let hash = Self::hash_library(&state.library);
         Self {
             state,
-            canvas: CanvasViewer::new(),
+            address_bar: AddressBar::new(),
+            viewer_pane: ViewerPane::new(),
             network_view: NetworkView::new(),
-            node_library: NodeLibraryBrowser::new(),
             parameters: ParameterPanel::new(),
+            animation_bar: AnimationBar::new(),
+            node_dialog: NodeSelectionDialog::new(),
             history: History::new(),
-            timeline: Timeline::new(),
-            show_node_library: true,
-            show_timeline: true,
             previous_library_hash: hash,
         }
     }
@@ -64,274 +65,242 @@ impl NodeBoxApp {
     fn auto_save_history(&mut self) {
         let current_hash = Self::hash_library(&self.state.library);
         if current_hash != self.previous_library_hash {
-            // Create a copy of the previous state before the change
-            // Note: We need to save the state BEFORE the change happened
-            // This simple implementation saves after change detection, which
-            // means the first undo might not work perfectly. For a production
-            // system, we'd want to save before each operation.
             self.history.save_state(&self.state.library);
             self.previous_library_hash = current_hash;
             self.state.dirty = true;
         }
     }
+
+    /// Show the menu bar.
+    fn show_menu_bar(&mut self, ui: &mut egui::Ui, ctx: &egui::Context) {
+        egui::menu::bar(ui, |ui| {
+            ui.menu_button("File", |ui| {
+                if ui.button("New").clicked() {
+                    self.state.new_document();
+                    ui.close_menu();
+                }
+                if ui.button("Open...").clicked() {
+                    self.open_file();
+                    ui.close_menu();
+                }
+                if ui.button("Save").clicked() {
+                    self.save_file();
+                    ui.close_menu();
+                }
+                if ui.button("Save As...").clicked() {
+                    self.save_file_as();
+                    ui.close_menu();
+                }
+                ui.separator();
+                if ui.button("Export SVG...").clicked() {
+                    self.export_svg();
+                    ui.close_menu();
+                }
+                if ui.button("Export PNG...").clicked() {
+                    self.export_png();
+                    ui.close_menu();
+                }
+                ui.separator();
+                if ui.button("Quit").clicked() {
+                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                }
+            });
+
+            ui.menu_button("Edit", |ui| {
+                let undo_text = if self.history.can_undo() {
+                    format!("Undo ({})", self.history.undo_count())
+                } else {
+                    "Undo".to_string()
+                };
+                if ui.add_enabled(self.history.can_undo(), egui::Button::new(undo_text)).clicked() {
+                    if let Some(previous) = self.history.undo(&self.state.library) {
+                        self.state.library = previous;
+                        self.previous_library_hash = Self::hash_library(&self.state.library);
+                    }
+                    ui.close_menu();
+                }
+                let redo_text = if self.history.can_redo() {
+                    format!("Redo ({})", self.history.redo_count())
+                } else {
+                    "Redo".to_string()
+                };
+                if ui.add_enabled(self.history.can_redo(), egui::Button::new(redo_text)).clicked() {
+                    if let Some(next) = self.history.redo(&self.state.library) {
+                        self.state.library = next;
+                        self.previous_library_hash = Self::hash_library(&self.state.library);
+                    }
+                    ui.close_menu();
+                }
+                ui.separator();
+                if ui.button("Delete Selected").clicked() {
+                    ui.close_menu();
+                }
+            });
+
+            ui.menu_button("View", |ui| {
+                if ui.button("Zoom In").clicked() {
+                    self.viewer_pane.zoom_in();
+                    ui.close_menu();
+                }
+                if ui.button("Zoom Out").clicked() {
+                    self.viewer_pane.zoom_out();
+                    ui.close_menu();
+                }
+                if ui.button("Fit to Window").clicked() {
+                    self.viewer_pane.fit_to_window();
+                    ui.close_menu();
+                }
+                ui.separator();
+                ui.checkbox(&mut self.viewer_pane.show_handles, "Show Handles");
+                ui.checkbox(&mut self.viewer_pane.show_points, "Show Points");
+                ui.checkbox(&mut self.viewer_pane.show_origin, "Show Origin");
+                ui.checkbox(&mut self.viewer_pane.show_bounds, "Show Bounds");
+            });
+
+            ui.menu_button("Help", |ui| {
+                if ui.button("About NodeBox").clicked() {
+                    self.state.show_about = true;
+                    ui.close_menu();
+                }
+            });
+        });
+    }
 }
 
 impl eframe::App for NodeBoxApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Top menu bar
+        // 1. Menu bar (top-most)
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("New").clicked() {
-                        self.state.new_document();
-                        ui.close_menu();
-                    }
-                    if ui.button("Open...").clicked() {
-                        self.open_file();
-                        ui.close_menu();
-                    }
-                    if ui.button("Save").clicked() {
-                        self.save_file();
-                        ui.close_menu();
-                    }
-                    if ui.button("Save As...").clicked() {
-                        self.save_file_as();
-                        ui.close_menu();
-                    }
-                    ui.separator();
-                    if ui.button("Export SVG...").clicked() {
-                        self.export_svg();
-                        ui.close_menu();
-                    }
-                    if ui.button("Export PNG...").clicked() {
-                        self.export_png();
-                        ui.close_menu();
-                    }
-                    ui.separator();
-                    if ui.button("Quit").clicked() {
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                    }
-                });
-
-                ui.menu_button("Edit", |ui| {
-                    let undo_text = if self.history.can_undo() {
-                        format!("Undo ({})", self.history.undo_count())
-                    } else {
-                        "Undo".to_string()
-                    };
-                    if ui.add_enabled(self.history.can_undo(), egui::Button::new(undo_text)).clicked() {
-                        if let Some(previous) = self.history.undo(&self.state.library) {
-                            self.state.library = previous;
-                            self.previous_library_hash = Self::hash_library(&self.state.library);
-                        }
-                        ui.close_menu();
-                    }
-                    let redo_text = if self.history.can_redo() {
-                        format!("Redo ({})", self.history.redo_count())
-                    } else {
-                        "Redo".to_string()
-                    };
-                    if ui.add_enabled(self.history.can_redo(), egui::Button::new(redo_text)).clicked() {
-                        if let Some(next) = self.history.redo(&self.state.library) {
-                            self.state.library = next;
-                            self.previous_library_hash = Self::hash_library(&self.state.library);
-                        }
-                        ui.close_menu();
-                    }
-                    ui.separator();
-                    if ui.button("Delete Selected").clicked() {
-                        // Delete selected nodes via network view
-                        ui.close_menu();
-                    }
-                });
-
-                ui.menu_button("View", |ui| {
-                    if ui.button("Zoom In").clicked() {
-                        self.canvas.zoom_in();
-                        ui.close_menu();
-                    }
-                    if ui.button("Zoom Out").clicked() {
-                        self.canvas.zoom_out();
-                        ui.close_menu();
-                    }
-                    if ui.button("Fit to Window").clicked() {
-                        self.canvas.fit_to_window();
-                        ui.close_menu();
-                    }
-                    ui.separator();
-                    if ui.checkbox(&mut self.show_node_library, "Node Library").clicked() {
-                        ui.close_menu();
-                    }
-                    if ui.checkbox(&mut self.show_timeline, "Timeline").clicked() {
-                        ui.close_menu();
-                    }
-                });
-
-                ui.menu_button("Help", |ui| {
-                    if ui.button("About NodeBox").clicked() {
-                        self.state.show_about = true;
-                        ui.close_menu();
-                    }
-                });
-            });
+            self.show_menu_bar(ui, ctx);
         });
 
-        // Left panel: Node graph
-        egui::SidePanel::left("node_graph")
-            .default_width(400.0)
+        // 2. Address bar (below menu)
+        egui::TopBottomPanel::top("address_bar")
+            .exact_height(theme::ADDRESS_BAR_HEIGHT)
+            .show(ctx, |ui| {
+                // Update address bar message with current state
+                let node_count = self.state.library.root.children.len();
+                let msg = format!("Nodes: {} | Zoom: {:.0}%", node_count, self.viewer_pane.zoom() * 100.0);
+                self.address_bar.set_message(msg);
+
+                if let Some(_clicked_path) = self.address_bar.show(ui) {
+                    // Future: navigate to sub-network
+                }
+            });
+
+        // 3. Animation bar (bottom)
+        egui::TopBottomPanel::bottom("animation_bar")
+            .exact_height(theme::ANIMATION_BAR_HEIGHT)
+            .show(ctx, |ui| {
+                let _event = self.animation_bar.show(ui);
+            });
+
+        // Update animation playback
+        if self.animation_bar.is_playing() {
+            self.animation_bar.update();
+            ctx.request_repaint();
+        }
+
+        // 4. Right side panel containing Parameters (top) and Network (bottom)
+        egui::SidePanel::right("right_panel")
+            .default_width(450.0)
             .min_width(300.0)
             .resizable(true)
             .show(ctx, |ui| {
-                ui.heading("Network");
-                ui.separator();
-                self.network_view.show(ui, &mut self.state.library);
+                let available = ui.available_rect_before_wrap();
+                let split_ratio = 0.35; // 35% parameters, 65% network
+                let split_y = available.height() * split_ratio;
 
-                // Update selected node from network view
-                let selected = self.network_view.selected_nodes();
-                if selected.len() == 1 {
-                    self.state.selected_node = selected.iter().next().cloned();
-                } else if selected.is_empty() {
-                    self.state.selected_node = None;
-                }
-            });
+                // Top: Parameters pane
+                let params_rect = Rect::from_min_size(
+                    available.min,
+                    Vec2::new(available.width(), split_y - 1.0),
+                );
 
-        // Right panel: Parameters
-        egui::SidePanel::right("parameters")
-            .default_width(250.0)
-            .resizable(true)
-            .show(ctx, |ui| {
-                ui.heading("Parameters");
-                ui.separator();
-                self.parameters.show(ui, &mut self.state);
-            });
-
-        // Timeline panel (optional)
-        if self.show_timeline {
-            egui::TopBottomPanel::bottom("timeline")
-                .default_height(60.0)
-                .resizable(false)
-                .show(ctx, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.heading("Timeline");
-                        if ui.small_button("×").clicked() {
-                            self.show_timeline = false;
-                        }
-                    });
-                    self.timeline.show(ui);
+                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(params_rect), |ui| {
+                    ui.set_clip_rect(params_rect);
+                    ui.heading("Parameters");
+                    ui.separator();
+                    self.parameters.show(ui, &mut self.state);
                 });
 
-            // Update playback and request repaint if playing
-            if self.timeline.is_playing() {
-                self.timeline.update();
-                ctx.request_repaint();
-            }
-        }
+                // Separator line
+                let sep_y = available.min.y + split_y;
+                ui.painter().line_segment(
+                    [
+                        Pos2::new(available.min.x, sep_y),
+                        Pos2::new(available.max.x, sep_y),
+                    ],
+                    egui::Stroke::new(1.0, theme::DARK_BACKGROUND),
+                );
 
-        // Node library panel (optional)
-        if self.show_node_library {
-            egui::TopBottomPanel::bottom("node_library")
-                .default_height(150.0)
-                .resizable(true)
-                .show(ctx, |ui| {
+                // Bottom: Network pane
+                let network_rect = Rect::from_min_max(
+                    Pos2::new(available.min.x, available.min.y + split_y + 1.0),
+                    available.max,
+                );
+
+                ui.allocate_new_ui(egui::UiBuilder::new().max_rect(network_rect), |ui| {
+                    ui.set_clip_rect(network_rect);
+                    // Network header
                     ui.horizontal(|ui| {
-                        ui.heading("Node Library");
-                        if ui.small_button("×").clicked() {
-                            self.show_node_library = false;
-                        }
+                        ui.label("Network");
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            if ui.button("+ New Node").clicked() {
+                                self.node_dialog.open(Point::new(0.0, 0.0));
+                            }
+                        });
                     });
                     ui.separator();
-                    self.node_library.show(ui, &mut self.state.library);
-                });
-        }
 
-        // Bottom status bar
-        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                if let Some(ref path) = self.state.current_file {
-                    ui.label(format!("File: {}", path.display()));
-                } else {
-                    ui.label("Untitled");
-                }
-                ui.separator();
-                ui.label(format!("Zoom: {:.0}%", self.canvas.zoom() * 100.0));
-                ui.separator();
-                ui.label(format!("Nodes: {}", self.state.library.root.children.len()));
-                ui.separator();
-                ui.label(format!("Frame: {}", self.timeline.frame()));
-            });
-        });
+                    // Network view
+                    let action = self.network_view.show(ui, &mut self.state.library);
 
-        // Update canvas handles when selection changes
-        self.canvas.update_handles_for_node(self.state.selected_node.as_deref(), &self.state);
-
-        // Central panel: Canvas viewer
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // Get the rect before showing canvas
-            let rect = ui.available_rect_before_wrap();
-
-            self.canvas.show(ui, &self.state);
-
-            // Handle interaction with canvas handles
-            if let Some((param_name, new_position)) = self.canvas.handle_interaction(ui, rect) {
-                // Update the parameter in the selected node
-                if let Some(ref node_name) = self.state.selected_node {
-                    if let Some(node) = self.state.library.root.child_mut(node_name) {
-                        // Update the appropriate parameter
-                        match param_name.as_str() {
-                            "position" => {
-                                if let Some(port) = node.input_mut("x") {
-                                    port.value = nodebox_core::Value::Float(new_position.x);
-                                }
-                                if let Some(port) = node.input_mut("y") {
-                                    port.value = nodebox_core::Value::Float(new_position.y);
-                                }
-                            }
-                            "width" => {
-                                if let Some(port) = node.input_mut("x") {
-                                    let x = port.value.as_float().unwrap_or(0.0);
-                                    let new_width = (new_position.x - x) * 2.0;
-                                    if let Some(width_port) = node.input_mut("width") {
-                                        width_port.value = nodebox_core::Value::Float(new_width.abs());
-                                    }
-                                }
-                            }
-                            "height" => {
-                                if let Some(port) = node.input_mut("y") {
-                                    let y = port.value.as_float().unwrap_or(0.0);
-                                    let new_height = (new_position.y - y) * 2.0;
-                                    if let Some(height_port) = node.input_mut("height") {
-                                        height_port.value = nodebox_core::Value::Float(new_height.abs());
-                                    }
-                                }
-                            }
-                            "size" => {
-                                // For rect size handle
-                                if let Some(port) = node.input_mut("x") {
-                                    let x = port.value.as_float().unwrap_or(0.0);
-                                    if let Some(width_port) = node.input_mut("width") {
-                                        width_port.value = nodebox_core::Value::Float((new_position.x - x).abs());
-                                    }
-                                }
-                                if let Some(port) = node.input_mut("y") {
-                                    let y = port.value.as_float().unwrap_or(0.0);
-                                    if let Some(height_port) = node.input_mut("height") {
-                                        height_port.value = nodebox_core::Value::Float((new_position.y - y).abs());
-                                    }
-                                }
-                            }
-                            "point1" | "point2" => {
-                                if let Some(port) = node.input_mut(&param_name) {
-                                    port.value = nodebox_core::Value::Point(new_position);
-                                }
-                            }
-                            _ => {}
+                    // Handle network actions
+                    match action {
+                        NetworkAction::OpenNodeDialog(pos) => {
+                            self.node_dialog.open(pos);
                         }
+                        NetworkAction::None => {}
                     }
-                }
+
+                    // Update selected node from network view
+                    let selected = self.network_view.selected_nodes();
+                    if selected.len() == 1 {
+                        self.state.selected_node = selected.iter().next().cloned();
+                    } else if selected.is_empty() {
+                        self.state.selected_node = None;
+                    }
+                });
+            });
+
+        // 5. Central panel: Viewer (left side, takes remaining space)
+        egui::CentralPanel::default().show(ctx, |ui| {
+            // Update handles for selected node
+            self.viewer_pane.update_handles_for_node(
+                self.state.selected_node.as_deref(),
+                &self.state,
+            );
+            self.viewer_pane.show(ui, &self.state);
+
+            // Handle viewer interaction
+            let viewer_rect = ui.min_rect();
+            if let Some((param_name, new_position)) = self.viewer_pane.handle_interaction(ui, viewer_rect) {
+                self.handle_parameter_change(&param_name, new_position);
             }
         });
 
-        // About dialog
+        // 6. Node selection dialog
+        if self.node_dialog.visible {
+            if let Some(new_node) = self.node_dialog.show(ctx, &self.state.library) {
+                let node_name = new_node.name.clone();
+                self.state.library.root.children.push(new_node);
+                // Select the new node
+                self.state.selected_node = Some(node_name);
+            }
+        }
+
+        // 7. About dialog
         if self.state.show_about {
             egui::Window::new("About NodeBox")
                 .collapsible(false)
@@ -371,11 +340,6 @@ impl eframe::App for NodeBoxApp {
                     self.previous_library_hash = Self::hash_library(&self.state.library);
                 }
             }
-            // Save: Ctrl+S
-            if i.modifiers.command && i.key_pressed(egui::Key::S) {
-                // Note: Can't call self.save_file() here due to borrow checker
-                // Would need to refactor to handle this
-            }
         });
 
         // Check for state changes and auto-save to history
@@ -384,6 +348,62 @@ impl eframe::App for NodeBoxApp {
 }
 
 impl NodeBoxApp {
+    /// Handle parameter change from viewer handles.
+    fn handle_parameter_change(&mut self, param_name: &str, new_position: Point) {
+        if let Some(ref node_name) = self.state.selected_node {
+            if let Some(node) = self.state.library.root.child_mut(node_name) {
+                match param_name {
+                    "position" => {
+                        if let Some(port) = node.input_mut("x") {
+                            port.value = nodebox_core::Value::Float(new_position.x);
+                        }
+                        if let Some(port) = node.input_mut("y") {
+                            port.value = nodebox_core::Value::Float(new_position.y);
+                        }
+                    }
+                    "width" => {
+                        if let Some(port) = node.input_mut("x") {
+                            let x = port.value.as_float().unwrap_or(0.0);
+                            let new_width = (new_position.x - x) * 2.0;
+                            if let Some(width_port) = node.input_mut("width") {
+                                width_port.value = nodebox_core::Value::Float(new_width.abs());
+                            }
+                        }
+                    }
+                    "height" => {
+                        if let Some(port) = node.input_mut("y") {
+                            let y = port.value.as_float().unwrap_or(0.0);
+                            let new_height = (new_position.y - y) * 2.0;
+                            if let Some(height_port) = node.input_mut("height") {
+                                height_port.value = nodebox_core::Value::Float(new_height.abs());
+                            }
+                        }
+                    }
+                    "size" => {
+                        if let Some(port) = node.input_mut("x") {
+                            let x = port.value.as_float().unwrap_or(0.0);
+                            if let Some(width_port) = node.input_mut("width") {
+                                width_port.value = nodebox_core::Value::Float((new_position.x - x).abs());
+                            }
+                        }
+                        if let Some(port) = node.input_mut("y") {
+                            let y = port.value.as_float().unwrap_or(0.0);
+                            if let Some(height_port) = node.input_mut("height") {
+                                height_port.value = nodebox_core::Value::Float((new_position.y - y).abs());
+                            }
+                        }
+                    }
+                    "point1" | "point2" => {
+                        if let Some(port) = node.input_mut(param_name) {
+                            port.value = nodebox_core::Value::Point(new_position);
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
     fn open_file(&mut self) {
         if let Some(path) = rfd::FileDialog::new()
             .add_filter("NodeBox Files", &["ndbx"])

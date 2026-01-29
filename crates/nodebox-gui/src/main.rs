@@ -3,6 +3,8 @@
 //! This application provides a visual environment for creating generative designs
 //! using NodeBox's node-based workflow.
 
+mod address_bar;
+mod animation_bar;
 mod app;
 mod canvas;
 mod export;
@@ -10,9 +12,12 @@ mod handles;
 mod history;
 mod network_view;
 mod node_library;
+mod node_selection_dialog;
 mod panels;
 mod state;
+mod theme;
 mod timeline;
+mod viewer_pane;
 
 use app::NodeBoxApp;
 
