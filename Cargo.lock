@@ -2526,6 +2526,7 @@ dependencies = [
  "nodebox-core",
  "nodebox-ops",
  "pyo3",
+ "tempfile",
 ]
 
 [[package]]
