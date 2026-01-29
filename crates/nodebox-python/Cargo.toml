@@ -1,0 +1,24 @@
+[package]
+name = "nodebox-python"
+description = "Python bindings for NodeBox"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+name = "nodebox_python"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+nodebox-core = { path = "../nodebox-core" }
+nodebox-ops = { path = "../nodebox-ops" }
+
+# Python bindings
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py38"] }
+
+[features]
+default = []
+# Enable this feature when building as a Python extension
+extension-module = ["pyo3/extension-module"]

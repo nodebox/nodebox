@@ -7,6 +7,19 @@ members = [
     "crates/nodebox-svg",
     "crates/nodebox-cli",
     "crates/nodebox-gui",
+    "crates/nodebox-python",
+]
+
+# Default members exclude nodebox-python since it requires Python development libraries.
+# To build nodebox-python, install Python dev headers and run:
+#   cargo build -p nodebox-python
+default-members = [
+    "crates/nodebox-core",
+    "crates/nodebox-ndbx",
+    "crates/nodebox-ops",
+    "crates/nodebox-svg",
+    "crates/nodebox-cli",
+    "crates/nodebox-gui",
 ]
 
 [workspace.package]
