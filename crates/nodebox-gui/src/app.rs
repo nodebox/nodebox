@@ -7,6 +7,7 @@ use crate::network_view::NetworkView;
 use crate::node_library::NodeLibraryBrowser;
 use crate::panels::ParameterPanel;
 use crate::state::AppState;
+use crate::timeline::Timeline;
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
@@ -16,7 +17,9 @@ pub struct NodeBoxApp {
     node_library: NodeLibraryBrowser,
     parameters: ParameterPanel,
     history: History,
+    timeline: Timeline,
     show_node_library: bool,
+    show_timeline: bool,
     /// Previous library state for detecting changes.
     previous_library_hash: u64,
 }
@@ -33,7 +36,9 @@ impl NodeBoxApp {
             node_library: NodeLibraryBrowser::new(),
             parameters: ParameterPanel::new(),
             history: History::new(),
+            timeline: Timeline::new(),
             show_node_library: true,
+            show_timeline: true,
             previous_library_hash: hash,
         }
     }
@@ -157,6 +162,9 @@ impl eframe::App for NodeBoxApp {
                     if ui.checkbox(&mut self.show_node_library, "Node Library").clicked() {
                         ui.close_menu();
                     }
+                    if ui.checkbox(&mut self.show_timeline, "Timeline").clicked() {
+                        ui.close_menu();
+                    }
                 });
 
                 ui.menu_button("Help", |ui| {
@@ -197,6 +205,28 @@ impl eframe::App for NodeBoxApp {
                 self.parameters.show(ui, &mut self.state);
             });
 
+        // Timeline panel (optional)
+        if self.show_timeline {
+            egui::TopBottomPanel::bottom("timeline")
+                .default_height(60.0)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.horizontal(|ui| {
+                        ui.heading("Timeline");
+                        if ui.small_button("×").clicked() {
+                            self.show_timeline = false;
+                        }
+                    });
+                    self.timeline.show(ui);
+                });
+
+            // Update playback and request repaint if playing
+            if self.timeline.is_playing() {
+                self.timeline.update();
+                ctx.request_repaint();
+            }
+        }
+
         // Node library panel (optional)
         if self.show_node_library {
             egui::TopBottomPanel::bottom("node_library")
@@ -226,6 +256,8 @@ impl eframe::App for NodeBoxApp {
                 ui.label(format!("Zoom: {:.0}%", self.canvas.zoom() * 100.0));
                 ui.separator();
                 ui.label(format!("Nodes: {}", self.state.library.root.children.len()));
+                ui.separator();
+                ui.label(format!("Frame: {}", self.timeline.frame()));
             });
         });
 

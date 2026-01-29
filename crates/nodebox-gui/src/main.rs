@@ -12,6 +12,7 @@ mod network_view;
 mod node_library;
 mod panels;
 mod state;
+mod timeline;
 
 use app::NodeBoxApp;
 
