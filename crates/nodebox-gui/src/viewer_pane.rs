@@ -3,6 +3,7 @@
 use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
 use nodebox_core::geometry::{Color, Path, Point, PointType};
 use crate::handles::HandleSet;
+use crate::pan_zoom::PanZoom;
 use crate::state::AppState;
 use crate::theme;
 
@@ -27,14 +28,16 @@ pub struct ViewerPane {
     pub show_origin: bool,
     /// Whether to show geometry bounds.
     pub show_bounds: bool,
-    /// Current zoom level.
-    zoom: f32,
-    /// Current pan offset.
-    pan: Vec2,
+    /// Pan and zoom state.
+    pan_zoom: PanZoom,
     /// Active handles for the selected node.
     handles: Option<HandleSet>,
     /// Index of handle being dragged.
     dragging_handle: Option<usize>,
+    /// Whether space bar is currently pressed (for panning).
+    is_space_pressed: bool,
+    /// Whether we are currently panning with space+drag.
+    is_panning: bool,
 }
 
 impl Default for ViewerPane {
@@ -53,37 +56,37 @@ impl ViewerPane {
             show_point_numbers: false,
             show_origin: true,
             show_bounds: false,
-            zoom: 1.0,
-            pan: Vec2::ZERO,
+            pan_zoom: PanZoom::with_zoom_limits(0.1, 10.0),
             handles: None,
             dragging_handle: None,
+            is_space_pressed: false,
+            is_panning: false,
         }
     }
 
     /// Get the current zoom level.
     pub fn zoom(&self) -> f32 {
-        self.zoom
+        self.pan_zoom.zoom
     }
 
     /// Get the current pan offset.
     pub fn pan(&self) -> Vec2 {
-        self.pan
+        self.pan_zoom.pan
     }
 
     /// Zoom in by a step.
     pub fn zoom_in(&mut self) {
-        self.zoom = (self.zoom * 1.25).min(10.0);
+        self.pan_zoom.zoom_in();
     }
 
     /// Zoom out by a step.
     pub fn zoom_out(&mut self) {
-        self.zoom = (self.zoom / 1.25).max(0.1);
+        self.pan_zoom.zoom_out();
     }
 
     /// Fit the view to show all geometry.
     pub fn fit_to_window(&mut self) {
-        self.zoom = 1.0;
-        self.pan = Vec2::ZERO;
+        self.pan_zoom.reset();
     }
 
     /// Get a mutable reference to the handles.
@@ -180,21 +183,35 @@ impl ViewerPane {
             ui.allocate_painter(ui.available_size(), egui::Sense::click_and_drag());
 
         let rect = response.rect;
+        let center = rect.center().to_vec2();
 
-        // Handle zoom with scroll wheel
-        if response.hovered() {
-            let scroll = ui.input(|i| i.raw_scroll_delta.y);
-            if scroll != 0.0 {
-                let zoom_factor = 1.0 + scroll * 0.001;
-                self.zoom = (self.zoom * zoom_factor).clamp(0.1, 10.0);
-            }
+        // Handle zoom with scroll wheel, centered on mouse position
+        self.pan_zoom.handle_scroll_zoom(rect, ui, center);
+
+        // Track space bar state for Photoshop-style panning
+        if ui.input(|i| i.key_pressed(egui::Key::Space)) {
+            self.is_space_pressed = true;
+        }
+        if ui.input(|i| i.key_released(egui::Key::Space)) {
+            self.is_space_pressed = false;
+            self.is_panning = false;
         }
 
-        // Handle panning with middle mouse button or right drag
-        if response.dragged_by(egui::PointerButton::Middle)
-            || response.dragged_by(egui::PointerButton::Secondary)
-        {
-            self.pan += response.drag_delta();
+        // Handle panning with space+drag, middle mouse button, or right drag
+        if self.is_space_pressed && response.dragged_by(egui::PointerButton::Primary) {
+            self.pan_zoom.pan += response.drag_delta();
+            self.is_panning = true;
+        }
+        self.pan_zoom.handle_drag_pan(&response, egui::PointerButton::Middle);
+        self.pan_zoom.handle_drag_pan(&response, egui::PointerButton::Secondary);
+
+        // Change cursor when space is held (panning mode)
+        if self.is_space_pressed && response.hovered() {
+            if self.is_panning {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+            } else {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
+            }
         }
 
         // Draw background
@@ -207,9 +224,6 @@ impl ViewerPane {
 
         // Draw a subtle grid
         self.draw_grid(&painter, rect);
-
-        // Calculate transform: screen = (world * zoom) + pan + center
-        let center = rect.center().to_vec2();
 
         // Draw all geometry
         for path in &state.geometry {
@@ -228,7 +242,7 @@ impl ViewerPane {
 
         // Draw origin crosshair
         if self.show_origin {
-            let origin = (Pos2::ZERO.to_vec2() * self.zoom + self.pan + center).to_pos2();
+            let origin = self.pan_zoom.world_to_screen(Pos2::ZERO, center);
             if rect.contains(origin) {
                 let crosshair_size = 10.0;
                 painter.line_segment(
@@ -251,7 +265,7 @@ impl ViewerPane {
         // Draw and handle interactive handles
         if self.show_handles {
             if let Some(ref handles) = self.handles {
-                handles.draw(&painter, self.zoom, self.pan, center);
+                handles.draw(&painter, self.pan_zoom.zoom, self.pan_zoom.pan, center);
             }
         }
     }
@@ -309,7 +323,7 @@ impl ViewerPane {
             // Check for drag start
             if ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary)) {
                 if let Some(pos) = mouse_pos {
-                    if let Some(idx) = handles.hit_test(pos, self.zoom, self.pan, center) {
+                    if let Some(idx) = handles.hit_test(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center) {
                         self.dragging_handle = Some(idx);
                         if let Some(handle) = handles.handles_mut().get_mut(idx) {
                             handle.dragging = true;
@@ -322,7 +336,7 @@ impl ViewerPane {
             if let Some(idx) = self.dragging_handle {
                 if ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary)) {
                     if let Some(pos) = mouse_pos {
-                        handles.update_handle_position(idx, pos, self.zoom, self.pan, center);
+                        handles.update_handle_position(idx, pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
                     }
                 } else {
                     // Drag ended
@@ -343,11 +357,11 @@ impl ViewerPane {
 
     /// Draw a background grid.
     fn draw_grid(&self, painter: &egui::Painter, rect: Rect) {
-        let grid_size = 50.0 * self.zoom;
+        let grid_size = 50.0 * self.pan_zoom.zoom;
         let grid_color = egui::Color32::from_rgba_unmultiplied(200, 200, 200, 30);
 
         let center = rect.center().to_vec2();
-        let origin = self.pan + center;
+        let origin = self.pan_zoom.pan + center;
 
         // Calculate grid offset
         let offset_x = origin.x % grid_size;
@@ -383,8 +397,8 @@ impl ViewerPane {
                 (bounds.y + bounds.height) as f32,
             );
 
-            let screen_min = (min.to_vec2() * self.zoom + self.pan + center).to_pos2();
-            let screen_max = (max.to_vec2() * self.zoom + self.pan + center).to_pos2();
+            let screen_min = self.pan_zoom.world_to_screen(min, center);
+            let screen_max = self.pan_zoom.world_to_screen(max, center);
 
             let bounds_rect = Rect::from_min_max(screen_min, screen_max);
             painter.rect_stroke(
@@ -400,7 +414,7 @@ impl ViewerPane {
         for contour in &path.contours {
             for (i, pp) in contour.points.iter().enumerate() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
-                let screen_pt = (world_pt.to_vec2() * self.zoom + self.pan + center).to_pos2();
+                let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
                 // Draw point marker
                 let color = match pp.point_type {
@@ -438,43 +452,27 @@ impl ViewerPane {
             while i < contour.points.len() {
                 let pp = &contour.points[i];
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
-                let screen_pt = (world_pt.to_vec2() * self.zoom + self.pan + center).to_pos2();
+                let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
                 match pp.point_type {
                     PointType::LineTo => {
                         egui_points.push(screen_pt);
                         i += 1;
                     }
-                    PointType::CurveTo => {
-                        // For curves, we need to sample points
+                    PointType::CurveData => {
+                        // CurveData is a control point - look ahead for the full cubic bezier
+                        // Structure: CurveData (ctrl1), CurveData (ctrl2), CurveTo (end)
                         if i + 2 < contour.points.len() {
                             let ctrl1 = &contour.points[i];
                             let ctrl2 = &contour.points[i + 1];
                             let end = &contour.points[i + 2];
 
-                            let start = if let Some(&last) = egui_points.last() {
-                                last
-                            } else {
-                                screen_pt
-                            };
+                            // Get start point (last point in egui_points, or first point of contour)
+                            let start = egui_points.last().copied().unwrap_or(screen_pt);
 
-                            let c1 = (Pos2::new(ctrl1.point.x as f32, ctrl1.point.y as f32)
-                                .to_vec2()
-                                * self.zoom
-                                + self.pan
-                                + center)
-                                .to_pos2();
-                            let c2 = (Pos2::new(ctrl2.point.x as f32, ctrl2.point.y as f32)
-                                .to_vec2()
-                                * self.zoom
-                                + self.pan
-                                + center)
-                                .to_pos2();
-                            let e = (Pos2::new(end.point.x as f32, end.point.y as f32).to_vec2()
-                                * self.zoom
-                                + self.pan
-                                + center)
-                                .to_pos2();
+                            let c1 = self.world_to_screen(ctrl1.point, center);
+                            let c2 = self.world_to_screen(ctrl2.point, center);
+                            let e = self.world_to_screen(end.point, center);
 
                             // Sample the cubic bezier
                             for t in 1..=10 {
@@ -483,14 +481,14 @@ impl ViewerPane {
                                 egui_points.push(pt);
                             }
 
-                            i += 3;
+                            i += 3; // Skip ctrl1, ctrl2, end
                         } else {
-                            egui_points.push(screen_pt);
                             i += 1;
                         }
                     }
-                    PointType::CurveData => {
-                        // Skip curve data points, they're handled with CurveTo
+                    PointType::CurveTo => {
+                        // Standalone CurveTo without preceding CurveData - treat as line
+                        egui_points.push(screen_pt);
                         i += 1;
                     }
                 }
@@ -520,7 +518,7 @@ impl ViewerPane {
             // Draw stroke
             if let Some(stroke_color) = path.stroke {
                 let stroke = Stroke::new(
-                    path.stroke_width as f32 * self.zoom,
+                    path.stroke_width as f32 * self.pan_zoom.zoom,
                     color_to_egui(stroke_color),
                 );
                 painter.add(egui::Shape::line(egui_points, stroke));
@@ -530,6 +528,12 @@ impl ViewerPane {
                 painter.add(egui::Shape::line(egui_points, stroke));
             }
         }
+    }
+
+    /// Convert a world point to screen coordinates.
+    fn world_to_screen(&self, point: Point, center: Vec2) -> Pos2 {
+        let world_pt = Pos2::new(point.x as f32, point.y as f32);
+        self.pan_zoom.world_to_screen(world_pt, center)
     }
 
     /// Update handles for the selected node.

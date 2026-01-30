@@ -5,6 +5,8 @@ use nodebox_core::geometry::Point;
 use nodebox_core::node::{Connection, Node, NodeLibrary, PortType};
 use std::collections::HashSet;
 
+use crate::pan_zoom::PanZoom;
+
 /// Actions that can be triggered by the network view.
 #[derive(Debug, Clone)]
 pub enum NetworkAction {
@@ -16,10 +18,8 @@ pub enum NetworkAction {
 
 /// The visual state of the network view.
 pub struct NetworkView {
-    /// Current zoom level.
-    zoom: f32,
-    /// Current pan offset.
-    pan: Vec2,
+    /// Pan and zoom state.
+    pan_zoom: PanZoom,
     /// Currently selected node names.
     selected: HashSet<String>,
     /// Whether we are currently dragging the selection.
@@ -73,8 +73,7 @@ impl NetworkView {
     /// Create a new network view.
     pub fn new() -> Self {
         Self {
-            zoom: 1.0,
-            pan: Vec2::ZERO,
+            pan_zoom: PanZoom::with_zoom_limits(0.25, 4.0),
             selected: HashSet::new(),
             is_dragging_selection: false,
             creating_connection: None,
@@ -100,19 +99,10 @@ impl NetworkView {
 
         let rect = response.rect;
 
-        // Handle zoom with scroll wheel (check mouse position directly, not response.hovered(),
-        // because node interactions can steal the hover state)
-        let mouse_in_view = ui
-            .input(|i| i.pointer.hover_pos())
-            .map(|p| rect.contains(p))
-            .unwrap_or(false);
-        if mouse_in_view {
-            let scroll = ui.input(|i| i.raw_scroll_delta.y);
-            if scroll != 0.0 {
-                let zoom_factor = 1.0 + scroll * 0.001;
-                self.zoom = (self.zoom * zoom_factor).clamp(0.25, 4.0);
-            }
-        }
+        // Handle zoom with scroll wheel, centered on mouse position
+        // Origin is at top-left of the view (rect.min)
+        let origin = rect.min.to_vec2();
+        self.pan_zoom.handle_scroll_zoom(rect, ui, origin);
 
         // Track space bar state for Photoshop-style panning
         if ui.input(|i| i.key_pressed(egui::Key::Space)) {
@@ -125,17 +115,26 @@ impl NetworkView {
 
         // Handle panning with space+drag OR middle mouse button
         if self.is_space_pressed && response.dragged_by(egui::PointerButton::Primary) {
-            self.pan += response.drag_delta();
+            self.pan_zoom.pan += response.drag_delta();
             self.is_panning = true;
         } else if response.dragged_by(egui::PointerButton::Middle) {
-            self.pan += response.drag_delta();
+            self.pan_zoom.pan += response.drag_delta();
+        }
+
+        // Change cursor when space is held (panning mode)
+        if self.is_space_pressed && response.hovered() {
+            if self.is_panning {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+            } else {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
+            }
         }
 
         // Draw background grid
         self.draw_grid(&painter, rect);
 
-        // Calculate transform offset (center of view + pan)
-        let offset = rect.center().to_vec2() + self.pan;
+        // Calculate transform offset (top-left of view + pan)
+        let offset = rect.min.to_vec2() + self.pan_zoom.pan;
 
         // Get the current network (root for now)
         let network = &library.root;
@@ -184,9 +183,9 @@ impl NetworkView {
                 let output_pos = self.node_output_pos(child, offset);
                 let output_rect = Rect::from_min_size(
                     output_pos,
-                    Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                    Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
                 )
-                .expand(4.0 * self.zoom);
+                .expand(4.0 * self.pan_zoom.zoom);
                 if output_rect.contains(mouse_pos) {
                     self.hovered_output = Some(child.name.clone());
                 }
@@ -199,9 +198,9 @@ impl NetworkView {
                     let port_pos = self.node_input_pos(child, i, offset);
                     let port_rect = Rect::from_min_size(
                         port_pos,
-                        Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                        Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
                     )
-                    .expand(4.0 * self.zoom);
+                    .expand(4.0 * self.pan_zoom.zoom);
                     if port_rect.contains(mouse_pos) {
                         self.hovered_port = Some((child.name.clone(), port.name.clone()));
                     }
@@ -241,9 +240,9 @@ impl NetworkView {
             let output_pos = self.node_output_pos(child, offset);
             let output_rect = Rect::from_min_size(
                 output_pos,
-                Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
             )
-            .expand(4.0 * self.zoom);
+            .expand(4.0 * self.pan_zoom.zoom);
             let output_response = ui.interact(
                 output_rect,
                 ui.id().with(format!("{}_out", child.name)),
@@ -265,9 +264,9 @@ impl NetworkView {
                 let port_pos = self.node_input_pos(child, i, offset);
                 let port_rect = Rect::from_min_size(
                     port_pos,
-                    Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                    Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
                 )
-                .expand(4.0 * self.zoom);
+                .expand(4.0 * self.pan_zoom.zoom);
 
                 // If we're dragging a connection and hover over this port
                 if self.creating_connection.is_some() {
@@ -336,9 +335,9 @@ impl NetworkView {
                         let port_pos = self.node_input_pos(child, i, offset);
                         let port_rect = Rect::from_min_size(
                             port_pos,
-                            Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                            Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
                         )
-                        .expand(4.0 * self.zoom);
+                        .expand(4.0 * self.pan_zoom.zoom);
                         if port_rect.contains(hover_pos) {
                             if let Some(ref drag) = self.creating_connection {
                                 connection_to_create = Some((
@@ -397,7 +396,7 @@ impl NetworkView {
                     Vec2::ZERO
                 }
             });
-            let delta = pointer_delta / (self.zoom * GRID_CELL_SIZE);
+            let delta = pointer_delta / (self.pan_zoom.zoom * GRID_CELL_SIZE);
             if delta != Vec2::ZERO {
                 for name in &self.selected {
                     if let Some(node) = library.root.child_mut(name) {
@@ -470,8 +469,8 @@ impl NetworkView {
     fn screen_to_grid(&self, screen_pos: Pos2, offset: Vec2) -> Pos2 {
         let local = screen_pos - offset;
         Pos2::new(
-            local.x / (self.zoom * GRID_CELL_SIZE),
-            local.y / (self.zoom * GRID_CELL_SIZE),
+            local.x / (self.pan_zoom.zoom * GRID_CELL_SIZE),
+            local.y / (self.pan_zoom.zoom * GRID_CELL_SIZE),
         )
     }
 
@@ -486,16 +485,16 @@ impl NetworkView {
         painter.rect_filled(rect, 0.0, bg_color);
 
         // Grid lines
-        let grid_size = GRID_CELL_SIZE * self.zoom;
+        let grid_size = GRID_CELL_SIZE * self.pan_zoom.zoom;
         let grid_color = Color32::from_rgb(
             NETWORK_GRID_COLOR.0,
             NETWORK_GRID_COLOR.1,
             NETWORK_GRID_COLOR.2,
         );
 
-        // Grid origin is at center + pan (same as node coordinate system origin)
-        let origin_x = rect.center().x + self.pan.x;
-        let origin_y = rect.center().y + self.pan.y;
+        // Grid origin is at top-left + pan (same as node coordinate system origin)
+        let origin_x = rect.left() + self.pan_zoom.pan.x;
+        let origin_y = rect.top() + self.pan_zoom.pan.y;
 
         // Find offset from rect edge to first grid line (using rem_euclid for correct modulo)
         let offset_x = (origin_x - rect.left()).rem_euclid(grid_size);
@@ -528,10 +527,10 @@ impl NetworkView {
         let grid_x = node.position.x as f32 * GRID_CELL_SIZE + NODE_MARGIN;
         let grid_y = node.position.y as f32 * GRID_CELL_SIZE + NODE_MARGIN;
         let pos = Pos2::new(
-            grid_x * self.zoom + offset.x,
-            grid_y * self.zoom + offset.y,
+            grid_x * self.pan_zoom.zoom + offset.x,
+            grid_y * self.pan_zoom.zoom + offset.y,
         );
-        Rect::from_min_size(pos, Vec2::new(NODE_WIDTH * self.zoom, NODE_HEIGHT * self.zoom))
+        Rect::from_min_size(pos, Vec2::new(NODE_WIDTH * self.pan_zoom.zoom, NODE_HEIGHT * self.pan_zoom.zoom))
     }
 
     /// Get the screen position of a node's output port (bottom left).
@@ -545,8 +544,8 @@ impl NetworkView {
         let rect = self.node_rect(node, offset);
         let port_x = (PORT_WIDTH + PORT_SPACING) * port_index as f32;
         Pos2::new(
-            rect.left() + port_x * self.zoom,
-            rect.top() - PORT_HEIGHT * self.zoom, // Above the node
+            rect.left() + port_x * self.pan_zoom.zoom,
+            rect.top() - PORT_HEIGHT * self.pan_zoom.zoom, // Above the node
         )
     }
 
@@ -567,8 +566,8 @@ impl NetworkView {
         if is_selected {
             painter.rect_filled(rect, 0.0, Color32::WHITE);
             let inset = Rect::from_min_max(
-                rect.min + Vec2::splat(2.0 * self.zoom),
-                rect.max - Vec2::splat(2.0 * self.zoom),
+                rect.min + Vec2::splat(2.0 * self.pan_zoom.zoom),
+                rect.max - Vec2::splat(2.0 * self.pan_zoom.zoom),
             );
             painter.rect_filled(inset, 0.0, body_color);
         } else {
@@ -579,28 +578,28 @@ impl NetworkView {
         // 2. Rendered indicator (white triangle in bottom-right corner)
         if is_rendered {
             let points = vec![
-                Pos2::new(rect.right() - 2.0 * self.zoom, rect.bottom() - 20.0 * self.zoom),
-                Pos2::new(rect.right() - 2.0 * self.zoom, rect.bottom() - 2.0 * self.zoom),
-                Pos2::new(rect.right() - 20.0 * self.zoom, rect.bottom() - 2.0 * self.zoom),
+                Pos2::new(rect.right() - 2.0 * self.pan_zoom.zoom, rect.bottom() - 20.0 * self.pan_zoom.zoom),
+                Pos2::new(rect.right() - 2.0 * self.pan_zoom.zoom, rect.bottom() - 2.0 * self.pan_zoom.zoom),
+                Pos2::new(rect.right() - 20.0 * self.pan_zoom.zoom, rect.bottom() - 2.0 * self.pan_zoom.zoom),
             ];
             painter.add(egui::Shape::convex_polygon(points, Color32::WHITE, Stroke::NONE));
         }
 
         // 3. Draw icon (26x26 at padding offset)
         let icon_pos = Pos2::new(
-            rect.left() + NODE_PADDING * self.zoom,
-            rect.top() + NODE_PADDING * self.zoom,
+            rect.left() + NODE_PADDING * self.pan_zoom.zoom,
+            rect.top() + NODE_PADDING * self.pan_zoom.zoom,
         );
         self.draw_node_icon(painter, icon_pos, &node.category);
 
         // 4. Draw name (after icon, vertically centered)
-        let name_x = rect.left() + (NODE_ICON_SIZE + NODE_PADDING * 2.0) * self.zoom;
+        let name_x = rect.left() + (NODE_ICON_SIZE + NODE_PADDING * 2.0) * self.pan_zoom.zoom;
         let name_y = rect.center().y;
         painter.text(
             Pos2::new(name_x, name_y),
             egui::Align2::LEFT_CENTER,
             &node.name,
-            egui::FontId::proportional(11.0 * self.zoom),
+            egui::FontId::proportional(11.0 * self.pan_zoom.zoom),
             Color32::WHITE,
         );
 
@@ -612,7 +611,7 @@ impl NetworkView {
             let port_pos = self.node_input_pos(node, i, offset);
             let port_rect = Rect::from_min_size(
                 port_pos,
-                Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+                Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
             );
             let color = if self
                 .hovered_port
@@ -630,7 +629,7 @@ impl NetworkView {
         let out_pos = self.node_output_pos(node, offset);
         let out_rect = Rect::from_min_size(
             out_pos,
-            Vec2::new(PORT_WIDTH * self.zoom, PORT_HEIGHT * self.zoom),
+            Vec2::new(PORT_WIDTH * self.pan_zoom.zoom, PORT_HEIGHT * self.pan_zoom.zoom),
         );
         let out_color = if self.hovered_output.as_ref() == Some(&node.name)
             && self.creating_connection.is_none()
@@ -644,7 +643,7 @@ impl NetworkView {
 
     /// Draw a node icon placeholder.
     fn draw_node_icon(&self, painter: &egui::Painter, pos: Pos2, category: &str) {
-        let size = NODE_ICON_SIZE * self.zoom;
+        let size = NODE_ICON_SIZE * self.pan_zoom.zoom;
         let rect = Rect::from_min_size(pos, Vec2::splat(size));
         let icon_color = Color32::from_rgba_unmultiplied(255, 255, 255, 200);
 
@@ -682,7 +681,7 @@ impl NetworkView {
                 // Plus sign
                 let center = rect.center();
                 let r = size * 0.3;
-                let stroke = Stroke::new(2.0 * self.zoom, icon_color);
+                let stroke = Stroke::new(2.0 * self.pan_zoom.zoom, icon_color);
                 painter.line_segment(
                     [
                         Pos2::new(center.x - r, center.y),
@@ -700,7 +699,7 @@ impl NetworkView {
             }
             "list" => {
                 // Three horizontal lines
-                let stroke = Stroke::new(2.0 * self.zoom, icon_color);
+                let stroke = Stroke::new(2.0 * self.pan_zoom.zoom, icon_color);
                 for i in 0..3 {
                     let y = rect.top() + size * (0.3 + 0.2 * i as f32);
                     painter.line_segment(
@@ -729,7 +728,7 @@ impl NetworkView {
                 let top = rect.top() + size * 0.25;
                 let bot = rect.bottom() - size * 0.25;
                 let w = size * 0.35;
-                let stroke = Stroke::new(1.5 * self.zoom, icon_color);
+                let stroke = Stroke::new(1.5 * self.pan_zoom.zoom, icon_color);
                 painter.line_segment([Pos2::new(cx - w, top), Pos2::new(cx - w, bot)], stroke);
                 painter.line_segment([Pos2::new(cx + w, top), Pos2::new(cx + w, bot)], stroke);
                 painter.line_segment([Pos2::new(cx - w, top), Pos2::new(cx + w, top)], stroke);
@@ -737,7 +736,7 @@ impl NetworkView {
             }
             _ => {
                 // Default: small filled rounded rect
-                painter.rect_filled(rect.shrink(size * 0.2), 2.0 * self.zoom, icon_color);
+                painter.rect_filled(rect.shrink(size * 0.2), 2.0 * self.pan_zoom.zoom, icon_color);
             }
         }
     }
@@ -765,22 +764,22 @@ impl NetworkView {
             // Check if mouse is near the bezier curve
             if let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
                 let dy = (to_pos.y - from_pos.y).abs();
-                if dy < GRID_CELL_SIZE * self.zoom {
+                if dy < GRID_CELL_SIZE * self.pan_zoom.zoom {
                     // Short connection: check distance to line segment
                     let line_dist = point_to_line_distance(mouse_pos, from_pos, to_pos);
-                    if line_dist < 8.0 * self.zoom {
+                    if line_dist < 8.0 * self.pan_zoom.zoom {
                         return true;
                     }
                 } else {
                     // Vertical bezier curve - sample and check distance
                     let half_dx = (to_pos.x - from_pos.x).abs() / 2.0;
-                    let ctrl1 = Pos2::new(from_pos.x, from_pos.y + half_dx.max(30.0 * self.zoom));
-                    let ctrl2 = Pos2::new(to_pos.x, to_pos.y - half_dx.max(30.0 * self.zoom));
+                    let ctrl1 = Pos2::new(from_pos.x, from_pos.y + half_dx.max(30.0 * self.pan_zoom.zoom));
+                    let ctrl2 = Pos2::new(to_pos.x, to_pos.y - half_dx.max(30.0 * self.pan_zoom.zoom));
 
                     for i in 0..32 {
                         let t = i as f32 / 31.0;
                         let pt = cubic_bezier(from_pos, ctrl1, ctrl2, to_pos, t);
-                        if pt.distance(mouse_pos) < 8.0 * self.zoom {
+                        if pt.distance(mouse_pos) < 8.0 * self.pan_zoom.zoom {
                             return true;
                         }
                     }
@@ -834,14 +833,14 @@ impl NetworkView {
         width: f32,
     ) {
         let dy = (to.y - from.y).abs();
-        if dy < GRID_CELL_SIZE * self.zoom {
+        if dy < GRID_CELL_SIZE * self.pan_zoom.zoom {
             // Short connection: straight line
-            painter.line_segment([from, to], Stroke::new(width * self.zoom, color));
+            painter.line_segment([from, to], Stroke::new(width * self.pan_zoom.zoom, color));
         } else {
             // Longer connection: vertical bezier curve
             let half_dx = (to.x - from.x).abs() / 2.0;
-            let ctrl1 = Pos2::new(from.x, from.y + half_dx.max(30.0 * self.zoom));
-            let ctrl2 = Pos2::new(to.x, to.y - half_dx.max(30.0 * self.zoom));
+            let ctrl1 = Pos2::new(from.x, from.y + half_dx.max(30.0 * self.pan_zoom.zoom));
+            let ctrl2 = Pos2::new(to.x, to.y - half_dx.max(30.0 * self.pan_zoom.zoom));
 
             // Sample the bezier curve
             let mut points = Vec::with_capacity(32);
@@ -851,7 +850,7 @@ impl NetworkView {
                 points.push(pt);
             }
 
-            painter.add(egui::Shape::line(points, Stroke::new(width * self.zoom, color)));
+            painter.add(egui::Shape::line(points, Stroke::new(width * self.pan_zoom.zoom, color)));
         }
     }
 
