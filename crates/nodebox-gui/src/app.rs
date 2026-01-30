@@ -8,6 +8,7 @@ use crate::history::History;
 use crate::network_view::{NetworkAction, NetworkView};
 use crate::node_selection_dialog::NodeSelectionDialog;
 use crate::panels::ParameterPanel;
+use crate::render_worker::{RenderResult, RenderState, RenderWorkerHandle};
 use crate::state::AppState;
 use crate::theme;
 use crate::viewer_pane::ViewerPane;
@@ -24,6 +25,12 @@ pub struct NodeBoxApp {
     history: History,
     /// Previous library state for detecting changes.
     previous_library_hash: u64,
+    /// Background render worker.
+    render_worker: RenderWorkerHandle,
+    /// State tracking for render requests.
+    render_state: RenderState,
+    /// Whether a render is pending (needs to be dispatched).
+    render_pending: bool,
 }
 
 impl NodeBoxApp {
@@ -41,6 +48,9 @@ impl NodeBoxApp {
             node_dialog: NodeSelectionDialog::new(),
             history: History::new(),
             previous_library_hash: hash,
+            render_worker: RenderWorkerHandle::spawn(),
+            render_state: RenderState::new(),
+            render_pending: false, // Initial geometry is already evaluated in AppState::new()
         }
     }
 
@@ -49,6 +59,7 @@ impl NodeBoxApp {
         use std::hash::{Hash, Hasher};
         use std::collections::hash_map::DefaultHasher;
         let mut hasher = DefaultHasher::new();
+
         // Hash the number of children and their names/positions
         library.root.children.len().hash(&mut hasher);
         for child in &library.root.children {
@@ -56,18 +67,57 @@ impl NodeBoxApp {
             (child.position.x as i64).hash(&mut hasher);
             (child.position.y as i64).hash(&mut hasher);
             child.inputs.len().hash(&mut hasher);
+
+            // Hash port values
+            for port in &child.inputs {
+                port.name.hash(&mut hasher);
+                // Hash the value - convert to string representation for simplicity
+                format!("{:?}", port.value).hash(&mut hasher);
+            }
         }
+
+        // Hash connections
         library.root.connections.len().hash(&mut hasher);
+        for conn in &library.root.connections {
+            conn.output_node.hash(&mut hasher);
+            conn.input_node.hash(&mut hasher);
+            conn.input_port.hash(&mut hasher);
+        }
+
+        // Hash rendered child
+        library.root.rendered_child.hash(&mut hasher);
+
         hasher.finish()
     }
 
-    /// Save current state to history if it changed.
-    fn auto_save_history(&mut self) {
+    /// Poll for render results and dispatch pending renders.
+    fn poll_render_results(&mut self) {
+        // Check for completed renders
+        while let Some(result) = self.render_worker.try_recv_result() {
+            if let RenderResult::Success { id, geometry } = result {
+                if self.render_state.is_current(id) {
+                    self.state.geometry = geometry;
+                    self.render_state.complete();
+                }
+            }
+        }
+
+        // Dispatch pending render if not already rendering
+        if self.render_pending && !self.render_state.is_rendering {
+            let id = self.render_state.dispatch_new();
+            self.render_worker.request_render(id, self.state.library.clone());
+            self.render_pending = false;
+        }
+    }
+
+    /// Check for changes and save to history, queue render if needed.
+    fn check_for_changes(&mut self) {
         let current_hash = Self::hash_library(&self.state.library);
         if current_hash != self.previous_library_hash {
             self.history.save_state(&self.state.library);
             self.previous_library_hash = current_hash;
             self.state.dirty = true;
+            self.render_pending = true; // Queue async render
         }
     }
 
@@ -116,6 +166,7 @@ impl NodeBoxApp {
                     if let Some(previous) = self.history.undo(&self.state.library) {
                         self.state.library = previous;
                         self.previous_library_hash = Self::hash_library(&self.state.library);
+                        self.render_pending = true;
                     }
                     ui.close_menu();
                 }
@@ -128,6 +179,7 @@ impl NodeBoxApp {
                     if let Some(next) = self.history.redo(&self.state.library) {
                         self.state.library = next;
                         self.previous_library_hash = Self::hash_library(&self.state.library);
+                        self.render_pending = true;
                     }
                     ui.close_menu();
                 }
@@ -169,6 +221,14 @@ impl NodeBoxApp {
 
 impl eframe::App for NodeBoxApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Poll for background render results
+        self.poll_render_results();
+
+        // Request repaint while rendering is in progress
+        if self.render_state.is_rendering || self.render_pending {
+            ctx.request_repaint();
+        }
+
         // 1. Menu bar (top-most)
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
             self.show_menu_bar(ui, ctx);
@@ -323,27 +383,30 @@ impl eframe::App for NodeBoxApp {
         }
 
         // Handle keyboard shortcuts
-        ctx.input(|i| {
-            // Undo: Ctrl+Z (or Cmd+Z on Mac)
-            if i.modifiers.command && i.key_pressed(egui::Key::Z) && !i.modifiers.shift {
-                if let Some(previous) = self.history.undo(&self.state.library) {
-                    self.state.library = previous;
-                    self.previous_library_hash = Self::hash_library(&self.state.library);
-                }
-            }
-            // Redo: Ctrl+Shift+Z or Ctrl+Y
-            if (i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::Z))
-                || (i.modifiers.command && i.key_pressed(egui::Key::Y))
-            {
-                if let Some(next) = self.history.redo(&self.state.library) {
-                    self.state.library = next;
-                    self.previous_library_hash = Self::hash_library(&self.state.library);
-                }
-            }
+        let (do_undo, do_redo) = ctx.input(|i| {
+            let undo = i.modifiers.command && i.key_pressed(egui::Key::Z) && !i.modifiers.shift;
+            let redo = (i.modifiers.command && i.modifiers.shift && i.key_pressed(egui::Key::Z))
+                || (i.modifiers.command && i.key_pressed(egui::Key::Y));
+            (undo, redo)
         });
 
-        // Check for state changes and auto-save to history
-        self.auto_save_history();
+        if do_undo {
+            if let Some(previous) = self.history.undo(&self.state.library) {
+                self.state.library = previous;
+                self.previous_library_hash = Self::hash_library(&self.state.library);
+                self.render_pending = true;
+            }
+        }
+        if do_redo {
+            if let Some(next) = self.history.redo(&self.state.library) {
+                self.state.library = next;
+                self.previous_library_hash = Self::hash_library(&self.state.library);
+                self.render_pending = true;
+            }
+        }
+
+        // Check for state changes and save to history
+        self.check_for_changes();
     }
 }
 
