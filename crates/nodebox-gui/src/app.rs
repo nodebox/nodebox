@@ -40,7 +40,10 @@ impl NodeBoxApp {
     }
 
     /// Create a new NodeBox application instance, optionally loading an initial file.
-    pub fn new_with_file(_cc: &eframe::CreationContext<'_>, initial_file: Option<std::path::PathBuf>) -> Self {
+    pub fn new_with_file(cc: &eframe::CreationContext<'_>, initial_file: Option<std::path::PathBuf>) -> Self {
+        // Configure the global theme/style
+        theme::configure_style(&cc.egui_ctx);
+
         let mut state = AppState::new();
 
         // Load the initial file if provided
