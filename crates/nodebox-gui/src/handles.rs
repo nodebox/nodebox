@@ -128,67 +128,26 @@ impl HandleSet {
     }
 
     /// Draw all handles on the canvas.
+    /// Handle sizes are fixed in screen space (don't scale with zoom).
     pub fn draw(&self, painter: &egui::Painter, zoom: f32, pan: Vec2, center: Vec2) {
         for handle in &self.handles {
             let screen_pos = world_to_screen(handle.position, zoom, pan, center);
-            self.draw_handle(painter, handle, screen_pos, zoom);
+            self.draw_handle(painter, handle, screen_pos);
         }
     }
 
-    /// Draw a single handle.
-    fn draw_handle(&self, painter: &egui::Painter, handle: &Handle, pos: Pos2, zoom: f32) {
-        let size = HANDLE_SIZE * zoom;
-        let stroke_width = if handle.dragging { 2.0 } else { 1.0 };
-
-        match handle.handle_type {
-            HandleType::Point => {
-                // Draw a filled circle with border
-                painter.circle_filled(pos, size, handle.color);
-                painter.circle_stroke(pos, size, Stroke::new(stroke_width, Color32::WHITE));
-            }
-            HandleType::Horizontal => {
-                // Draw a horizontal bar
-                let half_width = size * 2.0;
-                let half_height = size * 0.5;
-                let rect = egui::Rect::from_center_size(pos, Vec2::new(half_width * 2.0, half_height * 2.0));
-                painter.rect_filled(rect, 2.0, handle.color);
-                painter.rect_stroke(rect, 2.0, Stroke::new(stroke_width, Color32::WHITE));
-            }
-            HandleType::Vertical => {
-                // Draw a vertical bar
-                let half_width = size * 0.5;
-                let half_height = size * 2.0;
-                let rect = egui::Rect::from_center_size(pos, Vec2::new(half_width * 2.0, half_height * 2.0));
-                painter.rect_filled(rect, 2.0, handle.color);
-                painter.rect_stroke(rect, 2.0, Stroke::new(stroke_width, Color32::WHITE));
-            }
-            HandleType::Rotation => {
-                // Draw a circular arc indicator
-                painter.circle_stroke(pos, size * 1.5, Stroke::new(2.0, handle.color));
-                painter.circle_filled(pos, size * 0.5, handle.color);
-            }
-            HandleType::Scale => {
-                // Draw a diamond/square rotated 45 degrees
-                let d = size;
-                let points = vec![
-                    Pos2::new(pos.x, pos.y - d),
-                    Pos2::new(pos.x + d, pos.y),
-                    Pos2::new(pos.x, pos.y + d),
-                    Pos2::new(pos.x - d, pos.y),
-                    Pos2::new(pos.x, pos.y - d),
-                ];
-                painter.add(egui::Shape::convex_polygon(
-                    points.clone(),
-                    handle.color,
-                    Stroke::new(stroke_width, Color32::WHITE),
-                ));
-            }
-        }
+    /// Draw a single handle as a blue square (consistent with FourPointHandle style).
+    fn draw_handle(&self, painter: &egui::Painter, _handle: &Handle, pos: Pos2) {
+        // All handles are drawn as blue squares with fixed screen size
+        let rect = egui::Rect::from_center_size(pos, Vec2::splat(FOUR_POINT_HANDLE_SIZE));
+        painter.rect_filled(rect, 0.0, FOUR_POINT_HANDLE_COLOR);
     }
 
     /// Check if a screen position is over any handle, returns the handle index.
+    /// Uses fixed screen-space hit radius (doesn't scale with zoom).
     pub fn hit_test(&self, screen_pos: Pos2, zoom: f32, pan: Vec2, center: Vec2) -> Option<usize> {
-        let hit_radius = HANDLE_SIZE * zoom * 1.5;
+        // Hit target is visual size plus 5 pixels padding (fixed screen size)
+        let hit_radius = (FOUR_POINT_HANDLE_SIZE / 2.0) + 5.0;
 
         for (i, handle) in self.handles.iter().enumerate() {
             let handle_screen_pos = world_to_screen(handle.position, zoom, pan, center);
