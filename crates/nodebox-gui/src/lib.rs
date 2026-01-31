@@ -17,7 +17,7 @@ pub mod app;
 mod canvas;
 pub mod eval;
 mod export;
-mod handles;
+pub mod handles;
 pub mod history;
 mod network_view;
 mod node_library;

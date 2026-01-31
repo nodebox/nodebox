@@ -229,22 +229,21 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
 
     match proto {
         // Geometry generators
+        // Note: These use "position" (Point) as per corevector.ndbx library definition
         "corevector.ellipse" => {
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            let position = get_point(inputs, "position", Point::ZERO);
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
-            let path = nodebox_ops::ellipse(Point::new(x, y), width, height);
+            let path = nodebox_ops::ellipse(position, width, height);
             NodeOutput::Path(path)
         }
         "corevector.rect" => {
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            let position = get_point(inputs, "position", Point::ZERO);
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
-            let rx = get_float(inputs, "rx", 0.0);
-            let ry = get_float(inputs, "ry", 0.0);
-            let path = nodebox_ops::rect(Point::new(x, y), width, height, Point::new(rx, ry));
+            // Note: corevector.ndbx uses "roundness" (Point), not rx/ry
+            let roundness = get_point(inputs, "roundness", Point::ZERO);
+            let path = nodebox_ops::rect(position, width, height, roundness);
             NodeOutput::Path(path)
         }
         "corevector.line" => {
@@ -255,32 +254,30 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             NodeOutput::Path(path)
         }
         "corevector.polygon" => {
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            let position = get_point(inputs, "position", Point::ZERO);
             let radius = get_float(inputs, "radius", 50.0);
             let sides = get_int(inputs, "sides", 6) as u32;
             let align = get_bool(inputs, "align", true);
-            let path = nodebox_ops::polygon(Point::new(x, y), radius, sides, align);
+            let path = nodebox_ops::polygon(position, radius, sides, align);
             NodeOutput::Path(path)
         }
         "corevector.star" => {
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            let position = get_point(inputs, "position", Point::ZERO);
             let points = get_int(inputs, "points", 5) as u32;
             let outer = get_float(inputs, "outer", 50.0);
             let inner = get_float(inputs, "inner", 25.0);
-            let path = nodebox_ops::star(Point::new(x, y), points, outer, inner);
+            let path = nodebox_ops::star(position, points, outer, inner);
             NodeOutput::Path(path)
         }
         "corevector.arc" => {
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            let position = get_point(inputs, "position", Point::ZERO);
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
-            let start_angle = get_float(inputs, "startAngle", 0.0);
+            // Note: corevector.ndbx uses "start_angle" (underscore), not "startAngle"
+            let start_angle = get_float(inputs, "start_angle", 0.0);
             let degrees = get_float(inputs, "degrees", 90.0);
             let arc_type = get_string(inputs, "type", "pie");
-            let path = nodebox_ops::arc(Point::new(x, y), width, height, start_angle, degrees, &arc_type);
+            let path = nodebox_ops::arc(position, width, height, start_angle, degrees, &arc_type);
             NodeOutput::Path(path)
         }
 
@@ -341,12 +338,12 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
                 Some(p) => p,
                 None => return NodeOutput::None,
             };
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
+            // Note: corevector.ndbx uses "position" (Point) and "keep_proportions" (underscore)
+            let position = get_point(inputs, "position", Point::ZERO);
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
-            let keep_proportions = get_bool(inputs, "keepProportions", true);
-            let path = nodebox_ops::fit(&shape, Point::new(x, y), width, height, keep_proportions);
+            let keep_proportions = get_bool(inputs, "keep_proportions", true);
+            let path = nodebox_ops::fit(&shape, position, width, height, keep_proportions);
             NodeOutput::Path(path)
         }
         "corevector.copy" => {
@@ -356,12 +353,11 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             };
             let copies = get_int(inputs, "copies", 1) as u32;
             let order = nodebox_ops::CopyOrder::from_str(&get_string(inputs, "order", "tsr"));
-            let tx = get_float(inputs, "tx", 0.0);
-            let ty = get_float(inputs, "ty", 0.0);
+            // Note: corevector.ndbx uses "translate" (Point) and "scale" (Point)
+            let translate = get_point(inputs, "translate", Point::ZERO);
             let rotate = get_float(inputs, "rotate", 0.0);
-            let sx = get_float(inputs, "sx", 100.0);
-            let sy = get_float(inputs, "sy", 100.0);
-            let paths = nodebox_ops::copy(&shape, copies, order, Point::new(tx, ty), rotate, Point::new(sx, sy));
+            let scale = get_point(inputs, "scale", Point::new(100.0, 100.0));
+            let paths = nodebox_ops::copy(&shape, copies, order, translate, rotate, scale);
             NodeOutput::Paths(paths)
         }
 
@@ -413,10 +409,10 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
                 None => return NodeOutput::None,
             };
             let scope = nodebox_ops::WiggleScope::from_str(&get_string(inputs, "scope", "points"));
-            let offset_x = get_float(inputs, "offsetX", 10.0);
-            let offset_y = get_float(inputs, "offsetY", 10.0);
+            // Note: corevector.ndbx uses "offset" (Point), not offsetX/offsetY
+            let offset = get_point(inputs, "offset", Point::new(10.0, 10.0));
             let seed = get_int(inputs, "seed", 0) as u64;
-            let path = nodebox_ops::wiggle(&shape, scope, Point::new(offset_x, offset_y), seed);
+            let path = nodebox_ops::wiggle(&shape, scope, offset, seed);
             NodeOutput::Path(path)
         }
 
@@ -439,9 +435,9 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             let rows = get_int(inputs, "rows", 3) as u32;
             let width = get_float(inputs, "width", 100.0);
             let height = get_float(inputs, "height", 100.0);
-            let x = get_float(inputs, "x", 0.0);
-            let y = get_float(inputs, "y", 0.0);
-            let points = nodebox_ops::grid(columns, rows, width, height, Point::new(x, y));
+            // Note: corevector.ndbx uses "position" (Point), not x/y
+            let position = get_point(inputs, "position", Point::ZERO);
+            let points = nodebox_ops::grid(columns, rows, width, height, position);
             NodeOutput::Points(points)
         }
 
@@ -479,8 +475,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 100.0))
-                    .with_input(Port::float("y", 100.0))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
@@ -501,8 +496,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 100.0))
-                    .with_input(Port::float("y", 100.0))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
@@ -535,16 +529,14 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::float("x", 100.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::new(100.0, 0.0)))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
@@ -569,8 +561,7 @@ mod tests {
             .with_child(
                 Node::new("rect1")
                     .with_prototype("corevector.rect")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 80.0))
                     .with_input(Port::float("height", 40.0))
             )
@@ -612,8 +603,7 @@ mod tests {
             .with_child(
                 Node::new("polygon1")
                     .with_prototype("corevector.polygon")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("radius", 50.0))
                     .with_input(Port::int("sides", 6))
                     .with_input(Port::boolean("align", true))
@@ -636,8 +626,7 @@ mod tests {
             .with_child(
                 Node::new("star1")
                     .with_prototype("corevector.star")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::int("points", 5))
                     .with_input(Port::float("outer", 50.0))
                     .with_input(Port::float("inner", 25.0))
@@ -659,11 +648,10 @@ mod tests {
             .with_child(
                 Node::new("arc1")
                     .with_prototype("corevector.arc")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 100.0))
                     .with_input(Port::float("height", 100.0))
-                    .with_input(Port::float("startAngle", 0.0))
+                    .with_input(Port::float("start_angle", 0.0))
                     .with_input(Port::float("degrees", 180.0))
                     .with_input(Port::string("type", "pie"))
             )
@@ -680,8 +668,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
@@ -713,8 +700,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 100.0))
                     .with_input(Port::float("height", 100.0))
             )
@@ -744,8 +730,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             )
@@ -755,11 +740,9 @@ mod tests {
                     .with_input(Port::geometry("shape"))
                     .with_input(Port::int("copies", 3))
                     .with_input(Port::string("order", "tsr"))
-                    .with_input(Port::float("tx", 60.0))
-                    .with_input(Port::float("ty", 0.0))
+                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
                     .with_input(Port::float("rotate", 0.0))
-                    .with_input(Port::float("sx", 100.0))
-                    .with_input(Port::float("sy", 100.0))
+                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
             )
             .with_connection(Connection::new("ellipse1", "copy1", "shape"))
             .with_rendered_child("copy1");
@@ -783,8 +766,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 50.0))
                     .with_input(Port::float("height", 50.0))
             );
@@ -835,8 +817,7 @@ mod tests {
             .with_child(
                 Node::new("ellipse1")
                     .with_prototype("corevector.ellipse")
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
                     .with_input(Port::float("width", 100.0))
                     .with_input(Port::float("height", 100.0))
             )
@@ -866,8 +847,7 @@ mod tests {
                     .with_input(Port::int("rows", 3))
                     .with_input(Port::float("width", 100.0))
                     .with_input(Port::float("height", 100.0))
-                    .with_input(Port::float("x", 0.0))
-                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::point("position", Point::ZERO))
             )
             .with_child(
                 Node::new("connect1")
@@ -880,6 +860,292 @@ mod tests {
 
         let paths = evaluate_network(&library);
         assert_eq!(paths.len(), 1);
+    }
+
+    // =========================================================================
+    // Tests for correct port names (matching corevector.ndbx library)
+    // These tests verify that nodes use "position" (Point) instead of x/y
+    // =========================================================================
+
+    #[test]
+    fn test_ellipse_with_position_port() {
+        // According to corevector.ndbx, ellipse should use "position" (Point), not x/y
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::point("position", Point::new(100.0, 50.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+            )
+            .with_rendered_child("ellipse1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        // Ellipse centered at (100, 50) with width/height 50
+        // Bounds should be approximately (75, 25) to (125, 75)
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        assert!((center_x - 100.0).abs() < 1.0, "Center X should be 100, got {}", center_x);
+        assert!((center_y - 50.0).abs() < 1.0, "Center Y should be 50, got {}", center_y);
+    }
+
+    #[test]
+    fn test_rect_with_position_port() {
+        // According to corevector.ndbx, rect should use "position" (Point), not x/y
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("rect1")
+                    .with_prototype("corevector.rect")
+                    .with_input(Port::point("position", Point::new(-50.0, 25.0)))
+                    .with_input(Port::float("width", 80.0))
+                    .with_input(Port::float("height", 40.0))
+            )
+            .with_rendered_child("rect1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        assert!((center_x - (-50.0)).abs() < 1.0, "Center X should be -50, got {}", center_x);
+        assert!((center_y - 25.0).abs() < 1.0, "Center Y should be 25, got {}", center_y);
+    }
+
+    #[test]
+    fn test_rect_with_roundness_port() {
+        // According to corevector.ndbx, rect should use "roundness" (Point), not rx/ry
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("rect1")
+                    .with_prototype("corevector.rect")
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::point("roundness", Point::new(10.0, 10.0)))
+            )
+            .with_rendered_child("rect1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+        // If roundness is applied, the path should have more points than a simple rect
+    }
+
+    #[test]
+    fn test_polygon_with_position_port() {
+        // According to corevector.ndbx, polygon should use "position" (Point), not x/y
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("polygon1")
+                    .with_prototype("corevector.polygon")
+                    .with_input(Port::point("position", Point::new(200.0, -100.0)))
+                    .with_input(Port::float("radius", 50.0))
+                    .with_input(Port::int("sides", 6))
+                    .with_input(Port::boolean("align", true))
+            )
+            .with_rendered_child("polygon1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        assert!((center_x - 200.0).abs() < 1.0, "Center X should be 200, got {}", center_x);
+        assert!((center_y - (-100.0)).abs() < 1.0, "Center Y should be -100, got {}", center_y);
+    }
+
+    #[test]
+    fn test_star_with_position_port() {
+        // According to corevector.ndbx, star should use "position" (Point), not x/y
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("star1")
+                    .with_prototype("corevector.star")
+                    .with_input(Port::point("position", Point::new(75.0, 75.0)))
+                    .with_input(Port::int("points", 5))
+                    .with_input(Port::float("outer", 50.0))
+                    .with_input(Port::float("inner", 25.0))
+            )
+            .with_rendered_child("star1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        // Star geometry may not be perfectly symmetric, allow some tolerance
+        assert!((center_x - 75.0).abs() < 10.0, "Center X should be near 75, got {}", center_x);
+        assert!((center_y - 75.0).abs() < 10.0, "Center Y should be near 75, got {}", center_y);
+    }
+
+    #[test]
+    fn test_arc_with_position_and_start_angle() {
+        // According to corevector.ndbx, arc uses "position" and "start_angle" (underscore)
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("arc1")
+                    .with_prototype("corevector.arc")
+                    .with_input(Port::point("position", Point::new(50.0, -50.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::float("start_angle", 0.0))
+                    .with_input(Port::float("degrees", 180.0))
+                    .with_input(Port::string("type", "pie"))
+            )
+            .with_rendered_child("arc1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        let center_x = bounds.x + bounds.width / 2.0;
+        // Arc center should be near (50, -50)
+        assert!((center_x - 50.0).abs() < 10.0, "Center X should be near 50, got {}", center_x);
+    }
+
+    #[test]
+    fn test_copy_with_translate_and_scale_points() {
+        // According to corevector.ndbx, copy uses "translate" (Point) and "scale" (Point)
+        // not tx/ty and sx/sy
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+            )
+            .with_child(
+                Node::new("copy1")
+                    .with_prototype("corevector.copy")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("copies", 3))
+                    .with_input(Port::string("order", "tsr"))
+                    .with_input(Port::point("translate", Point::new(60.0, 0.0)))
+                    .with_input(Port::float("rotate", 0.0))
+                    .with_input(Port::point("scale", Point::new(100.0, 100.0)))
+            )
+            .with_connection(Connection::new("ellipse1", "copy1", "shape"))
+            .with_rendered_child("copy1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 3, "Should have 3 copies");
+
+        // First copy at x=0, second at x=60, third at x=120
+        // Check that copies are actually spread out
+        let bounds0 = paths[0].bounds().unwrap();
+        let bounds2 = paths[2].bounds().unwrap();
+        let center0_x = bounds0.x + bounds0.width / 2.0;
+        let center2_x = bounds2.x + bounds2.width / 2.0;
+        assert!((center2_x - center0_x - 120.0).abs() < 1.0,
+            "Third copy should be 120 units from first, got {}", center2_x - center0_x);
+    }
+
+    #[test]
+    fn test_grid_with_position_port() {
+        // According to corevector.ndbx, grid uses "position" (Point), not x/y
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("grid1")
+                    .with_prototype("corevector.grid")
+                    .with_input(Port::int("columns", 3))
+                    .with_input(Port::int("rows", 3))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::point("position", Point::new(50.0, 50.0)))
+            )
+            .with_child(
+                Node::new("connect1")
+                    .with_prototype("corevector.connect")
+                    .with_input(Port::geometry("points"))
+                    .with_input(Port::boolean("closed", false))
+            )
+            .with_connection(Connection::new("grid1", "connect1", "points"))
+            .with_rendered_child("connect1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        assert!((center_x - 50.0).abs() < 1.0, "Center X should be 50, got {}", center_x);
+        assert!((center_y - 50.0).abs() < 1.0, "Center Y should be 50, got {}", center_y);
+    }
+
+    #[test]
+    fn test_wiggle_with_offset_point() {
+        // According to corevector.ndbx, wiggle uses "offset" (Point), not offsetX/offsetY
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+            )
+            .with_child(
+                Node::new("wiggle1")
+                    .with_prototype("corevector.wiggle")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::string("scope", "points"))
+                    .with_input(Port::point("offset", Point::new(10.0, 10.0)))
+                    .with_input(Port::int("seed", 42))
+            )
+            .with_connection(Connection::new("ellipse1", "wiggle1", "shape"))
+            .with_rendered_child("wiggle1");
+
+        let paths = evaluate_network(&library);
+        assert!(!paths.is_empty(), "Wiggle should produce output");
+    }
+
+    #[test]
+    fn test_fit_with_position_and_keep_proportions() {
+        // According to corevector.ndbx, fit uses "position" (Point) and "keep_proportions"
+        // Test that fit reads from position port (not x/y) and keep_proportions (not keepProportions)
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::point("position", Point::new(0.0, 0.0)))
+                    .with_input(Port::float("width", 200.0))
+                    .with_input(Port::float("height", 100.0))
+            )
+            .with_child(
+                Node::new("fit1")
+                    .with_prototype("corevector.fit")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("position", Point::new(100.0, 100.0)))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+                    .with_input(Port::boolean("keep_proportions", true))
+            )
+            .with_connection(Connection::new("ellipse1", "fit1", "shape"))
+            .with_rendered_child("fit1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        // Verify fit produced output - the shape should be constrained to max 50x50
+        // With keep_proportions=true and input 200x100, output should be 50x25
+        let bounds = paths[0].bounds().unwrap();
+        assert!(bounds.width <= 51.0, "Width should be at most 50, got {}", bounds.width);
+        assert!(bounds.height <= 51.0, "Height should be at most 50, got {}", bounds.height);
     }
 
     #[test]

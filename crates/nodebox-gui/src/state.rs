@@ -77,8 +77,7 @@ impl AppState {
             .with_function("corevector/ellipse")
             .with_category("geometry")
             .with_position(2.0, 2.0)
-            .with_input(Port::float("x", -100.0))
-            .with_input(Port::float("y", -50.0))
+            .with_input(Port::point("position", nodebox_core::geometry::Point::new(-100.0, -50.0)))
             .with_input(Port::float("width", 100.0))
             .with_input(Port::float("height", 100.0));
 
@@ -97,8 +96,7 @@ impl AppState {
             .with_function("corevector/rect")
             .with_category("geometry")
             .with_position(6.0, 2.0)
-            .with_input(Port::float("x", 100.0))
-            .with_input(Port::float("y", 50.0))
+            .with_input(Port::point("position", nodebox_core::geometry::Point::new(100.0, 50.0)))
             .with_input(Port::float("width", 80.0))
             .with_input(Port::float("height", 80.0));
 
@@ -210,20 +208,17 @@ pub fn populate_default_ports(node: &mut Node) {
     // Add default ports based on prototype
     if let Some(ref proto) = node.prototype {
         match proto.as_str() {
-            // Geometry generators
+            // Geometry generators - port names match corevector.ndbx library
             "corevector.ellipse" => {
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
                 ensure_port(node, "width", || Port::float("width", 100.0));
                 ensure_port(node, "height", || Port::float("height", 100.0));
             }
             "corevector.rect" => {
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
                 ensure_port(node, "width", || Port::float("width", 100.0));
                 ensure_port(node, "height", || Port::float("height", 100.0));
-                ensure_port(node, "rx", || Port::float("rx", 0.0));
-                ensure_port(node, "ry", || Port::float("ry", 0.0));
+                ensure_port(node, "roundness", || Port::point("roundness", nodebox_core::geometry::Point::ZERO));
             }
             "corevector.line" => {
                 ensure_port(node, "point1", || Port::point("point1", nodebox_core::geometry::Point::ZERO));
@@ -231,26 +226,23 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "points", || Port::int("points", 2));
             }
             "corevector.polygon" => {
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
-                ensure_port(node, "radius", || Port::float("radius", 50.0));
-                ensure_port(node, "sides", || Port::int("sides", 6));
-                ensure_port(node, "align", || Port::boolean("align", true));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
+                ensure_port(node, "radius", || Port::float("radius", 100.0));
+                ensure_port(node, "sides", || Port::int("sides", 3));
+                ensure_port(node, "align", || Port::boolean("align", false));
             }
             "corevector.star" => {
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
-                ensure_port(node, "points", || Port::int("points", 5));
-                ensure_port(node, "outer", || Port::float("outer", 50.0));
-                ensure_port(node, "inner", || Port::float("inner", 25.0));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
+                ensure_port(node, "points", || Port::int("points", 20));
+                ensure_port(node, "outer", || Port::float("outer", 200.0));
+                ensure_port(node, "inner", || Port::float("inner", 100.0));
             }
             "corevector.arc" => {
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
                 ensure_port(node, "width", || Port::float("width", 100.0));
                 ensure_port(node, "height", || Port::float("height", 100.0));
-                ensure_port(node, "startAngle", || Port::float("startAngle", 0.0));
-                ensure_port(node, "degrees", || Port::float("degrees", 90.0));
+                ensure_port(node, "start_angle", || Port::float("start_angle", 0.0));
+                ensure_port(node, "degrees", || Port::float("degrees", 45.0));
                 ensure_port(node, "type", || Port::string("type", "pie"));
             }
             // Filters
@@ -278,11 +270,9 @@ pub fn populate_default_ports(node: &mut Node) {
                 ensure_port(node, "shape", || Port::geometry("shape"));
                 ensure_port(node, "copies", || Port::int("copies", 1));
                 ensure_port(node, "order", || Port::string("order", "tsr"));
-                ensure_port(node, "tx", || Port::float("tx", 0.0));
-                ensure_port(node, "ty", || Port::float("ty", 0.0));
+                ensure_port(node, "translate", || Port::point("translate", nodebox_core::geometry::Point::ZERO));
                 ensure_port(node, "rotate", || Port::float("rotate", 0.0));
-                ensure_port(node, "sx", || Port::float("sx", 100.0));
-                ensure_port(node, "sy", || Port::float("sy", 100.0));
+                ensure_port(node, "scale", || Port::point("scale", nodebox_core::geometry::Point::new(100.0, 100.0)));
             }
             "corevector.align" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
@@ -292,21 +282,19 @@ pub fn populate_default_ports(node: &mut Node) {
             }
             "corevector.fit" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
-                ensure_port(node, "width", || Port::float("width", 100.0));
-                ensure_port(node, "height", || Port::float("height", 100.0));
-                ensure_port(node, "keepProportions", || Port::boolean("keepProportions", true));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
+                ensure_port(node, "width", || Port::float("width", 300.0));
+                ensure_port(node, "height", || Port::float("height", 300.0));
+                ensure_port(node, "keep_proportions", || Port::boolean("keep_proportions", true));
             }
             "corevector.resample" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
-                ensure_port(node, "points", || Port::int("points", 20));
+                ensure_port(node, "points", || Port::int("points", 10));
             }
             "corevector.wiggle" => {
                 ensure_port(node, "shape", || Port::geometry("shape"));
                 ensure_port(node, "scope", || Port::string("scope", "points"));
-                ensure_port(node, "offsetX", || Port::float("offsetX", 10.0));
-                ensure_port(node, "offsetY", || Port::float("offsetY", 10.0));
+                ensure_port(node, "offset", || Port::point("offset", nodebox_core::geometry::Point::new(10.0, 10.0)));
                 ensure_port(node, "seed", || Port::int("seed", 0));
             }
             // Combine operations
@@ -322,12 +310,11 @@ pub fn populate_default_ports(node: &mut Node) {
             }
             // Grid
             "corevector.grid" => {
-                ensure_port(node, "columns", || Port::int("columns", 3));
-                ensure_port(node, "rows", || Port::int("rows", 3));
-                ensure_port(node, "width", || Port::float("width", 100.0));
-                ensure_port(node, "height", || Port::float("height", 100.0));
-                ensure_port(node, "x", || Port::float("x", 0.0));
-                ensure_port(node, "y", || Port::float("y", 0.0));
+                ensure_port(node, "columns", || Port::int("columns", 10));
+                ensure_port(node, "rows", || Port::int("rows", 10));
+                ensure_port(node, "width", || Port::float("width", 300.0));
+                ensure_port(node, "height", || Port::float("height", 300.0));
+                ensure_port(node, "position", || Port::point("position", nodebox_core::geometry::Point::ZERO));
             }
             // Connect
             "corevector.connect" => {

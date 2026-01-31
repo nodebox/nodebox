@@ -1,6 +1,6 @@
 //! Common test utilities for nodebox-gui tests.
 
-use nodebox_gui::{Color, Connection, Node, NodeLibrary, Port, Value};
+use nodebox_gui::{Color, Connection, Node, NodeLibrary, Point, Port, Value};
 
 /// Create a node library with a single ellipse node.
 pub fn library_with_ellipse() -> NodeLibrary {
@@ -9,8 +9,7 @@ pub fn library_with_ellipse() -> NodeLibrary {
         .with_child(
             Node::new("ellipse1")
                 .with_prototype("corevector.ellipse")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         )
@@ -25,8 +24,7 @@ pub fn library_with_rect() -> NodeLibrary {
         .with_child(
             Node::new("rect1")
                 .with_prototype("corevector.rect")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 50.0)),
         )
@@ -41,8 +39,7 @@ pub fn library_with_polygon() -> NodeLibrary {
         .with_child(
             Node::new("polygon1")
                 .with_prototype("corevector.polygon")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("radius", 50.0))
                 .with_input(Port::int("sides", 6))
                 .with_input(Port::boolean("align", true)),
@@ -58,8 +55,7 @@ pub fn library_with_star() -> NodeLibrary {
         .with_child(
             Node::new("star1")
                 .with_prototype("corevector.star")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::int("points", 5))
                 .with_input(Port::float("outer", 50.0))
                 .with_input(Port::float("inner", 25.0)),
@@ -75,11 +71,10 @@ pub fn library_with_arc() -> NodeLibrary {
         .with_child(
             Node::new("arc1")
                 .with_prototype("corevector.arc")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0))
-                .with_input(Port::float("startAngle", 0.0))
+                .with_input(Port::float("start_angle", 0.0))
                 .with_input(Port::float("degrees", 90.0))
                 .with_input(Port::string("type", "pie")),
         )
@@ -89,7 +84,6 @@ pub fn library_with_arc() -> NodeLibrary {
 
 /// Create a node library with a line node.
 pub fn library_with_line() -> NodeLibrary {
-    use nodebox_gui::Point;
     let mut library = NodeLibrary::new("test");
     library.root = Node::network("root")
         .with_child(
@@ -110,8 +104,7 @@ pub fn library_with_colorized_ellipse() -> NodeLibrary {
         .with_child(
             Node::new("ellipse1")
                 .with_prototype("corevector.ellipse")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         )
@@ -135,16 +128,14 @@ pub fn library_with_merged_shapes() -> NodeLibrary {
         .with_child(
             Node::new("ellipse1")
                 .with_prototype("corevector.ellipse")
-                .with_input(Port::float("x", -50.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::new(-50.0, 0.0)))
                 .with_input(Port::float("width", 50.0))
                 .with_input(Port::float("height", 50.0)),
         )
         .with_child(
             Node::new("rect1")
                 .with_prototype("corevector.rect")
-                .with_input(Port::float("x", 50.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::new(50.0, 0.0)))
                 .with_input(Port::float("width", 50.0))
                 .with_input(Port::float("height", 50.0)),
         )
@@ -161,14 +152,12 @@ pub fn library_with_merged_shapes() -> NodeLibrary {
 
 /// Create a node library with a transform chain (ellipse -> translate -> rotate).
 pub fn library_with_transform_chain() -> NodeLibrary {
-    use nodebox_gui::Point;
     let mut library = NodeLibrary::new("test");
     library.root = Node::network("root")
         .with_child(
             Node::new("ellipse1")
                 .with_prototype("corevector.ellipse")
-                .with_input(Port::float("x", 0.0))
-                .with_input(Port::float("y", 0.0))
+                .with_input(Port::point("position", Point::ZERO))
                 .with_input(Port::float("width", 100.0))
                 .with_input(Port::float("height", 100.0)),
         )

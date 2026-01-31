@@ -615,14 +615,11 @@ impl ViewerPane {
                     if let Some(ref proto) = node.prototype {
                         match proto.as_str() {
                             "corevector.ellipse" => {
-                                let x = node
-                                    .input("x")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
-                                let y = node
-                                    .input("y")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node
+                                    .input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
                                 let width = node
                                     .input("width")
                                     .and_then(|p| p.value.as_float())
@@ -632,19 +629,16 @@ impl ViewerPane {
                                     .and_then(|p| p.value.as_float())
                                     .unwrap_or(100.0);
 
-                                for h in ellipse_handles(x, y, width, height) {
+                                for h in ellipse_handles(position.x, position.y, width, height) {
                                     handle_set.add(h);
                                 }
                             }
                             "corevector.rect" => {
-                                let x = node
-                                    .input("x")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
-                                let y = node
-                                    .input("y")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node
+                                    .input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
                                 let width = node
                                     .input("width")
                                     .and_then(|p| p.value.as_float())
@@ -656,7 +650,7 @@ impl ViewerPane {
 
                                 // Use FourPointHandle for rect nodes (only update if not dragging)
                                 if self.four_point_handle.as_ref().map_or(true, |h| !h.is_dragging()) {
-                                    self.four_point_handle = Some(rect_four_point_handle(name, x, y, width, height));
+                                    self.four_point_handle = Some(rect_four_point_handle(name, position.x, position.y, width, height));
                                 }
                                 use_four_point = true;
                             }
@@ -680,16 +674,13 @@ impl ViewerPane {
                                 );
                             }
                             "corevector.polygon" | "corevector.star" => {
-                                let x = node
-                                    .input("x")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
-                                let y = node
-                                    .input("y")
-                                    .and_then(|p| p.value.as_float())
-                                    .unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node
+                                    .input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
 
-                                handle_set.add(Handle::point("position", Point::new(x, y)));
+                                handle_set.add(Handle::point("position", position));
                             }
                             _ => {}
                         }

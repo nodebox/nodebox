@@ -261,6 +261,115 @@ fn test_app_state_load_file_nonexistent() {
 }
 
 // ============================================================================
+// Position port tests - verify shapes respect the "position" Point port
+// ============================================================================
+
+#[test]
+fn test_primitives_shapes_at_different_positions() {
+    // This test verifies that shapes loaded from the primitives example
+    // are at DIFFERENT positions, not all at the origin.
+    // The file defines:
+    //   rect1: position="-100.00,0.00"
+    //   ellipse1: position="10.00,0.00"
+    //   polygon1: position="100.00,0.00"
+    let library = load_example("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+
+    // Evaluate rect1 alone
+    let mut test_library = nodebox_core::node::NodeLibrary::new("test");
+    test_library.root = library.root.clone();
+    test_library.root.rendered_child = Some("rect1".to_string());
+    let rect_paths = evaluate_network(&test_library);
+    assert_eq!(rect_paths.len(), 1, "rect1 should produce one path");
+    let rect_bounds = rect_paths[0].bounds().unwrap();
+    let rect_center_x = rect_bounds.x + rect_bounds.width / 2.0;
+
+    // Evaluate ellipse1 alone
+    test_library.root.rendered_child = Some("ellipse1".to_string());
+    let ellipse_paths = evaluate_network(&test_library);
+    assert_eq!(ellipse_paths.len(), 1, "ellipse1 should produce one path");
+    let ellipse_bounds = ellipse_paths[0].bounds().unwrap();
+    let ellipse_center_x = ellipse_bounds.x + ellipse_bounds.width / 2.0;
+
+    // Evaluate polygon1 alone
+    test_library.root.rendered_child = Some("polygon1".to_string());
+    let polygon_paths = evaluate_network(&test_library);
+    assert_eq!(polygon_paths.len(), 1, "polygon1 should produce one path");
+    let polygon_bounds = polygon_paths[0].bounds().unwrap();
+    let polygon_center_x = polygon_bounds.x + polygon_bounds.width / 2.0;
+
+    // Verify they are at DIFFERENT x positions as defined in the file
+    // rect1 should be at x=-100, ellipse1 at x=10, polygon1 at x=100
+    assert!(
+        (rect_center_x - (-100.0)).abs() < 10.0,
+        "rect1 center X should be near -100, got {}",
+        rect_center_x
+    );
+    assert!(
+        (ellipse_center_x - 10.0).abs() < 10.0,
+        "ellipse1 center X should be near 10, got {}",
+        ellipse_center_x
+    );
+    assert!(
+        (polygon_center_x - 100.0).abs() < 10.0,
+        "polygon1 center X should be near 100, got {}",
+        polygon_center_x
+    );
+
+    // They should NOT all be at the same position (the bug we're catching)
+    assert!(
+        (rect_center_x - ellipse_center_x).abs() > 50.0,
+        "rect1 and ellipse1 should be at different positions! rect={}, ellipse={}",
+        rect_center_x,
+        ellipse_center_x
+    );
+    assert!(
+        (ellipse_center_x - polygon_center_x).abs() > 50.0,
+        "ellipse1 and polygon1 should be at different positions! ellipse={}, polygon={}",
+        ellipse_center_x,
+        polygon_center_x
+    );
+}
+
+#[test]
+fn test_position_port_is_point_type() {
+    // Verify that the loaded nodes have "position" port with Point type
+    let library = load_example("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+
+    let rect = library.root.child("rect1").expect("rect1 should exist");
+    let position_port = rect.input("position");
+    assert!(
+        position_port.is_some(),
+        "rect1 should have a 'position' port after loading"
+    );
+    if let Some(port) = position_port {
+        match &port.value {
+            nodebox_core::Value::Point(p) => {
+                assert!(
+                    (p.x - (-100.0)).abs() < 0.1,
+                    "rect1 position.x should be -100, got {}",
+                    p.x
+                );
+            }
+            other => panic!("rect1 position should be Point type, got {:?}", other),
+        }
+    }
+
+    let ellipse = library.root.child("ellipse1").expect("ellipse1 should exist");
+    let position_port = ellipse.input("position");
+    assert!(
+        position_port.is_some(),
+        "ellipse1 should have a 'position' port after loading"
+    );
+
+    let polygon = library.root.child("polygon1").expect("polygon1 should exist");
+    let position_port = polygon.input("position");
+    assert!(
+        position_port.is_some(),
+        "polygon1 should have a 'position' port after loading"
+    );
+}
+
+// ============================================================================
 // Bulk loading test - verify all example files can be parsed
 // ============================================================================
 

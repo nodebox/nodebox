@@ -149,22 +149,26 @@ impl CanvasViewer {
                     if let Some(ref proto) = node.prototype {
                         match proto.as_str() {
                             "corevector.ellipse" => {
-                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
-                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node.input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
                                 let width = node.input("width").and_then(|p| p.value.as_float()).unwrap_or(100.0);
                                 let height = node.input("height").and_then(|p| p.value.as_float()).unwrap_or(100.0);
 
-                                for h in ellipse_handles(x, y, width, height) {
+                                for h in ellipse_handles(position.x, position.y, width, height) {
                                     handle_set.add(h);
                                 }
                             }
                             "corevector.rect" => {
-                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
-                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node.input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
                                 let width = node.input("width").and_then(|p| p.value.as_float()).unwrap_or(100.0);
                                 let height = node.input("height").and_then(|p| p.value.as_float()).unwrap_or(100.0);
 
-                                for h in rect_handles(x, y, width, height) {
+                                for h in rect_handles(position.x, position.y, width, height) {
                                     handle_set.add(h);
                                 }
                             }
@@ -176,10 +180,12 @@ impl CanvasViewer {
                                 handle_set.add(Handle::point("point2", p2).with_color(Color32::from_rgb(100, 255, 100)));
                             }
                             "corevector.polygon" | "corevector.star" => {
-                                let x = node.input("x").and_then(|p| p.value.as_float()).unwrap_or(0.0);
-                                let y = node.input("y").and_then(|p| p.value.as_float()).unwrap_or(0.0);
+                                // Read from "position" Point port (per corevector.ndbx)
+                                let position = node.input("position")
+                                    .and_then(|p| p.value.as_point().cloned())
+                                    .unwrap_or(Point::ZERO);
 
-                                handle_set.add(Handle::point("position", Point::new(x, y)));
+                                handle_set.add(Handle::point("position", position));
                             }
                             _ => {}
                         }

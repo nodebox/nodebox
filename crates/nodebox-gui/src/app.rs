@@ -544,43 +544,43 @@ impl NodeBoxApp {
             if let Some(node) = self.state.library.root.child_mut(node_name) {
                 match param_name {
                     "position" => {
-                        if let Some(port) = node.input_mut("x") {
-                            port.value = nodebox_core::Value::Float(new_position.x);
-                        }
-                        if let Some(port) = node.input_mut("y") {
-                            port.value = nodebox_core::Value::Float(new_position.y);
+                        // Write to "position" Point port (per corevector.ndbx)
+                        if let Some(port) = node.input_mut("position") {
+                            port.value = nodebox_core::Value::Point(new_position);
                         }
                     }
                     "width" => {
-                        if let Some(port) = node.input_mut("x") {
-                            let x = port.value.as_float().unwrap_or(0.0);
-                            let new_width = (new_position.x - x) * 2.0;
-                            if let Some(width_port) = node.input_mut("width") {
-                                width_port.value = nodebox_core::Value::Float(new_width.abs());
-                            }
+                        // Get center from position port
+                        let center_x = node.input("position")
+                            .and_then(|p| p.value.as_point().cloned())
+                            .map(|p| p.x)
+                            .unwrap_or(0.0);
+                        let new_width = (new_position.x - center_x) * 2.0;
+                        if let Some(width_port) = node.input_mut("width") {
+                            width_port.value = nodebox_core::Value::Float(new_width.abs());
                         }
                     }
                     "height" => {
-                        if let Some(port) = node.input_mut("y") {
-                            let y = port.value.as_float().unwrap_or(0.0);
-                            let new_height = (new_position.y - y) * 2.0;
-                            if let Some(height_port) = node.input_mut("height") {
-                                height_port.value = nodebox_core::Value::Float(new_height.abs());
-                            }
+                        // Get center from position port
+                        let center_y = node.input("position")
+                            .and_then(|p| p.value.as_point().cloned())
+                            .map(|p| p.y)
+                            .unwrap_or(0.0);
+                        let new_height = (new_position.y - center_y) * 2.0;
+                        if let Some(height_port) = node.input_mut("height") {
+                            height_port.value = nodebox_core::Value::Float(new_height.abs());
                         }
                     }
                     "size" => {
-                        if let Some(port) = node.input_mut("x") {
-                            let x = port.value.as_float().unwrap_or(0.0);
-                            if let Some(width_port) = node.input_mut("width") {
-                                width_port.value = nodebox_core::Value::Float((new_position.x - x).abs());
-                            }
+                        // Get center from position port
+                        let center = node.input("position")
+                            .and_then(|p| p.value.as_point().cloned())
+                            .unwrap_or(Point::ZERO);
+                        if let Some(width_port) = node.input_mut("width") {
+                            width_port.value = nodebox_core::Value::Float((new_position.x - center.x).abs());
                         }
-                        if let Some(port) = node.input_mut("y") {
-                            let y = port.value.as_float().unwrap_or(0.0);
-                            if let Some(height_port) = node.input_mut("height") {
-                                height_port.value = nodebox_core::Value::Float((new_position.y - y).abs());
-                            }
+                        if let Some(height_port) = node.input_mut("height") {
+                            height_port.value = nodebox_core::Value::Float((new_position.y - center.y).abs());
                         }
                     }
                     "point1" | "point2" => {
