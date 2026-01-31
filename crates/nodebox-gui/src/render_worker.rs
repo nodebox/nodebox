@@ -71,9 +71,9 @@ impl Default for RenderState {
 
 /// Handle to the background render worker thread.
 pub struct RenderWorkerHandle {
-    request_tx: mpsc::Sender<RenderRequest>,
+    request_tx: Option<mpsc::Sender<RenderRequest>>,
     result_rx: mpsc::Receiver<RenderResult>,
-    _thread_handle: thread::JoinHandle<()>,
+    thread_handle: Option<thread::JoinHandle<()>>,
 }
 
 impl RenderWorkerHandle {
@@ -87,20 +87,40 @@ impl RenderWorkerHandle {
         });
 
         Self {
-            request_tx,
+            request_tx: Some(request_tx),
             result_rx,
-            _thread_handle: thread_handle,
+            thread_handle: Some(thread_handle),
         }
     }
 
     /// Request a render of the given library.
     pub fn request_render(&self, id: RenderRequestId, library: NodeLibrary) {
-        let _ = self.request_tx.send(RenderRequest::Evaluate { id, library });
+        if let Some(ref tx) = self.request_tx {
+            let _ = tx.send(RenderRequest::Evaluate { id, library });
+        }
     }
 
     /// Try to receive a render result without blocking.
     pub fn try_recv_result(&self) -> Option<RenderResult> {
         self.result_rx.try_recv().ok()
+    }
+
+    /// Shut down the render worker thread.
+    pub fn shutdown(&mut self) {
+        // Send shutdown message
+        if let Some(tx) = self.request_tx.take() {
+            let _ = tx.send(RenderRequest::Shutdown);
+        }
+        // Wait for thread to finish
+        if let Some(handle) = self.thread_handle.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+impl Drop for RenderWorkerHandle {
+    fn drop(&mut self) {
+        self.shutdown();
     }
 }
 
