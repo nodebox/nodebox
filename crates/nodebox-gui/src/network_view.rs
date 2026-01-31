@@ -162,7 +162,7 @@ impl NetworkView {
         // Draw connection being created
         if let Some(ref drag) = self.creating_connection {
             if let Some(from_node) = network.child(&drag.from_node) {
-                let from_pos = self.node_output_pos(from_node, offset);
+                let from_pos = self.node_output_center(from_node, offset);
                 self.draw_wire(&painter, from_pos, drag.to_pos, Color32::WHITE);
             }
         }
@@ -534,19 +534,37 @@ impl NetworkView {
         Rect::from_min_size(pos, Vec2::new(NODE_WIDTH * self.pan_zoom.zoom, NODE_HEIGHT * self.pan_zoom.zoom))
     }
 
-    /// Get the screen position of a node's output port (bottom left).
+    /// Get the screen position of a node's output port (top-left corner of port rect).
     fn node_output_pos(&self, node: &Node, offset: Vec2) -> Pos2 {
         let rect = self.node_rect(node, offset);
         Pos2::new(rect.left(), rect.bottom())
     }
 
-    /// Get the screen position of a node's input port (distributed along top edge).
+    /// Get the screen position of a node's input port (top-left corner of port rect).
     fn node_input_pos(&self, node: &Node, port_index: usize, offset: Vec2) -> Pos2 {
         let rect = self.node_rect(node, offset);
         let port_x = (PORT_WIDTH + PORT_SPACING) * port_index as f32;
         Pos2::new(
             rect.left() + port_x * self.pan_zoom.zoom,
             rect.top() - PORT_HEIGHT * self.pan_zoom.zoom, // Above the node
+        )
+    }
+
+    /// Get the center position of a node's output port (for wire connections).
+    fn node_output_center(&self, node: &Node, offset: Vec2) -> Pos2 {
+        let pos = self.node_output_pos(node, offset);
+        Pos2::new(
+            pos.x + PORT_WIDTH / 2.0 * self.pan_zoom.zoom,
+            pos.y + PORT_HEIGHT / 2.0 * self.pan_zoom.zoom,
+        )
+    }
+
+    /// Get the center position of a node's input port (for wire connections).
+    fn node_input_center(&self, node: &Node, port_index: usize, offset: Vec2) -> Pos2 {
+        let pos = self.node_input_pos(node, port_index, offset);
+        Pos2::new(
+            pos.x + PORT_WIDTH / 2.0 * self.pan_zoom.zoom,
+            pos.y + PORT_HEIGHT / 2.0 * self.pan_zoom.zoom,
         )
     }
 
@@ -754,13 +772,13 @@ impl NetworkView {
         let to_node = network.child(&conn.input_node);
 
         if let (Some(from), Some(to)) = (from_node, to_node) {
-            let from_pos = self.node_output_pos(from, offset);
+            let from_pos = self.node_output_center(from, offset);
             let port_index = to
                 .inputs
                 .iter()
                 .position(|p| p.name == conn.input_port)
                 .unwrap_or(0);
-            let to_pos = self.node_input_pos(to, port_index, offset);
+            let to_pos = self.node_input_center(to, port_index, offset);
 
             // Check if mouse is near the bezier curve
             if let Some(mouse_pos) = ui.input(|i| i.pointer.hover_pos()) {
@@ -797,11 +815,11 @@ impl NetworkView {
         let to_node = network.child(&conn.input_node);
 
         if let (Some(from), Some(to)) = (from_node, to_node) {
-            let from_pos = self.node_output_pos(from, offset);
+            let from_pos = self.node_output_center(from, offset);
 
             // Find the input port index
             let port_index = to.inputs.iter().position(|p| p.name == conn.input_port).unwrap_or(0);
-            let to_pos = self.node_input_pos(to, port_index, offset);
+            let to_pos = self.node_input_center(to, port_index, offset);
 
             // Get the port type for coloring
             let port_type = to.input(conn.input_port.as_str())

@@ -36,3 +36,4 @@ Prereqs: Java JDK and Apache Ant are required; Maven is used for dependency reso
 
 ## Notes for Contributors
 - Versioning lives in `src/main/resources/version.properties`; update it when preparing a release build.
+- **NEVER modify the Java code** (`src/main/java`). The Java codebase is legacy and read-only; use it only as a reference. All new development happens in the Rust crates under `crates/`.
