@@ -3,6 +3,7 @@
 use std::path::PathBuf;
 
 use nodebox_gui::eval::evaluate_network;
+use nodebox_gui::{populate_default_ports, AppState};
 
 /// Get the path to the examples directory.
 fn examples_dir() -> PathBuf {
@@ -11,11 +12,15 @@ fn examples_dir() -> PathBuf {
 }
 
 /// Load and parse an .ndbx file from the examples directory.
+/// Also populates default ports for proper evaluation.
 fn load_example(relative_path: &str) -> nodebox_core::node::NodeLibrary {
     let path = examples_dir().join(relative_path);
-    nodebox_ndbx::parse_file(&path).unwrap_or_else(|e| {
+    let mut library = nodebox_ndbx::parse_file(&path).unwrap_or_else(|e| {
         panic!("Failed to parse {}: {}", path.display(), e);
-    })
+    });
+    // Populate default ports so connections work properly
+    populate_default_ports(&mut library.root);
+    library
 }
 
 // ============================================================================
@@ -107,9 +112,6 @@ fn test_load_transformations() {
 fn test_evaluate_primitives() {
     let library = load_example("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
 
-    // The rendered child is "combine1" which uses list.combine
-    // For now, we can't fully evaluate this, but we can evaluate individual nodes
-
     // Create a library with just the rect node rendered
     let mut test_library = nodebox_core::node::NodeLibrary::new("test");
     test_library.root = library.root.clone();
@@ -130,6 +132,23 @@ fn test_evaluate_primitives() {
 }
 
 #[test]
+fn test_evaluate_primitives_full() {
+    let library = load_example("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+
+    // The rendered child is "combine1" which uses list.combine
+    // Now that list.combine is implemented, we can evaluate the full network
+    let paths = evaluate_network(&library);
+
+    // Should have 3 shapes: rect, ellipse, polygon (each colorized)
+    assert_eq!(paths.len(), 3, "combine1 should produce 3 colorized paths");
+
+    // All paths should have fills (they go through colorize nodes)
+    for path in &paths {
+        assert!(path.fill.is_some(), "Each path should have a fill color");
+    }
+}
+
+#[test]
 fn test_evaluate_colorized_primitives() {
     let library = load_example("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
 
@@ -137,27 +156,11 @@ fn test_evaluate_colorized_primitives() {
     test_library.root = library.root.clone();
 
     // Test colorized rect (colorize1 <- rect1)
-    // Note: The colorize node needs a "shape" input port to receive geometry.
-    // The .ndbx file only lists non-default ports, so we need to ensure
-    // the shape input port exists for the connection to work.
-    let colorize1 = test_library.root.child_mut("colorize1");
-    if let Some(node) = colorize1 {
-        // Add the shape input port if missing (it's a default port from the prototype)
-        if node.input("shape").is_none() {
-            node.inputs.push(nodebox_core::node::Port::geometry("shape"));
-        }
-    }
-
     test_library.root.rendered_child = Some("colorize1".to_string());
     let paths = evaluate_network(&test_library);
 
-    // If we get paths, verify they have color
-    if !paths.is_empty() {
-        let path = &paths[0];
-        assert!(path.fill.is_some(), "colorized path should have fill");
-    }
-    // Note: This test may produce 0 paths if the prototype port resolution
-    // isn't fully implemented yet - that's acceptable for now.
+    assert_eq!(paths.len(), 1, "colorize1 should produce one path");
+    assert!(paths[0].fill.is_some(), "colorized path should have fill");
 }
 
 #[test]
@@ -174,23 +177,14 @@ fn test_evaluate_copy() {
     if let Some(copy) = copy_node {
         let mut test_library = nodebox_core::node::NodeLibrary::new("test");
         test_library.root = library.root.clone();
-
-        // Copy node needs a "shape" input port
-        if let Some(node) = test_library.root.child_mut(&copy.name) {
-            if node.input("shape").is_none() {
-                node.inputs.push(nodebox_core::node::Port::geometry("shape"));
-            }
-        }
-
         test_library.root.rendered_child = Some(copy.name.clone());
 
         let paths = evaluate_network(&test_library);
-        // Copy may produce multiple paths if properly connected
-        // Note: May be empty if upstream nodes aren't fully evaluated
-        println!(
-            "Copy node {} produced {} paths",
-            copy.name,
-            paths.len()
+        // Copy should produce multiple paths
+        assert!(
+            !paths.is_empty(),
+            "Copy node {} should produce paths",
+            copy.name
         );
     }
 }
@@ -225,6 +219,45 @@ fn test_load_color_example() {
             }
         }
     }
+}
+
+// ============================================================================
+// AppState::load_file integration test
+// ============================================================================
+
+#[test]
+fn test_app_state_load_file() {
+    let mut state = AppState::new();
+
+    // Initially has demo content
+    assert!(!state.library.root.children.is_empty());
+
+    // Load the primitives example
+    let path = examples_dir().join("01 Basics/01 Shape/01 Primitives/01 Primitives.ndbx");
+    let result = state.load_file(&path);
+
+    assert!(result.is_ok(), "load_file should succeed");
+    assert_eq!(state.current_file, Some(path.clone()));
+    assert!(!state.dirty);
+
+    // Verify the library was loaded
+    assert_eq!(state.library.root.name, "root");
+    assert!(state.library.root.child("rect1").is_some());
+    assert!(state.library.root.child("ellipse1").is_some());
+    assert!(state.library.root.child("polygon1").is_some());
+
+    // Verify geometry was evaluated (should have 3 shapes)
+    assert_eq!(state.geometry.len(), 3, "Should have 3 rendered shapes");
+}
+
+#[test]
+fn test_app_state_load_file_nonexistent() {
+    let mut state = AppState::new();
+
+    let path = examples_dir().join("nonexistent.ndbx");
+    let result = state.load_file(&path);
+
+    assert!(result.is_err(), "load_file should fail for nonexistent file");
 }
 
 // ============================================================================

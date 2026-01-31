@@ -33,7 +33,7 @@ mod viewer_pane;
 // Re-export key types for testing and external use
 pub use app::NodeBoxApp;
 pub use history::History;
-pub use state::AppState;
+pub use state::{populate_default_ports, AppState};
 
 // Re-export commonly used types from dependencies
 pub use nodebox_core::geometry::{Color, Path, Point};

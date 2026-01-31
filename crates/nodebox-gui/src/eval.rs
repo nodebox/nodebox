@@ -380,6 +380,21 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
             NodeOutput::Paths(shapes)
         }
 
+        // List combine - combines multiple lists into one
+        "list.combine" => {
+            let mut all_paths: Vec<Path> = Vec::new();
+            // Collect from list1 through list5
+            for port_name in ["list1", "list2", "list3", "list4", "list5"] {
+                let paths = get_paths(inputs, port_name);
+                all_paths.extend(paths);
+            }
+            if all_paths.is_empty() {
+                NodeOutput::None
+            } else {
+                NodeOutput::Paths(all_paths)
+            }
+        }
+
         // Resample
         "corevector.resample" => {
             let shape = match get_path(inputs, "shape") {
