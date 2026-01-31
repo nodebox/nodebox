@@ -107,7 +107,8 @@ impl ParameterPanel {
                 self.show_no_selection(ui, Some(&format!("Node '{}' not found.", node_name)));
             }
         } else {
-            self.show_no_selection(ui, None);
+            // No node selected - show document properties
+            self.show_document_properties(ui, state);
         }
     }
 
@@ -526,22 +527,157 @@ impl ParameterPanel {
         }
     }
 
-    /// Show message when no node is selected.
-    fn show_no_selection(&self, ui: &mut egui::Ui, error: Option<&str>) {
-        ui.vertical_centered(|ui| {
-            ui.add_space(30.0);
-            if let Some(err) = error {
+    /// Show document properties when no node is selected.
+    fn show_no_selection(&mut self, ui: &mut egui::Ui, error: Option<&str>) {
+        if let Some(err) = error {
+            ui.vertical_centered(|ui| {
+                ui.add_space(30.0);
                 ui.label(
                     egui::RichText::new(err)
                         .color(Color32::from_rgb(255, 100, 100))
                         .size(12.0),
                 );
-            } else {
+            });
+        } else {
+            // Show document properties header
+            let header_rect = ui.available_rect_before_wrap();
+            let header_rect = egui::Rect::from_min_size(
+                header_rect.min,
+                egui::vec2(header_rect.width(), theme::PARAMETER_ROW_HEIGHT),
+            );
+            ui.painter().rect_filled(
+                header_rect,
+                0.0,
+                Color32::from_rgb(75, 75, 75),
+            );
+            ui.allocate_ui_at_rect(header_rect, |ui| {
+                ui.horizontal_centered(|ui| {
+                    ui.add_space(8.0);
+                    ui.label(
+                        egui::RichText::new("Document")
+                            .color(theme::TEXT_BRIGHT)
+                            .size(11.0),
+                    );
+                });
+            });
+            ui.add_space(theme::PARAMETER_ROW_HEIGHT + 8.0);
+
+            // Document properties will be shown in show() method
+            // This is just for the error/no-document case
+            ui.vertical_centered(|ui| {
+                ui.add_space(10.0);
                 ui.label(
                     egui::RichText::new("Select a node to edit parameters")
                         .color(theme::TEXT_DISABLED)
                         .size(11.0),
                 );
+            });
+        }
+    }
+
+    /// Show document properties panel (canvas size, etc.).
+    pub fn show_document_properties(&mut self, ui: &mut egui::Ui, state: &mut AppState) {
+        // Apply minimal styling for the panel
+        ui.style_mut().spacing.item_spacing = egui::vec2(8.0, 2.0);
+
+        // Document properties header
+        let header_rect = ui.available_rect_before_wrap();
+        let header_rect = egui::Rect::from_min_size(
+            header_rect.min,
+            egui::vec2(header_rect.width(), theme::PARAMETER_ROW_HEIGHT),
+        );
+        ui.painter().rect_filled(
+            header_rect,
+            0.0,
+            Color32::from_rgb(75, 75, 75),
+        );
+        ui.allocate_ui_at_rect(header_rect, |ui| {
+            ui.horizontal_centered(|ui| {
+                ui.add_space(8.0);
+                ui.label(
+                    egui::RichText::new("Document")
+                        .color(theme::TEXT_BRIGHT)
+                        .size(11.0),
+                );
+            });
+        });
+        ui.add_space(theme::PARAMETER_ROW_HEIGHT + 8.0);
+
+        // Canvas width
+        ui.horizontal(|ui| {
+            ui.set_height(theme::PARAMETER_ROW_HEIGHT);
+
+            // Label
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| {
+                    ui.add_space(8.0);
+                    let galley = ui.painter().layout_no_wrap(
+                        "canvasWidth".to_string(),
+                        egui::FontId::proportional(11.0),
+                        theme::TEXT_NORMAL,
+                    );
+                    let rect = ui.available_rect_before_wrap();
+                    let pos = egui::pos2(
+                        rect.right() - galley.size().x - 8.0,
+                        rect.center().y - galley.size().y / 2.0,
+                    );
+                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+                },
+            );
+
+            // Value
+            let mut width = state.library.canvas_width();
+            let key = ("__document__".to_string(), "canvasWidth".to_string());
+            let is_editing = self.editing.as_ref()
+                .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
+                .unwrap_or(false);
+            self.show_drag_value_float(ui, &mut width, Some(1.0), None, 1.0, &key, is_editing);
+
+            // Update the property if changed
+            let new_width = (width as i64).to_string();
+            if state.library.property("canvasWidth") != Some(&new_width) {
+                state.library.set_property("canvasWidth", new_width);
+            }
+        });
+
+        // Canvas height
+        ui.horizontal(|ui| {
+            ui.set_height(theme::PARAMETER_ROW_HEIGHT);
+
+            // Label
+            ui.allocate_ui_with_layout(
+                egui::Vec2::new(self.label_width, theme::PARAMETER_ROW_HEIGHT),
+                egui::Layout::right_to_left(egui::Align::Center),
+                |ui| {
+                    ui.add_space(8.0);
+                    let galley = ui.painter().layout_no_wrap(
+                        "canvasHeight".to_string(),
+                        egui::FontId::proportional(11.0),
+                        theme::TEXT_NORMAL,
+                    );
+                    let rect = ui.available_rect_before_wrap();
+                    let pos = egui::pos2(
+                        rect.right() - galley.size().x - 8.0,
+                        rect.center().y - galley.size().y / 2.0,
+                    );
+                    ui.painter().galley(pos, galley, theme::TEXT_NORMAL);
+                },
+            );
+
+            // Value
+            let mut height = state.library.canvas_height();
+            let key = ("__document__".to_string(), "canvasHeight".to_string());
+            let is_editing = self.editing.as_ref()
+                .map(|(n, p, _, _)| n == &key.0 && p == &key.1)
+                .unwrap_or(false);
+            self.show_drag_value_float(ui, &mut height, Some(1.0), None, 1.0, &key, is_editing);
+
+            // Update the property if changed
+            let new_height = (height as i64).to_string();
+            if state.library.property("canvasHeight") != Some(&new_height) {
+                state.library.set_property("canvasHeight", new_height);
             }
         });
     }
