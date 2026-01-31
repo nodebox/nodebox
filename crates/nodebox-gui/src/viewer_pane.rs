@@ -1,6 +1,6 @@
 //! Tabbed viewer pane with canvas and data views.
 
-use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
+use eframe::egui::{self, Color32, ColorImage, Pos2, Rect, Stroke, TextureHandle, TextureOptions, Vec2};
 use nodebox_core::geometry::{Color, Path, Point, PointType};
 use crate::handles::{FourPointHandle, HandleSet, HANDLE_COLOR};
 use crate::pan_zoom::PanZoom;
@@ -23,6 +23,155 @@ pub enum HandleResult {
 pub enum ViewerTab {
     Viewer,
     Data,
+}
+
+/// Cached textures for outlined digit rendering (Houdini-style).
+struct DigitCache {
+    /// Texture handles for digits 0-9.
+    textures: [Option<TextureHandle>; 10],
+    /// Width of each digit texture.
+    digit_width: f32,
+    /// Height of each digit texture.
+    digit_height: f32,
+}
+
+impl DigitCache {
+    fn new() -> Self {
+        Self {
+            textures: Default::default(),
+            digit_width: 0.0,
+            digit_height: 0.0,
+        }
+    }
+
+    /// Ensure digit textures are created.
+    fn ensure_initialized(&mut self, ctx: &egui::Context) {
+        if self.textures[0].is_some() {
+            return; // Already initialized
+        }
+
+        // Create outlined digit textures
+        const FONT_SIZE: f32 = 12.0;
+        const PADDING: usize = 2; // For outline
+
+        for digit in 0..10 {
+            let digit_char = char::from_digit(digit as u32, 10).unwrap();
+            let image = Self::render_outlined_digit(ctx, digit_char, FONT_SIZE, PADDING);
+
+            if digit == 0 {
+                self.digit_width = image.width() as f32;
+                self.digit_height = image.height() as f32;
+            }
+
+            let texture = ctx.load_texture(
+                format!("digit_{}", digit),
+                image,
+                TextureOptions::LINEAR,
+            );
+            self.textures[digit] = Some(texture);
+        }
+    }
+
+    /// Render a single digit with white outline and blue fill.
+    fn render_outlined_digit(ctx: &egui::Context, digit: char, font_size: f32, padding: usize) -> ColorImage {
+        // Use egui's font system to get glyph info
+        let font_id = egui::FontId::proportional(font_size);
+
+        // Get the galley for measuring
+        let galley = ctx.fonts(|f| {
+            f.layout_no_wrap(digit.to_string(), font_id.clone(), Color32::WHITE)
+        });
+
+        let glyph_width = galley.rect.width().ceil() as usize;
+        let glyph_height = galley.rect.height().ceil() as usize;
+
+        // Image size with padding for outline
+        let width = glyph_width + padding * 2 + 2;
+        let height = glyph_height + padding * 2;
+
+        // Create image buffer
+        let mut pixels = vec![Color32::TRANSPARENT; width * height];
+
+        // Render outline (white) by sampling at offsets
+        let outline_color = Color32::WHITE;
+        let fill_color = HANDLE_COLOR;
+
+        // Get font texture and UV info for the glyph
+        // Since we can't easily access raw glyph data, use a simpler approach:
+        // Render using a pre-defined bitmap font pattern for digits
+        let bitmap = get_digit_bitmap(digit);
+
+        let scale = (font_size / 8.0).max(1.0) as usize; // Scale factor
+        let bmp_width = 5 * scale;
+        let bmp_height = 7 * scale;
+
+        // Center the bitmap in the image
+        let offset_x = (width - bmp_width) / 2;
+        let offset_y = (height - bmp_height) / 2;
+
+        // Draw outline first (white, offset in 8 directions)
+        for dy in -1i32..=1 {
+            for dx in -1i32..=1 {
+                if dx == 0 && dy == 0 {
+                    continue;
+                }
+                draw_digit_bitmap(&mut pixels, width, &bitmap, scale,
+                    (offset_x as i32 + dx) as usize,
+                    (offset_y as i32 + dy) as usize,
+                    outline_color);
+            }
+        }
+
+        // Draw fill (blue)
+        draw_digit_bitmap(&mut pixels, width, &bitmap, scale, offset_x, offset_y, fill_color);
+
+        ColorImage {
+            size: [width, height],
+            pixels,
+        }
+    }
+
+    /// Get texture for a digit.
+    fn get(&self, digit: usize) -> Option<&TextureHandle> {
+        self.textures.get(digit).and_then(|t| t.as_ref())
+    }
+}
+
+/// 5x7 bitmap font for digits 0-9.
+fn get_digit_bitmap(digit: char) -> [u8; 7] {
+    match digit {
+        '0' => [0b01110, 0b10001, 0b10011, 0b10101, 0b11001, 0b10001, 0b01110],
+        '1' => [0b00100, 0b01100, 0b00100, 0b00100, 0b00100, 0b00100, 0b01110],
+        '2' => [0b01110, 0b10001, 0b00001, 0b00010, 0b00100, 0b01000, 0b11111],
+        '3' => [0b11111, 0b00010, 0b00100, 0b00010, 0b00001, 0b10001, 0b01110],
+        '4' => [0b00010, 0b00110, 0b01010, 0b10010, 0b11111, 0b00010, 0b00010],
+        '5' => [0b11111, 0b10000, 0b11110, 0b00001, 0b00001, 0b10001, 0b01110],
+        '6' => [0b00110, 0b01000, 0b10000, 0b11110, 0b10001, 0b10001, 0b01110],
+        '7' => [0b11111, 0b00001, 0b00010, 0b00100, 0b01000, 0b01000, 0b01000],
+        '8' => [0b01110, 0b10001, 0b10001, 0b01110, 0b10001, 0b10001, 0b01110],
+        '9' => [0b01110, 0b10001, 0b10001, 0b01111, 0b00001, 0b00010, 0b01100],
+        _ => [0; 7],
+    }
+}
+
+/// Draw a digit bitmap to the pixel buffer.
+fn draw_digit_bitmap(pixels: &mut [Color32], img_width: usize, bitmap: &[u8; 7], scale: usize, x_off: usize, y_off: usize, color: Color32) {
+    for (row, bits) in bitmap.iter().enumerate() {
+        for col in 0..5 {
+            if (bits >> (4 - col)) & 1 == 1 {
+                // Draw scaled pixel
+                for sy in 0..scale {
+                    for sx in 0..scale {
+                        let px = x_off + col * scale + sx;
+                        let py = y_off + row * scale + sy;
+                        if px < img_width && py < pixels.len() / img_width {
+                            pixels[py * img_width + px] = color;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// The tabbed viewer pane.
@@ -51,6 +200,8 @@ pub struct ViewerPane {
     is_space_pressed: bool,
     /// Whether we are currently panning with space+drag.
     is_panning: bool,
+    /// Cached digit textures for point numbers.
+    digit_cache: DigitCache,
 }
 
 impl Default for ViewerPane {
@@ -75,6 +226,7 @@ impl ViewerPane {
             dragging_handle: None,
             is_space_pressed: false,
             is_panning: false,
+            digit_cache: DigitCache::new(),
         }
     }
 
@@ -198,6 +350,9 @@ impl ViewerPane {
     /// Show the canvas viewer.
     fn show_canvas(&mut self, ui: &mut egui::Ui, state: &AppState) -> HandleResult {
         use crate::handles::{screen_to_world, FourPointDragState};
+
+        // Initialize digit cache if needed
+        self.digit_cache.ensure_initialized(ui.ctx());
 
         let (response, painter) =
             ui.allocate_painter(ui.available_size(), egui::Sense::click_and_drag());
@@ -498,20 +653,36 @@ impl ViewerPane {
         }
     }
 
-    /// Draw point numbers.
+    /// Draw point numbers using cached outlined digit textures.
     fn draw_point_numbers(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
         for contour in &path.contours {
             for (i, pp) in contour.points.iter().enumerate() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
-                painter.text(
-                    screen_pt + Vec2::new(5.0, -5.0),
-                    egui::Align2::LEFT_BOTTOM,
-                    i.to_string(),
-                    egui::FontId::proportional(9.0),
-                    HANDLE_COLOR,
-                );
+                // Position to the right of the point
+                let mut x = screen_pt.x + 4.0;
+                let y = screen_pt.y - self.digit_cache.digit_height / 2.0;
+
+                // Draw each digit of the number
+                let num_str = i.to_string();
+                for ch in num_str.chars() {
+                    if let Some(digit) = ch.to_digit(10) {
+                        if let Some(texture) = self.digit_cache.get(digit as usize) {
+                            let rect = Rect::from_min_size(
+                                Pos2::new(x, y),
+                                Vec2::new(self.digit_cache.digit_width, self.digit_cache.digit_height),
+                            );
+                            painter.image(
+                                texture.id(),
+                                rect,
+                                Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
+                                Color32::WHITE,
+                            );
+                            x += self.digit_cache.digit_width - 2.0; // Slight overlap for tighter spacing
+                        }
+                    }
+                }
             }
         }
     }
