@@ -414,11 +414,6 @@ impl ViewerPane {
             if self.show_points {
                 self.draw_points(&painter, path, center);
             }
-
-            // Draw point numbers if enabled (independent of show_points)
-            if self.show_point_numbers {
-                self.draw_point_numbers(&painter, path, center);
-            }
         }
 
         // Draw origin crosshair
@@ -450,6 +445,13 @@ impl ViewerPane {
             }
             if let Some(ref handle) = self.four_point_handle {
                 handle.draw(&painter, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+            }
+        }
+
+        // Draw point numbers on top of everything (including handles)
+        if self.show_point_numbers {
+            for path in &state.geometry {
+                self.draw_point_numbers(&painter, path, center);
             }
         }
 
@@ -653,16 +655,19 @@ impl ViewerPane {
         }
     }
 
-    /// Draw point numbers using cached outlined digit textures.
+    /// Draw point numbers using cached outlined digit textures (Houdini-style: bottom-right of point).
     fn draw_point_numbers(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
+        // Tight spacing between digits (characters are ~7px wide in the texture)
+        let digit_spacing = 7.0;
+
         for contour in &path.contours {
             for (i, pp) in contour.points.iter().enumerate() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
-                // Position to the right of the point
-                let mut x = screen_pt.x + 4.0;
-                let y = screen_pt.y - self.digit_cache.digit_height / 2.0;
+                // Position to the bottom-right of the point (like Houdini)
+                let mut x = screen_pt.x + 3.0;
+                let y = screen_pt.y + 2.0;
 
                 // Draw each digit of the number
                 let num_str = i.to_string();
@@ -679,7 +684,7 @@ impl ViewerPane {
                                 Rect::from_min_max(Pos2::ZERO, Pos2::new(1.0, 1.0)),
                                 Color32::WHITE,
                             );
-                            x += self.digit_cache.digit_width - 2.0; // Slight overlap for tighter spacing
+                            x += digit_spacing;
                         }
                     }
                 }
