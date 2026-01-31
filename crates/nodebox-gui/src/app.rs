@@ -522,11 +522,9 @@ impl NodeBoxApp {
     fn handle_four_point_change(&mut self, x: f64, y: f64, width: f64, height: f64) {
         if let Some(ref node_name) = self.state.selected_node {
             if let Some(node) = self.state.library.root.child_mut(node_name) {
-                if let Some(port) = node.input_mut("x") {
-                    port.value = nodebox_core::Value::Float(x);
-                }
-                if let Some(port) = node.input_mut("y") {
-                    port.value = nodebox_core::Value::Float(y);
+                // Write to "position" Point port (per corevector.ndbx)
+                if let Some(port) = node.input_mut("position") {
+                    port.value = nodebox_core::Value::Point(Point::new(x, y));
                 }
                 if let Some(port) = node.input_mut("width") {
                     port.value = nodebox_core::Value::Float(width);

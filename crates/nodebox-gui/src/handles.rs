@@ -3,14 +3,11 @@
 use eframe::egui::{self, Color32, Pos2, Stroke, Vec2};
 use nodebox_core::geometry::Point;
 
-/// The size of handle points.
-const HANDLE_SIZE: f32 = 8.0;
+/// The size of handle points (width/height of the square).
+const HANDLE_SIZE: f32 = 6.0;
 
-/// Blue color for FourPointHandle (#3366ff).
-pub const FOUR_POINT_HANDLE_COLOR: Color32 = Color32::from_rgb(0x33, 0x66, 0xff);
-
-/// Size of the corner/center handles for FourPointHandle.
-const FOUR_POINT_HANDLE_SIZE: f32 = 6.0;
+/// Blue color for handles (#3366ff).
+pub const HANDLE_COLOR: Color32 = Color32::from_rgb(0x33, 0x66, 0xff);
 
 /// Drag state for FourPointHandle.
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
@@ -139,15 +136,15 @@ impl HandleSet {
     /// Draw a single handle as a blue square (consistent with FourPointHandle style).
     fn draw_handle(&self, painter: &egui::Painter, _handle: &Handle, pos: Pos2) {
         // All handles are drawn as blue squares with fixed screen size
-        let rect = egui::Rect::from_center_size(pos, Vec2::splat(FOUR_POINT_HANDLE_SIZE));
-        painter.rect_filled(rect, 0.0, FOUR_POINT_HANDLE_COLOR);
+        let rect = egui::Rect::from_center_size(pos, Vec2::splat(HANDLE_SIZE));
+        painter.rect_filled(rect, 0.0, HANDLE_COLOR);
     }
 
     /// Check if a screen position is over any handle, returns the handle index.
     /// Uses fixed screen-space hit radius (doesn't scale with zoom).
     pub fn hit_test(&self, screen_pos: Pos2, zoom: f32, pan: Vec2, center: Vec2) -> Option<usize> {
-        // Hit target is visual size plus 5 pixels padding (fixed screen size)
-        let hit_radius = (FOUR_POINT_HANDLE_SIZE / 2.0) + 5.0;
+        // Hit target is visual size plus 8 pixels padding (fixed screen size)
+        let hit_radius = HANDLE_SIZE * 2.0;
 
         for (i, handle) in self.handles.iter().enumerate() {
             let handle_screen_pos = world_to_screen(handle.position, zoom, pan, center);
@@ -291,30 +288,30 @@ impl FourPointHandle {
         let screen_center = world_to_screen(self.center, zoom, pan, center);
 
         // Draw bounding box lines
-        let stroke = Stroke::new(1.0, FOUR_POINT_HANDLE_COLOR);
+        let stroke = Stroke::new(1.0, HANDLE_COLOR);
         for i in 0..4 {
             let next = (i + 1) % 4;
             painter.line_segment([screen_corners[i], screen_corners[next]], stroke);
         }
 
         // Draw corner handles (6x6 squares) - fixed screen size, not affected by zoom
-        let handle_size = FOUR_POINT_HANDLE_SIZE;
+        let handle_size = HANDLE_SIZE;
         for corner in &screen_corners {
             let rect = egui::Rect::from_center_size(*corner, Vec2::splat(handle_size));
-            painter.rect_filled(rect, 0.0, FOUR_POINT_HANDLE_COLOR);
+            painter.rect_filled(rect, 0.0, HANDLE_COLOR);
         }
 
         // Draw center handle
         let center_rect = egui::Rect::from_center_size(screen_center, Vec2::splat(handle_size));
-        painter.rect_filled(center_rect, 0.0, FOUR_POINT_HANDLE_COLOR);
+        painter.rect_filled(center_rect, 0.0, HANDLE_COLOR);
     }
 
     /// Check which corner/center was clicked.
     /// Returns the drag state for the hit point, or None if no hit.
     /// Corners have expanded hit targets (5px padding). Interior clicks drag the center.
     pub fn hit_test(&self, screen_pos: Pos2, zoom: f32, pan: Vec2, center: Vec2) -> Option<FourPointDragState> {
-        // Hit target is visual size plus 5 pixels padding on each side (fixed screen size)
-        let hit_radius = (FOUR_POINT_HANDLE_SIZE / 2.0) + 5.0;
+        // Hit target is visual size plus 8 pixels padding on each side (fixed screen size)
+        let hit_radius = HANDLE_SIZE * 2.0;
         let corners = self.corners();
 
         // Check corners first (in order: top-left, top-right, bottom-right, bottom-left)
