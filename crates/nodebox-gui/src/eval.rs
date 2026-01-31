@@ -442,10 +442,219 @@ fn execute_node(node: &Node, inputs: &HashMap<String, NodeOutput>) -> NodeOutput
         }
 
         // Make point
-        "corevector.point" | "corevector.makePoint" => {
+        "corevector.point" | "corevector.makePoint" | "corevector.make_point" => {
             let x = get_float(inputs, "x", 0.0);
             let y = get_float(inputs, "y", 0.0);
             NodeOutput::Point(Point::new(x, y))
+        }
+
+        // Reflect
+        "corevector.reflect" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            // Note: corevector.ndbx uses "position" (Point), "angle", "keep_original"
+            let position = get_point(inputs, "position", Point::ZERO);
+            let angle = get_float(inputs, "angle", 0.0);
+            let keep_original = get_bool(inputs, "keep_original", true);
+            let geometry = nodebox_ops::reflect(&shape, position, angle, keep_original);
+            NodeOutput::Paths(nodebox_ops::ungroup(&geometry))
+        }
+
+        // Skew
+        "corevector.skew" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            // Note: corevector.ndbx uses "skew" (Point), "origin" (Point)
+            let skew = get_point(inputs, "skew", Point::ZERO);
+            let origin = get_point(inputs, "origin", Point::ZERO);
+            let path = nodebox_ops::skew(&shape, skew, origin);
+            NodeOutput::Path(path)
+        }
+
+        // Snap to grid
+        "corevector.snap" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            // Note: corevector.ndbx uses "distance" (float), "strength" (float), "position" (Point)
+            let distance = get_float(inputs, "distance", 10.0);
+            let strength = get_float(inputs, "strength", 1.0);
+            let position = get_point(inputs, "position", Point::ZERO);
+            let path = nodebox_ops::snap(&shape, distance, strength, position);
+            NodeOutput::Path(path)
+        }
+
+        // Point on path
+        "corevector.point_on_path" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let t = get_float(inputs, "t", 0.0);
+            // Range varies; convert from 0-100 percentage to 0-1 if needed
+            let t_normalized = if t > 1.0 { t / 100.0 } else { t };
+            let point = nodebox_ops::point_on_path(&shape, t_normalized);
+            NodeOutput::Point(point)
+        }
+
+        // Centroid
+        "corevector.centroid" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let point = nodebox_ops::centroid(&shape);
+            NodeOutput::Point(point)
+        }
+
+        // Line from angle
+        "corevector.line_angle" => {
+            let position = get_point(inputs, "position", Point::ZERO);
+            let angle = get_float(inputs, "angle", 0.0);
+            let distance = get_float(inputs, "distance", 100.0);
+            let points = get_int(inputs, "points", 2) as u32;
+            let path = nodebox_ops::line_angle(position, angle, distance, points);
+            NodeOutput::Path(path)
+        }
+
+        // Quad curve
+        "corevector.quad_curve" => {
+            let point1 = get_point(inputs, "point1", Point::ZERO);
+            let point2 = get_point(inputs, "point2", Point::new(100.0, 100.0));
+            let t = get_float(inputs, "t", 0.5);
+            let distance = get_float(inputs, "distance", 50.0);
+            let path = nodebox_ops::quad_curve(point1, point2, t, distance);
+            NodeOutput::Path(path)
+        }
+
+        // Scatter points
+        "corevector.scatter" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let amount = get_int(inputs, "amount", 10) as usize;
+            let seed = get_int(inputs, "seed", 0) as u64;
+            let points = nodebox_ops::scatter(&shape, amount, seed);
+            NodeOutput::Points(points)
+        }
+
+        // Stack
+        "corevector.stack" => {
+            let shapes = get_paths(inputs, "shapes");
+            if shapes.is_empty() {
+                return NodeOutput::None;
+            }
+            let direction = get_string(inputs, "direction", "east");
+            let margin = get_float(inputs, "margin", 0.0);
+            let dir = match direction.as_str() {
+                "north" => nodebox_ops::StackDirection::North,
+                "south" => nodebox_ops::StackDirection::South,
+                "west" => nodebox_ops::StackDirection::West,
+                _ => nodebox_ops::StackDirection::East,
+            };
+            let paths = nodebox_ops::stack(&shapes, dir, margin);
+            NodeOutput::Paths(paths)
+        }
+
+        // Freehand path
+        "corevector.freehand" => {
+            let path_string = get_string(inputs, "path", "");
+            let path = nodebox_ops::freehand(&path_string);
+            NodeOutput::Path(path)
+        }
+
+        // Link shapes
+        "corevector.link" => {
+            let shape1 = match get_path(inputs, "shape1") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let shape2 = match get_path(inputs, "shape2") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let orientation = get_string(inputs, "orientation", "horizontal");
+            let horizontal = orientation == "horizontal";
+            let path = nodebox_ops::link(&shape1, &shape2, horizontal);
+            NodeOutput::Path(path)
+        }
+
+        // Group
+        "corevector.group" => {
+            let shapes = get_paths(inputs, "shapes");
+            let geometry = nodebox_ops::group(&shapes);
+            NodeOutput::Paths(nodebox_ops::ungroup(&geometry))
+        }
+
+        // Ungroup
+        "corevector.ungroup" => {
+            // Ungroup expects a Geometry, but we work with paths
+            let shapes = get_paths(inputs, "geometry");
+            if shapes.is_empty() {
+                let shape = get_paths(inputs, "shape");
+                return NodeOutput::Paths(shape);
+            }
+            NodeOutput::Paths(shapes)
+        }
+
+        // Fit to another shape
+        "corevector.fit_to" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let bounding = match get_path(inputs, "bounding") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let keep_proportions = get_bool(inputs, "keep_proportions", true);
+            let path = nodebox_ops::fit_to(&shape, &bounding, keep_proportions);
+            NodeOutput::Path(path)
+        }
+
+        // Delete
+        "corevector.delete" => {
+            let shape = match get_path(inputs, "shape") {
+                Some(p) => p,
+                None => return NodeOutput::None,
+            };
+            let bounding = match get_path(inputs, "bounding") {
+                Some(p) => p,
+                None => return NodeOutput::Path(shape),
+            };
+            let scope = get_string(inputs, "scope", "points");
+            let delete_scope = match scope.as_str() {
+                "paths" => nodebox_ops::DeleteScope::Paths,
+                _ => nodebox_ops::DeleteScope::Points,
+            };
+            let operation = get_string(inputs, "operation", "selected");
+            let delete_inside = operation == "selected";
+            let path = nodebox_ops::delete(&shape, &bounding, delete_scope, delete_inside);
+            NodeOutput::Path(path)
+        }
+
+        // Sort
+        "corevector.sort" => {
+            let shapes = get_paths(inputs, "shapes");
+            if shapes.is_empty() {
+                return NodeOutput::None;
+            }
+            let order_by = get_string(inputs, "order_by", "x");
+            let sort_by = match order_by.as_str() {
+                "y" => nodebox_ops::SortBy::Y,
+                "distance" => nodebox_ops::SortBy::Distance,
+                "angle" => nodebox_ops::SortBy::Angle,
+                _ => nodebox_ops::SortBy::X,
+            };
+            let position = get_point(inputs, "position", Point::ZERO);
+            let paths = nodebox_ops::sort_paths(&shapes, sort_by, position);
+            NodeOutput::Paths(paths)
         }
 
         // Default: pass-through or unknown node
