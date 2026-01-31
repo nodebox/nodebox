@@ -2,10 +2,21 @@
 
 use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
 use nodebox_core::geometry::{Color, Path, Point, PointType};
-use crate::handles::HandleSet;
+use crate::handles::{FourPointHandle, HandleSet};
 use crate::pan_zoom::PanZoom;
 use crate::state::AppState;
 use crate::theme;
+
+/// Result of handle interaction.
+#[derive(Clone, Debug)]
+pub enum HandleResult {
+    /// No interaction occurred.
+    None,
+    /// A single point changed (for regular handles).
+    PointChange { param: String, value: Point },
+    /// FourPointHandle changed (x, y, width, height).
+    FourPointChange { x: f64, y: f64, width: f64, height: f64 },
+}
 
 /// Which tab is currently selected in the viewer.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -32,6 +43,8 @@ pub struct ViewerPane {
     pan_zoom: PanZoom,
     /// Active handles for the selected node.
     handles: Option<HandleSet>,
+    /// FourPointHandle for rect nodes.
+    four_point_handle: Option<FourPointHandle>,
     /// Index of handle being dragged.
     dragging_handle: Option<usize>,
     /// Whether space bar is currently pressed (for panning).
@@ -58,6 +71,7 @@ impl ViewerPane {
             show_bounds: false,
             pan_zoom: PanZoom::with_zoom_limits(0.1, 10.0),
             handles: None,
+            four_point_handle: None,
             dragging_handle: None,
             is_space_pressed: false,
             is_panning: false,
@@ -100,7 +114,8 @@ impl ViewerPane {
     }
 
     /// Show the viewer pane with header tabs and toolbar.
-    pub fn show(&mut self, ui: &mut egui::Ui, state: &AppState) {
+    /// Returns any handle interaction result.
+    pub fn show(&mut self, ui: &mut egui::Ui, state: &AppState) -> HandleResult {
         // Header with tabs and toolbar
         ui.horizontal(|ui| {
             // Tabs
@@ -129,7 +144,10 @@ impl ViewerPane {
         // Content area
         match self.current_tab {
             ViewerTab::Viewer => self.show_canvas(ui, state),
-            ViewerTab::Data => self.show_data_view(ui, state),
+            ViewerTab::Data => {
+                self.show_data_view(ui, state);
+                HandleResult::None
+            }
         }
     }
 
@@ -178,7 +196,9 @@ impl ViewerPane {
     }
 
     /// Show the canvas viewer.
-    fn show_canvas(&mut self, ui: &mut egui::Ui, state: &AppState) {
+    fn show_canvas(&mut self, ui: &mut egui::Ui, state: &AppState) -> HandleResult {
+        use crate::handles::{screen_to_world, FourPointDragState};
+
         let (response, painter) =
             ui.allocate_painter(ui.available_size(), egui::Sense::click_and_drag());
 
@@ -198,7 +218,8 @@ impl ViewerPane {
         }
 
         // Handle panning with space+drag, middle mouse button, or right drag
-        if self.is_space_pressed && response.dragged_by(egui::PointerButton::Primary) {
+        let is_panning = self.is_space_pressed && response.dragged_by(egui::PointerButton::Primary);
+        if is_panning {
             self.pan_zoom.pan += response.drag_delta();
             self.is_panning = true;
         }
@@ -267,7 +288,99 @@ impl ViewerPane {
             if let Some(ref handles) = self.handles {
                 handles.draw(&painter, self.pan_zoom.zoom, self.pan_zoom.pan, center);
             }
+            if let Some(ref handle) = self.four_point_handle {
+                handle.draw(&painter, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+            }
         }
+
+        // Handle interactions (only if not panning)
+        if !self.is_space_pressed && self.show_handles {
+            let mouse_pos = ui.input(|i| i.pointer.hover_pos());
+
+            // Handle FourPointHandle first (takes priority)
+            if let Some(ref mut four_point) = self.four_point_handle {
+                // Check for drag start
+                if response.drag_started_by(egui::PointerButton::Primary) {
+                    if let Some(pos) = mouse_pos {
+                        if let Some(hit_state) = four_point.hit_test(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center) {
+                            let world_pos = screen_to_world(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+                            four_point.start_drag(hit_state, world_pos);
+                        }
+                    }
+                }
+
+                // Handle dragging
+                if four_point.is_dragging() {
+                    if response.drag_stopped_by(egui::PointerButton::Primary) {
+                        // Drag ended - return final values
+                        let (x, y, width, height) = four_point.end_drag();
+                        return HandleResult::FourPointChange { x, y, width, height };
+                    } else if response.dragged_by(egui::PointerButton::Primary) {
+                        // Still dragging - update and return current values for live preview
+                        if let Some(pos) = mouse_pos {
+                            let world_pos = screen_to_world(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+                            four_point.update_drag(world_pos);
+                        }
+                        // Return current values to trigger re-render
+                        return HandleResult::FourPointChange {
+                            x: four_point.center.x,
+                            y: four_point.center.y,
+                            width: four_point.width,
+                            height: four_point.height,
+                        };
+                    }
+                }
+
+                // If FourPointHandle is dragging, don't process regular handles
+                if four_point.drag_state != FourPointDragState::None {
+                    return HandleResult::None;
+                }
+            }
+
+            // Check for regular handle dragging
+            if let Some(ref mut handles) = self.handles {
+                // Check for drag start
+                if response.drag_started_by(egui::PointerButton::Primary) {
+                    if let Some(pos) = mouse_pos {
+                        if let Some(idx) = handles.hit_test(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center) {
+                            self.dragging_handle = Some(idx);
+                            if let Some(handle) = handles.handles_mut().get_mut(idx) {
+                                handle.dragging = true;
+                            }
+                        }
+                    }
+                }
+
+                // Handle dragging
+                if let Some(idx) = self.dragging_handle {
+                    if response.drag_stopped_by(egui::PointerButton::Primary) {
+                        // Drag ended
+                        if let Some(handle) = handles.handles_mut().get_mut(idx) {
+                            handle.dragging = false;
+                            let param_name = handle.param_name.clone();
+                            let position = handle.position;
+                            self.dragging_handle = None;
+                            return HandleResult::PointChange { param: param_name, value: position };
+                        }
+                        self.dragging_handle = None;
+                    } else if response.dragged_by(egui::PointerButton::Primary) {
+                        // Still dragging - update and return current values for live preview
+                        if let Some(pos) = mouse_pos {
+                            handles.update_handle_position(idx, pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
+                        }
+                        // Return current values to trigger re-render
+                        if let Some(handle) = handles.handles().get(idx) {
+                            return HandleResult::PointChange {
+                                param: handle.param_name.clone(),
+                                value: handle.position,
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        HandleResult::None
     }
 
     /// Show the data view (placeholder for now).
@@ -306,53 +419,6 @@ impl ViewerPane {
                     .size(12.0),
             );
         });
-    }
-
-    /// Handle interaction and return any parameter changes.
-    pub fn handle_interaction(&mut self, ui: &egui::Ui, rect: Rect) -> Option<(String, Point)> {
-        if !self.show_handles {
-            return None;
-        }
-
-        let center = rect.center().to_vec2();
-
-        // Check for handle dragging
-        if let Some(ref mut handles) = self.handles {
-            let mouse_pos = ui.input(|i| i.pointer.hover_pos());
-
-            // Check for drag start
-            if ui.input(|i| i.pointer.button_pressed(egui::PointerButton::Primary)) {
-                if let Some(pos) = mouse_pos {
-                    if let Some(idx) = handles.hit_test(pos, self.pan_zoom.zoom, self.pan_zoom.pan, center) {
-                        self.dragging_handle = Some(idx);
-                        if let Some(handle) = handles.handles_mut().get_mut(idx) {
-                            handle.dragging = true;
-                        }
-                    }
-                }
-            }
-
-            // Handle dragging
-            if let Some(idx) = self.dragging_handle {
-                if ui.input(|i| i.pointer.button_down(egui::PointerButton::Primary)) {
-                    if let Some(pos) = mouse_pos {
-                        handles.update_handle_position(idx, pos, self.pan_zoom.zoom, self.pan_zoom.pan, center);
-                    }
-                } else {
-                    // Drag ended
-                    if let Some(handle) = handles.handles_mut().get_mut(idx) {
-                        handle.dragging = false;
-                        let param_name = handle.param_name.clone();
-                        let position = handle.position;
-                        self.dragging_handle = None;
-                        return Some((param_name, position));
-                    }
-                    self.dragging_handle = None;
-                }
-            }
-        }
-
-        None
     }
 
     /// Draw a background grid.
@@ -538,12 +604,13 @@ impl ViewerPane {
 
     /// Update handles for the selected node.
     pub fn update_handles_for_node(&mut self, node_name: Option<&str>, state: &AppState) {
-        use crate::handles::{ellipse_handles, rect_handles, Handle};
+        use crate::handles::{ellipse_handles, rect_four_point_handle, Handle};
 
         match node_name {
             Some(name) => {
                 if let Some(node) = state.library.root.child(name) {
                     let mut handle_set = HandleSet::new(name);
+                    let mut use_four_point = false;
 
                     if let Some(ref proto) = node.prototype {
                         match proto.as_str() {
@@ -587,9 +654,11 @@ impl ViewerPane {
                                     .and_then(|p| p.value.as_float())
                                     .unwrap_or(100.0);
 
-                                for h in rect_handles(x, y, width, height) {
-                                    handle_set.add(h);
+                                // Use FourPointHandle for rect nodes (only update if not dragging)
+                                if self.four_point_handle.as_ref().map_or(true, |h| !h.is_dragging()) {
+                                    self.four_point_handle = Some(rect_four_point_handle(name, x, y, width, height));
                                 }
+                                use_four_point = true;
                             }
                             "corevector.line" => {
                                 let p1 = node
@@ -626,17 +695,25 @@ impl ViewerPane {
                         }
                     }
 
-                    if !handle_set.handles().is_empty() {
-                        self.handles = Some(handle_set);
-                    } else {
+                    // FourPointHandle and regular handles are mutually exclusive
+                    if use_four_point {
                         self.handles = None;
+                    } else {
+                        self.four_point_handle = None;
+                        if !handle_set.handles().is_empty() {
+                            self.handles = Some(handle_set);
+                        } else {
+                            self.handles = None;
+                        }
                     }
                 } else {
                     self.handles = None;
+                    self.four_point_handle = None;
                 }
             }
             None => {
                 self.handles = None;
+                self.four_point_handle = None;
             }
         }
     }

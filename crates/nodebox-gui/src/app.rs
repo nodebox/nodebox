@@ -11,7 +11,7 @@ use crate::panels::ParameterPanel;
 use crate::render_worker::{RenderResult, RenderState, RenderWorkerHandle};
 use crate::state::AppState;
 use crate::theme;
-use crate::viewer_pane::ViewerPane;
+use crate::viewer_pane::{HandleResult, ViewerPane};
 
 /// The main NodeBox application.
 pub struct NodeBoxApp {
@@ -341,12 +341,16 @@ impl eframe::App for NodeBoxApp {
                 self.state.selected_node.as_deref(),
                 &self.state,
             );
-            self.viewer_pane.show(ui, &self.state);
 
-            // Handle viewer interaction
-            let viewer_rect = ui.min_rect();
-            if let Some((param_name, new_position)) = self.viewer_pane.handle_interaction(ui, viewer_rect) {
-                self.handle_parameter_change(&param_name, new_position);
+            // Show viewer and handle interactions
+            match self.viewer_pane.show(ui, &self.state) {
+                HandleResult::PointChange { param, value } => {
+                    self.handle_parameter_change(&param, value);
+                }
+                HandleResult::FourPointChange { x, y, width, height } => {
+                    self.handle_four_point_change(x, y, width, height);
+                }
+                HandleResult::None => {}
             }
         });
 
@@ -411,6 +415,26 @@ impl eframe::App for NodeBoxApp {
 }
 
 impl NodeBoxApp {
+    /// Handle FourPointHandle change (rect x, y, width, height).
+    fn handle_four_point_change(&mut self, x: f64, y: f64, width: f64, height: f64) {
+        if let Some(ref node_name) = self.state.selected_node {
+            if let Some(node) = self.state.library.root.child_mut(node_name) {
+                if let Some(port) = node.input_mut("x") {
+                    port.value = nodebox_core::Value::Float(x);
+                }
+                if let Some(port) = node.input_mut("y") {
+                    port.value = nodebox_core::Value::Float(y);
+                }
+                if let Some(port) = node.input_mut("width") {
+                    port.value = nodebox_core::Value::Float(width);
+                }
+                if let Some(port) = node.input_mut("height") {
+                    port.value = nodebox_core::Value::Float(height);
+                }
+            }
+        }
+    }
+
     /// Handle parameter change from viewer handles.
     fn handle_parameter_change(&mut self, param_name: &str, new_position: Point) {
         if let Some(ref node_name) = self.state.selected_node {

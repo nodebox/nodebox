@@ -52,8 +52,10 @@ fn golden_rect_bounds() {
     let rectangle = rect(Point::new(50.0, 50.0), 100.0, 80.0, Point::ZERO);
     let bounds = rectangle.bounds().unwrap();
 
-    // Rect is positioned with top-left at position, then width/height
-    // Actually check actual values first
+    // Rect is centered at position (50, 50), so bounds are:
+    // x: 50 - 50 = 0, y: 50 - 40 = 10
+    assert_eq!(round_to(bounds.x, 2), 0.0);
+    assert_eq!(round_to(bounds.y, 2), 10.0);
     assert_eq!(round_to(bounds.width, 2), 100.0);
     assert_eq!(round_to(bounds.height, 2), 80.0);
 }

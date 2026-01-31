@@ -40,7 +40,8 @@ pub fn ellipse(position: Point, width: f64, height: f64) -> Path {
 /// ```
 pub fn rect(position: Point, width: f64, height: f64, roundness: Point) -> Path {
     if roundness == Point::ZERO {
-        Path::rect(position.x, position.y, width, height)
+        // Center the rect at position (same as rounded_rect)
+        Path::rect(position.x - width / 2.0, position.y - height / 2.0, width, height)
     } else {
         rounded_rect(position, width, height, roundness.x, roundness.y)
     }
@@ -486,6 +487,21 @@ mod tests {
         let bounds = path.bounds().unwrap();
         assert_relative_eq!(bounds.width, 100.0, epsilon = 0.01);
         assert_relative_eq!(bounds.height, 50.0, epsilon = 0.01);
+    }
+
+    #[test]
+    fn test_rect_centered_at_position() {
+        // Regression test: rect should be centered at the given position
+        let path = rect(Point::new(50.0, 30.0), 100.0, 60.0, Point::ZERO);
+        let bounds = path.bounds().unwrap();
+
+        // A 100x60 rect centered at (50, 30) should have bounds:
+        // x: 50 - 50 = 0, y: 30 - 30 = 0
+        // width: 100, height: 60
+        assert_relative_eq!(bounds.x, 0.0, epsilon = 0.01);
+        assert_relative_eq!(bounds.y, 0.0, epsilon = 0.01);
+        assert_relative_eq!(bounds.width, 100.0, epsilon = 0.01);
+        assert_relative_eq!(bounds.height, 60.0, epsilon = 0.01);
     }
 
     #[test]
