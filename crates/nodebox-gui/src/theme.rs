@@ -6,8 +6,13 @@ use eframe::egui::Color32;
 pub const ADDRESS_BAR_HEIGHT: f32 = 25.0;
 pub const ANIMATION_BAR_HEIGHT: f32 = 27.0;
 pub const PANE_HEADER_HEIGHT: f32 = 25.0;
-pub const LABEL_WIDTH: f32 = 114.0;
-pub const PARAMETER_PANEL_WIDTH: f32 = 280.0;
+pub const LABEL_WIDTH: f32 = 100.0;
+pub const PARAMETER_PANEL_WIDTH: f32 = 260.0;
+pub const PARAMETER_ROW_HEIGHT: f32 = 22.0;
+
+// Parameter panel value colors
+pub const VALUE_TEXT: Color32 = Color32::from_rgb(138, 180, 248);
+pub const VALUE_TEXT_HOVER: Color32 = Color32::from_rgb(168, 200, 255);
 
 // Background colors
 pub const BACKGROUND_COLOR: Color32 = Color32::from_rgb(69, 69, 69);

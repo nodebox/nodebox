@@ -433,8 +433,9 @@ impl NetworkView {
             library.root.connections.remove(conn_idx);
         }
 
-        // Handle delete key for selected nodes
-        if ui.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace)) {
+        // Handle delete key for selected nodes (but not when editing text)
+        let wants_keyboard = ui.ctx().wants_keyboard_input();
+        if !wants_keyboard && ui.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace)) {
             // Delete selected nodes
             for name in &self.selected {
                 // Remove node

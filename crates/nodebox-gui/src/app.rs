@@ -279,7 +279,16 @@ impl eframe::App for NodeBoxApp {
 
                 ui.allocate_new_ui(egui::UiBuilder::new().max_rect(params_rect), |ui| {
                     ui.set_clip_rect(params_rect);
-                    ui.heading("Parameters");
+                    ui.add_space(4.0);
+                    ui.horizontal(|ui| {
+                        ui.add_space(8.0);
+                        ui.label(
+                            egui::RichText::new("PARAMETERS")
+                                .color(theme::TEXT_DISABLED)
+                                .size(10.0),
+                        );
+                    });
+                    ui.add_space(2.0);
                     ui.separator();
                     self.parameters.show(ui, &mut self.state);
                 });
