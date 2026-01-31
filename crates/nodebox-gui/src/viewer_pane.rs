@@ -2,7 +2,7 @@
 
 use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
 use nodebox_core::geometry::{Color, Path, Point, PointType};
-use crate::handles::{FourPointHandle, HandleSet};
+use crate::handles::{FourPointHandle, HandleSet, HANDLE_COLOR};
 use crate::pan_zoom::PanZoom;
 use crate::state::AppState;
 use crate::theme;
@@ -259,6 +259,11 @@ impl ViewerPane {
             if self.show_points {
                 self.draw_points(&painter, path, center);
             }
+
+            // Draw point numbers if enabled (independent of show_points)
+            if self.show_point_numbers {
+                self.draw_point_numbers(&painter, path, center);
+            }
         }
 
         // Draw origin crosshair
@@ -478,7 +483,7 @@ impl ViewerPane {
     /// Draw path points.
     fn draw_points(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
         for contour in &path.contours {
-            for (i, pp) in contour.points.iter().enumerate() {
+            for pp in contour.points.iter() {
                 let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
                 let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
 
@@ -489,17 +494,24 @@ impl ViewerPane {
                     PointType::CurveData => Color32::from_rgb(100, 100, 200),
                 };
                 painter.circle_filled(screen_pt, 3.0, color);
+            }
+        }
+    }
 
-                // Draw point number if enabled
-                if self.show_point_numbers {
-                    painter.text(
-                        screen_pt + Vec2::new(5.0, -5.0),
-                        egui::Align2::LEFT_BOTTOM,
-                        i.to_string(),
-                        egui::FontId::proportional(9.0),
-                        Color32::WHITE,
-                    );
-                }
+    /// Draw point numbers.
+    fn draw_point_numbers(&self, painter: &egui::Painter, path: &Path, center: Vec2) {
+        for contour in &path.contours {
+            for (i, pp) in contour.points.iter().enumerate() {
+                let world_pt = Pos2::new(pp.point.x as f32, pp.point.y as f32);
+                let screen_pt = self.pan_zoom.world_to_screen(world_pt, center);
+
+                painter.text(
+                    screen_pt + Vec2::new(5.0, -5.0),
+                    egui::Align2::LEFT_BOTTOM,
+                    i.to_string(),
+                    egui::FontId::proportional(9.0),
+                    HANDLE_COLOR,
+                );
             }
         }
     }
