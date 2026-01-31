@@ -36,7 +36,20 @@ pub struct NodeBoxApp {
 impl NodeBoxApp {
     /// Create a new NodeBox application instance.
     pub fn new(_cc: &eframe::CreationContext<'_>) -> Self {
-        let state = AppState::new();
+        Self::new_with_file(_cc, None)
+    }
+
+    /// Create a new NodeBox application instance, optionally loading an initial file.
+    pub fn new_with_file(_cc: &eframe::CreationContext<'_>, initial_file: Option<std::path::PathBuf>) -> Self {
+        let mut state = AppState::new();
+
+        // Load the initial file if provided
+        if let Some(ref path) = initial_file {
+            if let Err(e) = state.load_file(path) {
+                log::error!("Failed to load initial file {:?}: {}", path, e);
+            }
+        }
+
         let hash = Self::hash_library(&state.library);
         Self {
             state,

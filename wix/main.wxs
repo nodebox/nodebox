@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product
+        Id="*"
+        Name="NodeBox"
+        Language="1033"
+        Version="$(var.Version)"
+        Manufacturer="NodeBox Contributors"
+        UpgradeCode="E8A9F8C7-1234-5678-9ABC-DEF012345678">
+
+        <Package
+            InstallerVersion="500"
+            Compressed="yes"
+            InstallScope="perMachine"
+            Description="NodeBox - Node-based generative design"
+            Comments="NodeBox installer"
+            Manufacturer="NodeBox Contributors" />
+
+        <MajorUpgrade
+            Schedule="afterInstallInitialize"
+            DowngradeErrorMessage="A newer version of NodeBox is already installed. Setup will now exit." />
+
+        <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+
+        <Icon Id="ProductIcon" SourceFile="platform\windows\installer\nodebox.ico" />
+        <Property Id="ARPPRODUCTICON" Value="ProductIcon" />
+        <Property Id="ARPHELPLINK" Value="https://github.com/nodebox/nodebox" />
+
+        <UIRef Id="WixUI_InstallDir" />
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+
+        <WixVariable Id="WixUILicenseRtf" Value="wix\license.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="platform\windows\installer\header.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="platform\windows\installer\wizard.bmp" />
+
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="NodeBox">
+                    <Component Id="MainExecutable" Guid="A1B2C3D4-5678-90AB-CDEF-123456789ABC">
+                        <File
+                            Id="NodeBoxExe"
+                            Name="NodeBox.exe"
+                            Source="target\release\nodebox-gui.exe"
+                            KeyPath="yes">
+                            <Shortcut
+                                Id="StartMenuShortcut"
+                                Directory="ProgramMenuFolder"
+                                Name="NodeBox"
+                                WorkingDirectory="INSTALLDIR"
+                                Icon="ProductIcon"
+                                IconIndex="0"
+                                Advertise="yes" />
+                            <Shortcut
+                                Id="DesktopShortcut"
+                                Directory="DesktopFolder"
+                                Name="NodeBox"
+                                WorkingDirectory="INSTALLDIR"
+                                Icon="ProductIcon"
+                                IconIndex="0"
+                                Advertise="yes" />
+                        </File>
+
+                        <!-- File association for .ndbx files -->
+                        <ProgId Id="NodeBox.ndbx" Description="NodeBox Document" Icon="ProductIcon">
+                            <Extension Id="ndbx" ContentType="application/x-nodebox">
+                                <Verb Id="open" Command="Open" TargetFile="NodeBoxExe" Argument='"%1"' />
+                            </Extension>
+                        </ProgId>
+                    </Component>
+                </Directory>
+            </Directory>
+
+            <Directory Id="ProgramMenuFolder" />
+            <Directory Id="DesktopFolder" />
+        </Directory>
+
+        <Feature Id="MainFeature" Title="NodeBox" Level="1">
+            <ComponentRef Id="MainExecutable" />
+        </Feature>
+
+    </Product>
+</Wix>

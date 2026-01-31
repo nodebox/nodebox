@@ -1,9 +1,10 @@
 //! Node network editor view.
 
-use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
+use eframe::egui::{self, Color32, ColorImage, Pos2, Rect, Stroke, TextureHandle, TextureOptions, Vec2};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Connection, Node, NodeLibrary, PortType};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 
 use crate::pan_zoom::PanZoom;
 
@@ -14,6 +15,101 @@ pub enum NetworkAction {
     None,
     /// Open the node selection dialog at the given position (in grid units).
     OpenNodeDialog(Point),
+}
+
+/// Cache for node icons loaded from libraries directory.
+struct IconCache {
+    /// Loaded icon textures, keyed by function name (e.g., "corevector/ellipse").
+    textures: HashMap<String, TextureHandle>,
+    /// Path to the libraries directory.
+    libraries_path: Option<PathBuf>,
+    /// Set of icons that failed to load (don't retry).
+    failed: HashSet<String>,
+}
+
+impl IconCache {
+    fn new() -> Self {
+        // Try to find the libraries directory
+        let libraries_path = Self::find_libraries_path();
+        Self {
+            textures: HashMap::new(),
+            libraries_path,
+            failed: HashSet::new(),
+        }
+    }
+
+    /// Find the libraries directory (next to executable or in development paths).
+    fn find_libraries_path() -> Option<PathBuf> {
+        // Try relative to executable
+        if let Ok(exe_path) = std::env::current_exe() {
+            // In macOS bundle: NodeBox.app/Contents/MacOS/NodeBox
+            // Libraries at: NodeBox.app/Contents/Resources/libraries
+            if let Some(parent) = exe_path.parent() {
+                let bundle_resources = parent.parent().map(|p| p.join("Resources/libraries"));
+                if let Some(ref path) = bundle_resources {
+                    if path.exists() {
+                        return Some(path.clone());
+                    }
+                }
+            }
+        }
+
+        // Try current directory
+        let cwd_libs = PathBuf::from("libraries");
+        if cwd_libs.exists() {
+            return Some(cwd_libs);
+        }
+
+        // Try relative to project root (development)
+        for path in ["./libraries", "../libraries", "../../libraries"] {
+            let p = PathBuf::from(path);
+            if p.exists() {
+                return Some(p);
+            }
+        }
+
+        None
+    }
+
+    /// Get or load an icon for the given function name.
+    fn get_icon(&mut self, ctx: &egui::Context, function: &str) -> Option<&TextureHandle> {
+        // Check if already loaded
+        if self.textures.contains_key(function) {
+            return self.textures.get(function);
+        }
+
+        // Check if previously failed
+        if self.failed.contains(function) {
+            return None;
+        }
+
+        // Try to load the icon
+        if let Some(ref libs_path) = self.libraries_path {
+            // Function is like "corevector/ellipse" -> "libraries/corevector/ellipse.png"
+            let icon_path = libs_path.join(format!("{}.png", function));
+            if icon_path.exists() {
+                if let Ok(image_data) = std::fs::read(&icon_path) {
+                    if let Ok(image) = image::load_from_memory(&image_data) {
+                        let rgba = image.to_rgba8();
+                        let size = [rgba.width() as usize, rgba.height() as usize];
+                        let pixels = rgba.into_raw();
+                        let color_image = ColorImage::from_rgba_unmultiplied(size, &pixels);
+                        let texture = ctx.load_texture(
+                            function,
+                            color_image,
+                            TextureOptions::LINEAR,
+                        );
+                        self.textures.insert(function.to_string(), texture);
+                        return self.textures.get(function);
+                    }
+                }
+            }
+        }
+
+        // Mark as failed
+        self.failed.insert(function.to_string());
+        None
+    }
 }
 
 /// The visual state of the network view.
@@ -36,6 +132,8 @@ pub struct NetworkView {
     hovered_port: Option<(String, String)>,
     /// Currently hovered output port (node_name).
     hovered_output: Option<String>,
+    /// Cache for node icons.
+    icon_cache: IconCache,
 }
 
 /// State for dragging a new connection.
@@ -82,6 +180,7 @@ impl NetworkView {
             is_panning: false,
             hovered_port: None,
             hovered_output: None,
+            icon_cache: IconCache::new(),
         }
     }
 
@@ -234,7 +333,7 @@ impl NetworkView {
             // Draw the node
             let is_selected = self.selected.contains(&child.name);
             let is_rendered = network.rendered_child.as_deref() == Some(&child.name);
-            self.draw_node(&painter, ui, child, offset, is_selected, is_rendered);
+            self.draw_node(ui.ctx(), &painter, ui, child, offset, is_selected, is_rendered);
 
             // Check for output port click (to start connection)
             let output_pos = self.node_output_pos(child, offset);
@@ -570,7 +669,8 @@ impl NetworkView {
 
     /// Draw a node (Java NodeBox style).
     fn draw_node(
-        &self,
+        &mut self,
+        ctx: &egui::Context,
         painter: &egui::Painter,
         _ui: &egui::Ui,
         node: &Node,
@@ -609,7 +709,7 @@ impl NetworkView {
             rect.left() + NODE_PADDING * self.pan_zoom.zoom,
             rect.top() + NODE_PADDING * self.pan_zoom.zoom,
         );
-        self.draw_node_icon(painter, icon_pos, &node.category);
+        self.draw_node_icon(ctx, painter, icon_pos, node.function.as_deref(), &node.category);
 
         // 4. Draw name (after icon, vertically centered)
         let name_x = rect.left() + (NODE_ICON_SIZE + NODE_PADDING * 2.0) * self.pan_zoom.zoom;
@@ -660,10 +760,29 @@ impl NetworkView {
         painter.rect_filled(out_rect, 0.0, out_color);
     }
 
-    /// Draw a node icon placeholder.
-    fn draw_node_icon(&self, painter: &egui::Painter, pos: Pos2, category: &str) {
+    /// Draw a node icon, loading from libraries if available.
+    fn draw_node_icon(&mut self, ctx: &egui::Context, painter: &egui::Painter, pos: Pos2, function: Option<&str>, category: &str) {
         let size = NODE_ICON_SIZE * self.pan_zoom.zoom;
         let rect = Rect::from_min_size(pos, Vec2::splat(size));
+
+        // Try to load icon from file if we have a function name
+        if let Some(func) = function {
+            if let Some(texture) = self.icon_cache.get_icon(ctx, func) {
+                // Draw the texture
+                let uv = Rect::from_min_max(Pos2::new(0.0, 0.0), Pos2::new(1.0, 1.0));
+                let tint = Color32::WHITE;
+                painter.image(texture.id(), rect, uv, tint);
+                return;
+            }
+        }
+
+        // Fallback to procedural icon based on category
+        self.draw_fallback_icon(painter, rect, category);
+    }
+
+    /// Draw a fallback procedural icon based on category.
+    fn draw_fallback_icon(&self, painter: &egui::Painter, rect: Rect, category: &str) {
+        let size = rect.width();
         let icon_color = Color32::from_rgba_unmultiplied(255, 255, 255, 200);
 
         match category.to_lowercase().as_str() {
