@@ -159,17 +159,19 @@ impl ParameterPanel {
             }
             Widget::Color => {
                 if let Value::Color(ref mut color) = port.value {
+                    // Convert 0-1 floats to 0-255 bytes for sRGB color picker
                     let mut rgba = [
-                        color.r as f32,
-                        color.g as f32,
-                        color.b as f32,
-                        color.a as f32,
+                        (color.r * 255.0) as u8,
+                        (color.g * 255.0) as u8,
+                        (color.b * 255.0) as u8,
+                        (color.a * 255.0) as u8,
                     ];
-                    if ui.color_edit_button_rgba_unmultiplied(&mut rgba).changed() {
-                        color.r = rgba[0] as f64;
-                        color.g = rgba[1] as f64;
-                        color.b = rgba[2] as f64;
-                        color.a = rgba[3] as f64;
+                    // Use sRGB color picker since our Color values are in sRGB space
+                    if ui.color_edit_button_srgba_unmultiplied(&mut rgba).changed() {
+                        color.r = rgba[0] as f64 / 255.0;
+                        color.g = rgba[1] as f64 / 255.0;
+                        color.b = rgba[2] as f64 / 255.0;
+                        color.a = rgba[3] as f64 / 255.0;
                     }
                 }
             }
