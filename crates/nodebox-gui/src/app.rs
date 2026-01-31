@@ -54,6 +54,100 @@ impl NodeBoxApp {
         }
     }
 
+    /// Create a new NodeBox application instance for testing.
+    ///
+    /// This constructor creates an app without spawning a render worker thread,
+    /// making it suitable for unit tests and integration tests.
+    #[cfg(test)]
+    pub fn new_for_testing() -> Self {
+        let state = AppState::new();
+        let hash = Self::hash_library(&state.library);
+        Self {
+            state,
+            address_bar: AddressBar::new(),
+            viewer_pane: ViewerPane::new(),
+            network_view: NetworkView::new(),
+            parameters: ParameterPanel::new(),
+            animation_bar: AnimationBar::new(),
+            node_dialog: NodeSelectionDialog::new(),
+            history: History::new(),
+            previous_library_hash: hash,
+            render_worker: RenderWorkerHandle::spawn(),
+            render_state: RenderState::new(),
+            render_pending: false,
+        }
+    }
+
+    /// Create a new NodeBox application instance for testing with an empty library.
+    ///
+    /// This is useful for tests that need to set up their own node configuration.
+    #[cfg(test)]
+    pub fn new_for_testing_empty() -> Self {
+        let mut state = AppState::new();
+        state.library = nodebox_core::node::NodeLibrary::new("test");
+        state.geometry.clear();
+        let hash = Self::hash_library(&state.library);
+        Self {
+            state,
+            address_bar: AddressBar::new(),
+            viewer_pane: ViewerPane::new(),
+            network_view: NetworkView::new(),
+            parameters: ParameterPanel::new(),
+            animation_bar: AnimationBar::new(),
+            node_dialog: NodeSelectionDialog::new(),
+            history: History::new(),
+            previous_library_hash: hash,
+            render_worker: RenderWorkerHandle::spawn(),
+            render_state: RenderState::new(),
+            render_pending: false,
+        }
+    }
+
+    /// Get a reference to the application state.
+    pub fn state(&self) -> &AppState {
+        &self.state
+    }
+
+    /// Get a mutable reference to the application state.
+    pub fn state_mut(&mut self) -> &mut AppState {
+        &mut self.state
+    }
+
+    /// Get a reference to the history manager.
+    pub fn history(&self) -> &History {
+        &self.history
+    }
+
+    /// Get a mutable reference to the history manager.
+    pub fn history_mut(&mut self) -> &mut History {
+        &mut self.history
+    }
+
+    /// Synchronously evaluate the network for testing.
+    ///
+    /// Unlike the normal async flow, this directly evaluates and updates geometry.
+    #[cfg(test)]
+    pub fn evaluate_for_testing(&mut self) {
+        self.state.evaluate();
+    }
+
+    /// Simulate a frame update for testing purposes.
+    ///
+    /// This checks for changes and updates history, similar to what happens
+    /// during a normal frame update, but without the async render worker.
+    #[cfg(test)]
+    pub fn update_for_testing(&mut self) {
+        // Check for changes and save to history
+        let current_hash = Self::hash_library(&self.state.library);
+        if current_hash != self.previous_library_hash {
+            self.history.save_state(&self.state.library);
+            self.previous_library_hash = current_hash;
+            self.state.dirty = true;
+        }
+        // Synchronously evaluate
+        self.state.evaluate();
+    }
+
     /// Compute a simple hash of the library for change detection.
     fn hash_library(library: &nodebox_core::node::NodeLibrary) -> u64 {
         use std::hash::{Hash, Hasher};

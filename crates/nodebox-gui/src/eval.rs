@@ -543,8 +543,360 @@ mod tests {
             .with_rendered_child("merge1");
 
         let paths = evaluate_network(&library);
-        // Note: with the current simple merge, we only get the last connected shape
-        // A proper merge would collect all inputs. This test shows current behavior.
-        assert!(!paths.is_empty());
+        // Merge collects all connected shapes
+        assert_eq!(paths.len(), 2);
+    }
+
+    #[test]
+    fn test_evaluate_rect() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("rect1")
+                    .with_prototype("corevector.rect")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 80.0))
+                    .with_input(Port::float("height", 40.0))
+            )
+            .with_rendered_child("rect1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        assert!((bounds.width - 80.0).abs() < 0.1);
+        assert!((bounds.height - 40.0).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_evaluate_line() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("line1")
+                    .with_prototype("corevector.line")
+                    .with_input(Port::point("point1", Point::new(0.0, 0.0)))
+                    .with_input(Port::point("point2", Point::new(100.0, 50.0)))
+                    .with_input(Port::int("points", 2))
+            )
+            .with_rendered_child("line1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        assert!((bounds.width - 100.0).abs() < 0.1);
+        assert!((bounds.height - 50.0).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_evaluate_polygon() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("polygon1")
+                    .with_prototype("corevector.polygon")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("radius", 50.0))
+                    .with_input(Port::int("sides", 6))
+                    .with_input(Port::boolean("align", true))
+            )
+            .with_rendered_child("polygon1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        // Hexagon with radius 50 should have bounds approximately 100x86 (2*r x sqrt(3)*r)
+        let bounds = paths[0].bounds().unwrap();
+        assert!(bounds.width > 80.0 && bounds.width < 110.0);
+        assert!(bounds.height > 80.0 && bounds.height < 110.0);
+    }
+
+    #[test]
+    fn test_evaluate_star() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("star1")
+                    .with_prototype("corevector.star")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::int("points", 5))
+                    .with_input(Port::float("outer", 50.0))
+                    .with_input(Port::float("inner", 25.0))
+            )
+            .with_rendered_child("star1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        // Star with outer radius 50 should have bounds approximately 100x100
+        let bounds = paths[0].bounds().unwrap();
+        assert!(bounds.width > 80.0 && bounds.width < 110.0);
+    }
+
+    #[test]
+    fn test_evaluate_arc() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("arc1")
+                    .with_prototype("corevector.arc")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::float("startAngle", 0.0))
+                    .with_input(Port::float("degrees", 180.0))
+                    .with_input(Port::string("type", "pie"))
+            )
+            .with_rendered_child("arc1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+    }
+
+    #[test]
+    fn test_evaluate_translate() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+            )
+            .with_child(
+                Node::new("translate1")
+                    .with_prototype("corevector.translate")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("translate", Point::new(100.0, 50.0)))
+            )
+            .with_connection(Connection::new("ellipse1", "translate1", "shape"))
+            .with_rendered_child("translate1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        // Original ellipse centered at (0,0) translated by (100, 50)
+        // Center should now be at (100, 50)
+        let center_x = bounds.x + bounds.width / 2.0;
+        let center_y = bounds.y + bounds.height / 2.0;
+        assert!((center_x - 100.0).abs() < 1.0);
+        assert!((center_y - 50.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_evaluate_scale() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+            )
+            .with_child(
+                Node::new("scale1")
+                    .with_prototype("corevector.scale")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::point("scale", Point::new(50.0, 200.0))) // 50% x, 200% y
+                    .with_input(Port::point("origin", Point::ZERO))
+            )
+            .with_connection(Connection::new("ellipse1", "scale1", "shape"))
+            .with_rendered_child("scale1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+
+        let bounds = paths[0].bounds().unwrap();
+        // Width should be 50, height should be 200
+        assert!((bounds.width - 50.0).abs() < 1.0);
+        assert!((bounds.height - 200.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_evaluate_copy() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+            )
+            .with_child(
+                Node::new("copy1")
+                    .with_prototype("corevector.copy")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("copies", 3))
+                    .with_input(Port::string("order", "tsr"))
+                    .with_input(Port::float("tx", 60.0))
+                    .with_input(Port::float("ty", 0.0))
+                    .with_input(Port::float("rotate", 0.0))
+                    .with_input(Port::float("sx", 100.0))
+                    .with_input(Port::float("sy", 100.0))
+            )
+            .with_connection(Connection::new("ellipse1", "copy1", "shape"))
+            .with_rendered_child("copy1");
+
+        let paths = evaluate_network(&library);
+        // Should have 3 copies
+        assert_eq!(paths.len(), 3);
+    }
+
+    #[test]
+    fn test_evaluate_empty_network() {
+        let library = NodeLibrary::new("test");
+        let paths = evaluate_network(&library);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_evaluate_no_rendered_child() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 50.0))
+                    .with_input(Port::float("height", 50.0))
+            );
+        // No rendered_child set
+
+        let paths = evaluate_network(&library);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_evaluate_colorize_without_input() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("colorize1")
+                    .with_prototype("corevector.colorize")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::color("fill", Color::rgb(1.0, 0.0, 0.0)))
+                    .with_input(Port::color("stroke", Color::BLACK))
+                    .with_input(Port::float("strokeWidth", 2.0))
+            )
+            .with_rendered_child("colorize1");
+
+        // Should handle missing input gracefully
+        let paths = evaluate_network(&library);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_evaluate_unknown_node_type() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("unknown1")
+                    .with_prototype("corevector.nonexistent")
+            )
+            .with_rendered_child("unknown1");
+
+        // Should handle unknown node type gracefully
+        let paths = evaluate_network(&library);
+        assert!(paths.is_empty());
+    }
+
+    #[test]
+    fn test_evaluate_resample() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("ellipse1")
+                    .with_prototype("corevector.ellipse")
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+            )
+            .with_child(
+                Node::new("resample1")
+                    .with_prototype("corevector.resample")
+                    .with_input(Port::geometry("shape"))
+                    .with_input(Port::int("points", 20))
+            )
+            .with_connection(Connection::new("ellipse1", "resample1", "shape"))
+            .with_rendered_child("resample1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+        // Resampled path should have the specified number of points
+        // Note: exact point count depends on implementation
+    }
+
+    #[test]
+    fn test_evaluate_grid() {
+        let mut library = NodeLibrary::new("test");
+        library.root = Node::network("root")
+            .with_child(
+                Node::new("grid1")
+                    .with_prototype("corevector.grid")
+                    .with_input(Port::int("columns", 3))
+                    .with_input(Port::int("rows", 3))
+                    .with_input(Port::float("width", 100.0))
+                    .with_input(Port::float("height", 100.0))
+                    .with_input(Port::float("x", 0.0))
+                    .with_input(Port::float("y", 0.0))
+            )
+            .with_child(
+                Node::new("connect1")
+                    .with_prototype("corevector.connect")
+                    .with_input(Port::geometry("points"))
+                    .with_input(Port::boolean("closed", false))
+            )
+            .with_connection(Connection::new("grid1", "connect1", "points"))
+            .with_rendered_child("connect1");
+
+        let paths = evaluate_network(&library);
+        assert_eq!(paths.len(), 1);
+    }
+
+    #[test]
+    fn test_node_output_conversions() {
+        // Test to_paths()
+        let path = Path::new();
+        let output = NodeOutput::Path(path.clone());
+        assert_eq!(output.to_paths().len(), 1);
+
+        let output = NodeOutput::Paths(vec![path.clone(), path.clone()]);
+        assert_eq!(output.to_paths().len(), 2);
+
+        let output = NodeOutput::Float(1.0);
+        assert!(output.to_paths().is_empty());
+
+        // Test as_path()
+        let output = NodeOutput::Path(path.clone());
+        assert!(output.as_path().is_some());
+
+        let output = NodeOutput::Float(1.0);
+        assert!(output.as_path().is_none());
+
+        // Test as_paths()
+        let output = NodeOutput::Path(path.clone());
+        assert!(output.as_paths().is_some());
+        assert_eq!(output.as_paths().unwrap().len(), 1);
+
+        let output = NodeOutput::Paths(vec![path.clone(), path.clone()]);
+        assert!(output.as_paths().is_some());
+        assert_eq!(output.as_paths().unwrap().len(), 2);
+
+        let output = NodeOutput::Float(1.0);
+        assert!(output.as_paths().is_none());
     }
 }

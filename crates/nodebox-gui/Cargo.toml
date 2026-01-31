@@ -7,6 +7,10 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 
+[lib]
+name = "nodebox_gui"
+path = "src/lib.rs"
+
 [[bin]]
 name = "nodebox-gui"
 path = "src/main.rs"
@@ -32,3 +36,6 @@ env_logger = "0.11"
 # Image export
 image = { version = "0.25", features = ["png"] }
 tiny-skia = "0.11"
+
+[dev-dependencies]
+egui_kittest = "0.30"
