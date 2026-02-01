@@ -2924,6 +2924,7 @@ version = "0.1.0"
 dependencies = [
  "approx",
  "nodebox-core",
+ "nodebox-ops",
 ]
 
 [[package]]

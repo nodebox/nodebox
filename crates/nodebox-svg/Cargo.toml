@@ -12,3 +12,4 @@ nodebox-core = { path = "../nodebox-core" }
 
 [dev-dependencies]
 approx = { workspace = true }
+nodebox-ops = { path = "../nodebox-ops" }
