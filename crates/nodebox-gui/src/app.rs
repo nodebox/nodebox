@@ -248,10 +248,29 @@ impl NodeBoxApp {
     fn poll_render_results(&mut self) {
         // Check for completed renders
         while let Some(result) = self.render_worker.try_recv_result() {
-            if let RenderResult::Success { id, geometry } = result {
-                if self.render_state.is_current(id) {
-                    self.state.geometry = geometry;
-                    self.render_state.complete();
+            match result {
+                RenderResult::Success { id, geometry, errors } => {
+                    if self.render_state.is_current(id) {
+                        if errors.is_empty() {
+                            // Success with no errors: update geometry and clear errors
+                            self.state.geometry = geometry;
+                            self.state.node_errors.clear();
+                        } else {
+                            // Success with errors: keep last geometry, populate errors
+                            self.state.node_errors = errors
+                                .into_iter()
+                                .map(|e| (e.node_name, e.message))
+                                .collect();
+                        }
+                        self.render_state.complete();
+                    }
+                }
+                RenderResult::Error { id, message } => {
+                    if self.render_state.is_current(id) {
+                        log::error!("Render error: {}", message);
+                        // Keep last geometry on complete failure
+                        self.render_state.complete();
+                    }
                 }
             }
         }
@@ -545,7 +564,7 @@ impl eframe::App for NodeBoxApp {
                     }
 
                     // Network view
-                    let action = self.network_view.show(ui, &mut self.state.library);
+                    let action = self.network_view.show(ui, &mut self.state.library, &self.state.node_errors);
 
                     // Handle network actions
                     match action {

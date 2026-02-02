@@ -3,7 +3,7 @@
 use eframe::egui::{self, Color32, Pos2, Rect, Stroke, Vec2};
 use nodebox_core::geometry::Point;
 use nodebox_core::node::{Connection, Node, NodeLibrary, PortType};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::icon_cache::IconCache;
 use crate::pan_zoom::PanZoom;
@@ -99,7 +99,9 @@ impl NetworkView {
     }
 
     /// Show the network view. Returns any action that should be handled by the app.
-    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut NodeLibrary) -> NetworkAction {
+    ///
+    /// The `node_errors` map contains per-node error messages for visual feedback.
+    pub fn show(&mut self, ui: &mut egui::Ui, library: &mut NodeLibrary, node_errors: &HashMap<String, String>) -> NetworkAction {
         let mut action = NetworkAction::None;
 
         let (response, painter) =
@@ -218,7 +220,15 @@ impl NetworkView {
             let is_selected = self.selected.contains(&child.name);
             let is_rendered = network.rendered_child.as_deref() == Some(&child.name);
             let drag_output_type = self.creating_connection.as_ref().map(|c| c.output_type.clone());
-            self.draw_node(ui.ctx(), &painter, network, child, offset, is_selected, is_rendered, drag_output_type.as_ref());
+            let error_msg = node_errors.get(&child.name);
+            self.draw_node(ui.ctx(), &painter, network, child, offset, is_selected, is_rendered, drag_output_type.as_ref(), error_msg);
+
+            // Show error tooltip on hover
+            if let Some(msg) = error_msg {
+                if node_response.hovered() {
+                    node_response.on_hover_text(format!("{}: {}", child.name, msg));
+                }
+            }
 
             // Check for output port click (to start connection)
             // Use normal-sized hit area (no is_connecting inflation for starting)
@@ -725,6 +735,8 @@ impl NetworkView {
     ///
     /// If `drag_output_type` is provided, input ports will show visual feedback
     /// indicating type compatibility with the dragged connection.
+    ///
+    /// If `error_msg` is provided, the node will be drawn with an error background color.
     fn draw_node(
         &mut self,
         ctx: &egui::Context,
@@ -735,9 +747,15 @@ impl NetworkView {
         is_selected: bool,
         is_rendered: bool,
         drag_output_type: Option<&PortType>,
+        error_msg: Option<&String>,
     ) {
         let rect = self.node_rect(node, offset);
-        let body_color = self.output_type_color(&node.output_type);
+        // Use error color if node has an error, otherwise use output type color
+        let body_color = if error_msg.is_some() {
+            theme::ERROR_RED
+        } else {
+            self.output_type_color(&node.output_type)
+        };
         let z = self.pan_zoom.zoom;
 
         // 1. Selection ring (white fill behind, 2px inset)
